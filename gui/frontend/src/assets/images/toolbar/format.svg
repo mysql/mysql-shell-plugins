@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 46 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-1297,-65)">
+        <g id="Menu">
+        </g>
+        <g transform="matrix(0.998995,0,0,1,-664.523,-1682)">
+            <g id="Expand">
+            </g>
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,723.382,-1009.13)">
+            <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+                <g id="Broom">
+                    <g id="Brush">
+                    </g>
+                    <g id="Handle">
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,653.382,-1009.13)">
+            <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+                <g id="Broom1" serif:id="Broom">
+                    <g id="Brush1" serif:id="Brush">
+                        <path id="Shape-276-copy-5" serif:id="Shape 276 copy 5" d="M1102.01,261.201L1105,261.125C1105,261.125 1104.54,271.532 1102.58,275.594C1099.33,275.594 1103.1,275.866 1098.97,275.866C1101.43,269.723 1102.01,261.201 1102.01,261.201Z" style="fill:rgb(34,34,36);"/>
+                        <path id="Shape-276-copy-2" serif:id="Shape 276 copy 2" d="M1098.11,261.409L1101.62,261.158C1101.62,261.158 1100.99,270.162 1098.36,275.543C1095.11,275.543 1098.64,275.696 1094.52,275.696C1097.64,270.467 1098.11,261.409 1098.11,261.409Z" style="fill:rgb(34,34,36);"/>
+                        <path id="Shape-276-copy-4" serif:id="Shape 276 copy 4" d="M1094.32,261.243L1097.8,261.207C1097.8,261.207 1096.63,272.446 1093.43,275.594C1090.18,275.594 1093.73,275.568 1089.61,275.568C1094.03,270.492 1094.32,261.243 1094.32,261.243Z" style="fill:rgb(34,34,36);"/>
+                        <path id="Shape-276-copy-3" serif:id="Shape 276 copy 3" d="M1090.38,261.282L1094.36,261.415C1094.36,261.415 1092.29,272.726 1088.48,275.696C1085.23,275.696 1088.51,275.696 1084.38,275.696C1089.38,272.345 1090.38,261.282 1090.38,261.282Z" style="fill:rgb(34,34,36);"/>
+                        <path id="Shape-276-copy" serif:id="Shape 276 copy" d="M1087,261.125L1090.19,261.388C1090.19,261.388 1087.71,274.198 1083.21,275.645C1079.96,275.645 1084,275.594 1079.88,275.594C1085.5,272.167 1087,261.125 1087,261.125Z" style="fill:rgb(34,34,36);"/>
+                    </g>
+                    <g id="Handle1" serif:id="Handle">
+                        <path id="Shape-274" serif:id="Shape 274" d="M1093.01,257.714L1092.97,249.047C1092.97,249.047 1094.44,247.21 1096,247.207C1097.44,247.204 1098.99,249.035 1098.99,249.035L1099.03,257.701L1093.01,257.714Z" style="fill:rgb(34,34,36);"/>
+                        <path id="Shape-275" serif:id="Shape 275" d="M1091.79,254.958L1100.12,254.958C1102.33,254.958 1105,257.624 1105,259.833L1105,261L1086.92,261L1086.92,259.833C1086.92,257.624 1089.58,254.958 1091.79,254.958Z" style="fill:rgb(34,34,36);"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit" transform="matrix(1,0,0,1,524,-2050)">
+            <g id="Auto-Commit1" serif:id="Auto Commit">
+            </g>
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error" transform="matrix(1,0,0,1,260,-2050)">
+            <g id="Stop-on-Error1" serif:id="Stop on Error">
+            </g>
+        </g>
+        <g transform="matrix(1,0,0,1,83,-174)">
+            <g id="Execute-Explain" serif:id="Execute Explain">
+                <g id="Search1" serif:id="Search">
+                </g>
+            </g>
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+    </g>
+</svg>

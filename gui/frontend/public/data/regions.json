@@ -1,0 +1,339 @@
+{
+    "type": "Regions",
+    "regions": [
+        {
+            "geometry": {
+                "coordinates": [
+                    -122.4194,
+                    37.7749
+                ]
+            },
+            "properties": {
+                "caption": "CALIFORNIA",
+                "align": "right",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -87.6298,
+                    41.8781
+                ]
+            },
+            "properties": {
+                "caption": "CHICAGO",
+                "align": "right",
+                "status": "planned",
+                "usageType": "Goverment"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -112.0740,
+                    33.4484
+                ]
+            },
+            "properties": {
+                "caption": "PHOENIX",
+                "align": "right",
+                "key": "PHX",
+                "name": "us-phoenix-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -77.4874,
+                    39.0438
+                ]
+            },
+            "properties": {
+                "caption": "ASHBURN, VA",
+                "key": "IAD",
+                "name": "us-ashburn-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -79.3832,
+                    43.6532
+                ]
+            },
+            "properties": {
+                "caption": "TORONTO",
+                "align": "right",
+                "key": "YYZ",
+                "name": "ca-toronto-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -73.5673,
+                    45.5017
+                ]
+            },
+            "properties": {
+                "caption": "MONTREAL",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -46.6333,
+                    -23.5505
+                ]
+            },
+            "properties": {
+                "caption": "SAO PAULO",
+                "key": "GRU",
+                "name": "sa-saopaulo-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -43.9345,
+                    -19.9167
+                ]
+            },
+            "properties": {
+                "caption": "BELO HORIZONTE",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -70.6693,
+                    -33.4489
+                ]
+            },
+            "properties": {
+                "caption": "CHILE",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    8.6821,
+                    50.1109
+                ]
+            },
+            "properties": {
+                "caption": "FRANKFURT",
+                "key": "FRA",
+                "name": "eu-frankfurt-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    4.8945,
+                    52.3667
+                ]
+            },
+            "properties": {
+                "caption": "AMSTERDAM",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    8.5417,
+                    47.3769
+                ]
+            },
+            "properties": {
+                "caption": "ZURICH",
+                "align": "right",
+                "key": "ZRH",
+                "name": "eu-zurich-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -0.1278,
+                    51.5074
+                ]
+            },
+            "properties": {
+                "caption": "LONDON",
+                "align": "right",
+                "key": "LHR",
+                "name": "uk-london-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    35.2137,
+                    31.7683
+                ]
+            },
+            "properties": {
+                "caption": "ISRAEL",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    46.6753,
+                    24.7136
+                ]
+            },
+            "properties": {
+                "caption": "SAUDI ARABIA",
+                "align": "right",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    22.9375,
+                    -30.5595
+                ]
+            },
+            "properties": {
+                "caption": "SOUTH AFRICA",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    54.3773,
+                    24.4539
+                ]
+            },
+            "properties": {
+                "caption": "UAE",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    72.8777,
+                    19.0760
+                ]
+            },
+            "properties": {
+                "caption": "MUMBAI",
+                "align": "right",
+                "key": "BOM",
+                "name": "ap-mumbai-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    78.4867,
+                    17.3850
+                ]
+            },
+            "properties": {
+                "caption": "HYDERABAD",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    103.8198,
+                    1.3521
+                ]
+            },
+            "properties": {
+                "caption": "SINGAPORE",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    126.9780,
+                    37.5665
+                ]
+            },
+            "properties": {
+                "caption": "SEOUL",
+                "align": "right",
+                "key": "ICN",
+                "name": "ap-seoul-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    127.7300,
+                    37.8813
+                ]
+            },
+            "properties": {
+                "caption": "CHUNCHEON",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    135.5023,
+                    34.6937
+                ]
+            },
+            "properties": {
+                "caption": "OSAKA",
+                "align": "right",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    139.7690,
+                    35.6804
+                ]
+            },
+            "properties": {
+                "caption": "TOKYO",
+                "key": "NRT",
+                "name": "ap-tokyo-1"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    144.9631,
+                    -37.8136
+                ]
+            },
+            "properties": {
+                "caption": "MELBOURNE",
+                "status": "planned"
+            }
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    151.2093,
+                    -33.8688
+                ]
+            },
+            "properties": {
+                "caption": "SYDNEY",
+                "key": "SYD",
+                "name": "ap-sydney-1"
+            }
+        }
+    ]
+}

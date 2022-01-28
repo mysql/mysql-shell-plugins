@@ -1,0 +1,208 @@
+/*
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.connectionTabHost {
+    flex: 1 1 auto;
+}
+
+.msg.connectionTabHost .scriptingExplorer {
+    flex: 1 1 auto;
+}
+
+.msg.connectionTabHost .scriptingExplorer .image {
+    width: 16px;
+    height: 16px;
+}
+
+.msg.connectionTabHost .scriptingExplorer .marked {
+    font-weight: 900;
+    border-left: 3px solid var(--sideBar-markerBackground);
+    color: var(--sideBar-markerBackground);
+}
+
+.msg.connectionTabHost .scriptingExplorer .tabulator-tableHolder {
+    overflow-x: hidden;
+}
+
+.msg.connectionTabHost .scriptingExplorer .tabulator-row .tabulator-cell {
+    display: flex;
+}
+
+.msg.connectionTabHost .scriptingExplorer .tabulator-row.marked .tabulator-cell:first-child {
+    /* The first cell in a marked row needs a small adjustment to align properly with unmarked rows. */
+    padding-left: 1px;
+}
+
+.msg.connectionTabHost .scriptingExplorer .tabulator-col-resize-handle {
+    pointer-events: none;
+}
+
+.msg.connectionTabHost .scriptingExplorer .input {
+    margin-left: 40px;
+}
+
+.msg.connectionTabHost .scriptingExplorer .schemaTreeEntry {
+    display: flex;
+    flex-direction: row;
+    user-select: none;
+    align-items: center;
+    overflow: hidden;
+    height: 24px;
+    align-self: center;
+
+    /* Corresponds to the width of the tree toggle and is used when there are no children and hence no toggle. */
+    padding-left: 16px;
+}
+
+.msg.connectionTabHost .scriptingExplorer .treeToggle+.schemaTreeEntry {
+    padding-left: 0px;
+}
+
+.msg.connectionTabHost .scriptingExplorer .schemaTreeEntry > .label {
+    user-select: none;
+}
+
+.msg.connectionTabHost .renderTarget > .resultStatus > .message {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    flex: 1 1 auto;
+}
+
+.msg.dbModuleTabview #demoImage {
+    background-color: #1d1d1d;
+}
+
+.msg.dbModuleTabview #demoImage > .image {
+    transform: scale(0.5) translate(-50%, -50%);
+}
+
+.msg.dbModuleTabview .closeButton {
+    margin-left: 4px;
+    width: 16px;
+    height: 16px;
+
+    border: none;
+    background: transparent;
+}
+
+.msg.dbModuleTabview #loadingProgressIndicator {
+    width: 100%;
+    position: absolute;
+    height: 100%;
+}
+
+.msg.dbModuleTabview #progressMessageId {
+    width: 100%;
+    text-align: center;
+    top: calc(50% + 70px);
+    position: relative;
+}
+
+.msg.connectionBrowser #connectionOverviewToolbar,
+.msg.connectionTabHost #dbEditorMainToolbar {
+    min-height: 0;
+    flex: 0 0 28px;
+    margin: 0;
+    padding: 4px 8px;
+}
+
+.msg.connectionBrowser #connectionOverviewToolbar .image,
+.msg.connectionTabHost #dbEditorMainToolbar .image {
+    width: 24px;
+    height: 24px;
+}
+
+.msg.connectionBrowser .toolbar > .label,
+.msg.connectionTabHost .toolbar > .label {
+    white-space: nowrap;
+}
+
+.msg.connectionBrowser #connectionOverviewToolbar #connectionSelector,
+.msg.connectionTabHost #dbEditorMainToolbar #connectionSelector,
+.msg.connectionTabHost #dbEditorMainToolbar #documentSelector {
+    flex: 0 0 200px;
+    margin: 0 3px 0 6px;
+}
+
+.msg#connectionEditor #loadingProgressIndicator {
+    background: none;
+    margin-left: 10px;
+}
+
+.msg#connectionEditor #progressMessageId {
+    color: var(--text-dimmedForeground);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    padding-left: 5px;
+}
+
+.msg.connectionTabHost .toolbar .button {
+    flex: 0 0 auto;
+
+    min-width: 0;
+    width: 26px;
+    height: 26px;
+
+    padding: 0px;
+    margin: 0 5px 0 0;
+}
+
+.msg.connectionTabHost .toolbar .button > .icon {
+    background-color: var(--titleBar-activeForeground);
+}
+
+.msg.connectionTabHost .editorHost .resultText,
+.msg.connectionTabHost .editorHost .resultText code {
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+}
+
+.msg.connectionTabHost .zoneHost > .textHost > .label[data-lang] {
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+}
+
+.msg.connectionTabHost .toolbar .divider {
+    flex: 0 0 2px;
+    margin: 0 10px;
+    background-color: var(--button-border);
+}
+
+/* Definitions for standalone editors. */
+.msg.connectionTabHost .standaloneScriptHost {
+    flex: 1;
+}
+
+.msg.connectionTabHost .resultHost {
+    flex: 1;
+}
+
+.msg.connectionTabHost .resultHost .selectorItem .label {
+    font-size: 0.7rem;
+    font-weight: 300;
+}
+
+.msg.connectionTabHost .standaloneScriptHost .renderTarget {
+    flex: 1;
+    padding: 2px;
+}

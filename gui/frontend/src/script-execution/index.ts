@@ -1,0 +1,132 @@
+/*
+ * Copyright (c) 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import { languages } from "monaco-editor";
+import { IColumnInfo, IExecutionInfo, MessageType } from "../app-logic/Types";
+import { ResultTextLanguage } from "../components/ResultView";
+
+import { LanguageCompletionKind } from "../parsing/parser-common";
+
+export * from "./ExecutionContext";
+export * from "./SQLExecutionContext";
+export * from "./PresentationInterface";
+
+export const mapCompletionKind: Map<LanguageCompletionKind, languages.CompletionItemKind> = new Map([
+    [LanguageCompletionKind.Schema, languages.CompletionItemKind.Struct],
+    [LanguageCompletionKind.Table, languages.CompletionItemKind.Constant],
+    [LanguageCompletionKind.View, languages.CompletionItemKind.Constant],
+    [LanguageCompletionKind.Function, languages.CompletionItemKind.Function],
+    [LanguageCompletionKind.Procedure, languages.CompletionItemKind.Function],
+    [LanguageCompletionKind.SystemFunction, languages.CompletionItemKind.Function],
+    [LanguageCompletionKind.Keyword, languages.CompletionItemKind.Keyword],
+    [LanguageCompletionKind.Engine, languages.CompletionItemKind.File],
+    [LanguageCompletionKind.Trigger, languages.CompletionItemKind.Interface],
+    [LanguageCompletionKind.LogfileGroup, languages.CompletionItemKind.File],
+    [LanguageCompletionKind.Tablespace, languages.CompletionItemKind.File],
+    [LanguageCompletionKind.SystemVariable, languages.CompletionItemKind.Variable],
+    [LanguageCompletionKind.UserVariable, languages.CompletionItemKind.Variable],
+    [LanguageCompletionKind.Charset, languages.CompletionItemKind.Enum],
+    [LanguageCompletionKind.Collation, languages.CompletionItemKind.Enum],
+    [LanguageCompletionKind.Event, languages.CompletionItemKind.Event],
+    [LanguageCompletionKind.User, languages.CompletionItemKind.User],
+]);
+
+export interface ITextResultEntry {
+    type: MessageType;
+    content: string;
+    language?: ResultTextLanguage;
+}
+
+export interface ITextResult {
+    type: "text";
+
+    text?: ITextResultEntry[];
+    executionInfo?: IExecutionInfo;
+
+    // The following fields are here only to allow handling a text result (which is *usually* just that, text) as
+    // part of result sets. Columns and rows will never contain anything and the optional request ID allows to set
+    // the given text as status to an existing result set.
+    requestId?: string;
+    columns?: IColumnInfo[];
+    rows?: unknown[];
+}
+
+export interface IResultSetContent {
+    requestId: string;
+
+    columns: IColumnInfo[];
+    rows: unknown[];
+
+    // Paging support.
+    currentPage: number;
+    hasMoreRows?: boolean;
+
+    // Set once the execution is finished. Can be a summary or error message or similar.
+    executionInfo?: IExecutionInfo;
+}
+
+export interface IResultSet extends IResultSetContent {
+    // Set when this result set replaces an existing one from a previous request (e.g. when paging results).
+    oldRequestId?: string;
+
+    // Original query without automatic adjustments (like a LIMIT clause).
+    sql: string;
+}
+
+export interface IResultSets {
+    type: "resultSets";
+
+    sets: IResultSet[];
+}
+
+// An own interface for incremental updates of result sets. Includes a status field for the final addition.
+export interface IResultSetRows extends IResultSetContent {
+    type: "resultSetRows";
+
+    totalRowCount?: number;
+}
+
+export interface IGraphData {
+    type: "graphData";
+
+    width?: number;
+    height?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    centerX?: number;
+    centerY?: number;
+
+    data: unknown[];
+}
+
+export interface IRequestIds {
+    type: "requestIds";
+
+    list: string[];
+}
+
+// A set of fields that comprise the result of a script or shell execution.
+export type IExecutionResult = ITextResult | IResultSets | IResultSetRows | IGraphData;
+
+// A simplified form of the execution result interface, which only refers to actual data (in our storage DB).
+export type IExecuteResultReference = ITextResult | IRequestIds | IGraphData;

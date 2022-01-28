@@ -1,0 +1,378 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    theme="dark"
+  >
+    <div>
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid upDown"
+        style="grid-template-columns: auto 16px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container gridCell"
+          id="content"
+          style="flex-direction: row; grid-row: span 2; grid-column: span 1;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container"
+            id="outerList"
+            style="flex-direction: row;"
+            tabindex="0"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              id="innerList"
+              style="flex-direction: column;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                January
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                February
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                March
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                April
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                May
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                June
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                July
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                August
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                September
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                October
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                November
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                December
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container gridCell"
+          style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+        >
+          <button
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg button"
+            id="up"
+            tabindex="-1"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container gridCell"
+          style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+        >
+          <button
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg button"
+            id="down"
+            tabindex="-1"
+          />
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="msg grid upDown"
+      style="grid-template-columns: auto 16px;"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container gridCell"
+        id="content"
+        style="flex-direction: row; grid-row: span 2; grid-column: span 1;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container"
+          id="outerList"
+          style="flex-direction: row;"
+          tabindex="0"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container"
+            id="innerList"
+            style="flex-direction: column;"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              January
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              February
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              March
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              April
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              May
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              June
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              July
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              August
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              September
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              October
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              November
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              December
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container gridCell"
+        style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg button"
+          id="up"
+          tabindex="-1"
+        />
+      </div>
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container gridCell"
+        style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg button"
+          id="down"
+          tabindex="-1"
+        />
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;

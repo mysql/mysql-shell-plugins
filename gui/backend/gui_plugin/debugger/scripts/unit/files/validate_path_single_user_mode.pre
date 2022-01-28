@@ -1,0 +1,19 @@
+
+import tempfile
+import os
+from pathlib import Path
+
+temp_dir = tempfile.mkdtemp()
+ws.tokens["testTempDir"] = temp_dir
+
+os.makedirs(os.path.join(temp_dir, "directory1"))
+os.makedirs(os.path.join(temp_dir, "inaccessible"))
+os.chmod(os.path.join(temp_dir, "inaccessible"), 0o077)
+
+with open(os.path.join(temp_dir, "directory1", "file1"), "w+") as f:
+    f.write("some text")
+with open(os.path.join(temp_dir, "directory1", "file2"), "w+") as f:
+    f.write("some text")
+
+ws.tokens["testTempDirPosix"] = Path(ws.tokens["testTempDir"]).as_posix()
+

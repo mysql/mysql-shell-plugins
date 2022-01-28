@@ -1,0 +1,192 @@
+/*
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import { requisitions } from "../../../frontend/src/supplement/Requisitions";
+
+import { IMySQLDbSystem } from "../../../frontend/src/communication";
+import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
+import { IDBEditorScriptState } from "../../../frontend/src/modules/scripting";
+import { WebviewProvider } from "./WebviewProvider";
+import { IRunQueryRequest } from "../../../frontend/src/supplement";
+
+export class SqlEditorViewProvider extends WebviewProvider {
+
+    public constructor(url: URL, onDispose: (view: WebviewProvider) => void) {
+        super(url, onDispose);
+    }
+
+    /**
+     * Shows the given module page.
+     *
+     * @param caption A caption for the webview tab in which the page is hosted.
+     * @param page The page to show.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public show(caption: string, page: string): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
+        ], caption, "newConnection");
+    }
+
+    /**
+     * Shows a sub part of a page.
+     *
+     * @param caption The title of the webview tab.
+     * @param page The page to open in the webview tab (if not already done).
+     * @param section The section to display.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public showPageSection(caption: string, page: string, section: string): Promise<boolean> {
+        return this.runCommand("showPageSection", { module: DBEditorModuleId, page, section }, caption,
+            "newConnectionWithSql");
+    }
+
+    /**
+     * Sends the given query to the webview, which must be visible.
+     *
+     * @param caption The title of the webview tab.
+     * @param page The page to open in the webview tab (if not already done).
+     * @param details Required information about the query that must be executed.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public runQuery(caption: string, page: string, details: IRunQueryRequest): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            { requestType: "editorRunQuery", parameter: details },
+        ], caption, "newConnectionWithSql");
+    }
+
+    /**
+     * Inserts data from a script (given by a module data id) into this connection editor.
+     * The editor must already exist.
+     *
+     * @param state The script information.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public insertScriptData(state: IDBEditorScriptState): Promise<boolean> {
+        if (state.moduleDataId) {
+            return this.runCommand("editorInsertUserScript",
+                { language: state.language, resourceId: state.moduleDataId }, "", "newConnectionWithSql");
+        }
+
+        return Promise.resolve(false);
+    }
+
+    /**
+     * Opens the dialog for adding a new connection on the app.
+     *
+     * @param caption A caption for the webview tab in which the page is hosted.
+     * @param mdsData Additional data for MDS connections.
+     * @param profileName The config profile name for MDS connections.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public addConnection(caption: string, mdsData?: IMySQLDbSystem, profileName?: String): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "addNewConnection", parameter: { mdsData, profileName } },
+        ], caption, "connections");
+    }
+
+    /**
+     * Removes the connection from the stored connection list.
+     *
+     * @param caption A caption for the webview tab in which the page is hosted.
+     * @param connectionId The connection id.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public removeConnection(caption: string, connectionId: number): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "removeConnection", parameter: connectionId },
+        ], caption, "connections");
+    }
+
+    /**
+     * Shows the connection editor on the connections page for the given connection id.
+     *
+     * @param caption A caption for the webview tab in which the page is hosted.
+     * @param connectionId The connection id.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public editConnection(caption: string, connectionId: number): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "editConnection", parameter: connectionId },
+        ], caption, "connections");
+    }
+
+    /**
+     * Shows the connection editor on the connections page with a duplicate of the given connection.
+     *
+     * @param caption A caption for the webview tab in which the page is hosted.
+     * @param connectionId The connection id.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public duplicateConnection(caption: string, connectionId: number): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "duplicateConnection", parameter: connectionId },
+        ], caption, "connections");
+    }
+
+    protected requisitionsCreated(): void {
+        super.requisitionsCreated();
+
+        if (this.requisitions) {
+            // For requests sent by the web app.
+            this.requisitions.register("refreshConnections", this.refreshConnections);
+            this.requisitions.register("refreshOciTree", this.refreshOciTree);
+            this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
+        }
+    }
+
+    protected refreshConnections = (): Promise<boolean> => {
+        // Watch out! It uses the global requisition singleton, not the local one for this webview provider.
+        return requisitions.execute("refreshConnections", undefined);
+    };
+
+    protected refreshOciTree = (): Promise<boolean> => {
+        // Ditto.
+        return requisitions.execute("refreshOciTree", undefined);
+    };
+
+    protected updateCodeBlock = (data: { linkId: number; code: string }): Promise<boolean> => {
+        // Ditto.
+        return requisitions.execute("codeBlocksUpdate", data);
+    };
+
+}

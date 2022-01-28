@@ -1,0 +1,19 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "struct",
+        "symlink",
+        "unregister"
+    ],
+    "flagWords": [
+        "hte"
+    ],
+    "ignorePaths": [
+    ],
+    "ignoreWords": [
+        "mysqlsh",
+        "OCID",
+        "PYTHONPATH"
+    ]
+}

@@ -1,0 +1,178 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+@viewport {
+    width: device-width;
+    zoom: 1.0;
+}
+
+@font-face {
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL Regular";
+    font-style: normal;
+    font-weight: 400;
+    src: url(../assets/fonts/MySQL.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL";
+    font-style: normal;
+    font-weight: 400;
+    src: url(../assets/fonts/MySQL.ttf) format("truetype");
+}
+
+html,
+body {
+    min-height: 100vh;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+
+    color: var(--foreground);
+    background-color: transparent;
+
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 15px;
+
+    user-select: none;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+
+    background-color: transparent;
+}
+
+a {
+    color: var(--textLink-foreground);
+}
+
+a:active {
+    color: var(--textLink-activeForeground);
+}
+
+pre {
+    color: var(--textPreformat-foreground);
+}
+
+.verticalCenterContent {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg .dropShadow {
+    filter: drop-shadow(3px 3px 5px var(--widget-shadow));
+}
+
+.copyright::after {
+    content: "© 2020, 2021, Oracle Corporation and/or its affiliates.";
+    display: inline-block;
+    margin-top: 80px;
+    font-size: 10px;
+    font-weight: 100;
+    color: var(--text-dimmedForeground);
+}
+
+html.themeSwitch,
+html.themeSwitch *,
+html.themeSwitch *:before,
+html.themeSwitch *:after {
+    transition: color 500ms !important;
+    transition: background 500ms !important;
+    transition: background-color 500ms !important;
+    transition-delay: 0 !important;
+}
+
+.msg .manualFocus,
+.msg [tabindex="0"]:focus,
+.msg input[type=button]:focus,
+.msg input[type=text]:focus,
+.msg input[type=password]:focus,
+.msg input[type=number]:focus,
+
+.msg button[search-type=option]:focus,
+.msg.searchContainer:focus-within,
+
+.msg select:focus,
+.msg textarea:focus,
+.msg button:focus {
+    outline-width: 1px;
+    outline-style: solid;
+    outline-offset: -1px;
+    outline-color: var(--focusBorder);
+    opacity: 1 !important
+}
+
+/* The next two rules disable the number input spin buttons for all browsers. */
+.msg input[type="number"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.msg input[type=number]::-webkit-inner-spin-button,
+.msg input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+.msg::selection {
+    background-color: var(--selection-background);
+}
+
+.msg.applicationHost {
+    overflow: hidden;
+    align-items: stretch;
+    height: 100vh;
+
+    background-color: var(--background);
+}
+
+.msg.applicationHost .moduleHost {
+    display: none;
+}
+
+.msg.applicationHost .moduleHost.active {
+    display: flex;
+}
+
+/* Some browser specific rules. */
+
+/* Removes the additional dotted focus indicator only visible in Firefox. */
+::-moz-focus-inner {
+    border: 0;
+}

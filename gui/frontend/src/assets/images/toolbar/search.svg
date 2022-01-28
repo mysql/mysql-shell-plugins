@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 46 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-1478,-65)">
+        <g id="Menu">
+        </g>
+        <g transform="matrix(0.998995,0,0,1,-664.523,-1682)">
+            <g id="Expand">
+            </g>
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search" transform="matrix(1.21813,0,0,1.21813,593.317,-233.858)">
+            <g>
+                <g id="Search-copy-4" serif:id="Search copy 4" transform="matrix(0.703781,0,0,0.70378,222.612,78.7521)">
+                    <path d="M748.136,265.704L751.36,262.48L754.888,266.008L751.664,269.232L748.136,265.704Z" style="fill:rgb(34,34,36);"/>
+                </g>
+                <path id="Search-copy-3" serif:id="Search copy 3" d="M750.524,268.149L753.747,264.926L760.962,271.957L757.738,275.181L750.524,268.149Z" style="fill:rgb(34,34,36);"/>
+                <path id="Search-copy" serif:id="Search copy" d="M742.055,246.142C748.35,246.142 753.452,251.244 753.452,257.539C753.452,263.833 748.35,268.936 742.055,268.936C735.761,268.936 730.658,263.833 730.658,257.539C730.658,251.244 735.761,246.142 742.055,246.142ZM742.059,248.842C746.864,248.842 750.76,252.737 750.76,257.543C750.76,262.348 746.864,266.243 742.059,266.243C737.254,266.243 733.358,262.348 733.358,257.543C733.358,252.737 737.254,248.842 742.059,248.842Z" style="fill:rgb(34,34,36);"/>
+            </g>
+            <g id="A" transform="matrix(2,0,0,2,747.366,262.872)">
+                <text x="-5.336px" y="0px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:8px;fill:rgb(34,34,36);">A</text>
+            </g>
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,723.382,-1009.13)">
+            <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+                <g id="Broom">
+                    <g id="Brush">
+                    </g>
+                    <g id="Handle">
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,653.382,-1009.13)">
+            <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+                <g id="Broom1" serif:id="Broom">
+                    <g id="Brush1" serif:id="Brush">
+                    </g>
+                    <g id="Handle1" serif:id="Handle">
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit" transform="matrix(1,0,0,1,524,-2050)">
+            <g id="Auto-Commit1" serif:id="Auto Commit">
+            </g>
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error" transform="matrix(1,0,0,1,260,-2050)">
+            <g id="Stop-on-Error1" serif:id="Stop on Error">
+            </g>
+        </g>
+        <g transform="matrix(1,0,0,1,83,-174)">
+            <g id="Execute-Explain" serif:id="Execute Explain">
+                <g id="Search1" serif:id="Search">
+                </g>
+            </g>
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+    </g>
+</svg>

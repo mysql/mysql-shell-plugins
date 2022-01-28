@@ -1,0 +1,301 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.themeEditorHost {
+    padding-top: 20px;
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+}
+
+.msg.themeEditor {
+    font-size: 11pt;
+    overflow: auto;
+    border-bottom: 1px solid var(--window-activeBorder);
+    justify-content: stretch;
+    flex: 0 0 420px;
+}
+
+.msg.themeEditor .subTitle {
+    padding: 20px;
+    font-size: 12pt;
+}
+
+.msg.themeEditor .description {
+    font-size: 10pt;
+    padding: 10px 8px 16px 12px;
+    color: var(--descriptionForeground);
+}
+
+.msg.themeEditor .treeGrid .tabulator-row {
+    margin-left: 8px;
+}
+
+.msg.themeEditor .treeGrid .tabulator-row .tabulator-cell {
+    display: inline-flex;
+    flex-direction: row;
+    user-select: none;
+    align-items: center;
+    overflow: hidden;
+    align-self: center;
+}
+
+.msg.themeEditor .treeGrid .tabulator-row .tabulator-cell .colorTreeEntryHost {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    user-select: none;
+    justify-content: center;
+
+    height: 37px;
+    width: 100%;
+}
+
+.msg.themeEditor .tabulator-row .tabulator-cell .colorEntry {
+    display: inline-flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+
+    overflow: auto;
+}
+
+.msg.themeEditor .tabulator-row .tabulator-cell .colorEntry > .label {
+    flex: 1 1 auto;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.msg.themeEditor .tabulator-row .tabulator-cell .colorEntry > .description {
+    padding: 0;
+}
+
+.msg.themeEditor .tabulator-row .tabulator-cell .colorEntry > .colorIdLabel{
+    font-size: 0.75rem;
+    color: gray;
+    padding: 4px 0 0 16px;
+}
+
+.msg.themeEditor .tabulator-row.tabulator-tree-level-0 {
+    font-weight: 400;
+
+    border-bottom: 2px solid transparent;
+}
+
+.msg.themeEditor .tabulator-tree-level-0.expanded {
+    font-weight: 800;
+    border-image: linear-gradient(to right, var(--text-dimmedForeground) , transparent);
+    border-image-slice: 1;
+    border-image-width: 0 0 1 0;
+}
+
+.msg.themeEditor .gridCell .entry {
+    margin-left: 12px;
+    padding-left: 12px;
+}
+
+.msg.themeEditor .colorValue {
+    font-size: 7pt;
+}
+
+.msg.themeEditor .headerImage {
+    transform: translate(20px, 0px);
+    width: 100px;
+    min-width: 100px;
+    height: 100px;
+}
+
+.msg.themeEditor .themeSelector {
+    flex: 1 1 auto;
+    margin: 0px 8px;
+}
+
+.msg.themeEditor #themeSelectorContainer {
+    margin: 8px;
+    grid-auto-rows: max-content;
+}
+
+.msg.themeEditor #themeActions .button {
+    padding: 0px;
+    margin: 0px;
+    min-width: 0px;
+    min-height: 0px;
+
+    width: 30px;
+    height: 30px;
+}
+
+.msg.themeEditor #themeActions .icon {
+    width: 13px;
+    height: 13px;
+}
+
+.msg.themeEditor #themeActions #button1 {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.msg.themeEditor #themeActions #button2 {
+    border-top-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.msg.themeEditor #themeActions #button3 {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.msg.themeEditor #themeActions #button4 {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.msg.themeEditor #colorPadCell {
+    flex-wrap: wrap;
+    padding: 4px 4px;
+    overflow: hidden;
+}
+
+.msg.themeEditor #colorPadCell > .colorField {
+    margin: 6px;
+}
+
+.msg.themeEditor #previewIcon {
+    width: 23px;
+    height: 23px;
+}
+
+.msg.themeEditor #showUnusedColors {
+    margin-bottom: 8px;
+}
+
+.msg.themeEditor .syntaxStyleEntry {
+    display: table;
+    box-sizing: border-box;
+    width: calc(100% - 42px); /* margin + border */
+
+    margin: 12px 20px 4px 20px;
+    padding: 16px;
+
+    border: 2px solid var(--tooltip-border);
+    border-radius: 8px;
+
+    overflow: visible;
+    background-color: var(--window-footerBackground);
+}
+
+.msg.themeEditor .syntaxStyleEntry:hover {
+    border-color: var(--focusBorder);
+}
+
+.msg.themeEditor .syntaxStyleEntry > .styleEntryDeleteButton {
+    position: absolute;
+
+    right: -11px;
+    top: -10px;
+
+    width: 20px;
+    height: 20px;
+}
+
+@-moz-document url-prefix() {
+    .msg.themeEditor .syntaxStyleEntry > .styleEntryDeleteButton {
+        right: -7px;
+    }
+
+}
+
+.msg.themeEditor .syntaxStyleEntry:not(:hover) > .styleEntryDeleteButton {
+    display: none;
+}
+
+.msg.themeEditorHost .syntaxStyleEntry > .styleEntryDeleteButton > .icon {
+    width: 14px;
+    height: 13px;
+}
+
+.msg.themeEditor .syntaxStyleEntry > .styleEntryCloneButton {
+    position: absolute;
+
+    left: calc(50% - 12px);
+    bottom: -12px;
+
+    width: 24px;
+    height: 24px;
+}
+
+.msg.themeEditor .syntaxStyleEntry:not(:hover) > .styleEntryCloneButton {
+    display: none;
+}
+
+.msg.themeEditorHost .syntaxStyleEntry > .styleEntryCloneButton > .icon {
+    width: 18px;
+    height: 18px;
+}
+
+.msg.themeEditor .syntaxStyleEntry .syntaxColor {
+    margin-top: 10px;
+    overflow: visible;
+}
+
+.msg.themeEditor .syntaxStyleEntry .scopeList {
+    min-height: 24px;
+    max-height: 74px;
+}
+
+.msg.portal .scopeSelector .tagInput {
+    width: 500px;
+    height: 250px;
+}
+
+.msg.portal .scopeSelector #title {
+    font-size: 24pt;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+.msg.portal .scopeSelector #subTitle {
+    font-size: 16pt;
+    font-weight: 800;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--foreground);
+}
+
+.msg.portal .scopeSelector #description {
+    margin-bottom: 8px;
+}
+
+.msg.portal .scopeSelector .footer {
+    flex: 0 0 40px;
+    background-color: var(--window-footerBackground);
+    padding: 2px 8px 2px 8px;
+
+    margin: 0 -8px -8px -8px;
+    border-radius: 0 0 8px 8px;
+}

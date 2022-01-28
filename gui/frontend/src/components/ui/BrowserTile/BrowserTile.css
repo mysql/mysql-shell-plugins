@@ -1,0 +1,168 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.browserTile {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+
+    align-items: stretch;
+
+    margin: 10px;
+    padding: 0px 0px 0px 20px;
+    width: 270px;
+    height: 80px;
+
+    border-radius: 4px;
+    border: 2px solid var(--browserTile-border);
+
+    color: var(--browserTile-foreground);
+    background-color: var(--browserTile-background);
+
+    transition: background .15s ease-in;
+    user-select: none;
+}
+
+/* Need a stronger focus indicator for this big buttons. A single thin line doesn't work well. */
+.msg.browserTile:focus {
+    outline: none;
+}
+
+.msg.browserTile:focus::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: -6px;
+    right: -6px;
+    border-radius: 6px;
+    border: 2px dashed var(--focusBorder);
+    overflow: visible;
+}
+
+.msg.browserTile .icon:not(.codicon) {
+    flex: 0 0 40px;
+    margin-right: 16px;
+
+    background-color: var(--browserTile-foreground);
+}
+
+.msg.browserTile:not(:disabled).dropTarget,
+.msg.browserTile:not(:disabled):hover {
+    background-color: var(--browserTile-hoverBackground);
+}
+
+.msg.browserTile:not(:disabled):active,
+.msg.browserTile:focus,
+.msg.browserTile:focus-within {
+    color: var(--browserTile-activeForeground);
+    border-color: var(--browserTile-activeBorder);
+    background-color: var(--browserTile-activeBackground);
+}
+
+.msg .browserTile.secondary {
+    border-color: var(--browserTileSecondary-border);
+    background-color: var(--browserTileSecondary-background);
+    color: var(--browserTileSecondary-foreground);
+}
+
+.msg.browserTile.secondary:not(:disabled):active,
+.msg.browserTile.secondary:focus {
+    color: var(--browserTileSecondary-activeForeground);
+    border-color: var(--browserTileSecondary-activeBorder);
+    background-color: var(--browserTileSecondary-activeBackground);
+}
+
+.msg.browserTile .textHost {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding-right: 8px;
+}
+
+.msg.browserTile .label {
+    margin: 0px;
+    padding: 0px;
+
+    text-align: left;
+
+    color: var(--browserTile--foreground);
+}
+
+.msg.browserTile .tileCaption {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.msg.browserTile .tileDescription {
+    font-size: 0.7rem;
+}
+
+.msg.browserTile.secondary .label {
+    color: var(--browserTileSecondary--foreground);
+}
+
+.msg.browserTile.secondary .icon {
+    background-color: var(--browserTileSecondary-foreground);
+}
+
+.msg.browserTile #actions {
+    display: flex;
+    visibility: hidden;
+    position: absolute;
+    justify-items: center;
+
+    top: 0;
+    right: 0px;
+    margin: 0px;
+
+    width: 24px;
+    height: 24px;
+
+    border: none;
+    border-radius: 0 0px 0 4px;
+    background: var(--browserTile-border);
+}
+
+.msg.browserTile:focus #actions,
+.msg.browserTile:hover #actions {
+    visibility: visible;
+}
+
+.msg.browserTile #actions > #triggerEditMenu {
+    flex: 1 1 auto;
+
+    min-width: 0;
+    width: 17px;
+    height: 17px;
+
+    padding: 0;
+    margin: 0;
+
+    color: var(--icon-foreground);
+    font-weight: 800;
+
+    text-align: center;
+    border: none;
+    background: var(--browserTile-border);
+}

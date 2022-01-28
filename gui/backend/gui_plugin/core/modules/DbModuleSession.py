@@ -1,0 +1,272 @@
+# Copyright (c) 2021, Oracle and/or its affiliates.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2.0,
+# as published by the Free Software Foundation.
+#
+# This program is also distributed with certain software (including
+# but not limited to OpenSSL) that is licensed under separate terms, as
+# designated in a particular file or component or in included license
+# documentation.  The authors of MySQL hereby grant you an additional
+# permission to link the program and your derivative works with the
+# separately licensed software that they have included with MySQL.
+# This program is distributed in the hope that it will be useful,  but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+# the GNU General Public License, version 2.0, for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+import json
+import os
+import threading
+import mysqlsh
+from gui_plugin.core.modules.ModuleSession import ModuleSession
+from gui_plugin.core.DbSession import DbSessionFactory
+from gui_plugin.core.Error import MSGException
+import gui_plugin.core.Error as Error
+from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
+from gui_plugin.core.Protocols import Response
+from gui_plugin.core.lib.OciUtils import BastionHandler
+import gui_plugin.core.Logger as logger
+
+
+def check_service_database_session(func):
+    def wrapper(self, *args, **kwargs):
+        if not self._db_service_session:
+            raise MSGException(Error.DB_NOT_OPEN,
+                               'The database session needs to be opened before SQL can be executed.')
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
+class DbModuleSession(ModuleSession):
+    def __init__(self, web_session):
+        super().__init__(web_session)
+        self._db_type = None
+        self._connection_options = None
+        self._db_service_session = None
+
+    def __del__(self):
+        self.close()
+        super().__del__()
+
+    def close(self):
+        # do cleanup
+        self._connection_options = None
+        self._db_type = None
+
+        if self._db_service_session is not None:
+            self._db_service_session.close()
+            self._db_service_session = None
+
+        super().close()
+
+    # This is the former path validation in DbSqliteSession
+    def _validate_connection_config(self, config):
+        path = config['db_file']
+        database_name = find_schema_name(config)
+
+        # Only allow absolute paths when running a local session.
+        if os.path.isabs(path):
+            if self._web_session and not self._web_session.is_local_session:
+                raise MSGException(Error.CORE_ABSPATH_NOT_ALLOWED,
+                                   f"Absolute paths are not allowed when running a remote session for '{database_name}' database.")
+        else:
+            user_dir = os.path.abspath(mysqlsh.plugin_manager.general.get_shell_user_dir(
+                'plugin_data', 'gui_plugin', f'user_{self._web_session.user_id}'))
+
+            path = os.path.join(user_dir, path)
+
+            if not os.path.abspath(path).startswith(user_dir):
+                raise MSGException(Error.CORE_ACCESS_OUTSIDE_USERSPACE,
+                                   f"Trying to access outside the user space on '{database_name}' database.")
+
+        if not os.path.isfile(path):
+            raise MSGException(Error.CORE_PATH_NOT_EXIST,
+                               f"The database file: {path} does not exist for '{database_name}' database.")
+
+        return path
+
+    # Note that this function is executed in the DBSession thread
+    # def _handle_db_response(self, request_id, values):
+    def _handle_db_response(self, state, message, request_id, data=None):
+        if state == 'ERROR':
+            self._web_session.send_command_response(request_id, data)
+        elif state == "OK":
+            msg = ""
+            if not message is None:
+                msg = message
+            elif "total_row_count" in data.keys():
+                row_count = data["total_row_count"]
+                plural = '' if row_count == 1 else 's'
+                msg = f'Full result set consisting of {row_count} row{plural}' \
+                    f' transferred.'
+
+            self._web_session.send_response_message('OK',
+                                                    msg,
+                                                    request_id,
+                                                    data)
+        elif state == "CANCELLED":
+            msg = ""
+            if not message is None:
+                msg = message
+
+            self._web_session.send_response_message('CANCELLED',
+                                                    msg,
+                                                    request_id,
+                                                    data)
+        else:
+            msg = ""
+            if not message is None:
+                msg = message
+            else:
+                msg = "Executing..."
+            self._web_session.send_response_message('PENDING',
+                                                    msg,
+                                                    request_id,
+                                                    data)
+
+    def open_connection(self, db_connection_id, password, request_id):
+        self._current_request_id = request_id
+        db = self.web_session.db
+
+        self._db_type, options = db.get_connection_details(db_connection_id)
+        if not password is None:
+            # Override the password
+            options['password'] = password
+
+        # In SQLIte connections we validate the configuration is valid
+        if self._db_type == "Sqlite":
+            options['db_file'] = self._validate_connection_config(options)
+
+        # Check if MDS options have been specified
+        if 'mysql-db-system-id' in options:
+            bastion_handler = BastionHandler(lambda x: self._web_session.send_response_message(
+                msg_type='PENDING',
+                msg=x,
+                request_id=self._current_request_id,
+                values=None, api=False))
+
+            options = bastion_handler.establish_connection(options)
+
+        self._connection_options = options
+
+        return self.connect()
+
+    def connect(self):
+        self._db_service_session = DbSessionFactory.create(
+            self._db_type, self._web_session.session_uuid, True,
+            self._connection_options,
+            self.on_connected,
+            lambda x: self.on_fail_connecting(x),
+            lambda x: self.on_shell_prompt(x),
+            lambda x: self.on_shell_password(x))
+
+    # Temporary hack, right thing would be that the shell unparse_uri
+    # supports passing the needed tokens
+    def _get_simplified_uri(self, options):
+        uri_data = {}
+        keys = options.keys()
+        if "user" in keys:
+            uri_data["user"] = options["user"]
+
+        if "host" in keys:
+            uri_data["host"] = options["host"]
+
+        if "port" in keys:
+            uri_data["port"] = options["port"]
+
+        return mysqlsh.globals.shell.unparse_uri(uri_data)
+
+    def on_shell_password(self, caption):
+        prompt_event = threading.Event()
+
+        self.send_prompt_response(
+            self._current_request_id, {"password": caption}, lambda: prompt_event.set())
+
+        prompt_event.wait()
+
+        # If password is prompted, stores it on the connection data
+        # TODO: avoid keeping the password
+        uri = self._get_simplified_uri(self._connection_options)
+        if caption.find(f"Please provide the password for '{uri}'") != -1:
+            self._connection_options["password"] = self._prompt_reply
+
+        return self._prompt_replied, self._prompt_reply
+
+    def on_shell_prompt(self, caption):
+        prompt_event = threading.Event()
+
+        self.send_prompt_response(
+            self._current_request_id, {"prompt": caption}, lambda: prompt_event.set())
+
+        prompt_event.wait()
+
+        return self._prompt_replied, self._prompt_reply
+
+    def on_connected(self):
+        data = Response.ok("Connection was successfully opened.", {
+            "module_session_id": self._module_session_id,
+            "info": self._db_service_session.info(),
+            "default_schema": self._db_service_session.get_default_schema()
+        })
+
+        self.send_command_response(self._current_request_id, data)
+
+    def on_fail_connecting(self, exc):
+        logger.exception(exc)
+        self.send_command_response(
+            self._current_request_id, Response.exception(exc))
+
+    @ check_service_database_session
+    def get_objects_types(self, request_id):
+        self._db_service_session.get_objects_types(request_id=request_id,
+                                                   callback=self._handle_api_response)
+
+    @ check_service_database_session
+    def get_catalog_object_names(self, request_id,   type, filter=None):
+        self._db_service_session.get_catalog_object_names(request_id=request_id,
+                                                          type=type, filter=filter,
+                                                          callback=self._handle_api_response)
+
+    @ check_service_database_session
+    def get_schema_object_names(self, request_id, type, schema_name, filter=None):
+        self._db_service_session.get_schema_object_names(request_id=request_id,
+                                                         type=type, schema_name=schema_name,
+                                                         filter=filter,
+                                                         callback=self._handle_api_response)
+
+    @ check_service_database_session
+    def get_table_object_names(self, request_id, type, schema_name, table_name, filter=None):
+        self._db_service_session.get_table_object_names(request_id=request_id,
+                                                        type=type,
+                                                        schema_name=schema_name, table_name=table_name,
+                                                        filter=filter,
+                                                        callback=self._handle_api_response)
+
+    @ check_service_database_session
+    def get_catalog_object(self, request_id, type, name):
+        self._db_service_session.get_catalog_object(request_id=request_id,
+                                                    type=type, name=name,
+                                                    callback=self._handle_api_response)
+
+    @ check_service_database_session
+    def get_schema_object(self, request_id, type, schema_name, name):
+        self._db_service_session.get_schema_object(request_id=request_id,
+                                                   type=type, schema_name=schema_name,
+                                                   name=name,
+                                                   callback=self._handle_api_response)
+
+    @ check_service_database_session
+    def get_table_object(self, request_id, type, schema_name, table_name, name):
+        self._db_service_session.get_table_object(request_id=request_id,
+                                                  type=type,
+                                                  schema_name=schema_name, table_name=table_name,
+                                                  name=name,
+                                                  callback=self._handle_api_response)
+
+    def cancel_request(self, request_id):
+        raise NotImplementedError()

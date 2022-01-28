@@ -1,0 +1,1854 @@
+{
+    "ANY_VALUE": [
+        "ANY_VALUE(expr)\n\nreturns: mixed",
+        "_**System Function**_ (⊕ 5.7.5)\n\nSuppress ONLY_FULL_GROUP_BY value rejection"
+    ],
+    "CAST": [
+        "**CAST**(`expr` AS `type`)\n- `expr` (mixed) => Value to cast\n- `type` (string) => Datatype to cast to\n\nreturns: mixed",
+        "_**System Function**_\n\nCast a value as a certain type"
+    ],
+    "CONVERT": [
+        "**CONVERT**(`expr`, `type`)\n- `expr` (mixed) => Value to cast\n- `type` (string) => Datatype to cast to\n\n**CONVERT**(`expr` USING `transcoding_name`)\n- `expr` (mixed) => Value to cast\n- `transcoding_name` (string) => Character set to convert to\n\nreturns: mixed",
+        "_**System Function**_\n\nCast a value as a certain type"
+    ],
+    "ABS": [
+        "**ABS**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the absolute value"
+    ],
+    "ACOS": [
+        "**ACOS**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the arc cosine"
+    ],
+    "ASIN": [
+        "**ASIN**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the arc sine"
+    ],
+    "ATAN": [
+        "**ATAN**(`Y`,`X`)\n- `Y` (numeric) => Number\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the arc tangent of the two arguments"
+    ],
+    "CEIL": [
+        "**CEIL**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the smallest integer value not less than the argument"
+    ],
+    "CEILING": [
+        "**CEILING**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the smallest integer value not less than the argument"
+    ],
+    "COS": [
+        "**COS**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the cosine"
+    ],
+    "COT": [
+        "**COT**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the cotangent"
+    ],
+    "CRC32": [
+        "**CRC32**(`expr`)\n- `expr` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nCompute a cyclic redundancy check value"
+    ],
+    "DEGREES": [
+        "**DEGREES**(`X`)\n- `X` (numeric) => Radians\n\nreturns: numeric",
+        "_**System Function**_\n\nConvert radians to degrees"
+    ],
+    "EXP": [
+        "**EXP**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nRaise to the power of"
+    ],
+    "FLOOR": [
+        "**FLOOR**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the largest integer value not greater than the argument"
+    ],
+    "LN": [
+        "**LN**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the natural logarithm of the argument"
+    ],
+    "LOG": [
+        "**LOG**(`B`)\n- `B` (numeric) => Number\n\n**LOG**(`B`,`X`)\n- `B` (numeric) => Number\n- `X` (numeric) => Base\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the natural logarithm of the first argument"
+    ],
+    "LOG2": [
+        "**LOG2**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the base-2 logarithm of the argument"
+    ],
+    "LOG10": [
+        "**LOG10**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the base-10 logarithm of the argument"
+    ],
+    "MOD": [
+        "**MOD**(`N`,`M`)\n- `N` (numeric) => Dividend\n- `M` (numeric) => Divisor\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the remainder"
+    ],
+    "PI": [
+        "**PI**()\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the value of pi"
+    ],
+    "POW": [
+        "**POW**(`X`,`Y`)\n- `X` (numeric) => Number\n- `Y` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the argument raised to the specified power"
+    ],
+    "POWER": [
+        "**POWER**(`X`,`Y`)\n- `X` (numeric) => Number\n- `Y` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the argument raised to the specified power"
+    ],
+    "RADIANS": [
+        "**RADIANS**(`X`)\n- `X` (numeric) => Degrees\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn argument converted to radians"
+    ],
+    "RAND": [
+        "**RAND**([`N`])\n- `N` (numeric) => Seed value\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn a random floating-point value"
+    ],
+    "RANDOM_BYTES": [
+        "**RANDOM_BYTES**([`len`])\n- `len` (numeric) => Length of return value\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.7.4)\n\nReturn a random byte vector"
+    ],
+    "ROUND": [
+        "**ROUND**(`X`)\n- `X` (numeric) => Number\n\n**ROUND**(`X`,`D`)\n- `X` (numeric) => Number\n- `D` (numeric) => Number of decimal places\n\nreturns: numeric",
+        "_**System Function**_\n\nRound the argument"
+    ],
+    "SIGN": [
+        "**SIGN**(`X`)\n- `X` (numeric) => Number\n\nreturns: string",
+        "_**System Function**_\n\nReturn the sign of the argument"
+    ],
+    "SIN": [
+        "**SIN**(`X`)\n- `X` (numeric) => Radians\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the sine of the argument"
+    ],
+    "SQRT": [
+        "**SQRT**(`X`)\n- `X` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the square root of the argument"
+    ],
+    "TAN": [
+        "**TAN**(`X`)\n- `X` (numeric) => Radians\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the tangent of the argument"
+    ],
+    "TRUNCATE": [
+        "**TRUNCATE**(`X`,`D`)\n- `X` (numeric) => Number\n- `D` (numeric) => Number of decimal places\n\nreturns: numeric",
+        "_**System Function**_\n\nTruncate to specified number of decimal places"
+    ],
+    "ADDDATE": [
+        "**ADDDATE**(`date`,INTERVAL `expr` `unit`)\n- `date` (date) => Initial date\n- `expr` (numeric) => Amount to add\n- `unit` (string) => Unit\n\n**ADDDATE**(`expr`,`days`)\n- `expr` (date) => Initial date\n- `days` (numeric) => Units in Days\n\nreturns: date",
+        "_**System Function**_ (⊕ 4.1.1)\n\nAdd time values (intervals) to a date value"
+    ],
+    "ADDTIME": [
+        "**ADDTIME**(`expr1`,`expr2`)\n- `expr1` (datetime) => Date or time\n- `expr2` (time) => Time\n\nreturns: time",
+        "_**System Function**_ (⊕ 4.1.1)\n\nAdd time"
+    ],
+    "CONVERT_TZ": [
+        "**CONVERT_TZ**(`dt`,`from_tz`,`to_tz`)\n- `dt` (datetime) => Date\n- `from_tz` (string) => From time zone\n- `to_tz` (string) => To time zone\n\nreturns: datetime",
+        "_**System Function**_ (⊕ 4.1.3)\n\nConvert from one time zone to another"
+    ],
+    "CURDATE": [
+        "**CURDATE**()\n\nreturns: datetime",
+        "_**System Function**_\n\nReturn the current date"
+    ],
+    "CURRENT_DATE": [
+        "**CURRENT_DATE**()\n\nreturns: datetime",
+        "_**System Function**_\n\nSynonyms for CURDATE()"
+    ],
+    "CURTIME": [
+        "**CURTIME**()\n\nreturns: time",
+        "_**System Function**_\n\nReturn the current time"
+    ],
+    "CURRENT_ROLE": [
+        "returns: string",
+        "_**System Function**_\n\nReturn the current active roles"
+    ],
+    "CURRENT_TIME": [
+        "**CURRENT_TIME**()\n\nreturns: time",
+        "_**System Function**_\n\nSynonyms for CURTIME()"
+    ],
+    "CURRENT_TIMESTAMP": [
+        "**CURRENT_TIMESTAMP**()\n\nreturns: datetime",
+        "_**System Function**_\n\nSynonyms for NOW()"
+    ],
+    "DATE": [
+        "**DATE**(`expr`)\n- `expr` (datetime) => Date\n\nreturns: date",
+        "_**System Function**_ (⊕ 4.1.1)\n\nExtract the date part of a date or datetime expression"
+    ],
+    "DATEDIFF": [
+        "**DATEDIFF**(`expr1`,`expr2`)\n- `expr1` (datetime) => Minuend\n- `expr2` (datetime) => Subtrahend\n\nreturns: days",
+        "_**System Function**_ (⊕ 4.1.1)\n\nSubtract two dates"
+    ],
+    "DATE_ADD": [
+        "**DATE_ADD**(`date`,INTERVAL `expr` `unit`)\n- `date` (date) => Date\n- `expr` (numeric) => Amount to be added\n- `unit` (string) => Unit\n\nreturns: date",
+        "_**System Function**_\n\nAdd time values (intervals) to a date value"
+    ],
+    "DATE_SUB": [
+        "**DATE_SUB**(`date`,INTERVAL `expr` `unit`)\n- `date` (date) => Date\n- `expr` (numeric) => Amount to be subtracted\n- `unit` (string) => Unit\n\nreturns: date",
+        "_**System Function**_\n\nSubtract a time value (interval) from a date"
+    ],
+    "DATE_FORMAT": [
+        "**DATE_FORMAT**(`date`,`format`)\n- `date` (date) => Date\n- `format` (string) => Format specifier\n- `format` (string) => Locale\n\nreturns: date",
+        "_**System Function**_\n\nFormat date as specified"
+    ],
+    "DAY": [
+        "**DAY**(`date`)\n- `date` (date) => Date\n\nreturns: date",
+        "_**System Function**_ (⊕ 4.1.1)\n\nSynonym for DAYOFMONTH()"
+    ],
+    "DAYNAME": [
+        "**DAYNAME**(`date`)\n- `date` (date) => Date\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.21)\n\nReturn the name of the weekday"
+    ],
+    "DAYOFMONTH": [
+        "**DAYOFMONTH**(`date`)\n- `date` (numeric) => Number\n\nreturns: string",
+        "_**System Function**_\n\nReturn the day of the month (0-31)"
+    ],
+    "DAYOFWEEK": [
+        "**DAYOFWEEK**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the weekday index of the argument"
+    ],
+    "DAYOFYEAR": [
+        "**DAYOFYEAR**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the day of the year (1-366)"
+    ],
+    "EXTRACT": [
+        "**EXTRACT**(`unit` FROM `date`)\n- `unit` (string) => Unit specifier\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nExtract part of a date"
+    ],
+    "FROM_BASE64": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.6.1)\n\nDecode base64 encoded string and return result"
+    ],
+    "FROM_DAYS": [
+        "**FROM_DAYS**(`N`)\n- `N` (numeric) => Number\n\nreturns: date",
+        "_**System Function**_\n\nConvert a day number to a date"
+    ],
+    "FROM_UNIXTIME": [
+        "**FROM_UNIXTIME**(`unix_timestamp`)\n- `unix_timestamp` (numeric) => Number\n\n**FROM_UNIXTIME**(`unix_timestamp`, `format`)\n- `unix_timestamp` (numeric) => Number\n- `format` (string) => Format specifier\n\nreturns: date",
+        "_**System Function**_\n\nFormat Unix timestamp as a date"
+    ],
+    "GET_FORMAT": [
+        "**GET_FORMAT**(DATE|TIME|DATETIME, 'EUR'|'USA'|'JIS'|'ISO'|'INTERNAL')\n- `expr` (numeric) => Type specifier\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn a date format string"
+    ],
+    "GTID_SUBSET": [
+        "**GTID_SUBSET**(`subset`, `set`)\n- `subset` (string) => Set of GTIDs\n- `set` (string) => Set of GTIDs\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.6.5)\n\nReturn true if all GTIDs in subset are also in set; otherwise false."
+    ],
+    "GTID_SUBTRACT": [
+        "**GTID_SUBTRACT**(`set`, `subset`)\n- `set` (string) => Set of GTIDs\n- `subset` (string) => Set of GTIDs\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.6.5)\n\nReturn all GTIDs in set that are not in subset."
+    ],
+    "HOUR": [
+        "**HOUR**(`time`)\n- `time` (time) => Time\n\nreturns: numeric",
+        "_**System Function**_\n\nExtract the hour"
+    ],
+    "LAST_DAY": [
+        "**LAST_DAY**(`date`)\n- `date` (datetime) => Date\n\nreturns: date",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the last day of the month for the argument"
+    ],
+    "LOCALTIME": [
+        "**LOCALTIME**()\n\nreturns: datetime",
+        "_**System Function**_\n\nSynonym for NOW()"
+    ],
+    "LOCALTIMESTAMP": [
+        "**LOCALTIMESTAMP**()\n\nreturns: datetime",
+        "_**System Function**_ (⊕ 4.0.6)\n\nSynonym for NOW()"
+    ],
+    "MAKEDATE": [
+        "**MAKEDATE**(`year`,`dayofyear`)\n- `year` (numeric) => Year\n- `dayofyear` (numeric) => Day of year\n\nreturns: date",
+        "_**System Function**_ (⊕ 4.1.1)\n\nCreate a date from the year and day of year"
+    ],
+    "MAKETIME": [
+        "**MAKETIME**(`hour`, `minute`,`second`)\n- `hour` (numeric) => Hour\n- `minute` (numeric) => Minute\n- `second` (numeric) => Second\n\nreturns: time",
+        "_**System Function**_ (⊕ 4.1.1)\n\nCreate time from hour, minute, second"
+    ],
+    "MICROSECOND": [
+        "**MICROSECOND**(`expr`)\n- `expr` (datetime) => Date\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the microseconds from argument"
+    ],
+    "MINUTE": [
+        "**MINUTE**(`time`)\n- `time` (datetime) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the minute from the argument"
+    ],
+    "MONTH": [
+        "**MONTH**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the month from the date passed"
+    ],
+    "MONTHNAME": [
+        "**MONTHNAME**(`date`)\n- `date` (date) => Date\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.21)\n\nReturn the name of the month"
+    ],
+    "NOW": [
+        "**NOW**()\n\nreturns: datetime",
+        "_**System Function**_\n\nReturn the current date and time"
+    ],
+    "PERIOD_ADD": [
+        "**PERIOD_ADD**(`P`,`N`)\n- `P` (numeric) => Format period YYMM or YYYYMM\n- `N` (numeric) => Number of months\n\nreturns: string",
+        "_**System Function**_\n\nAdd a period to a year-month"
+    ],
+    "PERIOD_DIFF": [
+        "**PERIOD_DIFF**(`P1`,`P2`)\n- `P1` (numeric) => Format period YYMM or YYYYMM\n- `P2` (numeric) => Format period YYMM or YYYYMM\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the number of months between periods"
+    ],
+    "QUARTER": [
+        "**QUARTER**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the quarter from a date argument"
+    ],
+    "SECOND": [
+        "**SECOND**(`time`)\n- `time` (datetime) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the second (0-59)"
+    ],
+    "SEC_TO_TIME": [
+        "**SEC_TO_TIME**(`seconds`)\n- `seconds` (numeric) => Number\n\nreturns: time",
+        "_**System Function**_\n\nConverts seconds to 'hh:mm:ss' format"
+    ],
+    "STR_TO_DATE": [
+        "**STR_TO_DATE**(`str`,`format`)\n- `str` (string) => String\n- `format` (string) => Format string\n\nreturns: date",
+        "_**System Function**_ (⊕ 4.1.1)\n\nConvert a string to a date"
+    ],
+    "SUBDATE": [
+        "**SUBDATE**(`date`,INTERVAL `expr` `unit`)\n- `date` (date) => Date\n- `expr` (numeric) => Number\n- `unit` (string) => Unit of time\n\n**SUBDATE**(`expr`,`days`)\n- `expr` (date) => Date\n- `days` (numeric) => Number of days\n\nreturns: numeric",
+        "_**System Function**_\n\nSynonym for DATE_SUB() when invoked with three arguments"
+    ],
+    "SUBTIME": [
+        "**SUBTIME**(`expr1`,`expr2`)\n- `expr1` (datetime) => Date\n- `expr2` (datetime) => Date\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1)\n\nSubtract times"
+    ],
+    "SYSDATE": [
+        "**SYSDATE**()\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn the time at which the function executes"
+    ],
+    "TIME": [
+        "**TIME**(`expr`)\n- `expr` (datetime) => Date\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1)\n\nExtract the time portion of the expression passed"
+    ],
+    "TIMEDIFF": [
+        "**TIMEDIFF**(`expr1`,`expr2`)\n- `expr1` (datetime) => Properly formatted string\n- `expr2` (datetime) => Properly formatted string\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1)\n\nSubtract time"
+    ],
+    "TIMESTAMP": [
+        "**TIMESTAMP**(`expr1`,`expr2`)\n- `expr1` (datetime) => Date\n- `expr2` (datetime) => Date\n\n**TIMESTAMP**(`expr`)\n- `expr` (string) => String\n\nreturns: datetime",
+        "_**System Function**_ (⊕ 4.1.1)\n\nWith a single argument, this function returns the date or datetime expression; with two arguments, the sum of the arguments"
+    ],
+    "TIMESTAMPADD": [
+        "**TIMESTAMPADD**(`unit`, `interval`,`datetime_expr`)\n- `unit` (string) => Time unit\n- `interval` (numeric) => Number of units\n- `datetime_expr` (datetime) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nAdd an interval to a datetime expression"
+    ],
+    "TIMESTAMPDIFF": [
+        "**TIMESTAMPDIFF**(`unit`,`datetime_expr1`, `datetime_expr2`)\n- `unit` (string) => Time unit\n- `datetime_expr1` (date) => Date subtrahend\n- `datetime_expr2` (date) => Date minuend\n\nreturns: numeric",
+        "_**System Function**_\n\nSubtract an interval from a datetime expression"
+    ],
+    "TIME_FORMAT": [
+        "**TIME_FORMAT**(`time`,`format`)\n- `time` (time) => Time\n- `format` (string) => Properly formatted string\n\nreturns: time",
+        "_**System Function**_\n\nFormat as time"
+    ],
+    "TIME_TO_SEC": [
+        "**TIME_TO_SEC**(`time`)\n- `time` (datetime) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the argument converted to seconds"
+    ],
+    "TO_BASE64": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn the argument converted to a base-64 string"
+    ],
+    "TO_DAYS": [
+        "**TO_DAYS**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the date argument converted to days"
+    ],
+    "TO_SECONDS": [
+        "**TO_SECONDS**(`datetime`)\n- `datetime` (datetime) => Datetime\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 6.0.14)\n\nReturn the date or datetime argument converted to seconds since Year 0"
+    ],
+    "UNIX_TIMESTAMP": [
+        "**UNIX_TIMESTAMP**([`date`])\n- `date` (datetime) => Date\n\nreturns: datetime",
+        "_**System Function**_\n\nReturn a Unix timestamp"
+    ],
+    "UTC_DATE": [
+        "**UTC_DATE**()\n\nreturns: date",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the current UTC date"
+    ],
+    "UTC_TIME": [
+        "**UTC_TIME**()\n\nreturns: time",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the current UTC time"
+    ],
+    "UTC_TIMESTAMP": [
+        "**UTC_TIMESTAMP**()\n\nreturns: datetime",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the current UTC date and time"
+    ],
+    "WEEK": [
+        "**WEEK**(`date`[,`mode`])\n- `expr` (date) => Date\n- `mode` (numeric) => Week start indicator\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the week number"
+    ],
+    "WEEKDAY": [
+        "**WEEKDAY**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the weekday index"
+    ],
+    "WEEKOFYEAR": [
+        "**WEEKOFYEAR**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the calendar week of the date (1-53)"
+    ],
+    "YEAR": [
+        "**YEAR**(`date`)\n- `date` (date) => Date\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the year"
+    ],
+    "YEARWEEK": [
+        "**YEARWEEK**(`date`,[`mode`])\n- `date` (string) => Properly formatted string\n- `mode` (numeric) => Week start indicator\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the year and week"
+    ],
+    "BIT_COUNT": [
+        "**BIT_COUNT**(`N`)\n- `N` (numeric) => Expression\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the number of bits that are set"
+    ],
+    "AES_ENCRYPT": [
+        "**AES_ENCRYPT**(`str`,`key_str`[,`init_vector`])\n- `str` (string) => String to be encrypted\n- `key_str` (string) => Key\n- `init_vector` (string) => Initialization vector\n\nreturns: string",
+        "_**System Function**_\n\nEncrypt using AES"
+    ],
+    "AES_DECRYPT": [
+        "**AES_DECRYPT**(`crypt_str`,`key_str`[,`init_vector`])\n- `crypt_str` (string) => To be decrypted\n- `key_str` (string) => Key\n- `init_vector` (string) => Initialization vector\n\nreturns: string",
+        "_**System Function**_\n\nDecrypt using AES"
+    ],
+    "COMPRESS": [
+        "**COMPRESS**(`string_to_compress`)\n- `string_to_compress` (string) => String to be compressed\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn result as a binary string"
+    ],
+    "DECODE": [
+        "**DECODE**(`crypt_str`,`pass_str`)\n- `crypt_str` (string) => String to be decoded\n- `pass_str` (string) => Password string\n\nreturns: string",
+        "_**System Function**_ (⊘ 5.7.2, ⊗ 8.0.3)\n\nDecode a string encrypted using ENCODE()"
+    ],
+    "ENCODE": [
+        "**ENCODE**(`str`,`pass_str`)\n- `str` (string) => String to be encoded\n- `pass_str` (string) => Password string\n\nreturns: string",
+        "_**System Function**_ (⊘ 5.7.2, ⊗ 8.0.3)\n\nEncode a string"
+    ],
+    "DES_DECRYPT": [
+        "**DES_DECRYPT**(`crypt_str`[,`key_str`)\n- `crypt_str` (string) => Encrypted string\n- `key_str` (string) => Key string\n\nreturns: string",
+        "_**System Function**_ (⊘ 5.7.6, ⊗ 8.0.3)\n\nDecrypt a string"
+    ],
+    "DES_ENCRYPT": [
+        "**DES_ENCRYPT**(`str`[, {`key_num`|`key_str`}])\n- `str` (string) => String to be encrypted\n- `key_num` (numeric) => Key number for encryption\n- `key_str` (string) => String used for encryption\n\nreturns: string",
+        "_**System Function**_ (⊘ 5.7.6, ⊗ 8.0.3)\n\nEncrypt a string"
+    ],
+    "ENCRYPT": [
+        "**ENCRYPT**(`str`[,`salt`])\n- `str` (string) => String to be encrypted\n- `salt` (mixed) => Key\n\nreturns: string",
+        "_**System Function**_ (⊘ 5.7.6, ⊗ 8.0.3)\n\nEncrypt a string"
+    ],
+    "MD5": [
+        "**MD5**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nCalculate MD5 checksum"
+    ],
+    "OLD_PASSWORD": [
+        "**OLD_PASSWORD**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1, ⊘ 5.6.5, ⊗ 5.7.5)\n\nReturn the value of the pre-4.1 implementation of PASSWORD"
+    ],
+    "PASSWORD": [
+        "**PASSWORD**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_ (⊘ 5.7.6, ⊗ 8.0.11)\n\nCalculate and return a password string"
+    ],
+    "SHA": [
+        "**SHA**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nCalculate an SHA-1 160-bit checksum"
+    ],
+    "SHA2": [
+        "**SHA2**(`str`, `hash_length`)\n- `str` (string) => String\n- `hash_length` (numeric) => Number\n\nreturns: string",
+        "_**System Function**_ (⊕ 6.0.5)\n\nCalculate an SHA-2 checksum"
+    ],
+    "UNCOMPRESS": [
+        "**UNCOMPRESS**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1)\n\nUncompress a string compressed"
+    ],
+    "UNCOMPRESSED_LENGTH": [
+        "**UNCOMPRESSED_LENGTH**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the length of a string before compression"
+    ],
+    "BENCHMARK": [
+        "**BENCHMARK**(`count`,`expr`)\n- `count` (numeric) => Number of times\n- `expr` (string) => Expression to be executed\n\nreturns: numeric",
+        "_**System Function**_\n\nRepeatedly execute an expression"
+    ],
+    "CHARSET": [
+        "**CHARSET**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn the character set of the argument"
+    ],
+    "COERCIBILITY": [
+        "**COERCIBILITY**(`str`)\n- `str` (string) => String\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn the collation coercibility value of the string argument"
+    ],
+    "COLLATION": [
+        "**COLLATION**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn the collation of the string argument"
+    ],
+    "CONNECTION_ID": [
+        "**CONNECTION_ID**()\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the connection ID (thread ID) for the connection"
+    ],
+    "CURRENT_USER": [
+        "**CURRENT_USER**()\n\nreturns: string",
+        "_**System Function**_\n\nThe authenticated user name and host name"
+    ],
+    "DATABASE": [
+        "**DATABASE**()\n\nreturns: string",
+        "_**System Function**_\n\nReturn the default (current) database name"
+    ],
+    "FOUND_ROWS": [
+        "**FOUND_ROWS**()\n\nreturns: numeric",
+        "_**System Function**_\n\nFor a SELECT with a LIMIT clause, the number of rows that would be returned were there no LIMIT clause"
+    ],
+    "LAST_INSERT_ID": [
+        "**LAST_INSERT_ID**()\n\nreturns: numeric",
+        "_**System Function**_\n\nValue of the AUTOINCREMENT column for the last INSERT"
+    ],
+    "ROLES_GRAPHML": [
+        "returns: string",
+        "_**System Function**_\n\nReturn a GraphML document representing memory role subgraphs"
+    ],
+    "ROW_COUNT": [
+        "**ROW_COUNT**()\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.0.1)\n\nThe number of rows updated"
+    ],
+    "SCHEMA": [
+        "**SCHEMA**()\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.0.2)\n\nSynonym for DATABASE()"
+    ],
+    "SESSION_USER": [
+        "**SESSION_USER**()\n\nreturns: string",
+        "_**System Function**_\n\nSynonym for USER()"
+    ],
+    "SYSTEM_USER": [
+        "**SYSTEM_USER**()\n\nreturns: string",
+        "_**System Function**_\n\nSynonym for USER()"
+    ],
+    "USER": [
+        "**USER**()\n\nreturns: string",
+        "_**System Function**_\n\nThe user name and host name provided by the client"
+    ],
+    "DEFAULT": [
+        "**DEFAULT**(`col_name`)\n- `col_name` (string) => Column Name\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn the default value for a table column"
+    ],
+    "FORMAT": [
+        "**FORMAT**(`X`,`D`)\n- `X` (numeric) => Number\n- `D` (numeric) => Number of decimal places\n\nreturns: string",
+        "_**System Function**_\n\nReturn a number formatted to specified number of decimal places"
+    ],
+    "GET_LOCK": [
+        "**GET_LOCK**(`str`,`timeout`)\n- `str` (string) => Lock name\n- `timeout` (numeric) => Seconds\n\nreturns: bool",
+        "_**System Function**_\n\nGet a named lock"
+    ],
+    "INET_ATON": [
+        "**INET_ATON**(`expr`)\n- `expr` (string) => IP address\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the numeric value of an IP address"
+    ],
+    "INET_NTOA": [
+        "**INET_NTOA**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: string",
+        "_**System Function**_\n\nReturn the IP address from a numeric value"
+    ],
+    "INET6_ATON": [
+        "**INET6_ATON**(`expr`)\n- `expr` (string) => IPv6 address\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.6.3)\n\nReturn the numeric value of an IPv6 address"
+    ],
+    "INET6_NTOA": [
+        "**INET6_NTOA**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.6.3)\n\nReturn the IPv6 address from a numeric value"
+    ],
+    "IS_FREE_LOCK": [
+        "**IS_FREE_LOCK**(`str`)\n- `str` (numeric) => Lock name\n\nreturns: bool",
+        "_**System Function**_\n\nWhether the named lock is free"
+    ],
+    "IS_IPV4": [
+        "**IS_IPV4**(`expr`)\n- `expr` (string) => IPv4 address\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.6.3)\n\nWhether argument is an IPv4 address"
+    ],
+    "IS_IPV4_COMPAT": [
+        "**IS_IPV4_COMPAT**(`expr`)\n- `expr` (string) => IPv4-compatible address\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.6.3)\n\nWhether argument is an IPv4-compatible address"
+    ],
+    "IS_IPV4_MAPPED": [
+        "**IS_IPV4_MAPPED**(`expr`)\n- `expr` (string) => IPv4-mapped address\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.6.3)\n\nWhether argument is an IPv4-mapped address"
+    ],
+    "IS_IPV6": [
+        "**IS_IPV6**(`expr`)\n- `expr` (string) => IPv6 address\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.6.3)\n\nWhether argument is an IPv6 address"
+    ],
+    "IS_USED_LOCK": [
+        "**IS_USED_LOCK**(`str`)\n- `str` (string) => Lock name\n\nreturns: string",
+        "_**System Function**_\n\nWhether the named lock is in use; return connection identifier if true"
+    ],
+    "MASTER_POS_WAIT": [
+        "**MASTER_POS_WAIT**(`log_name`,`log_pos` [,`timeout`)\n- `log_name` (string) => Log name\n- `log_pos` (numeric) => Position\n- `timeout` (numeric) => Timeout\n\nreturns: mixed",
+        "_**System Function**_\n\nBlock until the slave has read and applied all updates up to the specified position"
+    ],
+    "NAME_CONST": [
+        "**NAME_CONST**(`name`,`value`)\n- `name` (string) => Column Name\n- `value` (mixed) => Value\n\nreturns: mixed",
+        "_**System Function**_ (⊕ 5.0.12)\n\nCause the column to have the given name"
+    ],
+    "RELEASE_ALL_LOCKS": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 5.7.5)\n\nRelease all current named locks"
+    ],
+    "RELEASE_LOCK": [
+        "**RELEASE_LOCK**(`str`)\n- `str` (string) => Lock name\n\nreturns: bool",
+        "_**System Function**_\n\nRelease the named lock"
+    ],
+    "SLEEP": [
+        "**SLEEP**(`duration`)\n- `duration` (numeric) => Seconds\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.0.12)\n\nSleep for a number of seconds"
+    ],
+    "UUID": [
+        "**UUID**()\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.2)\n\nReturn a Universal Unique Identifier (UUID)"
+    ],
+    "UUID_SHORT": [
+        "**UUID_SHORT**()\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.1.20)\n\nReturn an integer-valued universal identifier"
+    ],
+    "BIN_TO_UUID": [
+        "returns: string",
+        "_**System Function**_\n\nConvert binary UUID to string"
+    ],
+    "IS_UUID": [
+        "returns: boolean",
+        "_**System Function**_\n\nWhether argument is a valid UUID"
+    ],
+    "UUID_TO_BIN": [
+        "returns: binary",
+        "_**System Function**_\n\nConvert string UUID to binary"
+    ],
+    "VALUES": [
+        "**VALUES**(`col_name`)\n- `col_name` (string) => Column name\n\nreturns: mixed",
+        "_**System Function**_ (⊕ 4.1.1)\n\nDefine the values to be used during an INSERT"
+    ],
+    "AVG": [
+        "**AVG**([DISTINCT] `expr`)\n- `expr` (mixed) => Expression\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the average value of the argument"
+    ],
+    "BIT_AND": [
+        "**BIT_AND**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn bitwise AND"
+    ],
+    "BIT_OR": [
+        "**BIT_OR**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn bitwise OR"
+    ],
+    "BIT_XOR": [
+        "**BIT_XOR**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 4.1.1)\n\nReturn bitwise XOR"
+    ],
+    "COUNT": [
+        "**COUNT**(* | [DISTINCT] `expr`,[`expr`...])\n- `*` => record count\n- `expr` (mixed) => Expression\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the count of a number of different values"
+    ],
+    "GROUP_CONCAT": [
+        "**GROUP_CONCAT**([DISTINCT] `expr` [,`expr` ...])\n- `expr` (mixed) => Expression\n\nreturns: string",
+        "_**System Function**_\n\nReturn a concatenated string"
+    ],
+    "MIN": [
+        "**MIN**([DISTINCT] `expr`)\n- `expr` (mixed) => Expression\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn the minimum value"
+    ],
+    "MAX": [
+        "**MAX**([DISTINCT] `expr`)\n- `expr` (mixed) => Expression\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn the maximum value"
+    ],
+    "STD": [
+        "**STD**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the population standard deviation"
+    ],
+    "STDDEV": [
+        "**STDDEV**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the population standard deviation"
+    ],
+    "STDDEV_POP": [
+        "**STDDEV_POP**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.0.3)\n\nReturn the population standard deviation"
+    ],
+    "STDDEV_SAMP": [
+        "**STDDEV_SAMP**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.0.3)\n\nReturn the sample standard deviation"
+    ],
+    "SUM": [
+        "**SUM**([DISTINCT] `expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the sum"
+    ],
+    "VAR_POP": [
+        "**VAR_POP**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.0.3)\n\nReturn the population standard variance"
+    ],
+    "VAR_SAMP": [
+        "**VAR_SAMP**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_ (⊕ 5.0.3)\n\nReturn the sample variance"
+    ],
+    "VARIANCE": [
+        "**VARIANCE**(`expr`)\n- `expr` (numeric) => Number\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the population standard variance"
+    ],
+    "IF": [
+        "**IF**(`expr1`,`expr2`,`expr3`)\n- `expr1` (mixed) => Test\n- `expr2` (mixed) => True return value\n- `expr3` (mixed) => False return value\n\nreturns: mixed",
+        "_**System Function**_\n\nIf/else construct"
+    ],
+    "IFNULL": [
+        "**IFNULL**(`expr1`,`expr2`)\n- `expr1` (mixed) => Returned if expr1 is not null\n- `expr2` (mixed) => Returned if expr1 is null\n\nreturns: mixed",
+        "_**System Function**_\n\nNull if/else construct"
+    ],
+    "NULLIF": [
+        "**NULLIF**(`expr1`,`expr2`)\n- `expr1` (mixed) => Expression\n- `expr2` (mixed) => Returned if expr1 != expr2\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn NULL if expr1 = expr2"
+    ],
+    "ASCII": [
+        "**ASCII**(`str`)\n- `str` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn numeric value of left-most character"
+    ],
+    "BIN": [
+        "**BIN**(`N`)\n- `N` (numeric) => Number\n\nreturns: string",
+        "_**System Function**_\n\nReturn a string containing binary representation of a number"
+    ],
+    "BIT_LENGTH": [
+        "**BIT_LENGTH**(`str`)\n- `str` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn length of argument in bits"
+    ],
+    "CHAR": [
+        "**CHAR**(`N`,... [USING `charset_name`])\n- `N` (numeric) => Number\n- `charset_name` (string) => Character set name\n\nreturns: string",
+        "_**System Function**_\n\nReturn the character for each integer passed"
+    ],
+    "CHAR_LENGTH": [
+        "**CHAR_LENGTH**(`str`)\n- `str` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn number of characters in argument"
+    ],
+    "CHARACTER_LENGTH": [
+        "**CHARACTER_LENGTH**(`str`)\n- `str` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nSynonym for CHAR_LENGTH()"
+    ],
+    "CONCAT": [
+        "**CONCAT**(`str1`, `str2`,...)\n- `str1` (string) => String\n- `str2` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn concatenated string"
+    ],
+    "CONCAT_WS": [
+        "**CONCAT_WS**(`separator`, `str1`,`str2`,...)\n- `str1` (string) => Separator\n- `str2` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn concatenate with separator"
+    ],
+    "CONV": [
+        "**CONV**(`N`,`from_base`, `to_base`)\n- `N` (mixed) => Expression\n- `from_base` (numeric) => From base\n- `to_base` (numeric) => To base\n\nreturns: string",
+        "_**System Function**_\n\nConvert numbers between different number bases"
+    ],
+    "ELT": [
+        "**ELT**(`N`,`str1`, `str2`,`str3`,...)\n- `N` (numeric) => One-based index number\n- `str1` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn string at index number"
+    ],
+    "EXPORT_SET": [
+        "**EXPORT_SET**(`bits`,`on`,`off` [,`separator`[,`number_of_bits`]])\n- `bits` (numeric) => Bit value\n- `on` (string) => On indicator\n- `off` (string) => Off indicator\n- `separator` (string) => Separator\n- `number_of_bits` (numeric) => Number of bits\n\nreturns: string",
+        "_**System Function**_\n\nReturn a string such that for every bit set in the value bits, you get an on string and for every unset bit, you get an off string"
+    ],
+    "FIELD": [
+        "**FIELD**(`index_str`,`str1`,`str2`, `str3`,...)\n- `index_str` (string) => Value to search for\n- `str1` (string) => To be searched\n- `str2` (string) => To be searched\n- `str3` (string) => To be searched\n\nreturns: numeric",
+        "_**System Function**_\n\nIndex (position) of first argument in subsequent arguments"
+    ],
+    "FIND_IN_SET": [
+        "**FIND_IN_SET**(`str`,`strlist`)\n- `str` (string) => String\n- `strlist` (string) => Comma separated strings\n\nreturns: numeric",
+        "_**System Function**_\n\nIndex (position) of first argument within second argument"
+    ],
+    "HEX": [
+        "**HEX**(`N_or_S`)\n- `N_or_S` (mixed) => Expression\n\nreturns: string",
+        "_**System Function**_\n\nHexadecimal representation of decimal or string value"
+    ],
+    "INSERT": [
+        "**INSERT**(`str`,`pos`,`len`,`newstr`)\n- `str` (string) => Original string\n- `pos` (numeric) => Insert at\n- `len` (numeric) => Number of characters\n- `newstr` (string) => Inserted string\n\nreturns: string",
+        "_**System Function**_\n\nInsert substring at specified position up to specified number of characters"
+    ],
+    "INSTR": [
+        "**INSTR**(`str`,`substr`)\n- `str` (string) => To be searched\n- `substr` (string) => Value to search for\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the index of the first occurrence of substring"
+    ],
+    "LCASE": [
+        "**LCASE**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nSynonym for LOWER()"
+    ],
+    "LEFT": [
+        "**LEFT**(`str`,`len`)\n- `str` (string) => String\n- `len` (numeric) => Number of characters\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the leftmost number of characters as specified"
+    ],
+    "LENGTH": [
+        "**LENGTH**(`str`)\n- `str` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the length of a string in bytes"
+    ],
+    "LOAD_FILE": [
+        "**LOAD_FILE**(`file_name`)\n- `str` (string) => File name\n\nreturns: undefined",
+        "_**System Function**_\n\nLoad the named file"
+    ],
+    "VERSION": [
+        "**VERSION**()\n\nreturns: string",
+        "_**System Function**_\n\nReturn a string that indicates the MySQL server version"
+    ],
+    "LOCATE": [
+        "**LOCATE**(`substr`,`str`, `pos`)\n- `substr` (string) => Value to search for\n- `str` (string) => To be searched\n- `pos` (numeric) => Start position\n\n**LOCATE**(`substr`,`str`)\n- `substr` (string) => Value to search for\n- `str` (string) => To be searched\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the position of the first occurrence of substring"
+    ],
+    "LOWER": [
+        "**LOWER**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn the argument in lowercase"
+    ],
+    "LPAD": [
+        "**LPAD**(`str`,`len`, `padstr`)\n- `str` (string) => String\n- `len` (numeric) => Number of characters to pad\n- `padstr` (string) => Pad string\n\nreturns: string",
+        "_**System Function**_\n\nReturn the string argument, left-padded with the specified string"
+    ],
+    "LTRIM": [
+        "**LTRIM**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nRemove leading spaces"
+    ],
+    "MAKE_SET": [
+        "**MAKE_SET**(`bits`, `str1`,`str2`,...)\n- `bits` (numeric) => Bits set\n- `str1` (string) => String\n- `str2` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn a set of comma-separated strings that have the corresponding bit in bits set"
+    ],
+    "MID": [
+        "**MID**(`str`,`pos`, `len`)\n- `str` (string) => String\n- `pos` (numeric) => Start position\n- `len` (numeric) => Number of characters\n\nreturns: string",
+        "_**System Function**_\n\nReturn a substring starting from the specified position"
+    ],
+    "OCT": [
+        "**OCT**(`N`)\n- `N` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn a string containing octal representation of a number"
+    ],
+    "OCTET_LENGTH": [
+        "**OCTET_LENGTH**(`str`)\n- `str` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nSynonym for LENGTH()"
+    ],
+    "ORD": [
+        "**ORD**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn character code for leftmost character of the argument"
+    ],
+    "POSITION": [
+        "**POSITION**(`substr` IN `str`)\n- `substr` (string) => Value to search for\n- `str` (string) => To be searched\n\nreturns: numeric",
+        "_**System Function**_\n\nSynonym for LOCATE()"
+    ],
+    "QUOTE": [
+        "**QUOTE**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nEscape the argument for use in an SQL statement"
+    ],
+    "REPEAT": [
+        "**REPEAT**(`str`,`count`)\n- `str` (string) => String\n- `count` (string) => Number of times\n\nreturns: string",
+        "_**System Function**_\n\nRepeat a string the specified number of times"
+    ],
+    "REPLACE": [
+        "**REPLACE**(REPLACE(`str`,`from_str`, `to_str`)\n- `str` (string) => String\n- `from_str` (string) => From string\n- `to_str` (string) => To string\n\nreturns: string",
+        "_**System Function**_\n\nReplace occurrences of a specified string"
+    ],
+    "REVERSE": [
+        "**REVERSE**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReverse the characters in a string"
+    ],
+    "RIGHT": [
+        "**RIGHT**(`str`,`len`)\n- `str` (string) => String\n- `len` (numeric) => Number of characters\n\nreturns: string",
+        "_**System Function**_\n\nReturn the specified rightmost number of characters"
+    ],
+    "RPAD": [
+        "**RPAD**(`str`, `len`,`padstr`)\n- `str` (string) => String\n- `len` (numeric) => Number of characters\n- `padstr` (string) => Pad string\n\nreturns: string",
+        "_**System Function**_\n\nAppend string the specified number of times"
+    ],
+    "RTRIM": [
+        "**RTRIM**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nRemove trailing spaces"
+    ],
+    "SOUNDEX": [
+        "**SOUNDEX**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nReturn a soundex string"
+    ],
+    "SPACE": [
+        "**SPACE**(SPACE(`N`)\n- `str` (numeric) => Number\n\nreturns: string",
+        "_**System Function**_\n\nReturn a string of the specified number of spaces"
+    ],
+    "SUBSTR": [
+        "**SUBSTR**(`str`,`pos`)\n- `str` (string) => String\n- `pos` (numeric) => Start position\n\n**SUBSTR**(`str` FROM `pos`)\n- `str` (string) => String\n- `pos` (string) => Start position\n\n**SUBSTR**(`str`, `pos`,`len`)\n- `str` (string) => String\n- `pos` (string) => Start position\n- `len` (string) => Number of characters\n\n**SUBSTR**(`str` FROM `pos` FOR `len`)\n- `str` (string) => String\n- `pos` (numeric) => Start position\n- `len` (numeric) => Number of characters\n\nreturns: string",
+        "_**System Function**_\n\nReturn the substring as specified"
+    ],
+    "SUBSTRING": [
+        "**SUBSTRING**(`str`,`pos`)\n- `str` (string) => String\n- `pos` (numeric) => Start position\n\n**SUBSTRING**(`str` FROM `pos`)\n- `str` (string) => String\n- `pos` (string) => Start position\n\n**SUBSTRING**(`str`, `pos`,`len`)\n- `str` (string) => String\n- `pos` (string) => Start position\n- `len` (string) => Number of characters\n\n**SUBSTRING**(`str` FROM `pos` FOR `len`)\n- `str` (string) => String\n- `pos` (numeric) => Start position\n- `len` (numeric) => Number of characters\n\nreturns: string",
+        "_**System Function**_\n\nReturn the substring as specified"
+    ],
+    "SUBSTRING_INDEX": [
+        "**SUBSTRING_INDEX**(`str`,`delim`, `count`)\n- `str` (string) => String\n- `delim` (numeric) => Delimiter\n- `count` (numeric) => Count\n\nreturns: string",
+        "_**System Function**_\n\nReturn a substring from a string before the specified number of occurrences of the delimiter"
+    ],
+    "TRIM": [
+        "**TRIM**([{BOTH | LEADING | TRAILING} [`remstr`] FROM] `str`)\n- `remstr` (string) => Character to be removed\n- `str` (string) => String from which to remove characters\n\n**TRIM**([`remstr` FROM] `str`)\n- `remstr` (string) => Character to be removed\n- `str` (string) => String from which to remove characters\n\nreturns: string",
+        "_**System Function**_\n\nRemove leading and trailing spaces"
+    ],
+    "UCASE": [
+        "**UCASE**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nSynonym for UPPER()"
+    ],
+    "UNHEX": [
+        "**UNHEX**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_ (⊕ 4.1.2)\n\nReturn a string containing hex representation of a number"
+    ],
+    "UPPER": [
+        "**UPPER**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nConvert to uppercase"
+    ],
+    "STRCMP": [
+        "**STRCMP**(`expr1`,`expr2`)\n- `expr1` (string) => String\n- `expr2` (string) => String\n\nreturns: numeric",
+        "_**System Function**_\n\nCompare two strings"
+    ],
+    "MATCH": [
+        "**MATCH**(MATCH (`col1`, `col2`, ... AGAINST( `expr` [`search_modifier`]))\n- `col1` (string) => String\n- `search_modifier` (string) => String\n\nreturns: string",
+        "_**System Function**_\n\nPerform full-text search"
+    ],
+    "GREATEST": [
+        "**GREATEST**(`value1`,`value2`,...)\n- `value1` (mixed) => Expression\n- `value2` (mixed) => Expression\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn the largest argument"
+    ],
+    "ISNULL": [
+        "**ISNULL**(`expr`)\n- `expr` (mixed) => Expression\n\nreturns: mixed",
+        "_**System Function**_\n\nTest whether the argument is NULL"
+    ],
+    "INTERVAL": [
+        "**INTERVAL**(`N`,`N1`, `N2`,`N3`,...)\n- `N` (numeric) => Value to find\n- `N1` (numeric) => Value searched\n- `N2` (numeric) => Value searched\n\nreturns: numeric",
+        "_**System Function**_\n\nReturn the index of the argument that is less than the first argument"
+    ],
+    "LEAST": [
+        "**LEAST**(`value1`, `value2`,...)\n- `value1` (mixed) => Expression\n- `value2` (mixed) => Expression\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn the smallest argument"
+    ],
+    "COALESCE": [
+        "**COALESCE**(`value1`, `value2`,...)\n- `value1` (mixed) => Expression\n- `value2` (mixed) => Expression\n\nreturns: mixed",
+        "_**System Function**_\n\nReturn the first non-NULL argument"
+    ],
+    "PROCEDURE ANALYSE": [
+        "**PROCEDURE ANALYSE**(`max_elements`,`max_memory`)\n- `max_elements` (numeric) => Number\n- `max_memory` (numeric) => Number\n\nreturns: mixed",
+        "_**System Function**_ (⊘ 5.7.18)\n\nAnalyze the results of a query"
+    ],
+    "REGEXP_INSTR": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.4)\n\nStarting index of substring matching regular expression"
+    ],
+    "REGEXP_LIKE": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.4)\n\nWhether string matches regular expression"
+    ],
+    "REGEXP_REPLACE": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.4)\n\nReplace substrings matching regular expression"
+    ],
+    "REGEXP_SUBSTR": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.4)\n\nReturn substring matching regular expression"
+    ],
+    "WEIGHT_STRING": [
+        "**WEIGHT_STRING**(`str` [AS {CHAR|BINARY|(N)] [LEVEL `levels`] [`flags`] (`value`,...))\n- `str` (string) => Input string\n- `levels` (mixed) => Collation levels\n- `flags` (mixed) => Flags\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.2.4)\n\nReturn the weight string for a string"
+    ],
+    "VALIDATE_PASSWORD_STRENGTH": [
+        "**VALIDATE_PASSWORD_STRENGTH**(`str`)\n- `str` (string) => String\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.6.6)\n\nDetermine strength of password"
+    ],
+    "SQL_THREAD_WAIT_AFTER_GTIDS": [
+        "**SQL_THREAD_WAIT_AFTER_GTIDS**(`gtid_set`[, `timeout`])\n- `gtid_set` (string) => GTID set identifier\n- `timeout` (number) => Timeout\n\nreturns: number",
+        "_**System Function**_ (⊕ 5.6.5, ⊘ 5.6.9)\n\nObsolete. Use `WAIT_FOR_EXECUTED_GTID_SET()`."
+    ],
+    "WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS": [
+        "**WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS**(`gtid_set`[, `timeout`])\n- `gtid_set` (string) => GTID set identifier\n- `timeout` (number) => Timeout\n- `channel` (number) => Channel\n\nreturns: number",
+        "_**System Function**_ (⊕ 5.6.9, ⊘ 8.0.18)\n\nUse `WAIT_FOR_EXECUTED_GTID_SET()`."
+    ],
+    "WAIT_FOR_EXECUTED_GTID_SET": [
+        "**WAIT_FOR_EXECUTED_GTID_SET**(`gtid_set`[, `timeout`])\n- `gtid_set` (string) => GTID set identifier\n- `timeout` (number) => Timeout\n\nreturns: number",
+        "_**System Function**_ (⊕ 5.7.5)\n\nWait until the given GTIDs have executed on the slave."
+    ],
+    "Area": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn Polygon or MultiPolygon area"
+    ],
+    "ST_Area": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn Polygon or MultiPolygon area"
+    ],
+    "AsWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConvert from internal geometry format to WKB"
+    ],
+    "ST_AsWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConvert from internal geometry format to WKB"
+    ],
+    "AsWKT": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConvert from internal geometry format to WKT"
+    ],
+    "ST_AsWKT": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConvert from internal geometry format to WKT"
+    ],
+    "Centroid": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn centroid as a point"
+    ],
+    "ST_Centroid": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn centroid as a point"
+    ],
+    "Contains": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether MBR of one geometry contains MBR of another"
+    ],
+    "MBRContains": [
+        "returns: ",
+        "_**System Function**_\n\nWhether MBR of one geometry contains MBR of another"
+    ],
+    "ST_Contains": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry contains another"
+    ],
+    "Crosses": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether one geometry crosses another"
+    ],
+    "ST_Crosses": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry crosses another"
+    ],
+    "Dimension": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nDimension of geometry"
+    ],
+    "ST_Dimension": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nDimension of geometry"
+    ],
+    "Disjoint": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether MBRs of two geometries are disjoint"
+    ],
+    "MBRDisjoint": [
+        "returns: ",
+        "_**System Function**_\n\nWhether MBRs of two geometries are disjoint"
+    ],
+    "ST_Disjoint": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry is disjoint from another"
+    ],
+    "EndPoint": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nEnd Point of LineString"
+    ],
+    "ST_EndPoint": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nEnd Point of LineString"
+    ],
+    "Envelope": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn MBR of geometry"
+    ],
+    "ST_Envelope": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn MBR of geometry"
+    ],
+    "Equals": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether MBRs of two geometries are equal"
+    ],
+    "MBREqual": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether MBRs of two geometries are equal"
+    ],
+    "MBREquals": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nWhether MBRs of two geometries are equal"
+    ],
+    "ST_Equals": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry is equal to another"
+    ],
+    "ExteriorRing": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn exterior ring of Polygon"
+    ],
+    "ST_ExteriorRing": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn exterior ring of Polygon"
+    ],
+    "GeomCollection": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.11)\n\nConstruct geometry collection from geometries"
+    ],
+    "GeometryCollection": [
+        "returns: ",
+        "_**System Function**_\n\nConstruct geometry collection from geometries"
+    ],
+    "GLength": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn length of LineString"
+    ],
+    "ST_Length": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nReturn length of LineString"
+    ],
+    "GeometryCollectionFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn geometry collection from WKT"
+    ],
+    "ST_GeomCollFromTxt": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn geometry collection from WKT"
+    ],
+    "GeometryCollectionFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn geometry collection from WKB"
+    ],
+    "ST_GeometryCollectionFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn geometry collection from WKB"
+    ],
+    "GeometryFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn geometry from WKT"
+    ],
+    "ST_GeometryFromText": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn geometry from WKT"
+    ],
+    "GeometryFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn geometry from WKB"
+    ],
+    "ST_GeometryFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn geometry from WKB"
+    ],
+    "GeometryN": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn N-th geometry from geometry collection"
+    ],
+    "ST_GeometryN": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn N-th geometry from geometry collection"
+    ],
+    "GeometryType": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn name of geometry type"
+    ],
+    "ST_GeometryType": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn name of geometry type"
+    ],
+    "InteriorRingN": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn N-th interior ring of Polygon"
+    ],
+    "ST_InteriorRingN": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn N-th interior ring of Polygon"
+    ],
+    "Intersects": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether MBRs of two geometries intersect"
+    ],
+    "MBRIntersects": [
+        "returns: ",
+        "_**System Function**_\n\nWhether MBRs of two geometries intersect"
+    ],
+    "ST_Intersects": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry intersects another"
+    ],
+    "IsClosed": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether a geometry is closed and simple"
+    ],
+    "ST_IsClosed": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether a geometry is closed and simple"
+    ],
+    "IsEmpty": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nPlaceholder function"
+    ],
+    "ST_IsEmpty": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nPlaceholder function"
+    ],
+    "IsSimple": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether a geometry is simple"
+    ],
+    "ST_IsSimple": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether a geometry is simple"
+    ],
+    "LineString": [
+        "returns: ",
+        "_**System Function**_\n\nConstruct LineString from Point values"
+    ],
+    "LineStringFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct LineString from WKT"
+    ],
+    "ST_LineStringFromText": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConstruct LineString from WKT"
+    ],
+    "LineStringFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct LineString from WKB"
+    ],
+    "ST_LineStringFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConstruct LineString from WKB"
+    ],
+    "MBRCoveredBy": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nWhether one MBR is covered by another"
+    ],
+    "MBRCovers": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nWhether one MBR covers another"
+    ],
+    "MBRTouches": [
+        "returns: ",
+        "_**System Function**_\n\nWhether MBRs of two geometries touch"
+    ],
+    "MultiLineStringFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct MultiLineString from WKT"
+    ],
+    "ST_MultiLineStringFromText": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nConstruct MultiLineString from WKT"
+    ],
+    "MultiLineStringFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct MultiLineString from WKB"
+    ],
+    "ST_MultiLineStringFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nConstruct MultiLineString from WKB"
+    ],
+    "MultiPointFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct MultiPoint from WKT"
+    ],
+    "ST_MultiPointFromText": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nConstruct MultiPoint from WKT"
+    ],
+    "MultiPointFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct MultiPoint from WKB"
+    ],
+    "ST_MultiPointFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nConstruct MultiPoint from WKB"
+    ],
+    "MultiPolygonFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct MultiPolygon from WKT"
+    ],
+    "ST_MultiPolygonFromText": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nConstruct MultiPolygon from WKT"
+    ],
+    "MultiPolygonFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct MultiPolygon from WKB"
+    ],
+    "ST_MultiPolygonFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.6)\n\nConstruct MultiPolygon from WKB"
+    ],
+    "MultiLineString": [
+        "returns: ",
+        "_**System Function**_\n\nContruct MultiLineString from LineString values"
+    ],
+    "MultiPoint": [
+        "returns: ",
+        "_**System Function**_\n\nConstruct MultiPoint from Point values"
+    ],
+    "MultiPolygon": [
+        "returns: ",
+        "_**System Function**_\n\nConstruct MultiPolygon from Polygon values"
+    ],
+    "NumGeometries": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn number of geometries in geometry collection"
+    ],
+    "ST_NumGeometries": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn number of geometries in geometry collection"
+    ],
+    "NumInteriorRings": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn number of interior rings in Polygon"
+    ],
+    "ST_NumInteriorRings": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn number of interior rings in Polygon"
+    ],
+    "NumPoints": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn number of points in LineString"
+    ],
+    "ST_NumPoints": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn number of points in LineString"
+    ],
+    "Overlaps": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether MBRs of two geometries overlap"
+    ],
+    "MBROverlaps": [
+        "returns: ",
+        "_**System Function**_\n\nWhether MBRs of two geometries overlap"
+    ],
+    "ST_Overlaps": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry overlaps another"
+    ],
+    "Point": [
+        "returns: ",
+        "_**System Function**_\n\nConstruct Point from coordinates"
+    ],
+    "Polygon": [
+        "returns: ",
+        "_**System Function**_\n\nConstruct Polygon from LineString arguments"
+    ],
+    "PointFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct Point from WKT"
+    ],
+    "ST_PointFromText": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConstruct Point from WKT"
+    ],
+    "PointFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct Point from WKB"
+    ],
+    "ST_PointFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConstruct Point from WKB"
+    ],
+    "PointN": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn N-th point from LineString"
+    ],
+    "ST_PointN": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn N-th point from LineString"
+    ],
+    "PolygonFromText": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct Polygon from WKT"
+    ],
+    "ST_PolygonFromText": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConstruct Polygon from WKT"
+    ],
+    "PolygonFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nConstruct Polygon from WKB"
+    ],
+    "ST_PolygonFromWKB": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nConstruct Polygon from WKB"
+    ],
+    "SRID": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn spatial reference system ID for geometry"
+    ],
+    "ST_SRID": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn spatial reference system ID for geometry"
+    ],
+    "StartPoint": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nStart Point of LineString"
+    ],
+    "ST_StartPoint": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nStart Point of LineString"
+    ],
+    "Touches": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether one geometry touches another"
+    ],
+    "ST_Touches": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry touches another"
+    ],
+    "Within": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nWhether MBR of one geometry is within MBR of another"
+    ],
+    "MBRWithin": [
+        "returns: ",
+        "_**System Function**_\n\nWhether MBR of one geometry is within MBR of another"
+    ],
+    "ST_Within": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nWhether one geometry is within another"
+    ],
+    "X": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn X coordinate of Point"
+    ],
+    "ST_Latitude": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.12)\n\nReturn latitude of Point"
+    ],
+    "ST_Longitude": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.12)\n\nReturn longitude of Point"
+    ],
+    "ST_X": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn X coordinate of Point"
+    ],
+    "Y": [
+        "returns: ",
+        "_**System Function**_ (⊘ 5.7.6)\n\nReturn Y coordinate of Point"
+    ],
+    "ST_Y": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn Y coordinate of Point"
+    ],
+    "Buffer": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1, ⊘ 5.7.6)\n\nReturn geometry of points within given distance from geometry"
+    ],
+    "ST_Buffer": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn geometry of points within given distance from geometry"
+    ],
+    "ST_Buffer_Strategy": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.7.7)\n\nProduce strategy option for ST_Buffer()"
+    ],
+    "ConvexHull": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.5, ⊘ 5.7.6)\n\nReturn convex hull of geometry"
+    ],
+    "ST_ConvexHull": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.5)\n\nReturn convex hull of geometry"
+    ],
+    "Distance": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.7.5, ⊘ 5.7.6)\n\nThe distance of one geometry from another"
+    ],
+    "ST_Distance": [
+        "returns: ",
+        "_**System Function**_ (⊕ 5.6.1)\n\nThe distance of one geometry from another"
+    ],
+    "ST_GeoHash": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.7.5)\n\nProduce a geohash value"
+    ],
+    "ST_LongFromGeoHash": [
+        "returns: numeric",
+        "_**System Function**_ (⊕ 5.7.5)\n\nReturn longitude from geohash value"
+    ],
+    "ST_LatFromGeoHash": [
+        "returns: numeric",
+        "_**System Function**_ (⊕ 5.7.5)\n\nReturn latitude from geohash value"
+    ],
+    "ST_PointFromGeoHash": [
+        "returns: point",
+        "_**System Function**_ (⊕ 5.7.5)\n\nConvert geohash value to POINT value"
+    ],
+    "ST_AsGeoJSON": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.7.5)\n\nGenerate GeoJSON object from geometry"
+    ],
+    "ST_GeomFromGeoJSON": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.7.5)\n\nGenerate geometry from GeoJSON object"
+    ],
+    "ST_Difference": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn point set difference of two geometries"
+    ],
+    "ST_SymDifference": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn point set symmetric difference of two geometries"
+    ],
+    "ST_Intersection": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn point set intersection of two geometries"
+    ],
+    "ST_Transform": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.13)\n\nTransform coordinates of geometry"
+    ],
+    "ST_Union": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.6.1)\n\nReturn point set union of two geometries"
+    ],
+    "ASYMMETRIC_DECRYPT": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nDecrypt ciphertext using private or public key"
+    ],
+    "ASYMMETRIC_DERIVE": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nDerive symmetric key from asymmetric keys"
+    ],
+    "ASYMMETRIC_ENCRYPT": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nEncrypt cleartext using private or public key"
+    ],
+    "ASYMMETRIC_SIGN": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nGenerate signature from digest"
+    ],
+    "ASYMMETRIC_VERIFY": [
+        "returns: boolean",
+        "_**System Function**_ (⊕ 8.0.11)\n\nVerify that signature matches digest"
+    ],
+    "CREATE_ASYMMETRIC_PRIV_KEY": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nCreate private key"
+    ],
+    "CREATE_ASYMMETRIC_PUB_KEY": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nCreate public key"
+    ],
+    "CREATE_DH_PARAMETERS": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nGenerate shared DH secret"
+    ],
+    "CREATE_DIGEST": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.11)\n\nGenerate digest from string"
+    ],
+    "ST_Distance_Sphere": [
+        "returns: double",
+        "_**System Function**_ (⊕ 5.7.6)\n\nMinimum distance on earth between two geometries"
+    ],
+    "ST_IsValid": [
+        "returns: boolean",
+        "_**System Function**_ (⊕ 5.7.6)\n\nWhether a geometry is valid"
+    ],
+    "ST_MakeEnvelope": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.7.6)\n\nRectangle around two points"
+    ],
+    "ST_Simplify": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.7.6)\n\nReturn simplified geometry"
+    ],
+    "ST_Validate": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 5.7.6)\n\nReturn validated geometry"
+    ],
+    "ST_SwapXY": [
+        "returns: geometry",
+        "_**System Function**_ (⊕ 8.0.1)\n\nReturn argument with X/Y coordinates swapped"
+    ],
+    "JSON_APPEND": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8, ⊘ 5.7.9, ⊗ 8.0.0)\n\nAppend data to JSON document"
+    ],
+    "JSON_ARRAY": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nCreate JSON array"
+    ],
+    "JSON_ARRAYAGG": [
+        "returns: json",
+        "_**System Function**_ (⊕ 8.0.1)\n\nReturn result set as a single JSON array"
+    ],
+    "JSON_ARRAY_APPEND": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.9)\n\nAppend data to JSON document"
+    ],
+    "JSON_ARRAY_INSERT": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nInsert into JSON array"
+    ],
+    "JSON_CONTAINS": [
+        "returns: boolean",
+        "_**System Function**_ (⊕ 5.7.8)\n\nWhether JSON document contains specific object at path"
+    ],
+    "JSON_CONTAINS_PATH": [
+        "returns: boolean",
+        "_**System Function**_ (⊕ 5.7.8)\n\nWhether JSON document contains any data at path"
+    ],
+    "JSON_DEPTH": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 5.7.8)\n\nMaximum depth of JSON document"
+    ],
+    "JSON_EXTRACT": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nReturn data from JSON document"
+    ],
+    "JSON_INSERT": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nInsert data into JSON document"
+    ],
+    "JSON_KEYS": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nArray of keys from JSON document"
+    ],
+    "JSON_LENGTH": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 5.7.8)\n\nNumber of elements in JSON document"
+    ],
+    "JSON_MERGE": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8, ⊘ 8.0.3)\n\nMerge JSON documents, preserving duplicate keys. Deprecated synonym for JSON_MERGE_PRESERVE()"
+    ],
+    "JSON_MERGE_PATCH": [
+        "returns: json",
+        "_**System Function**_ (⊕ 8.0.3)\n\nMerge JSON documents, replacing values of duplicate keys"
+    ],
+    "JSON_MERGE_PRESERVE": [
+        "returns: json",
+        "_**System Function**_ (⊕ 8.0.3)\n\nMerge JSON documents, preserving duplicate keys"
+    ],
+    "JSON_OBJECT": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nCreate JSON object"
+    ],
+    "JSON_OBJECTAGG": [
+        "returns: json",
+        "_**System Function**_ (⊕ 8.0.1)\n\nReturn result set as a single JSON object"
+    ],
+    "JSON_PRETTY": [
+        "returns: json",
+        "_**System Function**_ (⊕ 8.0.1)\n\nPrint a JSON document in human-readable format"
+    ],
+    "JSON_OVERLAPS": [
+        "returns: boolean",
+        "_**System Function**_ (⊕ 8.0.17)\n\nCompares two JSON documents, returns TRUE (1) if these have any key-value pairs or array elements in common, otherwise FALSE (0)"
+    ],
+    "JSON_QUOTE": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.7.8)\n\nQuote JSON document"
+    ],
+    "JSON_REMOVE": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nRemove data from JSON document"
+    ],
+    "JSON_REPLACE": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nReplace values in JSON document"
+    ],
+    "JSON_SCHEMA_VALID": [
+        "returns: boolean",
+        "_**System Function**_ (⊕ 8.0.17)\n\nValidate JSON document against JSON schema; returns TRUE/1 if document validates against schema, or FALSE/0 if it does not"
+    ],
+    "JSON_SCHEMA_VALIDATION_REPORT": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.17)\n\nValidate JSON document against JSON schema; returns report in JSON format on outcome on validation including success or failure and reasons for failure"
+    ],
+    "JSON_SEARCH": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.7.8)\n\nPath to value within JSON document"
+    ],
+    "JSON_SET": [
+        "returns: json",
+        "_**System Function**_ (⊕ 5.7.8)\n\nInsert data into JSON document"
+    ],
+    "JSON_STORAGE_FREE": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.2)\n\nFreed space within binary representation of JSON column value following partial update"
+    ],
+    "JSON_STORAGE_SIZE": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.2)\n\nSpace used for storage of binary representation of a JSON document"
+    ],
+    "JSON_TABLE": [
+        "returns: table",
+        "_**System Function**_ (⊕ 8.0.4)\n\nReturn data from a JSON expression as a relational table"
+    ],
+    "JSON_TYPE": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.7.8)\n\nType of JSON value"
+    ],
+    "JSON_UNQUOTE": [
+        "returns: string",
+        "_**System Function**_ (⊕ 5.7.8)\n\nUnquote JSON value"
+    ],
+    "JSON_VALID": [
+        "returns: boolean",
+        "_**System Function**_ (⊕ 5.7.8)\n\nWhether JSON value is valid"
+    ],
+    "JSON_VALUE": [
+        "returns: mixed",
+        "_**System Function**_ (⊕ 8.0.21)\n\nExtract value from JSON document at location pointed to by path provided; return this value as VARCHAR(512) or specified type"
+    ],
+    "ExtractValue": [
+        "**ExtractValue**(`xml_frag`, `xml_path`)\n- `xml_frag` (string) => XML fragment\n- `xml_path` (string) => XPath expression\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.1.5)\n\nExtract a value from an XML string using XPath notation"
+    ],
+    "UpdateXML": [
+        "**UpdateXML**(`xml_target`, `xpath_expr`, `new_xml`))\n- `xml_target` (string) => XML Target\n- `xpath_expr` (string) => XPath\n- `new_xml` (string) => New XML\n\nreturns: string",
+        "_**System Function**_ (⊕ 5.1.5)\n\nReturn replaced XML fragment"
+    ],
+    "GROUPING": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.1)\n\nDistinguish super-aggregate ROLLUP rows from regular rows"
+    ],
+    "CAN_ACCESS_COLUMN": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "CAN_ACCESS_DATABASE": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "CAN_ACCESS_TABLE": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "CAN_ACCESS_VIEW": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "GET_DD_COLUMN_PRIVILEGES": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "GET_DD_CREATE_OPTIONS": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "GET_DD_INDEX_SUB_PART_LENGTH": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_AUTO_INCREMENT": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_AVG_ROW_LENGTH": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_CHECK_TIME": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_CHECKSUM": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_DATA_FREE": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_DATA_LENGTH": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_DD_CHAR_LENGTH": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_GET_COMMENT_OR_ERROR": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_GET_VIEW_WARNING_OR_ERROR": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_INDEX_COLUMN_CARDINALITY": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_INDEX_LENGTH": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_KEYS_DISABLED": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_MAX_DATA_LENGTH": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_TABLE_ROWS": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "INTERNAL_UPDATE_TIME": [
+        "returns: ",
+        "_**System Function**_\n\nInternal use only"
+    ],
+    "CUME_DIST": [
+        "returns: numeric",
+        "_**System Function**_ (⊕ 8.0.2)\n\nCumulative distribution value"
+    ],
+    "DENSE_RANK": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.2)\n\nRank of current row within its partition, without gaps"
+    ],
+    "FIRST_VALUE": [
+        "returns: varies",
+        "_**System Function**_ (⊕ 8.0.2)\n\nValue of argument from first row of window frame"
+    ],
+    "LAG": [
+        "returns: varies",
+        "_**System Function**_ (⊕ 8.0.2)\n\nValue of argument from row lagging current row within partition"
+    ],
+    "LAST_VALUE": [
+        "returns: varies",
+        "_**System Function**_ (⊕ 8.0.2)\n\nValue of argument from last row of window frame"
+    ],
+    "LEAD": [
+        "returns: varies",
+        "_**System Function**_ (⊕ 8.0.2)\n\nValue of argument from row leading current row within partition"
+    ],
+    "NTH_VALUE": [
+        "returns: varies",
+        "_**System Function**_ (⊕ 8.0.2)\n\nValue of argument from N-th row of window frame"
+    ],
+    "NTILE": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.2)\n\nBucket number of current row within its partition."
+    ],
+    "PERCENT_RANK": [
+        "returns: numeric",
+        "_**System Function**_ (⊕ 8.0.2)\n\nPercentage rank value"
+    ],
+    "RANK": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.2)\n\nRank of current row within its partition, with gaps"
+    ],
+    "ROW_NUMBER": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.2)\n\nNumber of current row within its partition"
+    ],
+    "STATEMENT_DIGEST": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.4)\n\nCompute statement digest hash value"
+    ],
+    "STATEMENT_DIGEST_TEXT": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.4)\n\nCompute normalized statement digest"
+    ],
+    "ICU_VERSION": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.4)\n\nICU library version"
+    ],
+    "FORMAT_PICO_TIME": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.16)\n\nConvert time in picoseconds to value with units"
+    ],
+    "FORMAT_BYTES": [
+        "returns: string",
+        "_**System Function**_ (⊕ 8.0.16)\n\nConvert byte count to value with units"
+    ],
+    "PS_CURRENT_THREAD_ID": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.16)\n\nPerformance Schema thread ID for current thread"
+    ],
+    "PS_THREAD_ID": [
+        "returns: integer",
+        "_**System Function**_ (⊕ 8.0.16)\n\nPerformance Schema thread ID for given thread"
+    ],
+    "INTERNAL_GET_ENABLED_ROLE_JSON": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.19)\n\nInternal use only"
+    ],
+    "INTERNAL_GET_HOSTNAME": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.19)\n\nInternal use only"
+    ],
+    "INTERNAL_GET_USERNAME": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.19)\n\nInternal use only"
+    ],
+    "INTERNAL_IS_ENABLED_ROLE": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.19)\n\nInternal use only"
+    ],
+    "INTERNAL_IS_MANDATORY_ROLE": [
+        "returns: ",
+        "_**System Function**_ (⊕ 8.0.19)\n\nInternal use only"
+    ]
+}

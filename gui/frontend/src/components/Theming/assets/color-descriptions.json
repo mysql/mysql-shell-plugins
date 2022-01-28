@@ -1,0 +1,2755 @@
+[
+    {
+        "name": "#Base Colors",
+        "description": "Base Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "focusBorder",
+                "description": "Border color for focused elements",
+                "preview": true
+            },
+            {
+                "name": "foreground",
+                "description": "Standard foreground color",
+                "preview": true
+            },
+            {
+                "name": "hotForeground",
+                "description": "Standard hover foreground color",
+                "preview": false
+            },
+            {
+                "name": "background",
+                "description": "Standard background color",
+                "preview": true
+            },
+            {
+                "name": "descriptionForeground",
+                "description": "Description/help text foreground color",
+                "preview": true
+            },
+            {
+                "name": "errorForeground",
+                "description": "Standard error foreground color",
+                "preview": true
+            },
+            {
+                "name": "widget.shadow",
+                "description": "Drop shadow color",
+                "preview": true
+            },
+            {
+                "name": "selection.background",
+                "description": "Standard selection background color",
+                "preview": true
+            },
+            {
+                "name": "icon.foreground",
+                "description": "Standard icon foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Window Colors",
+        "description": "Window/Dialog Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "window.activeBorder",
+                "description": "Active border color",
+                "preview": false
+            },
+            {
+                "name": "window.inactiveBorder",
+                "description": "Inactive border color",
+                "preview": false
+            },
+            {
+                "name": "window.background",
+                "description": "Main background color",
+                "preview": true
+            },
+            {
+                "name": "window.headerBackground",
+                "description": "Header color",
+                "preview": true
+            },
+            {
+                "name": "window.footerBackground",
+                "description": "Footer color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Popup Colors",
+        "description": "Popup Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "popup.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "popup.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "popup.foreground",
+                "description": "Default foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Text Colors",
+        "description": "Text Colors (except code editors)",
+        "preview": true,
+        "children": [
+            {
+                "name": "textBlockQuote.background",
+                "description": "Block quotes background color",
+                "preview": true
+            },
+            {
+                "name": "textBlockQuote.border",
+                "description": "Block quotes border color",
+                "preview": true
+            },
+            {
+                "name": "textCodeBlock.background",
+                "description": "Code block background color",
+                "preview": true
+            },
+            {
+                "name": "textLink.activeForeground",
+                "description": "Text link active foreground color",
+                "preview": true
+            },
+            {
+                "name": "textLink.foreground",
+                "description": "Text link foreground color",
+                "preview": true
+            },
+            {
+                "name": "textPreformat.foreground",
+                "description": "Preformatted text foreground color",
+                "preview": true
+            },
+            {
+                "name": "textSeparator.foreground",
+                "description": "Text separator foreground color",
+                "preview": true
+            },
+            {
+                "name": "text.captionForeground",
+                "description": "Caption foreground color",
+                "preview": true
+            },
+            {
+                "name": "text.dimmedForeground",
+                "description": "Dimmed/disabled text foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Button Control",
+        "description": "Button Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "button.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "button.foreground",
+                "description": "Foreground color",
+                "preview": true
+            },
+            {
+                "name": "button.hoverBackground",
+                "description": "Hover background color",
+                "preview": true
+            },
+            {
+                "name": "button.dimmedBackground",
+                "description": "Dimmed background color",
+                "preview": true
+            },
+            {
+                "name": "button.pressedBackground",
+                "description": "Pressed background color",
+                "preview": true
+            },
+            {
+                "name": "button.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "checkbox.background",
+                "description": "Checkbox/Radio Button background color",
+                "preview": true
+            },
+            {
+                "name": "checkbox.foreground",
+                "description": "Checkbox/Radio Button foreground color",
+                "preview": true
+            },
+            {
+                "name": "checkbox.border",
+                "description": "Checkbox/Radio Button border color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Dropdown Control",
+        "description": "Dropdown Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "dropdown.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "dropdown.hoverBackground",
+                "description": "Hover background color",
+                "preview": true
+            },
+            {
+                "name": "dropdown.listBackground",
+                "description": "List background color",
+                "preview": true
+            },
+            {
+                "name": "dropdown.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "dropdown.foreground",
+                "description": "Foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Input Control",
+        "description": "Input Controls Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "input.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "input.hoverBackground",
+                "description": "Hover background color",
+                "preview": true
+            },
+            {
+                "name": "input.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "input.foreground",
+                "description": "Foreground color",
+                "preview": true
+            },
+            {
+                "name": "inputOption.activeBackground",
+                "description": "Background color of activated options in input fields",
+                "preview": true
+            },
+            {
+                "name": "inputOption.activeBorder",
+                "description": "Border color of activated options in input fields",
+                "preview": true
+            },
+            {
+                "name": "input.placeholderForeground",
+                "description": "Placeholder foreground color",
+                "preview": true
+            },
+            {
+                "name": "inputValidation.errorBackground",
+                "description": "Validation error background color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.errorForeground",
+                "description": "Validation error foreground color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.errorBorder",
+                "description": "Validation error border color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.infoBackground",
+                "description": "Validation info background color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.infoForeground",
+                "description": "Validation info foreground color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.infoBorder",
+                "description": "Validation info border color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.warningBackground",
+                "description": "Validation warning background color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.warningForeground",
+                "description": "Validation warning foreground color",
+                "preview": false
+            },
+            {
+                "name": "inputValidation.warningBorder",
+                "description": "Validation warning border color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Tags",
+        "description": "Tag Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "tag.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "tag.foreground",
+                "description": "Foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Badge",
+        "description": "Badge Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "badge.foreground",
+                "description": "Badge foreground color",
+                "preview": false
+            },
+            {
+                "name": "badge.background",
+                "description": "Badge background color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Progress Bar",
+        "description": "Progress Bar Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "progressBar.background",
+                "description": "Background color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Lists, Trees, Grids, Tables",
+        "description": "List / Tree / Grid / Table Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "list.activeSelectionBackground",
+                "description": "Selected item background color when the list is active",
+                "preview": true
+            },
+            {
+                "name": "list.activeSelectionForeground",
+                "description": "Selected item foreground color when the list is active",
+                "preview": true
+            },
+            {
+                "name": "list.inactiveSelectionBackground",
+                "description": "Selected item background color when the list is not active",
+                "preview": true
+            },
+            {
+                "name": "list.inactiveSelectionForeground",
+                "description": "Selected item foreground color when the list is not active",
+                "preview": true
+            },
+            {
+                "name": "list.dropBackground",
+                "description": "Drop target item background color",
+                "preview": false
+            },
+            {
+                "name": "list.focusBackground",
+                "description": "Focused item background color when the list is active",
+                "preview": false
+            },
+            {
+                "name": "list.focusForeground",
+                "description": "Focused item foreground color when the list is active",
+                "preview": false
+            },
+            {
+                "name": "list.inactiveFocusBackground",
+                "description": "Focused item background color when the list is not active",
+                "preview": false
+            },
+            {
+                "name": "list.highlightForeground",
+                "description": "Foreground color for marked items (e.g. when matching a search expression",
+                "preview": false
+            },
+            {
+                "name": "list.hoverBackground",
+                "description": "Item background color during mouse hover",
+                "preview": true
+            },
+            {
+                "name": "list.hoverForeground",
+                "description": "Item foreground color during mouse hover",
+                "preview": true
+            },
+            {
+                "name": "list.invalidItemForeground",
+                "description": "Invalid item foreground color",
+                "preview": false
+            },
+            {
+                "name": "list.errorForeground",
+                "description": "Error foreground color",
+                "preview": false
+            },
+            {
+                "name": "list.warningForeground",
+                "description": "Warning foreground color",
+                "preview": false
+            },
+            {
+                "name": "listFilterWidget.background",
+                "description": "Filter widget background color",
+                "preview": false
+            },
+            {
+                "name": "listFilterWidget.outline",
+                "description": "Filter widget border color",
+                "preview": false
+            },
+            {
+                "name": "listFilterWidget.noMatchesOutline",
+                "description": "Filter widget no-match border color",
+                "preview": false
+            },
+            {
+                "name": "list.filterMatchBackground",
+                "description": "Filtered match background color",
+                "preview": false
+            },
+            {
+                "name": "list.filterMatchBorder",
+                "description": "Filtered match border color",
+                "preview": false
+            },
+            {
+                "name": "tree.indentGuidesStroke",
+                "description": "Tree lines color",
+                "preview": false
+            },
+            {
+                "name": "list.headerBackground",
+                "description": "Header background color",
+                "preview": true
+            },
+            {
+                "name": "list.gridColor",
+                "description": "Grid lines color",
+                "preview": true
+            },
+            {
+                "name": "list.sortIndicatorForeground",
+                "description": "Sort indicator foreground color",
+                "preview": true
+            },
+            {
+                "name": "list.columnResizerForeground",
+                "description": "Column resizer line foreground color",
+                "preview": true
+            },
+            {
+                "name": "list.emptyBackground",
+                "description": "Empty list background color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Activity Bar",
+        "description": "Activity Bar Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "activityBar.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "activityBar.dropBackground",
+                "description": "Drop background feedback color for items",
+                "preview": true
+            },
+            {
+                "name": "activityBar.dropBorder",
+                "description": "Drop border feedback color for items",
+                "preview": true
+            },
+            {
+                "name": "activityBar.foreground",
+                "description": "Foreground color",
+                "preview": true
+            },
+            {
+                "name": "activityBar.inactiveForeground",
+                "description": "Inactive foreground color",
+                "preview": false
+            },
+            {
+                "name": "activityBar.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "activityBarBadge.background",
+                "description": "Notification badge background color",
+                "preview": false
+            },
+            {
+                "name": "activityBarBadge.foreground",
+                "description": "Notification badge foreground color",
+                "preview": false
+            },
+            {
+                "name": "activityBar.activeBorder",
+                "description": "Active indicator border color",
+                "preview": true
+            },
+            {
+                "name": "activityBar.activeBackground",
+                "description": "Optional background color for the active element",
+                "preview": true
+            },
+            {
+                "name": "activityBar.activeFocusBorder",
+                "description": "Focus border color for the active item",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Side Bar",
+        "description": "Side Bar Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "sideBar.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "sideBar.foreground",
+                "description": "Foreground color",
+                "preview": true
+            },
+            {
+                "name": "sideBar.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "sideBarTitle.foreground",
+                "description": "Title foreground color",
+                "preview": true
+            },
+            {
+                "name": "sideBarSectionHeader.background",
+                "description": "Section header background color",
+                "preview": true
+            },
+            {
+                "name": "sideBarSectionHeader.foreground",
+                "description": "Section header foreground color",
+                "preview": true
+            },
+            {
+                "name": "sideBarSectionHeader.border",
+                "description": "Side bar section header border color",
+                "preview": true
+            },
+            {
+                "name": "sideBar.dropBackground",
+                "description": "Item hover background color",
+                "preview": true
+            },
+            {
+                "name": "sideBar.markerBackground",
+                "description": "Background color for a marked item",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Editor Groups & Tabs",
+        "description": "Tabview (Group) Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "editorGroup.border",
+                "description": "Tabview group separator color",
+                "preview": false
+            },
+            {
+                "name": "editorGroup.dropBackground",
+                "description": "Tab page drop background color",
+                "preview": true
+            },
+            {
+                "name": "editorGroupHeader.noTabsBackground",
+                "description": "Background color of the Tabs container when tabs are disabled",
+                "preview": false
+            },
+            {
+                "name": "editorGroupHeader.tabsBackground",
+                "description": "Background color of the Tabs container",
+                "preview": true
+            },
+            {
+                "name": "editorGroupHeader.tabsBorder",
+                "description": "Separator color between tabs and tabview content",
+                "preview": true
+            },
+            {
+                "name": "editorGroupHeader.border",
+                "description": "Border color between editor group header and editor (below breadcrumbs if enabled)",
+                "preview": false
+            },
+            {
+                "name": "editorGroup.emptyBackground",
+                "description": "Background color of an empty editor group",
+                "preview": false
+            },
+            {
+                "name": "editorGroup.focusedEmptyBorder",
+                "description": "Border color of an empty editor group that is focused",
+                "preview": false
+            },
+            {
+                "name": "tab.activeBackground",
+                "description": "Background color of a selected item in an active group",
+                "preview": true
+            },
+            {
+                "name": "tab.unfocusedActiveBackground",
+                "description": "Active tab background color in an inactive editor group",
+                "preview": false
+            },
+            {
+                "name": "tab.activeForeground",
+                "description": "Foreground color of a selected item in an active group",
+                "preview": true
+            },
+            {
+                "name": "tab.border",
+                "description": "Border to separate Tabs from each other",
+                "preview": true
+            },
+            {
+                "name": "tab.activeBorder",
+                "description": "Inner border for the active tab (bottom for top tabs, right for left tabs etc.)",
+                "preview": true
+            },
+            {
+                "name": "tab.unfocusedActiveBorder",
+                "description": "Inner border for the active tab in an inactive editor group",
+                "preview": false
+            },
+            {
+                "name": "tab.activeBorderTop",
+                "description": "Outer border for the active tab (top for top tabs, right for right tabs etc.)",
+                "preview": true
+            },
+            {
+                "name": "tab.unfocusedActiveBorderTop",
+                "description": "Outer border for the active tab in an inactive editor group",
+                "preview": false
+            },
+            {
+                "name": "tab.dropBackground",
+                "description": "Tab item drop background color",
+                "preview": true
+            },
+            {
+                "name": "tab.inactiveBackground",
+                "description": "Inactive Tab background color",
+                "preview": true
+            },
+            {
+                "name": "tab.inactiveForeground",
+                "description": "Inactive Tab foreground color in an active group",
+                "preview": true
+            },
+            {
+                "name": "tab.unfocusedActiveForeground",
+                "description": "Active tab foreground color in an inactive editor group",
+                "preview": false
+            },
+            {
+                "name": "tab.unfocusedInactiveForeground",
+                "description": "Inactive tab foreground color in an inactive editor group",
+                "preview": false
+            },
+            {
+                "name": "tab.hoverBackground",
+                "description": "Tab background color when hovering",
+                "preview": true
+            },
+            {
+                "name": "tab.unfocusedHoverBackground",
+                "description": "Tab background color in an unfocused group when hovering",
+                "preview": false
+            },
+            {
+                "name": "tab.hoverBorder",
+                "description": "Border to highlight tabs when hovering",
+                "preview": true
+            },
+            {
+                "name": "tab.unfocusedHoverBorder",
+                "description": "Border to highlight tabs in an unfocused group when hovering",
+                "preview": false
+            },
+            {
+                "name": "tab.activeModifiedBorder",
+                "description": "Border on the top of modified active tabs in an active group",
+                "preview": false
+            },
+            {
+                "name": "tab.inactiveModifiedBorder",
+                "description": "Border on the top of modified inactive tabs in an active group",
+                "preview": false
+            },
+            {
+                "name": "tab.unfocusedActiveModifiedBorder",
+                "description": "Border on the top of modified active tabs in an unfocused group",
+                "preview": false
+            },
+            {
+                "name": "tab.unfocusedInactiveModifiedBorder",
+                "description": "Border on the top of modified inactive tabs in an unfocused group",
+                "preview": false
+            },
+            {
+                "name": "editorPane.background",
+                "description": "Content pane background color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Editor Colors",
+        "description": "Editor Colors, except syntax highlighting",
+        "preview": true,
+        "children": [
+            {
+                "name": "editor.background",
+                "description": "Editor background color",
+                "preview": true
+            },
+            {
+                "name": "editor.foreground",
+                "description": "Editor foreground color",
+                "preview": true
+            },
+            {
+                "name": "editorLineNumber.foreground",
+                "description": "Line number foreground color",
+                "preview": true
+            },
+            {
+                "name": "editorLineNumber.activeForeground",
+                "description": "Line number active foreground color",
+                "preview": true
+            },
+            {
+                "name": "editorCursor.background",
+                "description": "Cursor background color",
+                "preview": true
+            },
+            {
+                "name": "editorCursor.foreground",
+                "description": "Cursor foreground color",
+                "preview": true
+            },
+            {
+                "name": "##Selection Colors",
+                "description": "Selection Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editor.selectionBackground",
+                        "description": "Selection active background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.selectionForeground",
+                        "description": "Selection foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.inactiveSelectionBackground",
+                        "description": "Selection inactive background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.selectionHighlightBackground",
+                        "description": "Selection highlight background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.selectionHighlightBorder",
+                        "description": "Selection highlight border color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Word Highlight Colors",
+                "description": "Word Highlight Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editor.wordHighlightBackground",
+                        "description": "Word highlight background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.wordHighlightBorder",
+                        "description": "Word highlight border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.wordHighlightStrongBackground",
+                        "description": "Word highlight strong background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.wordHighlightStrongBorder",
+                        "description": "Word highlight strong border color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Find Colors",
+                "description": "Text Match Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editor.findMatchBackground",
+                        "description": "Find match background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.findMatchHighlightBackground",
+                        "description": "Find match highlight background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.findRangeHighlightBackground",
+                        "description": "Find range highlight background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.findMatchBorder",
+                        "description": "Find match border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.findMatchHighlightBorder",
+                        "description": "Find match highlight border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.findRangeHighlightBorder",
+                        "description": "Range highlight border color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Search Editor",
+                "description": "Search Editor Color",
+                "preview": false,
+                "children": [
+                    {
+                        "name": "searchEditor.findMatchBackground",
+                        "description": "Find match background color",
+                        "preview": false
+                    },
+                    {
+                        "name": "searchEditor.findMatchBorder",
+                        "description": "Find match border color",
+                        "preview": false
+                    },
+                    {
+                        "name": "searchEditor.textInputBorder",
+                        "description": "Text input border color",
+                        "preview": false
+                    }
+                ]
+            },
+            {
+                "name": "##Highlight",
+                "description": "Hover / Line Highlight colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editor.hoverHighlightBackground",
+                        "description": "Hover highlight background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.lineHighlightBackground",
+                        "description": "Line highlight background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.lineHighlightBorder",
+                        "description": "Line highlight border color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Range Highlight",
+                "description": "Text Range Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editor.rangeHighlightBackground",
+                        "description": "Highlighted range background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.rangeHighlightBorder",
+                        "description": "Highlighted range border color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Symbol Highlight",
+                "description": "Symbol Highlight Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editor.symbolHighlightBackground",
+                        "description": "Symbol highlight background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.symbolHighlightBorder",
+                        "description": "Symbol highlight border color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Whitespace + Indent Guide",
+                "description": "Additional Text Element Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorWhitespace.foreground",
+                        "description": "Whitespace characters foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorIndentGuide.background",
+                        "description": "Indentation guides normal background",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorIndentGuide.activeBackground",
+                        "description": "Indentation guides active background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorRuler.foreground",
+                        "description": "Editor ruler foreground color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Bracket Match Colors",
+                "description": "Bracket Match Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorBracketMatch.background",
+                        "description": "Bracket matching background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorBracketMatch.border",
+                        "description": "Bracket matching border color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Overview Ruler",
+                "description": "Overview Ruler Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorOverviewRuler.background",
+                        "description": "Background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.border",
+                        "description": "Border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.findMatchForeground",
+                        "description": "Find match foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.rangeHighlightForeground",
+                        "description": "Range highlight foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.selectionHighlightForeground",
+                        "description": "Selection highlight foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.wordHighlightForeground",
+                        "description": "Word highlight foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.wordHighlightStrongForeground",
+                        "description": "Word highlight strong foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.modifiedForeground",
+                        "description": "Modified content foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.addedForeground",
+                        "description": "Added content foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.deletedForeground",
+                        "description": "Deleted content foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.errorForeground",
+                        "description": "Error foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.warningForeground",
+                        "description": "Warning foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.infoForeground",
+                        "description": "Info foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorOverviewRuler.bracketMatchForeground",
+                        "description": "Bracket matching foreground color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Editor Messages",
+                "description": "Editor Message Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorError.foreground",
+                        "description": "Editor error squiggles foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorError.border",
+                        "description": "Editor error border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorWarning.foreground",
+                        "description": "Editor warning squiggles foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorWarning.border",
+                        "description": "Editor warning border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorInfo.foreground",
+                        "description": "Editor info squiggles foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorInfo.border",
+                        "description": "Editor info border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorHint.foreground",
+                        "description": "Editor hint foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorHint.border",
+                        "description": "Editor hint border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "problemsErrorIcon.foreground",
+                        "description": "Error icon foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "problemsWarningIcon.foreground",
+                        "description": "Warning icon foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "problemsInfoIcon.foreground",
+                        "description": "Info icon foreground color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Gutter Colors",
+                "description": "Gutter Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorGutter.background",
+                        "description": "Background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorGutter.modifiedBackground",
+                        "description": "Modified lines background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorGutter.addedBackground",
+                        "description": "Added lines background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorGutter.deletedBackground",
+                        "description": "Deleted lines background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorGutter.commentRangeForeground",
+                        "description": "Commenting range foreground color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Editor Widget Colors",
+                "description": "Widget Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorWidget.foreground",
+                        "description": "Foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorWidget.background",
+                        "description": "Background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorWidget.border",
+                        "description": "Border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorWidget.resizeBorder",
+                        "description": "Resize bar border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorSuggestWidget.background",
+                        "description": "Suggestion widget background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorSuggestWidget.border",
+                        "description": "Suggestion widget border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorSuggestWidget.foreground",
+                        "description": "Suggestion widget foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorSuggestWidget.highlightForeground",
+                        "description": "Suggestion widget highlight foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorSuggestWidget.selectedBackground",
+                        "description": "Suggestion widget selection background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorHoverWidget.foreground",
+                        "description": "Editor hover foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorHoverWidget.background",
+                        "description": "Editor hover background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorHoverWidget.border",
+                        "description": "Editor hover border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorHoverWidget.statusBarBackground",
+                        "description": "Status bar background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "debugExceptionWidget.background",
+                        "description": "Exception widget background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "debugExceptionWidget.border",
+                        "description": "Exception widget border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorMarkerNavigation.background",
+                        "description": "Background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorMarkerNavigationError.background",
+                        "description": "Error background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorMarkerNavigationWarning.background",
+                        "description": "Warning background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorMarkerNavigationInfo.background",
+                        "description": "Info background color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Peek View Colors",
+                "description": "Peek View Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "peekView.border",
+                        "description": "Color of the peek view borders and arrow",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewEditor.background",
+                        "description": "Background color of the peek view editor",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewEditorGutter.background",
+                        "description": "Background color of the gutter in the peek view editor",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewEditor.matchHighlightBackground",
+                        "description": "Match highlight color in the peek view editor",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewEditor.matchHighlightBorder",
+                        "description": "Match highlight border color in the peek view editor",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewResult.background",
+                        "description": "Background color of the peek view result list",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewResult.fileForeground",
+                        "description": "Foreground color for file nodes in the peek view result list",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewResult.lineForeground",
+                        "description": "Foreground color for line nodes in the peek view result list",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewResult.matchHighlightBackground",
+                        "description": "Match highlight color in the peek view result list",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewResult.selectionBackground",
+                        "description": "Background color of the selected entry in the peek view result list",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewResult.selectionForeground",
+                        "description": "Foreground color of the selected entry in the peek view result list",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewTitle.background",
+                        "description": "Background color of the peek view title area",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewTitleDescription.foreground",
+                        "description": "Color of the peek view title info",
+                        "preview": true
+                    },
+                    {
+                        "name": "peekViewTitleLabel.foreground",
+                        "description": "Color of the peek view title",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Quick picker",
+                "description": "Quick Picker Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "pickerGroup.border",
+                        "description": "Quick picker color for grouping borders",
+                        "preview": true
+                    },
+                    {
+                        "name": "pickerGroup.foreground",
+                        "description": "Quick picker color for grouping labels",
+                        "preview": true
+                    },
+                    {
+                        "name": "quickInput.background",
+                        "description": "Quick input background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "quickInput.foreground",
+                        "description": "Quick input foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "quickInputTitle.background",
+                        "description": "Quick picker title background color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Diff Editor Colors",
+                "description": "Diff Editor Colors",
+                "preview": false,
+                "children": [
+                    {
+                        "name": "diffEditor.insertedTextBackground",
+                        "description": "Inserted text background color",
+                        "preview": false
+                    },
+                    {
+                        "name": "diffEditor.insertedTextBorder",
+                        "description": "Inserted text border color",
+                        "preview": false
+                    },
+                    {
+                        "name": "diffEditor.removedTextBackground",
+                        "description": "Removed text background color",
+                        "preview": false
+                    },
+                    {
+                        "name": "diffEditor.removedTextBorder",
+                        "description": "Removed text border color",
+                        "preview": false
+                    },
+                    {
+                        "name": "diffEditor.border",
+                        "description": "Text editor border color",
+                        "preview": false
+                    }
+                ]
+            },
+            {
+                "name": "##Merge Colors",
+                "description": "Merge Conflict Colors",
+                "preview": false,
+                "children": [
+                    {
+                        "name": "merge.currentHeaderBackground",
+                        "description": "Current header background in inline merge conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "merge.currentContentBackground",
+                        "description": "Current content background in inline merge conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "merge.incomingHeaderBackground",
+                        "description": "Incoming header background in inline merge conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "merge.incomingContentBackground",
+                        "description": "Incoming content background in inline merge conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "merge.border",
+                        "description": "Border color on headers and the splitter in inline merge conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "merge.commonContentBackground",
+                        "description": "Common ancestor content background in inline merge-conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "merge.commonHeaderBackground",
+                        "description": "Common ancestor header background in inline merge-conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "editorOverviewRuler.currentContentForeground",
+                        "description": "Current overview ruler foreground for inline merge conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "editorOverviewRuler.incomingContentForeground",
+                        "description": "Incoming overview ruler foreground for inline merge conflicts",
+                        "preview": false
+                    },
+                    {
+                        "name": "editorOverviewRuler.commonContentForeground",
+                        "description": "Common ancestor overview ruler foreground for inline merge conflicts",
+                        "preview": false
+                    }
+                ]
+            },
+            {
+                "name": "##Minimap",
+                "description": "Minimap Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "minimap.findMatchHighlight",
+                        "description": "Find match highlight color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimap.selectionHighlight",
+                        "description": "Selection highlight color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimap.errorHighlight",
+                        "description": "Error highlight color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimap.warningHighlight",
+                        "description": "Warning highlight color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimap.background",
+                        "description": "Background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimapSlider.background",
+                        "description": "Slider background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimapSlider.hoverBackground",
+                        "description": "Slider hover background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimapSlider.activeBackground",
+                        "description": "Slider pressed background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimapGutter.addedBackground",
+                        "description": "Added content background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimapGutter.modifiedBackground",
+                        "description": "Modified content background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "minimapGutter.deletedBackground",
+                        "description": "Deleted content background color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Editor Zone",
+                "description": "Editor Zone Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorZone.background",
+                        "description": "Background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorZone.foreground",
+                        "description": "Foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "resultView.headerBackground",
+                        "description": "Result View header background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "resultView.headerForeground",
+                        "description": "Result View header foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "resultView.background",
+                        "description": "Result View cell background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "resultView.foreground",
+                        "description": "Result View cell foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "resultView.gridColor",
+                        "description": "Result View grid color",
+                        "preview": true
+                    },
+                    {
+                        "name": "resultStatus.background",
+                        "description": "Status background color",
+                        "preview": true
+                    },
+                    {
+                        "name": "resultStatus.foreground",
+                        "description": "Status foreground color",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Editor Prompt",
+                "description": "Editor Prompt Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorPrompt.primary.js",
+                        "description": "Foreground color for the JS initial prompt",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.secondary.js",
+                        "description": "Foreground color for the JS prompt continuation",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.primary.ts",
+                        "description": "Foreground color for the TS initial prompt",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.secondary.ts",
+                        "description": "Foreground color for the TS prompt continuation",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.primary.sql",
+                        "description": "Foreground color for the SQL initial prompt",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.secondary.sql",
+                        "description": "Foreground color for the SQL prompt continuation",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.primary.py",
+                        "description": "Foreground color for the Python initial prompt",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.secondary.py",
+                        "description": "Foreground color for the Python prompt continuation",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorPrompt.result",
+                        "description": "Foreground color for the result prompt continuation",
+                        "preview": true
+                    }
+                ]
+            },
+            {
+                "name": "##Miscellaneous",
+                "description": "Miscellaneous Colors",
+                "preview": true,
+                "children": [
+                    {
+                        "name": "editorLink.activeForeground",
+                        "description": "Active link foreground color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorUnnecessaryCode.border",
+                        "description": "Unused code border color",
+                        "preview": true
+                    },
+                    {
+                        "name": "editorUnnecessaryCode.opacity",
+                        "description": "Unused code opacity",
+                        "preview": true
+                    },
+                    {
+                        "name": "editor.foldBackground",
+                        "description": "Fold range background color",
+                        "preview": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "#Scrollbar",
+        "description": "Scrollbar (Slider) Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "scrollbar.shadow",
+                "description": "Scrollbar slider shadow",
+                "preview": true
+            },
+            {
+                "name": "scrollbarSlider.activeBackground",
+                "description": "Scrollbar slider background color when clicked on",
+                "preview": true
+            },
+            {
+                "name": "scrollbarSlider.background",
+                "description": "Scrollbar slider background color",
+                "preview": true
+            },
+            {
+                "name": "scrollbarSlider.hoverBackground",
+                "description": "Scrollbar slider background color when hovering",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Panel Colors",
+        "description": "Output Panel Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "panel.background",
+                "description": "Background color",
+                "preview": false
+            },
+            {
+                "name": "panel.border",
+                "description": "Border color",
+                "preview": false
+            },
+            {
+                "name": "panel.dropBackground",
+                "description": "Drop feedback background color",
+                "preview": false
+            },
+            {
+                "name": "panelTitle.activeBorder",
+                "description": "Active title border color",
+                "preview": false
+            },
+            {
+                "name": "panelTitle.activeForeground",
+                "description": "Active title foreground color",
+                "preview": false
+            },
+            {
+                "name": "panelTitle.inactiveForeground",
+                "description": "Inactive title foreground color",
+                "preview": false
+            },
+            {
+                "name": "panelInput.border",
+                "description": "Input box border color",
+                "preview": false
+            },
+            {
+                "name": "imagePreview.border",
+                "description": "Border color for image in image preview",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Tooltip Colors",
+        "description": "Hint / Info / Tooltip Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "tooltip.foreground",
+                "description": "Foreground color of a tooltip",
+                "preview": true
+            },
+            {
+                "name": "tooltip.background",
+                "description": "Background color of a tooltip",
+                "preview": true
+            },
+            {
+                "name": "tooltip.border",
+                "description": "Border color of a tooltip",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Status Bar Colors",
+        "description": "Status Bar Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "statusBar.background",
+                "description": "Background Color",
+                "preview": true
+            },
+            {
+                "name": "statusBar.foreground",
+                "description": "Foreground color",
+                "preview": true
+            },
+            {
+                "name": "statusBar.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "statusBar.debuggingBackground",
+                "description": "Status Bar background color when a program is being debugged",
+                "preview": false
+            },
+            {
+                "name": "statusBar.debuggingForeground",
+                "description": "Status Bar foreground color when a program is being debugged",
+                "preview": false
+            },
+            {
+                "name": "statusBar.debuggingBorder",
+                "description": "Status Bar border color separating the Status Bar and editor when a program is being debugged",
+                "preview": false
+            },
+            {
+                "name": "statusBar.noFolderForeground",
+                "description": "Foreground color when no folder is opened",
+                "preview": false
+            },
+            {
+                "name": "statusBar.noFolderBackground",
+                "description": "Background color when no folder is opened",
+                "preview": false
+            },
+            {
+                "name": "statusBar.noFolderBorder",
+                "description": "Border color separating the Status Bar and editor when no folder is opened",
+                "preview": false
+            },
+            {
+                "name": "statusBarItem.activeBackground",
+                "description": "Active item background color",
+                "preview": true
+            },
+            {
+                "name": "statusBarItem.hoverBackground",
+                "description": "Item hover background color",
+                "preview": true
+            },
+            {
+                "name": "statusBarItem.prominentForeground",
+                "description": "Prominent item foreground color",
+                "preview": true
+            },
+            {
+                "name": "statusBarItem.prominentBackground",
+                "description": "Prominent item background color",
+                "preview": true
+            },
+            {
+                "name": "statusBarItem.prominentHoverBackground",
+                "description": "Prominent item hover background color",
+                "preview": true
+            },
+            {
+                "name": "statusBarItem.remoteBackground",
+                "description": "Remote indicator background color",
+                "preview": false
+            },
+            {
+                "name": "statusBarItem.remoteForeground",
+                "description": "Remote indicator foreground color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Tile Colors",
+        "description": "Browser Tile Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "browserTile.background",
+                "description": "Background color for a standard tile",
+                "preview": true
+            },
+            {
+                "name": "browserTile.foreground",
+                "description": "Foreground color for a standard tile",
+                "preview": true
+            },
+            {
+                "name": "browserTile.border",
+                "description": "Border color for a standard tile",
+                "preview": true
+            },
+            {
+                "name": "browserTile.activeBackground",
+                "description": "Background color for a pressed/selected standard tile",
+                "preview": true
+            },
+            {
+                "name": "browserTile.activeForeground",
+                "description": "Foreground color for a pressed/selected standard tile",
+                "preview": true
+            },
+            {
+                "name": "browserTile.activeBorder",
+                "description": "Border color for a pressed/selected standard tile",
+                "preview": true
+            },
+            {
+                "name": "browserTile.hoverBackground",
+                "description": "Background color for a standard tile under the mouse pointer",
+                "preview": true
+            },
+            {
+                "name": "browserTileSecondary.background",
+                "description": "Background color for a secondary tile",
+                "preview": true
+            },
+            {
+                "name": "browserTileSecondary.foreground",
+                "description": "Foreground color for a secondary tile",
+                "preview": true
+            },
+            {
+                "name": "browserTileSecondary.border",
+                "description": "Border color for a secondary tile",
+                "preview": true
+            },
+            {
+                "name": "browserTileSecondary.activeBackground",
+                "description": "Background color for a pressed/selected secondary tile",
+                "preview": true
+            },
+            {
+                "name": "browserTileSecondary.activeForeground",
+                "description": "Foreground color for a pressed/selected secondary tile",
+                "preview": true
+            },
+            {
+                "name": "browserTileSecondary.activeBorder",
+                "description": "Border color for a pressed/selected secondary tile",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Title Bar Colors",
+        "description": "Title Bar Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "titleBar.activeBackground",
+                "description": "Active background color",
+                "preview": true
+            },
+            {
+                "name": "titleBar.activeForeground",
+                "description": "Active foreground color",
+                "preview": true
+            },
+            {
+                "name": "titleBar.inactiveBackground",
+                "description": "Inactive background color",
+                "preview": true
+            },
+            {
+                "name": "titleBar.inactiveForeground",
+                "description": "Inactive foreground color",
+                "preview": true
+            },
+            {
+                "name": "titleBar.border",
+                "description": "Border color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Menu Colors",
+        "description": "Menu Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "menubar.background",
+                "description": "Menu Bar background color",
+                "preview": true
+            },
+            {
+                "name": "menubar.selectionForeground",
+                "description": "Menu Bar selection foreground color",
+                "preview": true
+            },
+            {
+                "name": "menubar.selectionBackground",
+                "description": "Menu Bar selection background color",
+                "preview": true
+            },
+            {
+                "name": "menubar.selectionBorder",
+                "description": "Menu Bar selection border color",
+                "preview": true
+            },
+            {
+                "name": "menu.foreground",
+                "description": "Menu foreground color",
+                "preview": true
+            },
+            {
+                "name": "menu.background",
+                "description": "Menu background color",
+                "preview": true
+            },
+            {
+                "name": "menu.blurredBackground",
+                "description": "Menu background color if blurring of content behind the menu is supported",
+                "preview": true
+            },
+            {
+                "name": "menu.selectionForeground",
+                "description": "Menu Item selected foreground color",
+                "preview": true
+            },
+            {
+                "name": "menu.selectionBackground",
+                "description": "Menu Item selected background color",
+                "preview": true
+            },
+            {
+                "name": "menu.selectionBorder",
+                "description": "Menu Item selected border color",
+                "preview": true
+            },
+            {
+                "name": "menu.separatorBackground",
+                "description": "Menu Separator color",
+                "preview": true
+            },
+            {
+                "name": "menu.border",
+                "description": "Menu Border Color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Notification Colors",
+        "description": "Notification Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "notificationCenter.border",
+                "description": "Notification Center border color",
+                "preview": false
+            },
+            {
+                "name": "notificationCenterHeader.foreground",
+                "description": "Notification Center header foreground color",
+                "preview": false
+            },
+            {
+                "name": "notificationCenterHeader.background",
+                "description": "Notification Center header background color",
+                "preview": false
+            },
+            {
+                "name": "notificationToast.border",
+                "description": "Notification toast border color",
+                "preview": false
+            },
+            {
+                "name": "notifications.foreground",
+                "description": "Notification foreground color",
+                "preview": false
+            },
+            {
+                "name": "notifications.background",
+                "description": "Notification background color",
+                "preview": false
+            },
+            {
+                "name": "notifications.border",
+                "description": "Notification border color",
+                "preview": false
+            },
+            {
+                "name": "notificationLink.foreground",
+                "description": "Notification links foreground color",
+                "preview": false
+            },
+            {
+                "name": "notificationsErrorIcon.foreground",
+                "description": "Notification error icon color",
+                "preview": false
+            },
+            {
+                "name": "notificationsWarningIcon.foreground",
+                "description": "Notification warning icon color",
+                "preview": false
+            },
+            {
+                "name": "notificationsInfoIcon.foreground",
+                "description": "Notification info icon color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Extension View",
+        "description": "Extension View Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "extensionButton.prominentForeground",
+                "description": "Button foreground color",
+                "preview": false
+            },
+            {
+                "name": "extensionButton.prominentBackground",
+                "description": "Button background color",
+                "preview": false
+            },
+            {
+                "name": "extensionButton.prominentHoverBackground",
+                "description": "Button background hover color",
+                "preview": false
+            },
+            {
+                "name": "extensionBadge.remoteBackground",
+                "description": "Remote Badge background color",
+                "preview": false
+            },
+            {
+                "name": "extensionBadge.remoteForeground",
+                "description": "Remote Badge foreground color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Terminal Colors",
+        "description": "Integrated Terminal Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "terminal.background",
+                "description": "Background color",
+                "preview": true
+            },
+            {
+                "name": "terminal.border",
+                "description": "Border color",
+                "preview": true
+            },
+            {
+                "name": "terminal.foreground",
+                "description": "Foreground color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBlack",
+                "description": "'Black' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBlue",
+                "description": "'Blue' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightBlack",
+                "description": "'BrightBlack' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightBlue",
+                "description": "'BrightBlue' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightCyan",
+                "description": "'BrightCyan' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightGreen",
+                "description": "'BrightGreen' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightMagenta",
+                "description": "'BrightMagenta' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightRed",
+                "description": "'BrightRed' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightWhite",
+                "description": "'BrightWhite' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiBrightYellow",
+                "description": "'BrightYellow' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiCyan",
+                "description": "'Cyan' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiGreen",
+                "description": "'Green' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiMagenta",
+                "description": "'Magenta' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiRed",
+                "description": "'Red' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiWhite",
+                "description": "'White' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.ansiYellow",
+                "description": "'Yellow' ANSI color",
+                "preview": true
+            },
+            {
+                "name": "terminal.selectionBackground",
+                "description": "Selection background color",
+                "preview": true
+            },
+            {
+                "name": "terminalCursor.background",
+                "description": "Terminal cursor background color",
+                "preview": true
+            },
+            {
+                "name": "terminalCursor.foreground",
+                "description": "Terminal cursor foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Debug",
+        "description": "Debug Window Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "debugToolBar.background",
+                "description": "Debug toolbar background color",
+                "preview": false
+            },
+            {
+                "name": "debugToolBar.border",
+                "description": "Debug toolbar border color",
+                "preview": false
+            },
+            {
+                "name": "editor.stackFrameHighlightBackground",
+                "description": "Background color of the top stack frame highlight in the editor",
+                "preview": false
+            },
+            {
+                "name": "editor.focusedStackFrameHighlightBackground",
+                "description": "Background color of the focused stack frame highlight in the editor",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Welcome Page",
+        "description": "Welcome Page Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "welcomePage.background",
+                "description": "Background color",
+                "preview": false
+            },
+            {
+                "name": "welcomePage.buttonBackground",
+                "description": "Button background color",
+                "preview": false
+            },
+            {
+                "name": "welcomePage.buttonHoverBackground",
+                "description": "Button hover background color",
+                "preview": false
+            },
+            {
+                "name": "walkThrough.embeddedEditorBackground",
+                "description": "Embedded editor background color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Git colors",
+        "description": "Git Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "gitDecoration.addedResourceForeground",
+                "description": "Color for added Git resources",
+                "preview": false
+            },
+            {
+                "name": "gitDecoration.modifiedResourceForeground",
+                "description": "Color for modified Git resources",
+                "preview": false
+            },
+            {
+                "name": "gitDecoration.deletedResourceForeground",
+                "description": "Color for deleted Git resources",
+                "preview": false
+            },
+            {
+                "name": "gitDecoration.untrackedResourceForeground",
+                "description": "Color for untracked Git resources",
+                "preview": false
+            },
+            {
+                "name": "gitDecoration.ignoredResourceForeground",
+                "description": "Color for ignored Git resources",
+                "preview": false
+            },
+            {
+                "name": "gitDecoration.conflictingResourceForeground",
+                "description": "Color for conflicting Git resources",
+                "preview": false
+            },
+            {
+                "name": "gitDecoration.submoduleResourceForeground",
+                "description": "Color for submodule resources",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Settings Editor Colors",
+        "description": "Settings Editor Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "settings.headerForeground",
+                "description": "Header foreground color",
+                "preview": false
+            },
+            {
+                "name": "settings.modifiedItemIndicator",
+                "description": "Modified indicator color",
+                "preview": false
+            },
+            {
+                "name": "settings.dropdownBackground",
+                "description": "Dropdown background color",
+                "preview": false
+            },
+            {
+                "name": "settings.dropdownForeground",
+                "description": "Dropdown foreground color",
+                "preview": false
+            },
+            {
+                "name": "settings.dropdownBorder",
+                "description": "Dropdown border color",
+                "preview": false
+            },
+            {
+                "name": "settings.dropdownListBorder",
+                "description": "Dropdown list border color",
+                "preview": false
+            },
+            {
+                "name": "settings.checkboxBackground",
+                "description": "Checkbox background color",
+                "preview": false
+            },
+            {
+                "name": "settings.checkboxForeground",
+                "description": "Checkbox foreground color",
+                "preview": false
+            },
+            {
+                "name": "settings.checkboxBorder",
+                "description": "Checkbox border color",
+                "preview": false
+            },
+            {
+                "name": "settings.textInputBackground",
+                "description": "Text input background color",
+                "preview": false
+            },
+            {
+                "name": "settings.textInputForeground",
+                "description": "Text input foreground color",
+                "preview": false
+            },
+            {
+                "name": "settings.textInputBorder",
+                "description": "Text input border color",
+                "preview": false
+            },
+            {
+                "name": "settings.numberInputBackground",
+                "description": "Number input background color",
+                "preview": false
+            },
+            {
+                "name": "settings.numberInputForeground",
+                "description": "Number input foreground color",
+                "preview": false
+            },
+            {
+                "name": "settings.numberInputBorder",
+                "description": "Number input border color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Breadcrumbs",
+        "description": "Breadcrumb Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "breadcrumb.foreground",
+                "description": "Color of breadcrumb items",
+                "preview": true
+            },
+            {
+                "name": "breadcrumb.background",
+                "description": "Background color of breadcrumb items",
+                "preview": true
+            },
+            {
+                "name": "breadcrumb.focusForeground",
+                "description": "Color of focused breadcrumb items",
+                "preview": true
+            },
+            {
+                "name": "breadcrumb.activeSelectionForeground",
+                "description": "Color of selected breadcrumb items",
+                "preview": true
+            },
+            {
+                "name": "breadcrumbPicker.background",
+                "description": "Background color of breadcrumb item picker",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Snippets",
+        "description": "Snippet Colors",
+        "preview": false,
+        "children": [
+            {
+                "name": "editor.snippetTabstopHighlightBackground",
+                "description": "Snippet highlight background color",
+                "preview": false
+            },
+            {
+                "name": "editor.snippetTabstopHighlightBorder",
+                "description": "Snippet highlight border color",
+                "preview": false
+            },
+            {
+                "name": "editor.snippetFinalTabstopHighlightBackground",
+                "description": "Snippet final tabstop highlight background color",
+                "preview": false
+            },
+            {
+                "name": "editor.snippetFinalTabstopHighlightBorder",
+                "description": "Snippet final tabstop highlight border color",
+                "preview": false
+            }
+        ]
+    },
+    {
+        "name": "#Symbol Icons",
+        "description": "Icon Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "symbolIcon.arrayForeground",
+                "description": "Array symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.booleanForeground",
+                "description": "Boolean symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.classForeground",
+                "description": "Class symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.colorForeground",
+                "description": "Color symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.constantForeground",
+                "description": "Constant symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.constructorForeground",
+                "description": "Constructor symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.enumeratorForeground",
+                "description": "Enumerator symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.enumeratorMemberForeground",
+                "description": "Enumerator member symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.eventForeground",
+                "description": "Event symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.fieldForeground",
+                "description": "Field symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.fileForeground",
+                "description": "File symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.folderForeground",
+                "description": "Folder symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.functionForeground",
+                "description": "Function symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.interfaceForeground",
+                "description": "Interface symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.keyForeground",
+                "description": "Key symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.keywordForeground",
+                "description": "Keyword symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.methodForeground",
+                "description": "Method symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.moduleForeground",
+                "description": "Module symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.namespaceForeground",
+                "description": "Namespace symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.nullForeground",
+                "description": "Null symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.numberForeground",
+                "description": "Number symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.objectForeground",
+                "description": "Object symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.operatorForeground",
+                "description": "Operator symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.packageForeground",
+                "description": "Package symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.propertyForeground",
+                "description": "Property symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.referenceForeground",
+                "description": "Reference symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.snippetForeground",
+                "description": "Snippet symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.stringForeground",
+                "description": "String symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.structForeground",
+                "description": "Struct symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.textForeground",
+                "description": "Text symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.typeParameterForeground",
+                "description": "Type parameter symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.unitForeground",
+                "description": "Unit symbol foreground color",
+                "preview": true
+            },
+            {
+                "name": "symbolIcon.variableForeground",
+                "description": "Variable symbol foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Debug Icons",
+        "description": "Debug Icons",
+        "preview": false,
+        "children": [
+            {
+                "name": "debugIcon.breakpointForeground",
+                "description": "Icon color for breakpoints",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.breakpointDisabledForeground",
+                "description": "Icon color for disabled breakpoints",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.breakpointUnverifiedForeground",
+                "description": "Icon color for unverified breakpoints",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.breakpointCurrentStackframeForeground",
+                "description": "Icon color for the current breakpoint stack frame",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.breakpointStackframeForeground",
+                "description": "Icon color for all breakpoint stack frames",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.startForeground",
+                "description": "Debug toolbar icon for start debugging",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.pauseForeground",
+                "description": "Debug toolbar icon for pause",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.stopForeground",
+                "description": "Debug toolbar icon for stop",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.disconnectForeground",
+                "description": "Debug toolbar icon for disconnect",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.restartForeground",
+                "description": "Debug toolbar icon for restart",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.stepOverForeground",
+                "description": "Debug toolbar icon for step over",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.stepIntoForeground",
+                "description": "Debug toolbar icon for step into",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.stepOutForeground",
+                "description": "Debug toolbar icon for step over",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.continueForeground",
+                "description": "Debug toolbar icon for continue",
+                "preview": false
+            },
+            {
+                "name": "debugIcon.stepBackForeground",
+                "description": "Debug toolbar icon for step back",
+                "preview": false
+            }
+        ]
+    }
+]

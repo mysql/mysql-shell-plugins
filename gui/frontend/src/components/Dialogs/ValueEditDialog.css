@@ -1,0 +1,145 @@
+/*
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.valueEditDialog {
+    padding: 0;
+    color: var(--foreground);
+    min-width: 750px;
+}
+
+.msg.valueEditDialog .gridCell {
+    align-items: center;
+    overflow: hidden;
+    display: flexbox;
+}
+
+.msg.valueEditDialog > .content {
+    padding: 0 54px 30px 54px;
+}
+
+.msg.valueEditDialog .sectionTitle {
+    flex: 1 1 auto;
+    text-align: center;
+
+    padding: 8px 0 4px 0;
+    margin: 4px 0;
+    border-bottom: 1px solid var(--textSeparator-foreground);
+}
+
+.msg.valueEditDialog #dialogHeading {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.msg.valueEditDialog #dialogDescription {
+    font-size: 0.95em;
+    color: var(--text-dimmedForeground);
+}
+
+.msg.valueEditDialog .valueTitle {
+    font-size: 0.95em;
+    color: var(--text-dimmedForeground);
+    margin: 0 0 6px 0;
+
+    white-space: pre-line;
+}
+
+.msg.valueEditDialog .valueEditor {
+    flex: 0 0 auto;
+}
+
+.msg.valueEditDialog textarea.valueEditor {
+    height: 3em;
+}
+
+.msg.valueEditDialog button.valueEditor {
+    margin-top: 1.7em;
+}
+
+.msg.valueEditDialog .valueDescription {
+    flex: 1 1 auto;
+    white-space: normal;
+    color: var(--text-dimmedForeground);
+}
+
+.msg.valueEditDialog .gridCell .description {
+    margin-top: calc(0.95em + 6px); /* Font size of the title plus title bottom margin. */
+    flex: 1 1 auto;
+    white-space: initial;
+}
+
+.msg.valueEditDialog .gridCell .message {
+    border: none;
+    padding: 4px;
+    margin-top: 6px;
+    flex: 1 1 auto;
+    white-space: initial;
+}
+
+.msg.valueEditDialog .tabview > .content {
+    padding: 16px;
+}
+
+.msg.valueEditDialog #matrixContainer .tabulator-col-title {
+    font-weight: 400;
+    font-size: 0.9em;
+}
+
+.msg.valueEditDialog #matrixContainer #valueGrid {
+    flex: 1;
+    margin-right: 4px;
+}
+
+.msg.valueEditDialog #matrixActions .icon {
+    width: 12px;
+    height: 12px;
+}
+
+.msg.valueEditDialog #matrixActions .button {
+    padding: 0px;
+    margin: 0 0 0 3px;
+    min-width: 0px;
+    min-height: 0px;
+
+    width: 24px;
+    height: 24px;
+}
+
+.msg.valueEditDialog .inputWithProgress {
+    flex-direction: column-reverse !important;
+}
+
+.msg.valueEditDialog .inputWithProgress .progressIndicatorHost {
+    flex: 0 0 1px;
+    min-width: 0;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.msg.valueEditDialog .inputWithProgress .progressIndicatorHost .linearBackground {
+    border-radius: 0px;
+    padding: 0;
+    margin-left: 4px;
+    margin-right: 4px;
+    width: 100%;
+}

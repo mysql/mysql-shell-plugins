@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 46 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-873,-65)">
+        <g id="Menu">
+        </g>
+        <g transform="matrix(0.998995,0,0,1,-664.523,-1682)">
+            <g id="Expand">
+            </g>
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,723.382,-1009.13)">
+            <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+                <g id="Broom">
+                    <g id="Brush">
+                    </g>
+                    <g id="Handle">
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,653.382,-1009.13)">
+            <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+                <g id="Broom1" serif:id="Broom">
+                    <g id="Brush1" serif:id="Brush">
+                    </g>
+                    <g id="Handle1" serif:id="Handle">
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit" transform="matrix(1,0,0,1,524,-2050)">
+            <g id="Auto-Commit1" serif:id="Auto Commit">
+            </g>
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error" transform="matrix(1,0,0,1,260,-2050)">
+            <g id="Stop-on-Error1" serif:id="Stop on Error">
+            </g>
+        </g>
+        <g id="Stop" transform="matrix(1.02857,0,0,1.03923,-538.158,-69.1)">
+            <path d="M1384.32,130L1404.32,130L1414.32,147.321L1404.32,164.641L1384.32,164.641L1374.32,147.321L1384.32,130ZM1385.26,152.446C1385.26,148.699 1385.31,141.49 1385.31,140.085C1385.31,138.159 1388.17,137.742 1388.17,140.085C1388.17,142.427 1388.12,144.638 1388.12,145.732C1388.12,146.825 1388.9,146.825 1388.9,145.576L1388.9,137.222C1388.9,135.66 1391.87,135.504 1391.87,137.378L1391.87,145.888C1391.87,146.669 1392.8,146.825 1392.8,145.732L1392.8,137.222C1392.8,135.192 1395.56,135.192 1395.56,137.065C1395.56,138.939 1395.61,144.951 1395.61,145.888C1395.61,146.825 1396.55,146.981 1396.55,145.888L1396.55,139.72C1396.55,138.002 1399.26,137.69 1399.26,139.72C1399.26,141.75 1399.31,148.699 1399.31,149.792C1399.31,150.885 1401.7,148.23 1402.95,146.981C1404.2,145.732 1406.54,147.137 1405.45,149.167C1404.36,151.197 1399.36,159.473 1392.8,159.473C1387.39,159.473 1385.26,153.695 1385.26,152.446Z" style="fill:rgb(34,34,36);"/>
+        </g>
+        <g transform="matrix(1,0,0,1,83,-174)">
+            <g id="Execute-Explain" serif:id="Execute Explain">
+                <g id="Search1" serif:id="Search">
+                </g>
+            </g>
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+    </g>
+</svg>

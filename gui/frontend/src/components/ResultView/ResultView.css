@@ -1,0 +1,291 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+/* Temporarily hide apply/revert buttons */
+.msg.resultHost #editSeparator,
+.msg.resultHost #applyButton,
+.msg.resultHost #revertButton {
+    display: none;
+}
+
+.msg.resultHost {
+    flex: 1 1 auto;
+    border-radius: 8px;
+}
+
+.msg.resultHost:not(.dropTarget) > .content {
+    background: transparent;
+}
+
+.zoneHost .renderTarget > .divider {
+    cursor: ns-resize;
+}
+
+.zoneHost .renderTarget > .divider.minimum {
+    cursor: s-resize;
+}
+
+.zoneHost .renderTarget > .divider.maximum {
+    cursor: n-resize;
+}
+
+.msg.resultHost > .tabArea>.selectorItem.normal:not(.selected),
+.msg.resultHost > .tabArea,
+.msg.resultGroup > .tabArea>.selectorItem.normal:not(.selected),
+.msg.resultGroup > .tabArea {
+    background: transparent;
+}
+
+.msg.resultGroup .resultView {
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL";
+    font-size: 9pt;
+    height: 100%;
+
+    align-content: stretch;
+}
+
+.msg.resultGroup .resultView .tabulator {
+    height: auto !important;
+    flex: 1 1 auto;
+}
+
+.msg.resultGroup .resultView .tabulator-tableHolder {
+    background-color: var(--resultView-background);
+    color: var(--resultView-foreground);
+
+    /* Scrollbar appearance for Firefox. Other browser use the --webkit-scrollbar pseudo elements. */
+    scrollbar-width: auto;
+    scrollbar-color: var(--scrollbarSlider-background) var(--scrollbarSlider-shadow);
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-header {
+    background-color: var(--resultView-headerBackground);
+    color: var(--resultView-headerForeground);
+    font-weight: normal;
+
+    border: none;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-header .tabulator-arrow {
+    border-bottom-color: var(--resultView-headerForeground) !important;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-header .tabulator-col {
+    background: transparent;
+    border-right-color: var(--resultView-gridColor);
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+    padding: 0 0px;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row {
+    padding: 0;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell {
+    padding: 2px 9px 2px 10px;
+
+    /* These properties ensure ellipses on large multi line content */
+    display: -webkit-inline-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+    white-space: pre-wrap;
+}
+
+.msg.resultGroup .resultView .tabulator.verticalGrid .tabulator-row .tabulator-cell {
+    border-right: 1px solid var(--resultView-gridColor);
+}
+
+.msg.resultGroup .resultView .tabulator.horizontalGrid .tabulator-row .tabulator-cell {
+    border-bottom: 1px solid var(--resultView-gridColor);
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .iconHost {
+    height: 14px;
+    padding-top: 4px;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .iconHost > .icon {
+    background-color: var(--resultView-foreground);
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .cellEditorHost {
+    margin: 0 0 -4px -2px;
+    width: 100%;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .cellEditorHost .input {
+    resize: none;
+    padding: 0 2px;
+
+    max-height: 100px;
+    width: 100%;
+
+    border: none;
+    font: inherit;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .labelHost {
+    width: 100%;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .labelHost .label {
+    white-space: pre-line;
+    max-height: 100px;
+    overflow: scroll;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .checkBoxHost {
+    height: 18px;
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-row .tabulator-cell .checkBoxHost > .checkbox {
+    height: 18px;
+}
+
+/* Text which is part of a result view. */
+.msg.resultGroup .resultView .resultStatus .label,
+.msg.resultGroup .resultView .resultStatus .message {
+    padding: 4px;
+    border: none;
+    border-radius: 0;
+    flex: 1 1 auto;
+}
+
+.msg.resultGroup .resultView .resultStatus {
+    color: var(--resultStatus-foreground);
+    background-color: var(--resultStatus-background);
+
+    font-size: 0.8rem;
+    min-height: 24px;
+
+    overflow: hidden;
+}
+
+.msg.resultGroup .resultView .label {
+    white-space: pre-wrap;
+}
+
+.zoneHost .resultText {
+    padding: 0 8px;
+
+    background-color: var(--editorZone-background);
+    color: var(--resultZone-foreground);
+    overflow: auto;
+    white-space: pre;
+}
+
+.msg.resultGroup .resultView .resultText > .label {
+    overflow: auto;
+    flex: 1 1 auto;
+}
+
+.msg.resultGroup .resultView .resultStatus .toolbar {
+    flex: 0 0 auto;
+    min-width: fit-content;
+
+    padding: 2px 0;
+
+    border: none;
+    background: none;
+
+    color: var(--resultStatus-foreground);
+}
+
+.msg.resultGroup .resultView .resultStatus > .label {
+    flex: 1 1 auto;
+
+    margin: 2px 4px 2px 4px;
+    white-space: normal;
+}
+
+.msg.resultGroup .resultView .resultStatus .toolbar .button {
+    padding: 0;
+    margin: 0 6px;
+
+    background: none;
+
+    align-items: center;
+
+    border-radius: 2px;
+    width: 20px;
+    height: 20px;
+}
+
+.msg.resultGroup .resultView .resultStatus .toolbar .button > .icon {
+    width: 18px;
+    height: 18px;
+
+    background-color: var(--resultStatus-foreground);
+}
+
+.msg.resultGroup .resultView .resultStatus .toolbar .divider {
+    height: 20px;
+    margin: 0 5px;
+}
+
+.msg.resultGroup .resultView .resultStatus .toolbar .dropdown .icon {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 18px;
+
+    margin: 0;
+    background-color: var(--resultStatus-foreground);
+}
+
+.msg.resultGroup .resultView .resultStatus .toolbar #viewStyleDropDown {
+    padding: 0;
+    margin: 0 9px 0 6px;
+    flex: 0 0 40px;
+
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg .renderTarget svg {
+    width: 100%;
+    height: 100%;
+}
+
+.msg .renderTarget path.slice {
+    stroke-width: 2px;
+    fill: green;
+}
+
+.msg .renderTarget polyline {
+    opacity: .5;
+    stroke: var(--editorZone-foreground);
+    stroke-width: 2px;
+    fill: none;
+}
+
+.msg .renderTarget svg g text {
+    fill: var(--editorZone-foreground);
+}
+
+.msg.resultGroup .resultView .tabulator .tabulator-placeholder {
+    background-color: var(--resultView-background);
+}

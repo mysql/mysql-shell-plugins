@@ -1,0 +1,112 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.splitContainer {
+    position: relative;
+    overflow: hidden;
+}
+
+.msg.splitContainer .splitContentContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.msg.splitContainer .sashContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    pointer-events: none;
+ }
+
+.msg.splitContainer .sashContainer > .sash {
+    margin: 0;
+    overflow: hidden;
+    position: absolute;
+
+    touch-action: none;
+    pointer-events: auto;
+    z-index: 15;
+ }
+
+.msg.splitContainer .sashContainer > .sash.disabled {
+    pointer-events: none;
+}
+
+.msg.splitContainer .sashContainer > .sash.horizontal {
+     width: 100%;
+     cursor: row-resize;
+ }
+
+.msg.splitContainer .sashContainer > .sash.horizontal.minimum {
+    cursor: s-resize;
+}
+
+.msg.splitContainer .sashContainer > .sash.horizontal.maximum {
+    cursor: n-resize;
+}
+
+.msg.splitContainer .sashContainer > .sash.vertical {
+    height: 100%;
+    cursor: col-resize;
+}
+
+.msg.splitContainer .sashContainer > .sash.vertical.minimum {
+    cursor: e-resize;
+}
+
+.msg.splitContainer .sashContainer > .sash.vertical.maximum {
+    cursor: w-resize;
+}
+
+.msg.splitContainer .horizontalSeparator {
+    position: absolute;
+
+    cursor: col-resize;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100%;
+
+    user-select: none;
+    z-index: 1;
+}
+
+.msg.splitContainer .verticalSeparator {
+    position: absolute;
+    bottom: -6px;
+
+    cursor: row-resize;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 100%;
+
+    user-select: none;
+    z-index: 1;
+}
+
+.msg.splitContainer .splitHost {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}

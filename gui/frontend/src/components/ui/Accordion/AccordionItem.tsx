@@ -1,0 +1,102 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import React from "react";
+import keyboardKey from "keyboard-key";
+
+import { IComponentProperties, Component, Container, Image, Label } from "..";
+import { ContentAlignment } from "../Container/Container";
+
+export interface IAccordionItemProperties extends IComponentProperties {
+    caption: string;
+    icon?: string;
+    active?: boolean;
+    closable?: boolean;
+
+    onClose?: (e: React.SyntheticEvent, itemId?: string) => void;
+}
+
+export class AccordionItem extends Component<IAccordionItemProperties> {
+
+    public constructor(props: IAccordionItemProperties) {
+        super(props);
+
+        this.state = {
+            active: false,
+        };
+
+        this.addHandledProperties("caption", "icon", "active", "closable", "onClose");
+    }
+
+    public render(): React.ReactNode {
+        const { caption, icon, active, closable } = this.props;
+        const className = this.getEffectiveClassNames([
+            "accordionItem",
+            this.classFromProperty(active, "selected"),
+            this.classFromProperty(closable, "closable"),
+        ]);
+
+        return (
+            <Container
+                className={className}
+                tabIndex={0}
+                crossAlignment={ContentAlignment.Center}
+                {...this.unhandledProperties}
+            >
+                {closable &&
+                    <span
+                        className="codicon codicon-close"
+                        role="button"
+                        tabIndex={0}
+                        data-tooltip="Close Editor"
+                        onKeyPress={this.handleCloseKeyPress}
+                        onClick={this.handleCloseClick}
+                    />
+                }
+                {icon && <Image as="span" src={icon} width="20px" height="20px" />}
+                <Label
+                    as="span"
+                >
+                    {caption}
+                </Label>
+            </Container>
+        );
+    }
+
+    private handleCloseKeyPress = (e: React.KeyboardEvent): void => {
+        const key = keyboardKey.getCode(e);
+        if (key === keyboardKey.Spacebar || key === keyboardKey.Enter) {
+            e.stopPropagation();
+
+            const { onClose } = this.props;
+            onClose?.(e, this.props.id);
+        }
+    };
+
+    private handleCloseClick = (e: React.MouseEvent): void => {
+        e.stopPropagation();
+
+        const { onClose } = this.props;
+        onClose?.(e, this.props.id);
+    };
+}

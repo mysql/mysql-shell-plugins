@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="18122" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="18122"/>
+        <plugIn identifier="com.apple.WebKit2IBPlugin" version="18122"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
+            <connections>
+                <outlet property="delegate" destination="Voe-Tx-rLC" id="GzC-gU-4Uq"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="MySQL_Shell_GUI" customModuleProvider="target">
+            <connections>
+                <outlet property="background" destination="UBA-bC-Bcr" id="QPo-Jd-Gli"/>
+                <outlet property="browser" destination="mrU-4l-7SC" id="tDM-Qx-KJm"/>
+                <outlet property="progressIndicator" destination="IdU-tL-MZi" id="w2X-8w-OhK"/>
+                <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
+            </connections>
+        </customObject>
+        <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
+        <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
+            <items>
+                <menuItem title="MySQL Shell GUI" id="1Xt-HY-uBw">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="MySQL Shell GUI" systemMenu="apple" id="uQy-DD-JDr">
+                        <items>
+                            <menuItem title="About MySQL Shell GUI" id="5kV-Vb-QxS">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="showAboutBoxWithSender:" target="Voe-Tx-rLC" id="OHI-eS-ktG"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
+                            <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW">
+                                <connections>
+                                    <action selector="showPreferencesWithSender:" target="Voe-Tx-rLC" id="9v2-Dx-WH2"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
+                            <menuItem title="Services" id="NMo-om-nkz">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="4je-JR-u6R"/>
+                            <menuItem title="Hide MySQL Shell GUI" keyEquivalent="h" id="Olw-nP-bQN">
+                                <connections>
+                                    <action selector="hide:" target="-1" id="PnN-Uc-m68"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Hide Others" keyEquivalent="h" id="Vdr-fp-XzO">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                <connections>
+                                    <action selector="hideOtherApplications:" target="-1" id="VT4-aY-XCT"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Show All" id="Kd2-mp-pUS">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="unhideAllApplications:" target="-1" id="Dhg-Le-xox"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
+                            <menuItem title="Quit MySQL Shell GUI" keyEquivalent="q" id="4sb-4s-VLi">
+                                <connections>
+                                    <action selector="terminate:" target="-1" id="Te7-pn-YzF"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="Edit" id="tF5-gX-hbe">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Edit" id="Jlz-RW-Wel">
+                        <items>
+                            <menuItem title="Undo" keyEquivalent="z" id="WoB-2C-W2U">
+                                <connections>
+                                    <action selector="undo:" target="-1" id="D4U-HC-sIC"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Redo" keyEquivalent="Z" id="8Bs-nM-olx">
+                                <connections>
+                                    <action selector="redo:" target="-1" id="Qow-Ss-zJe"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="oGW-k5-dvq"/>
+                            <menuItem title="Cut" keyEquivalent="x" id="Zae-GD-HPt">
+                                <connections>
+                                    <action selector="cut:" target="-1" id="hTI-hy-g5s"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Copy" keyEquivalent="c" id="68P-yP-nsX">
+                                <connections>
+                                    <action selector="copy:" target="-1" id="E2b-hJ-VU6"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Paste" keyEquivalent="v" id="ur4-bQ-tqI">
+                                <connections>
+                                    <action selector="paste:" target="-1" id="3hJ-G2-YxA"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Delete" id="Fsw-7n-l9j">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="delete:" target="-1" id="Rbj-el-rh8"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Select All" keyEquivalent="a" id="O6E-vs-2iG">
+                                <connections>
+                                    <action selector="selectAll:" target="-1" id="rVh-oF-ifK"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="4dR-fO-cux"/>
+                            <menuItem title="Find" id="XrI-AN-Jo0">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Find" id="6JJ-48-rWs">
+                                    <items>
+                                        <menuItem title="Find…" tag="1" keyEquivalent="f" id="ieH-dV-2oc">
+                                            <connections>
+                                                <action selector="performFindPanelAction:" target="-1" id="QvC-Lz-8LN"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Find and Replace…" tag="12" keyEquivalent="f" id="n5T-Db-sqM">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="performTextFinderAction:" target="-1" id="NHm-9G-9Um"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Find Next" tag="2" keyEquivalent="g" id="1uw-gf-b9s">
+                                            <connections>
+                                                <action selector="performFindPanelAction:" target="-1" id="4gj-jN-t0X"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Find Previous" tag="3" keyEquivalent="G" id="xx0-Df-Nsq">
+                                            <connections>
+                                                <action selector="performFindPanelAction:" target="-1" id="nYg-9P-3ab"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Speech" id="56L-LC-oWa">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Speech" id="MZH-mK-s1a">
+                                    <items>
+                                        <menuItem title="Start Speaking" id="koV-S9-cRH">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="startSpeaking:" target="-1" id="PBE-Xm-j7V"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Stop Speaking" id="tq2-p7-yBp">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="stopSpeaking:" target="-1" id="wOx-Ob-eDH"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="Window" id="aUF-d1-5bR">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Window" systemMenu="window" id="Td7-aD-5lo">
+                        <items>
+                            <menuItem title="Minimize" keyEquivalent="m" id="OY7-WF-poV">
+                                <connections>
+                                    <action selector="performMiniaturize:" target="-1" id="VwT-WD-YPe"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Zoom" id="R4o-n2-Eq4">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="performZoom:" target="-1" id="DIl-cC-cCs"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="eu3-7i-yIM"/>
+                            <menuItem title="Bring All to Front" id="LE2-aR-0XJ">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="arrangeInFront:" target="-1" id="DRN-fu-gQh"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="Help" id="wpr-3q-Mcd">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Help" systemMenu="help" id="F2S-fz-NVQ">
+                        <items>
+                            <menuItem title="MySQL Shell GUI Help" keyEquivalent="?" id="FKE-Sm-Kum">
+                                <connections>
+                                    <action selector="showHelp:" target="-1" id="y7X-2Q-9no"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+            </items>
+            <point key="canvasLocation" x="-120" y="-669"/>
+        </menu>
+        <window title="MySQL Shell GUI" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" titlebarAppearsTransparent="YES" titleVisibility="hidden" id="QvC-M9-y7g">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="335" y="390" width="812" height="679"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="3360" height="1865"/>
+            <view key="contentView" id="EiT-Mj-1SZ">
+                <rect key="frame" x="0.0" y="0.0" width="812" height="679"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <box boxType="custom" borderType="none" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="UBA-bC-Bcr" userLabel="Background">
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="652"/>
+                        <view key="contentView" id="L5G-NS-CGd">
+                            <rect key="frame" x="0.0" y="0.0" width="812" height="652"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        </view>
+                    </box>
+                    <progressIndicator fixedFrame="YES" maxValue="100" indeterminate="YES" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="IdU-tL-MZi">
+                        <rect key="frame" x="398" y="332" width="32" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                    </progressIndicator>
+                    <wkWebView hidden="YES" wantsLayer="YES" allowsLinkPreview="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mrU-4l-7SC" customClass="DragTargetWebView" customModule="MySQL_Shell_GUI" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="652"/>
+                        <wkWebViewConfiguration key="configuration" allowsAirPlayForMediaPlayback="NO" applicationNameForUserAgent="MySQL Shell GUI">
+                            <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
+                            <wkPreferences key="preferences"/>
+                        </wkWebViewConfiguration>
+                    </wkWebView>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="UBA-bC-Bcr" firstAttribute="leading" secondItem="mrU-4l-7SC" secondAttribute="leading" id="6Cz-Zv-Tgj"/>
+                    <constraint firstAttribute="trailing" secondItem="mrU-4l-7SC" secondAttribute="trailing" id="BbQ-j7-fBi"/>
+                    <constraint firstItem="UBA-bC-Bcr" firstAttribute="trailing" secondItem="mrU-4l-7SC" secondAttribute="trailing" id="GZe-Ce-E9p"/>
+                    <constraint firstAttribute="bottom" secondItem="mrU-4l-7SC" secondAttribute="bottom" id="RcW-KE-lxj"/>
+                    <constraint firstItem="mrU-4l-7SC" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" id="iMC-rB-cfL"/>
+                    <constraint firstItem="mrU-4l-7SC" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="27" id="mrH-GN-Lp3"/>
+                    <constraint firstItem="UBA-bC-Bcr" firstAttribute="bottom" secondItem="mrU-4l-7SC" secondAttribute="bottom" id="o98-Gi-slK"/>
+                    <constraint firstItem="UBA-bC-Bcr" firstAttribute="top" secondItem="mrU-4l-7SC" secondAttribute="top" id="uUo-1p-2ao"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="54" y="-233.5"/>
+        </window>
+    </objects>
+</document>

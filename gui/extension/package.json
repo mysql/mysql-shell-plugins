@@ -1,0 +1,849 @@
+{
+    "name": "mysql-shell-vscode",
+    "displayName": "MySQL Shell for VS Code",
+    "description": "Manage your MySQL Installations",
+    "icon": "images/app-icon.png",
+    "galleryBanner": {
+        "color": "#2789e1",
+        "theme": "dark"
+    },
+    "version": "1.0.16",
+    "publisher": "mysql",
+    "license": "SEE LICENSE IN LICENSE.txt",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mysql/"
+    },
+    "engines": {
+        "vscode": "^1.60.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Visualization"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./output/extension/src/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "MySQL Shell for VS Code",
+            "properties": {
+                "msg.settings.autoSaveInterval": {
+                    "type": "number",
+                    "default": 300,
+                    "markdownDescription": "The time in seconds after which the settings should be automatically saved. Specify `0` to **disable** auto save."
+                },
+                "msg.workers.minWorkerCount": {
+                    "type": "number",
+                    "default": 3,
+                    "description": "The number of workers that are always available."
+                },
+                "msg.workers.maxWorkerCount": {
+                    "type": "number",
+                    "default": 3,
+                    "description": "The number of workers that are at most active."
+                },
+                "msg.workers.maxPendingTaskCount": {
+                    "type": "number",
+                    "default": 100,
+                    "description": "Describes the highest number of waiting tasks for a free background worker. If this number is exceeded an error is thrown, indicating that the worker pool is overloaded and can no longer cope with incoming work."
+                },
+                "msg.workers.removeIdleTime": {
+                    "type": "number",
+                    "default": 60,
+                    "description": "Specifies the number of seconds to pass until the oldest inactive worker is removed. Has no effect if the current number of active workers would fall below the minimal worker count."
+                },
+                "msg.editor.theming.decorationSet": {
+                    "type": "string",
+                    "default": "standard",
+                    "description": "Select one of the sets to be used to mark code block and results in mixed language code editors.",
+                    "enum": [
+                        "standard",
+                        "alternative"
+                    ],
+                    "enumDescriptions": [
+                        "Includes only a solid marker for editor rows",
+                        "Uses a hatch pattern with different colors to mark editor content and result areas"
+                    ]
+                },
+                "msg.editor.wordWrap": {
+                    "type": "string",
+                    "default": "off",
+                    "description": "Determines how long lines should be wrapped automatically by the editor.",
+                    "enum": [
+                        "off",
+                        "on",
+                        "wordWrapColumn",
+                        "bounded"
+                    ],
+                    "markdownEnumDescriptions": [
+                        "Lines will never wrap",
+                        "Lines will wrap at the viewport width",
+                        "Lines will wrap at `Word Wrap Column`",
+                        "Lines will wrap at the minimum of viewport width or `Word Wrap Column`"
+                    ]
+                },
+                "msg.editor.wordWrapColumn": {
+                    "type": "number",
+                    "default": 120,
+                    "description": "Controls the column of the editor to wrap long lines when Code Editor: Word Wrap is `wordWrapColumn` or `bounded`."
+                },
+                "msg.editor.showHidden": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When set to true normally invisible characters (like space or tabulator) are displayed too."
+                },
+                "msg.editor.dbVersion": {
+                    "type": "string",
+                    "default": "8.0.25",
+                    "description": "The default version to be used for MySQL language support, if no version is available."
+                },
+                "msg.editor.sqlMode": {
+                    "type": "string",
+                    "description": "The default SQL mode to be used for MySQL language support, if mode information is not available."
+                },
+                "msg.editor.stopOnErrors": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If this option is set to, execution of scripts will be stopped if an error occurs. Otherwise the script execution continues with the next statement."
+                },
+                "msg.dbEditor.startLanguage": {
+                    "type": "string",
+                    "default": "sql",
+                    "description": "Select the initial language for new DB editors.",
+                    "enum": [
+                        "javascript",
+                        "typescript",
+                        "sql"
+                    ],
+                    "enumDescriptions": [
+                        "Supported in all code editors",
+                        "Supported only in DB editors",
+                        "Supported in all code editors"
+                    ]
+                },
+                "msg.dbEditor.connectionBrowser.showGreeting": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "If set, a message section is shown with some useful links."
+                },
+                "msg.sql.limitRowCount": {
+                    "type": "number",
+                    "default": 1000,
+                    "description": "Determines the size of one page in a result set, but has no effect if a top-level LIMIT clause is specified in the query. Set to 0 to disable auto adding a LIMIT clause and return all records as single page.",
+                    "minimum": 0,
+                    "maximum": 10000
+                },
+                "msg.sql.rowPacketSize": {
+                    "type": "number",
+                    "default": 1000,
+                    "description": "Determines the number of result records that are sent in a single response from the backend."
+                },
+                "msg.shellSession.sessionBrowser.showGreeting": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "If set, a message section is shown with some useful links."
+                },
+                "msg.shellSession.startLanguage": {
+                    "type": "string",
+                    "default": "javascript",
+                    "description": "Select the initial language for a new shell session.",
+                    "enum": [
+                        "javascript",
+                        "python",
+                        "sql"
+                    ],
+                    "enumDescriptions": [
+                        "Supported in all code editors",
+                        "Supported only in shell session editors",
+                        "Supported in all code editors"
+                    ]
+                },
+                "msg.shell.useExternal": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Connect to External MySQL Shell Process."
+                },
+                "msg.shell.externalUrl": {
+                    "type": "string",
+                    "default": "",
+                    "markdownDescription": "Specify a URL to be used to connect to a running MySQL instance.\n\nLeave empty to use an automatically launched local MySQL Shell instance.\n\nUse the `Connect to External MySQL Shell Process` menu item in the DB connections section title menu to switch between shell connections."
+                },
+                "msg.tabPosition.newConnection": {
+                    "type": "string",
+                    "default": "Active",
+                    "description": "Where to place the tab when opening a new DB connection.",
+                    "enum": [
+                        "Active",
+                        "Beside Right",
+                        "Beside Bottom"
+                    ],
+                    "enumDescriptions": [
+                        "In the currently active editor group",
+                        "In editor group beside the active one",
+                        "In the editor group beneath the active one"
+                    ]
+                },
+                "msg.tabPosition.newConnectionWithSql": {
+                    "type": "string",
+                    "default": "Active",
+                    "description": "Where to place the tab when opening a new DB connection via `Execute SQL with MySQL Shell`.",
+                    "enum": [
+                        "Active",
+                        "Beside Right",
+                        "Beside Bottom"
+                    ],
+                    "enumDescriptions": [
+                        "In the currently active editor group",
+                        "In editor group beside the active one",
+                        "In the editor group beneath the active one"
+                    ]
+                },
+                "msg.tabPosition.newShellConsole": {
+                    "type": "string",
+                    "default": "Active",
+                    "description": "Where to place the tab when opening a new MySQL Shell Console.",
+                    "enum": [
+                        "Active",
+                        "Beside Right",
+                        "Beside Bottom"
+                    ],
+                    "enumDescriptions": [
+                        "In the currently active editor group",
+                        "In editor group beside the active one",
+                        "In the editor group beneath the active one"
+                    ]
+                },
+                "msg.editor.defaultDbConnection": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specify the name (title) of a DB connection to be used when running SQL from a text editor and no connection is open yet. Leave empty to show a picker to select a connection from."
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "msg.execute.normal",
+                "title": "Execute the selected or all statements"
+            },
+            {
+                "command": "msg.execute.singleStatement",
+                "title": "Execute the statement at the caret position"
+            },
+            {
+                "command": "msg.openDBBrowser",
+                "title": "Open the DB Connection Browser",
+                "icon": {
+                    "dark": "images/dark/overviewPage.svg",
+                    "light": "images/light/overviewPage.svg"
+                }
+            },
+            {
+                "command": "msg.refreshConnections",
+                "title": "Reload the connection list",
+                "icon": {
+                    "dark": "images/dark/refresh.svg",
+                    "light": "images/light/refresh.svg"
+                }
+            },
+            {
+                "command": "msg.openConnection",
+                "title": "Open MySQL Connection",
+                "icon": {
+                    "dark": "images/dark/openConnection.svg",
+                    "light": "images/light/openConnection.svg"
+                }
+            },
+            {
+                "command": "msg.refreshConnection",
+                "title": "Reload Database Information",
+                "icon": {
+                    "dark": "images/dark/refresh.svg",
+                    "light": "images/light/refresh.svg"
+                }
+            },
+            {
+                "command": "msg.openConnectionNewTab",
+                "title": "Open MySQL Connection in New Tab",
+                "icon": {
+                    "dark": "images/dark/openConnection.svg",
+                    "light": "images/light/openConnection.svg"
+                }
+            },
+            {
+                "command": "msg.addConnection",
+                "title": "Create New MySQL Connection",
+                "icon": {
+                    "dark": "images/dark/add.svg",
+                    "light": "images/light/add.svg"
+                }
+            },
+            {
+                "command": "msg.duplicateConnection",
+                "title": "Duplicate this MySQL Connection",
+                "icon": {
+                    "dark": "images/dark/clone.svg",
+                    "light": "images/light/clone.svg"
+                }
+            },
+            {
+                "command": "msg.removeConnection",
+                "title": "Delete MySQL Connection",
+                "icon": {
+                    "dark": "images/dark/remove.svg",
+                    "light": "images/light/remove.svg"
+                }
+            },
+            {
+                "command": "msg.editConnection",
+                "title": "Edit MySQL Connection",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "msg.newSessionUsingConnection",
+                "title": "Open MySQL Shell Console for this Connection"
+            },
+            {
+                "command": "msg.showSystemSchemasOnConnection",
+                "title": "Show MySQL System Schemas"
+            },
+            {
+                "command": "msg.hideSystemSchemasOnConnection",
+                "title": "Hide MySQL System Schemas"
+            },
+            {
+                "command": "msg.showTableData",
+                "title": "Show Data..."
+            },
+            {
+                "command": "msg.insertScript",
+                "title": "Insert Script Into Current Editor"
+            },
+            {
+                "command": "msg.openSessionBrowser",
+                "title": "Open the MySQL Shell Console Browser",
+                "icon": {
+                    "dark": "images/dark/overviewPage.svg",
+                    "light": "images/light/overviewPage.svg"
+                }
+            },
+            {
+                "command": "msg.newSession",
+                "title": "Add a New MySQL Shell Console",
+                "icon": {
+                    "dark": "images/dark/add.svg",
+                    "light": "images/light/add.svg"
+                }
+            },
+            {
+                "command": "msg.openSession",
+                "title": "Open this MySQL Shell Console"
+            },
+            {
+                "command": "msg.removeSession",
+                "title": "Close this MySQL Shell Console"
+            },
+            {
+                "command": "msg.selectProfile",
+                "title": "Select a MySQL Shell Profile"
+            },
+            {
+                "command": "msg.executeSqlFromEditor",
+                "title": "Execute SQL with MySQL Shell"
+            },
+            {
+                "command": "msg.restartShell",
+                "title": "Restart the internal MySQL Shell Process"
+            },
+            {
+                "command": "msg.connectToShell",
+                "title": "Connect to External MySQL Shell Process"
+            },
+            {
+                "command": "msg.refreshOciProfiles",
+                "title": "Reload the OCI Profile list",
+                "icon": {
+                    "dark": "images/dark/refresh.svg",
+                    "light": "images/light/refresh.svg"
+                }
+            },
+            {
+                "command": "msg.dumpSchemaToDisk",
+                "title": "Dump Schema to Disk"
+            },
+            {
+                "command": "msg.dumpSchemaToDiskForMds",
+                "title": "Dump Schema to Disk for MDS"
+            },
+            {
+                "command": "msg.dropSchema",
+                "title": "Drop Schema"
+            },
+            {
+                "command": "msg.loadDumpFromDisk",
+                "title": "Load Dump from Disk"
+            },
+            {
+                "command": "msg.mrs.configureMySQLRestService",
+                "title": "Configure MySQL REST Service"
+            },
+            {
+                "command": "msg.mrs.addService",
+                "title": "Add REST Service"
+            },
+            {
+                "command": "msg.mrs.editService",
+                "title": "Edit REST Service"
+            },
+            {
+                "command": "msg.mrs.setDefaultService",
+                "title": "Set as New Default REST Service"
+            },
+            {
+                "command": "msg.mrs.deleteService",
+                "title": "Delete REST Service"
+            },
+            {
+                "command": "msg.mrs.deleteSchema",
+                "title": "Delete REST Schema"
+            },
+            {
+                "command": "msg.mrs.addSchema",
+                "title": "Add Schema to REST Service"
+            },
+            {
+                "command": "msg.mrs.editSchema",
+                "title": "Edit REST Schema"
+            },
+            {
+                "command": "msg.mrs.addTable",
+                "title": "Add Table to REST Service"
+            },
+            {
+                "command": "msg.showTaskOutput",
+                "title": "Show Task Output"
+            },
+            {
+                "command": "msg.showServerStatus",
+                "title": "Show Server Status"
+            },
+            {
+                "command": "msg.showPerformanceDashboard",
+                "title": "Show Performance Dashboard"
+            },
+            {
+                "command": "msg.mds.getProfileInfo",
+                "title": "View Config Profile Information"
+            },
+            {
+                "command": "msg.mds.getCompartmentInfo",
+                "title": "View Compartment Information"
+            },
+            {
+                "command": "msg.mds.getDbSystemInfo",
+                "title": "View DB System Information"
+            },
+            {
+                "command": "msg.mds.startDbSystem",
+                "title": "Start the DB System"
+            },
+            {
+                "command": "msg.mds.restartDbSystem",
+                "title": "Restart the DB System"
+            },
+            {
+                "command": "msg.mds.stopDbSystem",
+                "title": "Stop the DB System"
+            },
+            {
+                "command": "msg.mds.createConnectionViaBastionService",
+                "title": "Create Connection via Bastion Service"
+            },
+            {
+                "command": "msg.mds.createRouterEndpoint",
+                "title": "Create MySQL Router Endpoint on new Compute Instance"
+            },
+            {
+                "command": "msg.mds.getComputeInstance",
+                "title": "View Compute Instance Information"
+            },
+            {
+                "command": "msg.mds.deleteBastion",
+                "title": "Delete Bastion"
+            },
+            {
+                "command": "msg.mds.getBastion",
+                "title": "Get Bastion Information"
+            },
+            {
+                "command": "msg.mds.setCurrentBastion",
+                "title": "Set as Current Bastion"
+            },
+            {
+                "command": "msg.mds.openBastionSshSession",
+                "title": "Open SSH Bastion Session"
+            },
+            {
+                "command": "msg.mds.deleteComputeInstance",
+                "title": "Delete Compute Instance"
+            },
+            {
+                "command": "msg.mds.refreshOnBastionActiveState",
+                "title": "Refresh When Bastion Reaches Active State"
+            },
+            {
+                "command": "msg.mds.getLoadBalancer",
+                "title": "Get Load Balancer Information"
+            }
+        ],
+        "menus": {
+            "explorer/context": [],
+            "editor/title/context": [
+                {
+                    "when": "resourceLangId == sql",
+                    "command": "msg.execute.normal",
+                    "group": "msg@1"
+                }
+            ],
+            "editor/title": [
+                {
+                    "when": "resourceLangId == sql",
+                    "command": "msg.execute.normal",
+                    "group": "msg@1"
+                }
+            ],
+            "editor/context": [
+                {
+                    "when": "resourceLangId == sql",
+                    "command": "msg.execute.singleStatement",
+                    "group": "1_msg@1"
+                },
+                {
+                    "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript",
+                    "command": "msg.executeSqlFromEditor",
+                    "group": "1_msg@1"
+                }
+            ],
+            "view/title": [
+                {
+                    "command": "msg.addConnection",
+                    "group": "navigation",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.openDBBrowser",
+                    "group": "navigation",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.refreshConnections",
+                    "group": "navigation",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.restartShell",
+                    "group": "1_msg@1",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.connectToShell",
+                    "group": "2_msg@1",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.refreshOciProfiles",
+                    "group": "navigation",
+                    "when": "view == msg.oci"
+                },
+                {
+                    "command": "msg.newSession",
+                    "group": "navigation",
+                    "when": "view == msg.consoles"
+                },
+                {
+                    "command": "msg.openSessionBrowser",
+                    "group": "navigation",
+                    "when": "view == msg.consoles"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "msg.refreshConnection",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "inline"
+                },
+                {
+                    "command": "msg.openConnection",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "inline"
+                },
+                {
+                    "command": "msg.openConnection",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.openConnectionNewTab",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.newSessionUsingConnection",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.editConnection",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.duplicateConnection",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.removeConnection",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "3_msg@3"
+                },
+                {
+                    "command": "msg.showSystemSchemasOnConnection",
+                    "alt": "msg.hideSystemSchemasOnConnection",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "4_msg@1"
+                },
+                {
+                    "command": "msg.loadDumpFromDisk",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "5_msg@1"
+                },
+                {
+                    "command": "msg.mrs.configureMySQLRestService",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "6_msg@1"
+                },
+                {
+                    "command": "msg.dumpSchemaToDisk",
+                    "when": "view == msg.connections && viewItem == schemaMySQL",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.dumpSchemaToDiskForMds",
+                    "when": "view == msg.connections && viewItem == schemaMySQL",
+                    "group": "1_msg@2"
+                },
+                {
+                    "command": "msg.dropSchema",
+                    "when": "view == msg.connections && viewItem =~ /^schema.*/",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.addSchema",
+                    "when": "view == msg.connections && viewItem == schemaMySQL",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.showTableData",
+                    "when": "view == msg.connections && viewItem =~ /^schemaTable.*/",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.showTableData",
+                    "when": "view == msg.connections && viewItem =~ /^schemaView.*/",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.addService",
+                    "when": "view == msg.connections && viewItem == mrs",
+                    "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.mrs.setDefaultService",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.editService",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "1_msg@2"
+                },
+                {
+                    "command": "msg.mrs.deleteService",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.editSchema",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteSchema",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.addTable",
+                    "when": "view == msg.connections && viewItem == schemaTableMySQL",
+                    "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.removeSession",
+                    "when": "view == msg.consoles && viewItem == session",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.getProfileInfo",
+                    "when": "view == msg.oci && viewItem == mdsConfigProfile",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.getCompartmentInfo",
+                    "when": "view == msg.oci && viewItem == mdsCompartment",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.getDbSystemInfo",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.startDbSystem",
+                    "title": "Start the DB System",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mds.restartDbSystem",
+                    "title": "Restart the DB System",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.mds.stopDbSystem",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "2_msg@3"
+                },
+                {
+                    "command": "msg.mds.createConnectionViaBastionService",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mds.createRouterEndpoint",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mds.getBastion",
+                    "when": "view == msg.oci && viewItem == mdsBastion",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.setCurrentBastion",
+                    "when": "view == msg.oci && viewItem == mdsBastion",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mds.deleteBastion",
+                    "when": "view == msg.oci && viewItem == mdsBastion",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mds.refreshOnBastionActiveState",
+                    "when": "view == msg.oci && viewItem == mdsBastion",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mds.getComputeInstance",
+                    "when": "view == msg.oci && viewItem == mdsComputeInstance",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.openBastionSshSession",
+                    "when": "view == msg.oci && viewItem == mdsComputeInstance",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mds.deleteComputeInstance",
+                    "when": "view == msg.oci && viewItem == mdsComputeInstance",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mds.getLoadBalancer",
+                    "when": "view == msg.oci && viewItem == mdsLoadBalancer",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.insertScript",
+                    "when": "view == msg.scripts && viewItem == script",
+                    "group": "1_msg@2"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "msg-view",
+                    "title": "MySQL Shell for vscode",
+                    "icon": "images/mysqlShellForVsCode.svg"
+                }
+            ]
+        },
+        "views": {
+            "msg-view": [
+                {
+                    "id": "msg.connections",
+                    "name": "DATABASE"
+                },
+                {
+                    "id": "msg.oci",
+                    "name": "ORACLE CLOUD INFRASTRUCTURE"
+                },
+                {
+                    "id": "msg.consoles",
+                    "name": "MYSQL SHELL CONSOLES"
+                },
+                {
+                    "id": "msg.scripts",
+                    "name": "SCRIPTS"
+                },
+                {
+                    "id": "msg.shellTasks",
+                    "name": "MYSQL SHELL TASKS"
+                }
+            ]
+        },
+        "viewsWelcome": []
+    },
+    "dependencies": {
+        "antlr4ts": "0.5.0-alpha.4",
+        "lodash": "4.17.21",
+        "reconnecting-websocket": "4.4.0",
+        "ws": "8.3.0"
+    },
+    "devDependencies": {
+        "@types/lodash": "4.14.177",
+        "@types/node": "16.11.11",
+        "@types/vscode": "1.60.0",
+        "@types/ws": "8.2.1",
+        "@typescript-eslint/eslint-plugin": "5.5.0",
+        "@typescript-eslint/eslint-plugin-tslint": "5.5.0",
+        "@typescript-eslint/parser": "5.5.0",
+        "antlr4ts-cli": "0.5.0-alpha.4",
+        "eslint": "7.32.0",
+        "eslint-plugin-import": "2.25.3",
+        "eslint-plugin-jsdoc": "37.1.0",
+        "eslint-plugin-prefer-arrow": "1.2.3",
+        "typescript": "4.5.2"
+    },
+    "scripts": {
+        "build": "vsce package",
+        "package": "vsce package patch",
+        "lint": "eslint \"./src/**/*.ts\"",
+        "vscode:prepublish": "tsc",
+        "antlr4ts": "antlr4ts -Xexact-output-dir ../frontend/src/parsing/python/PythonLexer.g4  -o src/parsers/generated"
+    }
+}

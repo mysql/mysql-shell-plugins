@@ -1,0 +1,19 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "struct",
+        "symlink",
+        "unregister",
+        "sakila"
+    ],
+    "flagWords": [
+        "hte"
+    ],
+    "ignorePaths": [
+    ],
+    "ignoreWords": [
+        "mysqlsh",
+        "PYTHONPATH"
+    ]
+}

@@ -1,0 +1,60 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.message {
+    border-radius: 4px;
+    padding: 12px;
+    min-width: 80px;
+    outline: none;
+    overflow: auto;
+}
+
+.msg.message.error {
+    background-color: hsla(14, 88%, 42%, 0.1);
+    border: 1px solid hsl(14, 88%, 42%);
+    color: rgb(199, 56, 13);
+}
+
+.msg.message.warning {
+    background-color: hsla(54, 88%, 42%, 0.1);
+    border: 1px solid hsl(54, 88%, 42%);
+    color: hsl(54, 88%, 42%);
+}
+
+.msg.message.info {
+    background-color: hsla(152, 98%, 36%, 0.1);
+    border: 1px solid hsl(152, 98%, 36%);
+    color: hsl(152, 98%, 36%);
+}
+
+.msg.message.response {
+    background-color: hsla(0, 0%, 39%, 0.1);
+    border: 1px solid hsl(0, 0%, 39%);
+    color: hsl(0, 0%, 39%);
+}
+
+.msg.message.diagnose {
+    background-color: hsla(224, 58%, 50%, 0.1);
+    border: 1px solid hsl(224, 58%, 50%);
+    color: hsl(224, 58%, 50%);
+}

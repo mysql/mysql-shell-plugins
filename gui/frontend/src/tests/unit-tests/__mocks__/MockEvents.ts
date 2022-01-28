@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable max-classes-per-file */
+
+import { createSyntheticEvent } from "../../../components/ui";
+
+export class MockEventTarget implements EventTarget {
+    public getBoundingClientRect = jest.fn();
+    public parentElement = {
+        getElementsByTagName: (_name: string): unknown[] => {
+            return [];
+        },
+    };
+
+    public addEventListener = jest.fn();
+    public dispatchEvent = jest.fn();
+    public removeEventListener = jest.fn();
+}
+
+export class MockEvent implements Event {
+    public readonly AT_TARGET = 0;
+    public readonly BUBBLING_PHASE: number;
+    public readonly CAPTURING_PHASE: number;
+    public readonly NONE: number;
+
+    public bubbles = false;
+    public cancelBubble = false;
+    public cancelable = true;
+    public readonly composed = false;
+    public defaultPrevented = false;
+    public readonly eventPhase = -1;
+    public readonly isTrusted = true;
+    public returnValue = false;
+    public readonly srcElement: EventTarget | null;
+    public readonly target: EventTarget | null;
+    public readonly timeStamp: DOMHighResTimeStamp = 0;
+    public type = "genericMock";
+
+    public currentTarget: MockEventTarget | null;
+
+    public constructor() {
+        this.currentTarget = new MockEventTarget();
+        this.target = this.currentTarget;
+    }
+
+    public composedPath(): EventTarget[] { return []; }
+    public initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {
+        this.type = type;
+        this.bubbles = bubbles ?? false;
+        this.cancelable = cancelable ?? false;
+    }
+    public preventDefault(): void { this.defaultPrevented = true; }
+    public stopImmediatePropagation(): void { /**/ }
+    public stopPropagation(): void { /**/ }
+}
+
+export const eventMock = createSyntheticEvent(new MockEvent());

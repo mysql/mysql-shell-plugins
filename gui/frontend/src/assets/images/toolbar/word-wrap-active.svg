@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 46 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-1609,-135)">
+        <g id="Menu">
+        </g>
+        <g transform="matrix(0.998995,0,0,1,-664.523,-1682)">
+            <g id="Expand">
+            </g>
+        </g>
+        <g id="Grid">
+        </g>
+        <g transform="matrix(1,0,0,1,308.298,-107.167)">
+            <g id="Word-Wrap" serif:id="Word Wrap">
+                <path id="Enabled" d="M1346.7,247.497C1346.7,244.555 1344.31,242.167 1341.37,242.167L1306.03,242.167C1303.09,242.167 1300.7,244.555 1300.7,247.497L1300.7,274.837C1300.7,277.778 1303.09,280.167 1306.03,280.167L1341.37,280.167C1344.31,280.167 1346.7,277.778 1346.7,274.837L1346.7,247.497ZM1319.98,265.111L1326.68,261.241L1326.68,268.98L1319.98,265.111ZM1326.7,266.167L1326.7,264.167L1331.7,264.167L1331.7,256.167L1328.7,256.167L1328.7,254.167L1333.7,254.167L1333.7,266.167L1326.7,266.167ZM1314.7,253.157L1326.7,253.157L1326.7,257.176L1314.7,257.176L1314.7,253.157Z" style="fill:rgb(34,34,36);"/>
+            </g>
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,723.382,-1009.13)">
+            <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+                <g id="Broom">
+                    <g id="Brush">
+                    </g>
+                    <g id="Handle">
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,653.382,-1009.13)">
+            <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+                <g id="Broom1" serif:id="Broom">
+                    <g id="Brush1" serif:id="Brush">
+                    </g>
+                    <g id="Handle1" serif:id="Handle">
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit" transform="matrix(1,0,0,1,524,-2050)">
+            <g id="Auto-Commit1" serif:id="Auto Commit">
+            </g>
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error" transform="matrix(1,0,0,1,260,-2050)">
+            <g id="Stop-on-Error1" serif:id="Stop on Error">
+            </g>
+        </g>
+        <g transform="matrix(1,0,0,1,83,-174)">
+            <g id="Execute-Explain" serif:id="Execute Explain">
+                <g id="Search1" serif:id="Search">
+                </g>
+            </g>
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+    </g>
+</svg>

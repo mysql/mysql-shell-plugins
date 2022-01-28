@@ -1,0 +1,191 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.accordion {
+    color: var(--sideBar-foreground);
+    background-color: var(--sideBar-background);
+    border-color: var(--sideBar-border);
+
+    user-select: none;
+}
+
+.msg.accordion > .splitContainer{
+    flex: 1 1 auto;
+}
+
+.msg.accordion .splitContainer:not(.resizing) .splitHost {
+    transition: height 0.25s, top 0.25s, width 0.25s, left 0.25s;
+
+    animation: hide-scroll 2s;
+    @keyframes hide-scroll {
+        from, to { overflow: hidden; }
+    }
+}
+
+.msg.accordion > .title {
+    font-size: 0.75rem;
+    padding: 5px;
+
+    color: var(--sideBarTitle-foreground);
+    background-color: var(--sideBarTitle-background);
+}
+
+.msg.accordion > .footer {
+    padding: 5px;
+}
+
+.msg.accordion .splitHost > .section {
+    flex: 1 1 auto;
+}
+
+.msg.accordion .icon {
+    flex-shrink: 0;
+}
+
+.msg.accordion .splitHost > .section > .content {
+    flex: 1 1 auto;
+}
+
+.msg.accordion .splitHost > .section > .title {
+    flex: 0 0 28px;
+    padding: 0 3px;
+    cursor: pointer;
+    vertical-align: middle;
+
+    color: var(--sideBarSectionHeader-foreground);
+    background-color: var(--sideBarSectionHeader-background);
+    border-top: 1px solid var(--sideBarSectionHeader-border);
+}
+
+.msg.accordion .splitHost > .section:first-of-type > .title {
+    border-top: none !important;
+}
+
+.msg.accordion .splitHost > .section > .title .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    flex: 2 2 auto;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.msg.accordion .splitHost > .section:not(.nohide) > .title > .actions {
+    display: none;
+}
+
+.msg.accordion .splitHost > .section > .title > .actions > .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.msg.accordion .splitHost > .section.expanded:hover > .title > .actions,
+.msg.accordion .splitHost > .section.expanded:focus-within > .title > .actions {
+    display: inherit;
+}
+
+.msg.accordion .splitHost > .section > .title::before {
+    display: inline-block;
+    content: '';
+    width: 0.5em;
+    height: 0.5em;
+    margin-left: 0.2em;
+    margin-right: 0.6em;
+
+    border-right: 1px solid var(--sideBarSectionHeader-foreground);
+    border-bottom: 1px solid var(--sideBarSectionHeader-foreground);
+
+    transform: rotate(-45deg);
+
+    transition: transform 0.2s
+}
+
+.msg.accordion .splitHost > .section.expanded > .title::before {
+    transform: translateY(-2px) rotate(45deg);
+
+    transition: transform 0.3s
+}
+
+.msg.accordion .splitHost > .section > .content :not(.codicon).icon {
+    background: var(--icon-foreground);
+}
+
+.msg.accordion .splitHost > .section > .content .label {
+    display: block;
+    padding: 4px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.msg.accordion .splitHost > .section:focus-within > .content > .selected {
+    background-color: var(--list-activeSelectionBackground);
+    color: var(--list-activeSelectionForeground);
+    border-color: var(---list-activeSelectionBackground);
+}
+
+.msg.accordion .splitHost > .section:not(:focus-within) > .content > .selected {
+    background-color: var(--list-inactiveSelectionBackground);
+    color: var(--list-inactiveSelectionForeground);
+    border-color: var(--list-inactiveSelectionBackground);
+}
+
+.msg.accordion .splitHost > .section > .content > .accordionItem {
+    flex: 0 0 auto;
+
+    margin: 0;
+    padding: 0 8px 0 22px;
+    overflow: hidden;
+
+    cursor: default;
+    user-select: none;
+}
+
+.msg.accordion .splitHost > .section > .content > .accordionItem.selected {
+    outline: none;
+}
+
+.msg.accordion .splitHost > .section > .content.dimmed > .accordionItem {
+    opacity: 0.3;
+}
+
+.msg.accordion .splitHost > .section > .content > .accordionItem.closable .codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-right: 4px;
+}
+
+.msg.accordion .splitHost > .section > .content > .accordionItem.closable:not(:hover):not(.selected) .codicon {
+    visibility: hidden;
+}
+
+.msg.accordion .splitHost > .section > .content > .accordionItem .label {
+    user-select: none;
+}
+
+.msg.accordion .splitHost > .section > .content > .accordionItem:hover:not(.selected) {
+    background-color: var(--sideBar-dropBackground);
+}

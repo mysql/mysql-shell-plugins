@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.searchContainer {
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    color: var(--input-foreground);
+
+    min-height: 24px;
+}
+
+.msg.settingsEditor .searchContainer .input {
+    flex: 1 1 auto;
+    margin: 0 4px 0 0;
+    padding: 3px 2px 3px 4px;
+
+    background: none;
+    border: none;
+    outline: none;
+}
+
+.msg.searchContainer .input:hover {
+    background: none;
+}
+
+.msg.searchContainer #searchResult {
+    font-size: 0.8em;
+    background: var(--input-border);
+    flex: 0 0 auto;
+    align-self: center;
+    padding: 2px 3px;
+    border-radius: 2px;
+}
+
+.msg.searchContainer .button {
+    flex: 0 0 20px;
+
+    min-width: 0px;
+    margin: 2px 1px;
+    padding: 0;
+
+    font-size: 7pt;
+
+    border-radius: 0px;
+    border: none;
+
+    background: none;
+    cursor: pointer;
+
+    color: var(--input-placeholderForeground);
+    background: none;
+}
+
+.msg.searchContainer .button:disabled {
+    color: var(--text-dimmedForeground);
+}
+
+.msg.searchContainer .button:hover {
+    background: inherit;
+}
+
+.msg.searchContainer .button.active {
+    background-color: var(--inputOption-activeBackground);
+
+    color: var(--input-foreground);
+}

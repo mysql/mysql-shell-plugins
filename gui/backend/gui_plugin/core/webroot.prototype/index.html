@@ -1,0 +1,110 @@
+<!--
+Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2.0,
+as published by the Free Software Foundation.
+
+This program is also distributed with certain software (including
+but not limited to OpenSSL) that is licensed under separate terms, as
+designated in a particular file or component or in included license
+documentation.  The authors of MySQL hereby grant you an additional
+permission to link the program and your derivative works with the
+separately licensed software that they have included with MySQL.
+This program is distributed in the hope that it will be useful,  but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+the GNU General Public License, version 2.0, for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MySQL Shell">
+  <meta name="viewport" content="width=device-width, initial-scale=0.8">
+
+  <link rel="apple-touch-icon" sizes="128x128" href="images/icons/mysql_shell_icon_128x128.png">
+  <link rel="apple-touch-icon" sizes="256x256" href="images/icons/mysql_shell_icon_256x256.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="images/icons/mysql_shell_icon_512x512.png">
+  <link rel="manifest" href="manifest.json">
+
+  <title>MySQL Shell Prototype</title>
+
+  <link rel="icon" href="images/icons/mysql_shell_icon_256x256.png">
+  <link rel="stylesheet" type="text/css" href="css/index.css">
+  <link rel="stylesheet" type="text/css" href="css/font.css">
+  <link rel="stylesheet" type="text/css" href="incs/sqleditor/dashboard.css">
+
+  <link rel="stylesheet" data-name="vs/editor/editor.main" href="incs/monaco-editor/min/vs/editor/editor.main.css">
+
+  <script type="module" src="incs/main.js"></script>
+</head>
+
+<body>
+  <script>var require = { paths: { 'vs': 'incs/monaco-editor/min/vs' } };</script>
+  <script src="incs/monaco-editor/min/vs/loader.js"></script>
+  <script src="incs/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+  <script src="incs/monaco-editor/min/vs/editor/editor.main.js"></script>
+
+  <div id="loginDialog">
+  </div>
+
+  <div id="overlayDialogBg">
+    <div id="overlayDialog"></div>
+  </div>
+
+  <div class="main_area">
+    <div class="sidenav">
+      <div class="sidenav_module sidenav_module_selected" id="sidenav_module_sqleditor">
+        <div class="sidenav_icon sidenav_icon_selected" id="sidenav_icon_sqleditor"
+          style="mask-image: url(images/icons/modules/gui.sqleditor.svg); -webkit-mask-image: url(images/icons/modules/gui.sqleditor.svg);">
+        </div>
+      </div>
+      <div class="sidenav_module sidenav_last_module_aligned_top" id="sidenav_module_wsdebugger">
+        <div class="sidenav_icon" id="sidenav_icon_wsdebugger"
+          style="mask-image: url(images/icons/modules/gui.wsdebugger.svg); -webkit-mask-image: url(images/icons/modules/gui.wsdebugger.svg);">
+        </div>
+      </div>
+      <div class="sidenav_module">
+        <div class="sidenav_icon"
+          style="mask-image: url(images/icons/modules/gui.docs.svg); -webkit-mask-image: url(images/icons/modules/gui.docs.svg);">
+        </div>
+      </div>
+      <div class="sidenav_module">
+        <div class="sidenav_icon" id="nav_settings_icon"
+          style="mask-image: url(images/icons/modules/gui.settings.svg); -webkit-mask-image: url(images/icons/modules/gui.settings.svg);">
+        </div>
+      </div>
+    </div>
+    <div class="content_container">
+      <div id="module_content_sqleditor" class="content_container">
+        <div class="tabs" id="sqleditor_tabs">
+          <div class="tab" id="NavigatorTabItem">
+            <img class="toolbar_icon" src="images/menu.png" srcset="images/menu@2x.png 2x">
+          </div>
+        </div>
+        <div class="tab_content_container" id="sqleditor_tab_content_container">
+        </div>
+      </div>
+      <div id="module_content_wsdebugger" class="content_container">
+      </div>
+    </div>
+  </div>
+  <div class="status_bar">
+    <p id="status_bar_text"></p>
+  </div>
+</body>
+
+</html>

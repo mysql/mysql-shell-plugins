@@ -1,0 +1,75 @@
+{
+    "folders": [
+        {
+            "name": "Shell GUI Frontend",
+            "path": "gui/frontend"
+        },
+        {
+            "name": "VSCode Extension",
+            "path": "gui/extension"
+        },
+        {
+            "name": "Shell GUI Backend",
+            "path": "gui/backend"
+        },
+        {
+            "name": "MySQL Database Service Plugin",
+            "path": "mds_plugin"
+        },
+        {
+            "name": "MySQL REST Service Plugin",
+            "path": "mrs_plugin"
+        },
+        {
+            "name": "Shell Plugin Tools",
+            "path": "gui/tools"
+        }
+    ],
+    "settings": {
+        "workbench.colorCustomizations": {},
+        "python.envFile": "${workspaceFolder}/python.env",
+        "python.analysis.extraPaths": [
+            "/usr/local/mysql-shell/lib/mysqlsh/python-packages/",
+            "${workspaceFolder}\\plugins\\rds_plugin",
+            "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.9/site-packages"
+        ],
+        "python.autoComplete.extraPaths": [
+            "/usr/local/mysql-shell/lib/mysqlsh/python-packages/",
+            "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.9/site-packages",
+            "${workspaceFolder}\\plugins\\rds_plugin"
+        ]
+    },
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Python: Attach to Port",
+                "type": "python",
+                "request": "attach",
+                "connect": {
+                    "host": "localhost",
+                    "port": 5678
+                }
+            },
+            {
+                "name": "Python: Attach using Process Id",
+                "type": "python",
+                "request": "attach",
+                "processId": "${command:pickProcess}"
+            }
+        ]
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": []
+    },
+    "extensions": {
+        // cSpell:ignore dbaeumer pylance
+        "recommendations": [
+            "streetsidesoftware.code-spell-checker",
+            "dbaeumer.vscode-eslint",
+            "ms-python.python",
+            "ms-python.vscode-pylance"
+        ]
+    }
+}

@@ -1,0 +1,5 @@
+
+import shutil
+
+if ws.tokens.get("testTempDir", None) is not None:
+    shutil.rmtree(ws.tokens["testTempDir"], ignore_errors=True)

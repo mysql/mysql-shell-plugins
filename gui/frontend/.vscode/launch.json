@@ -1,0 +1,156 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "firefox",
+            "request": "launch",
+            "name": "Launch MSG on FF",
+            "url": "https://localhost:3001",
+            "webRoot": "${workspaceFolder}",
+            "clearConsoleOnReload": true,
+            "preLaunchTask": "tsc: watch",
+            "keepProfileChanges": false,
+            "reAttach": true,
+            "profile": "dev",
+            "enableCRAWorkaround": true,
+            "firefoxArgs": [
+                //"-devtools",
+            ]
+        },
+        {
+            "type": "firefox",
+            "request": "launch",
+            "name": "Launch MSG on FF - single user",
+            "url": "https://localhost:3001?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8",
+            "webRoot": "${workspaceFolder}",
+            "clearConsoleOnReload": true,
+            "preLaunchTask": "tsc: watch",
+            "keepProfileChanges": false,
+            "reAttach": true,
+            "profile": "dev",
+            "enableCRAWorkaround": true,
+            "skipFiles": [
+                "**/node_modules/**"
+            ],
+            "firefoxArgs": [
+                //"-devtools",
+            ]
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch MSG on Chrome",
+            "url": "https://localhost:3001",
+            "webRoot": "${workspaceFolder}",
+            "userDataDir": "${workspaceRoot}/.vscode/chrome",
+            "sourceMaps": true,
+            "preLaunchTask": "tsc: watch",
+            "sourceMapPathOverrides": {
+                "webpack:///build/*": "${webRoot}/*"
+            },
+            "runtimeArgs": [
+                "--allow-insecure-localhost"
+            ]
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch MSG on Chrome - single user",
+            "url": "https://localhost:3001?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8",
+            "webRoot": "${workspaceFolder}",
+            "userDataDir": "${workspaceRoot}/.vscode/chrome",
+            "sourceMaps": true,
+            "preLaunchTask": "tsc: watch",
+            "sourceMapPathOverrides": {
+                "webpack:///build/*": "${webRoot}/*"
+            },
+            "runtimeArgs": [
+                "--allow-insecure-localhost",
+            ]
+        },
+        {
+            "type": "node",
+            "name": "Run Tests",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+            "args": [
+                "--config ${workspaceFolder}/jest.config.js"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run selected Jest test",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script",
+                "test"
+            ],
+            "args": [
+                "--",
+                "-i",
+                "${file}",
+                "-t",
+                "--no-coverage"
+            ],
+            "console": "integratedTerminal",
+        },
+        {
+            "name": "vscode-jest-tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/react-scripts",
+            "args": [
+                "test",
+                "--runInBand",
+                "--no-cache",
+                "--watchAll=false"
+            ],
+            "cwd": "${workspaceRoot}",
+            "protocol": "inspector",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "env": {
+                "CI": "true"
+            },
+            "disableOptimisticBPs": true
+        },
+        {
+            "type": "chrome",
+            "request": "attach",
+            "name": "Attach to running Browser",
+            "port": 9222,
+            "host": "",
+            "webRoot": "${workspaceFolder}",
+            "userDataDir": "${workspaceRoot}/.vscode/chrome",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///build/*": "${webRoot}/*"
+            },
+            "runtimeArgs": [
+                "--allow-insecure-localhost"
+            ]
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch MSG on Brave",
+            "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+            "url": "https://localhost:3001?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8",
+            "webRoot": "${workspaceFolder}",
+            "userDataDir": "${workspaceRoot}/.vscode/chrome",
+            "sourceMaps": true,
+            "preLaunchTask": "tsc: watch",
+            "sourceMapPathOverrides": {
+                "webpack:///build/*": "${webRoot}/*"
+            },
+            "runtimeArgs": [
+                "--allow-insecure-localhost"
+            ]
+        },
+    ]
+}

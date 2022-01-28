@@ -1,0 +1,248 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.tabview {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+
+    --tabItem-border-width: 0px;
+    --content-separator-width: 0px;
+}
+
+.msg.tabPage {
+    width: 100vw;
+}
+
+.msg.tabview > .content {
+    flex: 1 1 auto;
+}
+
+.msg.tabview > .content.dropTarget {
+    background-color: var(--editorGroup-dropBackground);
+}
+
+.msg.tabview > .content:not(.dropTarget) {
+    background-color: var(--editorPane-background)
+}
+
+.msg.tabview > .tabArea {
+    flex: 0 0 auto;
+    background-color: var(--editorGroupHeader-tabsBackground);
+    color: var(--tab-activeForeground);
+}
+
+.msg.tabview > .tabArea,
+.msg.tabview > .tabArea .selectorItem.normal,
+.msg.tabview > .tabArea * {
+    cursor: pointer;
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal.dropTarget,
+.msg.tabview > .tabArea.dropTarget {
+    background-color: var(--tab-dropBackground);
+}
+
+.msg.tabview > .tabArea.stretched > .selectorItem.normal {
+    flex: 1 1 auto;
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal {
+    border: var(--tabItem-border-width) solid transparent;
+}
+
+/* Tab separation lines. */
+.msg.tabview.top > .tabArea > .selectorItem.normal,
+.msg.tabview.bottom > .tabArea > .selectorItem.normal {
+    border-left-color: var(--tab-border);
+}
+
+.msg.tabview.top > .tabArea > .selectorItem.normal:nth-last-child(2),
+.msg.tabview.bottom > .tabArea > .selectorItem.normal:nth-last-child(2) {
+    border-right-color: var(--tab-border);
+}
+
+.msg.tabview.left > .tabArea > .selectorItem.normal,
+.msg.tabview.right > .tabArea > .selectorItem.normal {
+    border-bottom-color: var(--tab-border);
+}
+
+.msg.tabview.left > .tabArea > .selectorItem.normal:nth-last-child(2),
+.msg.tabview.right > .tabArea > .selectorItem.normal:nth-last-child(2) {
+    border-top-color: var(--tab-border);
+}
+
+/* Selection marker in 2 positions for 4 orientations. */
+.msg.tabview.top > .tabArea > .selectorItem.normal {
+    border-top-width: 2px;
+    border-bottom-color: var(--tab-border);
+}
+
+.msg.tabview.top > .tabArea > .selectorItem.normal.selected {
+    border-top-color: var(--tab-activeBorderTop);
+    border-bottom-color: var(--tab-activeBorder);
+}
+
+.msg.tabview.right > .tabArea > .selectorItem.normal {
+    border-right-width: 2px;
+    border-left: var(--tabItem-border-width) solid var(--tab-border);
+}
+
+.msg.tabview.right > .tabArea > .selectorItem.normal.selected {
+    border-right-color: var(--tab-activeBorderTop);
+    border-left-color: var(--tab-activeBorder);
+}
+
+.msg.tabview.bottom > .tabArea > .selectorItem.normal {
+    border-bottom-width: 2px;
+    border-top-color: var(--tab-border);
+}
+
+.msg.tabview.bottom > .tabArea > .selectorItem.normal.selected {
+    border-bottom-color: var(--tab-activeBorderTop);
+    border-top-color: var(--tab-activeBorder);
+}
+
+.msg.tabview.left > .tabArea > .selectorItem.normal {
+    border-left-width: 2px;
+    border-right: var(--tabItem-border-width) solid var(--tab-border);
+}
+
+.msg.tabview.left > .tabArea > .selectorItem.normal.selected {
+    border-left-color: var(--tab-activeBorderTop);
+    border-right-color: var(--tab-activeBorder);
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal {
+    flex: 0 0 auto;
+    min-height: fit-content;
+    min-width: fit-content;
+    padding: 4px 24px 4px 12px;
+
+    font-size: 90%;
+
+    color: var(--tab-inactiveForeground);
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal.hasAuxillary {
+    padding: 4px 4px 4px 12px;
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal:not(.dropTarget) {
+    background-color: var(--tab-inactiveBackground);
+}
+
+/* Item hovering, including special handling for outer borders of last tab items. */
+.msg.tabview > .tabArea > .selectorItem.normal:not(.selected):hover {
+    border-color: var(--tab-hoverBorder);
+}
+
+.msg.tabview.top > .tabArea > .selectorItem.normal:hover:nth-last-child(2),
+.msg.tabview.bottom > .tabArea > .selectorItem.normal:hover:nth-last-child(2) {
+    border-right-color: var(--tab-hoverBorder);
+}
+
+.msg.tabview.left > .tabArea > .selectorItem.normal:hover:nth-last-child(2),
+.msg.tabview.right > .tabArea > .selectorItem.normal:hover:nth-last-child(2) {
+    border-top-color: var(--tab-hoverBorder);
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal:hover:active:not(.dropTarget),
+.msg.tabview > .tabArea > .selectorItem.normal:hover:not(:active) {
+    background-color: var(--tab-hoverBackground);
+}
+
+/* Selected items */
+.msg.tabview > .tabArea > .selectorItem.normal.selected:not(.dropTarget) {
+    background-color: var(--tab-activeBackground);
+    color: var(--tab-activeForeground);
+}
+
+/* Rules for other sub elements of the tabs or the selector. */
+.msg.tabview > .tabArea > .selectorItem.stepUp,
+.msg.tabview > .tabArea > .selectorItem.stepDown {
+    background-color: var(--button-background);
+}
+
+/* Any icon on a tab. */
+.msg.tabview > .tabArea > .selectorItem.normal .icon {
+    height: 16px;
+    width: 16px;
+    min-height: 16px;
+    min-width: 16px;
+    margin: 0 4px 0 0;
+
+    background-color: var(--tab-inactiveForeground);
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal .icon.codicon {
+    background: none;
+    color: var(--tab-inactiveForeground);
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal.selected .icon {
+    background-color: var(--tab-activeForeground);
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal.selected .icon.codicon {
+    background: none;
+    color: var(--tab-activeForeground);
+}
+
+/* Icons in the auxillary view. */
+.msg.tabview > .tabArea > .selectorItem.normal #auxillary .icon {
+    height: 12px;
+    width: 12px;
+    min-height: 12px;
+    min-width: 12px;
+    margin: 0;
+
+    visibility: hidden;
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal.selected #auxillary  .icon {
+    visibility: visible;
+}
+
+.msg.tabview > .tabArea > .selectorItem.normal:hover:not(.selected) #auxillary  .icon {
+    background-color: var(--tab-inactiveForeground);
+    visibility: visible;
+}
+
+/* Separator between content and tabs. */
+.msg.tabview.top > .content {
+    border-top: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
+}
+
+.msg.tabview.right > .content {
+    border-right: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
+}
+
+.msg.tabview.bottom > .content {
+    border-bottom: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
+}
+
+.msg.tabview.left > .content {
+    border-left: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
+}
+

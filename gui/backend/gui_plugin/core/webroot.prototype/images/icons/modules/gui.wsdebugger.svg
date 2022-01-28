@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 96 96" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g id="WS-Debugger" serif:id="WS Debugger">
+        <g id="Bug" transform="matrix(1.27468,0,0,1.27468,32.8959,-61.2199)">
+            <g transform="matrix(0.708143,0,0,0.760415,7.47411,15.4986)">
+                <ellipse cx="31.546" cy="67.487" rx="15.687" ry="20.545" style="fill:none;stroke:white;stroke-width:4.27px;"/>
+            </g>
+            <path d="M40.205,59.956L45.482,56.257" style="fill:none;stroke:white;stroke-width:3.14px;stroke-linecap:square;"/>
+            <g transform="matrix(-1,0,0,1,59.5298,0)">
+                <path d="M40.205,59.956L45.482,56.257" style="fill:none;stroke:white;stroke-width:3.14px;stroke-linecap:square;"/>
+            </g>
+            <g transform="matrix(1,0,0,-1,0,138.369)">
+                <path d="M38.748,61.413L45.482,56.257" style="fill:none;stroke:white;stroke-width:3.14px;stroke-linecap:square;"/>
+            </g>
+            <g transform="matrix(-1,0,0,-1,59.5298,138.369)">
+                <path d="M38.748,61.413L45.482,56.257" style="fill:none;stroke:white;stroke-width:3.14px;stroke-linecap:square;"/>
+            </g>
+            <path d="M40.721,62.902L18.904,62.902" style="fill:none;stroke:white;stroke-width:3.14px;stroke-linecap:butt;"/>
+            <g transform="matrix(1,0,0,1,-0.1,0)">
+                <path d="M18.704,69.19L12.282,69.19" style="fill:none;stroke:white;stroke-width:3.14px;stroke-linecap:butt;"/>
+            </g>
+            <g transform="matrix(1,0,0,1,28.9,0)">
+                <path d="M18.704,69.19L12.282,69.19" style="fill:none;stroke:white;stroke-width:3.14px;stroke-linecap:butt;"/>
+            </g>
+        </g>
+        <g id="Server" transform="matrix(1,0,0,1,-12,15)">
+            <g transform="matrix(1,-0,-0,1,12,-15)">
+                <use xlink:href="#_Image1" x="4" y="72" width="79px" height="20px"/>
+            </g>
+        </g>
+        <g transform="matrix(1,0,0,1,-11.8,15)">
+            <g transform="matrix(1,-0,-0,1,11.8,-15)">
+                <path d="M48.975,56.828L42.975,50.828L36.975,56.828" style="fill:none;stroke:white;stroke-width:4px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;"/>
+                <path d="M48.975,77.172L42.975,83.172L36.975,77.172" style="fill:none;stroke:white;stroke-width:4px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;"/>
+                <path d="M42.975,50.828L42.975,83.172" style="fill:none;stroke:white;stroke-width:4px;stroke-linecap:butt;stroke-linejoin:miter;"/>
+            </g>
+        </g>
+        <g id="Browser-2" serif:id="Browser 2" transform="matrix(1,0,0,1,4,-4)">
+            <clipPath id="_clip2">
+                <path d="M74,68.985L46,68.985L46,64L32,64L32,68.985L4,68.985L4,21L40,21L40,54L74,54.025L74,68.985Z"/>
+            </clipPath>
+            <g clip-path="url(#_clip2)">
+                <g transform="matrix(1.2,0,0,1.2,-21.3,17.6)">
+                    <circle cx="29" cy="9.5" r="2.5" style="fill:white;"/>
+                </g>
+                <g transform="matrix(1.2,0,0,1.2,-13.3,17.6)">
+                    <circle cx="29" cy="9.5" r="2.5" style="fill:white;"/>
+                </g>
+                <g transform="matrix(1.2,0,0,1.2,-5.3,17.6)">
+                    <circle cx="29" cy="9.5" r="2.5" style="fill:white;"/>
+                </g>
+                <g transform="matrix(1,0,0,1,0,1)">
+                    <path d="M8,34L70,34" style="fill:none;stroke:white;stroke-width:4px;stroke-linecap:butt;stroke-linejoin:miter;"/>
+                </g>
+                <path d="M66.802,21C70.775,21 74,24.225 74,28.198L74,61.787C74,65.76 70.775,68.985 66.802,68.985L11.198,68.985C7.225,68.985 4,65.76 4,61.787L4,28.198C4,24.225 7.225,21 11.198,21L66.802,21ZM66.802,25L11.198,25C9.433,25 8,26.433 8,28.198C8,28.198 8,61.787 8,61.787C8,63.552 9.433,64.985 11.198,64.985L66.802,64.985C68.567,64.985 70,63.552 70,61.787L70,28.198C70,26.433 68.567,25 66.802,25Z" style="fill:white;"/>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <image id="_Image1" width="79px" height="20px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE8AAAAUCAYAAADMfWCyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAArklEQVRYhe2W0QqDMAxFmz30O53/tP1U8ZvOXgpjsQ/TWMKyHCiIjdgceqsCUBwRETnznPe6Synl5r2AXyblGUh5BkSfHWfPoH9Au8qdZyDlGQghD6jACmx9rECdUaNf/MGk/qYC3HUfwHJ1zc5VEHlt0HS7ukZPhIitF1HkPQf3HpNq3gSJbQWWHrvWr0cfA1ONdpU/yQfQrqLE1oWUZ2AX2+R7cucZSHkGUp6BF3ZFg7h71s4lAAAAAElFTkSuQmCC"/>
+    </defs>
+</svg>

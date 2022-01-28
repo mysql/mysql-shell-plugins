@@ -1,0 +1,170 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.settingsEditor .button.imageOnly {
+    width: 24px;
+    height: 24px;
+    margin: 0 0 0 4px;
+}
+
+.msg.settingsEditor .themeSelector {
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.msg.settingsEditor .tabArea {
+    height: 32px;
+}
+
+.msg.settingsEditor .tabArea .selectorItem.normal {
+    flex-basis: 10%;
+}
+
+.msg.settingsEditor .content #settingsHost {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 950px;
+    align-self: center;
+    padding: 0 15px;
+}
+
+.msg.settingsEditor .content #advancedSettings {
+    font-size: 0.9em;
+}
+
+.msg.settingsEditor .content #optionsHost {
+    min-height: 36px;
+    margin: 12px 0 6px 0;
+}
+
+.msg.settingsEditor .content #settingsHost .searchContainer {
+    flex: 1 1 auto;
+    margin-right: 20px;
+}
+
+.msg.settingsEditor .content #settingsHost > #settingsTreeHost {
+    flex: 1 1 auto;
+}
+
+.msg.settingsEditor #settingsTree {
+    flex: 0 0 210px;
+    margin-right: 8px;
+}
+
+.msg.settingsEditor #settingsTree .settingsTreeCell {
+    /* Corresponds to the width of the tree toggle and is used when there are no children and hence no toggle. */
+    padding-left: 16px;
+    padding-top: 2px;
+
+    display: inline-flex;
+    flex-direction: row;
+    height: 18px;
+}
+
+.msg.settingsEditor #settingsTree .treeToggle + .settingsTreeCell {
+    padding-left: 0px;
+}
+
+.msg.settingsEditor #settingsValueList {
+    flex: 1 1 auto;
+}
+
+.msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row .tabulator-cell,
+.msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row .tabulator-cell:first-child {
+    display: inline-flex;
+    height: auto !important;
+    border: 1px solid transparent;
+}
+
+.msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selected .tabulator-cell,
+.msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selected:hover .tabulator-cell {
+    background-color: var(--list-inactiveSelectionBackground);
+    color: var(--foreground);
+    border: 1px solid var(--list-gridColor);
+}
+
+.msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selectable:hover .tabulator-cell {
+    background-color: var(--list-headerBackground);
+}
+
+.msg.settingsEditor #settingsValueList .settingsListCell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+
+    padding: 8px;
+    width: 100%;
+    border-left: 2px solid transparent;
+}
+
+.msg.settingsEditor #settingsValueList .settingsListCell.nonDefault {
+    border-left: 2px solid var(--list-activeSelectionBackground);
+}
+
+.msg.settingsEditor #settingsValueList .settingTitle {
+    flex: 0 0 20px;
+    font-size: 1.7em;
+
+    color: var(--list-activeSelectionForeground);
+}
+
+.msg.settingsEditor #settingsValueList .settingValueName {
+    flex: 0 0 18px;
+    color: var(--list-activeSelectionForeground);
+    padding-bottom: 4px;
+}
+
+.msg.settingsEditor #settingsValueList .settingValueDescription {
+    display: block;
+    white-space: normal;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.msg.settingsEditor #settingsValueList .settingValueDescription > span {
+    display: block;
+    word-break: break-word;
+}
+
+.msg.settingsEditor #settingsValueList .settingValue:not(.checkbox, .upDown, .dropdown) {
+    flex: 1 1 auto;
+    height: auto;
+    white-space: normal;
+    align-items: flex-start;
+
+    max-width: 400px;
+}
+
+.msg.settingsEditor #settingsValueList .settingValue > .checkMark {
+    margin-right: 8px;
+}
+
+.msg.settingsEditor #settingsValueList .settingValue.upDown {
+    max-width: 200px;
+}
+
+.msg.settingsEditor #settingsValueList .settingValue.button,
+.msg.settingsEditor #settingsValueList .settingValue.dropdown {
+    margin-left: 0;
+    max-width: 300px;
+}

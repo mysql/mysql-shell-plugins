@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.toolbar {
+    background-color: var(--titleBar-inactiveBackground);
+    color: var(--titleBar-inactiveForeground);
+    border: 1px solid transparent;
+
+    min-width: 60px;
+    min-height: 20px;
+
+    padding: 6px;
+
+    justify-content: stretch;
+    font-size: 0.9em;
+
+    overflow: hidden;
+}
+
+.msg.toolbar.vibrant {
+    background-color: var(--titleBar-activeBackground);
+    color: var(--titleBar-activeForeground);
+    border-color: var(--titleBar-border);
+}
+
+.msg.toolbar.vibrant .icon {
+    background-color: var(--titleBar-activeForeground);
+}
+
+.msg.toolbar.vibrant .input::placeholder {
+    color: var(--titleBar-activeForeground);
+}
+
+.msg.toolbar.vibrant > * {
+    background: none;
+    border: none;
+}
+
+.msg.toolbar > .input {
+    min-height: 0px;
+    max-height: auto;
+    margin: 0px 8px;
+    flex: 0 0 100px;
+    background: transparent;
+    border-radius: 0px;
+}
+
+.msg.toolbar.vibrant > .input {
+    border-color: var(--titleBar-activeForeground);
+}
+
+.msg.toolbar .icon {
+    flex: 0 0 24px;
+    background-color: var(--icon-foreground);
+}
+
+.msg.toolbar .button > .icon {
+    background-color: initial;
+}
+
+.msg.toolbar .button {
+    border: none;
+    background: transparent;
+}
+
+.msg.toolbar .button:disabled > .icon {
+    background-color: var(--button-dimmedBackground) !important;
+}
+
+.msg.toolbar .divider {
+    flex: 0 0 4px;
+}

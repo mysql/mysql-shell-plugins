@@ -1,0 +1,249 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Application host tests Rendering About (snapshot) 1`] = `
+<Container
+  className="applicationHost"
+  orientation="row"
+>
+  <ActivityBar
+    id="mainActivityBar"
+  >
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.shell"
+      image="module-shell.svg"
+      key="gui.shell"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.sqleditor"
+      image="module-sql.svg"
+      key="gui.sqleditor"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={true}
+      disabled={false}
+      expand={true}
+      id="settings"
+      image="settings.svg"
+      key="settings"
+      onClick={[Function]}
+    />
+  </ActivityBar>
+  <ShellModule
+    innerRef={
+      Object {
+        "current": null,
+      }
+    }
+    key="gui.shell"
+  />
+  <SettingsEditor
+    key="settingsEditor"
+    page="about"
+  />
+  <DialogHost />
+</Container>
+`;
+
+exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
+<Container
+  className="applicationHost"
+  orientation="row"
+>
+  <ActivityBar
+    id="mainActivityBar"
+  >
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.shell"
+      image="module-shell.svg"
+      key="gui.shell"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.sqleditor"
+      image="module-sql.svg"
+      key="gui.sqleditor"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={true}
+      id="settings"
+      image="settings.svg"
+      key="settings"
+      onClick={[Function]}
+    />
+  </ActivityBar>
+  <ShellModule
+    innerRef={
+      Object {
+        "current": null,
+      }
+    }
+    key="gui.shell"
+  />
+  <DialogHost />
+</Container>
+`;
+
+exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
+<Container
+  className="applicationHost"
+  orientation="row"
+>
+  <ActivityBar
+    id="mainActivityBar"
+  >
+    <ActivityBarItem
+      active={true}
+      disabled={false}
+      expand={false}
+      id="gui.shell"
+      image="module-shell.svg"
+      key="gui.shell"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.sqleditor"
+      image="module-sql.svg"
+      key="gui.sqleditor"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={true}
+      id="settings"
+      image="settings.svg"
+      key="settings"
+      onClick={[Function]}
+    />
+  </ActivityBar>
+  <ShellModule
+    innerRef={
+      Object {
+        "current": null,
+      }
+    }
+    key="gui.shell"
+  />
+  <DialogHost />
+</Container>
+`;
+
+exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
+<Container
+  className="applicationHost"
+  orientation="row"
+>
+  <ActivityBar
+    id="mainActivityBar"
+  >
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.shell"
+      image="module-shell.svg"
+      key="gui.shell"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.sqleditor"
+      image="module-sql.svg"
+      key="gui.sqleditor"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={true}
+      disabled={false}
+      expand={true}
+      id="settings"
+      image="settings.svg"
+      key="settings"
+      onClick={[Function]}
+    />
+  </ActivityBar>
+  <ShellModule
+    innerRef={
+      Object {
+        "current": null,
+      }
+    }
+    key="gui.shell"
+  />
+  <SettingsEditor
+    key="settingsEditor"
+    page="settings"
+  />
+  <DialogHost />
+</Container>
+`;
+
+exports[`Application host tests Standard Rendering (snapshot) 1`] = `
+<Container
+  className="applicationHost"
+  orientation="row"
+>
+  <ActivityBar
+    id="mainActivityBar"
+  >
+    <ActivityBarItem
+      active={true}
+      disabled={false}
+      expand={false}
+      id="gui.shell"
+      image="module-shell.svg"
+      key="gui.shell"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={false}
+      id="gui.sqleditor"
+      image="module-sql.svg"
+      key="gui.sqleditor"
+      onClick={[Function]}
+    />
+    <ActivityBarItem
+      active={false}
+      disabled={false}
+      expand={true}
+      id="settings"
+      image="settings.svg"
+      key="settings"
+      onClick={[Function]}
+    />
+  </ActivityBar>
+  <ShellModule
+    innerRef={
+      Object {
+        "current": null,
+      }
+    }
+    key="gui.shell"
+  />
+  <DialogHost />
+</Container>
+`;

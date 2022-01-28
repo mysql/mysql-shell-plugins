@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg .label {
+    user-select: text;
+}
+
+.msg .label.quote {
+    display: block;
+    background-color: var(--textBlockQuote-background);
+
+    border: 1px solid var(--textBlockQuote-border);
+    border-left-width: 8px;
+
+    margin: 8px 0;
+    padding: 12px;
+
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-style: oblique;
+}
+
+.msg .label.quote::before {
+    content: "„";
+}
+
+.msg .label.quote::after {
+    content: "“";
+}
+
+.msg .label.code {
+    display: block;
+    white-space: pre;
+
+    background-color: var(--textCodeBlock-background);
+    color: var(--textPreformat-foreground);
+
+    padding: 4px 8px;
+    margin: 0;
+
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+}
+
+.msg .label.heading {
+    color: var(--text-captionForeground);
+
+    margin: 12px 0;
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+
+.msg .label[disabled] {
+    color: var(--text-dimmedForeground);
+}
+
+.msg.label.error {
+    background-color: hsla(14, 88%, 42%, 0.1);
+    color: hsl(14, 88%, 42%);
+}
+
+.msg.label.warning {
+    background-color: hsla(54, 88%, 42%, 0.1);
+    color: hsl(54, 88%, 42%);
+}
+
+.msg.label.info {
+    background-color: hsla(152, 98%, 36%, 0.1);
+    color: hsl(152, 98%, 36%);
+}
+
+.msg.label.response {
+    background-color: hsla(0, 0%, 39%, 0.1);
+    color: hsl(0, 0%, 39%);
+}
+
+.msg.resultText.interactive {
+    background-color: hsla(224, 58%, 50%, 0.1);
+    color: hsl(207, 61%, 59%);
+}

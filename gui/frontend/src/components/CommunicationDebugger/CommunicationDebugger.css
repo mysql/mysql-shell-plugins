@@ -1,0 +1,139 @@
+/*
+ * Copyright (c) 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.debugger {
+    display: flex;
+
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0px;
+}
+
+.msg.debugger .stretch {
+    flex: 1;
+}
+
+.msg.debugger .toolbar {
+    min-height: 28px;
+    margin: 0;
+    padding: 0 19px 0 9px;
+    border: 0;
+}
+
+.msg.debugger .toolbar .icon {
+    height: 20px;
+    background-color: initial;
+}
+
+.msg.debugger .toolbar .codicon {
+    margin-top: 4px;
+}
+
+.msg.debugger .toolbar .button> :not(.codicon).icon {
+    padding-left: 8px;
+    width: 20px;
+    background-color: var(--button-foreground);
+}
+
+.msg.debugger .toolbar .divider {
+    flex: 0 0 1px;
+    height: 70%;
+    margin: 0 6px;
+    background-color: var(--foreground);
+}
+
+.msg.debugger .toolbar .button {
+    margin: 0;
+    min-width: 0;
+}
+
+.msg.debugger .toolbar .button>.label {
+    white-space: nowrap;
+}
+
+.msg.debugger .toolbar .rightAlign {
+    margin-left: auto;
+}
+
+.msg.debugger .debuggerCommandMargin {
+    background-color: #333333;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23919192'><polygon points='0,0 0,100 50,50'/></svg>") no-repeat;
+    background-size: 12px;
+    background-position: calc(100% - 0px) calc(100% - 4px);
+    background-repeat: no-repeat;
+}
+
+.msg.debugger .debuggerCommandOutput {
+    background-color: #008cff10;
+}
+
+.msg.debugger .debuggerErrorMargin {
+    background-color: #ff000010;
+}
+
+.msg.debugger .debuggerErrorOutput {
+    background-color: #ff000010;
+}
+
+.msg.debugger .scriptTree .tabulator-row .tabulator-cell {
+    display: inline-flex;
+    flex-direction: row;
+}
+
+.msg.debugger .scriptTree .tabulator-row .tabulator-cell > span:not(.treeToggle) {
+    flex: 1 1 auto;
+    display: flex;
+    height: 22px;
+    width: 100%;
+    align-items: center;
+}
+
+.msg.debugger .scriptTree .tabulator-row .tabulator-cell .label {
+    flex: 1 1 auto;
+    padding: 0;
+}
+
+.msg.debugger .scriptTreeEntry .codicon {
+    padding-right: 4px;
+}
+
+.msg.debugger #inputAreaHost .selectorItem .label {
+    padding: 7px 0 6px 0;
+    font-size: 90%;
+}
+
+.msg.debugger #inputAreaHost .tabview {
+    border-top: 1px solid var(--editorWidget-border);
+}
+
+.msg.debugger #inputAreaHost .selectorItem .closeButton {
+    margin-left: 4px;
+    width: 16px;
+    height: 16px;
+}
+
+.msg.debugger #inputAreaHost .toolbar {
+    min-height: 36px;
+}

@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.upDown {
+    --item-height: 20px; /* Set by the control on mount to the real size. */
+
+    flex: 1 1 auto;
+}
+
+.msg.upDown .input {
+    flex: 1 1 auto;
+    margin: 0 1px 0 0;
+}
+
+.msg.upDown .button {
+    flex: 1 1 auto;
+
+    min-width: 0px;
+    height: 9px;
+    width: 16px;
+
+    padding: 0px;
+    margin: 0px;
+
+    border-radius: 0px;
+    border: none;
+
+    pointer-events: all;
+}
+
+.msg.upDown #up {
+    margin-bottom: 1px;
+}
+
+.msg.upDown .button::after {
+    display: inline-block;
+    content: "";
+    width: 5px;
+    height: 5px;
+
+    position: absolute;
+    right: 5px;
+
+    border-right: 1px solid var(--foreground);
+    border-bottom: 1px solid var(--foreground);
+
+    transform: translateY(1px) rotate(-135deg);
+    pointer-events: none;
+}
+
+.msg.upDown #down::after {
+    transform: translateY(-2px) rotate(45deg);
+}
+
+.msg.upDown #outerList {
+    flex: 1 1 auto;
+
+    background-color: var(--dropdown-background);
+    border: 1px solid var(--dropdown-border);
+    border-radius: 4px;
+    color: var(--input-foreground);
+
+    margin: 0 2px 0 0;
+    padding: 0;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+
+    min-width: 80px;
+
+    font-size: 11pt;
+
+    overflow: hidden;
+}
+
+.msg.upDown #innerList {
+    flex: 1 1 auto;
+    align-items: stretch;
+
+    padding: 0px 8px;
+    height: max-content;
+    top: 0px;
+    transition: top 0.5s ease-out;
+}
+
+.msg.upDown #innerList > .container {
+    flex: 1 1 var(--item-height);
+}

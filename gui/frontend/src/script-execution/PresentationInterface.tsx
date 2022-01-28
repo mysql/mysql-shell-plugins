@@ -1,0 +1,755 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import React from "react";
+import { render } from "preact";
+import { isNil } from "lodash";
+
+import { PieGraphImpl, ResultStatus } from "../components/ResultView";
+import { ResultTabView } from "../components/ResultView/ResultTabView";
+import { CodeEditor } from "../components/ui/CodeEditor/CodeEditor";
+import { IExecutionResult, IResultSet, IResultSetRows, ITextResult, SQLExecutionContext } from ".";
+import { DiagnosticSeverity, IDiagnosticEntry } from "../parsing/parser-common";
+import { Monaco } from "../components/ui/CodeEditor";
+import { ExecutionContext } from "./ExecutionContext";
+import { requisitions } from "../supplement/Requisitions";
+import { Container, ContentAlignment, Label, Orientation } from "../components/ui";
+import { EditorLanguage } from "../supplement";
+
+import { IPieGraphDataPoint } from "../components/ResultView/graphs/PieGraphImpl";
+
+// A flag telling if the result is currently being loaded.
+export enum LoadingState {
+    Idle = "idle",       // Nothing in the pipeline.
+    Waiting = "waiting", // Waiting for the first result to arrive.
+    Loading = "loading", // At least one result arrived. Waiting for the final result.
+}
+
+// Base class for handling of UI related elements like editor decorations and result display.
+export class PresentationInterface {
+
+    // A mapping from diagnostic categories to CSS class names.
+    public static validationClass: Map<DiagnosticSeverity, string> = new Map([
+        [DiagnosticSeverity.Error, "error"],
+        [DiagnosticSeverity.Warning, "warning"],
+        [DiagnosticSeverity.Message, "message"],
+        [DiagnosticSeverity.Suggestion, "suggestion"],
+    ]);
+
+    // The maximum height for the result area.
+    protected static maxHeight = 800;
+
+    // The size of the result area after manual resize by the user.
+    public manualHeight?: number;
+    public defaultHeight?: number;
+    public resultData?: IExecutionResult;
+    public loadingState = LoadingState.Idle;
+
+    public readonly backend: Monaco.IStandaloneCodeEditor;
+    public context?: ExecutionContext;
+
+    // A function to send a notification if the current result is being replaced by nothing.
+    // Useful for higher level consumers to update their storage (e.g. cached results).
+    // Note: this is not used when disposing of the presentation (where we want to keep the data for later restore).
+    public onRemoveResult?: (requestIds: string[]) => void;
+
+    // The target HTML element to which we render the React nodes dynamically.
+    protected renderTarget?: HTMLDivElement;
+
+    // The minimum for the result area. Depends on the content.
+    protected minHeight = 180;
+
+    // Each line gets a margin decoration with varying content, depending where the context is used
+    // and other conditions.
+    private marginDecorationIDs: string[] = [];
+    private markedLines: Set<number> = new Set();
+    private markerClass = "";
+
+    private waitTimer: ReturnType<typeof setTimeout> | null;
+
+    // Only set for result set data.
+    private resultRef = React.createRef<ResultTabView>();
+
+    public constructor(protected editor: CodeEditor, public language: EditorLanguage) {
+        this.backend = editor.backend!;
+    }
+
+    public dispose(): void {
+        this.onRemoveResult = undefined;
+        this.backend.deltaDecorations(this.marginDecorationIDs, []);
+        this.setResult();
+    }
+
+    public get model(): Monaco.ITextModel | null {
+        return this.backend.getModel();
+    }
+
+    public get code(): string {
+        return this.backend.getValue();
+    }
+
+    public get codeLength(): number {
+        const model = this.model; // Full or block model.
+
+        return model ? model.getValueLength() : 0;
+    }
+
+    /**
+     * @returns The offset of the first character within the overall editor content.
+     */
+    public get codeOffset(): number {
+        return 0;
+    }
+
+    public get startLine(): number {
+        return 1;
+    }
+
+    public set startLine(value: number) {
+        // Nothing to do here.
+    }
+
+    public get endLine(): number {
+        return this.model ? this.model.getLineCount() : 0;
+    }
+
+    public set endLine(value: number) {
+        // Nothing to do here.
+    }
+
+    /**
+     * @returns A list of request ids from which the current result data was produced.
+     */
+    public get requestIds(): string[] {
+        switch (this.resultData?.type) {
+            case "resultSetRows": {
+                return [this.resultData.requestId];
+            }
+
+            case "resultSets": {
+                return this.resultData.sets.map((set) => { return set.requestId; });
+            }
+
+            default: {
+                return [];
+            }
+        }
+    }
+
+    /**
+     * Updates the start and end line members only, without updating anything else (like decorations).
+     * This is used after edit actions that affected a command before this one, where Monaco automatically updated
+     * the decorations already. We only need to update our inner state to stay in sync.
+     *
+     * @param delta The number of lines we moved.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public movePosition(delta: number): void {
+        // Nothing to do here.
+    }
+
+    /**
+     * Replaces the current result with one created from the given data. If there's no result yet, a new one is added.
+     *
+     * @param data The data that must be visualized in the result (if not given then remove any existing result).
+     * @param defaultHeight An optional height to assign for the result component. If undefined a default is used,
+     *                      which is determined by custom presentation interfaces.
+     * @param manualHeight Set to restore the size of the result area, when a user had resized it before.
+     */
+    public setResult(data?: IExecutionResult, defaultHeight?: number, manualHeight?: number): void {
+        let element: React.ReactNode | undefined;
+
+        if (this.waitTimer) {
+            clearTimeout(this.waitTimer);
+        }
+
+        // Send out a notification that the current data is about to be replaced.
+        this.onRemoveResult?.(this.requestIds);
+
+        if (data) {
+            switch (data.type) {
+                case "text": {
+                    [data, element] = this.prepareTextEntries(undefined, data);
+                    this.minHeight = 28;
+
+                    break;
+                }
+
+                case "resultSets": {
+                    element = <ResultTabView
+                        ref={this.resultRef}
+                        resultSets={data}
+                        onResultPageChange={this.handleResultPageChange}
+                    />;
+                    this.minHeight = 40;
+
+                    const allFinished = data.sets.every((value) => {
+                        return !isNil(value.executionInfo);
+                    });
+
+                    // Start the wait timer. If not cancelled it will cause the wait animation to show.
+                    // However, it's not needed to show the wait animation if we got a full result here already.
+                    if (!allFinished) {
+                        this.waitTimer = setTimeout(() => {
+                            this.waitTimer = null;
+                            this.loadingState = LoadingState.Waiting;
+                            this.updateMarginDecorations();
+                        }, 500);
+                    }
+
+                    break;
+                }
+
+                case "graphData": {
+                    element = <PieGraphImpl
+                        width={data.width}
+                        height={data.height}
+                        innerRadius={data.innerRadius}
+                        outerRadius={data.outerRadius}
+                        centerX={data.centerX}
+                        centerY={data.centerY}
+                        pointData={data.data as IPieGraphDataPoint[]}
+                    />;
+                    this.minHeight = 200;
+
+                    break;
+                }
+
+                default: {
+                    break;
+                }
+            }
+        }
+
+        this.defaultHeight = defaultHeight;
+        if (manualHeight) {
+            this.manualHeight = manualHeight;
+        }
+
+        if (this.renderTarget) { // Do we have a result already?
+            if (element) {
+                // Update it.
+                render(element, this.renderTarget);
+                this.updateRenderTarget();
+            } else {
+                // Remove it.
+                this.removeRenderTarget();
+            }
+        } else {
+            // No result yet, so add the one given.
+            if (data && element) {
+                this.renderTarget = this.defineRenderTarget();
+                if (this.renderTarget) {
+                    render(
+                        <>
+                            {element}
+                            {this.resultDivider}
+                        </>, this.renderTarget,
+                    );
+
+                    this.renderTarget.addEventListener("wheel", (e) => {
+                        if (!this.editor.isScrolling) {
+                            (e.currentTarget as HTMLElement).scrollLeft += Math.sign(e.deltaX) * 2;
+                            (e.currentTarget as HTMLElement).scrollTop += Math.sign(e.deltaY) * 2;
+                            e.stopPropagation();
+                        }
+                    });
+
+                    setTimeout(() => {
+                        this.updateRenderTarget();
+                    }, 100);
+                }
+            }
+        }
+
+        this.resultData = data;
+    }
+
+    /**
+     * Adds a new page (in a tabview) for multi-page data like result sets. If no initial page exist, a new tabview
+     * is created and an initial page is added.
+     *
+     * @param data The data to place on that new page.
+     * @param height Used to specify the initial height of the result pane, if none exists yet and must be added now.
+     */
+    public addResultPage(data: IExecutionResult, height?: number): void {
+        if (!this.renderTarget) {
+            this.setResult(data, height);
+
+            return;
+        }
+
+        let element: React.ReactElement;
+
+        switch (data.type) {
+            // For now only result sets support multiple pages (e.g. for multiple queries).
+            case "resultSets": {
+                let existingSets: IResultSet[];
+                if (!this.resultData || this.resultData.type !== "resultSets") {
+                    existingSets = [];
+                    this.resultData = {
+                        type: "resultSets",
+                        sets: [],
+                    };
+                } else {
+                    existingSets = this.resultData.sets;
+                }
+
+                let needUpdate = false;
+                data.sets.forEach((set) => {
+                    let addNew = true;
+                    if (set.oldRequestId) {
+                        // When an old request id is specified that means we are actually replacing a page, not adding
+                        // a new one.
+                        const existing = existingSets.find((candidate) => {
+                            return candidate.requestId === set.oldRequestId;
+                        });
+
+                        if (existing) {
+                            addNew = false;
+                            existing.requestId = set.requestId;
+                            existing.columns = set.columns;
+                            existing.rows = set.rows;
+                            existing.executionInfo = set.executionInfo;
+                            existing.sql = set.sql;
+
+                            if (this.resultRef.current) {
+                                this.resultRef.current.reassignData(set.oldRequestId, set.requestId);
+                            }
+                        }
+                    }
+
+                    if (addNew) {
+                        needUpdate = true;
+                        existingSets.push({
+                            requestId: set.requestId,
+                            columns: set.columns,
+                            rows: set.rows,
+                            executionInfo: set.executionInfo,
+                            sql: set.sql,
+                            currentPage: 0,
+                        });
+                    }
+                });
+
+                if (!needUpdate) {
+                    return;
+                }
+
+                element = <ResultTabView
+                    ref={this.resultRef}
+                    resultSets={this.resultData}
+                    onResultPageChange={this.handleResultPageChange}
+                />;
+
+                break;
+            }
+
+            default: {
+                return;
+            }
+        }
+
+
+        if (element) {
+            render(
+                <>
+                    {element}
+                    {this.resultDivider}
+                </>, this.renderTarget,
+            );
+        }
+    }
+
+    /**
+     * Incrementally adds new data to the last result page we got.
+     * If nothing was set yet, sets the given data as initial result.
+     *
+     * @param data The data to add.
+     */
+    public async addResultData(data: IExecutionResult): Promise<void> {
+        if (!this.renderTarget || !this.resultData) {
+            this.setResult(data);
+
+            return;
+        }
+
+        let element: React.ReactNode;
+
+        switch (data.type) {
+            case "text": {
+                if (this.resultData.type !== "resultSetRows") {
+                    if (this.resultData.type !== "text") {
+                        // If there was other result data (no text) before, replace it with the given text.
+                        // Check also the loading state, in case we had pending result set data.
+                        if (data.executionInfo) {
+                            if (this.waitTimer) {
+                                clearTimeout(this.waitTimer);
+                                this.waitTimer = null;
+                            }
+
+                            if (this.loadingState !== LoadingState.Idle) {
+                                this.loadingState = LoadingState.Idle;
+                                this.updateMarginDecorations();
+                            }
+                        }
+
+                        [this.resultData, element] = this.prepareTextEntries(undefined, data);
+                    } else {
+                        [this.resultData, element] = this.prepareTextEntries(this.resultData, data);
+                    }
+
+                    break;
+                }
+                // Fall through, if the existing data is result set data.
+                // In this case the given text acts as status for the given request id.
+            }
+            // [falls-through]
+
+            case "resultSetRows": {
+                if (this.waitTimer || this.loadingState === LoadingState.Waiting) {
+                    // This is the first result, which arrives here. Switch to the loading state.
+                    if (this.waitTimer) {
+                        clearTimeout(this.waitTimer);
+                        this.waitTimer = null;
+                    }
+                    this.loadingState = LoadingState.Loading;
+                    this.updateMarginDecorations();
+                }
+
+                if (this.resultData.type !== "resultSets") {
+                    return;
+                }
+
+                const resultSets = this.resultData.sets;
+                if (resultSets.length === 0) {
+                    return;
+                }
+
+                // Add the data to our internal storage, to support switching tabs for multiple result sets.
+                const resultSet = resultSets.find((candidate) => {
+                    return candidate.requestId === data.requestId;
+                });
+
+                if (resultSet && data.columns && data.rows) {
+                    resultSet.columns.push(...data.columns);
+                    resultSet.rows.push(...(data.rows));
+
+                    if (data.executionInfo) {
+                        resultSet.executionInfo = data.executionInfo;
+                    }
+                }
+
+                if (this.resultRef.current) {
+                    await this.resultRef.current.addData(data as IResultSetRows);
+                }
+
+                if (data.executionInfo) {
+                    // This is the last result call, if a status is given.
+                    // So stop also any wait/load animation.
+                    this.loadingState = LoadingState.Idle;
+                    this.updateMarginDecorations();
+                }
+
+                return;
+            }
+
+            case "graphData": {
+                if (this.resultData.type !== "graphData") {
+                    return;
+                }
+
+                this.resultData.data.push(data); // Extra layout data is being ignored here.
+
+                element = <>
+                    <PieGraphImpl
+                        width={this.resultData.width}
+                        height={this.resultData.height}
+                        innerRadius={this.resultData.innerRadius}
+                        outerRadius={this.resultData.outerRadius}
+                        centerX={this.resultData.centerX}
+                        centerY={this.resultData.centerY}
+                        pointData={this.resultData.data as IPieGraphDataPoint[]}
+                    />
+                </>;
+
+                break;
+            }
+
+            default: {
+                return;
+            }
+        }
+
+        if (this.renderTarget) {
+            if (element) {
+                render(
+                    <>
+                        {element}
+                        {this.resultDivider}
+                    </>, this.renderTarget,
+                );
+                this.updateRenderTarget();
+            }
+        }
+    }
+
+    public markLines(lines: Set<number>, cssClass: string): void {
+        this.markedLines = lines;
+        this.markerClass = cssClass;
+
+        this.updateMarginDecorations();
+    }
+
+    /**
+     * Updates the margin decorations that are responsible to show statement starts and other information.
+     */
+    public updateMarginDecorations(): void {
+        const newDecorations: Monaco.IModelDeltaDecoration[] = [];
+        for (let i = this.startLine; i <= this.endLine; ++i) {
+            const cssClass = this.getMarginClass(i - this.startLine + 1) + " ." + this.language;
+            newDecorations.push({
+                range: {
+                    startLineNumber: i,
+                    startColumn: 1,
+                    endLineNumber: i,
+                    endColumn: 1,
+                },
+                options: {
+                    stickiness: Monaco.TrackedRangeStickiness.GrowsOnlyWhenTypingBefore,
+                    isWholeLine: false,
+                    linesDecorationsClassName: cssClass,
+                },
+
+            });
+        }
+
+        this.marginDecorationIDs = this.backend.deltaDecorations(this.marginDecorationIDs, newDecorations);
+    }
+
+    /**
+     * Applies the new diagnostics to the code block represented by this presentation interface.
+     *
+     * @param decorationIDs Previously set decorations. They will be updated with the new diagnostics.
+     * @param diagnostics Records of data describing the new diagnostics.
+     *
+     * @returns A set of decoration IDs that can be used for further updates (or removal).
+     */
+    public updateDiagnosticsDecorations(decorationIDs: string[], diagnostics: IDiagnosticEntry[]): string[] {
+        const model = this.backend.getModel();
+
+        if (model) {
+            const newDecorations = diagnostics.map((entry: IDiagnosticEntry) => {
+                // Decorations must be specified in editor coordinates, so we use the editor model here.
+                const startPosition = model.getPositionAt(entry.span.start + this.codeOffset);
+                const endPosition = model.getPositionAt(entry.span.start + this.codeOffset + entry.span.length);
+
+                return {
+                    range: {
+                        startLineNumber: startPosition.lineNumber,
+                        startColumn: startPosition.column,
+                        endLineNumber: endPosition.lineNumber,
+                        endColumn: endPosition.column,
+                    },
+                    options: {
+                        stickiness: Monaco.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                        isWholeLine: false,
+                        inlineClassName: PresentationInterface.validationClass.get(entry.severity),
+                        minimap: {
+                            position: Monaco.MinimapPosition.Inline,
+                            color: "red",
+                        },
+                        hoverMessage: { value: entry.message ?? "" },
+                    },
+                };
+            });
+
+
+            // Update the decorations in the editor.
+            return this.backend.deltaDecorations(decorationIDs, newDecorations);
+        }
+
+        return [];
+    }
+
+    /**
+     * @returns A flag indicating if this context represents an internal (control) command.
+     */
+    public get isInternal(): boolean {
+        // Go through all lines until a non-empty one is found.
+        // Check its text for a command starter.
+        let run = this.startLine;
+        const model = this.backend.getModel();
+        if (model) {
+            while (run <= this.endLine) {
+                const text = model.getLineContent(run).trim();
+                if (text.length > 0) {
+                    if (text.startsWith("\\")) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                ++run;
+            }
+        }
+
+        return false;
+    }
+
+    public get isSQLLike(): boolean {
+        return this.language === "sql" || this.language === "mysql";
+    }
+
+    protected getMarginClass(line: number): string {
+        if (this.markedLines.has(line)) {
+            return this.markerClass;
+        }
+
+        return "";
+    }
+
+    /**
+     * Allows descendants to render a separator after a result element (e.g. for resizing).
+     *
+     * @returns The separator node or undefined, if not used.
+     */
+    protected get resultDivider(): React.ReactNode {
+        return undefined;
+    }
+
+    protected removeRenderTarget(): void {
+        this.renderTarget = undefined;
+        this.manualHeight = undefined;
+    }
+
+    protected updateRenderTarget(): void {
+        // Overridden by descendants.
+    }
+
+    protected defineRenderTarget(): HTMLDivElement | undefined {
+        return undefined;
+    }
+
+    /**
+     * Takes the given data and merges that with existing data, by combining text entries with the same type and
+     * language together.
+     *
+     * @param existing The existing data to use.
+     * @param data The new data to merge.
+     *
+     * @returns A new text result record with combined data and the resulting React element structure.
+     */
+    private prepareTextEntries(existing: ITextResult | undefined, data: ITextResult): [ITextResult, React.ReactNode] {
+        const result = existing ?? { ...data };
+
+        const entries = existing && existing.text ? existing.text : [];
+        data.text?.forEach((entry) => {
+            if (entries.length === 0) {
+                entries.push(entry);
+            } else {
+                // If the last entry in the text list has the same type and language like this entry
+                // combine both. Otherwise add this entry as a new one to the list.
+                const last = entries[entries.length - 1];
+                if (last.type === entry.type && last.language === entry.language) {
+                    last.content += entry.content;
+                } else {
+                    entries.push(entry);
+                }
+            }
+        });
+
+        const elements: React.ReactElement[] = [];
+        entries.forEach((entry) => {
+            elements.push(
+                <Label language={entry.language} caption={entry.content} type={entry.type} />,
+            );
+        });
+
+        result.text = entries;
+        if (data.executionInfo) {
+            result.executionInfo = data.executionInfo;
+        }
+
+        const texts: React.ReactElement[] = [];
+        entries.forEach((entry, index) => {
+            texts.push(
+                <Label
+                    language={entry.language}
+                    key={`text${index}`}
+                    caption={entry.content}
+                    type={entry.type}
+                />,
+            );
+        });
+
+        const element = <>
+            <Container
+                innerRef={React.createRef<HTMLElement>()}
+                className="textHost"
+                orientation={Orientation.TopDown}
+                mainAlignment={ContentAlignment.Start}
+                scrollPosition={1e10}
+            >
+                {texts}
+            </Container>
+            {
+                data.executionInfo && <ResultStatus executionInfo={data.executionInfo} />
+            }
+        </>;
+
+        return [result, element];
+    }
+
+    /**
+     * Computes the needed height for the text in the given result.
+     *
+     * @param result The text result to use.
+     * @param maxHeight A maximum height.
+     *
+     * @returns The computed height or maxHeight, if that is smaller.
+     */
+    private computeTextHeight(result: ITextResult, maxHeight: number): number {
+        let lineCount = 0;
+
+        result.text?.forEach((entry) => {
+            lineCount += entry.content.split("\n").length;
+        });
+
+        if (result.executionInfo) {
+            lineCount += result.executionInfo.text.split("\n").length;
+        }
+
+        // line-height in CSS is set to 22px.
+        return Math.min(lineCount * 11, maxHeight);
+    }
+
+    private handleResultPageChange = (requestId: string, currentPage: number, sql: string): void => {
+        if (this.context instanceof SQLExecutionContext) {
+            // Currently paging is only supported for SQL execution blocks.
+            void requisitions.execute("sqlShowDataAtPage",
+                { context: this.context, oldRequestId: requestId, page: currentPage, sql });
+        }
+    };
+}
+

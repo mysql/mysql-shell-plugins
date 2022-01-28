@@ -1,0 +1,367 @@
+# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2.0,
+# as published by the Free Software Foundation.
+#
+# This program is also distributed with certain software (including
+# but not limited to OpenSSL) that is licensed under separate terms, as
+# designated in a particular file or component or in included license
+# documentation.  The authors of MySQL hereby grant you an additional
+# permission to link the program and your derivative works with the
+# separately licensed software that they have included with MySQL.
+# This program is distributed in the hope that it will be useful,  but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+# the GNU General Public License, version 2.0, for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+import pytest
+
+try:
+    import mysqlsh
+    has_gui_plugin = "gui" in dir(mysqlsh.globals)
+except ModuleNotFoundError:
+    has_gui_plugin = False
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui():
+    help_text = '''NAME
+      gui - Plugin to manage the MySQL Database Service on OCI.
+
+DESCRIPTION
+      This global object exposes a list of shell extensions to work with cloud
+      vendors.
+
+PROPERTIES
+      cluster
+            The InnoDB Cluster MySQL Shell GUI backend module
+
+      core
+            The Core MySQL Shell GUI backend module
+
+      db
+            Used to retrive metadata from database
+
+      dbconnections
+            The DB Connections MySQL Shell GUI backend module
+
+      debugger
+            The websocket debugger module
+
+      mds
+            The MySQL Database Service MySQL Shell GUI backend module
+
+      modeler
+            The Modeler MySQL Shell GUI backend module
+
+      modules
+            The Modules MySQL Shell GUI backend module
+
+      shell
+            The Shell MySQL Shell GUI backend module
+
+      sqleditor
+            The SQL Editor MySQL Shell GUI backend module
+
+      start
+            Used to start the MySQL Shell GUI
+
+      users
+            The Users MySQL Shell GUI backend module
+
+FUNCTIONS
+      help([member])
+            Provides help about this object and it's members'''
+
+    assert help_text == mysqlsh.globals.gui.help()
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_cluster():
+    help_text = '''NAME
+      cluster - The InnoDB Cluster MySQL Shell GUI backend module
+
+SYNTAX
+      gui.cluster
+
+DESCRIPTION
+      This extension object holds the backend implementation of the InnoDB
+      Cluster MySQL Shell GUI module
+
+FUNCTIONS
+      get_gui_module_display_info()
+            Returns display information about the module
+
+      help([member])
+            Provides help about this object and it's members
+
+      is_gui_module_backend()
+            Indicates whether this module is a GUI backend module'''
+
+    assert help_text == mysqlsh.globals.gui.cluster.help()
+    info = mysqlsh.globals.gui.cluster.get_gui_module_display_info()
+    assert info["name"] == "InnoDB Cluster Manager"
+    assert info["description"] == "An graphical manager for InnoDB Clusters"
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_core():
+    help_text = '''NAME
+      core - The Core MySQL Shell GUI backend module
+
+SYNTAX
+      gui.core
+
+DESCRIPTION
+      This extension object holds the backend implementation of the Core MySQL
+      Shell GUI module
+
+FUNCTIONS
+      convert_all_workbench_sql_files_to_sqlite([directory])
+            Converts all MySQL SQL file of the gui module to Sqlite.
+
+      convert_workbench_sql_file_to_sqlite(mysql_sql_file_path)
+            Converts a MySQL SQL file to Sqlite syntax.
+
+      help([member])
+            Provides help about this object and it's members'''
+
+    assert help_text == mysqlsh.globals.gui.core.help()
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_dbconnections():
+    help_text = '''NAME
+      dbconnections - The DB Connections MySQL Shell GUI backend module
+
+SYNTAX
+      gui.dbconnections
+
+DESCRIPTION
+      This extension object holds the backend implementation of the DB
+      Connections MySQL Shell GUI module
+
+FUNCTIONS
+      help([member])
+            Provides help about this object and it's members'''
+
+
+    assert help_text == mysqlsh.globals.gui.dbconnections.help()
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_mds():
+    help_text = '''NAME
+      mds - The MySQL Database Service MySQL Shell GUI backend module
+
+SYNTAX
+      gui.mds
+
+DESCRIPTION
+      This extension object holds the backend implementation of the MySQL
+      Database Service MySQL Shell GUI module
+
+FUNCTIONS
+      get_gui_module_display_info()
+            Returns display information about the module
+
+      help([member])
+            Provides help about this object and it's members
+
+      is_gui_module_backend()
+            Indicates whether this module is a GUI backend module'''
+
+    assert help_text == mysqlsh.globals.gui.mds.help()
+    info = mysqlsh.globals.gui.mds.get_gui_module_display_info()
+    assert info["name"] == "MySQL Database Service Manager"
+    assert info["description"] == "A management frontend for MDS on OCI"
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_modeler():
+    help_text = '''NAME
+      modeler - The Modeler MySQL Shell GUI backend module
+
+SYNTAX
+      gui.modeler
+
+DESCRIPTION
+      This extension object holds the backend implementation of the Modeler
+      MySQL Shell GUI module
+
+FUNCTIONS
+      get_gui_module_display_info()
+            Returns display information about the module
+
+      help([member])
+            Provides help about this object and it's members
+
+      is_gui_module_backend()
+            Indicates whether this module is a GUI backend module'''
+
+    assert help_text == mysqlsh.globals.gui.modeler.help()
+    info = mysqlsh.globals.gui.modeler.get_gui_module_display_info()
+    assert info["name"] == "EER Modeler"
+    assert info["description"] == "An advanced designer for ERR Diagrams"
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_modules():
+    help_text = '''NAME
+      modules - The Modules MySQL Shell GUI backend module
+
+SYNTAX
+      gui.modules
+
+DESCRIPTION
+      This extension object holds the backend implementation of the Modules
+      MySQL Shell GUI module
+
+FUNCTIONS
+      help([member])
+            Provides help about this object and it's members'''
+
+    assert help_text == mysqlsh.globals.gui.modules.help()
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_shell():
+    help_text = '''NAME
+      shell - The Shell MySQL Shell GUI backend module
+
+SYNTAX
+      gui.shell
+
+DESCRIPTION
+      This extension object holds the backend implementation of the Shell MySQL
+      Shell GUI module
+
+FUNCTIONS
+      get_gui_module_display_info()
+            Returns display information about the module
+
+      help([member])
+            Provides help about this object and it's members
+
+      is_gui_module_backend()
+            Indicates whether this module is a GUI backend module'''
+
+    assert help_text == mysqlsh.globals.gui.shell.help()
+    info = mysqlsh.globals.gui.shell.get_gui_module_display_info()
+    assert info["name"] == "MySQL Shell Console"
+    assert info["description"] == "A graphical MySQL Shell Console"
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_sqleditor():
+    help_text = '''NAME
+      sqleditor - The SQL Editor MySQL Shell GUI backend module
+
+SYNTAX
+      gui.sqleditor
+
+DESCRIPTION
+      This extension object holds the backend implementation of the SQL Editor
+      MySQL Shell GUI module
+
+FUNCTIONS
+      get_gui_module_display_info()
+            Returns display information about the module
+
+      help([member])
+            Provides help about this object and it's members
+
+      is_gui_module_backend()
+            Indicates whether this module is a GUI backend module'''
+
+    assert help_text == mysqlsh.globals.gui.sqleditor.help()
+    info = mysqlsh.globals.gui.sqleditor.get_gui_module_display_info()
+    assert info["name"] == "SQL Editor"
+    assert info["description"] == "A graphical SQL Editor"
+
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_users():
+    help_text = '''NAME
+      users - The Users MySQL Shell GUI backend module
+
+SYNTAX
+      gui.users
+
+DESCRIPTION
+      This extension object holds the backend implementation of the Users MySQL
+      Shell GUI module
+
+FUNCTIONS
+      add_user_to_group(member_id, group_id[, owner][, web_session])
+            Adds user to user group.
+
+      create_user(username, password[, role][, allowed_hosts][, web_session])
+            Creates a new user account
+
+      create_user_group(name, description[, web_session])
+            Creates user group.
+
+      delete_user(username[, web_session])
+            Deletes a user account
+
+      get_user_id(username[, web_session])
+            Gets the id for a given user.
+
+      grant_role(username, role[, web_session])
+            Grant the given roles to the user.
+
+      help([member])
+            Provides help about this object and it's members
+
+      list_role_privileges(role[, web_session])
+            Lists all privileges of a role.
+
+      list_roles([web_session])
+            Lists all roles that can be assigned to users.
+
+      list_user_groups([web_session])
+            Returns the list of all groups
+
+      list_user_privileges(username[, web_session])
+            Lists all privileges assigned to a user.
+
+      list_user_roles(username[, web_session])
+            List the granted roles for a given user.
+
+      list_users([web_session])
+            Lists all user accounts.
+
+      set_allowed_hosts(user_id, allowed_hosts[, web_session])
+            Sets the allowed hosts for the given user.'''
+
+    assert help_text == mysqlsh.globals.gui.users.help()
+
+@pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
+def test_gui_start():
+    help_text = '''NAME
+      start - Used to start the MySQL Shell GUI
+
+SYNTAX
+      gui.start
+
+DESCRIPTION
+      The MySQL Shell GUI can be started as a native application or as a web
+      application served by a web server.
+
+FUNCTIONS
+      help([member])
+            Provides help about this object and it's members
+
+      native_ui()
+            Starts the native Shell GUI client
+
+      web_server([port][, secure][, webrootpath][, single_instance_token])
+            Starts a web server that will serve the MySQL Shell GUI'''
+
+    assert help_text == mysqlsh.globals.gui.start.help()

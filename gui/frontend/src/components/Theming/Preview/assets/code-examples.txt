@@ -1,0 +1,610 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+<< javascript >>
+const initialDiameter = 1000;
+
+var diameter = initialDiameter;
+var initialScale = 0.5;
+
+function render() {
+	var radius = diameter / 2;
+	var innerRadius = radius * 0.90;
+
+	var svg = d3.select("svg")
+	    .attr("xmlns", "http://www.w3.org/2000/svg")
+	    .attr("version", "1.1")
+	    .attr("viewBox", "0 0 " + diameter + " " + diameter);
+
+	var topGroup = svg.append("g");
+
+	var zoom = d3.zoom()
+	    .scaleExtent([0.1 * initialScale, 10 * initialScale])
+	    .on("zoom", zoomed);
+
+	function zoomed() {
+	    topGroup.attr("transform", d3.event.transform);
+	}
+
+	svg
+	    .call(zoom)
+	    .call(zoom.transform, d3.zoomIdentity
+	        .scale(initialScale, initialScale)
+	        .translate(radius, radius)
+	    )
+	    .on("dblclick.zoom", null);
+
+	var cluster = d3.cluster()
+        .size([360, innerRadius]);
+
+	const line = d3.radialLine()
+	    .radius(function (d) {
+	        return d.y;
+	    })
+	    .angle(function (d) {
+	        return d.x / 180 * Math.PI;
+	    })
+	    .curve(d3.curveBundle.beta(0.75));
+
+	var link = topGroup.append("g").selectAll(".link");
+	var node = topGroup.append("g").selectAll(".node");
+
+	var root = d3.hierarchy(packageHierarchy(data), (d) => d.children);
+	var nodes = root.descendants();
+
+	var links = packageReferences(nodes);
+
+	cluster(root);
+
+	link = link
+	    .data(links)
+	    .enter().append('path')
+	    .attr('class', 'link')
+	    .attr('d', d => line(d.source.path(d.target)));
+
+	node = node
+	    .data(nodes.filter(function (n) {
+	        return !n.children;
+	    }))
+	    .enter().append("text")
+	    .attr("class", function (d) {
+	        return "node " + d.data.class;
+	    })
+	    .attr("dy", "0.31em")
+	    .attr("transform", function (d) {
+	        return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 10) + ",0)" + (d.x < 180 ? "" :
+	            "rotate(180)");
+	    })
+	    .style("text-anchor", function (d) {
+	        return d.x < 180 ? "start" : "end";
+	    })
+	    .text(function (d) {
+	        return d.data.key;
+	    })
+	    .on("mouseover", onMouseOver)
+	    .on("mouseout", onMouseOut);
+
+	var fadeTimer = null;
+
+    function onMouseOver(d) {
+		clearTimeout(fadeTimer);
+
+        node
+			.each(function (n) {
+        		n.target = n.source = false;
+			});
+
+		link
+			.classed("link-target", function (l) {
+        		if (l.target === d) return l.source.source = true;
+			})
+			.classed("link-source", function (l) {
+        		if (l.source === d) return l.target.target = true;
+			})
+    		.classed("link-dimmed", function (l) {
+        		return (l.source !== d) && (l.target !== d);
+			});
+
+		node
+			.classed("node-target", function (n) {
+        		return n.target;
+			})
+    		.classed("node-source", function (n) {
+        		return n.source;
+			});
+	}
+
+	function onMouseOut(d) {
+		if (fadeTimer) {
+			clearTimeout(fadeTimer);
+		}
+
+    	fadeTimer = setTimeout(() => {
+        	fadeTimer = null;
+    		link.classed("link-dimmed", false);
+		}, 200);
+
+    	link
+			.classed("link-target", false)
+        	.classed("link-source", false);
+
+    	node
+       		.classed("node-target", false)
+        	.classed("node-source", false);
+    }
+
+	function packageHierarchy(rules) {
+	    var map = {};
+	    var modules = [];
+
+	    function find(name, data) {
+	        var node = map[name];
+	        var i;
+	        if (!node) {
+	            node = map[name] = data || {
+	                name: name,
+	                children: []
+	            };
+	            if (name.length > 0) {
+	                node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
+	                node.parent.children.push(node);
+
+	                // Pick one out of 10 color classes for this node.
+	                var index = modules.indexOf(node.parent.name);
+	                if (index < 0) {
+	                    modules.push(node.parent.name);
+	                    index = modules.length - 1;
+	                }
+	                index = index % 10;
+	                node.class = "module-" + index;
+	                node.key = name.substring(i + 1);
+	            }
+	        }
+	        return node;
+	    }
+
+	    rules.forEach(function (d) {
+	        find(d.name, d);
+	    });
+
+	    return map[""];
+	}
+
+	function packageReferences(nodes) {
+	    var map = {};
+	    var references = [];
+
+	    // Compute a map from name to node.
+	    nodes.forEach(function (d) {
+	        map[d.data.name] = d;
+	    });
+
+	    // For each import, construct a link from the source to target node.
+	    nodes.forEach(function (d) {
+	        if (d.data.references) {
+	            d.data.references.forEach(function (i) {
+	                references.push({
+	                    source: map[d.data.name],
+	                    target: map[i]
+	                });
+	            });
+	        }
+	    });
+
+	    return references;
+	}
+}
+
+function changeDiameter(factor) {
+	const svg = document.querySelectorAll('svg')[0];
+	while (svg.firstChild) {
+	    svg.removeChild(svg.firstChild);
+	}
+	diameter *= factor;
+	diameter = diameter < 100 ? 100 : (diameter > 10000 ? 10000 : diameter);
+	initialScale = diameter / initialDiameter / 2;
+
+	render();
+}
+
+<< typescript >>
+/**
+ * Checks if a point is within a given rectangle.
+ *
+ * @param p The point to check for.
+ * @param r The rectangle to check against.
+ *
+ * @returns True if the point is within the the rectangle bounds, false otherwise.
+ */
+export const pointInRect = (p: DOMPoint | undefined, r: DOMRect | undefined): boolean => {
+    if (!p || !r) {
+        return false;
+    }
+
+    return (
+        r.x <= p.x && p.x <= (r.x + r.width)
+        && r.y <= p.y && p.y <= (r.y + r.height)
+    );
+};
+
+/**
+ * Checks if two rectangles are equal.
+ *
+ * @param left The first rectangle to check.
+ * @param right The second rectangle to check.
+ *
+ * @returns True, if both rects have the same dimensions and positions, false otherwise.
+ */
+export const rectsAreEqual = (left: DOMRect, right: DOMRect): boolean =>
+    left.x === right.x && left.y === right.y && left.width === right.width && left.height === right.height;
+
+/**
+ * Creates a new rect with change bounds and location, depending on the inflation values.
+ *
+ * @param r The rectangle to change.
+ * @param top The top delta to apply.
+ * @param right The right delta to apply.
+ * @param bottom The bottom delta to apply.
+ * @param left The left delat to apply.
+ *
+ * @returns Undefined, if the given rect was undefined or the changed rectangle.
+ */
+export const inflateRect = (r: DOMRect | undefined,
+    top: number, right: number, bottom: number, left: number): DOMRect | undefined => {
+    if (!r) {
+        return undefined;
+    }
+
+    return new DOMRect(r.x - left, r.y - top, r.width + right + left, r.height + top + bottom);
+};
+
+<< mysql >>
+delimiter $$
+
+CREATE PROCEDURE do_insert(value INT)
+BEGIN
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+    END;
+  SELECT result;
+END$$
+CREATE PROCEDURE do_insert(value INT)
+BEGIN
+  -- declare variables to hold diagnostics area information
+  DECLARE code CHAR(5) DEFAULT '00000';
+  DECLARE msg TEXT;
+  DECLARE rowCount INT;
+  DECLARE result TEXT;
+  -- declare exception handler for failed insert
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+      GET DIAGNOSTICS CONDITION 1
+        code = RETURNED_SQLSTATE, msg = MESSAGE_TEXT;
+    END;
+
+  -- perform the insert
+  INSERT INTO t1 (int_col) VALUES(value);
+  -- check whether the insert was successful
+  IF code = '00000' THEN
+    GET DIAGNOSTICS rowCount = ROW_COUNT;
+    SET result = CONCAT('insert succeeded, row count = ',rowCount);
+  ELSE
+    SET result = CONCAT('insert failed, error = ',code,', message = ',msg);
+  END IF;
+  -- say what happened
+  SELECT result;
+END$$
+
+SELECT
+	currency_code,
+	SUM(CASE WHEN TYPE = 'buy'THEN to_amount END ) AS BUY,
+	SUM(CASE WHEN TYPE = 'sell' THEN to_amount END ) AS SELL,
+	SUM(CASE WHEN TYPE = 'sell' THEN rate END ) AS SELL_RATE,
+	SUM(CASE WHEN TYPE = 'buy' THEN rate END ) AS BUY_RATE,
+	AVG(CASE WHEN TYPE = 'buy' THEN rate END ) AS AVG_BUY_RATE,
+	AVG(CASE WHEN TYPE = 'sell' THEN rate END ) AS AVG_SELL_RATE
+FROM tb_currency
+LEFT JOIN tb_bill
+	ON tb_currency.CURRENCY_ID = tb_bill.CURRENCY_ID
+		AND tb_bill.TYPE IN ('buy', 'sell')
+		AND date( DATE_TIME ) >= '2011-01-01'
+		AND date( DATE_TIME ) <= '2011-01-11'
+GROUP BY currency_code$$
+
+<< json >>
+[
+    {
+        "name": "#Base Colors",
+        "description": "Base Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "focusBorder",
+                "description": "Border color for focused elements",
+                "preview": true
+            },
+            {
+                "name": "foreground",
+                "description": "Standard foreground color",
+                "preview": true
+            },
+            {
+                "name": "hotForeground",
+                "description": "Standard hover foreground color",
+                "preview": true
+            },
+            {
+                "name": "background",
+                "description": "Standard background color",
+                "preview": true
+            },
+            {
+                "name": "descriptionForeground",
+                "description": "Description/help text foreground color",
+                "preview": true
+            },
+            {
+                "name": "errorForeground",
+                "description": "Standard error foreground color",
+                "preview": true
+            },
+            {
+                "name": "widget.shadow",
+                "description": "Drop shadow color",
+                "preview": true
+            },
+            {
+                "name": "selection.background",
+                "description": "Standard selection background color",
+                "preview": true
+            },
+            {
+                "name": "icon.foreground",
+                "description": "Standard icon foreground color",
+                "preview": true
+            }
+        ]
+    },
+    {
+        "name": "#Window Colors",
+        "description": "Window/Dialog Colors",
+        "preview": true,
+        "children": [
+            {
+                "name": "window.activeBorder",
+                "description": "Active border color",
+                "preview": true
+            },
+            {
+                "name": "window.inactiveBorder",
+                "description": "Incactive border color",
+                "preview": true
+            },
+            {
+                "name": "window.background",
+                "description": "Main background color",
+                "preview": true
+            },
+            {
+                "name": "window.headerBackground",
+                "description": "Header color",
+                "preview": true
+            },
+            {
+                "name": "window.footerBackground",
+                "description": "Footer color",
+                "preview": true
+            }
+        ]
+    }
+]
+
+<< markdown >>
+# MySQL Workbench
+
+Copyright (c) 2007, 2020, Oracle and/or its affiliates.
+
+This is a release of [MySQL Workbench](https://mysqlworkbench.org), a graphical tool for working with MySQL servers and databases.
+
+![Home screen on Windows](https://dev.mysql.com/doc/workbench/en/images/wb-home-screen-new.png)
+
+License information can be found in the [License](License.txt) file.
+
+This distribution may include materials developed by third parties.
+For license and attribution notices for these materials, please refer to the [License](License.txt) file.
+
+For more information on MySQL Workbench, visit
+  [http://dev.mysql.com/doc/workbench/en](http://dev.mysql.com/doc/workbench/en)
+
+For additional downloads and the source of MySQL Workbench, visit
+  [http://dev.mysql.com/downloads](http://dev.mysql.com/downloads)
+
+MySQL Workbench is brought to you by the MySQL team at Oracle.
+
+# Overview
+
+[MySQL Workbench](https://mysqlworkbench.org) is a graphical tool for working with MySQL servers and databases. MySQL Workbench fully supports MySQL server versions 5.6 and higher.
+
+MySQL Workbench functionality covers five main topics:
+
+* **SQL Development:** Enables you to create and manage connections to database servers. Along with enabling you to configure connection parameters, MySQL Workbench provides the capability to execute SQL queries on the database connections using the built-in SQL Editor.
+
+* **Data Modeling (Design):** Enables you to create models of your database schema graphically, reverse and forward engineer between a schema and a live database, and edit all aspects of your database using the comprehensive Table Editor. The Table Editor provides easy-to-use facilities for editing Tables, Columns, Indexes, Triggers, Partitioning, Options, Inserts and Privileges, Routines and Views.
+
+* **Server Administration:** Enables you to administer MySQL server instances by administering users, performing backup and recovery, inspecting audit data, viewing database health, and monitoring the MySQL server performance.
+
+* **Data Migration:** Allows you to migrate from Microsoft SQL Server, Microsoft Access, Sybase ASE, SQLite, SQL Anywhere, PostreSQL, and other RDBMS tables, objects and data to MySQL. Migration also supports migrating from earlier versions of MySQL to the latest releases.
+
+* **MySQL Enterprise Support:** Support for Enterprise products such as MySQL Enterprise Backup, MySQL Firewall, and MySQL Audit.
+
+![Performance dashboard](https://dev.mysql.com/doc/workbench/en/images/wb-performance-dashboard.png)
+
+The [code repository on Github](https://github.com/mysql/mysql-workbench) is where we publish a snapshot of our internal repository everytime a new release of the product is published. Use the [MySQL bug system](http://bugs.mysql.com/) to report any issue you have. You can use Github or the MySQL bug system to contribute to the development. File a pull request on Github or a new issue on the MySQL Bug system with your patch and we will take care of it.
+
+<< ini >>
+; last modified 1 April 2001 by John Doe
+[owner]
+name=John Doe
+organization=Acme Widgets Inc.
+
+[database]
+; use IP address in case network name resolution is not working
+server=192.0.2.62
+port=143
+file="payroll.dat"
+
+[client]
+host=localhost
+user=root
+socket=/dev/shm/var_auto_eclipse/tmp/mysqld.1.sock
+password=
+port=13030
+
+[mysql]
+default-character-set=utf8
+# SERVER SECTION
+# ----------------------------------------------------------------------
+#
+# The following options will be read by the MySQL Server. Make sure that
+# you have installed the server correctly (see above) so it reads this
+# file.
+#
+[mysqld]
+#skip-innodb
+# The TCP/IP Port the MySQL Server will listen on
+port=3306
+max_allowed_packet=16M
+#Path to installation directory. All paths are usually resolved relative to this.
+#basedir="C:/Program Files/MySQL/MySQL Server 5.1/"
+basedir="C:/MySQL/"
+#Path to the database root
+#datadir="C:/Documents and Settings/All Users/Application Data/MySQL/MySQL Server 5.1/Data/"
+datadir="C:/MySQLData/"
+
+<< xml >>
+<?xml version="1.0" encoding="utf-8"?>
+<languages>
+  <!--
+    Settings for scintilla-based code editors in MySQL Workbench.
+
+    For a list of possible style identifiers see the SciLexer.h file.
+    Keyword list identifiers are taken from the various Lex*.cpp files in Scintilla.
+  -->
+
+  <language name="SCLEX_MYSQL">
+    <!-- This is the base language setting. It's usually not directly used, but provides values shared by
+         more specialized MySQL versions. -->
+
+    <!-- Lexer properties -->
+    <property name="fold" value="1" />
+    <property name="fold.compact" value="0" />
+    <property name="fold.comment" value="1" />
+
+    <!-- Editor settings -->
+    <setting name="usetabs" value="1" />
+    <setting name="tabwidth" value="4" />
+    <setting name="indentation" value="4" />
+
+    <!-- Keep in mind to use the same list names as defined in the lexers (e.g. LexMySQL.cpp). -->
+    <keywords name="Major Keywords">
+      <!-- Keywords that can start a statement. No longer used. -->
+    </keywords>
+
+    <keywords name="Keywords">
+      <!-- Normal keywords. No longer kept here but come from the keywords_list.h file provided by the server itself. -->
+    </keywords>
+
+    <keywords name="Procedure keywords">
+      begin end comment
+    </keywords>
+
+    <keywords name="User Keywords 1">
+      delimiter
+    </keywords>
+
+    <!-- These two lists are not used for syntax highlighting but assemble keywords from the other lists that serve a special purpose. -->
+    <keywords name="User Keywords 2"> <!-- Keywords that are allowed at the start of an expression. -->
+      binary case cast convert exists interval match not row
+    </keywords>
+
+    <keywords name="User Keywords 3"> <!-- Like user 2 but those that can appear between two expressions. -->
+      all and any as between escape false in is like or regexp sounds true unknown xor
+    </keywords>
+
+    <style id="0" fore-color-light="#284444" fore-color-dark="#808a8c" /> <!-- SCE_MYSQL_DEFAULT -->
+
+    <style id="1" fore-color-light="#0987cb" fore-color-dark="#0a99e5" /> <!-- SCE_MYSQL_COMMENT -->
+    <style id="2" fore-color-light="#0987cb" fore-color-dark="#0a99e5" /> <!-- SCE_MYSQL_COMMENTLINE -->
+    <style id="21" back-color-light="#F0F0F0" back-color-dark="#404040" /> <!-- SCE_MYSQL_HIDDENCOMMAND -->
+
+    <style id="3" fore-color-light="#63bf8d" fore-color-dark="#63bf8d" /> <!-- SCE_MYSQL_VARIABLE -->
+    <style id="4" fore-color-light="#45aa73" fore-color-dark="#45aa73" /> <!-- SCE_MYSQL_SYSTEMVARIABLE -->
+    <style id="5" fore-color-light="#45aa73" fore-color-dark="#45aa73" /> <!-- SCE_MYSQL_KNOWNSYSTEMVARIABLE -->
+
+    <style id="6" fore-color-light="#cc6c00" fore-color-dark="#e57a00" /> <!-- SCE_MYSQL_NUMBER -->
+    <style id="12" fore-color-light="#dd7a00" fore-color-dark="#f28600" /> <!-- SCE_MYSQL_SQSTRING -->
+    <style id="13" fore-color-light="#dd7a00" fore-color-dark="#f28600" /> <!-- SCE_MYSQL_DQSTRING -->
+
+    <style id="7" bold="Yes" fore-color-light="#007FBF" /> <!-- SCE_MYSQL_MAJORKEYWORD -->
+    <style id="8" bold="Yes" fore-color-light="#007FBF" /> <!-- SCE_MYSQL_KEYWORD -->
+    <style id="15" fore-color-light="#7d7d63" fore-color-dark="#7db27d" /> <!-- SCE_MYSQL_FUNCTION -->
+    <style id="10" fore-color-light="#7d7d63" fore-color-dark="#7db27d" /> <!-- SCE_MYSQL_PROCEDUREKEYWORD -->
+    <style id="14" bold="Yes" /> <!-- SCE_MYSQL_OPERATOR -->
+
+    <style id="16" fore-color-light="#000000" fore-color-dark="#FFFFFF" /> <!-- SCE_MYSQL_IDENTIFIER -->
+    <style id="17" fore-color-light="#993a3e" fore-color-dark="#e5454c" /> <!-- SCE_MYSQL_QUOTEDIDENTIFIER -->
+
+    <style id="22" fore-color-light="#FFFFFF" back-color-light="#A0A0A0" fore-color-dark="#000000" back-color-dark="#404040" bold="Yes" /> <!-- SCE_MYSQL_PLACEHOLDER -->
+
+    <style id="18" fore-color-light="#007F00" fore-color-dark="#00b200" bold="yes"/> <!-- SCE_MYSQL_USER1 -->
+
+    <!-- All styles again in their variant in a hidden command (with a 0x40 offset). -->
+    <style id="65" fore-color-light="#0987cb" back-color-light="#F0F0F0" fore-color-dark="#0a99e5" back-color-dark="#404040" /> <!-- SCE_MYSQL_COMMENT -->
+    <style id="66" fore-color-light="#0987cb" back-color-light="#F0F0F0" fore-color-dark="#0a99e5" back-color-dark="#404040" /> <!-- SCE_MYSQL_COMMENTLINE -->
+
+    <style id="67" fore-color-light="#63bf8d" back-color-light="#F0F0F0" fore-color-dark="#63bf8d" back-color-dark="#404040" /> <!-- SCE_MYSQL_VARIABLE -->
+    <style id="68" fore-color-light="#45aa73" back-color-light="#F0F0F0" fore-color-dark="#45aa73" back-color-dark="#404040" /> <!-- SCE_MYSQL_SYSTEMVARIABLE -->
+    <style id="69" fore-color-light="#45aa73" back-color-light="#F0F0F0" fore-color-dark="#45aa73" back-color-dark="#404040" /> <!-- SCE_MYSQL_KNOWNSYSTEMVARIABLE -->
+
+    <style id="70" fore-color-light="#cc6c00" back-color-light="#F0F0F0" fore-color-dark="#e57a00" back-color-dark="#404040" /> <!-- SCE_MYSQL_NUMBER -->
+    <style id="76" fore-color-light="#dd7a00" back-color-light="#F0F0F0" fore-color-dark="#f28600" back-color-dark="#404040" /> <!-- SCE_MYSQL_SQSTRING -->
+    <style id="77" fore-color-light="#dd7a00" back-color-light="#F0F0F0" fore-color-dark="#f28600" back-color-dark="#404040" /> <!-- SCE_MYSQL_DQSTRING -->
+
+    <style id="71" back-color-light="#F0F0F0" back-color-dark="#404040" bold="Yes" /> <!-- SCE_MYSQL_MAJORKEYWORD -->
+    <style id="72" back-color-light="#F0F0F0" back-color-dark="#404040" bold="Yes"/> <!-- SCE_MYSQL_KEYWORD -->
+    <style id="79" fore-color-light="#7d7d63" back-color-light="#F0F0F0" fore-color-dark="#7db27d" back-color-dark="#404040" /> <!-- SCE_MYSQL_FUNCTION -->
+    <style id="74" fore-color-light="#7d7d63" back-color-light="#F0F0F0" fore-color-dark="#7db27d" back-color-dark="#404040" /> <!-- SCE_MYSQL_PROCEDUREKEYWORD -->
+    <style id="78" back-color-light="#F0F0F0" back-color-dark="#284444" bold="Yes" /> <!-- SCE_MYSQL_OPERATOR -->
+
+    <style id="80" fore-color-light="#000000" back-color-light="#F0F0F0" fore-color-dark="#FFFFFF" back-color-dark="#404040" /> <!-- SCE_MYSQL_IDENTIFIER -->
+    <style id="81" fore-color-light="#993a3e" back-color-light="#F0F0F0" fore-color-dark="#e5454c" back-color-dark="#404040" /> <!-- SCE_MYSQL_QUOTEDIDENTIFIER -->
+
+    <style id="86" fore-color-light="#FFFFFF" back-color-light="#A0A0A0" fore-color-dark="#284444" back-color-dark="#404040" bold="Yes" /> <!-- SCE_MYSQL_PLACEHOLDER -->
+
+    <style id="82" fore-color-light="#007F00" back-color-light="#F0F0F0" fore-color-dark="#00b200" back-color-dark="#404040" bold="yes"/> <!-- SCE_MYSQL_USER1 -->
+
+    <!-- Various other styles -->
+    <style id="34" back-color-light="#ffee55" back-color-dark="#ffee55" /> <!-- STYLE_BRACELIGHT -->
+    <style id="35" back-color-light="#ff7855" back-color-dark="#ff7855" /> <!-- STYLE_BRACELBAD -->
+  </language>
+</languages>

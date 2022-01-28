@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.statusbar {
+    display: flex;
+    flex: 0 0 24px;
+    align-items: stretch;
+
+    padding: 0px 4px;
+
+    background-color: var(--statusBar-background);
+    color: var(--statusBar-foreground);
+    border-top: 1px solid var(--statusBar-border);
+
+    cursor: default;
+    font-size: 10pt;
+}
+
+.msg.statusbar > .leftItems {
+    flex-grow: 1
+}
+
+.msg.statusbar .statusbarItem {
+    flex: 1 1 auto;
+    border: none;
+    border-radius: 0px;
+
+    color: var(--statusBar-foreground);
+    background-color: transparent;
+
+    margin: 0 4px;
+    padding: 0px 6px;
+    min-width: 0px;
+
+    outline: none;
+}
+
+.msg.statusbar .statusbarItem.dropdown {
+    min-width: 40px;
+    padding: 0;
+    margin: 0;
+}
+
+.msg.statusbar .statusbarItem.dropdown .label {
+    color: inherit;
+    font-size: 11px;
+}
+
+.msg.statusbar .statusbarItem:hover {
+    background-color: var(--statusBar-background);
+}
+
+.msg.statusbar > .leftItems > .statusbarItem {
+    flex: 0 0 auto;
+}
+
+.msg.statusbar .statusbarItem.prominent {
+    color: var(--statusBarItem-prominentForeground);
+    background-color: var(--statusBarItem-prominentBackground);
+}
+
+.msg.statusbar .statusbarItem.prominent:hover {
+    background-color: var(--statusBarItem-prominentHoverBackground);
+}
+
+.msg.statusbar .statusbarItem:not(:disabled):hover {
+    background-color: var(--statusBarItem-hoverBackground);
+}
+
+.msg.statusbar .statusbarItem:not(:disabled):active {
+    background-color: var(--statusBarItem-activeBackground);
+}
+
+.msg.statusbar .statusbarItem .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.msg.statusbar .divider {
+    background-color: var(--statusBar-foreground);
+    width: 1px;
+    margin: 4px 0px 4px 0px;
+}
+
+.msg.statusbar .dropdown:hover {
+    background-color: var(--statusBarItem-hoverBackground);
+}

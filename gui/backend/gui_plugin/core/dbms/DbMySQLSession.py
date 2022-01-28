@@ -1,0 +1,403 @@
+# Copyright (c) 2021, Oracle and/or its affiliates.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2.0,
+# as published by the Free Software Foundation.
+#
+# This program is also distributed with certain software (including
+# but not limited to OpenSSL) that is licensed under separate terms, as
+# designated in a particular file or component or in included license
+# documentation.  The authors of MySQL hereby grant you an additional
+# permission to link the program and your derivative works with the
+# separately licensed software that they have included with MySQL.
+# This program is distributed in the hope that it will be useful,  but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+# the GNU General Public License, version 2.0, for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+import mysqlsh
+from gui_plugin.core.DbSession import DbSession, DbSessionFactory
+from gui_plugin.core.DbSessionTasks import DbExecuteTask, check_supported_type
+from gui_plugin.core.Error import MSGException
+import gui_plugin.core.Error as Error
+from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLOneFieldTask, MySQLOneFieldListTask
+from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLBaseObjectTask, MySQLTableObjectTask
+import threading
+import gui_plugin.core.Logger as logger
+import sys
+
+
+@DbSessionFactory.register_session('MySQL')
+class DbMysqlSession(DbSession):
+    _supported_types = [{"name": "Schema",        "type": "CATALOG_OBJECT"},
+                        {"name": "User Variable", "type": "CATALOG_OBJECT"},
+                        {"name": "User",          "type": "CATALOG_OBJECT"},
+                        {"name": "Engine",        "type": "CATALOG_OBJECT"},
+                        {"name": "Plugin",        "type": "CATALOG_OBJECT"},
+                        {"name": "Character Set", "type": "CATALOG_OBJECT"},
+                        {"name": "Table",         "type": "SCHEMA_OBJECT"},
+                        {"name": "View",          "type": "SCHEMA_OBJECT"},
+                        {"name": "Routine",       "type": "SCHEMA_OBJECT"},
+                        {"name": "Event",         "type": "SCHEMA_OBJECT"},
+                        {"name": "Trigger",       "type": "TABLE_OBJECT"},
+                        {"name": "Foreign Key",   "type": "TABLE_OBJECT"},
+                        {"name": "Index",         "type": "TABLE_OBJECT"},
+                        {"name": "Column",        "type": "TABLE_OBJECT"}]
+
+    def __init__(self, id, threaded, connection_options, on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None):
+        super().__init__(id, threaded, connection_options)
+
+        self._pwd_prompt_cb = pwd_prompt_cb
+        self._prompt_cb = prompt_cb
+        self._connected_cb = on_connected_cb
+        self._failed_cb = on_failed_cb
+        self.session = None
+
+        if not 'scheme' in self._connection_options:
+            raise MSGException(Error.DB_INVALID_OPTIONS,
+                               "MySQL scheme not defined in the connection options.")
+
+        if self._connection_options["scheme"] not in ["mysql", "mysqlx"]:
+            raise MSGException(Error.DB_INVALID_OPTIONS,
+                               "Invalid MySQL scheme defined in the connection options. Valid values are 'mysql' and 'mysqlx'.")
+
+        self.open()
+
+    def on_shell_prompt(self, text):
+        return self._prompt_cb(text)
+
+    def on_shell_password(self, text):
+        return self._pwd_prompt_cb(text)
+
+    def on_shell_print(self, text):
+        sys.real_stdout.write(text)
+
+    def on_shell_print_diag(self, text):
+        sys.real_stderr.write(text)
+
+    def on_shell_print_error(self, text):
+        sys.real_stderr.write(text)
+
+    def _open_database(self, notify_success=True):
+        shell = mysqlsh.globals.shell
+
+        self._shell_ctx = shell.create_context({"printDelegate": lambda x: self.on_shell_print(x),
+                                                "diagDelegate": lambda x: self.on_shell_print_diag(x),
+                                                "errorDelegate": lambda x: self.on_shell_print_error(x),
+                                                "promptDelegate": lambda x: self.on_shell_prompt(x),
+                                                "passwordDelegate": lambda x: self.on_shell_password(x), })
+        self._shell = self._shell_ctx.get_shell()
+
+        try:
+            self.session = self._shell.open_session(self._connection_options)
+
+            result = self.session.run_sql(
+                """SELECT connection_id(),
+                        @@version,
+                        @@SESSION.sql_mode""").fetch_all()[0]
+
+            self.connection_id = result[0]
+            self.version_info = result[1]
+            self.initial_sql_mode = result[2]
+
+            if not self._connected_cb is None and notify_success:
+                self._connected_cb()
+        except Exception as e:
+            if self._failed_cb is None:
+                raise e
+            else:
+                self._failed_cb(e)
+
+    def _close_database(self):
+        if self.session and self.session.is_open():
+            self.session.close()
+
+    def do_execute(self, sql, params=None):
+        self.cursor = self.session.run_sql(sql, params)
+        return self.cursor
+
+    def next_result(self):
+        return self.cursor.next_result()
+
+    def row_generator(self):
+        row = self.cursor.fetch_one()
+
+        while row:
+            yield row
+            row = self.cursor.fetch_one()
+
+    def _strip_type_name(self, type_name):
+        if not isinstance(type_name, str):
+            type_name = str(type_name)
+        return type_name[6:-1] if "<Type." in type_name else type_name
+
+    def get_column_info(self, row=None):
+        return [{"name": column.get_column_label(), "type": self._strip_type_name(column.get_type())}
+                for column in self.cursor.get_columns()]
+
+    def row_to_container(self, row, columns):
+        row_data = ()
+        for index in range(len(columns)):
+            row_data += (row[index], )
+
+        return row_data
+
+    def _get_stats(self, resultset):
+        last_insert_id = None
+        try:
+            last_insert_id = resultset.get_auto_increment_value()
+        finally:
+            return {
+                "last_insert_id": last_insert_id,
+                "rows_affected": resultset.get_affected_items_count()
+            }
+
+    def info(self):
+        return {
+            "version": self.version_info.split('-')[0],
+            "edition": self.version_info.split('-')[1] if "-" in self.version_info else "",
+            "sql_mode": self.initial_sql_mode
+        }
+
+    def start_transaction(self):
+        self.execute("START TRANSACTION")
+
+    def kill_query(self, user_session):
+        user_session._killed = True
+        self.session.run_sql(f"KILL QUERY {user_session.connection_id}")
+
+    def get_default_schema(self):
+        return self._connection_options['schema'] if 'schema' in self._connection_options else ''
+
+    def get_current_schema(self, request_id, callback=None, options=None):
+        self.add_task(MySQLOneFieldTask(self, request_id,
+                                        "SELECT DATABASE()", result_callback=callback, options=options))
+
+    def set_current_schema(self, request_id, schema_name, callback=None, options=None):
+        self.add_task(DbExecuteTask(self, request_id,
+                                    f"USE {schema_name}", result_callback=callback, options=options))
+
+    def get_auto_commit(self, request_id, callback=None, options=None):
+        self.add_task(MySQLOneFieldTask(self, request_id,
+                                        "SELECT @@AUTOCOMMIT", result_callback=callback, options=options))
+
+    def set_auto_commit(self, request_id, state, callback=None, options=None):
+        self.add_task(DbExecuteTask(self, request_id,
+                                    f"SET AUTOCOMMIT={1 if state == True else 0}", result_callback=callback, options=options))
+
+    def get_objects_types(self, request_id, callback=None):
+        callback("OK", "", request_id, self._supported_types)
+
+    @check_supported_type
+    def get_catalog_object_names(self, request_id, type, filter, callback=None):
+        if type == "Schema":
+            sql = """SELECT SCHEMA_NAME
+                     FROM information_schema.schemata"""
+            if filter:
+                sql += f" WHERE SCHEMA_NAME like '{filter}'"
+            sql += " ORDER BY SCHEMA_NAME"
+        elif type == "User Variable":
+            sql = """SELECT VARIABLE_NAME
+                     FROM performance_schema.user_variables_by_thread"""
+            if filter:
+                sql += f" WHERE VARIABLE_NAME like '{filter}'"
+            sql += " ORDER BY VARIABLE_NAME"
+        elif type == "User":
+            sql = """SELECT concat(User, '@', Host)
+                     FROM mysql.user"""
+            if filter:
+                sql += f" WHERE concat(User, '@', Host)  like '{filter}'"
+            sql += " ORDER BY concat(User, '@', Host) "
+        elif type == "Engine":
+            sql = """SELECT ENGINE
+                     FROM information_schema.ENGINES"""
+            if filter:
+                sql += f" WHERE ENGINE like '{filter}'"
+            sql += " ORDER BY ENGINE"
+        elif type == "Plugin":
+            sql = """SELECT PLUGIN_NAME
+                     FROM information_schema.PLUGINS"""
+            if filter:
+                sql += f" WHERE PLUGIN_NAME like '{filter}'"
+            sql += " ORDER BY PLUGIN_NAME"
+        elif type == "Character Set":
+            sql = """SELECT CHARACTER_SET_NAME
+                     FROM information_schema.CHARACTER_SETS"""
+            if filter:
+                sql += f" WHERE CHARACTER_SET_NAME like '{filter}'"
+            sql += " ORDER BY CHARACTER_SET_NAME"
+
+        self.add_task(MySQLOneFieldListTask(self, request_id, sql,
+                                            result_callback=callback))
+
+    @check_supported_type
+    def get_schema_object_names(self, request_id, type, schema_name, filter, callback=None):
+        if type == "Table":
+            sql = f"""SELECT TABLE_NAME
+                      FROM information_schema.tables
+                      WHERE TABLE_TYPE='BASE TABLE' AND table_schema = '{schema_name}'"""
+            if filter:
+                sql += f" AND TABLE_NAME like '{filter}'"
+            sql += " ORDER BY TABLE_NAME"
+        elif type == "View":
+            sql = f"""SELECT TABLE_NAME
+                      FROM information_schema.views
+                      WHERE table_schema = '{schema_name}'"""
+            if filter:
+                sql += f" AND TABLE_NAME like '{filter}'"
+            sql += " ORDER BY TABLE_NAME"
+        elif type == "Routine":
+            sql = f"""SELECT ROUTINE_NAME
+                      FROM information_schema.ROUTINES
+                      WHERE ROUTINE_SCHEMA = '{schema_name}'"""
+            if filter:
+                sql += f" AND ROUTINE_NAME like '{filter}'"
+            sql += " ORDER BY ROUTINE_NAME"
+        elif type == "Event":
+            sql = f"""SELECT EVENT_NAME
+                      FROM information_schema.EVENTS
+                      WHERE EVENT_SCHEMA = '{schema_name}'"""
+            if filter:
+                sql += f" AND EVENT_NAME like '{filter}'"
+            sql += " ORDER BY EVENT_NAME"
+
+        self.add_task(MySQLOneFieldListTask(self, request_id, sql,
+                                            result_callback=callback))
+
+    @check_supported_type
+    def get_table_object_names(self, request_id, type, schema_name, table_name, filter, callback=None):
+        if type == "Trigger":
+            sql = f"""SELECT TRIGGER_NAME
+                      FROM information_schema.TRIGGERS
+                      WHERE TRIGGER_SCHEMA = '{schema_name}'
+                        AND EVENT_OBJECT_TABLE = '{table_name}'
+                        AND TRIGGER_NAME LIKE '{filter}'
+                      ORDER BY TRIGGER_NAME"""
+        elif type == "Foreign Key":
+            sql = f"""SELECT CONSTRAINT_NAME
+                      FROM information_schema.KEY_COLUMN_USAGE
+                      WHERE CONSTRAINT_SCHEMA = '{schema_name}'
+                        AND TABLE_NAME = '{table_name}'
+                        AND REFERENCED_TABLE_NAME is not NULL
+                        AND CONSTRAINT_NAME LIKE '{filter}'
+                      ORDER BY CONSTRAINT_NAME"""
+        elif type == "Index":
+            sql = f"""SELECT INDEX_NAME
+                      FROM information_schema.STATISTICS
+                      WHERE TABLE_SCHEMA = '{schema_name}'
+                        AND TABLE_NAME = '{table_name}'
+                        AND INDEX_NAME LIKE '{filter}'
+                      ORDER BY INDEX_NAME"""
+        elif type == "Column":
+            sql = f"""SELECT COLUMN_NAME
+                      FROM INFORMATION_SCHEMA.COLUMNS
+                      WHERE TABLE_SCHEMA = '{schema_name}'
+                        AND TABLE_NAME = '{table_name}'
+                        AND COLUMN_NAME LIKE '{filter}'
+                      ORDER BY ORDINAL_POSITION"""
+
+        self.add_task(MySQLOneFieldListTask(self, request_id, sql,
+                                            result_callback=callback))
+
+    @check_supported_type
+    def get_catalog_object(self, request_id, type, name, callback=None):
+        if type == "Schema":
+            sql = f"""SELECT SCHEMA_NAME
+                      FROM information_schema.schemata
+                      WHERE schema_name = '{name}'"""
+        elif type == "User Variable":
+            sql = f"""SELECT VARIABLE_NAME
+                      FROM performance_schema.user_variables_by_thread
+                      WHERE VARIABLE_NAME = '{name}'"""
+        elif type == "User":
+            sql = f"""SELECT concat(User, '@', Host)
+                      FROM mysql.user
+                      WHERE concat(User, '@', Host)  = '{name}'"""
+        elif type == "Engine":
+            sql = f"""SELECT ENGINE
+                     FROM information_schema.ENGINES
+                     WHERE ENGINE = '{name}'"""
+        elif type == "Plugin":
+            sql = f"""SELECT PLUGIN_NAME
+                     FROM information_schema.PLUGINS
+                     WHERE PLUGIN_NAME = '{name}'"""
+        elif type == "Character Set":
+            sql = f"""SELECT CHARACTER_SET_NAME
+                     FROM information_schema.CHARACTER_SETS
+                     WHERE CHARACTER_SET_NAME = '{name}'"""
+
+        self.add_task(MySQLBaseObjectTask(self, request_id, sql,
+                                          result_callback=callback,
+                                          type=type,
+                                          name=name))
+
+    @check_supported_type
+    def get_schema_object(self, request_id, type, schema_name, name, callback=None):
+        if type == "Table":
+            sql = [f"""SELECT TABLE_NAME
+                     FROM information_schema.tables
+                     WHERE TABLE_SCHEMA = '{schema_name}' AND TABLE_NAME = '{name}'""",
+                   f"""SELECT COLUMN_NAME
+                     FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA='{schema_name}' AND TABLE_NAME='{name}'
+                     ORDER BY ORDINAL_POSITION"""
+                   ]
+
+            self.add_task(MySQLTableObjectTask(self, request_id, sql,
+                                               result_callback=callback,
+                                               name=f"{schema_name}.{name}"))
+        else:
+            if type == "View":
+                sql = f"""SELECT TABLE_NAME
+                        FROM information_schema.views
+                        WHERE table_schema = '{schema_name}' AND TABLE_NAME = '{name}'"""
+            elif type == "Routine":
+                sql = f"""SELECT ROUTINE_NAME
+                        FROM information_schema.ROUTINES
+                        WHERE ROUTINE_SCHEMA = '{schema_name}' AND ROUTINE_NAME = '{name}'"""
+            elif type == "Event":
+                sql = f"""SELECT EVENT_NAME
+                        FROM information_schema.EVENTS
+                        WHERE EVENT_SCHEMA = '{schema_name}' AND EVENT_NAME = '{name}'"""
+
+            self.add_task(MySQLBaseObjectTask(self, request_id, sql,
+                                              result_callback=callback,
+                                              type=type,
+                                              name=f"{schema_name}.{name}"))
+
+    @check_supported_type
+    def get_table_object(self, request_id, type, schema_name, table_name, name, callback=None):
+        if type == "Trigger":
+            sql = f"""SELECT TRIGGER_NAME
+                      FROM information_schema.TRIGGERS
+                      WHERE TRIGGER_SCHEMA = '{schema_name}'
+                        AND EVENT_OBJECT_TABLE = '{table_name}'
+                        AND TRIGGER_NAME LIKE '{name}'"""
+        elif type == "Foreign Key":
+            sql = f"""SELECT CONSTRAINT_NAME
+                      FROM information_schema.KEY_COLUMN_USAGE
+                      WHERE CONSTRAINT_SCHEMA = '{schema_name}'
+                        AND TABLE_NAME = '{table_name}'
+                        AND REFERENCED_TABLE_NAME is not NULL
+                        AND CONSTRAINT_NAME LIKE '{name}'"""
+        elif type == "Index":
+            sql = f"""SELECT INDEX_NAME
+                      FROM information_schema.STATISTICS
+                      WHERE TABLE_SCHEMA = '{schema_name}'
+                        AND TABLE_NAME = '{table_name}'
+                        AND INDEX_NAME LIKE '{name}'"""
+        elif type == "Column":
+            sql = f"""SELECT COLUMN_NAME
+                      FROM INFORMATION_SCHEMA.COLUMNS
+                      WHERE TABLE_SCHEMA = '{schema_name}'
+                        AND TABLE_NAME = '{table_name}'
+                        AND COLUMN_NAME LIKE '{name}'"""
+
+        self.add_task(MySQLBaseObjectTask(self, request_id, sql,
+                                          result_callback=callback,
+                                          type=type,
+                                          name=f"{schema_name}.{name}"))

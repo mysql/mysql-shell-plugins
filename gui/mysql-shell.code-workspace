@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "frontend"
+		},
+		{
+			"path": "extension"
+		}
+	],
+    "settings": {
+        "workbench.colorCustomizations": {}
+    }
+}

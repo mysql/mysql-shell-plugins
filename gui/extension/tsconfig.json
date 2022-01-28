@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+		"declaration": true,
+        "module": "commonjs",
+        "target": "es6",
+        "outDir": "output",
+        "removeComments": true,
+		"noImplicitAny": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "inlineSources": true,
+        "isolatedModules": true,
+		"allowSyntheticDefaultImports": true,
+		"experimentalDecorators": true,
+        "strictNullChecks": true,
+        "alwaysStrict": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true
+    },
+	"compileOnSave": true,
+    "include": [
+        "src/*.ts",
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

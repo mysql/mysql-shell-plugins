@@ -1,0 +1,61 @@
+{
+    "name": "SQLite",
+    "supportCatalogs": false,
+    "characterSets": {
+        "utf8": {
+            "collations": [
+                "utf8"
+            ],
+            "defaultCollation": "utf8",
+            "description": "UTF-8 Unicode"
+        },
+        "utf16": {
+            "collations": [
+                "utf16"
+            ],
+            "defaultCollation": "utf16",
+            "description": "UTF-16 Unicode"
+        },
+        "utf16le": {
+            "collations": [
+                "utf16",
+                "utf16le"
+            ],
+            "defaultCollation": "utf16",
+            "description": "UTF-16 Unicode"
+        },
+        "utf16be": {
+            "collations": [
+                "utf16",
+                "utf16be"
+            ],
+            "defaultCollation": "utf16",
+            "description": "UTF-16 Unicode"
+        }
+    },
+    "dataTypes": {
+        "integer": {
+            "numericPrecision": 10,
+            "parameterFormatType": 6
+        },
+        "real": {
+            "numericPrecision": 53,
+            "numericScale": 30,
+            "parameterFormatType": 6
+        },
+        "numeric": {
+            "numericPrecision": 53,
+            "numericScale": 30,
+            "parameterFormatType": 6
+        },
+        "text": {
+            "characterMaximumLength": 1000000000,
+            "needsQuotes": true,
+            "parameterFormatType": 6
+        },
+        "blob": {
+            "characterOctetLength": 1000000000,
+            "parameterFormatType": 6
+        }
+    }
+}

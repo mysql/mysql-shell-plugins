@@ -1,0 +1,7 @@
+[run]
+omit = /usr/*
+       *__init__*
+       */debugger/Debugger.py
+       */gui_registrar.py
+       */start/Start.py
+       */internal/tests_utils.py

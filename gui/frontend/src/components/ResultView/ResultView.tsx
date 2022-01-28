@@ -1,0 +1,1264 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import "./ResultView.css";
+import gridIcon from "../../assets/images/toolbar/grid.svg";
+import commitIcon from "../../assets/images/toolbar/commit.svg";
+import rollbackIcon from "../../assets/images/toolbar/rollback.svg";
+import expandIcon from "../../assets/images/toolbar/expand.svg";
+import menuIcon from "../../assets/images/toolbar/menu.svg";
+import previousPageIcon from "../../assets/images/toolbar/page-previous.svg";
+import nextPageIcon from "../../assets/images/toolbar/page-next.svg";
+
+import blobIcon from "../../assets/images/blob.svg";
+import nullIcon from "../../assets/images/null.svg";
+
+import React from "react";
+import { render } from "preact";
+
+import {
+    Component, IComponentState, Container, Orientation, IComponentProperties, SelectionType, Toolbar, Dropdown,
+    Divider, Button, Icon, IInputChangeProperties, UpDown, Checkbox, CheckState, Input, Menu, MenuItem,
+    ComponentPlacement, IMenuItemProperties, TextAlignment,
+} from "../ui";
+import { ResultStatus } from "./ResultStatus";
+import { ITreeGridOptions, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
+import { IResultSet, IResultSetRows } from "../../script-execution";
+import { convertToTitleCase } from "../../utilities/helpers";
+import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
+
+const emptyParams = {};
+
+export interface IResultViewProperties extends IComponentProperties {
+    tableData: IResultSet; // The data to show.
+
+    onResultPageChange?: (requestId: string, currentPage: number, sql: string) => void;
+}
+
+interface IResultViewState extends IComponentState {
+    stateVersion: number;
+
+    // Set to true when the user edited values in the grid.
+    dirty: boolean;
+
+    hasMorePages: boolean;
+
+    // Rows as objects with column ids as their keys.
+    convertedRows: unknown[];
+
+    // These values are either copies of the component properties or set during an explicit
+    // addData call.
+    executionInfo?: IExecutionInfo;
+}
+
+// Implements a grid for result data.
+export class ResultView extends Component<IResultViewProperties, IResultViewState> {
+
+    private gridRef = React.createRef<TreeGrid>();
+
+    // Column info not in state but as local variable. This way we don't need to re-render when columns are set
+    // via addData().
+    private columns?: IColumnInfo[];
+
+    // Definitions derived from the columns above.
+    private columnDefinitions: Tabulator.ColumnDefinition[] = [];
+
+    // Keeps user defined (or computed) column widths across result set updates.
+    private columnWidthCache = new Map<string, number>();
+
+    private actionMenuRef = React.createRef<Menu>();
+    private cellContextMenuRef = React.createRef<Menu>();
+    private currentCell?: Tabulator.CellComponent;
+
+    private currentPage = 0;
+
+    // When set it means the next addData call will actually replace all data currently in the grid.
+    private replacePending = false;
+
+    public constructor(props: IResultViewProperties) {
+        super(props);
+
+        this.state = {
+            stateVersion: 0,
+            dirty: false,
+            hasMorePages: false,
+
+            convertedRows: [],
+        };
+
+        this.addHandledProperties("tableData", "onResultPageChange");
+    }
+
+    public componentDidMount(): void {
+        this.prepareData();
+    }
+
+    public componentDidUpdate(prevProps: IResultViewProperties, prevState: IResultViewState): void {
+        const { stateVersion } = this.state;
+
+        // When the state version is the same as before it means the update was triggered by changing the
+        // component. So equality means: state not yet updated.
+        if (prevState.stateVersion === stateVersion) {
+            this.currentCell = undefined;
+            this.prepareData();
+        }
+    }
+
+    public render(): React.ReactNode {
+        const { dirty, hasMorePages, convertedRows, executionInfo } = this.state;
+
+        const className = this.getEffectiveClassNames(["resultView"]);
+
+        const options: ITreeGridOptions = {
+            layout: "fitColumns",
+            verticalGridLines: true,
+            horizontalGridLines: true,
+            alternatingRowBackgrounds: false,
+            selectionType: SelectionType.Multi,
+        };
+
+        const gotError = executionInfo && executionInfo.type === MessageType.Error;
+
+        return (
+            <Container
+                className={className}
+                orientation={Orientation.TopDown}
+                {...this.unhandledProperties}
+            >
+                {
+                    !gotError && <TreeGrid
+                        ref={this.gridRef}
+                        style={{ fontSize: "10pt" }}
+                        tableData={convertedRows}
+                        columns={this.columnDefinitions}
+                        options={options}
+                        onColumnResized={this.handleColumnResized}
+                        onCellContext={this.handleCellContext}
+                    />
+                }
+                {
+                    executionInfo && <ResultStatus executionInfo={executionInfo}>
+                        {
+                            !gotError && <Toolbar
+                                dropShadow={false}
+                            >
+                                <Button
+                                    id="previousPageButton"
+                                    imageOnly={true}
+                                    disabled={this.currentPage === 0}
+                                    data-tooltip="Previous Page"
+                                    onClick={this.previousPage}
+                                >
+                                    <Icon src={previousPageIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Button
+                                    id="nextPageButton"
+                                    imageOnly={true}
+                                    disabled={!hasMorePages}
+                                    data-tooltip="Next Page"
+                                    onClick={this.nextPage}
+                                >
+                                    <Icon src={nextPageIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Divider vertical={true} />
+                                <Button
+                                    id="applyButton"
+                                    imageOnly={true}
+                                    disabled={!dirty}
+                                    data-tooltip="Apply Changes"
+                                >
+                                    <Icon src={commitIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Button
+                                    id="revertButton"
+                                    imageOnly={true}
+                                    disabled={!dirty}
+                                    data-tooltip="Revert Changes"
+                                    onClick={this.rollbackChanges}
+                                >
+                                    <Icon src={rollbackIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Divider id="editSeparator" vertical={true} />
+                                <Button
+                                    imageOnly={true}
+                                    data-tooltip="Maximize Result Set View"
+                                >
+                                    <Icon src={expandIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Divider vertical={true} />
+                                <Dropdown
+                                    id="viewStyleDropDown"
+                                    initialSelection="grid"
+                                    data-tooltip="Select a View Section for the Result Set"
+                                >
+                                    <Dropdown.Item
+                                        id="grid"
+                                        picture={<Icon src={gridIcon} data-tooltip="inherit" />}
+                                    />
+                                </Dropdown>
+                                <Divider vertical={true} />
+                                <Button
+                                    imageOnly={true}
+                                    onClick={this.showActionMenu}
+                                >
+                                    <Icon src={menuIcon} data-tooltip="inherit" />
+                                </Button>
+                            </Toolbar>
+                        }
+                    </ResultStatus>
+                }
+
+                <Menu
+                    id="schemaContextMenu"
+                    ref={this.cellContextMenuRef}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleCellContextMenuItemClick}
+                >
+                    <MenuItem
+                        id="openValueMenuItem"
+                        caption="Open Value in Editor"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="setNullMenuItem"
+                        caption="Set Field to Null"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem caption="-" disabled />
+                    <MenuItem
+                        id="saveToFileMenuItem"
+                        caption="Save Value to File..."
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="loadFromFileMenuItem"
+                        caption="Load Value from File..."
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        caption="-" disabled />
+
+                    <MenuItem
+                        id="copyRowMenuItem1"
+                        caption="Copy Row"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="copyRowMenuItem2"
+                        caption="Copy Row With Names"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="copyRowMenuItem3"
+                        caption="Copy Row Unquoted"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="copyRowMenuItem4"
+                        caption="Copy Row With Names, Unquoted"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="copyRowMenuItem5"
+                        caption="Copy Row With Names, Tab Separated"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="copyRowMenuItem6"
+                        caption="Copy Row Tab Separated"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="copyFieldMenuItem"
+                        caption="Copy Field"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="copyFieldUnquotedMenuItem"
+                        caption="Copy Field Unquoted"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="pasteRowMenuItem"
+                        caption="Paste Row"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        caption="-" disabled
+                    />
+
+                    <MenuItem
+                        id="deleteRowMenuItem"
+                        caption="Delete Row"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        caption="-" disabled
+                    />
+
+                    <MenuItem
+                        id="capitalizeMenuItem"
+                        caption="Capitalize Text"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="lowerCaseMenuItem"
+                        caption="Convert Text to Lower Case"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="upperCaseMenuItem"
+                        caption="Convert Text to Upper Case"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                </Menu>
+
+                <Menu
+                    id="actionMenu"
+                    ref={this.actionMenuRef}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleActionMenuItemClick}
+                >
+                    <MenuItem
+                        id="exportMenuItem"
+                        caption="Export Result Set"
+                        disabled
+                    />
+                    <MenuItem
+                        id="importMenuItem"
+                        caption="Import Result Set"
+                        disabled
+                    />
+                </Menu>
+
+            </Container>
+        );
+    }
+
+    /**
+     * Direct data pump, to fill in data as quickly as possible. This does not re-render the entire grid, but
+     * uses internal handling to add the new rows (and to update columns).
+     * Data passed in here does not update the internal state of the view, except for the final response where
+     * a status is given.
+     *
+     * @param newData The new data to add to the view. If columns are given with that, they replace any existing
+     *                columns in the grid.
+     *
+     * @returns A promise to wait for, before another call is made to add further data.
+     */
+    public async addData(newData: IResultSetRows): Promise<void> {
+        return new Promise((resolve) => {
+            if (this.gridRef.current) {
+                const tableOrPromise = this.gridRef.current.table;
+                if (tableOrPromise instanceof Tabulator) {
+                    void this.internallyAddData(tableOrPromise, newData).then(() => {
+                        resolve();
+                    });
+                } else {
+                    void tableOrPromise.then((table) => {
+                        void this.internallyAddData(table, newData).then(() => {
+                            resolve();
+                        });
+                    });
+                }
+            }
+        });
+    }
+
+    public markReplace(): void {
+        this.replacePending = true;
+    }
+
+    private internallyAddData(table: Tabulator, newData: IResultSetRows): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (newData.rows) {
+                if (!this.replacePending && newData.columns.length > 0) {
+                    // This is the first set that contains column data, so store the for later use too.
+                    this.columns = newData.columns;
+                    this.generateColumnDefinitions();
+                    table.setColumns(this.columnDefinitions);
+                }
+
+                if (this.columns) {
+                    let convertedRows: unknown[] = [];
+                    if (newData.rows.length > 0 && !Array.isArray(newData.rows[0])) {
+                        // Table data is already in object format. No need to convert.
+                        convertedRows = newData.rows;
+                    } else {
+                        newData.rows.forEach((entry): void => {
+                            const row = {};
+
+                            this.columns!.forEach((column: IColumnInfo, columnIndex: number): void => {
+                                row[column.name] = (entry as IDictionary)[columnIndex];
+                            });
+                            convertedRows.push(row);
+                        });
+                    }
+
+                    let dataPromise: Promise<void | Tabulator.RowComponent>;
+                    if (this.replacePending) {
+                        dataPromise = table.setData(convertedRows);
+                    } else {
+                        dataPromise = table.addData(convertedRows as Array<{}>);
+                    }
+
+                    dataPromise.then(() => {
+                        if (newData.executionInfo) {
+                            table.restoreRedraw();
+
+                            const { stateVersion } = this.state;
+                            this.setState({
+                                stateVersion: stateVersion + 1,
+                                executionInfo: newData.executionInfo,
+                                dirty: false,
+                                hasMorePages: newData.hasMoreRows ?? false,
+                            });
+                        } else {
+                            // Redraw block calls are not counted, but set a simple flag. So we can simply
+                            // block any UI update in that table after the first result arrived
+                            // and re-enable them once the last result was received.
+                            table.blockRedraw();
+                        }
+
+                        resolve();
+                    }).catch((reason) => {
+                        reject(reason);
+                    });
+
+                    this.replacePending = false;
+
+                    return;
+                }
+            }
+
+            // This way, when no data was actually given.
+            if (newData.executionInfo) {
+                const { stateVersion } = this.state;
+                this.setState({
+                    stateVersion: stateVersion + 1,
+                    executionInfo: newData.executionInfo,
+                    dirty: false,
+                    hasMorePages: false,
+                });
+            }
+
+            this.replacePending = false;
+
+            resolve();
+        });
+    }
+
+    private generateColumnDefinitions = (): void => {
+        // Map column info from the backend to column definitions for Tabulator.
+        this.columnDefinitions = [];
+        if (this.columns) {
+            this.columnDefinitions = this.columns.map((info): Tabulator.ColumnDefinition => {
+                let formatter: Tabulator.Formatter | undefined;
+                let formatterParams = emptyParams;
+                let minWidth = 50;
+
+                let editor: Tabulator.Editor | undefined;
+                let editorParams: Tabulator.EditorParams | undefined;
+
+                switch (info.dataType.type) {
+                    case DBDataType.TinyInt:
+                    case DBDataType.SmallInt:
+                    case DBDataType.MediumInt:
+                    case DBDataType.Int:
+                    case DBDataType.Bigint: {
+                        formatter = "plaintext";
+                        editor = this.editorHost;
+                        editorParams = (): { info: IColumnInfo } => { return { info }; };
+
+                        break;
+                    }
+
+                    case DBDataType.String:
+                    case DBDataType.Text:
+                    case DBDataType.MediumText:
+                    case DBDataType.LongText:
+                    case DBDataType.Geometry:
+                    case DBDataType.Point:
+                    case DBDataType.LineString:
+                    case DBDataType.Polygon:
+                    case DBDataType.GeometryCollection:
+                    case DBDataType.MultiPoint:
+                    case DBDataType.MultiLineString:
+                    case DBDataType.MultiPolygon:
+                    case DBDataType.Json: {
+                        formatter = this.stringFormatter;
+                        editor = this.editorHost;
+                        editorParams = (): { info: IColumnInfo } => { return { info }; };
+                        minWidth = 150;
+
+                        break;
+                    }
+
+                    case DBDataType.Binary:
+                    case DBDataType.Varbinary:
+                    case DBDataType.TinyBlob:
+                    case DBDataType.Blob:
+                    case DBDataType.MediumBlob:
+                    case DBDataType.LongBlob: {
+                        formatter = this.blobFormatter;
+                        // No in-place editor. Uses value editor popup.
+
+                        break;
+                    }
+
+                    case DBDataType.Date:
+                    case DBDataType.DateTime:
+                    case DBDataType.DateTime_f: {
+                        //formatter = "datetime";
+                        formatter = "plaintext";
+                        editor = true;
+
+                        break;
+                    }
+
+                    case DBDataType.Time:
+                    case DBDataType.Time_f: {
+                        formatter = "datetime";
+                        formatterParams = {
+                            outputFormat: "HH:mm:ss",
+                        };
+                        editor = true;
+
+                        break;
+                    }
+
+                    case DBDataType.Year: {
+                        formatter = "datetime";
+                        formatterParams = {
+                            outputFormat: "YYYY",
+                        };
+                        editor = true;
+
+                        break;
+                    }
+
+
+                    case DBDataType.Boolean: {
+                        formatter = this.booleanFormatter;
+                        editor = this.editorHost;
+                        editorParams = (): { info: IColumnInfo } => { return { info }; };
+
+                        break;
+                    }
+
+                    case DBDataType.Enum: {
+                        formatter = this.enumFormatter;
+                        formatterParams = { isSet: false };
+                        editor = this.editorHost;
+                        editorParams = (): { info: IColumnInfo } => { return { info }; };
+
+                        break;
+                    }
+
+                    case DBDataType.Set: {
+                        formatter = this.enumFormatter;
+                        formatterParams = { isSet: true };
+                        editor = this.editorHost;
+                        editorParams = (): { info: IColumnInfo } => { return { info }; };
+
+                        break;
+                    }
+
+                    default: {
+                        formatter = "textarea";
+                        editor = this.editorHost;
+                        editorParams = (): { info: IColumnInfo; verticalNavigation: string } => {
+                            return {
+                                info,
+                                verticalNavigation: "editor",
+                            };
+                        };
+
+                        break;
+                    }
+                }
+
+                const width = this.columnWidthCache.get(info.name);
+
+                return {
+                    title: info.name,
+                    field: info.name,
+                    formatter,
+                    formatterParams,
+                    editor,
+                    editorParams,
+                    width,
+                    minWidth,
+                    resizable: true,
+                    editable: this.checkEditable,
+
+                    cellEditing: this.cellEditing,
+                    cellEdited: this.cellEdited,
+                };
+            });
+        }
+    };
+
+    /**
+     * Triggered when the user starts editing a cell value.
+     *
+     */
+    private cellEditing = (): void => {
+        if (this.currentCell) {
+            this.currentCell.getElement().classList.remove("manualFocus");
+            this.currentCell = undefined;
+        }
+    };
+
+    /**
+     * Triggered when the user successfully edited a cell value.
+     *
+     */
+    private cellEdited = (): void => {
+        const { stateVersion } = this.state;
+
+        this.setState({ dirty: true, stateVersion: stateVersion + 1 });
+    };
+
+    private handleColumnResized = (column: Tabulator.ColumnComponent): void => {
+        const field = column.getDefinition().field;
+        if (field) {
+            // We don't remove cached widths currently, to allow having preset widths also when the user
+            // switches between different queries in the same execution block.
+            this.columnWidthCache.set(field, column.getWidth());
+        }
+    };
+
+    private handleCellMenuItemDisabled = (props: IMenuItemProperties): boolean => {
+        if (!this.currentCell || !this.gridRef.current) {
+            return true;
+        }
+
+        const tableOrPromise = this.gridRef.current.table;
+        if (tableOrPromise instanceof Tabulator) {
+            const selectCount = tableOrPromise.getSelectedRows().length;
+
+            switch (props.id!) {
+                case "openValueMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                case "setNullMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                case "saveToFileMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                case "loadFromFileMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                case "copyRowMenuItem1": {
+                    return false;
+                }
+
+                case "copyRowMenuItem2": {
+                    return false;
+                }
+
+                case "copyRowMenuItem3": {
+                    return false;
+                }
+
+                case "copyRowMenuItem4": {
+                    return false;
+                }
+
+                case "copyRowMenuItem5": {
+                    return false;
+                }
+
+                case "copyRowMenuItem6": {
+                    return false;
+                }
+
+                case "copyFieldMenuItem": {
+                    return selectCount > 1;
+                }
+
+                case "copyFieldUnquotedMenuItem": {
+                    return selectCount > 1;
+                }
+
+                case "pasteRowMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                case "deleteRowMenuItem": {
+                    return true;
+                }
+
+                case "capitalizeMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                case "lowerCaseMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                case "upperCaseMenuItem": {
+                    return true; // selectCount > 1;
+                }
+
+                default: {
+                    return true;
+                }
+            }
+        } else {
+            return true;
+        }
+    };
+
+    private handleCellContext = (e: Event, cell: Tabulator.CellComponent): void => {
+        if (this.currentCell) {
+            this.currentCell.getElement().classList.remove("manualFocus");
+        }
+
+        this.currentCell?.cancelEdit();
+        this.currentCell = cell;
+        cell.getElement().classList.add("manualFocus");
+
+        const event = e as MouseEvent;
+        const targetRect = new DOMRect(event.clientX, event.clientY, 2, 2);
+
+        this.cellContextMenuRef.current?.close();
+        this.cellContextMenuRef.current?.open(targetRect, false, {});
+    };
+
+    private handleCellContextMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+        if (this.currentCell) {
+            /*const editorParams = this.currentCell.getColumn().getDefinition().editorParams;
+            if (editorParams && editorParams instanceof Function) {
+                const params = editorParams(this.currentCell) as { info: IColumnInfo };
+
+            }*/
+
+            switch (props.id!) {
+                case "openValueMenuItem": {
+                    break;
+                }
+
+                case "setNullMenuItem": {
+                    this.currentCell.setValue(null);
+                    break;
+                }
+
+                case "saveToFileMenuItem": {
+                    break;
+                }
+
+                case "loadFromFileMenuItem": {
+                    break;
+                }
+
+                case "copyRowMenuItem1": {
+                    this.copyRows(false, false);
+
+                    break;
+                }
+
+                case "copyRowMenuItem2": {
+                    this.copyRows(true, false);
+
+                    break;
+                }
+
+                case "copyRowMenuItem3": {
+                    this.copyRows(false, true);
+
+                    break;
+                }
+
+                case "copyRowMenuItem4": {
+                    this.copyRows(true, true);
+
+                    break;
+                }
+
+                case "copyRowMenuItem5": {
+                    this.copyRows(true, false, "\t");
+
+                    break;
+                }
+
+                case "copyRowMenuItem6": {
+                    this.copyRows(false, false, "\t");
+
+                    break;
+                }
+
+                case "copyFieldMenuItem": {
+                    void navigator.clipboard.writeText(`'${this.currentCell.getValue() as string}'`);
+                    break;
+                }
+
+                case "copyFieldUnquotedMenuItem": {
+                    void navigator.clipboard.writeText(String(this.currentCell.getValue()));
+
+                    break;
+                }
+
+                case "pasteRowMenuItem": {
+                    break;
+                }
+
+                case "deleteRowMenuItem": {
+                    break;
+                }
+
+                case "capitalizeMenuItem": {
+                    const value = this.currentCell.getValue() as string;
+                    this.currentCell.setValue(convertToTitleCase(value));
+
+                    break;
+                }
+
+                case "lowerCaseMenuItem": {
+                    const value = this.currentCell.getValue() as string;
+                    this.currentCell.setValue(value.toLowerCase());
+
+                    break;
+                }
+
+                case "upperCaseMenuItem": {
+                    const value = this.currentCell.getValue() as string;
+                    this.currentCell.setValue(value.toUpperCase());
+
+                    break;
+                }
+
+                default: {
+
+                    break;
+                }
+            }
+        }
+
+        return true;
+    };
+
+    private copyRows = (withNames: boolean, unquoted: boolean, separatorChar = " "): void => {
+        const tableOrPromise = this.gridRef.current?.table;
+        if (tableOrPromise instanceof Tabulator) {
+            let rows = tableOrPromise.getSelectedRows();
+            if (rows.length === 0 && this.currentCell) {
+                rows = [this.currentCell.getRow()];
+            }
+
+            const quoteChar = unquoted ? "" : "'";
+            const separator = "," + separatorChar;
+            let content = "";
+
+            if (withNames && rows.length > 0) {
+                content += "# ";
+                rows[0].getCells().forEach((cell) => {
+                    content += cell.getColumn().getDefinition().title + separator;
+                });
+                if (content.endsWith(separator)) {
+                    content = content.substring(0, content.length - 2);
+                }
+                content += "\n";
+
+            }
+
+            rows.forEach((row) => {
+                row.getCells().forEach((cell) => {
+                    content += `${quoteChar}${cell.getValue() as string}${quoteChar}${separator}`;
+                });
+
+                if (content.endsWith(separator)) {
+                    content = content.substring(0, content.length - 2);
+                }
+
+                content += "\n";
+            });
+
+            void navigator.clipboard.writeText(content);
+        }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    private checkEditable = (cell: Tabulator.CellComponent): boolean => { return false; }
+        /* For now disabled.
+        const { status } = this.state;
+
+        if (isNil(status) || !cell.getRow().isSelected()) {
+            // No editing while loading the result or the row is not selected (allowing so the row to select,
+            // without starting editing immediately).
+            return false;
+        }
+
+        const editorParams = cell.getColumn().getDefinition().editorParams;
+        if (editorParams && editorParams instanceof Function) {
+            const params = editorParams(cell) as { info: IColumnInfo };
+
+            return params.info.dataType.type !== DBDataType.Blob;
+        }
+
+        return true;*/
+    ;
+
+    private showActionMenu = (e: React.SyntheticEvent): void => {
+        e.stopPropagation();
+
+        const event = e.nativeEvent as MouseEvent;
+        const targetRect = new DOMRect(event.clientX, event.clientY, 2, 2);
+
+        this.actionMenuRef.current?.close();
+        this.actionMenuRef.current?.open(targetRect, false);
+    };
+
+    private handleActionMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+        switch (props.id ?? "") {
+            case "exportMenuItem": {
+                break;
+            }
+
+            case "importMenuItem": {
+                break;
+            }
+
+            default: {
+                break;
+            }
+        }
+
+        return true;
+    };
+
+    /**
+     * Converts the given table data into a format that's valid for the data table.
+     */
+    private prepareData = (): void => {
+        const { tableData } = this.props;
+        const { stateVersion } = this.state;
+
+        let convertedRows: unknown[] = [];
+        if (tableData.rows) {
+            if (tableData.rows.length > 0 && !Array.isArray(tableData.rows[0])) {
+                // Table data is already in object format. No need to convert.
+                convertedRows = tableData.rows;
+            } else if (tableData.columns) {
+                tableData.rows.forEach((entry: unknown): void => {
+                    const row = {};
+
+                    tableData.columns.forEach((column: IColumnInfo, columnIndex: number): void => {
+                        row[column.name] = (entry as IDictionary)[columnIndex];
+                    });
+                    convertedRows.push(row);
+                });
+            }
+        }
+        const tableOrPromise = this.gridRef.current?.table;
+        if (tableOrPromise instanceof Tabulator) {
+            tableOrPromise.clearData();
+        }
+
+        this.currentPage = tableData.currentPage;
+        this.columns = tableData.columns;
+        this.generateColumnDefinitions();
+
+        this.setState({
+            stateVersion: stateVersion + 1,
+            convertedRows,
+            executionInfo: tableData.executionInfo,
+            dirty: false,
+            hasMorePages: tableData.hasMoreRows ?? false,
+        });
+    };
+
+    private previousPage = (): void => {
+        if (this.currentPage > 0) {
+            --this.currentPage;
+
+            const { tableData, onResultPageChange } = this.props;
+            onResultPageChange?.(tableData.requestId, this.currentPage, tableData.sql);
+        }
+    };
+
+    private nextPage = (): void => {
+        const { hasMorePages } = this.state;
+        if (hasMorePages) {
+            ++this.currentPage;
+
+            const { tableData, onResultPageChange } = this.props;
+            onResultPageChange?.(tableData.requestId, this.currentPage, tableData.sql);
+        }
+    };
+
+    private rollbackChanges = (): void => {
+        // This will reload data from the properties and return so to the last result set state.
+        this.setState({ dirty: false });
+    };
+
+    /**
+     * Main entry point for editing operations in the result view. It takes a column's data type and renders one of
+     * our UI elements for the given cell.
+     *
+     * @param cell The cell component for the editable cell.
+     * @param onRendered Used to specify a function to be called when the editor actually has been rendered in the DOM.
+     * @param success Function to call when editing was done successfully (passing in the new value).
+     * @param cancel Function to call when editing was cancelled.
+     * @param editorParams Parameters passed on by the column definition in the render method. This is where the column
+     *                     meta data is passed in.
+     *
+     * @returns The new editor HTML element.
+     */
+    private editorHost = (cell: Tabulator.CellComponent, onRendered: Tabulator.EmptyCallback,
+        success: Tabulator.ValueBooleanCallback, cancel: Tabulator.ValueVoidCallback,
+        editorParams: Tabulator.EditorParams): HTMLElement | false => {
+
+        cell.getTable().deselectRow();
+        cell.getRow().select();
+
+        const host = document.createElement("div");
+        host.classList.add("cellEditorHost");
+
+        this.renderCustomEditor(cell, host, cell.getValue(), success, cancel, editorParams);
+
+        onRendered(() => {
+            const inputs = host.getElementsByTagName("textarea");
+            if (inputs.length > 0) {
+                const element = inputs[0] as HTMLElement;
+
+                element.style.height = "0"; // This line is important or the scroll height will never shrink.
+                element.style.height = `${element.scrollHeight}px`;
+
+                cell.getRow().normalizeHeight();
+
+                element.focus();
+            }
+        });
+
+        return host;
+    };
+
+    /**
+     * Renders one of our UI elements as a cell editor, if there's no built-in editor already or we need different
+     * functionality. This function is also called for each change in the editor it creates, because we use controlled
+     * components.
+     *
+     * @param cell The cell being edited.
+     * @param host The HTML element that will host our UI component.
+     * @param value The value to set.
+     * @param success A callback to be called when the edit operation was successfully finished.
+     * @param cancel A callback to be called when the user cancelled the editor operation.
+     * @param editorParams Additional parameters to configure the editor.
+     */
+    // Note: I have to disable the follow linter rule, because changing editorParams to anything else but any
+    //       produces a very odd TS error -> investigate later.
+    private renderCustomEditor = (cell: Tabulator.CellComponent, host: HTMLDivElement, value: unknown,
+        success: Tabulator.ValueBooleanCallback, cancel: Tabulator.ValueVoidCallback, editorParams: unknown): void => {
+
+        const params = (typeof editorParams === "function" ? editorParams(cell) : editorParams) as IDictionary;
+        const info: IColumnInfo = params.info as IColumnInfo;
+
+        let element;
+        switch (info.dataType.type) {
+            case DBDataType.TinyInt:
+            case DBDataType.SmallInt:
+            case DBDataType.MediumInt:
+            case DBDataType.Int:
+            case DBDataType.Bigint: {
+                element = <UpDown
+                    value={value as number ?? 0}
+                    textAlignment={TextAlignment.Start}
+                    onChange={(newValue): void => {
+                        this.renderCustomEditor(cell, host, newValue, success, cancel, editorParams);
+                    }}
+                    onConfirm={(): void => {
+                        success(value);
+                    }}
+                    onCancel={(): void => {
+                        cancel(undefined);
+                    }}
+                    onBlur={(): void => {
+                        success(value);
+                    }}
+                />;
+
+                break;
+            }
+
+            case DBDataType.String:
+            case DBDataType.Char:
+            case DBDataType.Nchar:
+            case DBDataType.Varchar:
+            case DBDataType.Nvarchar:
+            case DBDataType.TinyText:
+            case DBDataType.Text:
+            case DBDataType.MediumText:
+            case DBDataType.LongText: {
+                element = <Input
+                    value={value as string ?? ""}
+                    multiLine
+                    onChange={(e: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
+                        // Auto grow the input field (limited by a max height CSS setting).
+                        const element = e.target as HTMLElement;
+                        element.style.height = "0";
+                        element.style.height = `${element.scrollHeight}px`;
+
+                        cell.checkHeight();
+
+                        this.renderCustomEditor(cell, host, props.value, success, cancel, editorParams);
+                    }}
+                    onConfirm={(): void => {
+                        success(value);
+                        cell.checkHeight();
+                    }}
+                    onCancel={(): void => {
+                        cancel(undefined);
+                        cell.checkHeight();
+                    }}
+                    onBlur={(): void => {
+                        success(value);
+                        cell.checkHeight();
+                    }}
+                />;
+
+                break;
+            }
+            case DBDataType.Date:
+            case DBDataType.DateTime:
+            case DBDataType.DateTime_f: {
+                // TODO: decide if we want a custom editor here.
+                break;
+            }
+
+            case DBDataType.Time:
+            case DBDataType.Time_f:
+            case DBDataType.Year: {
+                // TODO: decide if we want a custom editor here.
+                break;
+            }
+
+            case DBDataType.Geometry:
+            case DBDataType.Point:
+            case DBDataType.LineString:
+            case DBDataType.Polygon:
+            case DBDataType.GeometryCollection:
+            case DBDataType.MultiPoint:
+            case DBDataType.MultiLineString:
+            case DBDataType.MultiPolygon: {
+                // TODO: decide if we want a custom editor here.
+
+                break;
+            }
+
+            case DBDataType.Json: {
+
+                break;
+            }
+
+            case DBDataType.Bit: {
+
+                break;
+            }
+
+            case DBDataType.Boolean: {
+
+                break;
+            }
+
+            case DBDataType.Enum: {
+
+                break;
+            }
+
+            case DBDataType.Set: {
+
+                break;
+            }
+
+            default: {
+                break;
+            }
+        }
+
+        if (element) {
+            render(element, host);
+        }
+    };
+
+    private stringFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+        let element;
+        if (cell.getValue() === null) {
+            const host = document.createElement("div");
+            host.className = "iconHost";
+
+            element = <Icon src={nullIcon} width={30} height={11} />;
+            render(element, host);
+
+            return host;
+        } else {
+            return cell.getValue() as string;
+        }
+    };
+
+    private blobFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+        const source = cell.getValue() === null ? nullIcon : blobIcon;
+        const icon = <Icon src={source} width={30} height={11} />;
+
+        const host = document.createElement("div");
+        host.className = "iconHost";
+
+        render(icon, host);
+
+        return host;
+    };
+
+    private booleanFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+        const host = document.createElement("div");
+        let element;
+        if (cell.getValue() === null) {
+            element = <Icon src={nullIcon} width={30} height={11} />;
+            host.className = "iconHost";
+        } else {
+            element = <Checkbox checkState={cell.getValue() === 0 ? CheckState.Unchecked : CheckState.Checked} />;
+            host.className = "checkBoxHost";
+        }
+
+        render(element, host);
+
+        return host;
+    };
+
+    private enumFormatter = (): string | HTMLElement => {
+        const icon = <Icon src={blobIcon} width={30} height={11} />;
+
+        const host = document.createElement("div");
+        host.className = "blobIcon";
+
+        render(icon, host);
+
+        return host;
+    };
+
+}

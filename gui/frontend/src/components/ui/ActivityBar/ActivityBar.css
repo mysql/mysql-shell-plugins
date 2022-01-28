@@ -1,0 +1,109 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.activityBar {
+    flex: 0 0 56px;
+    overflow-x: hidden;
+    display: flex;
+
+    min-width: 24px;
+    font-size: 90%;
+
+    background-color: var(--activityBar-background);
+    color: var(--activityBar-foreground);
+    border: var(--borderWidth) solid var(--activityBar-border);
+
+    flex-direction: column;
+    justify-content: stretch;
+    align-items: stretch;
+}
+
+.msg.activityBar.dropTarget {
+    background-color: var(--activityBar-dropBackground);
+    border-color: var(--activityBar-dropBorder);
+
+    transition: background-color 0.25;
+    transition: border-color 0.25;
+}
+
+.msg.activityBar .activityBarItem {
+    flex-basis: 56px;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-left: 2px solid var(--activityBar-background);
+    font-size: 7pt;
+}
+
+.msg.activityBar .activityBarItem:nth-child(2) {
+    /* Apply this to the second child, since the first one is the (hidden) nav button. */
+    margin-top: 13px;
+}
+
+.msg .activityBarItem.expanded {
+    margin-top: auto;
+}
+
+.msg.activityBar .activityBarItem > .icon {
+    margin: 4px 0px 4px 0px;
+    background-color: var(--activityBar-foreground);
+
+    width: 40px;
+    height: 40px;
+    transition: 0.3s background-color, 0.3s color;
+}
+
+.msg.activityBar .activityBarItem > .codicon {
+    background-color: inherit;
+}
+
+.msg.activityBar .activityBarItem .codicon::before {
+    font-size: 230%;
+    font-weight: 800;
+}
+
+.msg.activityBar .activityBarItem .label {
+    transition: color 0.25s;
+}
+
+.msg.activityBar .activityBarItem.active {
+    background-color: var(--activityBar-activeBackground);
+    border-left: 2px solid var(--activityBar-activeBorder);
+}
+
+.msg.activityBar .activityBarItem:hover > .icon,
+.msg.activityBar .activityBarItem.active > .icon {
+    background-color: var(--list-hoverForeground);
+}
+
+.msg.activityBar .activityBarItem:hover > .codicon,
+.msg.activityBar .activityBarItem.active > .codicon {
+    background-color: inherit;
+    color: var(--list-hoverForeground);
+}
+
+.msg.activityBar .activityBarItem:hover > .label,
+.msg.activityBar .activityBarItem.active > .label {
+    color: var(--activityBar-activeBorder);
+}

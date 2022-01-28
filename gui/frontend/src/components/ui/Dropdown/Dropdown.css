@@ -1,0 +1,169 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.dropdown {
+    position: relative;
+    min-height: 22px;
+    min-width: 80px;
+
+    padding: 1px 3px;
+
+    background-color: var(--dropdown-background);
+    border: 1px solid var(--dropdown-border);
+    border-radius: 4px;
+
+    cursor: pointer;
+}
+
+.msg.dropdown > .container {
+    flex: auto;
+}
+
+.msg.dropdown > .container > .icon {
+    margin-right: 4px;
+    height: 24px;
+}
+
+.msg.dropdown > .container > .label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg.dropdown.multiSelect {
+    height: auto;
+}
+
+.msg.dropdown.withoutArrow {
+    padding: 0;
+    text-align: center;
+    border: none;
+    margin: 0;
+    margin-left: 0px;
+    min-width: auto;
+}
+
+.msg.dropdown.withoutArrow::after {
+    display: none;
+}
+
+.msg.dropdown.multiSelect .tag {
+    cursor: pointer;
+}
+
+.msg.dropdown:hover {
+    background-color: var(--dropdown-hoverBackground);
+}
+
+.msg.dropdown:not(.multiSelect) > .label {
+    display: inline-block;
+    appearance: none;
+    margin: 0px 8px 0px 8px;
+
+    color: var(--dropdown-foreground);
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    width: 100%;
+    white-space: nowrap;
+
+    font-size: 0.8rem;
+
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.msg.dropdown::after {
+    display: inline-block;
+    content: "";
+    width: 5px;
+    height: 5px;
+
+    position: absolute;
+    right: 6px;
+
+    border-right: 1px solid var(--dropdown-foreground);
+    border-bottom: 1px solid var(--dropdown-foreground);
+
+    transform: translateY(-2px) rotate(45deg);
+    pointer-events: none;
+}
+
+.msg.dropdownList {
+    padding: 0;
+    border-radius: 0;
+
+    color: var(--dropdown-foreground);
+    background-color: var(--dropdown-listBackground);
+    border: 1px solid transparent;
+
+    font-size: 0.9rem;
+}
+
+.msg.dropdownList > .dropdownItem {
+    padding: 4px;
+    cursor: pointer;
+}
+
+.msg.dropdownList > .dropdownItem > .checkbox {
+    flex: 1 1 auto;
+}
+
+.msg.dropdownList > .dropdownItem .image,
+.msg.dropdownList > .dropdownItem .icon {
+    margin-right: 4px;
+
+    width: 20px;
+    height: 20px;
+}
+
+.msg.dropdownList > .dropdownItem#empty {
+    color: transparent;
+}
+
+.msg.dropdownList > .dropdownItem.default::after {
+    display: inline-block;
+    content: "default";
+
+    position: absolute;
+    right: 4px;
+
+    color: steelblue;
+}
+
+.msg.dropdownList > .dropdownItem:focus,
+.msg.dropdownList > .dropdownItem.selected {
+    background-color: var(--list-activeSelectionBackground);
+    color: var(--foreground);
+}
+
+.msg.dropdownList > .dropdownDivider {
+    background-color: var(--menu-separatorBackground);
+    margin: 2px 0px;
+}
+
+.msg.dropdownList > .dropdownDescription{
+    min-height: 15px;
+    margin: 4px;
+}

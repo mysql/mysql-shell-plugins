@@ -1,0 +1,419 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg#previewRoot {
+    flex: 1 1 auto;
+    margin-left: 20px;
+    border-left: 2px dashed var(--text-dimmedForeground);
+    padding-left: 20px;
+}
+
+.msg#previewRoot > .container {
+    flex: 1 0 auto;
+    margin: 0 20px 20px 20px;
+}
+
+.msg#previewRoot > p {
+    color: var(--foreground);
+    font-weight: 400;
+    font-size: 1.75rem;
+}
+
+.msg#previewRoot .description {
+    font-size: 10pt;
+    padding: 10px 8px 16px 12px;
+    color: var(--descriptionForeground);
+}
+
+.msg#previewRoot .rotated {
+    position: absolute;
+    height: 24px;
+    width: 100%;
+    bottom: 0;
+    left: 30px;
+
+    font-size: 1em;
+    border-bottom: 1px solid var(--foreground);
+
+    transform-origin: 0 100%;
+    transform: rotate(-90deg);
+}
+
+.msg#previewRoot >.grid:not(#symbols) > .gridCell {
+    padding: 0 10px 0 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.msg#previewRoot .fill {
+    flex: 1;
+}
+
+.msg#previewRoot .label#separated {
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+
+    border-bottom: 2px solid var(--textSeparator-foreground);
+}
+
+.msg.themeEditor .title,
+.msg#previewRoot #previewTitle {
+    display: flex;
+    flex-direction: row;
+
+    font-size: 24pt;
+    font-weight: 200;
+
+    margin-bottom: 20px;
+    border-bottom: 1px dotted var(--text-dimmedForeground);
+    color: var(--text-dimmedForeground);
+
+    white-space: nowrap;
+    min-height: 36px;
+}
+
+.msg.themeEditor .title::before,
+.msg#previewRoot #previewTitle::before {
+    content: "";
+    flex: 1 1 auto;
+    display: inline-block;
+
+    position: relative;
+    margin: 0 0 6px 0;
+
+    border-bottom: 2px solid var(--text-dimmedForeground);
+}
+
+.msg.themeEditor .title::after,
+.msg#previewRoot #previewTitle::after {
+    content: "";
+    flex: 1 1 auto;
+    display: inline-block;
+
+    position: relative;
+    margin: 0 0 6px 11px;
+    border-bottom: 2px solid var(--text-dimmedForeground);
+}
+
+.msg#previewRoot #dialogHost {
+    min-height: 300px;
+}
+
+.msg#previewRoot #dialogHost > .dialog {
+    min-height: 200px;
+}
+
+.msg#previewRoot #roundButtonHost .round {
+    margin: 0 16px 0 8px;
+}
+
+.msg#previewRoot #roundButtonHost #roundImageButton {
+    width: 48px;
+    height: 48px;
+}
+
+.msg #dropdownContainer {
+    width: 70%;
+}
+
+.msg #dropdownContainer .dropdown {
+    flex: 1 1 auto;
+    height: 26px;
+}
+
+.msg#previewRoot #activityBarHost {
+    min-height: 300px;
+    margin-right: 20px;
+}
+
+.msg#previewRoot #activityBarHost .activityBar {
+    flex: 0 0 70px;
+    margin: 0;
+}
+
+.msg#previewRoot #activityBarHost .activityBarItem > .icon {
+    width: 32px;
+    height: 32px;
+}
+
+.msg#previewRoot .codicon-symbol-method {
+    color: var(--symbolIcon-methodForeground) !important;
+}
+
+.msg#previewRoot .demoContainer .icon {
+    background-color: var(--icon-foreground);
+    width: 42px;
+    height: 42px;
+}
+
+.msg#previewRoot #innerGrid {
+    height: 100%;
+}
+
+.msg#previewRoot #innerGrid .gridCell {
+    padding: 4px;
+    border: 1px solid hsl(0, 0%, 34%);
+}
+
+.msg#previewRoot > .gridCell .gridCell {
+    max-height: 300px;
+}
+
+.msg#previewRoot .missing {
+    padding: 12px 0px 12px 0px;
+    color: tomato;
+}
+
+.msg#previewRoot .splitContainer {
+    width: 100%;
+}
+
+.msg#previewRoot .splitContainer > .verticalSeparator,
+.msg#previewRoot .splitContainer > .horizontalSeparator {
+    background-color: gray;
+}
+
+.msg#previewRoot .splitContainer .image {
+    width: 100px;
+    height: 100px;
+}
+
+.msg#previewRoot #button1,
+.msg#previewRoot #button2,
+.msg#previewRoot #button3,
+.msg#previewRoot #button4 {
+    margin-bottom: 10px;
+}
+
+.msg#previewRoot #tabview1 {
+    height: 150px;
+}
+
+.msg#previewRoot #tabview1 .content .label {
+    flex: 0 0 auto;
+    margin: auto;
+}
+
+.msg#previewRoot .selectorItem .closeButton {
+    width: 12px;
+    height: 12px;
+    min-width: auto;
+    min-height: auto;
+    background: transparent;
+    border: none;
+    margin: 0px 0px 0px 8px;
+}
+
+.msg#previewRoot .gridCell .selectorItem .closeButton > .icon {
+    width: 12px;
+    height: 12px;
+    margin: 0px;
+    background-color: hsl(0, 0%, 71%);
+}
+
+.msg#previewRoot #symbols {
+    margin-bottom: 20px;
+}
+
+.msg#previewRoot #symbols .codicon {
+    margin-right: 8px;
+    font-size: 150%;
+}
+
+.msg#previewRoot #editorLanguagePicker {
+    flex: 0 0 200px;
+    margin-left: 8px;
+}
+
+.msg#previewRoot .accordion .image {
+    width: 32px;
+    height: 32px;
+}
+
+.msg#previewRoot #editorControlHost {
+    margin-bottom: 10px;
+}
+
+.msg#previewRoot #terminalPreview {
+    background: var(--terminal-background);
+    color: var(--terminal-foreground);
+    border: solid 1px var(--terminal-border);
+
+    font-family: monospace;
+    font-size: 13pt;
+
+    padding: 4px;
+
+    user-select: text;
+}
+
+.msg#previewRoot #terminalPreviewCaption {
+    margin: 0 0 8px 0;
+}
+
+.msg#previewRoot #terminalPreview span {
+    margin: 0 4px;
+    padding: 2px;
+}
+
+.msg#previewRoot #terminalPreview .ansi-bold {
+    font-weight: 800;
+}
+
+.msg#previewRoot #terminalPreview .ansi-black-fg {
+    color: var(--terminal-ansiBlack);
+    background-color: gray;
+}
+
+.msg#previewRoot #terminalPreview .ansi-red-fg {
+    color: var(--terminal-ansiRed);
+}
+
+.msg#previewRoot #terminalPreview .ansi-green-fg {
+    color: var(--terminal-ansiGreen);
+}
+
+.msg#previewRoot #terminalPreview .ansi-yellow-fg {
+    color: var(--terminal-ansiYellow);
+}
+
+.msg#previewRoot #terminalPreview .ansi-blue-fg {
+    color: var(--terminal-ansiBlue);
+}
+
+.msg#previewRoot #terminalPreview .ansi-magenta-fg {
+    color: var(--terminal-ansiMagenta);
+}
+
+.msg#previewRoot #terminalPreview .ansi-cyan-fg {
+    color: var(--terminal-ansiCyan);
+}
+
+.msg#previewRoot #terminalPreview .ansi-white-fg {
+    color: var(--terminal-ansiWhite);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-black-fg {
+    color: var(--terminal-ansiBrightBlack);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-red-fg {
+    color: var(--terminal-ansiBrightRed);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-green-fg {
+    color: var(--terminal-ansiBrightGreen);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-yellow-fg {
+    color: var(--terminal-ansiBrightYellow);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-blue-fg {
+    color: var(--terminal-ansiBrightBlue);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-magenta-fg {
+    color: var(--terminal-ansiBrightMagenta);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-cyan-fg {
+    color: var(--terminal-ansiBrightCyan);
+}
+
+.msg#previewRoot #terminalPreview .ansi-bright-white-fg {
+    color: var(--terminal-ansiBrightWhite);
+}
+
+.msg#previewRoot #terminalPreview .ansi-black-bg {
+    background: var(--terminal-ansiBlack);
+}
+
+.msg#previewRoot #terminalPreview .ansi-red-bg {
+    background: var(--terminal-ansiRed);
+}
+
+.msg#previewRoot #terminalPreview .ansi-green-bg {
+    background: var(--terminal-ansiGreen);
+}
+
+.msg#previewRoot #terminalPreview .ansi-yellow-bg {
+    background: var(--terminal-ansiYellow);
+}
+
+.msg#previewRoot #terminalPreview .ansi-blue-bg {
+    background: var(--terminal-ansiBlue);
+}
+
+.msg#previewRoot #terminalPreview .ansi-magenta-bg {
+    background: var(--terminal-ansiMagenta);
+}
+
+.msg#previewRoot #terminalPreview .ansi-cyan-bg {
+    background: var(--terminal-ansiCyan);
+}
+
+.msg#previewRoot #terminalPreview .ansi-white-bg {
+    background: var(--terminal-ansiWhite);
+}
+
+.msg#previewRoot #terminalPreview span::selection {
+    background-color: var(--terminal-selectionBackground);
+}
+
+.msg#previewRoot #terminalPreview #cursor {
+    width: 4px;
+    padding: 2px 4px 0 5px;
+    margin: 0;
+
+    background-color: var(--terminalCursor-background);
+}
+
+.msg#previewRoot #terminalPreview #cursor > #inner {
+    width: 0px;
+    padding-left: 1px;
+    margin: 0;
+
+    background-color: var(--terminalCursor-foreground);
+
+    animation: blink 1.5s ease infinite;
+}
+
+@keyframes blink {
+    70% {
+      opacity: 0.0;
+    }
+}
+
+.msg#progress .gridCell {
+    min-height: 100px;
+}
+
+.msg#progress .gridCell .label {
+    margin-bottom: 20px;
+}
+
+.msg#progress .gridCell .progressIndicatorHost {
+    width: 250px;
+    padding: 5px;
+}

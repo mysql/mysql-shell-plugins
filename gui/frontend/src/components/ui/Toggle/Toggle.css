@@ -1,0 +1,193 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation. The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.toggle {
+	--toggle-border-width: 1px;
+}
+
+input.msg.toggle {
+	display: none;
+}
+
+label.msg.toggle {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    width: max-content;
+    position: relative;
+
+    --toggle-color: 217, 65%, 51%;
+    --toggle-checked-color: 217, 65%, 51%;
+}
+
+/* The toggle background. */
+label.msg.toggle::before {
+    display: block;
+    content: "";
+	height: 12px;
+	width: 23px;
+
+    border-radius: 2px;
+    border: var(--toggle-border-width) solid hsla(var(--toggle-color), 1);
+    background-color: hsla(var(--toggle-color), 0.75);
+    margin-right: 4px;
+
+    transition: border 0.2s, background-color 0.2s;
+}
+
+label.msg.toggle.round::before {
+    border-radius: 25pt;
+}
+
+input:checked + label.msg.toggle::before {
+    border: var(--toggle-border-width) solid hsla(var(--toggle-checked-color), 1);
+    background-color: hsla(var(--toggle-checked-color), 0.75);
+
+    transition: border 0.2s, background-color 0.2s;
+}
+
+label.msg.toggle.tiny::before {
+    height: 6px;
+    width: 11px;
+}
+
+label.msg.toggle.small::before {
+    height: 8px;
+    width: 15px;
+}
+
+label.msg.toggle.medium::before {
+    height: 12px;
+    width: 23px;
+}
+
+label.msg.toggle.big::before {
+    height: 25px;
+    width: 49px;
+}
+
+label.msg.toggle.huge::before {
+    height: 35px;
+    width: 69px;
+}
+
+/* The circle (handle) in the toggle - unchecked, standard size. */
+label.msg.toggle::after {
+    flex: 0 0 auto;
+    align-self: center;
+    content: "";
+
+    position: absolute;
+	width: 12px;
+	height: 12px;
+	left: var(--toggle-border-width);
+
+	background-color: var(--icon-foreground);
+	border-radius: 2px;
+	transition: left 0.2s;
+}
+
+label.msg.toggle.round::after {
+	border-radius: 50%;
+}
+
+/* Checked, standard size. */
+input:checked.msg.toggle + label::after   {
+    left: calc(11px + var(--toggle-border-width));
+}
+
+/* Unchecked, tiny. */
+label.msg.toggle.tiny::after {
+    width: 6px;
+    height: 6px;
+}
+
+/** Checked, tiny. */
+input:checked.msg.toggle.tiny + label::after  {
+    left: calc(5px + var(--toggle-border-width));
+}
+
+label.msg.toggle.small::after {
+    width: 8px;
+    height: 8px;
+}
+
+input:checked.msg.toggle.small + label::after  {
+    left: calc(7px + var(--toggle-border-width));
+}
+
+label.msg.toggle.medium::after {
+    width: 12px;
+    height: 12px;
+}
+
+input:checked.msg.toggle.medium + label::after  {
+    left: calc(11px + var(--toggle-border-width));
+}
+
+label.msg.toggle.big::after {
+    width: 25px;
+    height: 25px;
+}
+
+input:checked.msg.toggle.big + label::after  {
+    left: calc(24px + var(--toggle-border-width));
+}
+
+label.msg.toggle.huge::after {
+    width: 35px;
+    height: 35px;
+}
+
+input:checked.msg.toggle.huge + label::after  {
+    left: calc(34px + var(--toggle-border-width));
+}
+
+/*
+  Ugly hack ahead! Safari doesn't support flex-box alignment for ::after pseudo elements, so we have
+  to specify a manual alignment. Unfortunately, that doesn't work well in Firefox, so we cannot use the margin
+  for all browsers and instead use the automatic layout for FF + Chrome and the manual alignment for Safari.
+*/
+_::-webkit-full-page-media, _:future, label.msg.toggle::after {
+    margin-top: 3px;
+}
+
+_::-webkit-full-page-media, _:future, label.msg.toggle.tiny::after {
+    margin-top: 2.5px;
+}
+_::-webkit-full-page-media, _:future, label.msg.toggle.small::after {
+    margin-top: 3.5px;
+}
+
+_::-webkit-full-page-media, _:future, label.msg.toggle.medium::after {
+    margin-top: 4px;
+}
+
+_::-webkit-full-page-media, _:future, label.msg.toggle.big::after {
+    margin-top: 9.5px;
+}
+
+_::-webkit-full-page-media, _:future, label.msg.toggle.huge::after {
+    margin-top: 11px;
+}

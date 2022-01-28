@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="0, 0, 1024, 1024">
+  <g id="table.svg" transform="translate(0, 0)">
+    <path d="M960,64 L960,960 L64,960 L64,64 L960,64 z M896,192 L128,192 L128,896 L896,896 L896,192 z" fill="#ffffff"/>
+    <path d="M192,320 L448,320 L448,384 L192,384 L192,320 z" fill="#ffffff"/>
+    <path d="M192,448 L448,448 L448,512 L192,512 L192,448 z" fill="#ffffff"/>
+    <path d="M192,576 L448,576 L448,640 L192,640 L192,576 z" fill="#ffffff"/>
+    <path d="M576,320 L832,320 L832,384 L576,384 L576,320 z" fill="#ffffff"/>
+    <path d="M576,448 L832,448 L832,512 L576,512 L576,448 z" fill="#ffffff"/>
+    <path d="M576,576 L832,576 L832,640 L576,640 L576,576 z" fill="#ffffff"/>
+    <path d="M192,704 L448,704 L448,768 L192,768 L192,704 z" fill="#ffffff"/>
+    <path d="M576,704 L832,704 L832,768 L576,768 L576,704 z" fill="#ffffff"/>
+  </g>
+</svg>

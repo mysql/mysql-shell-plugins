@@ -1,0 +1,371 @@
+/*
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.codeEditor {
+    /* Restore selection ability. Very important for Safari. */
+    user-select: text !important;
+    --loading-progress-color: gray;
+    --waiting-progress-color: gray;
+}
+
+.msg.editorHost {
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.msg.codeEditor .zoneHost {
+    z-index: 2;
+    box-sizing: border-box;
+    padding-right: 16px;
+}
+
+.msg.codeEditor .textHost {
+    white-space: pre-wrap;
+}
+
+.msg.codeEditor .zoneHost > .renderTarget {
+    background-color: var(--editorZone-background);
+    color: var(--editorZone-foreground);
+
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.msg.codeEditor .zoneHost > .renderTarget > .resultText {
+    line-height: 22px;
+    height: 100%;
+}
+
+.msg.codeEditor .zoneMargin.focused::before {
+    background-color: white;
+}
+
+.msg.codeEditor .view-line .error {
+    background: url(../../../assets/images/squiggle.svg) bottom left repeat-x;
+}
+
+.msg.codeEditor .editorPromptFirst.loading::after {
+    content: "";
+    display: block;
+    width: 60%;
+    height: 3px;
+
+    position: absolute;
+    bottom: 0px;
+
+    background-image: repeating-linear-gradient(-45deg,
+            var(--loading-progress-color) 25%,
+            transparent 25%,
+            transparent 50%,
+            var(--loading-progress-color) 50%,
+            var(--loading-progress-color) 75%,
+            transparent 75%,
+            transparent);
+    background-size: 7px 3px;
+    background-position: 0px;
+
+    animation: linearMovement 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes linearMovement {
+    0% {
+        background-position: 2px;
+    }
+
+    100% {
+        background-position: 9px;
+    }
+}
+
+.msg.codeEditor .editorPromptFirst.waiting::after {
+    content: "";
+    display: block;
+    width: 60%;
+    height: 3px;
+
+    position: absolute;
+    bottom: 0px;
+
+    background: linear-gradient(to right,
+            var(--waiting-progress-color) 50%,
+            transparent 50%,
+            transparent);
+    background-position: 0px;
+    background-repeat: no-repeat;
+
+    animation: bouncingMovement 1s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: linear;
+}
+
+@keyframes bouncingMovement {
+    0% {
+        background-position: -10px;
+    }
+
+    100% {
+        background-position: 22px;
+    }
+}
+
+.msg.codeEditor.decorationSet-standard .zoneMargin::before {
+    content: "";
+    display: none;
+}
+
+.msg.codeEditor.decorationSet-alternative .zoneMargin::before {
+    content: "";
+    display: block;
+    position: absolute;
+
+    width: 10px;
+    height: inherit;
+    right: 12px;
+
+    background-image: repeating-linear-gradient(-45deg,
+            var(--editorPrompt-result) 7%,
+            transparent 7%,
+            transparent 50%,
+            var(--editorPrompt-result) 50%,
+            var(--editorPrompt-result) 57%,
+            transparent 57%);
+    background-size: 6px 6px;
+    background-position: 0px;
+    background-attachment: fixed;
+}
+
+.msg.codeEditor .editorPromptFirst.typescript::before {
+    content: "ts>";
+    display: block;
+
+    margin-left: 13px;
+
+    font-size: 0.9rem;
+
+    color: var(--editorPrompt-primary-ts);
+}
+
+.msg.codeEditor.decorationSet-standard .editorPrompt.typescript::before {
+    content: "";
+    display: block;
+    position: absolute;
+
+    width: 7px;
+    right: 10px;
+    top: -8px;
+    height: 52px;
+
+    mask-image: url(../../../assets/images/editor-side-line.svg);
+    background-color: var(--editorPrompt-secondary-ts);
+    mask-size: 5px;
+    mask-repeat: no-repeat;
+}
+
+.msg.codeEditor.decorationSet-alternative .editorPrompt.typescript::before {
+    content: "";
+    display: block;
+    opacity: 0.5;
+    position: absolute;
+
+    width: 10px;
+    height: inherit;
+    right: 12px;
+
+    background-image: repeating-linear-gradient(-45deg,
+            var(--editorPrompt-secondary-ts) 7%,
+            transparent 7%,
+            transparent 50%,
+            var(--editorPrompt-secondary-ts) 50%,
+            var(--editorPrompt-secondary-ts) 57%,
+            transparent 57%);
+    background-size: 6px 6px;
+    background-position: 0px;
+    background-attachment: fixed;
+}
+
+.msg.codeEditor .editorPromptFirst.javascript::before {
+    content: "js>";
+    display: block;
+
+    margin-left: 13px;
+
+    font-size: 0.9rem;
+
+    color: var(--editorPrompt-primary-js);
+}
+
+.msg.codeEditor.decorationSet-standard .editorPrompt.javascript::before {
+    content: "";
+    display: block;
+    position: absolute;
+
+    width: 7px;
+    right: 10px;
+    top: -8px;
+    height: 52px;
+
+    mask-image: url(../../../assets/images/editor-side-line.svg);
+    background-color: var(--editorPrompt-secondary-js);
+    mask-size: 5px;
+    mask-repeat: no-repeat;
+}
+
+.msg.codeEditor.decorationSet-alternative .editorPrompt.javascript::before {
+    content: "";
+    display: block;
+    opacity: 0.5;
+    position: absolute;
+
+    width: 10px;
+    height: inherit;
+    right: 12px;
+
+    background-image: repeating-linear-gradient(-45deg,
+            var(--editorPrompt-secondary-js) 7%,
+            transparent 7%,
+            transparent 50%,
+            var(--editorPrompt-secondary-js) 50%,
+            var(--editorPrompt-secondary-js) 57%,
+            transparent 57%);
+    background-size: 6px 6px;
+    background-position: 0px;
+    background-attachment: fixed;
+}
+
+.msg.codeEditor .editorPromptFirst.sql::before,
+.msg.codeEditor .editorPromptFirst.mysql::before {
+    content: "sql>";
+    display: block;
+    margin-left: 4px;
+    font-size: 0.9rem;
+    color: var(--editorPrompt-primary-sql);
+}
+
+.msg.codeEditor.decorationSet-standard .editorPrompt.sql::before,
+.msg.codeEditor.decorationSet-standard .editorPrompt.mysql::before {
+    content: "";
+    display: block;
+    position: absolute;
+
+    width: 7px;
+    right: 10px;
+    top: -8px;
+    height: 52px;
+
+    mask-image: url(../../../assets/images/editor-side-line.svg);
+    background-color: var(--editorPrompt-secondary-sql);
+    mask-size: 5px;
+    mask-repeat: no-repeat;
+}
+
+.msg.codeEditor.decorationSet-alternative .editorPrompt.sql::before,
+.msg.codeEditor.decorationSet-alternative .editorPrompt.mysql::before {
+    content: "";
+    display: block;
+    opacity: 0.5;
+    position: absolute;
+
+    width: 10px;
+    height: inherit;
+    right: 12px;
+
+    background-image: repeating-linear-gradient(-45deg,
+            var(--editorPrompt-secondary-sql) 7%,
+            transparent 7%,
+            transparent 50%,
+            var(--editorPrompt-secondary-sql) 50%,
+            var(--editorPrompt-secondary-sql) 57%,
+            transparent 57%);
+    background-size: 6px 6px;
+    background-position: 0px;
+    background-attachment: fixed;
+}
+
+.msg.codeEditor .editorPromptFirst.python::before {
+    content: "py>";
+    display: block;
+    margin-left: 13px;
+    font-size: 0.9rem;
+    color: var(--editorPrompt-primary-py);
+}
+
+.msg.codeEditor.decorationSet-standard .editorPrompt.python::before {
+    content: "";
+    display: block;
+    position: absolute;
+
+    width: 7px;
+    right: 10px;
+    top: -8px;
+    height: 52px;
+
+    mask-image: url(../../../assets/images/editor-side-line.svg);
+    background-color: var(--editorPrompt-secondary-py);
+    mask-size: 5px;
+    mask-repeat: no-repeat;
+}
+
+.msg.codeEditor.decorationSet-alternative .editorPrompt.python::before {
+    content: "";
+    display: block;
+    opacity: 0.5;
+    position: absolute;
+
+    width: 10px;
+    height: inherit;
+    right: 12px;
+
+    background-image: repeating-linear-gradient(-45deg,
+            var(--editorPrompt-secondary-py) 7%,
+            transparent 7%,
+            transparent 50%,
+            var(--editorPrompt-secondary-py) 50%,
+            var(--editorPrompt-secondary-py) 57%,
+            transparent 57%);
+    background-size: 6px 6px;
+    background-position: 0px;
+    background-attachment: fixed;
+}
+
+.msg.codeEditor .statementStart::after {
+    content: "";
+    display: block;
+    position: absolute;
+
+    border-radius: 50%;
+    width: 4px;
+    height: 4px;
+
+    right: 4px;
+    top: 50%;
+    background: #0096FF;
+}
+
+.msg.codeEditor .margin-view-overlays .codicon::before {
+    /* Make the code folding icons left aligned, instead of centered. */
+    margin-right: auto;
+}

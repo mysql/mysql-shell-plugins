@@ -1,0 +1,120 @@
+/*
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+ input {
+    background-color: hsl(240, 5%, 22%);
+    border: 1px solid hsl(240, 5%, 26%);
+    border-radius: 4px;
+    color: hsl(240, 5%, 57%);
+    padding: 3px 8px;
+    margin: 3px 3px;
+  }
+
+  #main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .output_div {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  #output_container {
+    flex-grow: 1;
+    overflow: hidden;
+  }
+
+  #input_area {
+    display: flex;
+    flex-direction: row;
+    margin: 0px;
+    padding: 0px;
+    flex-grow: 1;
+  }
+
+  #tab_content_input_console {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  #input_container {
+    flex-grow: 1;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+  }
+
+  #template_container {
+    flex-basis: 350px;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+  }
+
+  #toolbar {
+    display: flex;
+    flex-direction: row;
+    margin: 5px 5px;
+  }
+
+  .toolbar_last_btn_aligned_right {
+    margin-right: auto;
+  }
+
+  p {
+    margin: 3px;
+    padding: 0px;
+  }
+
+  #loginStatus {
+    margin-top: 15px;
+    color: red;
+  }
+
+  .myGlyphMarginClass {
+    background-color: #333333;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23919192'><polygon points='0,0 0,100 50,50'/></svg>") no-repeat;
+    background-size: 12px;
+    background-position: calc(100% - 0px) calc(100% - 4px);
+    background-repeat: no-repeat;
+  }
+
+  .myContentClass {
+    opacity: 0.5;
+  }
+
+  .content_container_not_active {
+    display: none !important;
+  }
