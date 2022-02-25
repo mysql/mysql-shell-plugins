@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -46,24 +46,29 @@ class SqleditorModuleSession(DbModuleSession):
         self.close()
         super().__del__()
 
-    def close(self):
+    def close_connection(self):
         # do cleanup
-
         if self._db_user_session is not None:
             self._db_user_session.close()
             self._db_user_session = None
 
-        super().close()
+        super().close_connection()
 
-    # Overrides the on_connected function at the DBModuleSession to actually trigger the user session connection, on this one no prompts are expected as they were resovled on the service session connection
+    # Overrides the on_connected function at the DBModuleSession to actually
+    # trigger the user session connection, on this one no prompts are expected
+    # as they were resolved on the service session connection
     def on_connected(self):
-        self._db_user_session = DbSessionFactory.create(
-            self._db_type, self._web_session.session_uuid, True,
-            self._connection_options,
-            self.on_user_session_connected,
-            lambda x: self.on_fail_connecting(x),
-            lambda x: self.on_shell_prompt(x),
-            lambda x: self.on_shell_password(x))
+        if self._db_user_session is None:
+            self._db_user_session = DbSessionFactory.create(
+                self._db_type, self._web_session.session_uuid, True,
+                self._connection_options,
+                self._ping_interval,
+                self.on_user_session_connected,
+                lambda x: self.on_fail_connecting(x),
+                lambda x: self.on_shell_prompt(x),
+                lambda x: self.on_shell_password(x))
+        else:
+            self._db_user_session.reconnect()
 
     def on_user_session_connected(self):
         data = Response.ok("Connection was successfully opened.", {
@@ -115,6 +120,9 @@ class SqleditorModuleSession(DbModuleSession):
     @check_service_database_session
     def kill_query(self):
         self._db_service_session.kill_query(self._db_user_session)
+
+    def cancel_request(self, request_id):
+        self._db_service_session.cancel_request(request_id)
 
     def cancel_request(self, request_id):
         self._db_service_session.cancel_request(request_id)

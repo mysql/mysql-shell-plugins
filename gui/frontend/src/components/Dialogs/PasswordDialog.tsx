@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -100,7 +100,12 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
                     }
                     <GridCell className="left" crossAlignment={ContentAlignment.Center}>Password:</GridCell>
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
-                        <Input password onChange={this.handlePasswordChange} onConfirm={this.handlePasswordConfirm} />
+                        <Input
+                            autoFocus
+                            password
+                            onChange={this.handlePasswordChange}
+                            onConfirm={this.handlePasswordConfirm}
+                        />
                     </GridCell>
                 </Grid>
             }

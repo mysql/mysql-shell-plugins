@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -42,11 +42,14 @@ from queue import Queue, Empty
 import gui_plugin.core.Logger as logger
 from gui_plugin.users import backend as user_handler
 from gui_plugin.core.Db import GuiBackendDb
-import gui_plugin.internal.tests_utils
+import gui_plugin.debug_utils
 from tests.tests_timeouts import server_timeout
+import gui_plugin.core.Logger as logger
+
 
 def signal_handler(sig, frame):
-    print(f'2) Ctrl+C! captured: {sig}')
+    logger.debug(f'2) Ctrl+C! captured: {sig}')
+
 
 if os.name == 'nt':
     signal.signal(signal.SIGINT, signal_handler)
@@ -63,9 +66,10 @@ def debug_info():
 
 
 server_token = str(uuid.uuid1())
-port, nossl, prototype = config.Config.get_instance().get_server_params()
-server_params = [(port, nossl, prototype)]
-default_server_connection_string = config.Config.get_instance().get_default_mysql_connection_string()
+port, nossl = config.Config.get_instance().get_server_params()
+server_params = [(port, nossl)]
+default_server_connection_string = config.Config.get_instance(
+).get_default_mysql_connection_string()
 
 FORMAT = "[%(asctime)-15s][%(levelname)s] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT,
@@ -115,12 +119,12 @@ def create_socket_connection(cookie=None, token=None):
         return websocket.create_connection(url, cookie=cookie)
     except ConnectionRefusedError as e:
         if e.errno != 111:
-            print(
+            logger.exception(e,
                 f"\n=========[EXCEPTION]=========\n{debug_info()}\n{str(e)}\n-----------------------------")
             raise
 
     except Exception as e:
-        print(
+        logger.exception(e,
             f"\n=========[EXCEPTION]=========\n{debug_info()}\n{str(e)}\n-----------------------------")
         raise
 
@@ -146,7 +150,7 @@ def connect_and_get_session(session_id=None, cookie=None, token=None):
             data = json.loads(ws.recv())
             queue.put(data)
         except Exception as e:
-            print(
+            logger.error(
                 f"connect_and_get_session.receive_frame exception - {str(e)}")
 
     threading.Thread(
@@ -154,8 +158,8 @@ def connect_and_get_session(session_id=None, cookie=None, token=None):
 
     try:
         data = queue.get(block=True, timeout=10)
-    except Empty as e:
-        print("Timeout waiting for a session start")
+    except Empty:
+        logger.error("Timeout waiting for a session start")
         raise
     # data = json.loads(ws.recv())
 
@@ -165,7 +169,6 @@ def connect_and_get_session(session_id=None, cookie=None, token=None):
         assert data['session_uuid'] == session_id
         assert data['request_state']['msg'] == "Session recovered"
         assert data['active_profile']
-        assert data['active_profile']['active'] == 1
     else:
         assert data['request_state']['msg'] == "A new session has been created"
 
@@ -228,7 +231,7 @@ def start_server(request, server_token=None):
             if 'COV_CORE_DATAFILE' in os.environ:
                 pytest.exit(
                     'A server is already running while doing coverage. Stopping the tests.')
-            print("A server is already running. The tests will use that one.")
+            logger.info("A server is already running. The tests will use that one.")
 
             # yield None
 
@@ -241,31 +244,30 @@ def start_server(request, server_token=None):
             # A running server exists while we're trying to do coverage. We can't connect to the server
             # for coverage report.
             raise e
-        print(
+        logger.exception(e,
             f"\n=========[EXCEPTION]=========\n{debug_info()}\n{str(e)}\n-----------------------------")
 
-    port, nossl, prototype = request.param
+    port, nossl = request.param
     parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    print(f"conftest - parent_dir: {parent_dir}")
+    logger.debug(f"conftest - parent_dir: {parent_dir}")
     webroot_path = "'" + os.path.join(
-        parent_dir, 'gui_plugin', 'core', 'webroot.prototype' if prototype else 'webroot') + "'"
+        parent_dir, 'gui_plugin', 'core', 'webroot') + "'"
 
-    print(f"conftest - webroot_path: {webroot_path}")
-    env = {}
-    certs = {}
+    logger.debug(f"conftest - webroot_path: {webroot_path}")
     server_token_param = 'None' if server_token is None else f"'{server_token}'"
-    command_script = f'import gui_plugin.internal.tests_utils; import gui_plugin.start; gui_plugin.start.web_server(port={port}, secure={certs}, webrootpath={webroot_path}, single_instance_token={server_token_param})'
+
+    command_script = f'import gui_plugin.debug_utils; import gui_plugin.start; gui_plugin.start.web_server(port={port}, webrootpath={webroot_path}, single_instance_token={server_token_param})'
     from pathlib import Path
     command_script = Path(command_script).as_posix()
-    print(f"conftest - command_script: {command_script}")
+    logger.debug(f"conftest - command_script: {command_script}")
     command_args = [sys.executable, '--py', '-e', command_script]
-    print(command_args)
+    logger.debug(command_args)
     p = None
     try:
         p = subprocess.Popen(command_args, env=os.environ,
                              creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0)
     except Exception as e:
-        print(str(e))
+        logger.exception(e)
 
     for sec in range(server_timeout()):
         try:
@@ -287,9 +289,9 @@ def shell_start_server(request):
 
     yield p
 
-    print("sending sigint to the shell subprocess")
+    logger.info("sending sigint to the shell subprocess")
     os.kill(p.pid,
-        signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)
+    signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)
 
     logger.info(f"Waiting for server to shutdown")
     p.wait()
@@ -324,7 +326,7 @@ def shell_start_local_user_mode_server(request):
 
     if hasattr(signal, 'CTRL_C_EVENT'):
         # windows. Need CTRL_C_EVENT to raise the signal in the whole process group
-        os.kill(p.pid, signal.CTRL_C_EVENT)
+        os.kill(p.pid, signal.CTRL_C_EVENT) # pylint: disable=no-member
     else:
         p.send_signal(signal.SIGINT)
     logger.info(f"Waiting for server to shutdown")
@@ -393,7 +395,7 @@ def create_users():
                                                    key, value['password'], value['role'])
 
                 if key == "admin1":
-                    user_dir = mysqlsh.plugin_manager.general.get_shell_user_dir(
+                    user_dir = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
                         'plugin_data', 'gui_plugin', f'user_{user_id}')
                     os.makedirs(os.path.join(
                         user_dir, "directory1", "subdirectory1"))
@@ -451,16 +453,16 @@ def print_user_story_stack_trace(ws, exc):
     import sys
     _, _, exc_traceback = sys.exc_info()
     stack = traceback.format_exception(Exception, exc, exc_traceback)
-    print("----------------------------------------------------------------------------------------------")
-    print("User story stack trace")
-    print("----------------------------------------------------------------------------------------------")
+    logger.debug("----------------------------------------------------------------------------------------------")
+    logger.debug("User story stack trace")
+    logger.debug("----------------------------------------------------------------------------------------------")
     for line in stack:
         if line.find('  File "<string>"') > -1:
             importanat_parts = line.replace(
                 '  File "<string>"', f'File: "{ws._story_stack[0]}"').split(", ")
-            print(f"{importanat_parts[0]}: {importanat_parts[1]}")
+            logger.debug(f"{importanat_parts[0]}: {importanat_parts[1]}")
             ws._story_stack = ws._story_stack[1:]
-    print("----------------------------------------------------------------------------------------------")
+    logger.debug("----------------------------------------------------------------------------------------------")
 
 
 # This decorator changes a callback to validate the basic
@@ -491,29 +493,29 @@ def backend_callback(expected_response_count=2, options=None):
 
             self.current_response = 0
             for response in self.responses:
-                assert response["request_id"] == wrapper.request_id
+                assert response["request_id"] == wrapper.request_id # pylint: disable=no-member
 
                 function(response["state"], response["message"],
                          response["request_id"], response["values"])
                 self.current_response += 1
 
         def wrapper(state, message, request_id, values):
-            wrapper.responses.append({
+            wrapper.responses.append({ # pylint: disable=no-member
                 "state": state,
                 "message": message,
                 "request_id": request_id,
                 "values": values
             })
-            wrapper.total_responses += 1
-            if wrapper.total_responses == expected_response_count:
-                wrapper.finished.set()
+            wrapper.total_responses += 1 # pylint: disable=no-member
+            if wrapper.total_responses == expected_response_count: # pylint: disable=no-member
+                wrapper.finished.set() # pylint: disable=no-member
 
         wrapper.reset = types.MethodType(reset, wrapper)
         wrapper.join = types.MethodType(join, wrapper)
         wrapper.join_and_validate = types.MethodType(
             join_and_validate, wrapper)
 
-        wrapper.reset()
+        wrapper.reset() # pylint: disable=not-callable
 
         return wrapper
     return decorator
@@ -531,7 +533,7 @@ def backend_callback_with_pending(expected_response_count=1, options=None):
             self.join(timeout)
 
             # Validate 'PENDING' message
-            assert self.responses[0]["request_id"] == wrapper.request_id
+            assert self.responses[0]["request_id"] == wrapper.request_id # pylint: disable=no-member
 
             assert self.responses[0]["state"] == "PENDING"
             assert self.responses[0]["message"] == "Execution started..."
@@ -539,7 +541,7 @@ def backend_callback_with_pending(expected_response_count=1, options=None):
 
             self.current_response = 1
             for response in self.responses[1:]:
-                assert response["request_id"] == wrapper.request_id
+                assert response["request_id"] == wrapper.request_id # pylint: disable=no-member
 
                 function(response["state"], response["message"],
                          response["request_id"], response["values"])
@@ -560,7 +562,7 @@ def clear_module_data_tables():
         db.execute("""DELETE FROM data_user_group_tree;""")
         db.execute("""DELETE FROM data_profile_tree;""")
         db.execute("""DELETE FROM data;""")
-        db.execute("""DELETE FROM data_category;""")
+        db.execute("""DELETE FROM data_category WHERE id > 100;""")
         db.execute("""DELETE FROM data_folder_has_data;""")
         db.execute("""DELETE FROM data_folder;""")
         db.commit()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -83,14 +83,14 @@ export class CodeBlocks {
             const spans = this.codeBlocks.get(event.document.uri);
             if (spans) {
                 event.contentChanges.forEach((change) => {
-                    const changeLength = change.rangeLength - change.text.length;
+                    const changeLength = change.text.length - change.rangeLength;
 
                     // Check all spans if they overlap the current change. If the change goes beyond an affected span
                     // remove that span entirely. Otherwise update the length of the span (there can only be one).
                     let startIndex = -1;
                     let count = 0;
                     spans.forEach((current, index) => {
-                        if (this.spansOverlap(current.start, current.length, change.rangeOffset, change.rangeLength)) {
+                        if (this.spansOverlap(current.start, current.length, change.rangeOffset, changeLength)) {
                             if (startIndex === -1) {
                                 startIndex = index;
                             }
@@ -246,16 +246,16 @@ export class CodeBlocks {
                 gutterIconPath: path.join(__dirname, "..", "..", "..", "images", "light", "query-marker.svg"),
                 before: {
                     contentIconPath: path.join(__dirname, "..", "..", "..", "images", "light", "sqlBlockStart.svg"),
-                    width: "38px",
+                    width: "28px",
                     height: "16px",
-                    margin: "2px 8px 2px 8px",
+                    margin: "4px 6px 2px 6px",
                     color: "#db8f00",
                 },
                 after: {
                     contentIconPath: path.join(__dirname, "..", "..", "..", "images", "light", "sqlBlockEnd.svg"),
-                    width: "21px",
+                    width: "28px",
                     height: "16px",
-                    margin: "2px 6px 2px 8px",
+                    margin: "4px 6px 2px 6px",
                     color: "#db8f00",
                 },
             },
@@ -265,16 +265,16 @@ export class CodeBlocks {
                 gutterIconPath: path.join(__dirname, "..", "..", "..", "images", "dark", "query-marker.svg"),
                 before: {
                     contentIconPath: path.join(__dirname, "..", "..", "..", "images", "dark", "sqlBlockStart.svg"),
-                    width: "38px",
+                    width: "28px",
                     height: "16px",
-                    margin: "2px 8px 2px 8px",
+                    margin: "4px 6px 2px 6px",
                     color: "#db8f00",
                 },
                 after: {
                     contentIconPath: path.join(__dirname, "..", "..", "..", "images", "dark", "sqlBlockEnd.svg"),
-                    width: "21px",
+                    width: "28px",
                     height: "16px",
-                    margin: "2px 6px 2px 8px",
+                    margin: "4px 6px 2px 6px",
                     color: "#db8f00",
                 },
             },
@@ -426,10 +426,10 @@ export class CodeBlocks {
         const end1 = start1 + length1;
         const end2 = start2 + length2;
         if (start1 <= start2) {
-            return end1 >= start2 && end1 <= end2;
+            return start2 <= end1;
         }
 
-        return end2 >= start1 && end2 <= end1;
+        return start1 <= end2;
     }
 
     /**

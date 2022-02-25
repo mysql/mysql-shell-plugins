@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -134,7 +134,7 @@ export class ExecutionContexts {
                             this.loadResultSet(id).then((resultSet) => {
                                 if (resultSet) {
                                     sets.push(resultSet);
-                                    context.setResult(result, state.defaultHeight, state.manualHeight);
+                                    context.setResult(result, state.manualHeight);
                                 }
                             }).catch(() => {
                                 // Ignore load errors.
@@ -145,7 +145,7 @@ export class ExecutionContexts {
                     }
 
                     default: {
-                        context.setResult(state.result, state.defaultHeight, state.manualHeight);
+                        context.setResult(state.result, state.manualHeight);
 
                         break;
                     }

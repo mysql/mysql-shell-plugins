@@ -1,7 +1,7 @@
 parser grammar MySQLParser;
 
 /*
- * Copyright (c) 2012, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -53,7 +53,7 @@ options {
 //----------------------------------------------------------------------------------------------------------------------
 
 @header {/*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -2512,35 +2512,35 @@ showReplicaStatusStatement:
 ;
 
 showCreateProcedureStatement:
-    SHOW_SYMBOL PROCEDURE_SYMBOL procedureRef
+    SHOW_SYMBOL CREATE_SYMBOL PROCEDURE_SYMBOL procedureRef
 ;
 
 showCreateFunctionStatement:
-    SHOW_SYMBOL FUNCTION_SYMBOL functionRef
+    SHOW_SYMBOL CREATE_SYMBOL FUNCTION_SYMBOL functionRef
 ;
 
 showCreateTriggerStatement:
-    SHOW_SYMBOL TRIGGER_SYMBOL triggerRef
+    SHOW_SYMBOL CREATE_SYMBOL TRIGGER_SYMBOL triggerRef
 ;
 
 showCreateProcedureStatusStatement:
-    SHOW_SYMBOL PROCEDURE_SYMBOL STATUS_SYMBOL likeOrWhere?
+    SHOW_SYMBOL CREATE_SYMBOL PROCEDURE_SYMBOL STATUS_SYMBOL likeOrWhere?
 ;
 
 showCreateFunctionStatusStatement:
-    SHOW_SYMBOL FUNCTION_SYMBOL STATUS_SYMBOL likeOrWhere?
+    SHOW_SYMBOL CREATE_SYMBOL FUNCTION_SYMBOL STATUS_SYMBOL likeOrWhere?
 ;
 
 showCreateProcedureCodeStatement:
-    SHOW_SYMBOL PROCEDURE_SYMBOL CODE_SYMBOL procedureRef
+    SHOW_SYMBOL CREATE_SYMBOL PROCEDURE_SYMBOL CODE_SYMBOL procedureRef
 ;
 
 showCreateFunctionCodeStatement:
-    SHOW_SYMBOL FUNCTION_SYMBOL CODE_SYMBOL functionRef
+    SHOW_SYMBOL CREATE_SYMBOL FUNCTION_SYMBOL CODE_SYMBOL functionRef
 ;
 
 showCreateEventStatement:
-    SHOW_SYMBOL EVENT_SYMBOL eventRef
+    SHOW_SYMBOL CREATE_SYMBOL EVENT_SYMBOL eventRef
 ;
 
 showCreateUserStatement:
@@ -3015,7 +3015,7 @@ runtimeFunctionCall:
     | POSITION_SYMBOL OPEN_PAR_SYMBOL bitExpr IN_SYMBOL expr CLOSE_PAR_SYMBOL
     | substringFunction
     | SYSDATE_SYMBOL timeFunctionParameters?
-    | (TIMESTAMP_ADD_SYMBOL | TIMESTAMP_DIFF_SYMBOL) OPEN_PAR_SYMBOL intervalTimeStamp COMMA_SYMBOL expr COMMA_SYMBOL expr
+    | (TIMESTAMPADD_SYMBOL | TIMESTAMPDIFF_SYMBOL) OPEN_PAR_SYMBOL intervalTimeStamp COMMA_SYMBOL expr COMMA_SYMBOL expr
         CLOSE_PAR_SYMBOL
     | UTC_DATE_SYMBOL parentheses?
     | UTC_TIME_SYMBOL timeFunctionParameters?
@@ -5020,8 +5020,8 @@ identifierKeywordsUnambiguous:
         | THAN_SYMBOL
         | THREAD_PRIORITY_SYMBOL
         | TIES_SYMBOL
-        | TIMESTAMP_ADD_SYMBOL
-        | TIMESTAMP_DIFF_SYMBOL
+        | TIMESTAMPADD_SYMBOL
+        | TIMESTAMPDIFF_SYMBOL
         | TIMESTAMP_SYMBOL
         | TIME_SYMBOL
         | TLS_SYMBOL
@@ -5497,8 +5497,8 @@ roleOrLabelKeyword:
         | TRANSACTION_SYMBOL
         | TRIGGERS_SYMBOL
         | TIMESTAMP_SYMBOL
-        | TIMESTAMP_ADD_SYMBOL
-        | TIMESTAMP_DIFF_SYMBOL
+        | TIMESTAMPADD_SYMBOL
+        | TIMESTAMPDIFF_SYMBOL
         | TIME_SYMBOL
         | TYPES_SYMBOL
         | TYPE_SYMBOL

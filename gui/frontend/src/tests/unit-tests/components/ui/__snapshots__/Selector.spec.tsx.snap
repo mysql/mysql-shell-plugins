@@ -10,21 +10,21 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selector vertical smoothScroll"
+        class="msg container fixedScrollbar selector vertical smoothScroll"
         id="selector1"
         style="flex-direction: column;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem stepDown"
+          class="msg container fixedScrollbar selectorItem stepDown"
           id="selector1ItemstepDown"
           style="flex-direction: row; justify-content: center; align-items: center; display: none;"
         />
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item0"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -47,7 +47,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item1"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -70,7 +70,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item2"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -93,7 +93,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item3"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -116,7 +116,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item4"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -139,7 +139,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item5"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -162,7 +162,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item6"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -185,7 +185,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item7"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -208,7 +208,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item8"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -231,7 +231,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem normal"
+          class="msg container fixedScrollbar selectorItem normal"
           id="selector1Item9"
           style="flex-direction: column; justify-content: center; align-items: center;"
         >
@@ -254,7 +254,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container selectorItem stepUp"
+          class="msg container fixedScrollbar selectorItem stepUp"
           id="selector1ItemstepUp"
           style="flex-direction: row; justify-content: center; align-items: center; display: none;"
         />
@@ -265,21 +265,21 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container selector vertical smoothScroll"
+      class="msg container fixedScrollbar selector vertical smoothScroll"
       id="selector1"
       style="flex-direction: column;"
     >
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem stepDown"
+        class="msg container fixedScrollbar selectorItem stepDown"
         id="selector1ItemstepDown"
         style="flex-direction: row; justify-content: center; align-items: center; display: none;"
       />
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item0"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -302,7 +302,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item1"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -325,7 +325,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item2"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -348,7 +348,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item3"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -371,7 +371,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item4"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -394,7 +394,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item5"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -417,7 +417,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item6"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -440,7 +440,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item7"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -463,7 +463,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item8"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -486,7 +486,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem normal"
+        class="msg container fixedScrollbar selectorItem normal"
         id="selector1Item9"
         style="flex-direction: column; justify-content: center; align-items: center;"
       >
@@ -509,7 +509,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container selectorItem stepUp"
+        class="msg container fixedScrollbar selectorItem stepUp"
         id="selector1ItemstepUp"
         style="flex-direction: row; justify-content: center; align-items: center; display: none;"
       />

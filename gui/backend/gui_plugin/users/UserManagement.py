@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -339,7 +339,7 @@ def list_profiles(user_id, web_session=None):
     """
     with BackendDatabase(web_session) as db:
         return db.select('''SELECT id, name FROM profile
-            WHERE user_id = ? and active = 1''', (user_id,))
+            WHERE user_id = ?''', (user_id,))
 
 
 @plugin_function('gui.users.getProfile', shell=False, web=True)
@@ -430,7 +430,7 @@ def delete_profile(user_id, profile_id, web_session=None):
         The generated shell request record.
     """
     with BackendDatabase(web_session) as db:
-        if not backend.enable_profile(db, user_id, profile_id, False):
+        if not backend.delete_profile(db, user_id, profile_id):
             raise MSGException(Error.USER_DELETE_PROFILE,
                                f"Could not delete any profile with the supplied criteria.")
 
@@ -510,10 +510,11 @@ def create_local_user():
 
 
 @plugin_function('gui.users.listUserGroups', cli=True, web=True)
-def list_user_groups(web_session=None):
-    """Returns the list of all groups
+def list_user_groups(member_id=None, web_session=None):
+    """Returns the list of all groups or list all groups that given user belongs.
 
     Args:
+        member_id (int): User ID
         web_session (object): The webserver session object, optional. Will be
             passed in by the webserver automatically
 
@@ -521,7 +522,7 @@ def list_user_groups(web_session=None):
         The generated shell request record.
     """
     with BackendDatabase(web_session) as db:
-        return backend.get_user_groups(db)
+        return backend.get_user_groups(db, member_id)
 
 
 @plugin_function('gui.users.createUserGroup', cli=True, web=True)
@@ -574,3 +575,54 @@ def add_user_to_group(member_id, group_id, owner=0, web_session=None):
             result = Response.exception(e)
 
     return result
+
+
+@plugin_function('gui.users.removeUserFromGroup', cli=True, web=True)
+def remove_user_from_group(member_id, group_id, web_session=None):
+    """Removes user from user group.
+
+    Args:
+        member_id (int): User ID
+        group_id (int): Group ID
+        web_session (object): The webserver session object, optional. Will be
+            passed in by the webserver automatically
+
+    Returns:
+        A boolean value indicating whether the given user was removed from the given group.
+    """
+    with BackendDatabase(web_session) as db:
+        return backend.remove_user_from_group(db, member_id, group_id)
+
+
+@plugin_function('gui.users.updateUserGroup', cli=True, web=True)
+def update_user_group(group_id, name=None, description=None, web_session=None):
+    """Updates user group.
+
+    Args:
+        group_id (int): Group ID
+        name (str): Group name
+        description (str): Description of the group
+        web_session (object): The webserver session object, optional. Will be
+            passed in by the webserver automatically
+
+    Returns:
+        A boolean value indicating whether the record was updated or not.
+    """
+    with BackendDatabase(web_session) as db:
+        return backend.update_user_group(db, group_id, name, description)
+
+
+@plugin_function('gui.users.removeUserGroup', cli=True, web=True)
+def remove_user_group(group_id, web_session=None):
+    """Removes given user group.
+
+    Args:
+        group_id (int): Group ID
+        web_session (object): The webserver session object, optional. Will be
+            passed in by the webserver automatically
+
+    Returns:
+        A boolean value indicating whether the record was deleted or not.
+    """
+    with BackendDatabase(web_session) as db:
+        return backend.remove_user_group(db, group_id)

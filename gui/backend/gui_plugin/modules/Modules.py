@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -49,6 +49,15 @@ def add_data(caption, content, data_category_id, tree_identifier, folder_path=No
         The id of the new record.
     """
 
+    if caption.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'caption' cannot be empty.")
+
+    if tree_identifier.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'tree_identifier' cannot be empty.")
+
+    if folder_path.strip() == "" or folder_path.strip() == "/":
+        folder_path = None
+
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
             db.execute('''INSERT INTO data (data_category_id, caption,
@@ -93,7 +102,17 @@ def list_data(folder_id, data_category_id=None, web_session=None):
                     WHERE dfhd.data_folder_id=?"""
         args = (folder_id,)
         if data_category_id:
-            sql += " AND d.data_category_id=?"
+            CATEGORIES_SQL = """WITH RECURSIVE
+                                categories(id) AS (
+                                    SELECT id FROM data_category
+                                        WHERE id=?
+                                    UNION ALL
+                                    SELECT dc.id
+                                        FROM categories c
+                                        JOIN data_category dc ON c.id=dc.parent_category_id
+                                )
+                                SELECT DISTINCT id FROM categories"""
+            sql += f" AND d.data_category_id in ({CATEGORIES_SQL})"
             args += (data_category_id,)
         res = db.select(sql, args)
 
@@ -155,6 +174,12 @@ def share_data_to_user_group(id, user_group_id, read_only, tree_identifier, fold
         The id of the folder to which the data was shared.
     """
 
+    if tree_identifier.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'tree_identifier' cannot be empty.")
+
+    if folder_path.strip() == "" or folder_path.strip() == "/":
+        folder_path = None
+
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
             privileges = backend.get_user_privileges_for_data(db, id, web_session.user_id)
@@ -194,6 +219,12 @@ def add_data_to_profile(id, profile_id, read_only, tree_identifier, folder_path=
     Returns:
         The id of the folder to which the data was shared.
     """
+
+    if tree_identifier.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'tree_identifier' cannot be empty.")
+
+    if folder_path.strip() == "" or folder_path.strip() == "/":
+        folder_path = None
 
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
@@ -275,29 +306,17 @@ def delete_data(id, folder_id, web_session=None):
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
             backend.get_user_privileges_for_data(db, id, web_session.user_id)
-            db.execute("""DELETE FROM data_folder_has_data
-                            WHERE data_id=? AND data_folder_id=?""",
-                          (id, folder_id,))
 
-            res = db.execute("""SELECT data_id
-                                FROM data_folder_has_data
-                                WHERE data_id=?
-                                LIMIT 1;""",
-                                (id,)).fetch_all()
-            if res is None:
-                db.execute("""DELETE FROM data
-                              WHERE id=?""",
-                              (id,))
+            return backend.delete_data(db, id, folder_id)
 
-            return id
 
 @plugin_function("gui.modules.listDataCategories", shell=False, web=True)
-def list_data_categories(module_id, name=None, web_session=None):
-    """Gets the list of available data categories for this module
+def list_data_categories(category_id=None, web_session=None):
+    """Gets the list of available data categories and sub categories
+       for the given name.
 
     Args:
-        module_id (str): The id of the module, e.g. 'gui.sqleditor'
-        name (str): The name of the data category
+        category_id (int): The id of the data category
         web_session (object): The webserver session object, optional. Will be
             passed in my the webserver automatically
 
@@ -306,22 +325,24 @@ def list_data_categories(module_id, name=None, web_session=None):
         The list of available data categories
     """
     with BackendDatabase(web_session) as db:
-        if name:
+        if category_id is None:
+            res = db.select("""SELECT id, name, parent_category_id
+                            FROM data_category
+                            WHERE parent_category_id is NULL""",())
+        else:
             res = db.select("""WITH RECURSIVE
                                 categories(id, name, parent_category_id) AS (
                                     SELECT id, name, parent_category_id FROM data_category
-                                        WHERE name=? AND module_id=?
+                                        WHERE id=?
                                     UNION ALL
                                     SELECT dc.id, dc.name, dc.parent_category_id
                                         FROM categories c
                                         JOIN data_category dc ON c.id=dc.parent_category_id
                                 )
                                 SELECT DISTINCT id, name, parent_category_id FROM categories""",
-                                (name, module_id))
-        else:
-            res = db.select("""SELECT id, name, parent_category_id
-                               FROM data_category
-                               WHERE parent_category_id is NULL""",())
+                                (category_id,))
+            if not res["rows"]:
+                raise MSGException(Error.MODULES_INVALID_DATA_CATEGORY, "Data category does not exist.")
 
         status = db.get_last_status()
         if status['type'] != "OK":
@@ -330,12 +351,11 @@ def list_data_categories(module_id, name=None, web_session=None):
         return res["rows"] if res else []
 
 @plugin_function("gui.modules.addDataCategory", shell=False, web=True)
-def add_data_category(name, module_id, parent_category_id=None, web_session=None):
+def add_data_category(name, parent_category_id=None, web_session=None):
     """Add a new data category to the list of available data categories for this module
 
     Args:
         name (str): The name of the data category
-        module_id (str): The id of the module, e.g. 'gui.sqleditor'
         parent_category_id (int): The id of the parent category
         web_session (object): The webserver session object, optional. Will be
             passed in my the webserver automatically
@@ -344,20 +364,24 @@ def add_data_category(name, module_id, parent_category_id=None, web_session=None
     Returns:
         The id of added category.
     """
-    if module_id is None:
-        raise MSGException(Error.MODULES_INVALID_DATA_CATEGORY, "Unable add a global data category.")
+
+    if name.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'name' cannot be empty.")
 
     with BackendDatabase(web_session) as db:
-        search = db.execute("""SELECT id, module_id from data_category
-                                WHERE name=? AND (module_id IS NULL OR module_id=?)""",
-                                (name, module_id)).fetch_one()
+        search = db.execute("""SELECT id from data_category
+                                WHERE name=?""",
+                                (name,)).fetch_one()
 
         if search:
             raise MSGException(Error.MODULES_INVALID_DATA_CATEGORY, "Data category already exists.")
         else:
-            db.execute("""INSERT INTO data_category (parent_category_id, name, module_id)
+            res = db.execute("""SELECT MAX(id) FROM data_category""").fetch_one()
+            # First 100 ids are reserved for predefined data categories
+            id = res[0] + 1 if res[0] > 100 else 101
+            db.execute("""INSERT INTO data_category (id, parent_category_id, name)
                             VALUES (?, ?, ?)""",
-                            (parent_category_id, name, module_id, ))
+                            (id, parent_category_id, name, ))
             category_id = db.get_last_row_id()
 
 
@@ -376,6 +400,9 @@ def remove_data_category(category_id, web_session=None):
     Returns:
         The id of the removed category.
     """
+    if category_id <= 100:
+        raise MSGException(Error.MODULES_CANT_DELETE_MODULE_CATEGORY, "Can't delete predefined data category.")
+
     with BackendDatabase(web_session) as db:
         res = db.execute("""SELECT data_category_id
                                 FROM data
@@ -384,6 +411,14 @@ def remove_data_category(category_id, web_session=None):
                             (category_id,)).fetch_all()
         if res:
             raise MSGException(Error.MODULES_CANT_DELETE_MODULE_CATEGORY, "Can't delete data category associated with data.")
+
+        res = db.execute("""SELECT id
+                                FROM data_category
+                                WHERE parent_category_id=?
+                            LIMIT 1""",
+                            (category_id,)).fetch_all()
+        if res:
+            raise MSGException(Error.MODULES_CANT_DELETE_MODULE_CATEGORY, "Can't delete data category associated with sub categories.")
 
         db.execute("""DELETE FROM data_category
                       WHERE id=?""",
@@ -396,12 +431,11 @@ def remove_data_category(category_id, web_session=None):
 
 
 @plugin_function("gui.modules.getDataCategoryId", shell=False, web=True)
-def get_data_category_id(name, module_id, web_session=None):
+def get_data_category_id(name, web_session=None):
     """Gets id for given name and module id.
 
     Args:
         name (str): The name of the data category
-        module_id (str): The id of the module, e.g. 'gui.sqleditor'
         web_session (object): The webserver session object, optional. Will be
             passed in my the webserver automatically
 
@@ -413,8 +447,11 @@ def get_data_category_id(name, module_id, web_session=None):
     with BackendDatabase(web_session) as db:
         res = db.execute("""SELECT id
                             FROM data_category
-                                WHERE name=? AND module_id=?""",
-                            (name, module_id)).fetch_one()
+                                WHERE name=?""",
+                            (name,)).fetch_one()
+
+        if not res:
+            raise MSGException(Error.MODULES_INVALID_DATA_CATEGORY, "Data category does not exist.")
 
         return res['id']
 
@@ -433,6 +470,9 @@ def create_profile_data_tree(tree_identifier, profile_id=None, web_session=None)
     Returns:
         The id of the root folder.
     """
+
+    if tree_identifier.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'tree_identifier' cannot be empty.")
 
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
@@ -483,6 +523,9 @@ def create_user_group_data_tree(tree_identifier, user_group_id=None, web_session
     Returns:
         The id of the root folder.
     """
+
+    if tree_identifier.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'tree_identifier' cannot be empty.")
 
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
@@ -540,3 +583,55 @@ def get_profile_tree_identifiers(profile_id=None, web_session=None):
                            (profile_id if profile_id else web_session.session_active_profile_id,))
 
         return res["rows"] if res else []
+
+
+@plugin_function("gui.modules.moveData", shell=False, web=True)
+def move_data(id, tree_identifier, linked_to, link_id, source_path, target_path, web_session=None):
+    """Moves data from source path to target path.
+
+    Args:
+        id (int): The id of the data
+        tree_identifier (str): The identifier of the tree
+        linked_to (str): ['profile'|'group']
+        link_id (int): The profile id or the group id (depending on linked_to)
+        source_path (str): The source folder path f.e. "/scripts/server1"
+        target_path (str): The target folder path f.e. "/scripts/server2"
+        web_session (object): The webserver session object, optional. Will be
+            passed in my the webserver automatically
+
+    Returns:
+        The id of the moved record.
+    """
+    if linked_to not in ['profile', 'group']:
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'linked_to' can only take value 'profile' or 'group'.")
+
+    if tree_identifier.strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameter 'tree_identifier' cannot be empty.")
+
+    if source_path.strip() == "" or source_path.strip() == "/":
+        source_path = None
+
+    if target_path.strip() == "" or target_path.strip() == "/":
+        target_path = None
+
+    if source_path == target_path:
+        raise MSGException(Error.CORE_INVALID_PARAMETER, f"Parameters 'source_path' and 'target_path' are the same.")
+
+    with BackendDatabase(web_session) as db:
+        with BackendTransaction(db):
+            root_folder_id = backend.get_root_folder_id(db, tree_identifier, linked_to, link_id)
+
+            if root_folder_id is None:
+                raise MSGException(Error.CORE_INVALID_PARAMETER, f"Cannot find root folder id for the given 'tree_identifier'.")
+
+            source_folder_id = backend.get_folder_id(db, root_folder_id, source_path)
+            if source_folder_id is None:
+                raise MSGException(Error.CORE_INVALID_PARAMETER, f"Cannot find the given 'source_path'.")
+            target_folder_id = backend.get_folder_id(db, root_folder_id, target_path)
+
+            if target_folder_id is None:
+                target_folder_id, _ = backend.create_folder(db, target_path, root_folder_id)
+
+            backend.add_data_to_folder(db, id, target_folder_id, read_only=0)
+
+            return backend.delete_data(db, id, source_folder_id)

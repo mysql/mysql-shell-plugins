@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@ import React from "react";
 import { isNil } from "lodash";
 
 import { Component, Label, Container, Orientation, IComponentProperties, Message } from "../ui";
-import { IExecutionInfo } from "../../app-logic/Types";
+import { IExecutionInfo, MessageType } from "../../app-logic/Types";
 
 export interface IResultStatusProperties extends IComponentProperties {
     executionInfo: IExecutionInfo;
@@ -42,14 +42,17 @@ export class ResultStatus extends Component<IResultStatusProperties> {
 
     public render(): React.ReactNode {
         const { executionInfo, children } = this.props;
-        const className = this.getEffectiveClassNames(["resultStatus"]);
 
         let text;
-        if (!isNil(executionInfo.type)) {
+        let messageClass = "";
+        if (!isNil(executionInfo.type) && executionInfo.type !== MessageType.Response) {
+            messageClass = "containsMessage";
             text = <Message type={executionInfo.type}>{executionInfo.text}</Message>;
         } else {
             text = <Label>{executionInfo.text}</Label>;
         }
+
+        const className = this.getEffectiveClassNames(["resultStatus", messageClass]);
 
         return (
             <Container

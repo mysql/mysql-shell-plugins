@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -58,6 +58,7 @@ USER_MISSING_GROUP_OWNER = 1303
 USER_CREATE = 1304
 USER_INVALID_PROFILE = 1305
 USER_INVALID_GROUP = 1306
+USER_CANT_DELETE_GROUP = 1307
 # start: 1400-1499
 # shell: 1500-1599
 SHELL_COMMAND_NOT_SUPPORTED = 1500

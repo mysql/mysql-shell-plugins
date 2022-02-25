@@ -3,10 +3,7 @@
 <!--- cSpell:ignore Keychain mkdir --->
 
 # MySQL Shell GUI Backend
-This folder contains all the code for the MySQL Shell GUI (short: MSG) backend. This consists of two parts:
-
-- The prototype code, for which there is a [separate prototype readme](./prototype.md).
-- The actual backend with the python webserver and mockup code for development + tests.
+This folder contains all the code for the MySQL Shell GUI (short: MSG) backend.
 
 # Environment Setup
 The backend is written as a python plugin for the MySQL Shell and hence needs to be in the usual plugin folder for it to recognize the new functionality. The plugin provides two parts of functionality:
@@ -190,5 +187,5 @@ In vscode, you should use the following configurations. These configurations all
 To debug the backend code in standalone mode, the following command should be issued:
 
 ```bash
-ATTACH_DEBUGGER=BACKEND mysqlsh --py -e "import gui_plugin.internal.test_utils; import gui_plugin.start; gui.start.web_server(port=8000, secure={}, single_instance_token=\"<same token used in the browser URL>\")"
+ATTACH_DEBUGGER=BACKEND mysqlsh --py -e "import gui_plugin.debug_utils; import gui_plugin.start; gui.start.web_server(port=8000, secure={}, single_instance_token=\"<same token used in the browser URL>\")"
 ```

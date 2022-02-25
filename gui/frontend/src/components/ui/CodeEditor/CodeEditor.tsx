@@ -28,7 +28,7 @@ import React from "react";
 import MonacoEditor from "react-monaco-editor";
 
 import {
-    ContextKeyExpr, ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextsState, KeyCode, KeyMod,
+    ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextsState, KeyCode, KeyMod,
     languages, Monaco, Position, Range, Selection, IPosition,
 } from ".";
 import { Component, IComponentProperties } from "..";
@@ -181,6 +181,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     private scrolling = false;
 
     private scrollingTimer: ReturnType<typeof setTimeout> | null;
+    private keyboardTimer: ReturnType<typeof setTimeout> | null;
 
     // Automatic re-layout on host resize.
     private resizeObserver?: ResizeObserver;
@@ -480,12 +481,18 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             indentation: showIndentGuides,
         };
 
+        const showMinimap = settings.get("editor.showMinimap", true);
+        const effectiveMinimapSettings = minimap ?? {
+            enabled: true,
+        };
+        effectiveMinimapSettings.enabled = showMinimap;
+
         const opts: Monaco.IEditorConstructionOptions = {
             extraEditorClassName: className,
             rulers: [],
             cursorSurroundingLines: 2,
             readOnly: readonly,
-            minimap,
+            minimap: effectiveMinimapSettings,
             find: {
                 seedSearchStringFromSelection: "selection",
                 autoFindInSelection: "never",
@@ -776,9 +783,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         const { language } = this.mergedProps;
         const editor = this.backend!;
 
-        this.patchExistingKeyBindings();
-
-        const blockContext = "editorTextFocus && !suggestWidgetVisible && !renameInputVisible && !inSnippetMode " +
+        const precondition = "editorTextFocus && !suggestWidgetVisible && !renameInputVisible && !inSnippetMode " +
             "&& !quickFixWidgetVisible";
 
         if (language === "msg") {
@@ -787,7 +792,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 label: "Execute Block and Advance",
                 keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
                 contextMenuGroupId: "2_execution",
-                precondition: blockContext,
+                precondition,
                 run: () => {
                     this.executeCurrentContext(false, true);
                 },
@@ -798,7 +803,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 label: "Execute Block",
                 keybindings: [KeyMod.Shift | KeyCode.Enter],
                 contextMenuGroupId: "2_execution",
-                precondition: blockContext,
+                precondition,
                 run: () => { return this.executeCurrentContext(false, false); },
             });
 
@@ -807,7 +812,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 label: "Update SQL in Original Source File",
                 keybindings: [KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyU],
                 contextMenuGroupId: "3_linked",
-                precondition: blockContext,
+                precondition,
                 run: () => { return this.runContextCommand("sendBlockUpdates"); },
             });
 
@@ -826,6 +831,14 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyX, () => {
             editor.trigger("source", "editor.action.clipboardCutAction", null);
         });
+
+        editor.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, () => {
+            editor.trigger("source", "acceptSelectedSuggestion", null);
+        }, "suggestWidgetVisible");
+
+        editor.addCommand(KeyCode.Backspace, this.handleBackspace);
+        editor.addCommand(KeyCode.Delete, this.handleDelete);
+        editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyA, this.handleSelectAll);
 
         this.disposables.push(editor.onDidChangeCursorPosition((e: Monaco.ICursorPositionChangedEvent) => {
             if (language === "msg") {
@@ -871,39 +884,159 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     }
 
     /**
-     * Helper method to change certain predefined keybindings, so that they don't conflict with our
-     * custom keybindings.
-     * This approach uses a solution presented in https://github.com/Microsoft/monaco-editor/issues/102.
+     * Handles input of a single backspace keypress. This is used to block removing execution contexts when the caret
+     * is at the start of the context and the user presses backspace.
      */
-    private patchExistingKeyBindings = (): void => {
-        // Make sure the suggest widget (code completion) uses <cmd>/<ctrl> + <enter> also to complete the selection.
-        // This requires to add a dynamic binding also for standard <enter> and <tab> key strokes.
-        this.patchKeyBinding("acceptSelectedSuggestion", KeyMod.CtrlCmd | KeyCode.Enter, "suggestWidgetVisible");
-        this.patchKeyBinding("acceptSelectedSuggestion", KeyCode.Tab, "suggestWidgetVisible");
-        this.patchKeyBinding("acceptSelectedSuggestion", KeyCode.Enter, "suggestWidgetVisible");
+    private handleBackspace = (): void => {
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const selections = editor.getSelections();
+            selections?.forEach((selection) => {
+                if (!selection.isEmpty()) {
+                    // Simply remove the selection, if it is not empty.
+                    const op = { range: selection, text: "", forceMoveMarkers: true };
+                    editor.executeEdits("delete", [op]);
+                } else {
+                    // No selection -> single character deletion.
+                    const context = model.executionContexts.contextFromPosition({
+                        lineNumber: selection.startLineNumber,
+                        column: selection.startColumn,
+                    });
+
+                    if (context) { // Should always be assigned.
+                        // Do nothing with this position if the user going to remove the line break that separates
+                        // execution contexts.
+                        if (context.startLine === selection.startLineNumber && selection.startColumn === 1) {
+                            // Do nothing.
+                        } else {
+                            const range = {
+                                startLineNumber: 0,
+                                startColumn: 0,
+                                endLineNumber: 0,
+                                endColumn: 0,
+                            };
+
+                            if (selection.startColumn > 1) {
+                                range.startLineNumber = selection.startLineNumber;
+                                range.startColumn = selection.startColumn - 1;
+                                range.endLineNumber = selection.startLineNumber;
+                                range.endColumn = selection.startColumn;
+                            } else if (selection.startLineNumber > 1) {
+                                const previousColumn = model.getLineMaxColumn(selection.startLineNumber - 1);
+                                range.startLineNumber = selection.startLineNumber;
+                                range.startColumn = selection.startColumn;
+                                range.endLineNumber = selection.startLineNumber - 1;
+                                range.endColumn = previousColumn;
+                            }
+
+                            const op = { range, text: "", forceMoveMarkers: true };
+                            editor.executeEdits("backspace", [op]);
+                        }
+                    }
+                }
+            });
+        }
     };
 
     /**
-     * Implements a hack using non-exported APIs to change (override) the keybinding for an internal command
-     * in monaco-editor.
-     *
-     * @param id The id of the command.
-     * @param newKeyBinding The new keybinding to use for the given command.
-     * @param context The context that is used as condition for the command. See also editor.addAction.
+     * Handles input of a single delete keypress. This is used to block removing execution contexts when the caret
+     * is at the end of the context and the user presses delete.
      */
-    private patchKeyBinding(id: string, newKeyBinding?: number, context?: string): void {
-        const editor = this.backend!;
+    private handleDelete = (): void => {
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const selections = editor.getSelections();
+            selections?.forEach((selection) => {
+                if (!selection.isEmpty()) {
+                    // Simply remove the selection, if it is not empty.
+                    const op = { range: selection, text: "", forceMoveMarkers: true };
+                    editor.executeEdits("delete", [op]);
+                } else {
+                    // No selection -> single character deletion.
+                    const context = model.executionContexts.contextFromPosition({
+                        lineNumber: selection.startLineNumber,
+                        column: selection.startColumn,
+                    });
 
-        /* eslint-disable @typescript-eslint/no-unsafe-call, no-underscore-dangle, @typescript-eslint/no-explicit-any */
-        (editor as any)._standaloneKeybindingService.addDynamicKeybinding(`-${id}`, undefined, () => { /**/ });
-        if (newKeyBinding) {
-            const when = ContextKeyExpr.deserialize(context);
-            (editor as any)._standaloneKeybindingService.addDynamicKeybinding(
-                id, newKeyBinding, () => { editor.trigger("editor", id, {}); }, when,
-            );
+                    if (context) { // Should always be assigned.
+                        // Do nothing with this position if the user going to remove the line break that separates
+                        // execution contexts.
+                        let endColumn = model.getLineMaxColumn(context.endLine ?? 0);
+                        if (context.endLine === selection.startLineNumber && selection.startColumn === endColumn) {
+                            // Do nothing.
+                        } else {
+                            const range = {
+                                startLineNumber: 0,
+                                startColumn: 0,
+                                endLineNumber: 0,
+                                endColumn: 0,
+                            };
+
+                            endColumn = model.getLineMaxColumn(selection.startLineNumber);
+                            if (selection.startColumn === endColumn) {
+                                // At the end of the line (but not the last line, which is checked above).
+                                range.startLineNumber = selection.startLineNumber;
+                                range.startColumn = endColumn;
+                                range.endLineNumber = selection.startLineNumber + 1;
+                                range.endColumn = 1;
+                            } else {
+                                // Any other position within the text.
+                                range.startLineNumber = selection.startLineNumber;
+                                range.startColumn = selection.startColumn;
+                                range.endLineNumber = selection.startLineNumber;
+                                range.endColumn = selection.startColumn + 1;
+                            }
+
+                            const op = { range, text: "", forceMoveMarkers: true };
+                            editor.executeEdits("delete", [op]);
+                        }
+                    }
+                }
+            });
         }
-        /* eslint-enable @typescript-eslint/no-unsafe-call, no-underscore-dangle, @typescript-eslint/no-explicit-any */
-    }
+    };
+
+    /**
+     * Handles command/control + A, to modify select-all behavior. On first key press only the current context
+     * is selected. A second key press within 500ms selects all text.
+     */
+    private handleSelectAll = (): void => {
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const position = editor.getPosition();
+            if (position) {
+                if (!this.keyboardTimer) {
+                    // This is the first key stroke. Do only a local select all and start the timer.
+                    const context = model.executionContexts.contextFromPosition(position);
+                    if (context) {
+                        editor.setSelection({
+                            startLineNumber: context.startLine,
+                            startColumn: 1,
+                            endLineNumber: context.endLine,
+                            endColumn: model.getLineMaxColumn(context.endLine),
+                        });
+
+                        this.keyboardTimer = setTimeout(() => {
+                            this.keyboardTimer = null;
+                        }, 500);
+
+                        return;
+                    }
+                }
+            }
+
+            const lastLine = model.getLineCount();
+            editor.setSelection({
+                startLineNumber: 1,
+                startColumn: 1,
+                endLineNumber: lastLine,
+                endColumn: model.getLineMaxColumn(lastLine),
+            });
+        }
+    };
 
     /**
      * Called whenever the content of the editor model changes.
@@ -1045,6 +1178,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 const contextsToUpdate = contexts.contextIndicesFromRange(editorRangeToTextRange(change.range));
                 if (contextsToUpdate.length > 0) {
                     const contextIndex = contextsToUpdate.shift()!;
+                    const firsContext = contexts.contextAt(contextIndex);
+
                     if (!changesPerContext.has(contextIndex)) {
                         changesPerContext.set(contextIndex, { changes: [], changedLineCount: 0, lastEndLine: 0 });
                     }
@@ -1056,7 +1191,11 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                     record.changedLineCount += change.range.startLineNumber - change.range.endLineNumber;
 
                     // ... and added lines.
-                    record.changedLineCount += change.text.split("\n").length - 1;
+                    for (const c of change.text) {
+                        if (c === "\n") {
+                            ++record.changedLineCount;
+                        }
+                    }
 
                     // Changes cannot overlap each other, but a context can receive more than one change.
                     // So, check if the current update list ends with a context that has already changes recorded and
@@ -1077,13 +1216,13 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                         }
                     } else {
                         // Only one block affected by the change, so only record its own current end line.
-                        record.lastEndLine = contexts.contextAt(contextIndex)?.endLine ?? 0;
+                        record.lastEndLine = firsContext?.endLine ?? 0;
                     }
 
                     // Remove the result from the first block if there's more than one block in the update list.
                     // In this case the first result is in the selection range that has been removed.
                     if (contextsToUpdate.length > 0) {
-                        contexts.contextAt(contextIndex)?.setResult();
+                        firsContext?.setResult();
                     }
 
                     // Remove all but the first block.

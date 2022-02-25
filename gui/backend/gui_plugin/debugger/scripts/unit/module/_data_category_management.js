@@ -4,14 +4,79 @@ var responses = ws.tokens.responses
 await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.list_data_categories",
+    "args": {},
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result": [{'id': 1, 'name': 'Text', 'parent_category_id': None}],
+    })
+])
+
+// Verify initial values
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
     "args": {
-        "name": "Script",
-        "module_id": "sqleditor"
+        "category_id": 1
     },
     "request_id": ws.generateRequestId()
 }, [
     Object.assign(Object(), responses.ok.default, {
-        "result": [],
+        "result":  [{'id': 1, 'name': 'Text', 'parent_category_id': None},
+                    {'id': 2, 'name': 'Script', 'parent_category_id': 1},
+                    {'id': 3, 'name': 'JSON', 'parent_category_id': 1},
+                    {'id': 4, 'name': 'MySQL Script', 'parent_category_id': 2},
+                    {'id': 5, 'name': 'Python Script', 'parent_category_id': 2},
+                    {'id': 6, 'name': 'JavaScript Script', 'parent_category_id': 2},
+                    {'id': 7, 'name': 'TypeScript Script', 'parent_category_id': 2},
+                    {'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2}]
+    })
+])
+
+// Verify initial values
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {
+        "category_id": 2
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result":  [{'id': 2, 'name': 'Script', 'parent_category_id': 1},
+                    {'id': 4, 'name': 'MySQL Script', 'parent_category_id': 2},
+                    {'id': 5, 'name': 'Python Script', 'parent_category_id': 2},
+                    {'id': 6, 'name': 'JavaScript Script', 'parent_category_id': 2},
+                    {'id': 7, 'name': 'TypeScript Script', 'parent_category_id': 2},
+                    {'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2}]
+    })
+])
+
+// Verify initial values
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {
+        "category_id": 8
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result":  [{'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2}]
+    })
+])
+
+//  Add a new data category with empty name
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.add_data_category",
+    "args": {
+        "name": ""
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.error.default, {
+        "request_state": { "msg": "Parameter 'name' cannot be empty." }
     })
 ])
 
@@ -20,7 +85,6 @@ await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.add_data_category",
     "args": {
-        "module_id": "sqleditor",
         "name": "MyDataCategory"
     },
     "request_id": ws.generateRequestId()
@@ -36,8 +100,7 @@ await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.get_data_category_id",
     "args": {
-        "name": "MyDataCategory",
-        "module_id": "sqleditor"
+        "name": "MyDataCategory"
     },
     "request_id": ws.generateRequestId()
 }, [
@@ -51,69 +114,52 @@ await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.list_data_categories",
     "args": {
-        "name": "MyDataCategory",
-        "module_id": "sqleditor"
+        "category_id": ws.tokens['data_category_id1']
     },
     "request_id": ws.generateRequestId()
 }, [
     Object.assign(Object(), responses.ok.default, {
         "result": [
-            {"id": 1, "name": "MyDataCategory", "parent_category_id": null}
+            {"id": 101, "name": "MyDataCategory", "parent_category_id": null}
         ],
     })
 ])
 
-// List all root categories for sqleditor module
+// List all root categories
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {},
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result": [{'id': 1, 'name': 'Text', 'parent_category_id': None},
+                   {"id": 101, "name": "MyDataCategory", "parent_category_id": null}],
+    })
+])
+
+// List categories for ShellCategory name
 await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.list_data_categories",
     "args": {
-        "module_id": "sqleditor"
+        "category_id": 999
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [
-            {"id": 1, "name": "MyDataCategory", "parent_category_id": null}
-        ],
+    Object.assign(Object(), responses.error.default, {
+        "request_state": {
+            "msg": "Data category does not exist.",
+            "code": 1609
+        }
     })
 ])
 
-// List all root categories for shell module
-await ws.sendAndValidate({
-    "request": "execute",
-    "command": "gui.modules.list_data_categories",
-    "args": {
-        "module_id": "shell"
-    },
-    "request_id": ws.generateRequestId()
-}, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [],
-    })
-])
-
-//  verify it was not added to another module too
-await ws.sendAndValidate({
-    "request": "execute",
-    "command": "gui.modules.list_data_categories",
-    "args": {
-        "name": "MyDataCategory",
-        "module_id": "shell"
-    },
-    "request_id": ws.generateRequestId()
-}, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [],
-    })
-])
-
-//  Add an existing data category to the module
+//  Add an existing data category
 await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.add_data_category",
     "args": {
-        "module_id": "sqleditor",
         "name": "MyDataCategory"
     },
     "request_id": ws.generateRequestId()
@@ -130,13 +176,12 @@ await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.list_data_categories",
     "args": {
-        "module_id": "sqleditor",
-        "name": "MyDataCategory"
+        "category_id": ws.tokens['data_category_id1']
     },
     "request_id": ws.generateRequestId()
 }, [
     Object.assign(Object(), responses.ok.default, {
-        "result": [{"id": 1, "name": "MyDataCategory", "parent_category_id": null}],
+        "result": [{"id": 101, "name": "MyDataCategory", "parent_category_id": null}],
     })
 ])
 
@@ -145,7 +190,6 @@ await ws.sendAndValidate({
 //     "request": "execute",
 //     "command": "gui.modules.add_data",
 //     "args": {
-//         "module_id": "sqleditor",
 //         "data_category_id": 11, //MyDataCategory
 //         "name": "test",
 //         "folder_path": "/test_path",
@@ -167,7 +211,6 @@ await ws.sendAndValidate({
 //     "request": "execute",
 //     "command": "gui.modules.remove_data_category",
 //     "args": {
-//         "module_id": "sqleditor",
 //         "name": "MyDataCategory"
 //     },
 //     "request_id": ws.generateRequestId()
@@ -195,12 +238,13 @@ await ws.sendAndValidate({
 //     "request_id": ws.lastGeneratedRequestId
 // }])
 
-//  Remove an existing data category from the module
+//  Add a new data category
 await ws.sendAndValidate({
     "request": "execute",
-    "command": "gui.modules.remove_data_category",
+    "command": "gui.modules.add_data_category",
     "args": {
-        "category_id": 1 // MyDataCategory
+        "name": "MyDataSubCategory",
+        "parent_category_id": ws.tokens['data_category_id1']
     },
     "request_id": ws.generateRequestId()
 }, [
@@ -209,27 +253,74 @@ await ws.sendAndValidate({
     })
 ])
 
+ws.tokens['data_subcategory_id1'] = ws.lastResponse['result']
+
 await ws.sendAndValidate({
     "request": "execute",
-    "command": "gui.modules.list_data_categories",
+    "command": "gui.modules.get_data_category_id",
     "args": {
-        "module_id": "sqleditor",
-        "name": "MyDataCategory"
+        "name": "MyDataSubCategory"
     },
     "request_id": ws.generateRequestId()
 }, [
     Object.assign(Object(), responses.ok.default, {
-        "result": [],
+        "request_state": { "msg": "" },
+        "result": ws.tokens['data_subcategory_id1']
     })
 ])
 
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {},
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result": [{'id': 1, 'name': 'Text', 'parent_category_id': None},
+                   {"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null}
+        ],
+    })
+])
 
-//  Remove a data category that doesn't exist any more
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {
+        "category_id": ws.tokens['data_category_id1']
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result": [
+            {"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null},
+            {"id": ws.tokens['data_subcategory_id1'], "name": "MyDataSubCategory", "parent_category_id": ws.tokens['data_category_id1']}
+        ],
+    })
+])
+
+//  Remove an existing top data category
 await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.remove_data_category",
     "args": {
-        "category_id": 1 // MyDataCategory
+        "category_id": ws.tokens['data_category_id1'] // MyDataCategory
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.error.default, {
+        "request_state": {
+            "code": 1610,
+            "msg": "Can't delete data category associated with sub categories."
+        }
+    })
+])
+
+//  Remove a data category that doesn't exist
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.remove_data_category",
+    "args": {
+        "category_id": 999 // Non existing category
     },
     "request_id": ws.generateRequestId()
 }, [
@@ -243,11 +334,88 @@ await ws.sendAndValidate({
 
 await ws.sendAndValidate({
     "request": "execute",
+    "command": "gui.modules.remove_data_category",
+    "args": {
+        "category_id": 1
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.error.default, {
+        "request_state": {
+            "code": 1610,
+            "msg": "Can't delete predefined data category."
+        }
+    })
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
     "command": "gui.modules.list_data_categories",
     "args": {
-        "module_id": "sqleditor",
-        "name": "MyDataCategory"
+        "category_id": ws.tokens['data_category_id1']
     },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result": [
+            {"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null},
+            {"id": ws.tokens['data_subcategory_id1'], "name": "MyDataSubCategory", "parent_category_id": ws.tokens['data_category_id1']}
+        ],
+    })
+])
+
+//  Remove an existing sub data category
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.remove_data_category",
+    "args": {
+        "category_id": ws.tokens['data_subcategory_id1'] // MyDataSubCategory
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "request_state": {
+            "msg": ""
+        }
+    })
+])
+
+//  Remove an existing top data category
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.remove_data_category",
+    "args": {
+        "category_id": ws.tokens['data_category_id1'] // MyDataCategory
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "request_state": {
+            "msg": ""
+        }
+    })
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {
+        "category_id": ws.tokens['data_category_id1']
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.error.default, {
+        "request_state": {
+            "msg": "Data category does not exist.",
+            "code": 1609
+        }
+    })
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {},
     "request_id": ws.generateRequestId()
 }, [
     Object.assign(Object(), responses.ok.default, {
@@ -255,6 +423,22 @@ await ws.sendAndValidate({
     })
 ])
 
+//  Remove a data category that doesn't exist any more
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.remove_data_category",
+    "args": {
+        "category_id": 101 // MyDataCategory
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.error.default, {
+        "request_state": {
+            "code": 1609,
+            "msg": "Data category does not exist."
+        }
+    })
+])
 
 //  Try to remove a stock data category
 await ws.sendAndValidate({
@@ -278,7 +462,6 @@ await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.add_data_category",
     "args": {
-        "module_id": "sqleditor",
         "name": "MyDataCategory"
     },
     "request_id": ws.generateRequestId()
@@ -290,14 +473,45 @@ await ws.sendAndValidate({
 
 await ws.sendAndValidate({
     "request": "execute",
-    "command": "gui.modules.list_data_categories",
+    "command": "gui.modules.get_data_category_id",
     "args": {
-        "module_id": "sqleditor",
+        "name": "MyDataSubCategory"
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.error.default, {
+        "request_state": {
+            "code": 1609,
+            "msg": "Data category does not exist."
+        }
+    })
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.get_data_category_id",
+    "args": {
         "name": "MyDataCategory"
     },
     "request_id": ws.generateRequestId()
 }, [
     Object.assign(Object(), responses.ok.default, {
-        "result": [{"id": 1, "name": "MyDataCategory", "parent_category_id": null}],
+        "request_state": {
+            "msg": ""
+        },
+        "result": ws.tokens['data_category_id1']
+    })
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "command": "gui.modules.list_data_categories",
+    "args": {
+        "category_id": ws.tokens['data_category_id1']
+    },
+    "request_id": ws.generateRequestId()
+}, [
+    Object.assign(Object(), responses.ok.default, {
+        "result": [{"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null}],
     })
 ])

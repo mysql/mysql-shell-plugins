@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,9 +37,9 @@ export class OciBastionTreeItem extends OciBaseTreeItem {
         public bastion: IBastionSummary) {
         super(bastion.name, profile, TreeItemCollapsibleState.None);
 
-        let iconName = "ociBastion.svg";
+        let iconName = bastion.isCurrent ? "ociBastionCurrent.svg" : "ociBastion.svg";
         if (bastion.lifecycleState !== "ACTIVE") {
-            iconName = "ociBastionNotActive.svg";
+            iconName = bastion.isCurrent ? "ociBastionCurrentNotActive.svg" : "ociBastionNotActive.svg";
         }
 
         this.iconPath = {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -112,14 +112,18 @@ export class WebSession {
     }
 
     /**
-     * Stores the given id as current application session ID. Will also be stored in the browser's session storage.
+     * Stores the given id as current application session ID. Will also be stored in a cookie for the BE.
      */
     public set sessionId(id: string | undefined) {
         // For a new session remove old cookies.
         this.cookies.clear();
 
         this.sessionData.sessionId = id;
-        //this.cookies.set("SessionId", this.sessionData.sessionId);
+        if (id) {
+            this.cookies.set("SessionId", id);
+        }
+        this.cookies.set("SameSite", "None");
+        this.cookies.set("Secure");
     }
 
     public clearSessionData(): void {
@@ -149,9 +153,12 @@ export class WebSession {
      * @param moduleName The name of the module for which to set the session ID.
      * @param sessionId The session ID for that module. Will also be stored in the browser's session storage.
      */
-    public setModuleSessionId(moduleName: string, sessionId: string): void {
-        this.sessionData.moduleSessionId[moduleName] = sessionId;
-        this.writeSessionData();
+    public setModuleSessionId(moduleName: string, sessionId?: string): void {
+        if (sessionId) {
+            this.sessionData.moduleSessionId[moduleName] = sessionId;
+        } else {
+            delete this.sessionData.moduleSessionId[moduleName];
+        }
     }
 
     /**
@@ -180,45 +187,6 @@ export class WebSession {
             void requisitions.execute("showError", ["Profile Update Error", String(errorEvent.message)]);
         });
 
-    }
-
-    /**
-     * Gets the data for a specific module instance
-     *
-     * @param name The name of the module.
-     * @param sessionId The ID of the actual session for a module.
-     *
-     * @returns The requested module data.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public dataForModule(name: string, sessionId: string): IModuleData | undefined {
-        // TODO: get module data from IndexedDB.
-        return undefined;
-    }
-
-    /**
-     * Sets the session data for a specific module.
-     *
-     * @param name The name of the module data to be stored.
-     * @param sessionId The ID of the actual session for a module.
-     * @param data The module data to be stored.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public setDataForModule(name: string, sessionId: string, data: IModuleData): void {
-        // TODO: set module data in IndexedDB.
-    }
-
-    /**
-     * Remove all data stored for a specific session of a module.
-     *
-     * @param name The name of the module.
-     * @param sessionId The ID of the actual session for a module.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public removeDataForModule(name: string, sessionId: string): void {
-        delete this.sessionData.moduleSessionId[name];
-
-        // TODO: remove module data from IndexedDB.
     }
 
     private writeSessionData(): void {

@@ -22,29 +22,51 @@
  */
 
 import {
-    ProtocolGui, currentConnection, IShellModuleDataCategoriesEntry, ICommModuleDataEvent,
-    ICommListDataCategoriesEvent, ICommModuleAddDataCategoryEvent, ICommDataTreeContentEvent, IDBDataTreeEntry,
+    ProtocolGui, currentConnection, ICommModuleDataEvent, ICommDataTreeContentEvent, IDBDataTreeEntry,
 } from "../../communication";
 import { EventType, ListenerEntry } from "../Dispatch";
 import { EditorLanguage } from "..";
 import { IShellInterface } from ".";
 import { EntityType, IDBEditorScriptState, IFolderEntity, IModuleDataEntry } from "../../modules/scripting";
 
+// These are predefined data categories that always exist.
+export enum StandardDataCategories {
+    Text = 1,             // The root category for all text like data.
+    Script = 2,           // Direct child of Text, for all script types.
+    JSON = 3,             // Direct child of Text, for JSON like data.
+    MySQLScript = 4,      // Child of Script.
+    PythonScript = 5,     // Child of Script.
+    JavaScriptScript = 6, // Child of Script.
+    TypeScriptScript = 7, // Child of Script.
+    SQLiteScript = 8,     // Child of Script.
+}
+
 export class ShellInterfaceModule implements IShellInterface {
 
-    // Loaded categories per module.
-    private moduleDataCategories = new Map<string, IShellModuleDataCategoriesEntry[]>();
-
     // Mappings between script category ids and editor languages.
-    private scriptCategoryToLanguage = new Map<number, EditorLanguage>();
-    private languageToScriptCategory = new Map<EditorLanguage, number>();
+    private scriptCategoryToLanguage = new Map<number, EditorLanguage>([
+        [StandardDataCategories.MySQLScript, "mysql"],
+        [StandardDataCategories.PythonScript, "python"],
+        [StandardDataCategories.JavaScriptScript, "javascript"],
+        [StandardDataCategories.TypeScriptScript, "typescript"],
+        [StandardDataCategories.SQLiteScript, "sql"],
+        [StandardDataCategories.JSON, "json"],
+    ]);
+
+    private languageToScriptCategory = new Map<EditorLanguage, number>([
+        ["mysql", StandardDataCategories.MySQLScript],
+        ["python", StandardDataCategories.MySQLScript],
+        ["javascript", StandardDataCategories.MySQLScript],
+        ["typescript", StandardDataCategories.MySQLScript],
+        ["sql", StandardDataCategories.MySQLScript],
+        ["json", StandardDataCategories.MySQLScript],
+    ]);
 
     public constructor(public moduleName: string) {
     }
 
     /**
-     * Creates a new Module Data record for the given module
-     * and associates it to the active user profile and personal user group.
+     * Creates a new data record in the data tree given by the tree identifier.
      *
      * @param caption The data caption.
      * @param content The content of data module.
@@ -55,41 +77,40 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @returns The generated shell request record.
      */
-    public addModuleData(caption: string, content: string, dataCategoryId: number, treeIdentifier: string,
+    public addData(caption: string, content: string, dataCategoryId: number, treeIdentifier: string,
         folderPath?: string, profileId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesAddData(caption, content, dataCategoryId,
             treeIdentifier, folderPath, profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "addModuleData" });
+        return currentConnection.sendRequest(request, { messageClass: "addData" });
     }
 
     /**
-     * Get list of data
+     * Returns a list of data IDs from a given folder and the specified data category.
      *
-     * @param folderId The id of the folder
-     * @param dataCategoryId The id of the category
+     * @param folderId The id of the folder.
+     * @param dataCategoryId The id of the data category.
      *
-     * @returns The generated shell request record.
+     * @returns A listener for the response.
      */
-    public listModuleData(folderId: number, dataCategoryId?: number): ListenerEntry {
+    public listData(folderId: number, dataCategoryId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesListData(folderId, dataCategoryId);
 
-        return currentConnection.sendRequest(request, { messageClass: "listModuleData" });
+        return currentConnection.sendRequest(request, { messageClass: "listData" });
     }
 
     /**
      * Retrieves the content of a specific data item.
      *
-     * @param moduleDataId An id which identifies a module data item (returned from list or add module data).
+     * @param dataId An id which identifies a data item (returned from list or add data).
      *
-     * @returns A listener for the response
+     * @returns A listener for the response.
      */
-    public getModuleDataContent(moduleDataId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesGetDataContent(moduleDataId);
+    public getDataContent(dataId: number): ListenerEntry {
+        const request = ProtocolGui.getRequestModulesGetDataContent(dataId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getModuleDataContent" });
+        return currentConnection.sendRequest(request, { messageClass: "getDataContent" });
     }
-
 
     /**
      * Creates a new data tree in the given profile.
@@ -97,7 +118,7 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param profileId The id of profile
      *
-     * @returns The id of the root folder.
+     * @returns A listener for the response.
      */
     public createProfileDataTree(treeIdentifier: string, profileId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesCreateProfileDataTree(treeIdentifier, profileId);
@@ -111,7 +132,7 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param profileId The id of profile
      *
-     * @returns The list of all folders in data tree.
+     * @returns A listener for the response.
      */
     public getProfileDataTree(treeIdentifier: string, profileId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesGetProfileDataTree(treeIdentifier, profileId);
@@ -125,7 +146,7 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param userGroupId The id of user group
      *
-     * @returns The id of the root folder.
+     * @returns A listener for the response.
      */
     public createUserGroupDataTree(treeIdentifier: string, userGroupId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesCreateUserGroupDataTree(treeIdentifier, userGroupId);
@@ -139,7 +160,7 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param userGroupId The id of user group
      *
-     * @returns The list of all folders in data tree.
+     * @returns A listener for the response.
      */
     public getUserGroupDataTree(treeIdentifier: string, userGroupId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesGetUserGroupDataTree(treeIdentifier, userGroupId);
@@ -152,7 +173,7 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @param profileId The id of profile.
      *
-     * @returns The list of tree identifiers.
+     * @returns A listener for the response.
      */
     public getProfileDataTreeIdentifiers(profileId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesGetProfileTreeIdentifiers(profileId);
@@ -171,12 +192,12 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @returns The generated shell request record.
      */
-    public shareModuleDataToUserGroup(id: number, userGroupId: number, readOnly: number, treeIdentifier: string,
+    public shareDataToUserGroup(id: number, userGroupId: number, readOnly: number, treeIdentifier: string,
         folderPath?: string): ListenerEntry {
         const request = ProtocolGui.getRequestModulesShareDataToUserGroup(id, userGroupId, readOnly,
             treeIdentifier, folderPath);
 
-        return currentConnection.sendRequest(request, { messageClass: "shareModuleDataToUserGroup" });
+        return currentConnection.sendRequest(request, { messageClass: "shareDataToUserGroup" });
     }
 
     /**
@@ -190,12 +211,12 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @returns The generated shell request record.
      */
-    public addModuleDataToProfile(id: number, profileId: number, readOnly: number, treeIdentifier: string,
+    public addDataToProfile(id: number, profileId: number, readOnly: number, treeIdentifier: string,
         folderPath?: string): ListenerEntry {
         const request = ProtocolGui.getRequestModulesAddDataToProfile(id, profileId, readOnly,
             treeIdentifier, folderPath);
 
-        return currentConnection.sendRequest(request, { messageClass: "addModuleDataToProfile" });
+        return currentConnection.sendRequest(request, { messageClass: "addDataToProfile" });
     }
 
     /**
@@ -207,10 +228,10 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @returns The generated shell request record.
      */
-    public updateModuleData(id: number, caption?: string, content?: string): ListenerEntry {
+    public updateData(id: number, caption?: string, content?: string): ListenerEntry {
         const request = ProtocolGui.getRequestModulesUpdateData(id, caption, content);
 
-        return currentConnection.sendRequest(request, { messageClass: "updateModuleData" });
+        return currentConnection.sendRequest(request, { messageClass: "updateData" });
     }
 
     /**
@@ -219,54 +240,52 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param id The id of the data
      * @param folderId The id of the folder
      *
-     * @returns The generated shell request record.
+     * @returns A listener for the response.
      */
-    public deleteModuleData(id: number, folderId: number): ListenerEntry {
+    public deleteData(id: number, folderId: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesDeleteData(id, folderId);
 
-        return currentConnection.sendRequest(request, { messageClass: "deleteModuleData" });
+        return currentConnection.sendRequest(request, { messageClass: "deleteData" });
     }
 
     /**
-     * Gets the list of available data categories for this module
+     * Gets the list of available data categories.
      *
-     * @param moduleId The id of the module, e.g. 'gui.sqleditor'.
-     * @param parentName The name of the parent data category. If not given, the root entries are returned.
+     * @param parentID The ID of the parent data category. If not given, the root entries are returned.
      *
-     * @returns The list of available data categories
+     * @returns A listener for the response.
      */
-    public listModuleDataCategories(moduleId: string, parentName?: string): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesListDataCategories(moduleId, parentName);
+    public listDataCategories(parentID?: number): ListenerEntry {
+        const request = ProtocolGui.getRequestModulesListDataCategories(parentID);
 
-        return currentConnection.sendRequest(request, { messageClass: "listModuleDataCategories" });
+        return currentConnection.sendRequest(request, { messageClass: "listDataCategories" });
     }
 
     /**
-     * Adds a new data type for module data to the given module.
+     * Adds a new data category for data entries.
      *
-     * @param moduleId The module id.
-     * @param category A human readable string identifying the category.
+     * @param category A human readable string identifying the data category.
      * @param parent Specifies the parent category to which the new category belongs. Root categories have no parent.
      *
      * @returns A listener for the response.
      */
-    public addModuleDataCategory(moduleId: string, category: string, parent?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesAddDataCategory(category, moduleId, parent);
+    public addDataCategory(category: string, parent?: number): ListenerEntry {
+        const request = ProtocolGui.getRequestModulesAddDataCategory(category, parent);
 
-        return currentConnection.sendRequest(request, { messageClass: "addModuleDataCategory" });
+        return currentConnection.sendRequest(request, { messageClass: "addDataCategory" });
     }
 
     /**
-     * Remove a data category from the list of available data categories for this module
+     * Remove a data category from the list of available data categories.
      *
      * @param categoryId The id of the data category
      *
      * @returns Returns OK on success. On failure, returns and error.
      */
-    public removeModuleDataCategory(categoryId: number): ListenerEntry {
+    public removeDataCategory(categoryId: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesRemoveDataCategory(categoryId);
 
-        return currentConnection.sendRequest(request, { messageClass: "removeModuleDataCategory" });
+        return currentConnection.sendRequest(request, { messageClass: "removeDataCategory" });
     }
 
     /**
@@ -281,121 +300,15 @@ export class ShellInterfaceModule implements IShellInterface {
     }
 
     /**
-     * Collects a list of details from user scripts in the specified module.
+     * Collects a list of script data entries.
      *
-     * @param moduleId The module id.
      * @param profileId The profile for which to load the scripts (default profile, if undefined).
      *
      * @returns A promise which resolves with the script details.
      */
-    public async loadScriptsTree(moduleId: string, profileId?: number): Promise<IModuleDataEntry[]> {
-        const scriptCategoryId = await this.getScriptDataCategoryId(moduleId);
-
-        if (scriptCategoryId > -1) {
-            return this.loadScriptTreeEntries(scriptCategoryId, profileId);
-        }
-
-        return [];
+    public async loadScriptsTree(profileId?: number): Promise<IModuleDataEntry[]> {
+        return this.loadScriptTreeEntries(StandardDataCategories.Script, profileId);
     }
-
-    /**
-     * Checks if all module data categories exist, which we need here. If there's any missing, create it.
-     *
-     * @param moduleId The ID of the module for which to check the data.
-     *
-     * @returns A promise that resolves to the ID of the top level script data category or -1 if we cannot find that.
-     */
-    private getScriptDataCategoryId = async (moduleId: string): Promise<number> => {
-        if (!this.moduleDataCategories.has(moduleId)) {
-            // Start with root entries.
-            let categories = await this.retrieveModuleDataCategories(moduleId);
-
-            const checkAndAdd = async (name: string, parent?: number): Promise<number> => {
-                const existingCategory = categories?.find((value) => {
-                    return value.name === name;
-                });
-
-                if (!existingCategory) {
-                    const id = await this.addDataCategory(moduleId, name, parent);
-                    categories.push({
-                        id,
-                        name,
-                        parentCategoryId: parent,
-                    });
-
-                    return id;
-                } else {
-                    return existingCategory?.id;
-                }
-            };
-
-            // Do the checks and create what's missing.
-            const parentId = await checkAndAdd("Scripts");
-
-            // Now that we know we a Scripts root entry we can add sub entries if necessary.
-            categories = await this.retrieveModuleDataCategories(moduleId, "Scripts");
-            await checkAndAdd("MySQL Script", parentId);
-
-            await checkAndAdd("Python Script", parentId);
-            await checkAndAdd("JavaScript Script", parentId);
-            await checkAndAdd("TypeScript Script", parentId);
-            await checkAndAdd("SQLite Script", parentId);
-            await checkAndAdd("JSON", parentId);
-
-            // Fill our type mappings category id <-> type maps.
-            categories.forEach((row) => {
-                switch (row.name) {
-                    case "MySQL Script": {
-                        this.scriptCategoryToLanguage.set(row.id, "mysql");
-                        this.languageToScriptCategory.set("mysql", row.id);
-                        break;
-                    }
-
-                    case "Python Script": {
-                        this.scriptCategoryToLanguage.set(row.id, "python");
-                        this.languageToScriptCategory.set("python", row.id);
-                        break;
-                    }
-
-                    case "JavaScript Script": {
-                        this.scriptCategoryToLanguage.set(row.id, "javascript");
-                        this.languageToScriptCategory.set("javascript", row.id);
-                        break;
-                    }
-
-                    case "TypeScript Script": {
-                        this.scriptCategoryToLanguage.set(row.id, "typescript");
-                        this.languageToScriptCategory.set("typescript", row.id);
-                        break;
-                    }
-
-                    case "SQLite Script": {
-                        this.scriptCategoryToLanguage.set(row.id, "sql");
-                        this.languageToScriptCategory.set("sql", row.id);
-                        break;
-                    }
-
-                    case "JSON": {
-                        this.scriptCategoryToLanguage.set(row.id, "json");
-                        this.languageToScriptCategory.set("json", row.id);
-                        break;
-                    }
-
-                    default: {
-                        break;
-                    }
-                }
-            });
-            this.moduleDataCategories.set(moduleId, categories);
-        }
-
-        const categories = this.moduleDataCategories.get(moduleId);
-        const scriptsCategory = categories?.find((value) => {
-            return value.name === "Scripts";
-        });
-
-        return Promise.resolve(scriptsCategory?.id ?? -1);
-    };
 
     /**
      * Loads all entries from the "scripts" subtree.
@@ -452,71 +365,7 @@ export class ShellInterfaceModule implements IShellInterface {
     }
 
     /**
-     * Promisified version of `addModuleDataCategory`.
-     *
-     * @param moduleId The module id.
-     * @param category A human readable string identifying the category.
-     * @param parentCategoryId Specifies the parent category to which the new category belongs.
-     *                          Root categories have no parent.
-     *
-     * @returns A promise that resolves to the ID of the new category.
-     */
-    private addDataCategory = (moduleId: string, category: string, parentCategoryId?: number): Promise<number> => {
-        return new Promise((resolve, reject) => {
-            this.addModuleDataCategory(moduleId, category, parentCategoryId)
-                .then((event: ICommModuleAddDataCategoryEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve(event.data?.result ?? -1);
-                    }
-
-                }).catch((event) => {
-                    reject(String(event.message));
-                });
-        });
-    };
-
-    /**
-     * Promisified version of `listModuleDataCategories`.
-     *
-     * @param moduleId The ID of the module for which to get the data categories.
-     * @param parentName The name of the parent category (the root is assumed if not given).
-     *
-     * @returns A list of existing module data categories.
-     */
-    private retrieveModuleDataCategories = (moduleId: string,
-        parentName?: string): Promise<IShellModuleDataCategoriesEntry[]> => {
-        return new Promise((resolve, reject) => {
-            const list: IShellModuleDataCategoriesEntry[] = [];
-            this.listModuleDataCategories(moduleId, parentName).then((event: ICommListDataCategoriesEvent) => {
-                const categories = event.data?.result;
-                switch (event.eventType) {
-                    case EventType.DataResponse: {
-                        if (categories) {
-                            list.push(...categories);
-                        }
-
-                        break;
-                    }
-
-                    case EventType.FinalResponse: {
-                        if (categories) {
-                            list.push(...categories);
-                        }
-                        resolve(list);
-
-                        break;
-                    }
-
-                    default:
-                }
-            }).catch((event) => {
-                reject(String(event.message));
-            });
-        });
-    };
-
-    /**
-     * Promisified version of `getModuleDataTreeForProfile`.
+     * Promisified version of `getProfileDataTree`.
      *
      * @param treeIdentifier The identifier of the data tree to load.
      * @param profileId The id of the profile for which to load the data structure.
@@ -565,7 +414,7 @@ export class ShellInterfaceModule implements IShellInterface {
     private loadScriptStates = (folderId: number, dataCategoryId: number): Promise<IDBEditorScriptState[]> => {
         return new Promise((resolve, reject) => {
             const listData: IDBEditorScriptState[] = [];
-            this.listModuleData(folderId, dataCategoryId).then((scriptEvent: ICommModuleDataEvent) => {
+            this.listData(folderId, dataCategoryId).then((scriptEvent: ICommModuleDataEvent) => {
                 if (!scriptEvent.data) {
                     return;
                 }

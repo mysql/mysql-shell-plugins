@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -449,6 +449,7 @@ export interface IShellDeleteDbObjectKwargs {
 
 
 export interface IShellListContentFilesKwargs {
+    contentSetId?: number;
     includeEnableState?: boolean;
     moduleSessionId?: string;
     interactive?: boolean;
@@ -580,7 +581,7 @@ export class ProtocolMrs extends Protocol {
      *
      * @param kwargs Additional options
      *
-     * @returns Either a string listing the services when interactive is set or list      of dicts representing the services
+     * @returns Either a string listing the services when interactive is set or list     of dicts representing the services
      */
     public static getRequestListServices(kwargs?: IShellListServicesKwargs): IShellRequest {
 
@@ -608,7 +609,7 @@ export class ProtocolMrs extends Protocol {
      *
      * @returns Not documented
      *
-     * If there is no service yet, a service with default values will be  created
+     * If there is no service yet, a service with default values will be created
      * and set as default.
      *
      * <b>Returns:</b>
@@ -904,7 +905,7 @@ export class ProtocolMrs extends Protocol {
      *
      * @param kwargs Additional options
      *
-     * @returns Either a string listing the schemas when interactive is set or list      of dicts representing the schemas
+     * @returns Either a string listing the schemas when interactive is set or list     of dicts representing the schemas
      */
     public static getRequestListSchemas(kwargs?: IShellListSchemasKwargs): IShellRequest {
 
@@ -1192,7 +1193,7 @@ export class ProtocolMrs extends Protocol {
      * @param serviceId The id of the service the schema should be added to
      * @param kwargs Additional options
      *
-     * @returns None in interactive mode, a dict with content_set_id and          number_of_files_uploaded
+     * @returns None in interactive mode, a dict with content_set_id and         number_of_files_uploaded
      */
     public static getRequestAddContentSet(contentDir?: string, serviceId?: number, kwargs?: IShellAddContentSetKwargs): IShellRequest {
 
@@ -1224,7 +1225,7 @@ export class ProtocolMrs extends Protocol {
      * @param serviceId The id of the service to list the schemas from
      * @param kwargs Additional options
      *
-     * @returns Either a string listing the content sets when interactive is set or list      of dicts representing the content sets
+     * @returns Either a string listing the content sets when interactive is set or list     of dicts representing the content sets
      */
     public static getRequestListContentSets(serviceId?: number, kwargs?: IShellListContentSetsKwargs): IShellRequest {
 
@@ -1611,16 +1612,16 @@ export class ProtocolMrs extends Protocol {
     /**
      * Returns all db_objects for the given schema
      *
-     * @param contentSetId The id of the content_set to list the items from
      * @param kwargs Additional options
      *
      * @returns A list of dicts representing the db_objects of the schema
      */
-    public static getRequestListContentFiles(contentSetId: number, kwargs?: IShellListContentFilesKwargs): IShellRequest {
+    public static getRequestListContentFiles(kwargs?: IShellListContentFilesKwargs): IShellRequest {
 
         let kwargsToUse;
         if (kwargs) {
             kwargsToUse = {
+                content_set_id: kwargs.contentSetId,
                 include_enable_state: kwargs.includeEnableState,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
@@ -1631,9 +1632,7 @@ export class ProtocolMrs extends Protocol {
 
         return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsListContentFiles,
             {
-                args: {
-                    content_set_id: contentSetId,
-                },
+                args: {},
                 kwargs: kwargsToUse,
             });
     }
@@ -1645,7 +1644,7 @@ export class ProtocolMrs extends Protocol {
      * @param serviceId The id of the service the schema should be added to
      * @param kwargs Additional options
      *
-     * @returns None in interactive mode, a dict with content_set_id and          number_of_files_uploaded
+     * @returns None in interactive mode, a dict with content_set_id and         number_of_files_uploaded
      */
     public static getRequestAddAuthenticationApp(appName?: string, serviceId?: number, kwargs?: IShellAddAuthenticationAppKwargs): IShellRequest {
 
@@ -1681,7 +1680,7 @@ export class ProtocolMrs extends Protocol {
      * @param serviceId The id of the service to list the schemas from
      * @param kwargs Additional options
      *
-     * @returns Either a string listing the content sets when interactive is set or list      of dicts representing the content sets
+     * @returns Either a string listing the content sets when interactive is set or list     of dicts representing the content sets
      */
     public static getRequestListAuthenticationApps(serviceId?: number, kwargs?: IShellListAuthenticationAppsKwargs): IShellRequest {
 
@@ -1706,9 +1705,9 @@ export class ProtocolMrs extends Protocol {
     }
 
     /**
-     * Prints basic information about this plugin.
+     * Returns basic information about this plugin.
      *
-     * @returns None
+     * @returns str
      */
     public static getRequestInfo(): IShellRequest {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,28 @@
  */
 
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class SchemaTableTriggerTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "trigger";
+    public contextValue = "schemaTableTriggerItem";
+
+    public constructor(
+        name: string,
+        public schema: string,
+        public table: string,
+        entry: IConnectionEntry) {
+        super(name, schema, entry, false);
+    }
+
+    public get qualifiedName(): string {
+        return `\`${this.schema}\`.\`${this.name}\``;
+    }
 
     protected get iconName(): string {
-        return "trigger.svg";
+        return "schemaTableTrigger.svg";
+    }
+
+    protected get dbType(): string {
+        return "trigger";
     }
 }

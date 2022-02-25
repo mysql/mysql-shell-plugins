@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -160,7 +160,7 @@ class FrameSender(Frame):
                 frame_data += self.message.encode()
 
             buffer.send(frame_data)
-        except Exception as e: #pragma: no cover
+        except Exception: #pragma: no cover
             if self.opcode == Operation.Close:
                 return
             else:

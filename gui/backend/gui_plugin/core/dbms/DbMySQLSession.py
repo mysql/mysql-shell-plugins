@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -48,8 +48,8 @@ class DbMysqlSession(DbSession):
                         {"name": "Index",         "type": "TABLE_OBJECT"},
                         {"name": "Column",        "type": "TABLE_OBJECT"}]
 
-    def __init__(self, id, threaded, connection_options, on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None):
-        super().__init__(id, threaded, connection_options)
+    def __init__(self, id, threaded, connection_options, ping_interval=None, on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None):
+        super().__init__(id, threaded, connection_options, ping_interval=ping_interval)
 
         self._pwd_prompt_cb = pwd_prompt_cb
         self._prompt_cb = prompt_cb
@@ -92,6 +92,9 @@ class DbMysqlSession(DbSession):
                                                 "passwordDelegate": lambda x: self.on_shell_password(x), })
         self._shell = self._shell_ctx.get_shell()
 
+        self._do_connect(notify_success=notify_success)
+
+    def _do_connect(self, notify_success=True):
         try:
             self.session = self._shell.open_session(self._connection_options)
 
@@ -115,6 +118,10 @@ class DbMysqlSession(DbSession):
     def _close_database(self):
         if self.session and self.session.is_open():
             self.session.close()
+
+    def _reconnect(self):
+        self._close_database()
+        self._do_connect(True)
 
     def do_execute(self, sql, params=None):
         self.cursor = self.session.run_sql(sql, params)
@@ -235,7 +242,7 @@ class DbMysqlSession(DbSession):
                                             result_callback=callback))
 
     @check_supported_type
-    def get_schema_object_names(self, request_id, type, schema_name, filter, callback=None):
+    def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):
         if type == "Table":
             sql = f"""SELECT TABLE_NAME
                       FROM information_schema.tables
@@ -246,7 +253,11 @@ class DbMysqlSession(DbSession):
         elif type == "View":
             sql = f"""SELECT TABLE_NAME
                       FROM information_schema.views
-                      WHERE table_schema = '{schema_name}'"""
+                      WHERE table_schema = '{schema_name}'
+                      UNION
+                      SELECT TABLE_NAME
+                      FROM information_schema.tables
+                      WHERE TABLE_TYPE='SYSTEM VIEW' AND table_schema = '{schema_name}'"""
             if filter:
                 sql += f" AND TABLE_NAME like '{filter}'"
             sql += " ORDER BY TABLE_NAME"
@@ -254,6 +265,8 @@ class DbMysqlSession(DbSession):
             sql = f"""SELECT ROUTINE_NAME
                       FROM information_schema.ROUTINES
                       WHERE ROUTINE_SCHEMA = '{schema_name}'"""
+            if routine_type:
+                sql += f" AND ROUTINE_TYPE = '{routine_type.upper()}'"
             if filter:
                 sql += f" AND ROUTINE_NAME like '{filter}'"
             sql += " ORDER BY ROUTINE_NAME"

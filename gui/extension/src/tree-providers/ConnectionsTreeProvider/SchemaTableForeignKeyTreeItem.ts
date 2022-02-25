@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,20 @@
  */
 
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class SchemaTableForeignKeyTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "foreignKey";
+    public contextValue = "schemaTableForeignKeyItem";
+
+    public constructor(
+        name: string,
+        public schema: string,
+        public table: string,
+        entry: IConnectionEntry) {
+        super(name, schema, entry, false);
+    }
 
     protected get iconName(): string {
-        return "foreignKey.svg";
+        return "schemaTableForeignKey.svg";
     }
 }

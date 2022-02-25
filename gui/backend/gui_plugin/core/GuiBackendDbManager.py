@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -29,10 +29,13 @@ from shutil import copyfile
 from os import path, listdir, rename, remove
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.lib.Version import Version
+import contextlib
 
 
-latest_db_version = Version((0, 0, 12))
-
+latest_db_version = Version((0, 0, 14))
+default_config = {
+    "log_rotation_period": 7
+}
 
 class BackendDbManager():
     """
@@ -48,6 +51,8 @@ class BackendDbManager():
         self._web_session = web_session
         self._connection_options = connection_options
 
+        self._config = default_config
+
         self.ensure_database_exists()
 
         # Log rotation verification should be enabled by the caller
@@ -62,8 +67,8 @@ class BackendDbManager():
             self.initialize_db()
 
     def check_if_logs_need_rotation(self, db):
-        sql_message = "SELECT COUNT(id) FROM gui_log.message WHERE date(sent) < date('now');"
-        sql_log = "SELECT COUNT(id) FROM gui_log.log WHERE date(event_time) < date('now');"
+        sql_message = "SELECT COUNT(sent) FROM `gui_log`.`message` WHERE date(sent) < date('now');"
+        sql_log = "SELECT COUNT(event_time) FROM `gui_log`.`log` WHERE date(event_time) < date('now');"
         old_rows_count = 0
         try:
             res = db.execute(sql_message).fetch_one()
@@ -91,7 +96,6 @@ class BackendDbManager():
 
     def backup_logs(self, db):  # pragma: no cover
         raise NotImplementedError()
-
 
 class BackendSqliteDbManager(BackendDbManager):
     """
@@ -146,6 +150,11 @@ class BackendSqliteDbManager(BackendDbManager):
         if latest_version_val == (0, 0, 0):
             return False
 
+        if version_to_upgrade > latest_db_version:
+            raise Exception(f'Cannot downgrade database from '  # pragma: no cover
+                            f'schema {version_to_upgrade} to {latest_db_version}')
+
+        previous_version = version_to_upgrade - Version((0, 0, 1))
         # Because we don't know the full path in the script,
         # we have to change working directory so that new 'mysqlsh_gui_backend_log`
         # is created in the appropriate location.
@@ -176,7 +185,7 @@ class BackendSqliteDbManager(BackendDbManager):
                             upgrade_db_file = path.join(self.db_dir,
                                                         f'mysqlsh_gui_backend_{upgrade_to_version}.sqlite3')
                             copyfile(db_file, upgrade_db_file)
-                            rename(db_file, f'{db_file}.backup')
+                            self.rename_db_file(db_file, f'{db_file}.backup')
                             # In BE db newer than 0.0.7 we have to take care also mysqlsh_gui_backend_log_x database
                             if upgrade_to_version >= (0, 0, 7) and update_from_version >= (0, 0, 7):
                                 upgrade_db_log_file = path.join(self.db_dir,
@@ -184,7 +193,7 @@ class BackendSqliteDbManager(BackendDbManager):
                                 db_log_file = path.join(self.db_dir,
                                                 f'mysqlsh_gui_backend_log_{version_to_upgrade}.sqlite3')
                                 copyfile(db_log_file, upgrade_db_log_file)
-                                rename(db_log_file, f'{db_log_file}.backup')
+                                self.rename_db_file(db_log_file, f'{db_log_file}.backup')
                             try:
                                 with open(path.join(script_dir, f),
                                           'r') as sql_file:
@@ -203,18 +212,19 @@ class BackendSqliteDbManager(BackendDbManager):
                                 conn.rollback()
                                 conn.close()
                                 # move the files back
-                                remove(f'{upgrade_db_file}-shm')
-                                remove(f'{upgrade_db_file}-wal')
-                                remove(upgrade_db_file)
+                                self.remove_db_file(upgrade_db_file)
                                 rename(f'{db_file}.backup', db_file)
 
                                 # move the log files back
                                 if upgrade_to_version >= (0, 0, 7) and update_from_version >= (0, 0, 7):
-                                    remove(upgrade_db_log_file)
+                                    self.remove_db_file(upgrade_db_log_file)
                                     rename(f'{db_log_file}.backup', db_log_file)
 
                                 # logger.error(f'Cannot upgrade database. {e}')
                                 raise e
+
+            # Removing previous backup and old log files
+            self.cleanup(previous_version)
         finally:
             chdir(self.current_dir)
 
@@ -264,7 +274,7 @@ class BackendSqliteDbManager(BackendDbManager):
                 if latest_db_version == version:
                     backup_files.append(f)
 
-        while len(backup_files) > 6:
+        while len(backup_files) > self._config['log_rotation_period']:
             file_to_remove = sorted(backup_files)[0]
             remove(file_to_remove)
             backup_files.remove(file_to_remove)
@@ -311,3 +321,38 @@ class BackendSqliteDbManager(BackendDbManager):
             # TODO(rennox): Is this the right way to set the last error?
             db.set_last_error(e)
             db.rollback()
+
+    def remove_db_file(self, path):
+        with contextlib.suppress(FileNotFoundError):
+            remove(f'{path}-shm')
+        with contextlib.suppress(FileNotFoundError):
+            remove(f'{path}-wal')
+        with contextlib.suppress(FileNotFoundError):
+            remove(path)
+
+    def rename_db_file(self, src, dst):
+        rename(src, dst)
+        with contextlib.suppress(FileNotFoundError):
+            remove(f'{src}-shm')
+        with contextlib.suppress(FileNotFoundError):
+            remove(f'{src}-wal')
+
+    def cleanup(self, previous_version):
+        with contextlib.suppress(FileNotFoundError):
+            remove(path.join(self.db_dir, f'mysqlsh_gui_backend_{previous_version}.sqlite3.backup'))
+        with contextlib.suppress(FileNotFoundError):
+            remove(path.join(self.db_dir, f'mysqlsh_gui_backend_log_{previous_version}.sqlite3.backup'))
+
+        files_to_remove = []
+        for f in listdir(self.db_dir):
+            m = re.match(
+                r'\d+\.\d+\.\d+_mysqlsh_gui_backend_log_(\d+)\.(\d+)\.(\d+)\.sqlite3', f)
+            if m:
+                g = m.groups()
+                version = Version(g[0])
+
+                if previous_version == version:
+                    files_to_remove.append(f)
+
+        for file in files_to_remove:
+            remove(file)

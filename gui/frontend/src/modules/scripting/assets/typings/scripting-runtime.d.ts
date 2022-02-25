@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,13 @@ declare interface IResultSetData {
     totalRowCount?: number;
 }
 
+declare interface IResultSetRow {
+    [key: string]: unknown;
+}
+
+declare type ResultSetRows = IResultSetRow[];
+
+
 /**
  * Adds the value (converted to a string) to the current block output or creates new output if nothing was shown so far.
  *
@@ -50,7 +57,17 @@ declare function print(value: unknown): void;
  * @param params Optional parameters for the query.
  * @param callback A function to call on results.
  */
-declare function runSql(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void;
+declare function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void;
+
+/**
+ * Executes a query and calls a callback for each answer from the server.
+ *
+ * @param code The query to run.
+ * @param params Optional parameters for the query.
+ * @param callback A function to call on results.
+ */
+declare function runSql(code: string, callback?: (res: IResultSetRow[]) => void, params?: unknown): void;
+
 
 declare interface IPieGraphDataPoint {
     /** The label to show for this data point. If no label is given then the value is printed instead. */
@@ -91,6 +108,8 @@ declare interface IPieGraphLayout {
 declare interface IPieLayoutData {
     mediumPie: IPieGraphLayout;
     mediumDonut: IPieGraphLayout;
+    largePie: IPieGraphLayout;
+    largeDonut: IPieGraphLayout;
 }
 
 declare interface IPieDemoData {
@@ -110,7 +129,7 @@ declare class PieGraph {
      *
      * @param data Specify values that configure the graph.
      */
-    public constructor(layout: IPieGraphLayout, data: IPieGraphDataPoint[]);
+    public constructor(layout: IPieGraphLayout, data: IPieGraphDataPoint[] | IResultSetRow[]);
 
     public addDataPoints(data: IPieGraphDataPoint[]): void;
 }

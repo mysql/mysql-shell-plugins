@@ -1,7 +1,7 @@
 lexer grammar MySQLLexer;
 
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -64,7 +64,7 @@ tokens {
 //-------------------------------------------------------------------------------------------------
 
 @header {/*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -874,8 +874,8 @@ TEXT_SYMBOL:                        T E X T;
 THAN_SYMBOL:                        T H A N;
 THEN_SYMBOL:                        T H E N;                                            // SQL-2003-R
 TIMESTAMP_SYMBOL:                   T I M E S T A M P;                                  // SQL-2003-R
-TIMESTAMP_ADD_SYMBOL:               T I M E S T A M P '_' A D D;
-TIMESTAMP_DIFF_SYMBOL:              T I M E S T A M P '_' D I F F;
+TIMESTAMPADD_SYMBOL:                T I M E S T A M P A D D;
+TIMESTAMPDIFF_SYMBOL:               T I M E S T A M P D I F F;
 TIME_SYMBOL:                        T I M E;                                            // SQL-2003-R
 TINYBLOB_SYMBOL:                    T I N Y B L O B;                                    // MYSQL
 TINYINT_SYMBOL:                     T I N Y I N T;                                      // MYSQL
@@ -1227,7 +1227,7 @@ BACK_TICK_QUOTED_ID:
 ;
 
 DOUBLE_QUOTED_TEXT: (
-        DOUBLE_QUOTE (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\' .)? .)*? DOUBLE_QUOTE
+        DOUBLE_QUOTE (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? DOUBLE_QUOTE
     )+
 ;
 

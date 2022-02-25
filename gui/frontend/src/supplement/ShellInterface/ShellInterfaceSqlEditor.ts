@@ -21,9 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ListenerEntry } from "../Dispatch";
+import { EventType, ListenerEntry } from "../Dispatch";
 import {
     ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ShellPromptResponseType,
+    ICommObjectNamesEvent,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
@@ -94,7 +95,7 @@ export class ShellInterfaceSqlEditor implements IShellInterface {
         const listener = currentConnection.sendRequest(request, { messageClass: "closeModuleSession" });
 
         listener.then(() => {
-            webSession.removeDataForModule(this.moduleSessionLookupId, id);
+            webSession.setModuleSessionId(this.moduleSessionLookupId);
         }).catch((event: ICommErrorEvent) => {
             throw new Error(event.message);
         });
@@ -163,6 +164,22 @@ export class ShellInterfaceSqlEditor implements IShellInterface {
     }
 
     /**
+     * Reconnects the database connection.
+     *
+     * @returns A listener for the response
+     */
+    public reconnect(): ListenerEntry {
+        const id = this.moduleSessionId;
+        if (!id) {
+            return ListenerEntry.resolve();
+        }
+
+        const request = ProtocolGui.getRequestSqleditorReconnect(id);
+
+        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorReconnect });
+    }
+
+    /**
      * Stops the currently running query (if there's any).
      *
      * @returns A listener for the response
@@ -198,23 +215,136 @@ export class ShellInterfaceSqlEditor implements IShellInterface {
     }
 
     /**
-     * Returns a list of schema objects (tables, views etc.).
+     * Returns a list of schema object names (tables, views etc.).
      *
-     * @param schema The schema for which to retrieve the objects.
+     * @param schema The schema for which to retrieve the names.
      * @param type Which type of object to retrieve.
+     * @param routineType Valid only for routines. Can be either "function" or "procedure".
      * @param filter A search filter.
      *
      * @returns A listener for the response.
      */
-    public getSchemaObjects(schema: string, type: string, filter: string): ListenerEntry {
+    public getSchemaObjects(schema: string, type: string, routineType?: string, filter?: string): ListenerEntry {
         const id = this.moduleSessionId;
         if (!id) {
             return ListenerEntry.resolve();
         }
 
-        const request = ProtocolGui.getRequestDbGetSchemaObjectNames(id, type, schema, filter);
+        const request = ProtocolGui.getRequestDbGetSchemaObjectNames(id, type, schema, filter, routineType);
 
         return currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" });
+    }
+
+    /**
+     * Promisified version of `getSchemaObjects`.
+     *
+     * @param schema The schema for which to retrieve the names.
+     * @param type Which type of object to retrieve.
+     * @param routineType Valid only for routines. Can be either "function" or "procedure".
+     * @param filter A search filter.
+     *
+     * @returns A promise that resolves to a list of object names.
+     */
+    public getSchemaObjectsAsync(schema: string, type: string, routineType?: string,
+        filter?: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            const id = this.moduleSessionId;
+            if (!id) {
+                resolve([]);
+            } else {
+                const request = ProtocolGui.getRequestDbGetSchemaObjectNames(id, type, schema, filter, routineType);
+
+                const entries: string[] = [];
+                currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" })
+                    .then((event: ICommObjectNamesEvent) => {
+                        switch (event.eventType) {
+                            case EventType.DataResponse:
+                            case EventType.FinalResponse: {
+                                if (event.data) {
+                                    entries.push(...(event.data.result));
+                                }
+
+                                if (event.eventType === EventType.FinalResponse) {
+                                    resolve(entries);
+                                }
+
+                                break;
+                            }
+
+                            default:
+                        }
+                    })
+                    .catch((event) => {
+                        reject("Retrieving schema objects failed: " + String(event.message));
+                    });
+            }
+        });
+    }
+
+    /**
+     * Returns a list of table object names (FKs, triggers etc.).
+     *
+     * @param schema The schema for which to retrieve the names.
+     * @param table The table for which to retrieve the names.
+     * @param type Which type of object to retrieve.
+     * @param filter A search filter.
+     *
+     * @returns A listener for the response.
+     */
+    public getTableObjects(schema: string, table: string, type: string, filter?: string): ListenerEntry {
+        const id = this.moduleSessionId;
+        if (!id) {
+            return ListenerEntry.resolve();
+        }
+
+        const request = ProtocolGui.getRequestDbGetTableObjectNames(id, type, schema, table, filter);
+
+        return currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" });
+    }
+
+    /**
+     * Promisified version of `getTableObjects`.
+     *
+     * @param schema The schema for which to retrieve the names.
+     * @param table The table for which to retrieve the names.
+     * @param type Which type of object to retrieve.
+     * @param filter A search filter.
+     *
+     * @returns A promise that resolves to a list of object names.
+     */
+    public getTableObjectsAsync(schema: string, table: string, type: string, filter?: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            const id = this.moduleSessionId;
+            if (!id) {
+                resolve([]);
+            } else {
+                const request = ProtocolGui.getRequestDbGetTableObjectNames(id, type, schema, table, filter);
+
+                const entries: string[] = [];
+                currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" })
+                    .then((event: ICommObjectNamesEvent) => {
+                        switch (event.eventType) {
+                            case EventType.DataResponse:
+                            case EventType.FinalResponse: {
+                                if (event.data) {
+                                    entries.push(...(event.data.result));
+                                }
+
+                                if (event.eventType === EventType.FinalResponse) {
+                                    resolve(entries);
+                                }
+
+                                break;
+                            }
+
+                            default:
+                        }
+                    })
+                    .catch((event) => {
+                        reject("Retrieving table objects failed: " + String(event.message));
+                    });
+            }
+        });
     }
 
     /**

@@ -17,7 +17,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container gridCell"
+          class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
         >
           <input
@@ -33,13 +33,13 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container gridCell"
+          class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
         />
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container gridCell"
+          class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
         >
           <input
@@ -55,7 +55,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container gridCell"
+          class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
         >
           <button
@@ -86,7 +86,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container gridCell"
+        class="msg container fixedScrollbar gridCell"
         style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
       >
         <input
@@ -102,13 +102,13 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container gridCell"
+        class="msg container fixedScrollbar gridCell"
         style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
       />
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container gridCell"
+        class="msg container fixedScrollbar gridCell"
         style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
       >
         <input
@@ -124,7 +124,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container gridCell"
+        class="msg container fixedScrollbar gridCell"
         style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
       >
         <button

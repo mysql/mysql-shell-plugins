@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -169,6 +169,34 @@ html.themeSwitch *:after {
 .msg.applicationHost .moduleHost.active {
     display: flex;
 }
+
+/* Special styles for macOS auto disappearing scroll bars. */
+.msg .fixedScrollbar {
+    overflow: auto;
+
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: auto;
+    scrollbar-color: var(--scrollbarSlider-background) var(--scrollbarSlider-shadow);
+}
+
+.msg .fixedScrollbar::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+    height: 7px;
+
+    background-color: var(--scrollbarSlider-shadow);
+}
+
+.msg .fixedScrollbar::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: var(--scrollbarSlider-background);
+}
+
+.msg .fixedScrollbar::-webkit-scrollbar-corner {
+    background-color: var(--scrollbarSlider-shadow);
+}
+
 
 /* Some browser specific rules. */
 

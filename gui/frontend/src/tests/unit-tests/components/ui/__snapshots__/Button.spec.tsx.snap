@@ -13,7 +13,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container"
+          class="msg container fixedScrollbar"
           style="flex-direction: row;"
         >
           <button
@@ -39,7 +39,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container"
+          class="msg container fixedScrollbar"
           style="flex-direction: row;"
         >
           <button
@@ -83,7 +83,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container"
+          class="msg container fixedScrollbar"
           style="flex-direction: row;"
         >
           <button
@@ -116,7 +116,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container"
+        class="msg container fixedScrollbar"
         style="flex-direction: row;"
       >
         <button
@@ -142,7 +142,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container"
+        class="msg container fixedScrollbar"
         style="flex-direction: row;"
       >
         <button
@@ -186,7 +186,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container"
+        class="msg container fixedScrollbar"
         style="flex-direction: row;"
       >
         <button

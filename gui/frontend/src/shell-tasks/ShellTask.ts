@@ -92,8 +92,14 @@ export class ShellTask {
                         this.shellSession = new ShellInterfaceShellSession("shell.task",
                             event.data.moduleSessionId as string);
                     } else if (result) {
-                        if (this.isShellPromptResult(event.data.result as IShellResultType)) {
-                            const text = result.prompt as string | "Please enter value:";
+                        if (this.isShellPromptResult(result as IShellResultType)) {
+                            let text: string;
+                            if (result.password) {
+                                text = result.password as string;
+                            } else {
+                                text = result.prompt as string;
+                            }
+
                             void this.promptCallback(text, !isNil(result.password)).then((value) => {
                                 if (this.shellSession) {
                                     if (!isNil(value)) {

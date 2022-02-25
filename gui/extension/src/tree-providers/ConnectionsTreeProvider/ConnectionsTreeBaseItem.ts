@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,10 @@
 
 import * as path from "path";
 
-import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { Command, TreeItem, TreeItemCollapsibleState, env, window, commands } from "vscode";
+
+import { ICommResultSetEvent } from "../../../../frontend/src/communication";
+import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
@@ -44,7 +47,73 @@ export class ConnectionsTreeBaseItem extends TreeItem {
         this.command = command;
     }
 
+    public copyNameToClipboard(): void {
+        void env.clipboard.writeText(this.name).then(() => {
+            void window.showInformationMessage("The name was copied to the system clipboard");
+        });
+    }
+
+    public copyCreateScriptToClipboard(): void {
+        this.entry.backend?.execute(`show create ${this.dbType} ${this.qualifiedName}`)
+            .then((event: ICommResultSetEvent) => {
+                if (event.data?.rows && event.data.rows.length > 0) {
+                    const row = event.data.rows[0] as string[];
+                    const index = this.createScriptResultIndex;
+                    if (row.length > index) {
+                        void env.clipboard.writeText(row[index]).then(() => {
+                            void window.showInformationMessage("The create script was copied to the system clipboard");
+                        });
+                    }
+                }
+            }).catch((event) => {
+                void window.showErrorMessage("Error while getting create script: " + (event.message as string));
+            });
+    }
+
+    public dropItem(): void {
+        void window.showInformationMessage(`Do you want to drop the ${this.dbType} ${this.name}?`, `Drop ${this.name}`,
+            "Cancel").then((answer) => {
+            if (answer !== "Cancel") {
+                const query = `drop ${this.dbType} ${this.qualifiedName}`;
+                this.entry.backend?.execute(query).then((event: ICommResultSetEvent) => {
+                    switch (event.eventType) {
+                        case EventType.FinalResponse: {
+                                // TODO: refresh only the affected connection.
+                            void commands.executeCommand("msg.refreshConnections");
+                            void window.showInformationMessage(
+                                `The object ${this.name} has been dropped successfully.`);
+
+                            break;
+                        }
+
+                        default:
+                    }
+                }).catch((errorEvent): void => {
+                    void window.showErrorMessage(`Error dropping the object: ${errorEvent.message as string}`);
+                });
+            }
+        });
+    }
+
+    public get qualifiedName(): string {
+        return "";
+    }
+
     protected get iconName(): string {
         return "";
+    }
+
+    protected get dbType(): string {
+        return "";
+    }
+
+    /**
+     * The result for create script retrieval differs for certain DB types.
+     *
+     * @returns the index in the result row, where to find the correct text.
+     *
+     */
+    protected get createScriptResultIndex(): number {
+        return 1;
     }
 }

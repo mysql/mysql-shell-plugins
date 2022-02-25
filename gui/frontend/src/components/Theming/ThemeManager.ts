@@ -89,9 +89,12 @@ export class ThemeManager {
         this.themeStyleElement = document.createElement("style");
         this.themeStyleElement.id = "theme-colors";
         document.head.prepend(this.themeStyleElement);
-        this.updating = true;
-        this.activeTheme = "auto";
-        this.updating = false;
+
+        if (!appParameters.embedded) {
+            this.updating = true;
+            this.activeTheme = "Auto";
+            this.updating = false;
+        }
 
         if (!appParameters.embedded) {
             window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", this.handleOSThemeChange);
@@ -141,7 +144,7 @@ export class ThemeManager {
         if (this.currentTheme !== theme) {
 
             let actualTheme = theme;
-            if (theme.toLowerCase() === "auto") {
+            if (theme === "Auto") { // Auto means: follow the OS, not the host (if we are embedded).
                 if (window.matchMedia("(prefers-color-scheme: light)").matches) {
                     actualTheme = "Default Light";
                 } else {
@@ -324,7 +327,7 @@ export class ThemeManager {
             });
 
             this.updating = true;
-            this.activeTheme = settings.get("theming.currentTheme", "auto");
+            this.activeTheme = settings.get("theming.currentTheme", "Auto");
             this.updating = false;
 
             return Promise.resolve(true);
@@ -345,12 +348,13 @@ export class ThemeManager {
     private hostThemeChange = (data: { css: string; themeClass: string }): Promise<boolean> => {
         // For the time being we load our light or dark default themes for host theme changes.
         // TODO: enable host theme values here.
-        this.currentTheme = "Auto"; // Always follow the host theme.
 
         switch (data.themeClass) {
             case "vscode-dark": {
                 document.body.setAttribute("theme", "dark");
                 this.loadTheme("Default Dark");
+                this.currentTheme = "Default Dark";
+                this.sendChangeNotification(this.currentTheme);
 
                 break;
             }
@@ -358,10 +362,15 @@ export class ThemeManager {
             case "vscode-light": {
                 document.body.setAttribute("theme", "light");
                 this.loadTheme("Default Light");
+                this.currentTheme = "Default Light";
+                this.sendChangeNotification(this.currentTheme);
+
                 break;
             }
 
             default: {
+                this.currentTheme = "Auto";
+
                 break;
             }
         }

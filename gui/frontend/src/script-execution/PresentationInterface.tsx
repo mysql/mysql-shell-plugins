@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,10 +58,10 @@ export class PresentationInterface {
 
     // The maximum height for the result area.
     protected static maxHeight = 800;
+    protected static maxAutoHeight = 292;
 
     // The size of the result area after manual resize by the user.
     public manualHeight?: number;
-    public defaultHeight?: number;
     public resultData?: IExecutionResult;
     public loadingState = LoadingState.Idle;
 
@@ -172,11 +172,9 @@ export class PresentationInterface {
      * Replaces the current result with one created from the given data. If there's no result yet, a new one is added.
      *
      * @param data The data that must be visualized in the result (if not given then remove any existing result).
-     * @param defaultHeight An optional height to assign for the result component. If undefined a default is used,
-     *                      which is determined by custom presentation interfaces.
      * @param manualHeight Set to restore the size of the result area, when a user had resized it before.
      */
-    public setResult(data?: IExecutionResult, defaultHeight?: number, manualHeight?: number): void {
+    public setResult(data?: IExecutionResult, manualHeight?: number): void {
         let element: React.ReactNode | undefined;
 
         if (this.waitTimer) {
@@ -241,7 +239,6 @@ export class PresentationInterface {
             }
         }
 
-        this.defaultHeight = defaultHeight;
         if (manualHeight) {
             this.manualHeight = manualHeight;
         }
@@ -249,7 +246,12 @@ export class PresentationInterface {
         if (this.renderTarget) { // Do we have a result already?
             if (element) {
                 // Update it.
-                render(element, this.renderTarget);
+                render(
+                    <>
+                        {element}
+                        {this.resultDivider}
+                    </>, this.renderTarget,
+                );
                 this.updateRenderTarget();
             } else {
                 // Remove it.
@@ -267,17 +269,7 @@ export class PresentationInterface {
                         </>, this.renderTarget,
                     );
 
-                    this.renderTarget.addEventListener("wheel", (e) => {
-                        if (!this.editor.isScrolling) {
-                            (e.currentTarget as HTMLElement).scrollLeft += Math.sign(e.deltaX) * 2;
-                            (e.currentTarget as HTMLElement).scrollTop += Math.sign(e.deltaY) * 2;
-                            e.stopPropagation();
-                        }
-                    });
-
-                    setTimeout(() => {
-                        this.updateRenderTarget();
-                    }, 100);
+                    // Note: the render target is updated in `defineRenderTarget`.
                 }
             }
         }
@@ -290,11 +282,10 @@ export class PresentationInterface {
      * is created and an initial page is added.
      *
      * @param data The data to place on that new page.
-     * @param height Used to specify the initial height of the result pane, if none exists yet and must be added now.
      */
-    public addResultPage(data: IExecutionResult, height?: number): void {
+    public addResultPage(data: IExecutionResult): void {
         if (!this.renderTarget) {
-            this.setResult(data, height);
+            this.setResult(data);
 
             return;
         }
@@ -386,12 +377,14 @@ export class PresentationInterface {
      * If nothing was set yet, sets the given data as initial result.
      *
      * @param data The data to add.
+     *
+     * @returns A promise resolving to a boolean indicating if data was added (true) or just set (false).
      */
-    public async addResultData(data: IExecutionResult): Promise<void> {
+    public async addResultData(data: IExecutionResult): Promise<boolean> {
         if (!this.renderTarget || !this.resultData) {
             this.setResult(data);
 
-            return;
+            return false;
         }
 
         let element: React.ReactNode;
@@ -438,12 +431,12 @@ export class PresentationInterface {
                 }
 
                 if (this.resultData.type !== "resultSets") {
-                    return;
+                    return false;
                 }
 
                 const resultSets = this.resultData.sets;
                 if (resultSets.length === 0) {
-                    return;
+                    return false;
                 }
 
                 // Add the data to our internal storage, to support switching tabs for multiple result sets.
@@ -458,6 +451,11 @@ export class PresentationInterface {
                     if (data.executionInfo) {
                         resultSet.executionInfo = data.executionInfo;
                     }
+
+                    if (data.type === "resultSetRows") {
+                        resultSet.hasMoreRows = data.hasMoreRows;
+                        resultSet.currentPage = data.currentPage;
+                    }
                 }
 
                 if (this.resultRef.current) {
@@ -471,12 +469,12 @@ export class PresentationInterface {
                     this.updateMarginDecorations();
                 }
 
-                return;
+                return true;
             }
 
             case "graphData": {
                 if (this.resultData.type !== "graphData") {
-                    return;
+                    return false;
                 }
 
                 this.resultData.data.push(data); // Extra layout data is being ignored here.
@@ -497,7 +495,7 @@ export class PresentationInterface {
             }
 
             default: {
-                return;
+                return false;
             }
         }
 
@@ -512,7 +510,16 @@ export class PresentationInterface {
                 this.updateRenderTarget();
             }
         }
+
+        return false;
     }
+
+    /**
+     * Called when a visual update of the result should happen (e.g. to resize for changed data).
+     */
+    public updateResultDisplay = (): void => {
+        this.updateRenderTarget();
+    };
 
     public markLines(lines: Set<number>, cssClass: string): void {
         this.markedLines = lines;
@@ -719,29 +726,6 @@ export class PresentationInterface {
         </>;
 
         return [result, element];
-    }
-
-    /**
-     * Computes the needed height for the text in the given result.
-     *
-     * @param result The text result to use.
-     * @param maxHeight A maximum height.
-     *
-     * @returns The computed height or maxHeight, if that is smaller.
-     */
-    private computeTextHeight(result: ITextResult, maxHeight: number): number {
-        let lineCount = 0;
-
-        result.text?.forEach((entry) => {
-            lineCount += entry.content.split("\n").length;
-        });
-
-        if (result.executionInfo) {
-            lineCount += result.executionInfo.text.split("\n").length;
-        }
-
-        // line-height in CSS is set to 22px.
-        return Math.min(lineCount * 11, maxHeight);
     }
 
     private handleResultPageChange = (requestId: string, currentPage: number, sql: string): void => {

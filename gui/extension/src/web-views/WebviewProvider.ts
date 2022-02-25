@@ -137,6 +137,8 @@ export class WebviewProvider {
                 return Promise.resolve(true);
             });
 
+            this.requisitions.register("settingsChanged", this.updateVscodeSettings);
+
             this.requisitionsCreated();
 
             this.panel.webview.onDidReceiveMessage((message: IEmbeddedMessage) => {
@@ -198,17 +200,8 @@ export class WebviewProvider {
                 // Forward message from the extension to the iframe.
                 frame.contentWindow.postMessage(event.data, "*");
             } else if (event.data.source === "app") {
-                if (event.data.command === "themeChanged") {
-                    const element = document.getElementById("overlay");
-                    if (element) {
-                        element.style.visibility = "hidden";
-                    }
-                }
-                // Forward messages from the iframe to the extension.
-                vscode.postMessage(event.data);
-            } else {
-                // Forward certain messages to our parent window, which will further forward to vscode.
-                switch (event.data.type) {
+                // Forward app events either directly or after a conversion to vscode.
+                switch (event.data.command) {
                     case "keydown": {
                         window.dispatchEvent(new KeyboardEvent("keydown", event.data));
                         break;
@@ -218,14 +211,19 @@ export class WebviewProvider {
                         break;
                     }
                     case "writeClipboard": {
+                        // This is a special message and can be handled here.
                         window.navigator.clipboard.writeText(event.data.text);
+                        break;
+                    }
+                    default: {
+                        vscode.postMessage(event.data);
+                        break;
                     }
                 }
             }
         });
     </script>
-    <div id="overlay"
-        style="position:absolute; left:0; right:0; top:0; bottom:0; background: var(--vscode-panel-background)"/>
+
     </body></html>
     `;
 
@@ -267,6 +265,22 @@ export class WebviewProvider {
         // Forward to global requisitions.
         // TODO: better let handlers subscribe to the internal requisitions.
         return requisitions.execute("dialogResponse", response);
-
     };
+
+    private updateVscodeSettings = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+        return new Promise((resolve) => {
+            if (entry) {
+                const parts = entry.key.split(".");
+                if (parts.length === 3) {
+                    const configuration = workspace.getConfiguration(`msg.${parts[0]}`);
+                    void configuration.update(`${parts[1]}.${parts[2]}`, entry.value, true).then(() => {
+                        resolve(true);
+                    });
+                }
+            }
+
+            resolve(false);
+        });
+    };
+
 }

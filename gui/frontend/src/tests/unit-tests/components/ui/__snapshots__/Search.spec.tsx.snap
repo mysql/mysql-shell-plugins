@@ -10,7 +10,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container searchContainer"
+        class="msg container fixedScrollbar searchContainer"
         style="flex-direction: row;"
       >
         <input
@@ -29,7 +29,7 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container searchContainer"
+      class="msg container fixedScrollbar searchContainer"
       style="flex-direction: row;"
     >
       <input

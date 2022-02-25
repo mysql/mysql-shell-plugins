@@ -41,7 +41,7 @@ import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers";
 import { ScriptingConsole } from "./ScriptingConsole";
-import { IEntityBase, EntityType, ISchemaTreeEntry, IModuleDataEntry } from ".";
+import { IEntityBase, EntityType, ISchemaTreeEntry, IModuleDataEntry, SchemaTreeType } from ".";
 import { StandaloneScriptEditor } from "./StandaloneScriptEditor";
 import { IPosition } from "../../components/ui/CodeEditor";
 import { IPieGraphDataPoint } from "../../components/ResultView/graphs/PieGraphImpl";
@@ -52,11 +52,11 @@ import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
 import { DBEditorMainToolbar } from "./DBEditorMainToolbar";
-import { DBDataType, IColumnInfo, MessageType } from "../../app-logic/Types";
+import { DBDataType, IColumnInfo, IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
 import { mysqlInfo, sqliteInfo } from "../../app-logic/RdbmsInfo";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
-import { EditorLanguage, IRunQueryRequest, ISqlPageRequest } from "../../supplement";
+import { EditorLanguage, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest } from "../../supplement";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
@@ -131,13 +131,11 @@ interface IDBEditorTabState extends IComponentState {
 // A tab page for a single connection (managed by the scripting module).
 export class DBEditorTab extends Component<IDBEditorTabProperties, IDBEditorTabState> {
 
-    private static aboutMessage = `Welcome to the DB Editor Console.
+    private static aboutMessage = `Welcome to the MySQL Shell - DB Editor Console.
 
-Press Shift+Enter to execute the current statement.
-Press %modifier%+Enter to execute the current statement and move to next.
+Press %modifier%+Enter to execute the current statement.
 
-Execute \\sql to switch to SQL mode, \\js to Javascript mode and \\ts to Typescript mode.
-
+Execute \\sql to switch to SQL, \\js to Javascript and \\ts to Typescript mode.
 Execute \\help or \\? for help;`;
 
     // Currently executing contexts.
@@ -169,7 +167,10 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorRollback", this.editorRollback);
         requisitions.register("sqlShowDataAtPage", this.sqlShowDataAtPage);
         requisitions.register("editorRunQuery", this.editorRunQuery);
+        requisitions.register("editorRunScript", this.editorRunScript);
         requisitions.register("editorInsertUserScript", this.editorInsertUserScript);
+
+        this.consoleRef.current?.focus();
     }
 
     public componentWillUnmount(): void {
@@ -183,6 +184,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("editorRollback", this.editorRollback);
         requisitions.unregister("sqlShowDataAtPage", this.sqlShowDataAtPage);
         requisitions.unregister("editorRunQuery", this.editorRunQuery);
+        requisitions.unregister("editorRunScript", this.editorRunScript);
         requisitions.unregister("editorInsertUserScript", this.editorInsertUserScript);
     }
 
@@ -385,9 +387,24 @@ Execute \\help or \\? for help;`;
         return Promise.resolve(true);
     };
 
+    private editorRunScript = (details: IRunScriptRequest): Promise<boolean> => {
+        return new Promise((resolve) => {
+            if (this.consoleRef.current) {
+                void this.consoleRef.current.executeScript(details.content).then((handled) => {
+                    resolve(handled);
+                });
+            } else if (this.standaloneRef.current) {
+                this.standaloneRef.current.executeQuery(details.content);
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        });
+    };
+
     private editorInsertUserScript = (data: { language: EditorLanguage; resourceId: number }): Promise<boolean> => {
         return new Promise((resolve, reject) => {
-            ShellInterface.modules.getModuleDataContent(data.resourceId)
+            ShellInterface.modules.getDataContent(data.resourceId)
                 .then((event: ICommModuleDataContentEvent) => {
                     const content = event.data?.result ?? "";
                     if (this.consoleRef.current) {
@@ -591,7 +608,7 @@ Execute \\help or \\? for help;`;
                                     sql,
                                     currentPage,
                                 }],
-                            }, 250);
+                            });
                         } else {
                             context.addResultPage({
                                 type: "resultSets",
@@ -603,7 +620,7 @@ Execute \\help or \\? for help;`;
                                     sql,
                                     currentPage,
                                 }],
-                            }, 250);
+                            });
                         }
 
                         break;
@@ -649,10 +666,14 @@ Execute \\help or \\? for help;`;
                             }
                         }
 
-                        const status = {
+                        const status: IExecutionInfo = {
                             text: event.data.requestState.type + ", " + formatWithNumber("record", rowCount) +
                                 " retrieved in " + formatTime(event.data.executionTime),
                         };
+                        if (rowCount === 0) {
+                            // Indicate that this data is a simple response (no data actually).
+                            status.type = MessageType.Response;
+                        }
 
                         const columns = this.generateColumnInfo(event.data.columns);
                         void ApplicationDB.db.add("dbModuleResultData", {
@@ -721,6 +742,8 @@ Execute \\help or \\? for help;`;
                         rows: [],
                         executionInfo: status,
                         currentPage,
+                    }).then(() => {
+                        context.updateResultDisplay();
                     });
 
                     resolve(); // No promise error at this point, as we handled the error already.
@@ -730,6 +753,82 @@ Execute \\help or \\? for help;`;
             });
         });
     };
+
+    private reconnect = async (context: ExecutionContext): Promise<boolean> => {
+        return new Promise((resolve, reject) => {
+            const { backend } = this.state;
+
+            if (backend) {
+                this.processReconnectListener(backend.reconnect(), context).then(() => {
+                    resolve(true);
+                }).catch((reason) => {
+                    reject(reason);
+                });
+            } else {
+                resolve(true);
+            }
+        });
+    };
+
+    /**
+     * Implements the handling of listener events that come in as a result of the backend responses.
+     *
+     * @param listener The listener that triggers events.
+     * @param context The context to send result to.
+     *
+     * @returns A promise that resolves when all responses have been received.
+     */
+    private processReconnectListener = (listener: ListenerEntry, context: ExecutionContext): Promise<void> => {
+        return new Promise((resolve) => {
+            listener.then((event: ICommResultSetEvent): void => {
+                if (!event.data) {
+                    return;
+                }
+
+                // const requestId = event.data.requestId!;
+
+                switch (event.eventType) {
+                    case EventType.FinalResponse: {
+                        void context.addResultData({
+                            type: "text",
+                            requestId: "",
+                            text: [{
+                                type: MessageType.Info,
+                                content: event.message,
+                                language: "ansi",
+                            }],
+                        }).then(() => {
+                            context.updateResultDisplay();
+                            resolve();
+                        });
+
+                        break;
+                    }
+
+                    default: {
+                        // TODO: handle in log
+                        resolve();
+
+                        break;
+                    }
+                }
+            }).catch((event): void => {
+                void context.addResultData({
+                    type: "text",
+                    requestId: "",
+                    text: [{
+                        type: MessageType.Error,
+                        content: event.message,
+                        language: "ansi",
+                    }],
+                }).then(() => {
+                    context.updateResultDisplay();
+                    resolve(); // No promise error at this point, as we handled the error already.
+                });
+            });
+        });
+    };
+
 
     /**
      * Adds the given data to the result timer for the specified request ID. If no timer exists yet, one is created.
@@ -746,7 +845,11 @@ Execute \\help or \\? for help;`;
             // If no timer exists yet it means this is the first response with real data.
             // Send this directly to the context to have a quick first visual update.
             // Then create the timer with no rows, waiting for more to come.
-            void context.addResultData(result);
+            void context.addResultData(result).then((added) => {
+                if (added) {
+                    context.updateResultDisplay();
+                }
+            });
 
             const newTimer: IResultTimer = {
                 timer: setIntervalAsync(async (requestId: string) => {
@@ -760,6 +863,7 @@ Execute \\help or \\? for help;`;
                             void clearIntervalAsync(resultTimer.timer).then(() => {
                                 this.resultTimers.delete(requestId);
                             });
+                            context.updateResultDisplay();
                         }
                     }
                 }, 250, result.requestId),
@@ -855,6 +959,22 @@ Execute \\help or \\? for help;`;
                     break;
                 }
 
+                case "\\reconnect": {
+                    context?.setResult({
+                        type: "text",
+                        requestId: "",
+                        text: [{
+                            type: MessageType.Info,
+                            content: "Reconnecting the current DB connection ...\n",
+                            language: "ansi",
+                        }],
+                    });
+                    void this.reconnect(context);
+                    runExecution = false;
+
+                    break;
+                }
+
                 default: {
                     break;
                 }
@@ -915,6 +1035,10 @@ Execute \\help or \\? for help;`;
                 void context?.addResultData({
                     type: "text",
                     executionInfo: { text: status },
+                }).then((added) => {
+                    if (added) {
+                        context?.updateResultDisplay();
+                    }
                 });
 
                 break;
@@ -928,6 +1052,10 @@ Execute \\help or \\? for help;`;
                             void context?.addResultData({
                                 type: "text",
                                 executionInfo: { type: MessageType.Error, text: String(data.result) },
+                            }).then((added) => {
+                                if (added) {
+                                    context?.updateResultDisplay();
+                                }
                             });
                         } else {
                             void context?.addResultData({
@@ -936,8 +1064,13 @@ Execute \\help or \\? for help;`;
                                     type: MessageType.Info,
                                     content: String(data.result),
                                 }],
+                            }).then((added) => {
+                                if (added) {
+                                    context?.updateResultDisplay();
+                                }
                             });
                         }
+
                     }
                 }
 
@@ -945,6 +1078,78 @@ Execute \\help or \\? for help;`;
             }
 
             case ScriptingApi.RunSql: {
+                if (backend) {
+                    // Make sure the task we are running currently on, stays assigned to this loop.
+                    workerPool.retainTask(taskId);
+
+                    let columns: Array<{ name: string; type: string }>;
+                    let result: Array<Record<string, unknown>> = [];
+
+                    backend.execute(data.code!, data.params as string[])
+                        .then((event: ICommResultSetEvent): void => {
+                            switch (event.eventType) {
+                                case EventType.DataResponse:
+                                case EventType.FinalResponse: {
+                                    if (event.data) {
+                                        // First result holds column information
+                                        if (event.data.columns) {
+                                            columns = event.data.columns;
+                                            result = [];
+                                        }
+
+                                        if (event.data.rows) {
+                                            for (const row of event.data.rows) {
+                                                // Get row into a format { columnName: fieldVal, columnName: fieldVal}
+                                                const rowForRes: Record<string, unknown> = {};
+                                                if (Array.isArray(row)) {
+                                                    for (let i = 0; i < row.length; i++) {
+                                                        rowForRes[columns[i].name] = row[i];
+                                                    }
+                                                }
+                                                result.push(rowForRes);
+                                            }
+                                        }
+                                    }
+
+                                    if (event.eventType === EventType.FinalResponse) {
+                                        // Send back the result data to the worker to allow the user to act on that in
+                                        // their JS code. If the `final` member of the data is set to true, the task is
+                                        // implicitly released and freed.
+                                        workerPool.continueTask(taskId, {
+                                            api: ScriptingApi.Request,
+                                            result,
+                                            contextId: data.contextId,
+                                            final: true,
+                                        });
+                                    }
+
+                                    break;
+                                }
+
+                                default: {
+                                    break;
+                                }
+                            }
+                        })
+                        .catch((event: ICommErrorEvent): void => {
+                            const context = this.runningContexts.get(data.contextId);
+                            context?.setResult({
+                                type: "text",
+                                executionInfo: {
+                                    type: MessageType.Error,
+                                    text: `Error: ${event.data?.error ?? "<unknown>"}`,
+                                },
+                            });
+
+                            workerPool.releaseTask(taskId);
+                        });
+                }
+
+                break;
+            }
+
+
+            case ScriptingApi.RunSqlIterative: {
                 if (backend) {
                     // Make sure the task we are running currently on, stays assigned to this loop.
                     workerPool.retainTask(taskId);
@@ -999,6 +1204,10 @@ Execute \\help or \\? for help;`;
                             type: MessageType.Info,
                             content: String(data.value),
                         }],
+                    }).then((added) => {
+                        if (added) {
+                            context?.updateResultDisplay();
+                        }
                     });
                 }
 
@@ -1015,8 +1224,22 @@ Execute \\help or \\? for help;`;
                         type: "text",
                         executionInfo: { type: MessageType.Error, text: `Error: ${missing} is missing` },
                     });
+                } else if (graphData.length === 0) {
+                    context?.setResult({
+                        type: "text",
+                        executionInfo: { type: MessageType.Error, text: "Error: No data points given." },
+                    });
+                } else if (!graphData[0].value) {
+                    context?.setResult({
+                        type: "text",
+                        executionInfo: {
+                            type: MessageType.Error,
+                            text: "Error: The graph data rows needs to include a 'value' field. " +
+                                "E.g. [{label: \"test\", value: 10}]",
+                        },
+                    });
                 } else {
-                    const height = graphLayout.height ?? 400;
+                    const height = graphLayout.height ?? 350;
                     context?.setResult({
                         type: "graphData",
                         ...graphLayout,
@@ -1098,14 +1321,14 @@ Execute \\help or \\? for help;`;
         const { connectionId } = this.props;
         const { backend } = this.state;
 
+        const data = params as ISchemaTreeEntry;
         switch (actionId) {
             case "setDefaultMenuItem": {
-                const data = params as ISchemaTreeEntry;
                 backend?.setCurrentSchema(data.qualifiedName.schema).then(() => {
                     void requisitions.execute("sqlSetCurrentSchema",
                         { id, connectionId, schema: data.qualifiedName.schema });
                 }).catch((errorEvent: ICommErrorEvent) => {
-                    void requisitions.execute("showError", ["Cannot set default schema", String(errorEvent.message)]);
+                    void requisitions.execute("showError", ["Cannot set default schema", errorEvent.message]);
                 });
 
                 break;
@@ -1120,10 +1343,74 @@ Execute \\help or \\? for help;`;
             }
 
             case "clipboardNameMenuItem": {
+                requisitions.writeToClipboard(data.caption);
                 break;
             }
 
             case "clipboardCreateStatementMenuItem": {
+                let type;
+                let qualifier = `\`${data.qualifiedName.schema}\`.`;
+                let index = 1; // The column index in the result row.
+                switch (data.type) {
+                    case SchemaTreeType.Schema: {
+                        type = "schema";
+                        qualifier = "";
+                        break;
+                    }
+
+                    case SchemaTreeType.Table: {
+                        type = "table";
+                        break;
+                    }
+
+                    case SchemaTreeType.View: {
+                        type = "view";
+                        break;
+                    }
+
+                    case SchemaTreeType.StoredFunction: {
+                        index = 2;
+                        type = "function";
+                        break;
+                    }
+
+                    case SchemaTreeType.StoredProcedure: {
+                        index = 2;
+                        type = "procedure";
+                        break;
+                    }
+
+                    case SchemaTreeType.Trigger: {
+                        type = "trigger";
+                        break;
+                    }
+
+                    case SchemaTreeType.Event: {
+                        type = "event";
+                        break;
+                    }
+
+                    case SchemaTreeType.User: {
+                        type = "user";
+                        break;
+                    }
+
+                    default:
+                }
+
+                if (type) {
+                    backend?.execute(`show create ${type} ${qualifier}\`${data.caption}\``)
+                        .then((event: ICommResultSetEvent) => {
+                            if (event.data?.rows && event.data.rows.length > 0) {
+                                // Returns one row with 2 columns.
+                                const row = event.data.rows[0] as string[];
+                                if (row.length > index) {
+                                    requisitions.writeToClipboard(row[index]);
+                                }
+                            }
+                        });
+                }
+
                 break;
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,6 @@ const webpack = require("webpack");
 
 const child = require('child_process');
 const path = require("path");
-const fs = require("fs");
 const packageFile = path.resolve(__dirname, "package.json");
 
 module.exports = function override(config, env) {
@@ -37,17 +36,21 @@ module.exports = function override(config, env) {
         //new BundleAnalyzerPlugin({ analyzerMode: "disabled" }),
         new webpack.DefinePlugin({
             "process.env.buildNumber": webpack.DefinePlugin.runtimeValue(() => {
-                // First try to get the hash from a local version-info file, if that exists.
-                let sha = getHashFromInfoFile();
+                // First try to get the hash from an environment variable, if that exists.
+                let sha = process.env.PUSH_REVISION;
                 if (sha) {
-                    return `"${sha}"`;
+                    return `"${sha.substring(0, 7)}"`;
                 }
 
                 // Otherwise ask git directly.
-                sha = child.execSync("git rev-parse --short HEAD", { timeout: 10000 });
-                return `"${sha.toString().trim()}"`;
+                try {
+                    sha = child.execSync("git rev-parse --short HEAD", { timeout: 10000 });
+                    return `"${sha.toString().trim()}"`;
+                } catch (e) {
+                    return "<unknown>";
+                }
             }, true),
-            "process.env.versionNumber":  JSON.stringify(require(packageFile).version),
+            "process.env.versionNumber": JSON.stringify(require(packageFile).version),
         })
     );
 
@@ -69,23 +72,10 @@ module.exports = function override(config, env) {
     config.resolve.alias = config.resolve.alias || {};
     config.resolve.alias.react = 'preact/compat';
     config.resolve.alias['react/jsx-runtime'] = 'preact/jsx-runtime';
-    //config.devtool = "eval-source-map";
+
+    // Need to avoid minimizing class names as they are needed in some spots (e.g. code completion).
+    config.optimization.minimizer[0].options.terserOptions.keep_classnames = true;
+    config.optimization.minimizer[0].options.terserOptions.keep_fnames = true;
 
     return config;
-}
-
-const getHashFromInfoFile = () => {
-    let hash;
-
-    if (fs.existsSync("../../../../version-info")) {
-        const versionInfo = fs.readFileSync("../../../../version-info", { encoding: "utf-8" });
-        const lines = versionInfo.split("\n");
-        lines.forEach((line) => {
-            if (line.startsWith("short:")) {
-                hash = line.substring("short:".length).trim();
-            }
-        })
-    }
-
-    return hash;
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -105,7 +105,7 @@ def set_current_objects(service_id=None, service=None, schema_id=None,
         schema (dict): The schema to set as the current schema
         content_set_id (int): The id of the content_set to set as the current
         content_set (dict): The content_set to set as the current
-        db_object_id (int): The id of the db_object to set as the current 
+        db_object_id (int): The id of the db_object to set as the current
             db_object
         db_object (dict): The db_object to set as the current db_object
 
@@ -154,7 +154,7 @@ def set_current_objects(service_id=None, service=None, schema_id=None,
 def get_current_service(session=None):
     """Returns the current service
 
-    This only applies to interactive sessions in the shell where the 
+    This only applies to interactive sessions in the shell where the
     id of the current service is stored in the global config
 
     Args:
@@ -180,7 +180,7 @@ def get_current_service(session=None):
 def get_current_content_set(session=None):
     """Returns the current content_set
 
-    This only applies to interactive sessions in the shell where the 
+    This only applies to interactive sessions in the shell where the
     id of the current content_set is stored in the global config
 
     Args:
@@ -204,7 +204,7 @@ def get_current_content_set(session=None):
 
 
 def get_current_schema(session=None):
-    """Returns the current schema 
+    """Returns the current schema
 
     Args:
         session (object): The database session to use.
@@ -270,7 +270,7 @@ def ensure_rds_metadata_schema(session=None, auto_create_and_update=False,
 
     Args:
         session (object): The database session to use
-        auto_create_and_update (bool): Whether the metadata schema should be 
+        auto_create_and_update (bool): Whether the metadata schema should be
             automatically created and updated if needed
         interactive (bool): Indicates whether to execute in interactive mode
 
@@ -288,7 +288,7 @@ def ensure_rds_metadata_schema(session=None, auto_create_and_update=False,
     row = res.fetch_one()
     if not row or (row and row.get_field("schema_exists") == 0):
         if auto_create_and_update:
-            create_rds_metadata_schema(session)
+            create_rds_metadata_schema(session, interactive)
             return True
         else:
             raise Exception("The MRS metadata schema has not yet been "
@@ -296,7 +296,7 @@ def ensure_rds_metadata_schema(session=None, auto_create_and_update=False,
     else:
         # If it exists, check the version number
         res = session.run_sql("""
-            SELECT major, minor, patch, 
+            SELECT major, minor, patch,
                 CONCAT(major, '.', minor, '.', patch) AS version
             FROM `mysql_rest_service_metadata`.schema_version
             """)
@@ -508,11 +508,11 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
             compare with the user input
         given_value (str): Value that the user provided beforehand.
         print_list (bool): Specifies whether the list of items should be printed
-        allow_multi_select (bool): Whether multiple items can be entered, 
+        allow_multi_select (bool): Whether multiple items can be entered,
             separated by ',' and the string '*' is allowed
 
     Returns:
-        The selected item or the selected item list when allow_multi_select is 
+        The selected item or the selected item list when allow_multi_select is
         True or None when the user cancelled the selection
     """
 
@@ -681,7 +681,7 @@ def prompt(message, options=None):
 
     Args:
         message (str): A string with the message to be shown to the user.
-        config (dict): Dictionary with options that change the function 
+        config (dict): Dictionary with options that change the function
             behavior. The options dictionary may contain the following options:
             - defaultValue: a str value to be returned if the provides no data.
             - type: a str value to define the prompt type.
@@ -720,43 +720,43 @@ def check_request_path(request_path=None, **kwargs):
     # Check if the request_path already exists for another db_object of that
     # schema
     res = session.run_sql("""
-        SELECT CONCAT(h.name, 
+        SELECT CONCAT(h.name,
             se.url_context_root) as full_request_path
-        FROM `mysql_rest_service_metadata`.service se 
+        FROM `mysql_rest_service_metadata`.service se
 			LEFT JOIN `mysql_rest_service_metadata`.url_host h
 				ON se.url_host_id = h.id
         WHERE CONCAT(h.name, se.url_context_root) = ?
         UNION
-        SELECT CONCAT(h.name, se.url_context_root, 
+        SELECT CONCAT(h.name, se.url_context_root,
             sc.request_path) as full_request_path
-        FROM `mysql_rest_service_metadata`.db_schema sc 
+        FROM `mysql_rest_service_metadata`.db_schema sc
 			LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
-                ON se.id = sc.service_id 
+                ON se.id = sc.service_id
 			LEFT JOIN `mysql_rest_service_metadata`.url_host h
 				ON se.url_host_id = h.id
-        WHERE CONCAT(h.name, se.url_context_root, 
+        WHERE CONCAT(h.name, se.url_context_root,
                 sc.request_path) = ?
         UNION
-        SELECT CONCAT(h.name, se.url_context_root, 
+        SELECT CONCAT(h.name, se.url_context_root,
             sc.request_path, o.request_path) as full_request_path
-        FROM `mysql_rest_service_metadata`.db_object o 
+        FROM `mysql_rest_service_metadata`.db_object o
 			LEFT OUTER JOIN `mysql_rest_service_metadata`.db_schema sc
-                ON sc.id = o.db_schema_id 
+                ON sc.id = o.db_schema_id
             LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
-                ON se.id = sc.service_id 
+                ON se.id = sc.service_id
 			 LEFT JOIN `mysql_rest_service_metadata`.url_host h
 				ON se.url_host_id = h.id
-        WHERE CONCAT(h.name, se.url_context_root, 
+        WHERE CONCAT(h.name, se.url_context_root,
                 sc.request_path, o.request_path) = ?
         UNION
-        SELECT CONCAT(h.name, se.url_context_root, 
+        SELECT CONCAT(h.name, se.url_context_root,
             co.request_path) as full_request_path
-        FROM `mysql_rest_service_metadata`.content_set co 
+        FROM `mysql_rest_service_metadata`.content_set co
 			LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
-                ON se.id = co.service_id 
+                ON se.id = co.service_id
 			LEFT JOIN `mysql_rest_service_metadata`.url_host h
 				ON se.url_host_id = h.id
-        WHERE CONCAT(h.name, se.url_context_root, 
+        WHERE CONCAT(h.name, se.url_context_root,
                 co.request_path) = ?
         """, [request_path, request_path, request_path, request_path])
     row = res.fetch_one()

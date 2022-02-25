@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,9 +24,17 @@
 import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
 
 export class SchemaTableMySQLTreeItem extends SchemaTableTreeItem {
-    public contextValue = "schemaTableMySQL";
+    public contextValue = "schemaTableItemMySQL";
+
+    public get qualifiedName(): string {
+        return `\`${this.schema}\`.\`${this.name}\``;
+    }
 
     protected get iconName(): string {
         return "schemaTable.svg";
+    }
+
+    protected get dbType(): string {
+        return "table";
     }
 }

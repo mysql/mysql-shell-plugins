@@ -9,5 +9,9 @@
         "@types/fs-extra": "^9.0.0",
         "fs-extra": "^9.0.0",
         "xml-js": "^1.6.11"
+    },
+    "scripts": {
+        "toggle-mysql-shell-gui-protocol-generation":"./toggle_mysql_shell_gui_protocol_generation.sh",
+        "update-protocols-file":"./update_gui_protocol_definitions.sh"
     }
 }

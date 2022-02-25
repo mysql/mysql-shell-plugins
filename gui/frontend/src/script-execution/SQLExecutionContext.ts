@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,6 +29,7 @@ import { IDiagnosticEntry, IStatementSpan, StatementFinishState } from "../parsi
 import { ExecutionContext } from "./ExecutionContext";
 import { PresentationInterface } from "./PresentationInterface";
 import { binarySearch } from "../utilities/helpers";
+import { requisitions } from "../supplement/Requisitions";
 
 interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];
@@ -102,13 +103,20 @@ export class SQLExecutionContext extends ExecutionContext {
                 const changeLength = change.text.length - change.rangeLength;
                 const changeOffset = change.rangeOffset - this.presentation.codeOffset;
                 let startIndex = binarySearch(this.statementDetails, (current) => {
-                    return changeOffset - (current.span.start + current.span.length);
+                    if (changeOffset < current.span.start) {
+                        return -1;
+                    }
+                    if (changeOffset >= current.span.start + current.span.length) {
+                        return 1;
+                    }
+
+                    return 0;
                 });
 
                 let done = false;
 
                 if (startIndex < 0) {
-                    // The most common case: the change start lies within a statement range.
+                    // Only happens when adding text at the very end of the block.
                     startIndex = -(startIndex + 1);
                     if (startIndex === this.statementDetails.length) {
                         // Adding text at the end of the existing statement list.
@@ -121,59 +129,92 @@ export class SQLExecutionContext extends ExecutionContext {
                 }
 
                 if (!done) {
+                    // We found a statement touched by the begin of the range that was deleted.
+                    // Now check if we can find one for the end of that range.
+                    // At this point newly added text is not relevant.
                     const rangeEnd = changeOffset + change.rangeLength;
                     let endIndex = binarySearch(this.statementDetails, (current) => {
-                        return rangeEnd - (current.span.start + current.span.length);
+                        if (rangeEnd < current.span.start) {
+                            return -1;
+                        }
+                        if (rangeEnd >= current.span.start + current.span.length) {
+                            return 1;
+                        }
+
+                        return 0;
                     });
 
-                    if (endIndex < 0) {
-                        endIndex = -(endIndex + 1); // This index could point to after the last statement!
-                    }
-
-                    // Add all range lengths of touched statements to the first statement.
                     const startDetails = this.statementDetails[startIndex];
-                    let run = startIndex + 1;
-                    while (run <= endIndex) {
-                        if (run === this.statementDetails.length) {
-                            break;
+
+                    if (endIndex < 0) {
+                        // A negative index means we went beyond the last available statement, which means that
+                        // this change goes beyond this context (i.e. it was combined with a following context).
+                        // All statements following the start statement are hence invalid and the entire remaining
+                        // text will be assigned to the start statement.
+
+                        // If the start statement was a delimiter changer then reset the delimiter to
+                        // the previous or the default one.
+                        if (startDetails.state === StatementFinishState.DelimiterChange) {
+                            if (startIndex > 0) {
+                                startDetails.delimiter = this.statementDetails[startIndex - 1].delimiter;
+                            } else {
+                                startDetails.delimiter = ";";
+                            }
                         }
 
-                        startDetails.span.length += this.statementDetails[run++].span.length;
-                    }
+                        // Remove the now obsolete statements.
+                        endIndex = this.statementDetails.length - 1;
+                        this.clearDecorations(startIndex + 1, endIndex);
+                        this.statementDetails.splice(startIndex + 1, endIndex - startIndex);
 
-                    // If the start statement was a delimiter changer then scan further in the statement list
-                    // until the next delimiter change statement or the end of the list.
-                    if (startDetails.state === StatementFinishState.DelimiterChange) {
-                        while (run < this.statementDetails.length) {
-                            const detail = this.statementDetails[run];
-                            if (detail.state === StatementFinishState.DelimiterChange) {
+                        // Add all remaining text to the start statement. This includes also text that was added
+                        // to this context as a result of merging multiple contexts.
+                        startDetails.span.length = this.presentation.codeLength - startDetails.span.start;
+                    } else {
+                        // Add all range lengths of touched statements to the first statement.
+                        let run = startIndex + 1;
+                        while (run <= endIndex) {
+                            if (run === this.statementDetails.length) {
                                 break;
                             }
-                            startDetails.span.length += detail.span.length;
-                            ++run;
+
+                            startDetails.span.length += this.statementDetails[run++].span.length;
                         }
-                        endIndex = run - 1;
 
-                        // Also reset the current delimiter to that of the previous statement (or the default).
-                        if (startIndex > 0) {
-                            startDetails.delimiter = this.statementDetails[startIndex - 1].delimiter;
-                        } else {
-                            startDetails.delimiter = ";";
+                        // If the start statement was a delimiter changer then scan further in the statement list
+                        // until the next delimiter change statement or the end of the list.
+                        if (startDetails.state === StatementFinishState.DelimiterChange) {
+                            while (run < this.statementDetails.length) {
+                                const detail = this.statementDetails[run];
+                                if (detail.state === StatementFinishState.DelimiterChange) {
+                                    break;
+                                }
+                                startDetails.span.length += detail.span.length;
+                                ++run;
+                            }
+                            endIndex = run - 1;
+
+                            // Also reset the current delimiter to that of the previous statement (or the default).
+                            if (startIndex > 0) {
+                                startDetails.delimiter = this.statementDetails[startIndex - 1].delimiter;
+                            } else {
+                                startDetails.delimiter = ";";
+                            }
                         }
-                    }
 
-                    // Remove the now obsolete statements.
-                    this.clearDecorations(startIndex + 1, endIndex);
-                    this.statementDetails.splice(startIndex + 1, endIndex - startIndex);
+                        // Remove the now obsolete statements.
+                        this.clearDecorations(startIndex + 1, endIndex);
+                        this.statementDetails.splice(startIndex + 1, endIndex - startIndex);
 
-                    // Finally update the current statement range length and all following range starts, with respect
-                    // to the current change.
-                    startDetails.span.length += changeLength;
-                    run = startIndex + 1;
-                    while (run < this.statementDetails.length) {
-                        const details = this.statementDetails[run++];
-                        details.span.start += changeLength;
-                        details.contentStart += changeLength;
+                        // Finally update the current statement range length and all following range starts, with
+                        // respect to the current change.
+                        startDetails.span.length += changeLength;
+                        run = startIndex + 1;
+                        while (run < this.statementDetails.length) {
+                            const details = this.statementDetails[run++];
+                            details.span.start += changeLength;
+                            details.contentStart += changeLength;
+                        }
                     }
 
                     this.pushSplitRequest(startIndex);
@@ -220,6 +261,9 @@ export class SQLExecutionContext extends ExecutionContext {
 
             for (const rangeIndex of indices) {
                 const currentDetails = this.statementDetails[rangeIndex];
+                if (currentDetails.state === StatementFinishState.DelimiterChange) {
+                    continue;
+                }
 
                 const rangeStart = model.getPositionAt(currentDetails.span.start);
                 const rangeEnd = model.getPositionAt(
@@ -242,6 +286,10 @@ export class SQLExecutionContext extends ExecutionContext {
             }
         } else {
             for (const details of this.statementDetails) {
+                if (details.state === StatementFinishState.DelimiterChange) {
+                    continue;
+                }
+
                 const rangeStart = model.getPositionAt(details.span.start);
                 let end = details.span.start + details.span.length;
                 if (details.state === StatementFinishState.Complete) {
@@ -381,7 +429,6 @@ export class SQLExecutionContext extends ExecutionContext {
             setImmediate(() => {
                 this.splitNextStatement();
             });
-
         }
     }
 
@@ -446,7 +493,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 endColumn: rangeEnd.column,
             });
 
-            if (sql.trimLeft().startsWith("\\")) {
+            if (sql.trimStart().startsWith("\\")) {
                 // This is (now) an internal command. Remove any decoration for it.
                 editor.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
                 this.updateLineStartMarkers();
@@ -475,12 +522,6 @@ export class SQLExecutionContext extends ExecutionContext {
                     };
 
                     switch (ranges[0].state) {
-                        case StatementFinishState.Complete: { // No changes in statement length -> validate it.
-                            storeValuesAndValidate();
-
-                            break;
-                        }
-
                         case StatementFinishState.DelimiterChange: {
                             // A DELIMITER statement can affect more than a single following statement, without
                             // the splitter noticing it (this differs from open strings and comments).
@@ -511,8 +552,9 @@ export class SQLExecutionContext extends ExecutionContext {
                             break;
                         }
 
-                        default: {
-                            // Open strings or comments. Combine this with the next statement, if there's any left.
+                        case StatementFinishState.OpenString:
+                        case StatementFinishState.OpenComment: {
+                            // Combine this with the next statement, if there's any left.
                             // Otherwise just validate what we have.
                             if (next + 1 < this.statementDetails.length) {
                                 this.clearDecorations(next + 1, next + 1);
@@ -526,6 +568,12 @@ export class SQLExecutionContext extends ExecutionContext {
                             } else {
                                 storeValuesAndValidate();
                             }
+
+                            break;
+                        }
+
+                        default: {
+                            storeValuesAndValidate();
 
                             break;
                         }
@@ -554,14 +602,9 @@ export class SQLExecutionContext extends ExecutionContext {
                         this.statementDetails.splice(next, 1, ...newStatements);
                         this.updateValidationIndices(next, ranges.length);
                         for (let i = 0, run = next; i < newStatements.length; ++i, ++run) {
-                            this.pendingValidations.push(run);
+                            this.pushValidationRequest(run);
                         }
                     }
-
-                    // Trigger validation for the next statement.
-                    setImmediate(() => {
-                        return this.validateNextStatement();
-                    });
                 }
             }, sql);
         }
@@ -579,6 +622,7 @@ export class SQLExecutionContext extends ExecutionContext {
             const next = this.pendingValidations.shift();
             if (next === undefined || next >= this.statementDetails.length) {
                 this.updateLineStartMarkers();
+                void requisitions.execute("editorValidationDone", this.id);
 
                 return;
             }
@@ -732,9 +776,14 @@ export class SQLExecutionContext extends ExecutionContext {
 
             this.pendingValidations.push(index);
 
-            setImmediate(() => {
-                return this.validateNextStatement();
-            });
+            if (this.validationTimer) {
+                clearTimeout(this.validationTimer);
+            }
+
+            this.validationTimer = setTimeout(() => {
+                this.validationTimer = null;
+                this.validateNextStatement();
+            }, 100);
         }
     }
 

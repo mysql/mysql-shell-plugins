@@ -61,6 +61,10 @@ export interface IRunQueryRequest {
     linkId: number;
 }
 
+export interface IRunScriptRequest {
+    content: string;
+}
+
 export { Stack } from "./Stack";
 
 export type WorkerExecutorType<T> = (

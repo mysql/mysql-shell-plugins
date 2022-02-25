@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -52,8 +52,6 @@ class Config:
             server_section = self.config["server"]
             self.port = server_section.getint("port", fallback=8000)
             self.nossl = server_section.getboolean("nossl", fallback=False)
-            self.prototype = server_section.getboolean(
-                "prototype", fallback=False)
 
         # All sections starting with mysql-server define the configuration for
         # a mysql server to be used on the test suite.
@@ -110,7 +108,7 @@ class Config:
                 "No connections were supplied in the configuration data.")
 
     def get_server_params(self):
-        return (self.port, self.nossl, self.prototype)
+        return (self.port, self.nossl)
 
     def get_default_mysql_connection_string(self):
         default_options = self.database_connections[0]['options']

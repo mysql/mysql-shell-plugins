@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,7 +36,9 @@ export enum ShellAPIMds {
     MdsSetCurrentBastion = "mds.set.current_bastion",
     MdsGetAvailabilityDomain = "mds.get.availability_domain",
     MdsListCompartments = "mds.list.compartments",
+    MdsGetCompartment = "mds.get.compartment",
     MdsListComputeInstances = "mds.list.compute_instances",
+    MdsGetComputeInstance = "mds.get.compute_instance",
     MdsListComputeShapes = "mds.list.compute_shapes",
     MdsDeleteComputeInstance = "mds.delete.compute_instance",
     MdsUtilCreateMdsEndpoint = "mds.util.create_mds_endpoint",
@@ -47,6 +49,9 @@ export enum ShellAPIMds {
     MdsUpdateDbSystem = "mds.update.db_system",
     MdsCreateDbSystem = "mds.create.db_system",
     MdsDeleteDbSystem = "mds.delete.db_system",
+    MdsStopDbSystem = "mds.stop.db_system",
+    MdsStartDbSystem = "mds.start.db_system",
+    MdsRestartDbSystem = "mds.restart.db_system",
     MdsListLoadBalancers = "mds.list.load_balancers",
     MdsListBastions = "mds.list.bastions",
     MdsGetBastion = "mds.get.bastion",
@@ -73,6 +78,7 @@ export interface IShellSetCurrentCompartmentKwargs {
     compartmentPath?: string;
     compartmentId?: string;
     config?: IShellDictionary;
+    configProfile?: string;
     profileName?: string;
     cliRcFilePath?: string;
     interactive?: boolean;
@@ -117,6 +123,12 @@ export interface IShellListCompartmentsKwargs {
 }
 
 
+export interface IShellGetCompartmentKwargs {
+    parentCompartmentId?: string;
+    config?: object;
+}
+
+
 export interface IShellListComputeInstancesKwargs {
     compartmentId?: string;
     config?: object;
@@ -124,6 +136,20 @@ export interface IShellListComputeInstancesKwargs {
     interactive?: boolean;
     raiseExceptions?: boolean;
     returnFormatted?: boolean;
+}
+
+
+export interface IShellGetComputeInstanceKwargs {
+    instanceName?: string;
+    instanceId?: string;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+    returnFormatted?: boolean;
+    returnPythonObject?: boolean;
 }
 
 
@@ -273,6 +299,45 @@ export interface IShellDeleteDbSystemKwargs {
 }
 
 
+export interface IShellStopDbSystemKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    awaitCompletion?: boolean;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellStartDbSystemKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    awaitCompletion?: boolean;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellRestartDbSystemKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    awaitCompletion?: boolean;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
 export interface IShellListLoadBalancersKwargs {
     compartmentId?: string;
     config?: IShellDictionary;
@@ -285,6 +350,7 @@ export interface IShellListLoadBalancersKwargs {
 
 export interface IShellListBastionsKwargs {
     compartmentId?: string;
+    validForDbSystemId?: string;
     config?: IShellDictionary;
     configProfile?: string;
     interactive?: boolean;
@@ -475,6 +541,7 @@ export class ProtocolMds extends Protocol {
                 compartment_path: kwargs.compartmentPath,
                 compartment_id: kwargs.compartmentId,
                 config: kwargs.config,
+                config_profile: kwargs.configProfile,
                 profile_name: kwargs.profileName,
                 cli_rc_file_path: kwargs.cliRcFilePath,
                 interactive: kwargs.interactive,
@@ -619,6 +686,40 @@ export class ProtocolMds extends Protocol {
     }
 
     /**
+     * Gets a compartment by path
+     *
+     * @param compartmentPath The name of the compartment
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If the path was not specified or does not match an existing compartment,
+     * show the user a list to select a compartment
+     *
+     * <b>Returns:</b>
+     *
+     *     The compartment object
+     */
+    public static getRequestGetCompartment(compartmentPath?: string, kwargs?: IShellGetCompartmentKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                parent_compartment_id: kwargs.parentCompartmentId,
+                config: kwargs.config,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsGetCompartment,
+            {
+                args: {
+                    compartment_path: compartmentPath,
+                },
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
      * Lists instances
      *
      * @param kwargs Optional parameters
@@ -647,6 +748,38 @@ export class ProtocolMds extends Protocol {
         }
 
         return Protocol.getRequestCommandExecute(ShellAPIMds.MdsListComputeInstances,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Returns an instance object based on instance_name or instance_id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns The compartment or tenancy object or None if not found
+     */
+    public static getRequestGetComputeInstance(kwargs?: IShellGetComputeInstanceKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                instance_name: kwargs.instanceName,
+                instance_id: kwargs.instanceId,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+                return_formatted: kwargs.returnFormatted,
+                return_python_object: kwargs.returnPythonObject,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsGetComputeInstance,
             {
                 args: {},
                 kwargs: kwargsToUse,
@@ -1040,6 +1173,117 @@ export class ProtocolMds extends Protocol {
     }
 
     /**
+     * Stops the DbSystem with the given id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestStopDbSystem(kwargs?: IShellStopDbSystemKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsStopDbSystem,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Starts the DbSystem with the given id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestStartDbSystem(kwargs?: IShellStartDbSystemKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsStartDbSystem,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Restarts the DbSystem with the given id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestRestartDbSystem(kwargs?: IShellRestartDbSystemKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsRestartDbSystem,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
      * Lists load balancers
      *
      * @param kwargs Optional parameters
@@ -1094,6 +1338,7 @@ export class ProtocolMds extends Protocol {
         if (kwargs) {
             kwargsToUse = {
                 compartment_id: kwargs.compartmentId,
+                valid_for_db_system_id: kwargs.validForDbSystemId,
                 config: kwargs.config,
                 config_profile: kwargs.configProfile,
                 interactive: kwargs.interactive,

@@ -22,7 +22,6 @@
  */
 
 import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event } from "vscode";
-import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 
 import { IModuleDataEntry } from "../../../frontend/src/modules/scripting";
 import { ShellInterface } from "../../../frontend/src/supplement/ShellInterface";
@@ -51,7 +50,7 @@ export class ScriptsTreeDataProvider implements TreeDataProvider<TreeItem> {
     public getChildren(element?: TreeItem): ProviderResult<TreeItem[]> {
         return new Promise((resolve, reject) => {
             if (!element) {
-                ShellInterface.modules.loadScriptsTree(DBEditorModuleId).then((tree) => {
+                ShellInterface.modules.loadScriptsTree().then((tree) => {
                     this.tree = tree;
                     const entries: TreeItem[] = [];
 

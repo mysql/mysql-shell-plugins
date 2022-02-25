@@ -10,7 +10,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container breadcrumb verticalCenterContent dropShadow"
+        class="msg container fixedScrollbar breadcrumb verticalCenterContent dropShadow"
         id="breadcrumb1"
         style="flex-direction: row;"
       >
@@ -77,7 +77,7 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container breadcrumb verticalCenterContent dropShadow"
+      class="msg container fixedScrollbar breadcrumb verticalCenterContent dropShadow"
       id="breadcrumb1"
       style="flex-direction: row;"
     >
@@ -203,7 +203,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container breadcrumb verticalCenterContent"
+        class="msg container fixedScrollbar breadcrumb verticalCenterContent"
         id="breadcrumb2"
         style="flex-direction: row;"
       >
@@ -286,7 +286,7 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container breadcrumb verticalCenterContent"
+      class="msg container fixedScrollbar breadcrumb verticalCenterContent"
       id="breadcrumb2"
       style="flex-direction: row;"
     >
@@ -428,7 +428,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container breadcrumb verticalCenterContent"
+        class="msg container fixedScrollbar breadcrumb verticalCenterContent"
         id="breadcrumb3"
         style="flex-direction: row;"
       >
@@ -491,7 +491,7 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container breadcrumb verticalCenterContent"
+      class="msg container fixedScrollbar breadcrumb verticalCenterContent"
       id="breadcrumb3"
       style="flex-direction: row;"
     >

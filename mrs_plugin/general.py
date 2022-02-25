@@ -42,14 +42,13 @@ DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
 
 @plugin_function('mrs.info', shell=True, cli=True, web=True)
 def info():
-    """Prints basic information about this plugin.
+    """Returns basic information about this plugin.
 
     Returns:
-        None
+        str
     """
-    print("MySQL REST Data Service (MRS) Plugin "
-          f"Version {VERSION} PREVIEW\n"
-          "Warning! For testing purposes only!")
+    return f"""MySQL REST Data Service (MRS) Plugin Version {VERSION} PREVIEW
+               Warning! For testing purposes only!")"""
 
 
 @plugin_function('mrs.version', shell=True, cli=True, web=True)
@@ -120,7 +119,7 @@ def ls(path=None, session=None):
                 service_id=service.get('id'), session=session,
                 interactive=False)
 
-            if len(schemas) == 0 and len(content_sets) == 0:
+            if len(schemas) == 0:
                 print("No schemas added to this service yet.\n\n"
                       "Use mrs.add.schema() to add a schema to the service.")
             if len(schemas) > 0:
@@ -338,7 +337,7 @@ def configure(**kwargs):
                     print(f"The MySQL REST Data Service has been disabled.")
         else:
             res = session.run_sql("""
-                SELECT service_enabled 
+                SELECT service_enabled
                 FROM `mysql_rest_service_metadata`.config
                 WHERE id = 1
                 """)
@@ -416,7 +415,7 @@ def status(**kwargs):
 
         # Get the number of enabled services
         res = session.run_sql("""
-            SELECT SUM(enabled) as service_count 
+            SELECT SUM(enabled) as service_count
             FROM `mysql_rest_service_metadata`.service
             """)
         row = res.fetch_one()

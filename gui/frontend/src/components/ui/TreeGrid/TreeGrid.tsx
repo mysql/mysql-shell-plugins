@@ -25,7 +25,7 @@ import "./TreeGrid.css";
 
 import {
     Tabulator, DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
-    ResizeColumnsModule, FormatModule, InteractionModule, EditModule,
+    ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule,
 } from "tabulator-tables";
 
 import React from "react";
@@ -116,8 +116,6 @@ export interface ITreeGridProperties extends IComponentProperties {
 
 // This component shows data in dynamic lists with or without a tree column, or can show only a tree.
 // Currently this component is neither fully controlled, nor fully uncontrolled, which implies some problems.
-// Initial data can be specified in properties, but updates on that cannot. Most effective data handling is
-// done by getting the underlying tabulator instance and call its APIs directly.
 export class TreeGrid extends Component<ITreeGridProperties> {
 
     private hostRef = React.createRef<HTMLDivElement>();
@@ -136,7 +134,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
 
     public static initialize(): void {
         Tabulator.registerModule([DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
-            ResizeColumnsModule, FormatModule, InteractionModule, EditModule]);
+            ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule]);
     }
 
     public componentDidMount(): void {
@@ -157,6 +155,11 @@ export class TreeGrid extends Component<ITreeGridProperties> {
 
                     this.tabulator.setColumns(columns);
                     void this.tabulator.setData(tableData);
+                }
+
+                // Assign the table holder class our fixed scrollbar class too.
+                if (this.hostRef.current) {
+                    (this.hostRef.current.lastChild as HTMLElement).classList.add("fixedScrollbar");
                 }
             });
 
@@ -181,9 +184,12 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         }
     }
 
-    /*
+    /**
+     * This method is necessary to update the grid on re-render (e.g. when switching between tabs, each having
+     * a grid on it).
+     */
     public componentDidUpdate(): void {
-        if (this.tabulator) {
+        if (this.tabulator && this.tableReady) {
             const { selectedIds, tableData, columns } = this.mergedProps;
 
             if (selectedIds) {
@@ -193,7 +199,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
             this.tabulator.setColumns(columns);
             void this.tabulator.setData(tableData);
         }
-    }*/
+    }
 
     public render(): React.ReactNode {
         const { options } = this.mergedProps;
@@ -217,7 +223,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
     /**
      * Provides access to the underlying Tabulator table object.
      *
-     * @returns The table directly if it is already mounted and built. Otherwise a promise is return which resolves
+     * @returns The table directly if it is already mounted and built. Otherwise a promise is returned which resolves
      *          once the table is accessible.
      */
     public get table(): Promise<Tabulator> | Tabulator {
@@ -344,6 +350,12 @@ export class TreeGrid extends Component<ITreeGridProperties> {
     };
 
     private handleRowSelected = (row: Tabulator.RowComponent): void => {
+        const { options } = this.mergedProps;
+        if (!isNil(options?.treeColumn)) {
+            // Toggle the selected row if this is actually a tree.
+            row.treeToggle();
+        }
+
         const { onRowSelected } = this.mergedProps;
 
         onRowSelected?.(row);

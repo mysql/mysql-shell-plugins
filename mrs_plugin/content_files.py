@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -109,7 +109,7 @@ def get_content_files(**kwargs):
 
             if not content_set:
                 raise ValueError("No content set specified.")
-            
+
             content_set_id = content_set.get("id")
 
         sql = """
@@ -128,7 +128,7 @@ def get_content_files(**kwargs):
                 LEFT OUTER JOIN (
                     SELECT new_row_id AS id, MAX(changed_at) as changed_at
                     FROM mysql_rest_service_metadata.audit_log
-                    WHERE table_name = 'content_file' 
+                    WHERE table_name = 'content_file'
                     GROUP BY new_row_id) al
                 ON al.id = f.id
             WHERE f.content_set_id = ? /*=3*/

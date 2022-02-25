@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -78,7 +78,7 @@ FUNCTIONS
       help([member])
             Provides help about this object and it's members'''
 
-    assert help_text == mysqlsh.globals.gui.help()
+    assert help_text == mysqlsh.globals.gui.help() # pylint: disable=no-member
 
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
@@ -103,8 +103,8 @@ FUNCTIONS
       is_gui_module_backend()
             Indicates whether this module is a GUI backend module'''
 
-    assert help_text == mysqlsh.globals.gui.cluster.help()
-    info = mysqlsh.globals.gui.cluster.get_gui_module_display_info()
+    assert help_text == mysqlsh.globals.gui.cluster.help() # pylint: disable=no-member
+    info = mysqlsh.globals.gui.cluster.get_gui_module_display_info() # pylint: disable=no-member
     assert info["name"] == "InnoDB Cluster Manager"
     assert info["description"] == "An graphical manager for InnoDB Clusters"
 
@@ -129,9 +129,18 @@ FUNCTIONS
             Converts a MySQL SQL file to Sqlite syntax.
 
       help([member])
-            Provides help about this object and it's members'''
+            Provides help about this object and it's members
 
-    assert help_text == mysqlsh.globals.gui.core.help()
+      install_shell_web_certificate([kwargs])
+            Installs the MySQL Shell GUI webserver certificate
+
+      is_shell_web_certificate_installed([kwargs])
+            Checks if the MySQL Shell GUI webserver certificate is installed
+
+      remove_shell_web_certificate()
+            Removes the MySQL Shell GUI webserver certificate'''
+
+    assert help_text == mysqlsh.globals.gui.core.help() # pylint: disable=no-member
 
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
@@ -151,7 +160,7 @@ FUNCTIONS
             Provides help about this object and it's members'''
 
 
-    assert help_text == mysqlsh.globals.gui.dbconnections.help()
+    assert help_text == mysqlsh.globals.gui.dbconnections.help() # pylint: disable=no-member
 
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
@@ -176,8 +185,8 @@ FUNCTIONS
       is_gui_module_backend()
             Indicates whether this module is a GUI backend module'''
 
-    assert help_text == mysqlsh.globals.gui.mds.help()
-    info = mysqlsh.globals.gui.mds.get_gui_module_display_info()
+    assert help_text == mysqlsh.globals.gui.mds.help() # pylint: disable=no-member
+    info = mysqlsh.globals.gui.mds.get_gui_module_display_info() # pylint: disable=no-member
     assert info["name"] == "MySQL Database Service Manager"
     assert info["description"] == "A management frontend for MDS on OCI"
 
@@ -204,8 +213,8 @@ FUNCTIONS
       is_gui_module_backend()
             Indicates whether this module is a GUI backend module'''
 
-    assert help_text == mysqlsh.globals.gui.modeler.help()
-    info = mysqlsh.globals.gui.modeler.get_gui_module_display_info()
+    assert help_text == mysqlsh.globals.gui.modeler.help() # pylint: disable=no-member
+    info = mysqlsh.globals.gui.modeler.get_gui_module_display_info() # pylint: disable=no-member
     assert info["name"] == "EER Modeler"
     assert info["description"] == "An advanced designer for ERR Diagrams"
 
@@ -226,7 +235,7 @@ FUNCTIONS
       help([member])
             Provides help about this object and it's members'''
 
-    assert help_text == mysqlsh.globals.gui.modules.help()
+    assert help_text == mysqlsh.globals.gui.modules.help() # pylint: disable=no-member
 
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
@@ -251,8 +260,8 @@ FUNCTIONS
       is_gui_module_backend()
             Indicates whether this module is a GUI backend module'''
 
-    assert help_text == mysqlsh.globals.gui.shell.help()
-    info = mysqlsh.globals.gui.shell.get_gui_module_display_info()
+    assert help_text == mysqlsh.globals.gui.shell.help() # pylint: disable=no-member
+    info = mysqlsh.globals.gui.shell.get_gui_module_display_info() # pylint: disable=no-member
     assert info["name"] == "MySQL Shell Console"
     assert info["description"] == "A graphical MySQL Shell Console"
 
@@ -279,8 +288,8 @@ FUNCTIONS
       is_gui_module_backend()
             Indicates whether this module is a GUI backend module'''
 
-    assert help_text == mysqlsh.globals.gui.sqleditor.help()
-    info = mysqlsh.globals.gui.sqleditor.get_gui_module_display_info()
+    assert help_text == mysqlsh.globals.gui.sqleditor.help() # pylint: disable=no-member
+    info = mysqlsh.globals.gui.sqleditor.get_gui_module_display_info() # pylint: disable=no-member
     assert info["name"] == "SQL Editor"
     assert info["description"] == "A graphical SQL Editor"
 
@@ -325,8 +334,9 @@ FUNCTIONS
       list_roles([web_session])
             Lists all roles that can be assigned to users.
 
-      list_user_groups([web_session])
-            Returns the list of all groups
+      list_user_groups([member_id][, web_session])
+            Returns the list of all groups or list all groups that given user
+            belongs.
 
       list_user_privileges(username[, web_session])
             Lists all privileges assigned to a user.
@@ -337,10 +347,19 @@ FUNCTIONS
       list_users([web_session])
             Lists all user accounts.
 
-      set_allowed_hosts(user_id, allowed_hosts[, web_session])
-            Sets the allowed hosts for the given user.'''
+      remove_user_from_group(member_id, group_id[, web_session])
+            Removes user from user group.
 
-    assert help_text == mysqlsh.globals.gui.users.help()
+      remove_user_group(group_id[, web_session])
+            Removes given user group.
+
+      set_allowed_hosts(user_id, allowed_hosts[, web_session])
+            Sets the allowed hosts for the given user.
+
+      update_user_group(group_id[, name][, description][, web_session])
+            Updates user group.'''
+
+    assert help_text == mysqlsh.globals.gui.users.help() # pylint: disable=no-member
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
 def test_gui_start():
@@ -364,4 +383,4 @@ FUNCTIONS
       web_server([port][, secure][, webrootpath][, single_instance_token])
             Starts a web server that will serve the MySQL Shell GUI'''
 
-    assert help_text == mysqlsh.globals.gui.start.help()
+    assert help_text == mysqlsh.globals.gui.start.help() # pylint: disable=no-member

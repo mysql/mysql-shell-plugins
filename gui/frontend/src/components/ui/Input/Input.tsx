@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -132,6 +132,13 @@ export class Input extends Component<IInputProperties> {
 
         // Special keys are only sent to key down, not key press.
         switch (keyboardKey.getCode(e)) {
+            case keyboardKey.A: {
+                if (e.metaKey && this.inputRef.current instanceof HTMLInputElement) {
+                    this.inputRef.current.select();
+                }
+                break;
+            }
+
             case keyboardKey.Escape: {
                 onCancel?.(e, this.mergedProps);
                 break;

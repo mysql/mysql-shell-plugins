@@ -27,7 +27,7 @@ import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 import { IDBEditorScriptState } from "../../../frontend/src/modules/scripting";
 import { WebviewProvider } from "./WebviewProvider";
-import { IRunQueryRequest } from "../../../frontend/src/supplement";
+import { IRunQueryRequest, IRunScriptRequest } from "../../../frontend/src/supplement";
 
 export class SqlEditorViewProvider extends WebviewProvider {
 
@@ -65,7 +65,7 @@ export class SqlEditorViewProvider extends WebviewProvider {
     }
 
     /**
-     * Sends the given query to the webview, which must be visible.
+     * Executes a single statement in a webview tab.
      *
      * @param caption The title of the webview tab.
      * @param page The page to open in the webview tab (if not already done).
@@ -78,6 +78,23 @@ export class SqlEditorViewProvider extends WebviewProvider {
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorRunQuery", parameter: details },
+        ], caption, "newConnectionWithSql");
+    }
+
+    /**
+     * Executes a full script in a webview tab.
+     *
+     * @param caption The title of the webview tab.
+     * @param page The page to open in the webview tab (if not already done).
+     * @param details The content of the script to run and other related information.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public runScript(caption: string, page: string, details: IRunScriptRequest): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            { requestType: "editorRunScript", parameter: details },
         ], caption, "newConnectionWithSql");
     }
 

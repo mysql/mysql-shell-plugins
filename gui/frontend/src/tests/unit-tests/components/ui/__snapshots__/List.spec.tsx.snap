@@ -17,7 +17,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container verticalCenterContent"
+            class="msg container fixedScrollbar verticalCenterContent"
             data="[object Object]"
             id="item0"
             style="flex-direction: row; position: absolute; left: 0px; top: 0px; height: 100px; width: 100%;"
@@ -40,7 +40,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               data="[object Object]"
               id="innerComplexContainer"
               style="flex-direction: column;"
@@ -64,7 +64,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container verticalCenterContent"
+            class="msg container fixedScrollbar verticalCenterContent"
             data="[object Object]"
             id="item1"
             style="flex-direction: row; position: absolute; left: 0px; top: 100px; height: 100px; width: 100%;"
@@ -87,7 +87,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               data="[object Object]"
               id="innerComplexContainer"
               style="flex-direction: column;"
@@ -111,7 +111,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container verticalCenterContent"
+            class="msg container fixedScrollbar verticalCenterContent"
             data="[object Object]"
             id="item2"
             style="flex-direction: row; position: absolute; left: 0px; top: 200px; height: 100px; width: 100%;"
@@ -134,7 +134,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               data="[object Object]"
               id="innerComplexContainer"
               style="flex-direction: column;"
@@ -158,7 +158,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container verticalCenterContent"
+            class="msg container fixedScrollbar verticalCenterContent"
             data="[object Object]"
             id="item3"
             style="flex-direction: row; position: absolute; left: 0px; top: 300px; height: 100px; width: 100%;"
@@ -181,7 +181,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               data="[object Object]"
               id="innerComplexContainer"
               style="flex-direction: column;"
@@ -205,7 +205,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container verticalCenterContent"
+            class="msg container fixedScrollbar verticalCenterContent"
             data="[object Object]"
             id="item4"
             style="flex-direction: row; position: absolute; left: 0px; top: 400px; height: 100px; width: 100%;"
@@ -228,7 +228,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               data="[object Object]"
               id="innerComplexContainer"
               style="flex-direction: column;"
@@ -252,7 +252,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container verticalCenterContent"
+            class="msg container fixedScrollbar verticalCenterContent"
             data="[object Object]"
             id="item5"
             style="flex-direction: row; position: absolute; left: 0px; top: 500px; height: 100px; width: 100%;"
@@ -275,7 +275,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               data="[object Object]"
               id="innerComplexContainer"
               style="flex-direction: column;"
@@ -311,7 +311,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="item0"
           style="flex-direction: row; position: absolute; left: 0px; top: 0px; height: 100px; width: 100%;"
@@ -334,7 +334,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             data="[object Object]"
             id="innerComplexContainer"
             style="flex-direction: column;"
@@ -358,7 +358,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="item1"
           style="flex-direction: row; position: absolute; left: 0px; top: 100px; height: 100px; width: 100%;"
@@ -381,7 +381,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             data="[object Object]"
             id="innerComplexContainer"
             style="flex-direction: column;"
@@ -405,7 +405,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="item2"
           style="flex-direction: row; position: absolute; left: 0px; top: 200px; height: 100px; width: 100%;"
@@ -428,7 +428,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             data="[object Object]"
             id="innerComplexContainer"
             style="flex-direction: column;"
@@ -452,7 +452,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="item3"
           style="flex-direction: row; position: absolute; left: 0px; top: 300px; height: 100px; width: 100%;"
@@ -475,7 +475,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             data="[object Object]"
             id="innerComplexContainer"
             style="flex-direction: column;"
@@ -499,7 +499,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="item4"
           style="flex-direction: row; position: absolute; left: 0px; top: 400px; height: 100px; width: 100%;"
@@ -522,7 +522,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             data="[object Object]"
             id="innerComplexContainer"
             style="flex-direction: column;"
@@ -546,7 +546,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="item5"
           style="flex-direction: row; position: absolute; left: 0px; top: 500px; height: 100px; width: 100%;"
@@ -569,7 +569,7 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             data="[object Object]"
             id="innerComplexContainer"
             style="flex-direction: column;"
@@ -657,13 +657,13 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container list"
+        class="msg container fixedScrollbar list"
         style="flex-direction: column; align-items: flex-start;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="list0"
           style="flex-direction: row;"
@@ -697,7 +697,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="list1"
           style="flex-direction: row;"
@@ -731,7 +731,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="list2"
           style="flex-direction: row;"
@@ -765,7 +765,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container verticalCenterContent"
+          class="msg container fixedScrollbar verticalCenterContent"
           data="[object Object]"
           id="list3"
           style="flex-direction: row;"
@@ -803,13 +803,13 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container list"
+      class="msg container fixedScrollbar list"
       style="flex-direction: column; align-items: flex-start;"
     >
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container verticalCenterContent"
+        class="msg container fixedScrollbar verticalCenterContent"
         data="[object Object]"
         id="list0"
         style="flex-direction: row;"
@@ -843,7 +843,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container verticalCenterContent"
+        class="msg container fixedScrollbar verticalCenterContent"
         data="[object Object]"
         id="list1"
         style="flex-direction: row;"
@@ -877,7 +877,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container verticalCenterContent"
+        class="msg container fixedScrollbar verticalCenterContent"
         data="[object Object]"
         id="list2"
         style="flex-direction: row;"
@@ -911,7 +911,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container verticalCenterContent"
+        class="msg container fixedScrollbar verticalCenterContent"
         data="[object Object]"
         id="list3"
         style="flex-direction: row;"

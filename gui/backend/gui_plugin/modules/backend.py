@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -325,3 +325,33 @@ def get_folder_id(db, root_folder_id, folder_path):
                     break
 
     return folder_id
+
+def delete_data(db, id, folder_id):
+    """Deletes data
+
+    Args:
+        db (object): The db object
+        id (int): The id of the data
+        folder_id (int): The id of the folder
+
+    Returns:
+        The id of the deleted record.
+    """
+    db.execute("""DELETE FROM data_folder_has_data
+                    WHERE data_id=? AND data_folder_id=?""",
+                    (id, folder_id,))
+
+    if db.rows_affected == 0:
+        raise MSGException(Error.DB_ERROR, "Cannot delete data from the given folder id.")
+
+    res = db.execute("""SELECT data_id
+                        FROM data_folder_has_data
+                        WHERE data_id=?
+                        LIMIT 1;""",
+                        (id,)).fetch_all()
+    if res is None:
+        db.execute("""DELETE FROM data
+                        WHERE id=?""",
+                        (id,))
+
+    return id

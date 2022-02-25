@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,8 +47,6 @@ export class ExecutionContext implements IExecutionContext {
     public constructor(protected presentation: PresentationInterface, public linkId?: number) {
         this.internalId = `ec${ExecutionContext.nextId++}`;
         presentation.context = this;
-
-        this.scheduleFullValidation();
     }
 
     /**
@@ -128,7 +126,6 @@ export class ExecutionContext implements IExecutionContext {
             end: this.presentation.endLine,
             language: this.language,
             result,
-            defaultHeight: this.presentation.defaultHeight,
             manualHeight: this.presentation.manualHeight,
             statements: this.statementSpans,
         };
@@ -263,21 +260,29 @@ export class ExecutionContext implements IExecutionContext {
         return new Position(1, 1);
     }
 
-    public setResult(data?: IExecutionResult, defaultHeight?: number, manualHeight?: number): void {
+    public setResult(data?: IExecutionResult, manualHeight?: number): void {
         if (!this.disposed) {
-            this.presentation.setResult(data, defaultHeight, manualHeight);
+            this.presentation.setResult(data, manualHeight);
         }
     }
 
-    public addResultPage(data: IExecutionResult, height?: number): void {
+    public addResultPage(data: IExecutionResult): void {
         if (!this.disposed) {
-            this.presentation.addResultPage(data, height);
+            this.presentation.addResultPage(data);
         }
     }
 
-    public async addResultData(data: IExecutionResult): Promise<void> {
+    public async addResultData(data: IExecutionResult): Promise<boolean> {
         if (!this.disposed) {
-            await this.presentation.addResultData(data);
+            return this.presentation.addResultData(data);
+        }
+
+        return false;
+    }
+
+    public updateResultDisplay(): void {
+        if (!this.disposed) {
+            this.presentation.updateResultDisplay();
         }
     }
 

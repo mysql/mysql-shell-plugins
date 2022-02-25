@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,8 +33,16 @@
     border-radius: 8px;
 }
 
+.msg.textHost {
+    flex: 1 1 auto;
+}
+
 .msg.resultHost:not(.dropTarget) > .content {
     background: transparent;
+}
+
+.zoneHost {
+    padding-top: 4px;
 }
 
 .zoneHost .renderTarget > .divider {
@@ -166,13 +174,18 @@
     height: 18px;
 }
 
-/* Text which is part of a result view. */
-.msg.resultGroup .resultView .resultStatus .label,
+/* A message which is part of a result view. */
 .msg.resultGroup .resultView .resultStatus .message {
-    padding: 4px;
+    padding: 4px 8px;
     border: none;
     border-radius: 0;
     flex: 1 1 auto;
+}
+
+/* Messages embedded in a result status have a different background, so they must fill the entire status. */
+.msg.resultGroup .resultView .resultStatus.containsMessage {
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .msg.resultGroup .resultView .resultStatus {
@@ -180,8 +193,9 @@
     background-color: var(--resultStatus-background);
 
     font-size: 0.8rem;
-    min-height: 24px;
+    min-height: 28px;
 
+    padding: 0 4px;
     overflow: hidden;
 }
 
@@ -220,6 +234,7 @@
 
     margin: 2px 4px 2px 4px;
     white-space: normal;
+    align-self: center;
 }
 
 .msg.resultGroup .resultView .resultStatus .toolbar .button {

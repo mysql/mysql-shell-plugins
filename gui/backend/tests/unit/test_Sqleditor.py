@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -29,6 +29,7 @@ from tests.conftest import backend_callback
 from .MockWebSession import MockWebSession
 from tests import backend_callback_with_pending
 import time
+import gui_plugin.core.Logger as logger
 
 
 class Parameters:
@@ -86,11 +87,11 @@ class TestSqleditor:
     def test_service_connection(self, params):
         @backend_callback_with_pending()
         def callback_request1(msg_type, msg, request_id, values):
-            print("callback_request1")
+            logger.debug("callback_request1")
 
         @backend_callback_with_pending()
         def callback_schemas(msg_type, msg, request_id, values):
-            print("callback_schemas")
+            logger.debug("callback_schemas")
 
         params._web_session.register_callback(
             callback_request1.request_id, callback_request1)
@@ -107,11 +108,10 @@ class TestSqleditor:
 
     def test_close_session(self, params):
         request_id1 = str(uuid.uuid1())
-        result = sqleditor.close_session(params._module_session)
+        sqleditor.close_session(params._module_session)
 
         with pytest.raises(MSGException) as e:
-            result = sqleditor.execute(
-                "SELECT SLEEP(1)", params._module_session, request_id1)
+            sqleditor.execute("SELECT SLEEP(1)", params._module_session, request_id1)
         assert e.value.args[0] == "Error[MSG-1200]: The database session needs to be opened before SQL can be executed."
 
         @backend_callback(1)

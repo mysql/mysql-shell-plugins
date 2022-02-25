@@ -14,7 +14,8 @@ ws.tokens["types"] = [{"name": "Schema",        "type": "CATALOG_OBJECT"},
                       {"name": "Event",         "type": "SCHEMA_OBJECT"},
                       {"name": "Trigger",       "type": "TABLE_OBJECT"},
                       {"name": "Foreign Key",   "type": "TABLE_OBJECT"},
-                      {"name": "Index",         "type": "TABLE_OBJECT"}]
+                      {"name": "Index",         "type": "TABLE_OBJECT"},
+                      {"name": "Column",        "type": "TABLE_OBJECT"}]
 
 // We're assuming that schema `test_user_story` exists and contains all object listed in script below:
 // CREATE DATABASE  IF NOT EXISTS `test_user_story`;
@@ -146,6 +147,50 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["function_count", "procedure_get_names"])
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Routine",
+        "schema_name": ws.tokens["schema"],
+        "routine_type": "procedure"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["procedure_get_names"]
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Routine",
+        "schema_name": ws.tokens["schema"],
+        "routine_type": "function"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["function_count"]
     }
 ])
 

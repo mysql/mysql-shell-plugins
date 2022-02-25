@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,6 @@ from gui_plugin.core.Protocols import Response
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Logger as logger
-
 
 class SqliteOneFieldListTask(DbQueryTask):
     def process_result(self):

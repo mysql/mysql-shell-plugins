@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -95,6 +95,20 @@ def open_connection(db_connection_id, module_session, request_id, password=None)
         when available.
     """
     module_session.open_connection(db_connection_id, password, request_id)
+
+@plugin_function('gui.sqleditor.reconnect', shell=False, web=True)
+def reconnect(module_session, request_id):
+    """Reconnects the SQL Editor Session
+
+    Args:
+        module_session (object): The session where the session will be reconnected
+        request_id (str): ID of the request for reconnection.
+
+    Returns:
+        A dict holding the result message and the connection information
+        when available.
+    """
+    module_session.reconnect(request_id)
 
 
 @plugin_function('gui.sqleditor.execute', shell=False, web=True)

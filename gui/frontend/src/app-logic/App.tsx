@@ -51,6 +51,7 @@ import { DBEditorModule } from "../modules/scripting/DBEditorModule";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule";
 import { MDSModule } from "../modules/mds/MDSModule";
 import { MRSModule } from "../modules/mrs/MrsModule";
+import { ApplicationDB } from "./ApplicationDB";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -150,7 +151,9 @@ export class App extends React.Component<{}, IAppState> {
                     webSession.localUserMode = event.data?.localUserMode ?? false;
                 }
 
-                if (webSession.userName === "") {
+                // TODO: remove the check for the recover message and instead handle the session user name via
+                //       session storage. Requires individual solutions for both, standalone and embedded use.
+                if (webSession.userName === "" && event.message !== "Session recovered") {
                     if (webSession.localUserMode) {
                         ShellInterface.users.authenticate("LocalAdministrator", "");
                     }
@@ -179,6 +182,7 @@ export class App extends React.Component<{}, IAppState> {
             void requisitions.execute("applicationWillFinish", undefined);
 
             currentConnection.disconnect();
+            ApplicationDB.cleanUp();
 
             requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
             requisitions.unregister("editorInfoUpdated", this.editorInfoUpdated);

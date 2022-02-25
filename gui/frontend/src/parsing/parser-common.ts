@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,6 +25,7 @@
 
 import { Token, CommonTokenStream, BufferedTokenStream } from "antlr4ts";
 import { Interval } from "antlr4ts/misc";
+import { IDictionary } from "../app-logic/Types";
 
 import { Stack } from "../supplement";
 
@@ -410,7 +411,7 @@ export type ILanguageWorkerTaskData =
     ILanguageWorkerParameterData |
     ILanguageWorkerCleanupData;
 
-export interface ILanguageWorkerResultData {
+export interface ILanguageWorkerResultData extends IDictionary {
     content?: unknown;
     info?: ISymbolInfo;
     query?: string;
@@ -429,6 +430,7 @@ export enum ServiceLanguage {
     Sqlite,
 }
 
+// Note: changes here need to be reflected in the mapper to Monaco completion kinds (mapCompletionKind).
 export enum LanguageCompletionKind {
     Keyword,
     Schema,

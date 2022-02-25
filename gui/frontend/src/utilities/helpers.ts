@@ -272,6 +272,13 @@ export const convertToTitleCase = (s: string): string => {
     return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
+// eslint-disable-next-line no-control-regex
+const ansiRegEx = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+
+export const stripAnsiCode = (s: string): string => {
+    return s.replace(ansiRegEx, "");
+};
+
 /**
  * Flattens an object by converting all members that are itself objects (array, object) to strings.
  *

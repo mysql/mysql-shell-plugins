@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -32,8 +32,6 @@ parser.add_argument('--nossl', action='store_true', default=False,
                     help='Don''t use SSL for conections. This can be set even for development runs.')
 parser.add_argument('--token', type=str, default=None,
                     help='Specify a uuid token to switch to single user mode')
-parser.add_argument('--prototype', action='store_true', default=False,
-                    help='Run the prototype code instead of the development code')
 
 args = parser.parse_args()
 
@@ -41,7 +39,7 @@ args = parser.parse_args()
 gui = mysqlsh.get_plugin('gui')
 port = args.port
 secure = not args.nossl
-webdir = 'webroot.prototype' if args.prototype else 'webroot'
+webdir = 'webroot'
 
 webroot = os.path.join(os.path.dirname(__file__), 'gui_plugin', 'core', webdir)
 
@@ -50,7 +48,8 @@ webroot = os.path.join(os.path.dirname(__file__), 'gui_plugin', 'core', webdir)
 
 # Start the web server
 # --------------------
-gui.start.web_server(port=port, secure={} if secure else None, webrootpath=webroot, single_instance_token=args.token)
+gui.start.web_server(port=port, secure={} if secure else None,
+                     webrootpath=webroot, single_instance_token=args.token)
 
 # Convert all MySQL SQL script files in the db_schema folder to Sqlite
 # --------------------------------------------------------------------

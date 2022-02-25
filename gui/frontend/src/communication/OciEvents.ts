@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,7 @@
  */
 
 import { IAuthenticationDetails, IComputeInstance, IGenericResponse } from ".";
-import { IBastionSession, IBastionSummary, ICompartment, IMySQLDbSystem, ILoadBalancer } from "./Oci";
+import { IBastionSession, IBastionSummary, IBastion, ICompartment, IMySQLDbSystem, ILoadBalancer } from "./Oci";
 
 import { IDispatchEvent } from "../supplement/Dispatch";
 
@@ -40,6 +40,10 @@ export interface IOciBastionSummaryData extends IGenericResponse {
 
 export interface IOciBastionsListData extends IGenericResponse {
     result: IBastionSummary[];
+}
+
+export interface IOciBastionData extends IGenericResponse {
+    result: IBastion;
 }
 
 export interface IOciMySQLDbSystemData extends IGenericResponse {
@@ -65,8 +69,9 @@ export interface IOciLoadBalancersListData extends IGenericResponse {
 export type ICommOciComputeInstanceEvent = IDispatchEvent<IOciComputeInstanceData>;
 
 export type ICommOciSessionResultEvent = IDispatchEvent<IOciBastionSessionData>;
-export type ICommOciBastionEvent = IDispatchEvent<IOciBastionSummaryData>;
+export type ICommOciBastionSummaryEvent = IDispatchEvent<IOciBastionSummaryData>;
 export type ICommOciBastionsEvent = IDispatchEvent<IOciBastionsListData>;
+export type ICommOciBastionEvent = IDispatchEvent<IOciBastionData>;
 
 export type ICommOciMySQLDbSystemEvent = IDispatchEvent<IOciMySQLDbSystemData>;
 export type ICommOciMySQLDbSystemListEvent = IDispatchEvent<IOciMySQLDbSystemListData>;

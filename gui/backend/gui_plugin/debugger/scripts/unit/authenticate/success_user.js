@@ -16,7 +16,6 @@ ws.validateLastResponse({
         "user_id": ws.matchRegexp("\\d+"),
         "name": "Default",
         "description": "Default Profile",
-        "options": {},
-        "active": 1
+        "options": {}
     }
 })

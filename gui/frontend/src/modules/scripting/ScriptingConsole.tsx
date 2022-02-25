@@ -27,7 +27,7 @@ import { IPosition, Position } from "monaco-editor";
 import { Component, IComponentProperties } from "../../components/ui";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { IEditorStatusInfo, IModuleDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
-import { ExecutionContext, PresentationInterface } from "../../script-execution";
+import { ExecutionContext, PresentationInterface, SQLExecutionContext } from "../../script-execution";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
 import { DBType } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
@@ -138,6 +138,18 @@ export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
             />);
     }
 
+    public focus(): void {
+        this.editorRef.current?.focus();
+    }
+
+    /**
+     * Executes a single query with optional parameters and a link ID for external editors (like text editors
+     * in VS code).
+     *
+     * @param sql The statement to execute.
+     * @param params The parameters for that statement.
+     * @param linkId The link ID, to connect the new execution context with the original text.
+     */
     public executeQuery(sql: string, params?: Array<[string, string]>, linkId?: number): void {
         if (this.editorRef.current) {
             const { dbType } = this.props;
@@ -151,17 +163,67 @@ export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
                 currentBlock = lastBlock;
             }
 
-            this.editorRef.current.appendText(sql);
             if (currentBlock) {
+                this.editorRef.current.appendText(sql);
                 currentBlock.linkId = linkId;
 
                 const { onScriptExecution } = this.props;
                 onScriptExecution?.(currentBlock, params, sql);
-            }
 
-            this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
-            this.editorRef.current.focus();
+                this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
+                this.editorRef.current.focus();
+            }
         }
+    }
+
+    /**
+     * Executes an entire script (possible multiple statements).
+     *
+     * @param script The script
+     *
+     * @returns A promise that resolves to true when the execution is fully triggered.
+     */
+    public executeScript(script: string): Promise<boolean> {
+        return new Promise((resolve) => {
+            if (this.editorRef.current) {
+                const { dbType } = this.props;
+
+                const lastBlock = this.editorRef.current.lastExecutionBlock;
+                let currentBlock: ExecutionContext | undefined;
+                if (!lastBlock || lastBlock.codeLength > 0 || !lastBlock.isSQLLike) {
+                    currentBlock = this.editorRef.current.prepareNextExecutionBlock(-1,
+                        dbType === DBType.MySQL ? "mysql" : "sql");
+                } else {
+                    currentBlock = lastBlock;
+                }
+
+                if (currentBlock instanceof SQLExecutionContext) {
+                    const continueExecution = (id: string): Promise<boolean> => {
+                        if (currentBlock && this.editorRef.current && id === currentBlock.id) {
+                            requisitions.unregister("editorValidationDone", continueExecution);
+
+
+                            const { onScriptExecution } = this.props;
+                            onScriptExecution?.(currentBlock);
+
+                            this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
+                            this.editorRef.current.focus();
+
+                            resolve(true); // For the outer promise, which is a pending requisition call.
+
+                            return Promise.resolve(true);
+                        }
+
+                        resolve(false);
+
+                        return Promise.resolve(false);
+                    };
+
+                    requisitions.register("editorValidationDone", continueExecution);
+                    this.editorRef.current.appendText(script);
+                }
+            }
+        });
     }
 
     /**

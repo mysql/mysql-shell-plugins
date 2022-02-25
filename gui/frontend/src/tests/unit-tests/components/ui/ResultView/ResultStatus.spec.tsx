@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,7 +40,7 @@ describe("Result status tests", (): void => {
             />,
         );
         const props = component.props();
-        expect(props.className).toEqual("msg resultStatus");
+        expect(props.className).toEqual("msg resultStatus containsMessage");
     });
 
     it("Result status (Snapshot) 1", () => {

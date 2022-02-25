@@ -34,6 +34,9 @@ export enum ShellAPIGui {
     GuiCoreCreateFile = "gui.core.create_file",
     GuiCoreValidatePath = "gui.core.validate_path",
     GuiCoreGetBackendInformation = "gui.core.get_backend_information",
+    GuiCoreIsShellWebCertificateInstalled = "gui.core.is_shell_web_certificate_installed",
+    GuiCoreInstallShellWebCertificate = "gui.core.install_shell_web_certificate",
+    GuiCoreRemoveShellWebCertificate = "gui.core.remove_shell_web_certificate",
     GuiDbconnectionsAddDbConnection = "gui.dbconnections.add_db_connection",
     GuiDbconnectionsUpdateDbConnection = "gui.dbconnections.update_db_connection",
     GuiDbconnectionsRemoveDbConnection = "gui.dbconnections.remove_db_connection",
@@ -58,6 +61,7 @@ export enum ShellAPIGui {
     GuiSqleditorStartSession = "gui.sqleditor.start_session",
     GuiSqleditorCloseSession = "gui.sqleditor.close_session",
     GuiSqleditorOpenConnection = "gui.sqleditor.open_connection",
+    GuiSqleditorReconnect = "gui.sqleditor.reconnect",
     GuiSqleditorExecute = "gui.sqleditor.execute",
     GuiSqleditorKillQuery = "gui.sqleditor.kill_query",
     GuiSqleditorGetCurrentSchema = "gui.sqleditor.get_current_schema",
@@ -86,6 +90,9 @@ export enum ShellAPIGui {
     GuiUsersListUserGroups = "gui.users.list_user_groups",
     GuiUsersCreateUserGroup = "gui.users.create_user_group",
     GuiUsersAddUserToGroup = "gui.users.add_user_to_group",
+    GuiUsersRemoveUserFromGroup = "gui.users.remove_user_from_group",
+    GuiUsersUpdateUserGroup = "gui.users.update_user_group",
+    GuiUsersRemoveUserGroup = "gui.users.remove_user_group",
     GuiDebuggerIsGuiModuleBackend = "gui.debugger.is_gui_module_backend",
     GuiDebuggerGetGuiModuleDisplayInfo = "gui.debugger.get_gui_module_display_info",
     GuiDebuggerGetScripts = "gui.debugger.get_scripts",
@@ -106,6 +113,7 @@ export enum ShellAPIGui {
     GuiModulesCreateUserGroupDataTree = "gui.modules.create_user_group_data_tree",
     GuiModulesGetUserGroupDataTree = "gui.modules.get_user_group_data_tree",
     GuiModulesGetProfileTreeIdentifiers = "gui.modules.get_profile_tree_identifiers",
+    GuiModulesMoveData = "gui.modules.move_data",
     GuiDbGetObjectsTypes = "gui.db.get_objects_types",
     GuiDbGetCatalogObjectNames = "gui.db.get_catalog_object_names",
     GuiDbGetSchemaObjectNames = "gui.db.get_schema_object_names",
@@ -117,6 +125,17 @@ export enum ShellAPIGui {
 }
 
 //  Begin auto generated types
+
+export interface IShellCoreIsShellWebCertificateInstalledKwargs {
+    checkKeychain?: boolean;
+}
+
+
+export interface IShellCoreInstallShellWebCertificateKwargs {
+    keychain?: boolean;
+    replaceExisting?: boolean;
+}
+
 
 export interface IShellDbConnection {
     dbType: string;
@@ -259,6 +278,66 @@ export class ProtocolGui extends Protocol {
     public static getRequestCoreGetBackendInformation(): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiCoreGetBackendInformation,
+            {
+                args: {},
+            });
+    }
+
+    /**
+     * Checks if the MySQL Shell GUI webserver certificate is installed
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns True if installed
+     */
+    public static getRequestCoreIsShellWebCertificateInstalled(kwargs?: IShellCoreIsShellWebCertificateInstalledKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                check_keychain: kwargs.checkKeychain,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiCoreIsShellWebCertificateInstalled,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Installs the MySQL Shell GUI webserver certificate
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns True if successfully installed
+     */
+    public static getRequestCoreInstallShellWebCertificate(kwargs?: IShellCoreInstallShellWebCertificateKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                keychain: kwargs.keychain,
+                replace_existing: kwargs.replaceExisting,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiCoreInstallShellWebCertificate,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Removes the MySQL Shell GUI webserver certificate
+     *
+     * @returns True if successfully removed
+     */
+    public static getRequestCoreRemoveShellWebCertificate(): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiCoreRemoveShellWebCertificate,
             {
                 args: {},
             });
@@ -666,6 +745,23 @@ export class ProtocolGui extends Protocol {
                     db_connection_id: dbConnectionId,
                     module_session_id: moduleSessionId,
                     password,
+                },
+            });
+    }
+
+    /**
+     * Reconnects the SQL Editor Session
+     *
+     * @param moduleSessionId The session where the session will be reconnected
+     *
+     * @returns A dict holding the result message and the connection information     when available.
+     */
+    public static getRequestSqleditorReconnect(moduleSessionId: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiSqleditorReconnect,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
                 },
             });
     }
@@ -1121,15 +1217,19 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * Returns the list of all groups
+     * Returns the list of all groups or list all groups that given user belongs.
+     *
+     * @param memberId User ID
      *
      * @returns The generated shell request record.
      */
-    public static getRequestUsersListUserGroups(): IShellRequest {
+    public static getRequestUsersListUserGroups(memberId?: number): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiUsersListUserGroups,
             {
-                args: {},
+                args: {
+                    member_id: memberId,
+                },
             });
     }
 
@@ -1169,6 +1269,63 @@ export class ProtocolGui extends Protocol {
                     member_id: memberId,
                     group_id: groupId,
                     owner,
+                },
+            });
+    }
+
+    /**
+     * Removes user from user group.
+     *
+     * @param memberId User ID
+     * @param groupId Group ID
+     *
+     * @returns A boolean value indicating whether the given user was removed from the given group.
+     */
+    public static getRequestUsersRemoveUserFromGroup(memberId: number, groupId: number): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiUsersRemoveUserFromGroup,
+            {
+                args: {
+                    member_id: memberId,
+                    group_id: groupId,
+                },
+            });
+    }
+
+    /**
+     * Updates user group.
+     *
+     * @param groupId Group ID
+     * @param name Group name
+     * @param description Description of the group
+     *
+     * @returns A boolean value indicating whether the record was updated or not.
+     */
+    public static getRequestUsersUpdateUserGroup(groupId: number, name?: string, description?: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiUsersUpdateUserGroup,
+            {
+                args: {
+                    group_id: groupId,
+                    name,
+                    description,
+                },
+            });
+    }
+
+    /**
+     * Removes given user group.
+     *
+     * @param groupId Group ID
+     *
+     * @returns A boolean value indicating whether the record was deleted or not.
+     */
+    public static getRequestUsersRemoveUserGroup(groupId: number): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiUsersRemoveUserGroup,
+            {
+                args: {
+                    group_id: groupId,
                 },
             });
     }
@@ -1386,20 +1543,18 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * Gets the list of available data categories for this module
+     * Gets the list of available data categories and sub categories    for the given name.
      *
-     * @param moduleId The id of the module, e.g. 'gui.sqleditor'
-     * @param name The name of the data category
+     * @param categoryId The id of the data category
      *
      * @returns The list of available data categories
      */
-    public static getRequestModulesListDataCategories(moduleId: string, name?: string): IShellRequest {
+    public static getRequestModulesListDataCategories(categoryId?: number): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiModulesListDataCategories,
             {
                 args: {
-                    module_id: moduleId,
-                    name,
+                    category_id: categoryId,
                 },
             });
     }
@@ -1408,18 +1563,16 @@ export class ProtocolGui extends Protocol {
      * Add a new data category to the list of available data categories for this module
      *
      * @param name The name of the data category
-     * @param moduleId The id of the module, e.g. 'gui.sqleditor'
      * @param parentCategoryId The id of the parent category
      *
      * @returns The id of added category.
      */
-    public static getRequestModulesAddDataCategory(name: string, moduleId: string, parentCategoryId?: number): IShellRequest {
+    public static getRequestModulesAddDataCategory(name: string, parentCategoryId?: number): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiModulesAddDataCategory,
             {
                 args: {
                     name,
-                    module_id: moduleId,
                     parent_category_id: parentCategoryId,
                 },
             });
@@ -1446,17 +1599,15 @@ export class ProtocolGui extends Protocol {
      * Gets id for given name and module id.
      *
      * @param name The name of the data category
-     * @param moduleId The id of the module, e.g. 'gui.sqleditor'
      *
      * @returns The id of the data category.
      */
-    public static getRequestModulesGetDataCategoryId(name: string, moduleId: string): IShellRequest {
+    public static getRequestModulesGetDataCategoryId(name: string): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiModulesGetDataCategoryId,
             {
                 args: {
                     name,
-                    module_id: moduleId,
                 },
             });
     }
@@ -1555,6 +1706,33 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
+     * Moves data from source path to target path.
+     *
+     * @param id The id of the data
+     * @param treeIdentifier The identifier of the tree
+     * @param linkedTo ['profile'|'group']
+     * @param linkId The profile id or the group id (depending on linked_to)
+     * @param sourcePath The source folder path f.e. "/scripts/server1"
+     * @param targetPath The target folder path f.e. "/scripts/server2"
+     *
+     * @returns The id of the moved record.
+     */
+    public static getRequestModulesMoveData(id: number, treeIdentifier: string, linkedTo: string, linkId: number, sourcePath: string, targetPath: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiModulesMoveData,
+            {
+                args: {
+                    id,
+                    tree_identifier: treeIdentifier,
+                    linked_to: linkedTo,
+                    link_id: linkId,
+                    source_path: sourcePath,
+                    target_path: targetPath,
+                },
+            });
+    }
+
+    /**
      * Returns the database objects supported by a DBMS
      *
      * @param moduleSessionId The string id for the module session object where the query is running
@@ -1599,10 +1777,11 @@ export class ProtocolGui extends Protocol {
      * @param type the schema object type
      * @param schemaName schema name
      * @param filter object filter
+     * @param routineType type of the routine ['procedure'|'function']
      *
      * @returns object: The list of names
      */
-    public static getRequestDbGetSchemaObjectNames(moduleSessionId: string, type: string, schemaName: string, filter = "%"): IShellRequest {
+    public static getRequestDbGetSchemaObjectNames(moduleSessionId: string, type: string, schemaName: string, filter = "%", routineType?: string): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetSchemaObjectNames,
             {
@@ -1611,6 +1790,7 @@ export class ProtocolGui extends Protocol {
                     type,
                     schema_name: schemaName,
                     filter,
+                    routine_type: routineType,
                 },
             });
     }

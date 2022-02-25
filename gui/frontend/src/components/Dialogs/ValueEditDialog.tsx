@@ -134,6 +134,7 @@ export interface IValueEditDialogProperties extends IComponentProperties {
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
     onClose?: (accepted: boolean, values: IDialogValues, data?: IDictionary) => void;
     onToggleAdvanced?: (checked: boolean) => void;
+    onSelectTab?: (id: string) => void;
 }
 
 interface IValueEditDialogState extends IComponentState {
@@ -230,6 +231,20 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 if (index !== undefined && index > -1) {
                     entry.options?.splice(index, 1);
                 }
+
+                this.setState({ values });
+            }
+        });
+    };
+
+    public updateDropdownValue = (items: string[], active: string, id: string): void => {
+        const { values } = this.state;
+
+        values.sections.forEach((section) => {
+            const entry = section.values[id];
+            if (!isNil(entry)) {
+                entry.choices = items;
+                entry.value = active;
 
                 this.setState({ values });
             }
@@ -354,6 +369,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      * @returns The generated list of groups.
      */
     private renderGroups = (): React.ReactNode[] => {
+        const { onSelectTab } = this.props;
         const { values, activeContexts } = this.state;
 
         interface ISectionNodePair { caption?: string; node: React.ReactNode; section: IDialogSection }
@@ -431,9 +447,16 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                         pages={pages}
                         selectedId={active}
                         onSelectTab={(id: string): void => {
+                            let selected = "";
                             group.nodes.forEach((node, nodeIndex) => {
-                                node.section.active = (`page${nodeIndex}`) === id;
+                                if((`page${nodeIndex}`) === id) {
+                                    node.section.active = true;
+                                    selected = node.caption ?? "";
+                                } else {
+                                    node.section.active = false;
+                                }
                             });
+                            onSelectTab?.(selected);
                             this.setState({ values });
                         }}
                     >
@@ -737,7 +760,6 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                             onChange={this.inputChange}
                             onConfirm={this.acceptOnConfirm}
                             onBlur={this.onBlur}
-                            //autoFocus={index === 0 ? true : false}
                             placeholder={entry.value.placeholder}
                             disabled={options?.includes(DialogValueOption.Disabled)}
                             multiLine={options?.includes(DialogValueOption.MultiLine)}

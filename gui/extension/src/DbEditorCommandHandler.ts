@@ -21,30 +21,40 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { window, commands, ExtensionContext } from "vscode";
-import { ICommErrorEvent, ICommSimpleResultEvent } from "../../frontend/src/communication";
+import { window, commands, ExtensionContext, TextEditor, workspace } from "vscode";
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
-import { EventType } from "../../frontend/src/supplement/Dispatch";
 
 import { IConnectionDetails } from "../../frontend/src/supplement/ShellInterface";
-import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
-import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
-import { SchemaTableTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaTableTreeItem";
-import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSystemTreeItem";
+
+import {
+    ConnectionsTreeBaseItem,
+    ConnectionsTreeDataProvider, ConnectionTreeItem, IConnectionEntry, SchemaEventTreeItem, SchemaMySQLTreeItem,
+    SchemaRoutineTreeItem, SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem,
+} from "./tree-providers/ConnectionsTreeProvider";
+import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
 import { SqlEditorViewProvider } from "./web-views/SqlEditorViewProvider";
 import { IRunQueryRequest } from "../../frontend/src/supplement";
 import { IDBEditorScriptState } from "../../frontend/src/modules/scripting";
 
+import { CodeBlocks } from "./CodeBlocks";
+
 // A class to handle all DB editor related commands and jobs.
 export class DbEditorCommandHandler {
+    private connectionsProvider = new ConnectionsTreeDataProvider();
+
     // All open DB editor view providers.
     private providers: SqlEditorViewProvider[] = [];
     private url?: URL;
 
+    private codeBlocks = new CodeBlocks();
+
     public setup(context: ExtensionContext): void {
+        this.codeBlocks.setup(context);
+        context.subscriptions.push(window.registerTreeDataProvider("msg.connections", this.connectionsProvider));
+
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("editorRunQuery", this.editorRunQuery);
 
@@ -136,36 +146,46 @@ export class DbEditorCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropSchema", (item?: SchemaMySQLTreeItem) => {
-            if (item) {
-                const schemaName = item.schema;
-                void window.showInformationMessage(`Are you sure the schema ${schemaName} should be dropped?`,
-                    "Yes", "No").then((answer) => {
-                    if (answer === "Yes") {
-                        item.entry.backend?.execute(`DROP SCHEMA \`${schemaName}\`;`)
-                            .then((event: ICommSimpleResultEvent) => {
-                                switch (event.eventType) {
-                                    case EventType.DataResponse:
-                                    case EventType.FinalResponse: {
-                                        void commands.executeCommand("msg.refreshConnections");
-                                        void window.showInformationMessage(
-                                            `The schema ${schemaName} has been dropped successfully.`);
-
-                                        break;
-                                    }
-
-                                    default: {
-                                        break;
-                                    }
-                                }
-                            })
-                            .catch((errorEvent: ICommErrorEvent): void => {
-                                void window.showErrorMessage(`Error dropping the schema: ` +
-                                        `${errorEvent.message ?? "<unknown>"}`);
-                            });
-                    }
-                });
-            }
+            item?.dropItem();
         }));
+
+        context.subscriptions.push(commands.registerCommand("msg.dropTable", (item?: SchemaTableTreeItem) => {
+            item?.dropItem();
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.dropView", (item?: SchemaViewTreeItem) => {
+            item?.dropItem();
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (item?: SchemaRoutineTreeItem) => {
+            item?.dropItem();
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.dropTrigger", (item?: SchemaTableTriggerTreeItem) => {
+            item?.dropItem();
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.dropEvent", (item?: SchemaEventTreeItem) => {
+            item?.dropItem();
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.defaultConnection", (item: ConnectionTreeItem) => {
+            const configuration = workspace.getConfiguration(`msg.editor`);
+            void configuration.update("defaultDbConnection", item.label as string).then(() => {
+                void window.showInformationMessage(`"${item.label as string}" ` +
+                    `has been set as default DB Connection for embedded SQL execution.`);
+            });
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.copyNameToClipboard",
+            (item: ConnectionsTreeBaseItem) => {
+                item.copyNameToClipboard();
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptToClipboard",
+            (item: ConnectionsTreeBaseItem) => {
+                item.copyCreateScriptToClipboard();
+            }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
             (item?: OciDbSystemTreeItem) => {
@@ -175,6 +195,45 @@ export class DbEditorCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerTextEditorCommand("msg.executeEmbeddedSqlFromEditor",
+            (editor: TextEditor) => {
+                void this.determineConnection().then((connection) => {
+                    if (connection) {
+                        this.codeBlocks.executeSqlFromEditor(editor, connection.details.caption, connection.details.id);
+                    }
+                });
+            }));
+
+        context.subscriptions.push(commands.registerTextEditorCommand("msg.executeSelectedSqlFromEditor", (editor) => {
+            void this.determineConnection().then((connection) => {
+                if (connection) {
+                    const provider = this.currentProvider;
+                    if (provider) {
+                        let sql = "";
+                        if (!editor.selection.isEmpty) {
+                            editor.selections.forEach((selection) => {
+                                sql += editor.document.getText(selection);
+                            });
+                        } else {
+                            sql = editor.document.getText();
+                        }
+
+                        return provider.runScript(connection.details.caption, String(connection.details.id), {
+                            content: sql,
+                        });
+                    }
+                }
+            });
+
+        }));
+    }
+
+    /**
+     * Triggered on authentication, which means existing connections are no longer valid.
+     */
+    public refreshConnectionTree(): void {
+        this.connectionsProvider.closeAllConnections();
+        this.connectionsProvider.refresh();
     }
 
     public closeProviders(): void {
@@ -216,6 +275,13 @@ export class DbEditorCommandHandler {
         return Promise.resolve(true);
     };
 
+    /**
+     * Triggered from CodeBlocks when an embedded query must be executed.
+     *
+     * @param details The request to send to the app.
+     *
+     * @returns A promise returning a flag if the task was successfully executed or not.
+     */
     private editorRunQuery = (details: IRunQueryRequest): Promise<boolean> => {
         const provider = this.currentProvider;
         if (provider) {
@@ -228,5 +294,41 @@ export class DbEditorCommandHandler {
         }
 
         return Promise.resolve(false);
+    };
+
+    /**
+     * Determines a connection to run SQL code with.
+     *
+     * @returns A promise resolving to a connection entry or undefined if no entry was found.
+     */
+    private determineConnection = async (): Promise<IConnectionEntry | undefined> => {
+        const connections = this.connectionsProvider.connections;
+        const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
+        if (connectionName) {
+            const connection = connections.find((candidate) => {
+                return candidate.details.caption === connectionName;
+            });
+
+            if (connection) {
+                return connection;
+            }
+        } else {
+            // No default connection set. Show a picker.
+            const items = connections.map((connection) => { return connection.details.caption; });
+            const name = await window.showQuickPick(items, {
+                title: "Select a connection for SQL execution",
+                matchOnDescription: true,
+                placeHolder: "Type the name of an existing DB connection",
+            });
+
+            const connection = connections.find((candidate) => {
+                return candidate.details.caption === name;
+            });
+
+            if (connection) {
+                return connection;
+            }
+        }
+
     };
 }

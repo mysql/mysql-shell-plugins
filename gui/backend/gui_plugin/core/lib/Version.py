@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+import operator
 
 class Version:
     def __init__(self, version=(0, 0, 0)):
@@ -49,3 +51,9 @@ class Version:
         return self.compare(other) == 1
     def __ge__(self, other):
         return self.compare(other) >= 0
+
+    def __add__(self, other):
+        return Version(tuple(map(operator.add, self._version, other._version)))
+
+    def __sub__(self, other):
+        return Version(tuple(map(operator.sub, self._version, other._version)))

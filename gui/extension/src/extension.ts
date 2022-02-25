@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,12 @@
  */
 
 import {
-    commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace,
+    commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace, extensions,
 } from "vscode";
 
 import * as child_process from "child_process";
+import { existsSync } from "fs";
+import { join } from "path";
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 
@@ -34,6 +36,8 @@ import { uuid } from "../../frontend/src/utilities/helpers";
 import { currentConnection } from "../../frontend/src/communication";
 import { ExtensionHost } from "./ExtensionHost";
 import { webSession } from "../../frontend/src/supplement/WebSession";
+import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
+import { platform } from "os";
 
 export let taskOutputChannel: OutputChannel;
 let outputChannel: OutputChannel;
@@ -52,7 +56,70 @@ export const printChannelOutput = (content: string, reveal = false): void => {
     }
 };
 
-const startShellAndConnect = (target?: string): void => {
+/**
+ * Starts an instance of the MySQL Shell
+ *
+ * @param extensionPath The file system path of the extension.
+ * @param parameters The parameters to be passed to the shell.
+ * @param onStdOutData The callback to handle standard output.
+ * @param onStdErrData The callback to handle data error output. If not specified onStdOutData will be used.
+ * @param onError The callback to handle other error output. If not specified onStdOutData will be used.
+ * @param onExit The callback to handle the shell exit.
+ *
+ * @returns The shell process
+ */
+export const runMysqlShell = (extensionPath: string, parameters: string[],
+    onStdOutData: (data: unknown) => void,
+    onStdErrData?: (data: unknown) => void,
+    onError?: (error: Error) => void,
+    onExit?: (code: number) => void): child_process.ChildProcess => {
+
+    // Check if MySQL Shell is bundled with the extension
+    let shellPath = join(extensionPath, "shell", "bin", "mysqlsh");
+    if (platform() === "win32") {
+        shellPath += ".exe";
+    }
+
+    if (!existsSync(shellPath)) {
+        // If not, try to use the mysqlsh installed in the system
+        shellPath = "mysqlsh";
+        printChannelOutput("Starting MySQL Shell (from PATH) ...");
+    } else {
+        printChannelOutput("Starting MySQL Shell ...");
+    }
+
+    // Spawn shell process
+    const shellProc = child_process.spawn(shellPath, parameters, {
+        env: {
+            ...process.env,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            LOG_LEVEL: "DEBUG3",
+        },
+    });
+
+    // Assign callbacks
+    shellProc.stdout?.on("data", onStdOutData);
+    if (!onError) {
+        onError = (error: Error) => {
+            printChannelOutput(`Error while starting MySQL Shell: ${error.message}`);
+        };
+    }
+
+    shellProc.on("error", onError);
+    if (onStdErrData) {
+        shellProc.stderr?.on("data", onStdErrData);
+    } else {
+        shellProc.stderr?.on("data", onStdOutData);
+    }
+
+    if (onExit) {
+        shellProc.on("exit", onExit);
+    }
+
+    return shellProc;
+};
+
+const startShellAndConnect = (extensionPath: string, target?: string): void => {
     if (target) {
         const url = new URL(target);
         try {
@@ -72,25 +139,30 @@ const startShellAndConnect = (target?: string): void => {
             const singleUserToken = uuid();
 
             const parameters = [
-                "--log-level=debug3",
                 "--py",
                 "-e",
                 `gui.start.web_server(port=${port}, secure={}, single_instance_token="${singleUserToken}")`,
             ];
-            shellProcess = child_process.spawn("mysqlsh", parameters);
 
-            shellProcess.on("error", (error: Error) => {
-                printChannelOutput(`Error while starting MySQL Shell: ${error.message}`);
-            });
-
-            shellProcess.stderr?.on("data", (data) => {
-                printChannelOutput(String(data));
-            });
-
-            shellProcess.stdout?.on("data", (data) => {
+            shellProcess = runMysqlShell(extensionPath, parameters, (data) => {
+                // onStdOutData
                 const output = String(data);
                 printChannelOutput(output);
 
+                // If the web certificate is not installed, ask the user if he wants to run the wizard
+                if (output.includes("Certificate is not installed.")) {
+                    void window.showInformationMessage(
+                        "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
+                        "not installed? Do you want to run the Welcome Wizard to install it?",
+                        "Run Welcome Wizard", "Cancel").then((answer) => {
+                        if (answer !== "Cancel") {
+                            void commands.executeCommand("msg.runWelcomeWizard");
+                        }
+                    },
+                    );
+                }
+
+                // If the MySQL Shell web server is running and indicates Single user mode, connect to it
                 if (output.includes("Mode: Single user")) {
                     const url = new URL(`https://localhost:${port}/?token=${singleUserToken}`);
 
@@ -102,7 +174,11 @@ const startShellAndConnect = (target?: string): void => {
                         void requisitions.execute("connectedToUrl", undefined);
                     });
                 }
+            }, (data) => {
+                // onStdErrData
+                printChannelOutput(String(data));
             });
+
         }).catch((error) => {
             printChannelOutput(String(error), true);
         });
@@ -124,6 +200,9 @@ export const activate = (context: ExtensionContext): void => {
 
     host = new ExtensionHost(context);
 
+    // Register "msg.runWelcomeWizard" command
+    setupInitialWelcomeWebview(context);
+
     context.subscriptions.push(commands.registerCommand("msg.restartShell", () => {
         void window.showWarningMessage(restartMessage, "Restart MySQL Shell", "Cancel").then((choice) => {
             if (choice === "Restart MySQL Shell") {
@@ -132,7 +211,7 @@ export const activate = (context: ExtensionContext): void => {
                 shellProcess?.kill();
                 webSession.clearSessionData();
 
-                startShellAndConnect();
+                startShellAndConnect(context.extensionPath);
             }
         });
     }));
@@ -151,16 +230,36 @@ export const activate = (context: ExtensionContext): void => {
             shellProcess = undefined;
             webSession.clearSessionData();
 
-            startShellAndConnect(value);
+            startShellAndConnect(context.extensionPath, value);
         });
     }));
 
-    const useExternalUrl = workspace.getConfiguration("msg.shell").get<boolean>("useExternal");
-    let externalUrl;
-    if (useExternalUrl) {
-        externalUrl = workspace.getConfiguration("msg.shell").get<string>("externalUrl");
+    // TODO: This is a temporary workaround till we get signed binaries from RE
+    if (platform() === "darwin") {
+        const shellDir = join(context.extensionPath, "shell");
+        if (existsSync(shellDir)) {
+            // cSpell:ignore xattr
+            void child_process.execSync(`xattr -rc ${shellDir}`);
+        }
     }
-    startShellAndConnect(externalUrl);
+
+    // Check if this is the initial run of the MySQL Shell extension after installation
+    const initialRun = context.globalState.get("MySQLShellInitialRun");
+    if (!initialRun || initialRun === "") {
+        const currentVersion = extensions.getExtension(
+            "Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
+        void context.globalState.update("MySQLShellInitialRun", currentVersion);
+
+        void commands.executeCommand("msg.runWelcomeWizard");
+    } else {
+        const useExternalUrl = workspace.getConfiguration("msg.shell").get<boolean>("useExternal");
+        let externalUrl;
+        if (useExternalUrl) {
+            externalUrl = workspace.getConfiguration("msg.shell").get<string>("externalUrl");
+        }
+
+        startShellAndConnect(context.extensionPath, externalUrl);
+    }
 };
 
 export const deactivate = (): void => {

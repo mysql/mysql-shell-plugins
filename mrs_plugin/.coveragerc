@@ -1,0 +1,6 @@
+[run]
+omit = /usr/*
+       *__init__*
+       init.py
+       tests/*
+       run_tests.py

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -112,8 +112,8 @@ class DbSqliteSession(DbSession):
                         {"name": "Index",   "type": "TABLE_OBJECT"},
                         {"name": "Column",   "type": "TABLE_OBJECT"}]
 
-    def __init__(self, id, threaded, connection_options, on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None):
-        super().__init__(id, threaded, connection_options)
+    def __init__(self, id, threaded, connection_options, ping_interval=None, on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None):
+        super().__init__(id, threaded, connection_options, ping_interval=ping_interval)
 
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
@@ -169,6 +169,10 @@ class DbSqliteSession(DbSession):
                 raise e
             else:
                 self._failed_cb(e)
+
+    def _reconnect(self):
+        self._close_database()
+        self._open_database(True)
 
     def _close_database(self):
         self.conn.close()
@@ -256,7 +260,7 @@ class DbSqliteSession(DbSession):
                                              result_callback=callback))
 
     @check_supported_type
-    def get_schema_object_names(self, request_id, type, schema_name, filter, callback=None):
+    def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):
         if type == "Table":
             sql = f"""SELECT name
                        FROM `{schema_name}`.sqlite_master

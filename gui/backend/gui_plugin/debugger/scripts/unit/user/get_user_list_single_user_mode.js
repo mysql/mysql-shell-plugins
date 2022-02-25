@@ -14,6 +14,7 @@ ws.validateLastResponse({
         "msg": ws.ignore
     },
     "rows": [
+        { "name": "LocalAdministrator" },
         { "name": "admin1" },
         { "name": "admin2" },
         { "name": "power1" },
@@ -21,6 +22,5 @@ ws.validateLastResponse({
         { "name": "user1" },
         { "name": "user2" },
         { "name": "user3" },
-        { "name": "LocalAdministrator" },
     ]
 })

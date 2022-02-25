@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@ import copy
 import time
 from queue import Queue
 from contextlib import contextmanager
-from .DbSessionTasks import DbSqlTask, DBCloseTask
+from .DbSessionTasks import DbSqlTask, DBCloseTask, DBReconnectTask
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 
@@ -73,12 +73,46 @@ def lock_usage(lock_mutext, timeout=-1):
         lock_mutext.release()
 
 
+class DbPingHandler(threading.Thread):
+    """
+    Schedules a dummy query on the given session with a defined interval.
+
+    This is required to prevent bastion sessions to disconnect after few
+    minutes of inactivity.
+    """
+
+    def __init__(self, session, interval):
+        super().__init__()
+        self.session = session
+        self.interval = interval
+        self.condition = threading.Condition()
+
+    def stop(self):
+        """
+        Stops the ping scheduling.
+        """
+        with self.condition:
+            self.condition.notify()
+
+    def run(self):
+        done = False
+        while not done:
+            with self.condition:
+                # If the wait ends because it timed out then done will be
+                # False, in such case the dummy query is executed.
+                # If the wait ends because of notify call (stop got called)
+                # then done will be True, which means the session has been
+                # terminated
+                done = self.condition.wait(self.interval)
+                if not done:
+                    self.session.execute("SELECT 1")
+
+
 class DbSession(threading.Thread):
     _cancel_requests = []
 
-    def __init__(self, id, threaded, connection_options):
+    def __init__(self, id, threaded, connection_options, ping_interval=None):
         super().__init__()
-
         self._id = id
 
         if not isinstance(connection_options, dict):
@@ -100,6 +134,9 @@ class DbSession(threading.Thread):
         self._threaded = threaded
         self.thread_error = None
         self._opened = False
+        self._db_pinger = None
+        if not ping_interval is None:
+            self._db_pinger = DbPingHandler(self, ping_interval)
 
     def open(self):
         self._opened = True
@@ -132,7 +169,13 @@ class DbSession(threading.Thread):
     def _close_database(self):
         raise NotImplementedError()
 
+    def _reconnect(self):
+        raise NotImplementedError()
+
     def terminate_thread(self):
+        if not self._db_pinger is None:
+            self._db_pinger.stop()
+            self._db_pinger.join()
         self._close_database()
         self._term_complete.set()
 
@@ -190,6 +233,13 @@ class DbSession(threading.Thread):
             self._term_complete.wait()
         else:
             self._close_database()
+
+    def reconnect(self):
+        if self._threaded:
+            self.add_task(DBReconnectTask())
+            self._term_complete.wait()
+        else:
+            self._reconnect()
 
     def add_task(self, task):
         self._request_queue.put(task)
@@ -268,7 +318,7 @@ class DbSession(threading.Thread):
     def get_catalog_object_names(self, request_id, type, filter, callback=None):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_schema_object_names(self, request_id, type, schema_name, filter, callback=None):  # pragma: no cover
+    def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):  # pragma: no cover
         raise NotImplementedError()
 
     def get_table_object_names(self, request_id, type, schema_name, table_name, filter, callback=None):  # pragma: no cover
@@ -291,27 +341,34 @@ class DbSession(threading.Thread):
         # Wait for the thread initialization to be complete
         self._init_complete.wait()
 
+        if not self._db_pinger is None:
+            self._db_pinger.start()
+
         while self.thread_error is None:
             task = self._request_queue.get()
 
             if isinstance(task, DBCloseTask):
                 break
 
-            if task.request_id in DbSession._cancel_requests:
-                task.cancel()
-                DbSession._cancel_requests.remove(task.request_id)
+            if isinstance(task, DBReconnectTask):
+                self._reconnect()
+                self._term_complete.set()
+            else:
+                if task.request_id in DbSession._cancel_requests:
+                    task.cancel()
+                    DbSession._cancel_requests.remove(task.request_id)
 
-            # Resets the killed flag for the next task
-            self._killed = False
+                # Resets the killed flag for the next task
+                self._killed = False
 
-            with lock_usage(self._mutex, 5):
-                task.execute()
+                with lock_usage(self._mutex, 5):
+                    task.execute()
 
-                # These values are updated on the session to keep track of the result of the last executed task
-                self._last_error = task.last_error
-                self._last_execution_time = task.execution_time
-                self._last_insert_id = task.last_insert_id
-                self._rows_affected = task.rows_affected
+                    # These values are updated on the session to keep track of the result of the last executed task
+                    self._last_error = task.last_error
+                    self._last_execution_time = task.execution_time
+                    self._last_insert_id = task.last_insert_id
+                    self._rows_affected = task.rows_affected
 
         self.terminate_thread()
 

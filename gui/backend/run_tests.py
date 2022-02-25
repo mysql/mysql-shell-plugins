@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -86,6 +86,7 @@ arg_parser.add_argument('-s', '--shell',
                         help='Path to MySQL Shell binary')
 arg_parser.add_argument('-v', '--verbose',
                         required=False,
+                        action="store_true",
                         help='Enable verbose mode')
 arg_parser.add_argument('-u', '--userhome',
                         required=False,
@@ -98,6 +99,10 @@ arg_parser.add_argument('-k', '--only',
                         type=str,
                         default=None,
                         help='Run only the tests that apply to the pattern')
+arg_parser.add_argument('-c', '--color',
+                        required=False,
+                        action="store_true",
+                        help='Colors output for tests results')
 
 try:
     args = arg_parser.parse_args()
@@ -170,11 +175,11 @@ class MyPaths:
             self.source.code = portable_path
 
     def verify(self):
-        assert self.runtime.root.is_dir()
-        assert self.runtime.plugins.root.is_dir()
-        assert self.runtime.plugins.gui_plugin.is_dir()
-        assert self.source.webroot.is_dir()
-        assert self.source.pytest_config.is_file()
+        assert self.runtime.root.is_dir()               ,"root dir not found: %s"         % (self.runtime.root)
+        assert self.runtime.plugins.root.is_dir()       ,"plugins root dir not found: %s" % (self.runtime.plugins.root)
+        assert self.runtime.plugins.gui_plugin.is_dir() ,"gui plugin dir not found: %s"   % (self.runtime.plugins.gui_plugin)
+        assert self.source.webroot.is_dir()             ,"webroot dir not found: %s"      % (self.source.webroot)
+        assert self.source.pytest_config.is_file()      ,"pytest config not found: %s"    % (self.source.pytest_config)
 
 
 if args.portable is not None and zipfile.is_zipfile(args.portable):
@@ -239,22 +244,27 @@ print(f"Shell user home: {paths.runtime.root.as_posix()}")
 
 LOGS = ""
 PATTERN = ""
+COLOR = "no"
 # Enables verbose execution
-if args.verbose is not None or args.debug is not None:
+if args.verbose or args.debug is not None:
     LOGS = "-sv"
 
 if args.only is not None:
     PATTERN = f"-k {args.only}"
 
+if args.color:
+    COLOR = "yes"
+
 with pushd(paths.source.backend):
     env = os.environ.copy()
     env['MYSQLSH_USER_CONFIG_HOME'] = paths.runtime.root.as_posix()
     env['MYSQLSH_TERM_COLOR_MODE'] = 'nocolor'
+    env['COV_CORE_DATAFILE'] = '.coverage.eager'
 
     if args.debug is not None:
         env['ATTACH_DEBUGGER'] = args.debug
 
-    command = f"{paths.shell} --pym pytest --cov={paths.source.code} -v -c {paths.source.pytest_config} {LOGS} {paths.source.backend} {PATTERN}"
+    command = f"{paths.shell} --pym pytest --color={COLOR} --cov={paths.source.code} --cov-append -v -c {paths.source.pytest_config} {LOGS} {paths.source.backend} {PATTERN}"
     print(command)
     shell = subprocess.run(command, shell=True, env=env)
 
@@ -269,7 +279,7 @@ if not shell.returncode == 0:
     print('----------------------------------------')
     print('Backend database log')
     print('----------------------------------------')
-    with sqlite3.connect(os.path.join(paths.runtime.plugin_data.gui_plugin, "mysqlsh_gui_backend_log_0.0.12.sqlite3")) as cur:
+    with sqlite3.connect(os.path.join(paths.runtime.plugin_data.gui_plugin, "mysqlsh_gui_backend_log_0.0.14.sqlite3")) as cur:
         for record in cur.execute("SELECT * FROM log").fetchall():
             print(record)
 

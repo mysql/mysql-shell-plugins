@@ -52,6 +52,8 @@ export class ClientConnection {
     private connectionEstablished = false;
     private disconnecting = false;
 
+    private reconnectTimer: ReturnType<typeof setTimeout> | null;
+
     private socket?: ReconnectingWebSocket;
 
     /**
@@ -164,6 +166,12 @@ export class ClientConnection {
      * @param resolve The resolver function to signal when the socket connection is available.
      */
     private onOpen = (resolve: (value: void | PromiseLike<void>) => void): void => {
+        if (this.reconnectTimer) {
+            // Clear the timer for the disconnection message, since the connection is back.
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
+
         this.connectionEstablished = true;
         dispatcher.triggerNotification("socketOpened");
         resolve();
@@ -182,16 +190,20 @@ export class ClientConnection {
 
         if (!this.disconnecting && !this.debugging) {
             if (wasConnected) {
-                void requisitions.execute("showError", [
-                    "Browser Connection Error",
-                    "The connection to the backend was closed unexpectedly.",
-                    "Save any data you want to keep and try reconnecting.",
-                ]);
-            } else {
-                void requisitions.execute("showError", [
-                    "Browser Connection Error",
-                    "A connection could not be established.",
-                ]);
+                if (this.reconnectTimer) {
+                    clearTimeout(this.reconnectTimer);
+                }
+
+                // Show the disconnection error only after 3 seconds, to allow automatic reconnection without disturbing
+                // the user (which can also happen when the computer went to sleep).
+                this.reconnectTimer = setTimeout(() => {
+                    this.reconnectTimer = null;
+                    void requisitions.execute("showError",  [
+                        "Browser Connection Error",
+                        "The connection was interrupted unexpectedly. An automatic reconnection failed, but the " +
+                        "application will continue trying to reconnect.",
+                    ]);
+                }, 3000);
             }
         }
     };

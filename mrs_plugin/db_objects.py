@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -75,9 +75,6 @@ def add_db_object(**kwargs):
 
     request_path = kwargs.get("request_path")
     crud_operations = kwargs.get("crud_operations")
-    # Manual conversion from Shell List type until this is automatically done
-    if crud_operations:
-        crud_operations = list(crud_operations)
     crud_operation_format = kwargs.get("crud_operation_format")
     requires_auth = kwargs.get("requires_auth")
     items_per_page = kwargs.get("items_per_page")
@@ -103,11 +100,11 @@ def add_db_object(**kwargs):
                     schema_name=schema_name,
                     session=session, interactive=False,
                     return_formatted=False)
-                
+
                 schema_id = schema.get("id")
             except:
                 schema_id = mrs_schemas.add_schema(schema_name=schema_name,
-                    request_path=f"/{schema_name}", 
+                    request_path=f"/{schema_name}",
                     requires_auth=True if requires_auth else False,
                     session=session,
                     interactive=False)
@@ -185,7 +182,7 @@ def add_db_object(**kwargs):
                     SELECT TABLE_NAME AS OBJECT_NAME
                     FROM INFORMATION_SCHEMA.TABLES
                     WHERE TABLE_SCHEMA = ? /*=sakila*/
-                        AND (TABLE_TYPE = 'VIEW' 
+                        AND (TABLE_TYPE = 'VIEW'
                             OR TABLE_TYPE = 'SYSTEM VIEW')
                     ORDER BY TABLE_NAME
                 '''
@@ -535,7 +532,7 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
                 LEFT OUTER JOIN (
                     SELECT new_row_id AS id, MAX(changed_at) as changed_at
                     FROM mysql_rest_service_metadata.audit_log
-                    WHERE table_name = 'db_object' 
+                    WHERE table_name = 'db_object'
                     GROUP BY new_row_id) al
                 ON al.id = o.id
             WHERE o.db_schema_id = ?
@@ -663,7 +660,7 @@ def get_db_objects(schema_id, **kwargs):
                 LEFT OUTER JOIN (
                     SELECT new_row_id AS id, MAX(changed_at) as changed_at
                     FROM mysql_rest_service_metadata.audit_log
-                    WHERE table_name = 'db_object' 
+                    WHERE table_name = 'db_object'
                     GROUP BY new_row_id) al
                 ON al.id = o.id
             WHERE o.db_schema_id = ?

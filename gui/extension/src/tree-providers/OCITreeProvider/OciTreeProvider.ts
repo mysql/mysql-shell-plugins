@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event } from "vscode";
+import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window } from "vscode";
 
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
@@ -35,13 +35,10 @@ import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 
 import { ShellModuleId } from "../../../../frontend/src/modules/ModuleInfo";
 import { ShellInterfaceShellSession } from "../../../../frontend/src/supplement/ShellInterface";
-
-import { OciCompartmentTreeItem } from "./OciCompartmentTreeItem";
-import { OciDbSystemTreeItem } from "./OciDbSystemTreeItem";
-import { OciConfigProfileTreeItem } from "./OciProfileTreeItem";
-import { OciBastionTreeItem } from "./OciBastionTreeItem";
-import { OciComputeInstanceTreeItem } from "./OciComputeInstanceItem";
-import { OciLoadBalancerTreeItem } from "./OciLoadBalancerTreeItem";
+import {
+    OciConfigProfileTreeItem, OciCompartmentTreeItem, OciDbSystemTreeItem, OciComputeInstanceTreeItem,
+    OciBastionTreeItem, OciLoadBalancerTreeItem,
+} from ".";
 
 // An interface for the compartment cache
 interface IConfigProfileCompartments {
@@ -144,7 +141,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
 
     private listCompartments(profile: IMdsProfileData,
         startWithCurrent?: boolean, compartmentId?: string): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const items: OciCompartmentTreeItem[] = [];
 
             // If the compartments for the given profile are already cached, use the cache.
@@ -171,14 +168,19 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                         resolve(items);
                     }
                 }).catch((reason) => {
-                    reject(reason);
+                    const msg: string = reason?.data?.requestState?.msg;
+                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                        window.setStatusBarMessage(
+                            "Not authorized to list the sub-compartment of this compartment.", 5000);
+                    }
+                    resolve(items);
                 });
             }
         });
     }
 
     private listDatabases(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const items: OciDbSystemTreeItem[] = [];
 
             this.shellSession.mds.getMdsMySQLDbSystems(profile.profile, compartment.id)
@@ -193,14 +195,19 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                         resolve(items);
                     }
                 }).catch((reason) => {
-                    reject(reason);
+                    const msg: string = reason?.data?.requestState?.msg;
+                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                        window.setStatusBarMessage(
+                            "Not authorized to list the MySQL DB Systems in this compartment.", 5000);
+                    }
+                    resolve(items);
                 });
         });
 
     }
 
     private listComputeInstances(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const items: OciComputeInstanceTreeItem[] = [];
 
             this.shellSession.mds.getMdsComputeInstances(
@@ -217,13 +224,18 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                         resolve(items);
                     }
                 }).catch((reason) => {
-                    reject(reason);
+                    const msg: string = reason?.data?.requestState?.msg;
+                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                        window.setStatusBarMessage(
+                            "Not authorized to list the compute instances in this compartment.", 5000);
+                    }
+                    resolve(items);
                 });
         });
     }
 
     private listBastionHosts(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const items: OciBastionTreeItem[] = [];
 
             this.shellSession.mds.getMdsBastions(
@@ -239,13 +251,18 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                         resolve(items);
                     }
                 }).catch((reason) => {
-                    reject(reason);
+                    const msg: string = reason?.data?.requestState?.msg;
+                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                        window.setStatusBarMessage(
+                            "Not authorized to list the bastions in this compartment.", 5000);
+                    }
+                    resolve(items);
                 });
         });
     }
 
     private listLoadBalancers(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const items: OciLoadBalancerTreeItem[] = [];
 
             this.shellSession.mds.listLoadBalancers(
@@ -261,7 +278,12 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                         resolve(items);
                     }
                 }).catch((reason) => {
-                    reject(reason);
+                    const msg: string = reason?.data?.requestState?.msg;
+                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                        window.setStatusBarMessage(
+                            "Not authorized to list the load balancers in this compartment.", 5000);
+                    }
+                    resolve(items);
                 });
         });
     }

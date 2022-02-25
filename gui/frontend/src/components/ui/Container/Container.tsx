@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -88,7 +88,7 @@ export class Container<
 
     public render(): React.ReactNode {
         const { children, style, orientation, mainAlignment, crossAlignment, data, wrap, innerRef } = this.mergedProps;
-        const className = this.getEffectiveClassNames(["container"]);
+        const className = this.getEffectiveClassNames(["container fixedScrollbar"]);
 
         // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
         const ElementType: any = this.renderAs();

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -136,7 +136,7 @@ def add_schema(**kwargs):
 
         if not schema_name and interactive:
             res = session.run_sql('''
-                SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA 
+                SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA
                 WHERE SCHEMA_NAME NOT LIKE ?
                     AND SCHEMA_NAME NOT LIKE ?
                     AND SCHEMA_NAME <> ?
@@ -158,7 +158,7 @@ def add_schema(**kwargs):
         # If a schema name has been provided, check if that schema exists
         else:
             res = session.run_sql('''
-                SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA 
+                SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA
                 WHERE SCHEMA_NAME = ?
                 ORDER BY SCHEMA_NAME
                 ''', [schema_name])
@@ -289,7 +289,7 @@ def get_schema(**kwargs):
 
             # Check if there already is at least one db_schema
             sql = """
-                SELECT COUNT(*) as schema_count, MIN(id) AS id 
+                SELECT COUNT(*) as schema_count, MIN(id) AS id
                 FROM `mysql_rest_service_metadata`.db_schema
                 WHERE service_id = ?
                 """
@@ -329,11 +329,11 @@ def get_schema(**kwargs):
 
         # Build SQL based on which input has been provided
         sql = """
-            SELECT sc.id, sc.name, sc.service_id, sc.request_path, 
-                sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments, 
-                CONCAT(h.name, se.url_context_root) AS host_ctx 
-            FROM `mysql_rest_service_metadata`.db_schema sc 
-                LEFT OUTER JOIN `mysql_rest_service_metadata`.service se 
+            SELECT sc.id, sc.name, sc.service_id, sc.request_path,
+                sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments,
+                CONCAT(h.name, se.url_context_root) AS host_ctx
+            FROM `mysql_rest_service_metadata`.db_schema sc
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                     ON se.id = sc.service_id
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
 				    ON se.url_host_id = h.id
@@ -380,7 +380,7 @@ def get_schemas(**kwargs):
 
     Keyword Args:
         service_id (int): The id of the service to list the schemas from
-        include_enable_state (bool): Only include schemas with the given 
+        include_enable_state (bool): Only include schemas with the given
             enabled state
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
@@ -388,7 +388,7 @@ def get_schemas(**kwargs):
         return_formatted (bool): If set to true, a list object is returned
 
     Returns:
-        Either a string listing the schemas when interactive is set or list 
+        Either a string listing the schemas when interactive is set or list
         of dicts representing the schemas
     """
 
@@ -412,11 +412,11 @@ def get_schemas(**kwargs):
             return_formatted=False)
 
         sql = """
-            SELECT sc.id, sc.name, sc.service_id, sc.request_path, 
-                sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments, 
-                CONCAT(h.name, se.url_context_root) AS host_ctx 
-            FROM `mysql_rest_service_metadata`.db_schema sc 
-                LEFT OUTER JOIN `mysql_rest_service_metadata`.service se 
+            SELECT sc.id, sc.name, sc.service_id, sc.request_path,
+                sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments,
+                CONCAT(h.name, se.url_context_root) AS host_ctx
+            FROM `mysql_rest_service_metadata`.db_schema sc
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                     ON se.id = sc.service_id
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
 				    ON se.url_host_id = h.id
@@ -517,7 +517,7 @@ def change_schema(**kwargs):
                 res = session.run_sql(
                     """
                     SELECT id FROM `mysql_rest_service_metadata`.db_schema
-                    WHERE name = ? AND service_id = ? 
+                    WHERE name = ? AND service_id = ?
                     """,
                     [schema_name, service.get("id")])
                 rows = res.fetch_all()
@@ -530,7 +530,7 @@ def change_schema(**kwargs):
                 res = session.run_sql(
                     """
                     SELECT id FROM `mysql_rest_service_metadata`.db_schema
-                    WHERE request_path = ? AND service_id = ? 
+                    WHERE request_path = ? AND service_id = ?
                     """,
                     [request_path, service.get("id")])
                 row = res.fetch_one()
@@ -584,13 +584,13 @@ def change_schema(**kwargs):
 
             if change_type == SCHEMA_DISABLE:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.db_schema 
+                    UPDATE `mysql_rest_service_metadata`.db_schema
                     SET enabled = FALSE
                     WHERE id = ?
                     """
             elif change_type == SCHEMA_ENABLE:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.db_schema 
+                    UPDATE `mysql_rest_service_metadata`.db_schema
                     SET enabled = TRUE
                     WHERE id = ?
                     """
@@ -600,47 +600,47 @@ def change_schema(**kwargs):
                     WHERE db_schema_id = ?
                     """, [schema_id])
                 sql = """
-                    DELETE FROM `mysql_rest_service_metadata`.db_schema 
+                    DELETE FROM `mysql_rest_service_metadata`.db_schema
                     WHERE id = ?
                     """
             elif change_type == SCHEMA_SET_NAME:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.db_schema 
+                    UPDATE `mysql_rest_service_metadata`.db_schema
                     SET name = ?
                     WHERE id = ?
                     """
                 params.insert(0, value)
             elif change_type == SCHEMA_SET_REQUEST_PATH:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.db_schema 
+                    UPDATE `mysql_rest_service_metadata`.db_schema
                     SET request_path = ?
                     WHERE id = ?
                     """
                 params.insert(0, value)
             elif change_type == SCHEMA_SET_REQUIRES_AUTH:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.db_schema 
+                    UPDATE `mysql_rest_service_metadata`.db_schema
                     SET requires_auth = ?
                     WHERE id = ?
                     """
                 params.insert(0, str(value).lower() == "true")
             elif change_type == SCHEMA_SET_ITEMS_PER_PAGE:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.db_schema 
+                    UPDATE `mysql_rest_service_metadata`.db_schema
                     SET items_per_page = ?
                     WHERE id = ?
                     """
                 params.insert(0, value)
             elif change_type == SCHEMA_SET_COMMENTS:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.db_schema 
+                    UPDATE `mysql_rest_service_metadata`.db_schema
                     SET comments = ?
                     WHERE id = ?
                     """
                 params.insert(0, value)
             elif change_type == SCHEMA_SET_ALL:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`db_schema` 
+                    UPDATE `mysql_rest_service_metadata`.`db_schema`
                     SET name = ?,
                         request_path = ?,
                         requires_auth = ?,

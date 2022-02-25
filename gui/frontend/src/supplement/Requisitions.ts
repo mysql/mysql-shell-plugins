@@ -24,7 +24,7 @@
 // eslint-disable-next-line max-classes-per-file
 import React from "react";
 
-import { EditorLanguage, IExecutionContext, IRunQueryRequest, ISqlPageRequest } from ".";
+import { EditorLanguage, IExecutionContext, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest } from ".";
 
 import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
@@ -98,6 +98,8 @@ export interface IRequestTypeMap {
     "editorInsertUserScript": (data: { language: EditorLanguage; resourceId: number }) => Promise<boolean>;
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
     "editorRunQuery": (details: IRunQueryRequest) => Promise<boolean>;
+    "editorRunScript": (details: IRunScriptRequest) => Promise<boolean>;
+    "editorValidationDone": (id: string) => Promise<boolean>;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string }) => Promise<boolean>;
     "sqlTransactionChanged": SimpleCallback;
@@ -182,7 +184,7 @@ export class RequisitionHub {
     // A list of callbacks associated with a specific request.
     private registry = new Map<keyof IRequestTypeMap, Array<IRequestTypeMap[keyof IRequestTypeMap]>>();
 
-    private remoteTarget: IRemoteTarget;
+    private remoteTarget?: IRemoteTarget;
     private source: IEmbeddedSourceType;
 
     // Created and held here to keep it alive. It works via job subscriptions, not direct calls.
@@ -232,7 +234,8 @@ export class RequisitionHub {
                     // See extension code (WebviewProvider.ts) how these messages are treated.
                     document.addEventListener("keydown", (e) => {
                         const obj = {
-                            type: "keydown",
+                            source: this.source,
+                            command: "keydown",
                             altKey: e.altKey,
                             code: e.code,
                             ctrlKey: e.ctrlKey,
@@ -253,7 +256,7 @@ export class RequisitionHub {
                         if (e.metaKey && (e.key === "c" || e.key === "x")) {
                             const selection = window.getSelection();
                             if (selection) {
-                                window.parent.postMessage({ type: "writeClipboard", text: selection.toString() }, "*");
+                                this.writeToClipboard(selection.toString());
                                 const element = document.activeElement;
                                 if (e.key === "x" && (element instanceof HTMLInputElement
                                     || element instanceof HTMLTextAreaElement)) {
@@ -410,13 +413,15 @@ export class RequisitionHub {
     public executeRemote = <K extends keyof IRequestTypeMap>(requestType: K,
         parameter: IRequisitionCallbackValues<K>): void => {
 
-        const message: IEmbeddedMessage = {
-            source: this.source,
-            command: requestType,
-            data: parameter as IDictionary,
-        };
+        if (this.remoteTarget) {
+            const message: IEmbeddedMessage = {
+                source: this.source,
+                command: requestType,
+                data: parameter as IDictionary,
+            };
 
-        this.remoteTarget.postMessage(message, "*");
+            this.remoteTarget.postMessage(message, "*");
+        }
     };
 
     /**
@@ -437,6 +442,9 @@ export class RequisitionHub {
 
                 element.selectionStart = start + text.length; // Set the caret at the end of the new text.
                 element.selectionEnd = start + text.length;
+
+                const event = new Event("input", { bubbles: true });
+                element.dispatchEvent(event);
             }
 
             return;
@@ -452,6 +460,26 @@ export class RequisitionHub {
             });
         }
 
+    }
+
+    /**
+     * Clipboard access is limited and must be handled differently, depending on whether running in embedded mode
+     * or standalone.
+     *
+     * @param text The text to write to the clipboard.
+     */
+    public writeToClipboard(text: string): void {
+        if (appParameters.embedded) {
+            const message = {
+                source: this.source,
+                command: "writeClipboard",
+                text,
+            };
+
+            this.remoteTarget?.postMessage(message, "*");
+        } else {
+            void navigator.clipboard.writeText(text);
+        }
     }
 }
 

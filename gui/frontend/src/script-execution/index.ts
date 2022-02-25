@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,23 +32,28 @@ export * from "./SQLExecutionContext";
 export * from "./PresentationInterface";
 
 export const mapCompletionKind: Map<LanguageCompletionKind, languages.CompletionItemKind> = new Map([
+    [LanguageCompletionKind.Keyword, languages.CompletionItemKind.Keyword],
     [LanguageCompletionKind.Schema, languages.CompletionItemKind.Struct],
     [LanguageCompletionKind.Table, languages.CompletionItemKind.Constant],
     [LanguageCompletionKind.View, languages.CompletionItemKind.Constant],
+    [LanguageCompletionKind.Index, languages.CompletionItemKind.Field],
+    [LanguageCompletionKind.Column, languages.CompletionItemKind.Field],
+    [LanguageCompletionKind.Label, languages.CompletionItemKind.Text],
+    [LanguageCompletionKind.SystemFunction, languages.CompletionItemKind.Function],
     [LanguageCompletionKind.Function, languages.CompletionItemKind.Function],
     [LanguageCompletionKind.Procedure, languages.CompletionItemKind.Function],
-    [LanguageCompletionKind.SystemFunction, languages.CompletionItemKind.Function],
-    [LanguageCompletionKind.Keyword, languages.CompletionItemKind.Keyword],
+    [LanguageCompletionKind.Udf, languages.CompletionItemKind.Function],
     [LanguageCompletionKind.Engine, languages.CompletionItemKind.File],
-    [LanguageCompletionKind.Trigger, languages.CompletionItemKind.Interface],
-    [LanguageCompletionKind.LogfileGroup, languages.CompletionItemKind.File],
     [LanguageCompletionKind.Tablespace, languages.CompletionItemKind.File],
-    [LanguageCompletionKind.SystemVariable, languages.CompletionItemKind.Variable],
     [LanguageCompletionKind.UserVariable, languages.CompletionItemKind.Variable],
+    [LanguageCompletionKind.SystemVariable, languages.CompletionItemKind.Variable],
     [LanguageCompletionKind.Charset, languages.CompletionItemKind.Enum],
     [LanguageCompletionKind.Collation, languages.CompletionItemKind.Enum],
     [LanguageCompletionKind.Event, languages.CompletionItemKind.Event],
     [LanguageCompletionKind.User, languages.CompletionItemKind.User],
+    [LanguageCompletionKind.Trigger, languages.CompletionItemKind.Interface],
+    [LanguageCompletionKind.LogfileGroup, languages.CompletionItemKind.File],
+    [LanguageCompletionKind.Plugin, languages.CompletionItemKind.Module],
 ]);
 
 export interface ITextResultEntry {

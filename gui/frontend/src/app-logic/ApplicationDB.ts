@@ -23,9 +23,10 @@
 
 // This file contains an IndexedDB based application database for local data in a session.
 
-import { DBSchema, IDBPDatabase, openDB } from "idb";
+import { DBSchema, deleteDB, IDBPDatabase, openDB } from "idb";
 
 import { requisitions } from "../supplement/Requisitions";
+import { uuid } from "../utilities/helpers";
 import { IColumnInfo, IExecutionInfo } from "./Types";
 
 export enum StoreType {
@@ -60,7 +61,7 @@ export interface IShellModuleResultData {
     requestId: string;
     columns?: IColumnInfo[];
     rows: unknown[];
-    status?: IExecutionInfo;
+    executionInfo?: IExecutionInfo;
 }
 
 // Application object store schema. Each module uses an own store.
@@ -78,6 +79,7 @@ export interface IAppStoreSchema extends DBSchema {
         key: string;
         indexes: { resultIndex: string; tabIndex: string };
     };
+
     shellModuleResultData: {
         value: IShellModuleResultData;
         key: string;
@@ -95,6 +97,7 @@ export class ApplicationDB {
     public static dbVersion = 1;
 
     private static appDB: IAppIndexedDB;
+    private static dbName = "msg:" + uuid();
 
     public static get db(): IAppIndexedDB {
         return ApplicationDB.appDB;
@@ -102,6 +105,11 @@ export class ApplicationDB {
 
     /* istanbul ignore next */
     private constructor() { /* */ }
+
+    public static cleanUp = (): void => {
+        ApplicationDB.appDB.close();
+        void deleteDB(ApplicationDB.dbName);
+    };
 
     /**
      * Removes data stored in store, for the given tab id.
@@ -147,7 +155,7 @@ export class ApplicationDB {
 
     public static async initialize(clear = true): Promise<void> {
         return new Promise((resolve, reject) => {
-            openDB<IAppStoreSchema>("msg", ApplicationDB.dbVersion, {
+            openDB<IAppStoreSchema>(ApplicationDB.dbName, ApplicationDB.dbVersion, {
                 upgrade: (db, _oldVersion, _newVersion) => {
                     // Never called when the DB version did not change.
                     if (db.objectStoreNames.contains(StoreType.DbEditor)) {

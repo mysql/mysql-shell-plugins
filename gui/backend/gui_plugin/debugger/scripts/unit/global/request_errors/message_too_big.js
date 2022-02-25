@@ -4375,8 +4375,7 @@ var profile = {
           ],
           "currentTheme":"Default DarkX1"
        }
-    },
-    "active":1
+    }
 }
 
 //  Get the original profile, so that we can put it back

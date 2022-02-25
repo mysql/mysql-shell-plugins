@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@ import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class SchemaGroupTreeItem extends ConnectionsTreeBaseItem {
 
-    public contextValue = `${String(this.label)} Group`;
+    public contextValue = `${String(this.label)}GroupItem`;
 
     public constructor(
         schema: string,
@@ -51,19 +51,6 @@ export class SchemaGroupTreeItem extends ConnectionsTreeBaseItem {
             case SchemaItemGroupType.Events: {
                 return "schemaEvents.svg";
             }
-            case SchemaItemGroupType.Columns: {
-                return "column.svg";
-            }
-            case SchemaItemGroupType.Indexes: {
-                return "index.svg";
-            }
-            case SchemaItemGroupType.ForeignKeys: {
-                return "foreignKey.svg";
-            }
-            case SchemaItemGroupType.Triggers: {
-                return "trigger.svg";
-            }
-
             default: {
                 return "";
             }

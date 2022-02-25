@@ -17,6 +17,5 @@ ws.validateLastResponse({
         "name": "Default",
         "description": "Default Profile",
         "options": {},
-        "active": 1
     }
 })

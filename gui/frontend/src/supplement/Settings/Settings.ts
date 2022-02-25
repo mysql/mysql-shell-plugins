@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -42,7 +42,7 @@ export class Settings {
     private values: IUserSettings = {
         theming: {
             themes: [],
-            currentTheme: "auto",
+            currentTheme: "Auto",
         },
     };
 
@@ -75,7 +75,7 @@ export class Settings {
         profile.options = this.values;
 
         webSession.saveProfile();
-        this.restartAutoSaveTimer();
+        this.restartAutoSaveTimeout();
     }
 
     /**
@@ -107,11 +107,8 @@ export class Settings {
             target[subKey] = value;
         }
 
-        if (key === "settings.autoSaveInterval") {
-            this.restartAutoSaveTimer();
-        }
-
         void requisitions.execute("settingsChanged", { key, value });
+        void requisitions.executeRemote("settingsChanged", { key, value });
     }
 
     /**
@@ -163,7 +160,7 @@ export class Settings {
     private mergeProfileValues = (): Promise<boolean> => {
         this.values = Object.assign(this.values, webSession.profile.options);
 
-        this.restartAutoSaveTimer();
+        this.restartAutoSaveTimeout();
 
         return requisitions.execute("settingsChanged", undefined);
     };
@@ -181,18 +178,15 @@ export class Settings {
         return Promise.resolve(true);
     };
 
-    private restartAutoSaveTimer(): void {
+    private restartAutoSaveTimeout(): void {
         if (this.saveTimer) {
             clearInterval(this.saveTimer);
             this.saveTimer = null;
         }
 
-        const interval = this.get("settings.autoSaveInterval", 300);
-        if (interval > 0) {
-            this.saveTimer = setInterval(() => {
-                return this.saveSettings();
-            }, interval * 1000);
-        }
+        this.saveTimer = setTimeout(() => {
+            return this.saveSettings();
+        }, 3000);
     }
 }
 

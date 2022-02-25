@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,8 +22,6 @@
  */
 
 import "./Portal.css";
-
-import { FocusOn } from "react-focus-on";
 
 import React, { createRef, ComponentState } from "react";
 import { createPortal } from "preact/compat";
@@ -80,7 +78,7 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
 
         const className = this.getEffectiveClassNames([
             "portal",
-            this.classFromProperty(!options?.lockFocus, "ignoreMouse"),
+            //this.classFromProperty(!options?.lockFocus, "ignoreMouse"),
         ]);
 
         const style: IDictionary = {
@@ -89,23 +87,16 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
 
         return (
             open && createPortal(
+                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                 <div
                     ref={this.backgroundRef}
                     className={className}
                     style={style}
+                    onMouseDown={this.handlePortalMouseDown}
                     {...this.unhandledProperties}
                 >
-                    <FocusOn
-                        enabled={true}
-                        scrollLock={false}
-                        focusLock={options.lockFocus}
-                        autoFocus={options.lockFocus}
-                        returnFocus={true}
-                        onClickOutside={this.handleClickOutside}
-                        onEscapeKey={this.handleEscapeKey}
-                    >
-                        {children}
-                    </FocusOn>
+
+                    {children}
                 </div>, container,
             )
         );
@@ -118,9 +109,8 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
     public open = (options?: IPortalOptions): void => {
         const { open } = this.state;
         if (!open) {
-            const activeOptions = {
+            const activeOptions: IPortalOptions = {
                 closeOnEscape: true,
-                lockFocus: true,
                 closeOnPortalClick: true,
                 ...options,
             };
@@ -157,11 +147,13 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
 
     /**
      * FocusOn handler when the focus lock is active.
+     *
+     * @param event The mouse event generated for the click.
      */
-    private handleClickOutside = (): void => {
+    private handlePortalMouseDown = (event: React.MouseEvent): void => {
         const { open, options } = this.state;
 
-        if (open && options.closeOnPortalClick) {
+        if (open && options.closeOnPortalClick && event.target === this.backgroundRef.current) {
             this.close(true);
         }
     };

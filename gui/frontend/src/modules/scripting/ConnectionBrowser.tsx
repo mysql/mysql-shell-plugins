@@ -55,8 +55,8 @@ import { enumerateDbTypeNames } from ".";
 import { settings } from "../../supplement/Settings/Settings";
 import { ConfirmDialog } from "../../components/Dialogs";
 import {
-    IBastionSummary, ICommErrorEvent, ICommOciBastionEvent, ICommOciMySQLDbSystemEvent,
-    ICommOpenConnectionEvent, ICommSimpleResultEvent, IMySQLDbSystem,
+    IBastionSummary, ICommErrorEvent, ICommMdsConfigProfileEvent, ICommMdsGetBastionsEvent, ICommOciBastionSummaryEvent,
+    ICommOciMySQLDbSystemEvent, ICommOpenConnectionEvent, ICommSimpleResultEvent, IMdsProfileData, IMySQLDbSystem,
 } from "../../communication";
 import { DBEditorModuleId, ShellModuleId } from "../ModuleInfo";
 import { EventType } from "../../supplement/Dispatch";
@@ -121,6 +121,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private liveUpdateFields: IConnectionDialogLiveUpdateFields;
 
     private connectionId = -1;
+    private ociProfileNames?: IMdsProfileData[];
+    private activeOciProfileName?: string;
 
     public constructor(props: IConnectionBrowserProperties) {
         super(props);
@@ -133,7 +135,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         };
         this.state = {
             loading: false,
-            progressMessage: "Trying to open connection .....",
+            progressMessage: "Trying to open connection...",
         };
     }
 
@@ -269,6 +271,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     onClose={this.handleOptionsDialogClose}
                     // advancedAction={this.testConnection}
                     // advancedCaption="Test connection"
+                    onSelectTab={this.handleTabSelect}
                     customFooter={customFooter}
                 />
                 <ConfirmDialog
@@ -523,6 +526,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         useMDS: true,
                         useSSH: false,
                         options: {
+                            "compartment-id": options.compartmentId,
                             "mysql-db-system-id": options.id,
                             "profile-name": options.profileName ?? "DEFAULT",
                             "bastion-id": (options.freeformTags as IDictionary)?.bastionId ?? undefined,
@@ -714,11 +718,30 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
             } else if (details && !details.options["bastion-id"] && details.options["profile-name"]
                 && details.options["mysql-db-system-id"]) {
+                // We have only profileName and mds database id, but no bastion id
                 this.liveUpdateFields.profileName = details.options["profile-name"];
                 this.liveUpdateFields.dbSystemId = details.options["mysql-db-system-id"];
+                const compartmentId: string = details.options["compartment-id"];
+                delete details.options["compartment-id"];
 
-                // We have only profileName and mds database id.
-                this.confirmBastionCreation(details);
+                // Get all available bastions that are in the same compartment as the DbSystem but ensure that
+                // these bastions are valid for the specific DbSystem by having a matching target_subnet_id
+                this.shellSession.mds.getMdsBastions(
+                    this.liveUpdateFields.profileName, compartmentId,
+                    this.liveUpdateFields.dbSystemId).then((event: ICommMdsGetBastionsEvent) => {
+                    if (event.eventType === EventType.FinalResponse) {
+                        if (event.data && event.data.result.length > 0) {
+                                // If there is a bastion in the same compartment
+                            details.options["bastion-id"] = event.data.result[0].id;
+                            this.liveUpdateFields.bastionId.value = details.options["bastion-id"];
+                            this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
+                        } else {
+                            this.confirmBastionCreation(details);
+                        }
+                    }
+                }).catch((_reason) => {
+                    // Do nothing
+                });
             } else {
                 this.editorRef.current.show(
                     this.generateEditorConfig(details),
@@ -768,6 +791,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             }).catch(() => {
                 this.updateInputValue("<error loading bastion name data>", "bastionName");
             });
+
         this.getMdsDatabase(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId)
             .then((system) => {
                 if (system) {
@@ -882,6 +906,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             const mdsAdvancedSection = values.sections.get("mdsAdvanced")!.values;
             const mysqlSshSection = values.sections.get("ssh")!.values;
             const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
+            const mysqlSslSection = values.sections.get("ssl")!.values;
 
             const isSqlite = generalSection.databaseType.value === "Sqlite";
             const isMySQL = generalSection.databaseType.value === "MySQL";
@@ -940,13 +965,27 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     if ((details.useSSH || details.useMDS) && mysqlSshSection.sshKeyFile.value !== "") {
                         sshKeyFilePublic = mdsAdvancedSection.sshPublicKeyFile.value;
                     }
+                    const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
+                    let mode;
+                    if (useSsl) {
+                        ConnectionBrowser.mysqlSslModeMap.forEach((value: string, key: MySQLSslMode) => {
+                            if (value === mysqlSslSection.sslMode.value) {
+                                mode = key;
+                            }
+                        });
+                    }
                     details.options = {
                         "scheme": mysqlDetailsSection.scheme.value as string,
                         "host": mysqlDetailsSection.hostName.value as string,
                         "port": mysqlDetailsSection.port.value,
                         "user": mysqlDetailsSection.userName.value,
                         "schema": mysqlDetailsSection.defaultSchema.value,
-                        //useSSL: section4.useSSL.value ? SSLUsage[section4.useSSL.value as string] : undefined,
+                        // "useSSL": useSsl ? undefined : "no",
+                        "ssl-mode": mode ?? undefined,
+                        "ssl-ca": mysqlSslSection.sslCaFile.value ?? undefined,
+                        "ssl-cert": mysqlSslSection.sslCertFile.value ?? undefined,
+                        "ssl-key": mysqlSslSection.sslKeyFile.value ?? undefined,
+                        "ssl-cipher": mysqlSslSection.sslCipher.value ?? undefined,
                         //useCompression: section5.useCompression.value,
                         //useAnsiQuotes: section5.ansiQuotes.value,
                         //enableClearTextAuthPlugin: section5.clearTextAuth.value,
@@ -1183,6 +1222,17 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 useMDS: {
                     caption: "Connect to OCI DB server using MDS settings",
                     value: details.useMDS === true,
+                    onChange: (value: DialogValueType): void => {
+                        const useMDS = value as boolean;
+                        if (useMDS) {
+                            this.getProfileNames().then((profiles) => {
+                                this.fillProfileDropdown(profiles);
+                            }).catch((reason) => {
+                                void requisitions.execute("showError", ["Error when loading OCI profiles",
+                                    String(reason.message)]);
+                            });
+                        }
+                    },
                     span: 8,
                 },
             },
@@ -1201,19 +1251,19 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 },
                 sslCaFile: {
                     caption: "Path to Certificate Authority file for SSL",
-                    value: optionsMySQL["ssl-ca-file"],
+                    value: optionsMySQL["ssl-ca"],
                     span: 8,
                     options: [DialogValueOption.Resource],
                 },
                 sslCertFile: {
                     caption: "Path to Client Certificate file for SSL",
-                    value: optionsMySQL["ssl-cert-file"],
+                    value: optionsMySQL["ssl-cert"],
                     span: 8,
                     options: [DialogValueOption.Resource],
                 },
                 sslKeyFile: {
                     caption: "Path to Client Key file for SSL",
-                    value: optionsMySQL["ssl-key-file"],
+                    value: optionsMySQL["ssl-key"],
                     span: 8,
                     options: [DialogValueOption.Resource],
                 },
@@ -1305,6 +1355,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             },
         };
 
+        this.activeOciProfileName = optionsMySQL["profile-name"];
+
         const mdsAdvancedSection: IDialogSection = {
             contexts: ["MySQL"],
             caption: "MDS",
@@ -1312,9 +1364,10 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             values: {
                 profileName: {
                     caption: "Profile Name",
-                    value: optionsMySQL["profile-name"],
+                    value: this.activeOciProfileName,
                     span: 4,
-                    onFocusLost: this.handleProfileNameChange,
+                    choices: this.ociProfileNames ? this.ociProfileNames.map((item) => { return item.profile; }) : [],
+                    onChange: this.handleProfileNameChange,
                 },
                 databaseTypeDescription: {
                     caption: " ", // To vertically align the description with the type drop down.
@@ -1389,8 +1442,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     this.updateInputValue(summary.name, "bastionName");
                 }
             }).catch((reason) => {
-                void requisitions.execute("showError", ["Get Bastion Name Error", String(reason.message)]);
-                this.updateInputValue("<error loading bastion info>", "bastionName");
+                this.updateInputValue(reason as string, "bastionName");
             });
         }
     };
@@ -1404,26 +1456,58 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     this.updateInputValue(system.displayName, "mysqlDbSystemName");
                 }
             }).catch((reason) => {
-                void requisitions.execute("showError", ["Get Mds Database Error", String(reason.message)]);
+                void requisitions.execute("showError", ["Get Mds Database Error", reason as string]);
                 this.updateInputValue("<error loading mds database info>",
                     "mysqlDbSystemName");
             });
         }
     };
 
-    private handleProfileNameChange = (value: string): void => {
-        if (this.liveUpdateFields.profileName !== value) {
-            this.liveUpdateFields.profileName = value;
+    private handleProfileNameChange = (value: DialogValueType): void => {
+        const entry = value as string;
+        if (this.liveUpdateFields.profileName !== entry) {
+            this.liveUpdateFields.profileName = entry;
             this.handleBastionIdChange(this.liveUpdateFields.bastionId.value, true);
             this.handleDbSystemIdChange(this.liveUpdateFields.dbSystemId, true);
         }
     };
 
-    private getBastionData(profileName: string, bastionId: string): Promise<IBastionSummary | undefined> {
+    private handleTabSelect = (id: string): void => {
+        if (id === "MDS") {
+            this.getProfileNames().then((profiles) => {
+                this.fillProfileDropdown(profiles);
+            }).catch((reason) => {
+                void requisitions.execute("showError", ["Error when loading OCI profiles",
+                    String(reason.message)]);
+            });
+        }
+    };
+
+    private fillProfileDropdown(profiles: IMdsProfileData[] | undefined) {
+        this.ociProfileNames = profiles;
+        const items = this.ociProfileNames?.map((item) => { return item.profile; }) ?? [];
+        const found = this.ociProfileNames?.find((item) => { return item.isCurrent === true; });
+        if (!this.activeOciProfileName) {
+            this.activeOciProfileName = found?.profile;
+            this.liveUpdateFields.profileName = this.activeOciProfileName ?? "";
+        } else {
+            const profile = items.find((item) => { return item === this.activeOciProfileName; });
+            if (!profile) {
+                items.unshift(this.activeOciProfileName);
+            }
+        }
+        items.unshift(" ");
+        this.editorRef.current?.updateDropdownValue(items, this.activeOciProfileName ?? "", "profileName");
+    }
+
+    private getProfileNames(): Promise<IMdsProfileData[] | undefined> {
         return new Promise((resolve, reject) => {
-            this.shellSession.mds.getMdsBastion(profileName, bastionId).then((event: ICommOciBastionEvent) => {
+            this.shellSession.mds.getMdsConfigProfiles().then((event: ICommMdsConfigProfileEvent) => {
                 if (event.eventType === EventType.FinalResponse) {
-                    resolve(event.data?.result);
+                    if (event.data) {
+                        resolve(event.data.result);
+                    }
+                    resolve([]);
                 }
             }).catch((reason) => {
                 reject(reason);
@@ -1431,10 +1515,56 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         });
     }
 
+    private getBastionData(profileName: string, bastionId: string): Promise<IBastionSummary | undefined> {
+        return new Promise((resolve, reject) => {
+            // Temporary hack: error conditions aren't sent properly in the final response, so we check
+            // in a data response for errors.
+            let error = "";
+            this.shellSession.mds.getMdsBastion(profileName, bastionId).then((event: ICommOciBastionSummaryEvent) => {
+                switch (event.eventType) {
+                    case EventType.DataResponse: {
+                        // The correct error event type is not yet defined, so we have to do a manual check.
+                        if (event.data?.result && ("info" in event.data?.result)) {
+                            // eslint-disable-next-line dot-notation
+                            const info = event.data.result["info"] as string;
+                            const index = info.indexOf("ERROR:");
+                            if (index > -1) {
+                                error = info.substring(index);
+                            }
+                        }
+                        break;
+                    }
+
+                    case EventType.FinalResponse: {
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve(event.data?.result);
+                        }
+                        break;
+                    }
+
+                    default:
+                }
+            }).catch((reason) => {
+                reject(reason);
+            });
+
+            /*
+            this.shellSession.mds.getMdsBastion(profileName, bastionId).then((event: ICommOciBastionSummaryEvent) => {
+                if (event.eventType === EventType.FinalResponse) {
+                    resolve(event.data?.result);
+                }
+            }).catch((reason) => {
+                reject(reason);
+            });*/
+        });
+    }
+
     private createBastion(): Promise<IBastionSummary | undefined> {
         return new Promise((resolve, reject) => {
             this.shellSession.mds.createBastion(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId)
-                .then((event: ICommOciBastionEvent) => {
+                .then((event: ICommOciBastionSummaryEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve(event.data?.result);
                     }
@@ -1568,25 +1698,24 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         const host = mysqlDetailsSection.hostName.value as string;
         const port = mysqlDetailsSection.port.value as string;
         if (user && host) {
-            ShellInterface.users.clearPassword(`${user}@${host}:${port}`)
-                .then(() => {
-                    if (this.confirmClearPasswordDialogRef.current) {
-                        this.confirmClearPasswordDialogRef.current.show(
-                            (<Container orientation={Orientation.TopDown}>
-                                <Grid columns={["auto"]} columnGap={5}>
-                                    <GridCell crossAlignment={ContentAlignment.Stretch}>
-                                        Password was cleared.
-                                    </GridCell>
-                                </Grid>
-                            </Container>),
-                            "",
-                            "Ok",
-                        );
-                    }
-                })
-                .catch((reason) => {
-                    void requisitions.execute("showError", ["Clear Password Error", String(reason.message)]);
-                });
+            ShellInterface.users.clearPassword(`${user}@${host}:${port}`).then(() => {
+                if (this.confirmClearPasswordDialogRef.current) {
+                    this.confirmClearPasswordDialogRef.current.show(
+                        (<Container orientation={Orientation.TopDown}>
+                            <Grid columns={["auto"]} columnGap={5}>
+                                <GridCell crossAlignment={ContentAlignment.Stretch}>
+                                    Password was cleared.
+                                </GridCell>
+                            </Grid>
+                        </Container>),
+                        "",
+                        "Ok",
+                    );
+                    // TODO: show message for success, once we have message toasts.
+                }
+            }).catch((reason) => {
+                void requisitions.execute("showError", ["Clear Password Error", String(reason.message)]);
+            });
         }
     };
 
@@ -1613,7 +1742,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         const backend = new ShellInterfaceSqlEditor(DBEditorModuleId);
         if (this.connectionId !== -1) {
             const details = connections.find((candidate) => { return candidate.id === this.connectionId; });
-            if(details) {
+            if (details) {
                 void this.testOpenConnection(backend, details);
                 this.showProgress();
             }

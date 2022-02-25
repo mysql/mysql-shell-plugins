@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -41,6 +41,10 @@ export interface IPieGraphDataPoint {
     color?: string;
 }
 
+export interface IResultSetRow {
+    [key: string]: unknown;
+}
+
 export interface IPieGraphLayout {
     /** The width of the root svg group element. */
     width?: number;
@@ -64,6 +68,8 @@ export interface IPieGraphLayout {
 export interface IPieLayoutData {
     mediumPie: IPieGraphLayout;
     mediumDonut: IPieGraphLayout;
+    largePie: IPieGraphLayout;
+    largeDonut: IPieGraphLayout;
 }
 
 export interface IPieDemoData {
@@ -84,6 +90,7 @@ export interface IPieGraphImplProps extends IComponentProperties {
     pointData: IPieGraphDataPoint[];
 }
 
+// This is the actual component to render a Pie graph.
 export class PieGraphImpl extends Component<IPieGraphImplProps> {
 
     public static defaultProps = {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,7 +54,7 @@ export class DialogContent extends Component<IDialogContentProperties> {
                 <>
                     {caption && <div className="title verticalCenterContent">{caption}</div>}
                     {header && <div className="header">{header}</div>}
-                    {content && <div className="content">{content}</div>}
+                    {content && <div className="content fixedScrollbar">{content}</div>}
                     {actions &&
                         <div className="footer verticalCenterContent unselectable">
                             <Container

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -111,7 +111,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             message = self.packets[self.session_uuid].message
             del self.packets[self.session_uuid]
 
-            print(f"<- {message}")
+            logger.debug3(f"<- {message}")
             try:
                 json_message = None
                 try:
@@ -148,7 +148,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 self.send_json_response(Response.exception(e, args))
 
     def on_ws_connected(self):
-        self.log_message("Websocket connected")
+        logger.info("Websocket connected")
 
         reset_session = False
         if 'SessionId' in self.cookies.keys():
@@ -223,7 +223,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
         # insert this new session into the session table
         try:
-            self.log_message("Registering session...")
+            logger.info("Registering session...")
             with self.db_tx() as db:
                 db.execute(
                     'INSERT INTO session(uuid, continued_session_id, started, source_ip) VALUES(?, ?, ?, ?)',
@@ -238,7 +238,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             return
 
         # send the session uuid back to the browser
-        self.log_message("Sending response...")
+        logger.info("Sending response...")
         self.send_response_message('OK', 'A new session has been created',
                                    values={"session_uuid": self.session_uuid,
                                            "local_user_mode": self.is_local_session})
@@ -258,7 +258,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         for module_session in dict(self._module_sessions).values():
             module_session.close()
 
-        self.log_message("Websocket closed")
+        logger.info("Websocket closed")
 
     def on_ws_sending_message(self, message):
         json_message = json.loads(message)
@@ -447,7 +447,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     raise Exception(result['request_state']['msg'])
             row = self.db.execute(
                 'SELECT id, password_hash FROM user '
-                'WHERE upper(name) = upper(?) AND active = 1',
+                'WHERE upper(name) = upper(?)',
                 (username,)).fetch_one()
             if row:
                 password_hash = None

@@ -215,3 +215,54 @@ await ws.sendAndValidate({
         "done": 1
     }
 ])
+
+
+await ws.sendAndValidate({
+    "request_id": ws.generateRequestId(),
+    "request": "execute",
+    "command": "gui.sqleditor.reconnect",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId
+    }
+}, [
+    {
+        "request_state": {
+            "type": "OK", 
+            "msg": "Connection was successfully opened."
+        }, 
+        "module_session_id": ws.lastModuleSessionId, 
+        "info": {
+            "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+            "edition": ws.ignore,
+            "sql_mode": ws.ignore
+        }, 
+        "default_schema": "information_schema",
+        "request_id": ws.lastGeneratedRequestId
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": "SHOW DATABASES LIKE ?;",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": ['mysql'],
+        "options": {}
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "columns": [{"name": "Database (mysql)", "type": "STRING"}],
+        "rows": ws.ignore,
+        "total_row_count": ws.matchRegexp("\\d+"),
+        "execution_time": ws.ignore,
+        "done": 1
+    }
+])

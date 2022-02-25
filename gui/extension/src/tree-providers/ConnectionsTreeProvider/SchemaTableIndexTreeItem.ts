@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,28 @@
  */
 
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class SchemaTableIndexTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "index";
+    public contextValue = "schemaTableIndexItem";
+
+    public constructor(
+        name: string,
+        public schema: string,
+        public table: string,
+        entry: IConnectionEntry) {
+        super(name, schema, entry, false);
+    }
+
+    public get qualifiedName(): string {
+        return `\`${this.schema}\`.\`${this.table}\`.\`${this.name}\``;
+    }
 
     protected get iconName(): string {
-        return "index.svg";
+        return "schemaTableIndex.svg";
+    }
+
+    protected get dbType(): string {
+        return "index";
     }
 }

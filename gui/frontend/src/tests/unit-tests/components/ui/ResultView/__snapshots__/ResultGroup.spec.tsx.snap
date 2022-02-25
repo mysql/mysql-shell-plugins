@@ -10,19 +10,19 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container tabview right resultGroup"
+        class="msg container fixedScrollbar tabview right resultGroup"
         style="flex-direction: row-reverse;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container content"
+          class="msg container fixedScrollbar content"
           style="flex-direction: column;"
         >
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container resultView"
+            class="msg container fixedScrollbar resultView"
             style="flex-direction: column;"
           >
             <div
@@ -40,19 +40,19 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container tabview right resultGroup"
+      class="msg container fixedScrollbar tabview right resultGroup"
       style="flex-direction: row-reverse;"
     >
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container content"
+        class="msg container fixedScrollbar content"
         style="flex-direction: column;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container resultView"
+          class="msg container fixedScrollbar resultView"
           style="flex-direction: column;"
         >
           <div

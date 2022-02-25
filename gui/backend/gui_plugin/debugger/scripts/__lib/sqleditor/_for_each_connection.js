@@ -13,8 +13,9 @@
 var lib = ws.tokens.lib
 var _this = lib.sqleditor.for_each_connection
 
-
+print("\n---FOR EACH CONNECTION START---\n")
 //  MySQL
+print("\n---FOR EACH CONNECTION : MYSQL START---\n")
 var subscript = _this.params["mysql"]
 subscript.params["current_database_type"] = "mysql"
 lib.sqleditor.with_new_connection.params = {
@@ -26,6 +27,7 @@ lib.sqleditor.with_new_connection.params = {
 await ws.execute(lib.sqleditor.with_new_connection.file)
 
 //  MySQL X
+print("\n---FOR EACH CONNECTION : MYSQLX START---\n")
 subscript = _this.params["mysqlx"]
 subscript.params["current_database_type"] = "mysqlx"
 lib.sqleditor.with_new_connection.params = {
@@ -37,6 +39,7 @@ lib.sqleditor.with_new_connection.params = {
 await ws.execute(lib.sqleditor.with_new_connection.file)
 
 //  Sqlite
+print("\n---FOR EACH CONNECTION : SQLITE START---\n")
 subscript = _this.params["sqlite"]
 subscript.params["current_database_type"] = "sqlite"
 lib.sqleditor.with_new_connection.params = {
@@ -46,3 +49,5 @@ lib.sqleditor.with_new_connection.params = {
     "initialization": lib.noop
 }
 await ws.execute(lib.sqleditor.with_new_connection.file)
+
+print("\n---FOR EACH CONNECTION END---\n")

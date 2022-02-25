@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -170,10 +170,6 @@ const registerSetting = (path: string, title: string, description: string, value
 };
 
 export const registerSettings = (): void => {
-    registerSettingCategory("settings", "Settings", "Settings used by the settings implementation");
-    registerSetting("settings.autoSaveInterval", "Auto Save Interval", "The time in seconds after which the settings " +
-        "should be automatically saved. Specify 0 to disable auto save.", "number", 300, false);
-
     registerSettingCategory("workers", "Background Workers", "Settings related to background workers");
     registerSetting("workers.minWorkerCount", "Minimum Background Worker Count",
         "The number of workers that are always available.", "number", 3, true);
@@ -200,7 +196,7 @@ export const registerSettings = (): void => {
     registerSettingCategory("editor", "Code Editor", "Settings related to all code editors.");
     registerSettingCategory("editor.theming", "Theming", "Settings related to theming.");
     registerSetting("editor.theming.decorationSet", "Decoration Set for Code Editor Gutters", "Select one of the " +
-        "sets to be used to mark code block and results in mixed language code editors.", "choice", 0, false, {
+        "sets to be used to mark code block and results in mixed language code editors.", "choice", "standard", false, {
         choices: [
             ["Standard Set", "standard", "Includes only a solid marker for editor rows"],
             [
@@ -231,10 +227,12 @@ export const registerSettings = (): void => {
     registerSetting("editor.stopOnErrors", "Stop on Errors", "If this option is set to, execution of scripts will be " +
         "stopped if an error occurs. Otherwise the script execution continues with the next statement.", "boolean",
     false, false);
+    registerSetting("editor.showMinimap", "Show the Minimap", "Determines if code editors should show a minimap " +
+        "instead of the plain scrollbar, for better navigation.", "boolean", true, false);
 
     registerSettingCategory("dbEditor", "DB Editor", "Settings related to a DB editor");
     registerSetting("dbEditor.startLanguage", "Start Language", "Select the initial language for new DB editors.",
-        "choice", "javascript", false, {
+        "choice", "sql", false, {
             choices: [
                 ["Javascript", "javascript", "Supported in all code editors"],
                 ["Typescript", "typescript", "Supported only in DB editors"],
@@ -252,7 +250,7 @@ export const registerSettings = (): void => {
     registerSetting("sql.limitRowCount", "Result Set Page Size", "Determines the size of one page in a result set, " +
         "but has no effect if a top-level LIMIT clause is specified in the query. Set to 0 to disable auto adding " +
         "a LIMIT clause and return all records as single page. Be cautious however with large row counts (> 50000).",
-    "number", 1000, false, { range: [0, 10000]});
+    "number", 1000, false, { range: [0, 10000] });
     registerSetting("sql.rowPacketSize", "Row Packet Size", "Determines the number of result records that are sent " +
         "in a single response from the backend.", "number", 1000, true);
 
@@ -263,9 +261,11 @@ export const registerSettings = (): void => {
         "shown with some useful links.", "boolean", true, false);
 
     registerSetting("shellSession.startLanguage", "Start Language", "Select the initial language for " +
-        "a new shell session.", "choice", "Javascript", false, { choices: [
-        ["Javascript", "javascript", "Supported in all code editors"],
-        ["Python", "python", "Supported only in shell session editors"],
-        ["SQL", "sql", "Supported in all code editors"],
-    ]});
+        "a new shell session.", "choice", "javascript", false, {
+        choices: [
+            ["Javascript", "javascript", "Supported in all code editors"],
+            ["Python", "python", "Supported only in shell session editors"],
+            ["SQL", "sql", "Supported in all code editors"],
+        ],
+    });
 };

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 96 96" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g id="Model">
-        <path id="Rectangle-5" serif:id="Rectangle 5" d="M45,66.019L45,90L19,90L19,66.019L45,66.019ZM93,36.002L93,60L67,60L67,36.002L93,36.002ZM29,14.016L29,38L3,38L3,14.016L29,14.016Z" style="fill:white;"/>
-        <path id="Rectangle-5-copy" serif:id="Rectangle 5 copy" d="M45,58L45,64L19,64L19,58L45,58ZM93,28L93,34L67,34L67,28L93,28ZM29,6L29,12L3,12L3,6L29,6Z" style="fill:white;"/>
-        <path id="Rectangle-6" serif:id="Rectangle 6" d="M55,48L67,48L67,52L59,52L59,76L45,76L45,72L55,72L55,48ZM29,20L49,20L49,38L67,38L67,42L45,42L45,24L29,24L29,20Z" style="fill:white;"/>
-    </g>
-</svg>

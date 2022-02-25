@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,37 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { Command } from "vscode";
+
+import { IConnectionEntry } from ".";
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
 
 export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "schemaRoutine";
+    public contextValue = "schemaRoutineItem";
+
+    public constructor(
+        public name: string,
+        public schema: string,
+        public type: "function" | "procedure",
+        public entry: IConnectionEntry,
+        hasChildren: boolean,
+        command?: Command) {
+        super(name, schema, entry, hasChildren, command);
+    }
+
+    public get qualifiedName(): string {
+        return `\`${this.schema}\`.\`${this.name}\``;
+    }
 
     protected get iconName(): string {
         return "schemaRoutine.svg";
+    }
+
+    protected get dbType(): string {
+        return this.type;
+    }
+
+    protected get createScriptResultIndex(): number {
+        return 2;
     }
 }

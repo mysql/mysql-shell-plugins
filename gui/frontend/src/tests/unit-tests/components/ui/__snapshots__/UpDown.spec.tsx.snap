@@ -16,14 +16,14 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container gridCell"
+          class="msg container fixedScrollbar gridCell"
           id="content"
           style="flex-direction: row; grid-row: span 2; grid-column: span 1;"
         >
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             id="outerList"
             style="flex-direction: row;"
             tabindex="0"
@@ -31,14 +31,14 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               id="innerList"
               style="flex-direction: column;"
             >
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 January
@@ -46,7 +46,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 February
@@ -54,7 +54,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 March
@@ -62,7 +62,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 April
@@ -70,7 +70,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 May
@@ -78,7 +78,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 June
@@ -86,7 +86,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 July
@@ -94,7 +94,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 August
@@ -102,7 +102,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 September
@@ -110,7 +110,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 October
@@ -118,7 +118,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 November
@@ -126,7 +126,7 @@ Object {
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container"
+                class="msg container fixedScrollbar"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 December
@@ -137,7 +137,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container gridCell"
+          class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
         >
           <button
@@ -151,7 +151,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container gridCell"
+          class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
         >
           <button
@@ -175,14 +175,14 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container gridCell"
+        class="msg container fixedScrollbar gridCell"
         id="content"
         style="flex-direction: row; grid-row: span 2; grid-column: span 1;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container"
+          class="msg container fixedScrollbar"
           id="outerList"
           style="flex-direction: row;"
           tabindex="0"
@@ -190,14 +190,14 @@ Object {
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container"
+            class="msg container fixedScrollbar"
             id="innerList"
             style="flex-direction: column;"
           >
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               January
@@ -205,7 +205,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               February
@@ -213,7 +213,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               March
@@ -221,7 +221,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               April
@@ -229,7 +229,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               May
@@ -237,7 +237,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               June
@@ -245,7 +245,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               July
@@ -253,7 +253,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               August
@@ -261,7 +261,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               September
@@ -269,7 +269,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               October
@@ -277,7 +277,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               November
@@ -285,7 +285,7 @@ Object {
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container"
+              class="msg container fixedScrollbar"
               style="flex-direction: row; justify-content: center; align-items: center;"
             >
               December
@@ -296,7 +296,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container gridCell"
+        class="msg container fixedScrollbar gridCell"
         style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
       >
         <button
@@ -310,7 +310,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container gridCell"
+        class="msg container fixedScrollbar gridCell"
         style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
       >
         <button

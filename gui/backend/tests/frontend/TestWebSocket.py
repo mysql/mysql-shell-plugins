@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -51,8 +51,8 @@ DEBUGGER_GENERATE_REQUEST_ID = "DEBUGGER_GENERATE_REQUEST_ID"
 FORMAT = "[%(asctime)-15s] %(message)s"
 
 
-def diff(value1, value2):
-    return f"\n+ '{value1}'\n- '{value2}'"
+def diff(actual, expected, prefix=""):
+    return f"\n-----------\nExpected {prefix}: '{expected}'\nActual {prefix}: '{actual}'"
 
 
 class Object():
@@ -175,6 +175,7 @@ class TWebSocket:
         self.token = token
         self.ws, self.session_id = connect_and_get_session(token=token)
         self.logger = logger
+        self.validation_trace = []
 
         temp_dir = tempfile.mkdtemp()
         command = sys.executable if sys.executable else "mysqlsh"
@@ -237,7 +238,12 @@ class TWebSocket:
     def lastResponse(self):
         return self._last_response
 
-    def validateResponse(self, actual, expected):
+    
+    def validateResponse(self,actual, expected):
+        self.validation_trace.clear()
+        self._validateResponse(actual, expected)
+
+    def _validateResponse(self, actual, expected, prefix=""):
         if isinstance(expected, Object):
             expected = expected.as_dict()
             # assert isinstance(actual, dict)
@@ -245,34 +251,45 @@ class TWebSocket:
             #     self.validateResponse(actual[key], expected[key])
         if isinstance(expected, dict):
             assert isinstance(actual, dict)
+            self.validation_trace.insert(0, diff(str(actual), str(expected), prefix))
             for key in expected.keys():
-                self.validateResponse(actual[key], expected[key])
+                self._validateResponse(actual[key], expected[key], key)
+            self.validation_trace.remove(self.validation_trace[0])
         elif isinstance(expected, list):
-            self._validateList(actual, expected, True)
+            self._validateList(actual, expected, True, prefix)
         elif self.__is_list(expected):
-            self._validateList(actual, expected[1], False)
+            self._validateList(actual, expected[1], False, prefix)
         elif self.__is_list_full(expected):
             assert len(actual) == len(expected[1])
-            self._validateList(actual, expected[1], True)
+            self._validateList(actual, expected[1], True, prefix)
         elif self.__is_regex(expected):
+            self.validation_trace.insert(0, diff(str(actual), expected[1], prefix))
             assert re.search(expected[1], str(actual))
+            self.validation_trace.remove(self.validation_trace[0])
         elif expected == self.ignore:
             pass
         elif isinstance(expected, str):
             if expected == DEBUGGER_LAST_GENERATED_ID:
-                assert self._last_generated_request_id == actual, diff(
-                    self._last_generated_request_id, actual)
+                self.validation_trace.insert(0, diff(actual, self._last_generated_request_id, prefix))
+                assert self._last_generated_request_id == actual, "".join(self.validation_trace)
+                self.validation_trace.remove(self.validation_trace[0])
             elif expected == DEBUGGER_LAST_MODULE_ID:
-                assert self._last_module_session_id == actual, diff(
-                    self._last_module_session_id, actual)
+                self.validation_trace.insert(0, diff(actual, self._last_module_session_id, prefix))
+                assert self._last_module_session_id == actual, "".join(self.validation_trace)
+                self.validation_trace.remove(self.validation_trace[0])
             else:
-                assert expected == actual, diff(expected, actual)
+                self.validation_trace.insert(0, diff(actual, expected, prefix))
+                assert expected == actual, "".join(self.validation_trace)
+                self.validation_trace.remove(self.validation_trace[0])
         else:
-            assert expected == actual, diff(expected, actual)
+            self.validation_trace.insert(0, diff(actual, expected, prefix))
+            assert expected == actual, "".join(self.validation_trace)
+            self.validation_trace.remove(self.validation_trace[0])
 
-    def _validateList(self, actual, expected, ordered):
+    def _validateList(self, actual, expected, ordered, prefix=""):
         iterator = iter(actual)
         expected_copy = copy.copy(expected)
+        self.validation_trace.insert(0, diff(str(actual), str(expected), prefix))
 
         while len(expected_copy) > 0:
             try:
@@ -283,40 +300,46 @@ class TWebSocket:
             if ordered:
                 expected_item = expected_copy[0]
                 if isinstance(expected_item, Object):
-                    self.validateResponse(actual_item, expected_item.as_dict())
+                    self._validateResponse(actual_item, expected_item.as_dict(), prefix)
                 elif isinstance(expected_item, dict) or isinstance(expected_item, list):
-                    self.validateResponse(actual_item, expected_item)
+                    self._validateResponse(actual_item, expected_item, prefix)
                 elif expected_item == self.ignore:
                     pass
                 else:
                     if hasattr(expected_item, '__iter__'):
-                        assert actual_item in expected_item, diff(
-                            expected, actual)
+                        self.validation_trace.insert(0, "Missing expected item" + str(actual_item))
+                        assert actual_item in expected_item, "".join(self.validation_trace)
+                        self.validation_trace.remove(self.validation_trace[0])
                     else:
-                        assert expected_item == actual_item, diff(
-                            expected, actual)
+                        self.validation_trace.insert(0, diff(actual_item, expected_item, prefix))
+                        assert expected_item == actual_item, "".join(self.validation_trace)
+                        self.validation_trace.remove(self.validation_trace[0])
                 expected_copy.remove(expected_item)
             else:
                 for expected_item in expected_copy:
                     try:
                         if isinstance(expected_item, Object):
-                            self.validateResponse(
-                                actual_item, expected_item.as_dict())
+                            self._validateResponse(
+                                actual_item, expected_item.as_dict(), prefix)
                         elif isinstance(expected_item, dict) or isinstance(expected_item, list):
-                            self.validateResponse(actual_item, expected_item)
+                            self._validateResponse(actual_item, expected_item, prefix)
                         elif expected_item == self.ignore:
                             pass
                         else:
                             if hasattr(expected_item, '__iter__'):
-                                assert actual_item in expected_item, diff(
-                                    expected, actual)
+                                self.validation_trace.insert(0, "Missing expected item" + str(actual_item))
+                                assert actual_item in expected_item, "".join(self.validation_trace)
+                                self.validation_trace.remove(self.validation_trace[0])
                             else:
-                                assert expected_item == actual_item, diff(
-                                    expected, actual)
+                                self.validation_trace.insert(0, diff(actual_item, expected_item, prefix))
+                                assert expected_item == actual_item, "".join(self.validation_trace)
+                                self.validation_trace.remove(self.validation_trace[0])
                     except:
                         continue
                     expected_copy.remove(expected_item)
                     break
+
+        self.validation_trace.remove(self.validation_trace[0])
 
         assert len(expected_copy) == 0, f"Missed: {expected_copy}"
 

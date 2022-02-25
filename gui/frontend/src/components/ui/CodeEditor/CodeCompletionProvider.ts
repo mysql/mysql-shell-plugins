@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -287,6 +287,13 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
                         range,
                         insertText: "\\about",
                         detail: "Shows some general information.",
+                    },
+                    {
+                        label: "\\reconnect",
+                        kind: languages.CompletionItemKind.Keyword,
+                        range,
+                        insertText: "\\reconnect",
+                        detail: "Reconnects the current MySQL connection",
                     },
                 ];
             }

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -48,12 +48,17 @@ class DbModuleSession(ModuleSession):
         self._db_type = None
         self._connection_options = None
         self._db_service_session = None
+        self._ping_interval = None
 
     def __del__(self):
         self.close()
         super().__del__()
 
     def close(self):
+        self.close_connection()
+        super().close()
+
+    def close_connection(self):
         # do cleanup
         self._connection_options = None
         self._db_type = None
@@ -62,7 +67,14 @@ class DbModuleSession(ModuleSession):
             self._db_service_session.close()
             self._db_service_session = None
 
-        super().close()
+    def reconnect(self, request_id):
+        self._current_request_id = request_id
+
+        if self._db_service_session is None:
+            raise MSGException(Error.DB_NOT_OPEN,
+                               'A database session is required to reconnect.')
+        else:
+            self._db_service_session.reconnect()
 
     # This is the former path validation in DbSqliteSession
     def _validate_connection_config(self, config):
@@ -130,6 +142,9 @@ class DbModuleSession(ModuleSession):
                                                     data)
 
     def open_connection(self, db_connection_id, password, request_id):
+        # Closes the existing connections if any
+        self.close_connection()
+
         self._current_request_id = request_id
         db = self.web_session.db
 
@@ -152,6 +167,9 @@ class DbModuleSession(ModuleSession):
 
             options = bastion_handler.establish_connection(options)
 
+            # Database ping interval of 60 seconds
+            self._ping_interval = 60
+
         self._connection_options = options
 
         return self.connect()
@@ -160,6 +178,7 @@ class DbModuleSession(ModuleSession):
         self._db_service_session = DbSessionFactory.create(
             self._db_type, self._web_session.session_uuid, True,
             self._connection_options,
+            self._ping_interval,
             self.on_connected,
             lambda x: self.on_fail_connecting(x),
             lambda x: self.on_shell_prompt(x),
@@ -233,10 +252,11 @@ class DbModuleSession(ModuleSession):
                                                           callback=self._handle_api_response)
 
     @ check_service_database_session
-    def get_schema_object_names(self, request_id, type, schema_name, filter=None):
+    def get_schema_object_names(self, request_id, type, schema_name, filter=None, routine_type=None):
         self._db_service_session.get_schema_object_names(request_id=request_id,
                                                          type=type, schema_name=schema_name,
                                                          filter=filter,
+                                                         routine_type=routine_type,
                                                          callback=self._handle_api_response)
 
     @ check_service_database_session

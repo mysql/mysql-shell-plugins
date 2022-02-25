@@ -1,7 +1,7 @@
 {
-    "name": "shell-gui",
+    "name": "mysql-shell-gui",
     "version": "1.0.0",
-    "private": true,
+    "publisher": "Oracle",
     "dependencies": {
         "ansi-to-react": "6.1.6",
         "antlr4-c3": "2.2.1",
@@ -12,25 +12,18 @@
         "idb": "6.1.5",
         "keyboard-key": "1.1.0",
         "monaco-editor": "0.30.1",
-        "oci-bastion": "2.9.0",
-        "oci-common": "2.8.0",
-        "oci-core": "2.9.0",
-        "oci-identity": "2.9.0",
-        "oci-loadbalancer": "2.9.0",
-        "oci-mysql": "2.9.0",
-        "pixi-compressed-textures": "2.0.5",
         "pixi-ease": "3.0.7",
-        "pixi-viewport": "4.34.3",
-        "pixi.js": "6.2.1",
-        "preact": "10.6.2",
-        "react-focus-on": "3.5.4",
+        "pixi-scrollbox": "2.3.1",
+        "pixi-viewport": "4.34.4",
+        "pixi.js": "6.2.2",
+        "preact": "10.6.6",
         "react-monaco-editor": "0.46.0",
         "react-window": "1.8.6",
         "reconnecting-websocket": "4.4.0",
         "set-interval-async": "2.0.3",
-        "tabulator-tables": "5.0.10",
+        "tabulator-tables": "5.1.0",
         "topojson-client": "3.1.0",
-        "ws": "8.3.0"
+        "ws": "8.5.0"
     },
     "devDependencies": {
         "@testing-library/jest-dom": "5.14.1",
@@ -47,7 +40,7 @@
         "@types/resize-observer-browser": "0.1.6",
         "@types/selenium-webdriver": "4.0.16",
         "@types/set-interval-async": "1.0.0",
-        "@types/tabulator-tables": "5.0.2",
+        "@types/tabulator-tables": "5.1.0",
         "@types/topojson-client": "3.1.0",
         "@types/ws": "8.2.1",
         "@typescript-eslint/eslint-plugin": "5.5.0",
@@ -70,6 +63,12 @@
         "monaco-editor-webpack-plugin": "6.0.0",
         "monaco-typescript": "4.10.0",
         "mysql-promise": "5.0.0",
+        "oci-bastion": "2.9.0",
+        "oci-common": "2.9.0",
+        "oci-core": "2.9.0",
+        "oci-identity": "2.9.0",
+        "oci-loadbalancer": "2.9.0",
+        "oci-mysql": "2.9.0",
         "raw-loader": "4.0.2",
         "react-app-rewired": "2.1.8",
         "react-scripts": "3.4.4",
@@ -82,18 +81,23 @@
         "worker-loader": "3.0.8"
     },
     "scripts": {
-        "launch-dev-server": "./scripts/launch-dev-server.sh 3001",
+        "launch-shell-web-server": "bash ./scripts/launch-shell-webserver.sh",
+        "launch-dev-server": "bash ./scripts/launch-dev-server.sh 3001",
         "launch-dev-server-win": "set PORT=3001&&set HTTPS=true&&call scripts/launch-dev-server.cmd",
-        "build": "./scripts/production-build.sh",
-        "build-win": "call scripts/production-build.cmd",
+
+        "build": "bash ./scripts/production-build.sh false",
+        "build-with-maps": "bash ./scripts/production-build.sh true",
+        "build-win": "call scripts/production-build.cmd false",
+        "build-win-with-maps": "call scripts/production-build.cmd true",
+
         "update-snapshots": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --watchAll=false -u",
         "test-local": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --coverage --watchAll=false --maxWorkers=1",
         "test": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --coverage --watchAll=false",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
+
         "e2e": "react-scripts test --detectOpenHandles --testMatch [ \"**/tests/e2e/**/*.spec.[jt]s?(x)\" ] --setupFilesAfterEnv \"./src/tests/e2e/setupTests.js\" --coverage --watchAll=false",
         "e2e-update": "webdriver-manager update --out_dir ../../src/tests/e2e/selenium",
-        "e2e-start": "webdriver-manager start --out_dir ../../src/tests/e2e/selenium",
-        "run-pytest": "../backend/tests/run_tests.py"
+        "e2e-start": "webdriver-manager start --out_dir ../../src/tests/e2e/selenium"
     },
     "browserslist": [
         ">0.2%",

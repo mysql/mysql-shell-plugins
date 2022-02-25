@@ -97,7 +97,7 @@ export class ShellInterfaceShellSession implements IShellInterface {
             const listener = currentConnection.sendRequest(request, { messageClass: "closeModuleSession" });
 
             listener.then(() => {
-                webSession.removeDataForModule(this.moduleSessionLookupId, sessionId);
+                webSession.setModuleSessionId(this.moduleSessionLookupId);
             }).catch((event: ICommErrorEvent) => {
                 throw new Error(event.message);
             });

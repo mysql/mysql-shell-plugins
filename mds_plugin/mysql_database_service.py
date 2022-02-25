@@ -548,13 +548,14 @@ def get_db_system(**kwargs):
                 given_value=db_system_name,
                 print_list=True)
 
-            return core.return_oci_object(
-                oci_object=get_db_system_by_id(
-                    db_system_id=db_system.id, config=config),
-                return_formatted=return_formatted,
-                return_python_object=return_python_object,
-                format_function=format_db_systems,
-                current=current_db_system_id)
+            if db_system:
+                return core.return_oci_object(
+                    oci_object=get_db_system_by_id(
+                        db_system_id=db_system.id, config=config),
+                    return_formatted=return_formatted,
+                    return_python_object=return_python_object,
+                    format_function=format_db_systems,
+                    current=current_db_system_id)
         except oci.exceptions.ServiceError as e:
             if raise_exceptions:
                 raise

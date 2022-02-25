@@ -4,4 +4,4 @@ omit = /usr/*
        */debugger/Debugger.py
        */gui_registrar.py
        */start/Start.py
-       */internal/tests_utils.py
+       */debug_utils.py

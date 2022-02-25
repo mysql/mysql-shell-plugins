@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,7 +19,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 import threading
-import struct
 import socket
 import base64
 from hashlib import sha1
@@ -30,7 +29,6 @@ import time
 from queue import Queue
 import gui_plugin.core.Logger as logger
 import gui_plugin.core.WebSocketCommon as WebSocket
-
 
 class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
     _ws_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
@@ -50,22 +48,14 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
         """Override this handler."""
         pass #pragma: no cover
 
-    def on_ws_sending_message(self, json_message, text_message):
-        """Override this handler to do something before sending the message. Usually this
-        means executing a required logging. If this method returns None, the message won't
-        be send, so consider this a last resort to cancel the message.
-        This method can also return a different or altered message, in case of an error that
-        will be reported to the consumer application."""
-        pass #pragma: no cover
-
     def send_message(self, message):
         with self.mutex:
             try:
-                message = self.on_ws_sending_message(message)
+                message = self.on_ws_sending_message(message) # pylint: disable=no-member
                 if message is not None:
                     packet = WebSocket.Packet(message)
                     packet.send(self.request)
-                    print(f"-> {packet.message}")
+                    logger.debug3(f"-> {packet.message}")
             except Exception as e:
                 logger.error(f"Exception sending a message. {e}")
 
@@ -77,26 +67,6 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
 
         # Disable the support for basic http auth
         self.server.perform_auth = False
-
-    # def finish(self):
-        # #needed when wfile is used, or when self.close_connection is not used
-        # #
-        # #catch errors in SimpleHTTPRequestHandler.finish() after socket disappeared
-        # #due to loss of network connection
-        # try:
-        # SimpleHTTPRequestHandler.finish(self)
-        # except (socket.error, TypeError) as err:
-        # self.log_message("finish(): Exception: in SimpleHTTPRequestHandler.finish(): %s" % str(err.args))
-
-    # def handle(self):
-        # #needed when wfile is used, or when self.close_connection is not used
-        # #
-        # #catch errors in SimpleHTTPRequestHandler.handle() after socket disappeared
-        # #due to loss of network connection
-        # try:
-        # SimpleHTTPRequestHandler.handle(self)
-        # except (socket.error, TypeError) as err:
-        # self.log_message("handle(): Exception: in SimpleHTTPRequestHandler.handle(): %s" % str(err.args))
 
     def check_credentials(self, auth_header):
         """Override this handler to perform the credentials check."""
@@ -124,8 +94,12 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
         cookieString = self.headers.get('Cookie', '').strip()
         if len(cookieString) > 0:
             for cookie in cookieString.split(';'):
-                key, value = cookie.strip().split('=')
-                self.cookies[key] = value
+                cookie = cookie.strip()
+                if '=' in cookie:
+                    key, value = cookie.split('=')
+                    self.cookies[key] = value
+                else:
+                    self.cookies[cookie] = None
 
         # No authentication check for websocket upgrades as the session will
         # authenticated later on
@@ -200,7 +174,7 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
                 WebSocket.FrameSender(
                     WebSocket.Operation.Close, buffer=self.request)
             except Exception as e:
-                logger.info(f"Exception while sending close request. {e}")
+                logger.exception(e, "Exception while sending close request.")
 
         self.on_ws_closed()
 

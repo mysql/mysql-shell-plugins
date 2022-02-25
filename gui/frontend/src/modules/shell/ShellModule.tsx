@@ -39,7 +39,7 @@ import { IShellSessionDetails } from "../../supplement/ShellInterface";
 import { IShellTabPersistentState, ShellTab } from "./ShellTab";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
 import {
-    ICommErrorEvent, ICommShellEvent, IShellFeedbackRequest, IShellResultType, ShellPromptResponseType,
+    ICommErrorEvent, ICommShellEvent, IShellResultType, ShellPromptResponseType,
 } from "../../communication";
 import { settings } from "../../supplement/Settings/Settings";
 import { CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
@@ -51,6 +51,9 @@ import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { IShellEditorModel } from ".";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { IDialogSection, IDialogValues, ValueEditDialog } from "../../components/Dialogs";
+import { PromptUtils } from "../common/PromptUtils";
+import { IServicePasswordRequest } from "../../app-logic/Types";
+import { stripAnsiCode } from "../../utilities/helpers";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -429,7 +432,6 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                         return;
                     }
 
-                    const result = event.data.result;
                     switch (event.eventType) {
                         case EventType.StartResponse: {
                             this.setProgressMessage("Session created, opening new connection...");
@@ -437,12 +439,46 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                         }
 
                         case EventType.DataResponse: {
-                            if (result && this.isShellPromptResult(result)) {
+                            const data = event.data;
+                            const result = data.result as IShellResultType;
+                            if (PromptUtils.isShellPasswordResult(result)) {
+                                // Extract the service id (and from that the user name) from the password prompt.
+                                if (result !== undefined && result.password !== undefined) {
+                                    const passwordRequest: IServicePasswordRequest = {
+                                        requestId: event.data.requestId!,
+                                        caption: "Open MySQL Connection in Shell Session",
+                                        payload: backend,
+                                        service: "",
+                                        user: "",
+                                    };
+                                    let parts = result.password.split("'");
+                                    if (parts.length >= 3) {
+                                        const parts2 = parts[1].split("@");
+                                        passwordRequest.service = parts[1];
+                                        passwordRequest.user = parts2[0];
+                                    } else {
+                                        parts = result.password.split("ssh://");
+                                        if (parts.length >= 2) {
+                                            passwordRequest.caption = "Open SSH tunnel in Shell Session";
+                                            const parts2 = parts[1].split("@");
+                                            passwordRequest.service = `ssh://${parts[1]}`.trim();
+                                            if (passwordRequest.service.endsWith(":")) {
+                                                passwordRequest.service = passwordRequest.service.slice(0, -1);
+                                            }
+                                            passwordRequest.user = parts2[0];
+                                        } else {
+                                            passwordRequest.caption = result.password;
+                                        }
+                                    }
+                                    void requisitions.execute("requestPassword", passwordRequest);
+                                }
+                            } else if (PromptUtils.isShellPromptResult(result)) {
                                 if (this.promptDialogRef.current) {
+                                    const prompt = stripAnsiCode(result.prompt as string);
                                     const promptSection: IDialogSection = {
                                         values: {
                                             input: {
-                                                caption: result.prompt,
+                                                caption: prompt,
                                                 value: "",
                                                 span: 8,
                                             },
@@ -459,12 +495,12 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                                         [],
                                         { backgroundOpacity: 0.1 },
                                         "",
-                                        result.prompt,
+                                        prompt,
                                         { backend, requestId: event.data.requestId },
                                     );
                                 }
                             } else {
-                                this.setProgressMessage(event.message ?? "Loading...");
+                                this.setProgressMessage(event.message ?? "Loading ...");
                             }
 
                             break;
@@ -545,16 +581,16 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
      */
     private restartShellSession = (id: string, session: IShellSessionDetails): void => {
         const state = this.sessionState.get(id)!;
+        const backend = state.backend;
 
         this.showProgress();
 
         this.setProgressMessage("Starting shell session...");
-        state.backend.startShellSession(id, session.dbConnectionId).then((event: ICommShellEvent) => {
+        backend.startShellSession(id, session.dbConnectionId).then((event: ICommShellEvent) => {
             if (!event.data) {
                 return;
             }
 
-            const result = event.data.result;
             switch (event.eventType) {
                 case EventType.StartResponse: {
                     this.setProgressMessage("Session created, opening new connection...");
@@ -562,12 +598,46 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 }
 
                 case EventType.DataResponse: {
-                    if (result && this.isShellPromptResult(result)) {
+                    const data = event.data;
+                    const result = data.result as IShellResultType;
+                    if (PromptUtils.isShellPasswordResult(result)) {
+                        // Extract the service id (and from that the user name) from the password prompt.
+                        if (result !== undefined && result.password !== undefined) {
+                            const passwordRequest: IServicePasswordRequest = {
+                                requestId: event.data.requestId!,
+                                caption: "Open MySQL Connection in Shell Session",
+                                payload: backend,
+                                service: "",
+                                user: "",
+                            };
+                            let parts = result.password.split("'");
+                            if (parts.length >= 3) {
+                                const parts2 = parts[1].split("@");
+                                passwordRequest.service = parts[1];
+                                passwordRequest.user = parts2[0];
+                            } else {
+                                parts = result.password.split("ssh://");
+                                if (parts.length >= 2) {
+                                    passwordRequest.caption = "Open SSH tunnel in Shell Session";
+                                    const parts2 = parts[1].split("@");
+                                    passwordRequest.service = `ssh://${parts[1]}`.trim();
+                                    if (passwordRequest.service.endsWith(":")) {
+                                        passwordRequest.service = passwordRequest.service.slice(0, -1);
+                                    }
+                                    passwordRequest.user = parts2[0];
+                                } else {
+                                    passwordRequest.caption = result.password;
+                                }
+                            }
+                            void requisitions.execute("requestPassword", passwordRequest);
+                        }
+                    } else if (PromptUtils.isShellPromptResult(result)) {
                         if (this.promptDialogRef.current) {
+                            const prompt = stripAnsiCode(result.prompt as string);
                             const promptSection: IDialogSection = {
                                 values: {
                                     input: {
-                                        caption: result.prompt,
+                                        caption: prompt,
                                         value: "",
                                         span: 8,
                                     },
@@ -584,12 +654,12 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                                 [],
                                 { backgroundOpacity: 0.1 },
                                 "",
-                                result.prompt,
-                                { backend: state.backend, requestId: event.data.requestId },
+                                prompt,
+                                { backend, requestId: event.data.requestId },
                             );
                         }
                     } else {
-                        this.setProgressMessage(event.message ?? "Loading...");
+                        this.setProgressMessage(event.message ?? "Loading ...");
                     }
 
                     break;
@@ -718,11 +788,5 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             data.backend.sendReply(data.requestId, ShellPromptResponseType.Cancel, "");
         }
     };
-
-    private isShellPromptResult(response: IShellResultType): response is IShellFeedbackRequest {
-        const candidate = response as IShellFeedbackRequest;
-
-        return candidate.prompt !== undefined || candidate.password !== undefined;
-    }
 
 }

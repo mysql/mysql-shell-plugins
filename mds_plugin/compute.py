@@ -23,7 +23,7 @@
 
 # cSpell:ignore vnics, vnic, Paramiko, pkey, putfo, getfo, EX_CANTCREAT
 
-from os import EX_CANTCREAT
+# from os import EX_CANTCREAT
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core, configuration
 
@@ -679,16 +679,16 @@ def list_instances(**kwargs):
         instances = compute.list_instances(
             compartment_id=compartment_id).data
 
-        # Get all VNICs of the compartment
-        vnics = oci.pagination.list_call_get_all_results(
-            compute.list_vnic_attachments,
-            compartment_id=compartment_id).data
-
         # Filter out all deleted compartments
         instances = [c for c in instances if c.lifecycle_state != "DELETED" and
                      c.lifecycle_state != "TERMINATED"]
 
         if return_formatted:
+            # Get all VNICs of the compartment
+            vnics = oci.pagination.list_call_get_all_results(
+                compute.list_vnic_attachments,
+                compartment_id=compartment_id).data
+
             return format_instance_listing(
                 items=instances, vnics=vnics,
                 current=current_instance_id, config=config)

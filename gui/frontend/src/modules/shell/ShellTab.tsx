@@ -37,14 +37,14 @@ import {
     Component, Container, ContentAlignment, IComponentProperties, Orientation,
 } from "../../components/ui";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContext, ITextResultEntry, SQLExecutionContext } from "../../script-execution";
+import { ExecutionContext, IExecutionResult, ITextResultEntry, SQLExecutionContext } from "../../script-execution";
 import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { EditorLanguage } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
 import { EventType } from "../../supplement/Dispatch";
 import { settings } from "../../supplement/Settings/Settings";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface";
-import { flattenObject } from "../../utilities/helpers";
+import { flattenObject, stripAnsiCode } from "../../utilities/helpers";
 import { ShellConsole } from "./ShellConsole";
 import { ShellPrompt } from "./ShellPrompt";
 
@@ -66,13 +66,11 @@ export interface IShellTabProperties extends IComponentProperties {
 
 export class ShellTab extends Component<IShellTabProperties> {
 
-    private static aboutMessage = `Welcome to the GUI Console Session running on MySQL Shell 8.0.27.
+    private static aboutMessage = `Welcome to the MySQL Shell - GUI Console.
 
-Press Shift+Enter to execute the current statement.
-Press %modifier%+Enter to execute the current statement and move to next.
+Press %modifier%+Enter to execute the current statement.
 
-Execute \\sql to switch to SQL mode, \\js to Javascript mode and \\py to Python mode.
-
+Execute \\sql to switch to SQL, \\js to Javascript and \\py to Python mode.
 Execute \\help or \\? for help; \\quit to close the session.`;
 
     private static languageMap = new Map<EditorLanguage, string>([
@@ -322,6 +320,15 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
                 const requestId = event.data.requestId!;
                 const result = event.data.result;
+
+                const addResultData = (data: IExecutionResult): void => {
+                    void context.addResultData(data).then((added) => {
+                        if (added) {
+                            context.updateResultDisplay();
+                        }
+                    });
+                };
+
                 switch (event.eventType) {
                     case EventType.ErrorResponse: {
                         // This is just here to complete the picture. Shell execute responses don't use ERROR types,
@@ -344,7 +351,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     sql: "",
                                     currentPage: 0,
                                 }],
-                            }, 250);
+                            });
                         } else {
                             // For any further SQL result from the same execution context.
                             context.addResultPage({
@@ -356,7 +363,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     sql: "",
                                     currentPage: 0,
                                 }],
-                            }, 250);
+                            });
                         }
 
                         break;
@@ -399,14 +406,14 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     });
                                 });
 
-                                void context?.addResultData({
+                                addResultData({
                                     type: "text",
                                     text,
                                     executionInfo: status,
                                 });
                             } else {
                                 // No data was returned. Use the info field for the status message then.
-                                void context?.addResultData({
+                                addResultData({
                                     type: "text",
                                     executionInfo: { text: result.info },
                                 });
@@ -444,7 +451,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 requestId,
                                 rows: result.rows || [],
                                 columns,
-                                status,
+                                executionInfo: status,
                             });
 
                             if (index === -1) {
@@ -461,9 +468,9 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                         currentPage: 0,
                                         executionInfo: status,
                                     }],
-                                }, 250);
+                                });
                             } else {
-                                void context.addResultData({
+                                addResultData({
                                     type: "resultSetRows",
                                     requestId,
                                     rows: result.rows,
@@ -475,7 +482,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
                         } else if (this.isShellShellData(result)) {
                             // Unspecified shell data (no documents, no rows). Just print the info as status, for now.
-                            void context?.addResultData({
+                            addResultData({
                                 type: "text",
                                 requestId: event.data.requestId,
                                 executionInfo: { text: result.info },
@@ -490,7 +497,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 text += ">\n";
                             });
                             text += "]";
-                            void context?.addResultData({
+                            addResultData({
                                 type: "text",
                                 requestId: event.data.requestId,
                                 text: [{
@@ -503,21 +510,21 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             if (result.error) {
                                 // Errors can be a string or an object with a string.
                                 const text = typeof result.error === "string" ? result.error : result.error.message;
-                                void context?.addResultData({
+                                addResultData({
                                     type: "text",
                                     requestId: event.data.requestId,
                                     executionInfo: { type: MessageType.Error, text },
                                 });
                             } else if (result.warning) {
                                 // Errors can be a string or an object with a string.
-                                void context?.addResultData({
+                                addResultData({
                                     type: "text",
                                     requestId: event.data.requestId,
                                     executionInfo: { type: MessageType.Warning, text: result.warning },
                                 });
                             } else {
                                 const content = (result.info ?? result.note ?? result.status)!;
-                                void context?.addResultData({
+                                addResultData({
                                     type: "text",
                                     requestId: event.data.requestId,
                                     text: [{
@@ -528,7 +535,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 });
                             }
                         } else if (this.isShellValueResult(result)) {
-                            void context?.addResultData({
+                            addResultData({
                                 type: "text",
                                 requestId: event.data.requestId,
                                 text: [{
@@ -539,7 +546,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             });
                         } else if (this.isShellPromptResult(result)) {
                             if (result.password) {
-                                void context?.addResultData({
+                                addResultData({
                                     type: "text",
                                     requestId,
                                     text: [{
@@ -569,13 +576,13 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     void requisitions.execute("requestPassword", passwordRequest);
                                 }
 
-                            } else {
+                            } else if (result.prompt) {
                                 // Any other input requested from the user.
                                 const promptRequest: IDialogRequest = {
                                     type: DialogType.Prompt,
                                     id: "shellPromptDialog",
                                     values: {
-                                        prompt: result.prompt,
+                                        prompt: stripAnsiCode(result.prompt),
                                     },
                                     data: {
                                         requestId,
@@ -589,7 +596,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 text += ":" + result.name;
                             }
                             text += ">";
-                            void context?.addResultData({
+                            addResultData({
                                 type: "text",
                                 requestId: event.data.requestId,
                                 text: [{
@@ -606,7 +613,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 language: "json",
                             }];
 
-                            void context?.addResultData({
+                            addResultData({
                                 type: "text",
                                 text,
                             });
@@ -623,6 +630,9 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             void requisitions.execute("updateShellPrompt", result);
                         }
 
+                        // Note: we don't send a final result display update call from here. Currently the shell
+                        //       sends all relevant data in data responses. The final response doesn't really add
+                        //       anything, so we do such updates in the data responses instead (and get live resizes).
                         resolve();
 
                         break;
@@ -666,7 +676,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             const { savedState } = this.props;
 
             savedState.backend.sendReply(data.request.requestId, ShellPromptResponseType.Ok, data.password)
-                .then(() => { resolve(true); });
+                .then(() => { resolve(true); })
+                .catch(() => { resolve(false); });
         });
     };
 
@@ -675,7 +686,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             const { savedState } = this.props;
 
             savedState.backend.sendReply(request.requestId, ShellPromptResponseType.Cancel, "")
-                .then(() => { resolve(true); });
+                .then(() => { resolve(true); })
+                .catch(() => { resolve(false); });
 
         });
     };

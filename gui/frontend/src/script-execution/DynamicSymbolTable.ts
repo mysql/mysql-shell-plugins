@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -130,12 +130,14 @@ export class DynamicSymbolTable extends DBSymbolTable {
                 }
 
                 case SymbolKind.PrimaryKey: {
+                    const listener = this.backend.getTableObjects(parent.name, "", "Primary Key", "");
+                    this.handleResults(listener, parent, resolve, reject, ForeignKeySymbol);
 
                     break;
                 }
 
                 case SymbolKind.ForeignKey: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Foreign Key", "");
+                    const listener = this.backend.getTableObjects(parent.name, "", "Foreign Key", "");
                     this.handleResults(listener, parent, resolve, reject, ForeignKeySymbol);
 
                     break;
@@ -182,14 +184,14 @@ export class DynamicSymbolTable extends DBSymbolTable {
                 }
 
                 case SymbolKind.Event: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Event", "");
                     this.handleResults(listener, parent, resolve, reject, UdfSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Index: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Index", "");
+                    const listener = this.backend.getTableObjects(parent.name, "", "Index", "");
                     this.handleResults(listener, parent, resolve, reject, IndexSymbol);
 
                     break;

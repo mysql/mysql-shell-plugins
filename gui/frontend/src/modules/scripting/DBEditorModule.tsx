@@ -50,15 +50,15 @@ import { documentTypeToIcon, IExplorerSectionState } from "./Explorer";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import {
     ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommModuleDataContentEvent,
-    ICommOpenConnectionEvent, ICommResultSetEvent, IOpenConnectionData, IOpenDBConnectionData, IOpenMdsConnectionData,
-    IShellFeedbackRequest, IShellResultType, ShellPromptResponseType,
+    ICommOpenConnectionEvent, ICommResultSetEvent, IOpenDBConnectionData,
+    IShellResultType, ShellPromptResponseType,
 } from "../../communication";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
-import { uuid } from "../../utilities/helpers";
+import { stripAnsiCode, uuid } from "../../utilities/helpers";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { DBEditorModuleId } from "../ModuleInfo";
@@ -66,6 +66,7 @@ import { EditorLanguage, IExecutionContext } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
 import { IDialogSection, IDialogValues, ValueEditDialog } from "../../components/Dialogs";
 import { IServicePasswordRequest } from "../../app-logic/Types";
+import { PromptUtils } from "../common/PromptUtils";
 
 /* eslint import/no-webpack-loader-syntax: off */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -147,7 +148,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         initializeDbTypes(ShellInterface.dbConnections);
         void this.loadConnections();
-        ShellInterface.modules.loadScriptsTree(DBEditorModuleId).then((tree) => {
+        ShellInterface.modules.loadScriptsTree().then((tree) => {
             this.scriptsTree = tree;
         }).catch((error) => {
             void requisitions.execute("showError", ["Loading Error", "Cannot load user scripts:", String(error)]);
@@ -195,8 +196,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("moduleToggle", this.toggleModule);
         requisitions.register("editorShowConnections", this.showConnections);
         requisitions.register("editorRunCommand", this.runCommand);
-        requisitions.register("acceptPassword", this.acceptPassword);
-        requisitions.register("cancelPassword", this.cancelPassword);
         requisitions.register("profileLoaded", this.profileLoaded);
     }
 
@@ -207,8 +206,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("moduleToggle", this.toggleModule);
         requisitions.unregister("editorShowConnections", this.showConnections);
         requisitions.unregister("editorRunCommand", this.runCommand);
-        requisitions.unregister("acceptPassword", this.acceptPassword);
-        requisitions.unregister("cancelPassword", this.cancelPassword);
         requisitions.unregister("profileLoaded", this.profileLoaded);
     }
 
@@ -532,31 +529,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
     };
 
-    private acceptPassword = (data: { request: IServicePasswordRequest; password: string }): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const backend = data.request.payload as ShellInterfaceSqlEditor;
-            if (backend) {
-                backend.sendReply(data.request.requestId, ShellPromptResponseType.Ok, data.password)
-                    .then(() => { resolve(true); });
-            } else {
-                resolve(false);
-            }
-        });
-    };
-
-    private cancelPassword = (request: IServicePasswordRequest): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const backend = request.payload as ShellInterfaceSqlEditor;
-            if (backend) {
-                backend.sendReply(request.requestId, ShellPromptResponseType.Cancel, "")
-                    .then(() => { resolve(true); })
-                    .catch(() => { resolve(true); });
-            } else {
-                resolve(false);
-            }
-        });
-    };
-
     private profileLoaded = (): Promise<boolean> => {
         return this.loadConnections();
     };
@@ -614,9 +586,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         if (connection.dbType === DBType.Sqlite) {
                             const options = connection.options as ISqliteConnectionOptions;
                             backend.validatePath(options.dbFile).then(() => {
-                                void this.openNewConnection(backend, id, suffix, connection, suppressAbout).then(() => {
-                                    resolve(true);
-                                });
+                                void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
+                                    .then((success) => {
+                                        if (!success) {
+                                            backend.closeSqlEditorSession();
+                                        }
+
+                                        resolve(true);
+                                    });
                             }).catch(() => {
                                 // If the path is not ok then we might have to create the DB file first.
                                 backend.createDatabaseFile(options.dbFile).then(() => {
@@ -630,9 +607,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 });
                             });
                         } else {
-                            void this.openNewConnection(backend, id, suffix, connection, suppressAbout).then(() => {
-                                resolve(true);
-                            });
+                            void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
+                                .then((success) => {
+                                    if (!success) {
+                                        backend.closeSqlEditorSession();
+                                    }
+
+                                    resolve(true);
+                                });
                         }
                     }).catch((errorEvent: ICommErrorEvent) => {
                         this.hideProgress();
@@ -668,7 +650,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      */
     private openNewConnection(backend: ShellInterfaceSqlEditor, id: string, tabSuffix: string,
         connection: IConnectionDetails, suppressAbout: boolean): Promise<boolean> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const { editorTabs } = this.state;
 
             backend.openConnection(connection.id).then((event: ICommOpenConnectionEvent) => {
@@ -680,7 +662,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     case EventType.DataResponse: {
                         const data = event.data;
                         const result = data.result as IShellResultType;
-                        if (this.isShellPasswordResult(result)) {
+                        if (PromptUtils.isShellPasswordResult(result)) {
                             // Extract the service id (and from that the user name) from the password prompt.
                             if (result !== undefined && result.password !== undefined) {
                                 const passwordRequest: IServicePasswordRequest = {
@@ -698,7 +680,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 } else {
                                     parts = result.password.split("ssh://");
                                     if (parts.length >= 2) {
-                                        passwordRequest.caption = "Open Ssh tunnel in Shell Session";
+                                        passwordRequest.caption = "Open SSH tunnel in Shell Session";
                                         const parts2 = parts[1].split("@");
                                         passwordRequest.service = `ssh://${parts[1]}`.trim();
                                         if (passwordRequest.service.endsWith(":")) {
@@ -711,9 +693,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 }
                                 void requisitions.execute("requestPassword", passwordRequest);
                             }
-                        } else if (this.isShellMdsPromptResult(data)) {
+                        } else if (PromptUtils.isShellMdsPromptResult(data)) {
                             if (this.promptDialogRef.current) {
-                                const prompt = data.result.prompt;
+                                const prompt = stripAnsiCode(data.result.prompt);
                                 const promptSection: IDialogSection = {
                                     values: {
                                         input: {
@@ -738,9 +720,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                     { backend, requestId: event.data.requestId },
                                 );
                             }
-                        } else if (this.isShellPromptResult(result)) {
+                        } else if (PromptUtils.isShellPromptResult(result)) {
                             if (this.promptDialogRef.current) {
-                                const prompt = result.prompt as string;
+                                const prompt = stripAnsiCode(result.prompt as string);
                                 const promptSection: IDialogSection = {
                                     values: {
                                         input: {
@@ -787,7 +769,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         let serverEdition = "";
                         const sqlMode = event.data.sqlMode as string ?? settings.get("editor.sqlMode", "");
 
-                        if (!this.isShellPromptResult(event.data as IShellResultType)) {
+                        if (!PromptUtils.isShellPromptResult(event.data as IShellResultType)) {
                             const info = event.data.info as IOpenDBConnectionData;
 
                             serverVersion = info.version ? parseVersion(info.version as string) : undefined;
@@ -846,9 +828,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
 
                 const { lastTab } = this.state;
-                this.setState({ selectedTab: lastTab ?? "connections" });
+                this.setState({ selectedTab: lastTab ?? "connections" }, () => { resolve(false); });
                 this.hideProgress();
-                reject();
             });
         });
     }
@@ -873,7 +854,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     case EventType.DataResponse: {
                         const data = event.data;
                         const result = data.result as IShellResultType;
-                        if (this.isShellPasswordResult(result)) {
+                        if (PromptUtils.isShellPasswordResult(result)) {
                             // Extract the service id (and from that the user name) from the password prompt.
                             if (result !== undefined && result.password !== undefined) {
                                 const passwordRequest: IServicePasswordRequest = {
@@ -891,7 +872,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 } else {
                                     parts = result.password.split("ssh://");
                                     if (parts.length >= 2) {
-                                        passwordRequest.caption = "Open Ssh tunnel in Shell Session";
+                                        passwordRequest.caption = "Open SSH tunnel in Shell Session";
                                         const parts2 = parts[1].split("@");
                                         passwordRequest.service = `ssh://${parts[1]}`.trim();
                                         if (passwordRequest.service.endsWith(":")) {
@@ -904,9 +885,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 }
                                 void requisitions.execute("requestPassword", passwordRequest);
                             }
-                        } else if (this.isShellMdsPromptResult(data)) {
+                        } else if (PromptUtils.isShellMdsPromptResult(data)) {
                             if (this.promptDialogRef.current) {
-                                const prompt = data.result.prompt;
+                                const prompt = stripAnsiCode(data.result.prompt);
                                 const promptSection: IDialogSection = {
                                     values: {
                                         input: {
@@ -931,9 +912,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                     { backend, requestId: event.data.requestId },
                                 );
                             }
-                        } else if (this.isShellPromptResult(result)) {
+                        } else if (PromptUtils.isShellPromptResult(result)) {
                             if (this.promptDialogRef.current) {
-                                const prompt = result.prompt as string;
+                                const prompt = stripAnsiCode(result.prompt as string);
                                 const promptSection: IDialogSection = {
                                     values: {
                                         input: {
@@ -1171,7 +1152,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                 if (script) {
                     if (script.moduleDataId) {
-                        ShellInterface.modules.getModuleDataContent(script.moduleDataId)
+                        ShellInterface.modules.getDataContent(script.moduleDataId)
                             .then((event: ICommModuleDataContentEvent) => {
                                 if (event.data) {
                                     this.addEditorFromScript(connectionState, script, event.data.result);
@@ -1244,7 +1225,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             if (newVersion !== editor.currentVersion) {
                 editor.currentVersion = newVersion;
                 const content = model.getValue();
-                ShellInterface.modules.updateModuleData(editor.moduleDataId, undefined, content);
+                ShellInterface.modules.updateData(editor.moduleDataId, undefined, content);
             }
         }
     }
@@ -1273,7 +1254,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             if (needsUpdate) {
                 if (script?.moduleDataId) {
-                    ShellInterface.modules.updateModuleData(script.moduleDataId, script.caption);
+                    ShellInterface.modules.updateData(script.moduleDataId, script.caption);
                 }
 
                 this.forceUpdate();
@@ -1320,7 +1301,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             // Add a module data record for the new script.
             const category = ShellInterface.modules.scriptTypeFromLanguage(editorLanguage);
             if (category) {
-                ShellInterface.modules.addModuleData(caption, "", category, "scripts", "")
+                ShellInterface.modules.addData(caption, "", category, "scripts", "")
                     .then((event: ICommModuleAddDataEvent) => {
                         if (event.data) {
                             const moduleDataId = event.data.result;
@@ -1378,7 +1359,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             // Found the script. Remove its editor, if there's one.
                             this.handleRemoveEditor(id, data.id, false);
 
-                            ShellInterface.modules.deleteModuleData(script.moduleDataId, data.folderId)
+                            ShellInterface.modules.deleteData(script.moduleDataId, data.folderId)
                                 .then(() => {
                                     connectionState.scripts.splice(scriptIndex, 1);
                                     this.forceUpdate();
@@ -1470,7 +1451,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
         switch (language) {
             case "javascript": {
-                return `The SQL Editor's interactive prompt is currently running in Javascript mode.
+                return `The DB Editor's interactive prompt is currently running in Javascript mode.
 Execute "\\sql" to switch to SQL mode.
 
 GLOBAL FUNCTIONS
@@ -1481,7 +1462,7 @@ Type "\\?" function to get more information about a function, e.g. "\\? runSql".
             }
 
             case "mysql": {
-                return `The SQL Editor's interactive prompt is currently running in SQL mode.
+                return `The DB Editor's interactive prompt is currently running in SQL mode.
 Execute "\\js" to switch to Javascript mode.
 
 Use ? as placeholders, provide values as a list in a comment.
@@ -1490,27 +1471,7 @@ EXAMPLES
     WHERE name = ? -- ("mike")`;
             }
 
-            default: {
-                return;
-            }
+            default:
         }
     };
-
-    private isShellMdsPromptResult(response?: IOpenConnectionData): response is IOpenMdsConnectionData {
-        const candidate = response as IOpenMdsConnectionData;
-
-        return candidate?.result?.prompt !== undefined;
-    }
-
-    private isShellPromptResult(response?: IShellResultType): response is IShellFeedbackRequest {
-        const candidate = response as IShellFeedbackRequest;
-
-        return candidate?.prompt !== undefined;
-    }
-
-    private isShellPasswordResult(response?: IShellResultType): response is IShellFeedbackRequest {
-        const candidate = response as IShellFeedbackRequest;
-
-        return candidate?.password !== undefined;
-    }
 }

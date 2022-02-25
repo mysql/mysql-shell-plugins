@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -41,6 +41,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
     private internalModel?: Monaco.ITextModel;
     private modelNeedsUpdate = true;
+    private targetUpdated = false;
 
     // Each command uses 2 decorations for the prompt: the one for the first line and one for all others.
     private promptFirstDecorationID = "";
@@ -214,6 +215,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     protected removeRenderTarget(): void {
+        this.targetUpdated = false;
         this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.resultInfo) {
                 changeAccessor.removeZone(this.resultInfo.zoneId);
@@ -226,21 +228,21 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
     protected updateRenderTarget(): void {
         this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-            if (this.resultInfo) {
+            if (this.resultInfo && this.renderTarget) {
                 if (this.manualHeight) {
                     this.resultInfo.zone.heightInPx = this.manualHeight;
                     changeAccessor.layoutZone(this.resultInfo.zoneId);
                 } else {
-                    let usedHeight = this.defaultHeight;
-                    if (!usedHeight) {
-                        // Make the render resize to its content size, temporarily.
-                        this.renderTarget!.style.height = "fit-content";
-                        usedHeight = this.renderTarget!.getBoundingClientRect().height;
-                    }
+                    // Make the render resize to its content size, temporarily.
+                    this.renderTarget.style.maxHeight = `${PresentationInterface.maxAutoHeight}px`;
+                    this.renderTarget.style.height = "fit-content";
+                    const usedHeight = this.renderTarget.getBoundingClientRect().height;
 
-                    this.resultInfo.zone.heightInPx = usedHeight + 4;
+                    this.resultInfo.zone.heightInPx = Math.ceil(usedHeight) + 4;
                     changeAccessor.layoutZone(this.resultInfo.zoneId);
-                    this.renderTarget!.style.height = "";
+
+                    this.renderTarget.style.height = "";
+                    this.renderTarget.style.maxHeight = `${PresentationInterface.maxHeight}px`;
                 }
             }
         });
@@ -268,7 +270,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 (e.currentTarget as HTMLElement).scrollTop += Math.sign(e.deltaY) * 2;
                 e.stopPropagation();
             }
-        });
+        }, { passive: true });
 
         const marginNode = document.createElement("div");
         marginNode.className = "zoneMargin";
@@ -279,6 +281,17 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             domNode: zoneNode,
             marginDomNode: marginNode,
             suppressMouseDown: false,
+            onComputedHeight: () => {
+                // This is triggered when the view zone computed its current height, which we use as indicator
+                // that the view is about to be shown. We give it a few more milliseconds before we do our
+                // own DOM height computation, based on the view zone's content.
+                if (!this.targetUpdated) {
+                    this.targetUpdated = true;
+                    setTimeout(() => {
+                        this.updateRenderTarget();
+                    }, 200);
+                }
+            },
         };
         this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             zoneId = changeAccessor.addZone(zone);
@@ -313,7 +326,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             const delta = e.screenY - this.lastMouseY;
 
             if (!this.manualHeight) {
-                this.manualHeight = this.defaultHeight;
+                this.manualHeight = this.renderTarget?.getBoundingClientRect().height
+                    ?? PresentationInterface.maxAutoHeight;
             }
 
             if (this.resultInfo) {

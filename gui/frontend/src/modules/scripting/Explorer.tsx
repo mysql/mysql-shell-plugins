@@ -21,9 +21,31 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import tableIcon from "../../assets/images/table.svg";
 import schemaIcon from "../../assets/images/database.svg";
-import columnIcon from "../../assets/images/column.svg";
+
+import tableIcon from "../../assets/images/schemaTable.svg";
+import tablesIcon from "../../assets/images/schemaTables.svg";
+
+import columnIcon from "../../assets/images/schemaTableColumn.svg";
+import columnsIcon from "../../assets/images/schemaTableColumns.svg";
+
+import routineIcon from "../../assets/images/schemaRoutine.svg";
+import routinesIcon from "../../assets/images/schemaRoutines.svg";
+
+import eventIcon from "../../assets/images/schemaEvent.svg";
+import eventsIcon from "../../assets/images/schemaEvents.svg";
+
+import triggerIcon from "../../assets/images/schemaTableTrigger.svg";
+import triggersIcon from "../../assets/images/schemaTableTriggers.svg";
+
+import viewIcon from "../../assets/images/schemaView.svg";
+import viewsIcon from "../../assets/images/schemaViews.svg";
+
+import indexIcon from "../../assets/images/schemaTableIndex.svg";
+import indexesIcon from "../../assets/images/schemaTableIndexes.svg";
+
+import foreignKeyIcon from "../../assets/images/schemaTableForeignKey.svg";
+//import foreignKeysIcon from "../../assets/images/schemaTableForeignKeys.svg";
 
 import defaultIcon from "../../assets/images/file-icons/default.svg";
 import iniIcon from "../../assets/images/file-icons/ini.svg";
@@ -51,7 +73,7 @@ import {
 import { EntityType, IDBEditorScriptState, IEntityBase, IModuleDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
 import { IOpenEditorState } from "./DBEditorTab";
-import { ICommErrorEvent, ICommMetaDataEvent, ICommSimpleResultEvent } from "../../communication";
+import { ICommErrorEvent, ICommSimpleResultEvent } from "../../communication";
 import { EventType } from "../../supplement/Dispatch";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
@@ -148,13 +170,28 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     }
 
     public componentDidUpdate(prevProps: IExplorerProperties, prevState: IExplorerState): void {
-        const { id, onSaveSchemaTree } = this.props;
+        const { id, markedSchema, onSaveSchemaTree } = this.props;
         if (id !== prevProps.id) {
             const { schemaList } = prevState;
 
             onSaveSchemaTree?.(prevProps.id!, schemaList || []);
 
             this.updateSchemaList();
+        }
+
+        if (markedSchema !== prevProps.markedSchema) {
+            const tableOrPromise = this.tableRef.current?.table;
+            const tree = tableOrPromise instanceof Tabulator ? tableOrPromise : undefined;
+            if (tree) {
+                let rows = tree.searchRows("caption", "=", markedSchema);
+                rows.forEach((row) => {
+                    row.reformat();
+                });
+                rows = tree.searchRows("caption", "=", prevProps.markedSchema);
+                rows.forEach((row) => {
+                    row.reformat();
+                });
+            }
         }
     }
 
@@ -281,8 +318,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     <MenuItem id="inspectorMenuItem" caption="Show Schema Inspector" disabled />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
-                        <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="clipboardNameMenuItem" caption="Name" />
+                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
                         <MenuItem id="editorNameMenuItem" caption="Name" disabled />
@@ -307,8 +344,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     <MenuItem id="tableInspectorMenuItem" caption="Table Inspector" disabled />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
-                        <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="clipboardNameMenuItem" caption="Name" />
+                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="tableDataExportMenuItem" caption="Table Data Export Wizard" disabled />
                     <MenuItem id="tableDataImportMenuItem" caption="Table Data Import Wizard" disabled />
@@ -342,8 +379,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 >
                     <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
-                        <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Select Columns Statement" disabled />
+                        <MenuItem id="clipboardNameMenuItem" caption="Name" />
+                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Select Columns Statement" />
                         <MenuItem id="clipboardInsertStatementMenuItem" caption="Insert Statement" disabled />
                         <MenuItem id="clipboardUpdateStatementMenuItem" caption="Update Statement" disabled />
                     </MenuItem>
@@ -367,7 +404,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
                         <MenuItem id="editorNameMenuItem" caption="Name" disabled />
@@ -390,8 +427,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
-                        <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="clipboardNameMenuItem" caption="Name" />
+                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
                         <MenuItem id="editorNameMenuItem" caption="Name" disabled />
@@ -415,7 +452,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
                         <MenuItem id="editorNameMenuItem" caption="Name" disabled />
@@ -438,8 +475,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
-                        <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="clipboardNameMenuItem" caption="Name" />
+                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
                         <MenuItem id="editorNameMenuItem" caption="Name" disabled />
@@ -519,13 +556,14 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 break;
             }
 
-            case SchemaTreeType.Indexes: {
+            case SchemaTreeType.Index: {
                 this.indexContextMenuRef.current?.open(targetRect, false, {}, rowData);
 
                 break;
             }
 
-            case SchemaTreeType.Routine: {
+            case SchemaTreeType.StoredProcedure:
+            case SchemaTreeType.StoredFunction: {
                 this.routineContextMenuRef.current?.open(targetRect, false, {}, rowData);
 
                 break;
@@ -537,13 +575,13 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 break;
             }
 
-            case SchemaTreeType.ForeignKeys: {
+            case SchemaTreeType.ForeignKey: {
                 this.fkContextMenuRef.current?.open(targetRect, false, {}, rowData);
 
                 break;
             }
 
-            case SchemaTreeType.Views: {
+            case SchemaTreeType.View: {
                 this.viewContextMenuRef.current?.open(targetRect, false, {}, rowData);
 
                 break;
@@ -624,9 +662,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                 this.generateGroupNode("Views", "View", schema),
                                 this.generateGroupNode("Routines", "Routine", schema),
                                 this.generateGroupNode("Events", "Event", schema),
-                                this.generateGroupNode("Triggers", "Trigger", schema),
-                                this.generateGroupNode("Foreign Keys", "Foreign Key", schema),
-                                this.generateGroupNode("Indexes", "Index", schema),
                             ],
                         };
                         schemaList.push(schemaEntry);
@@ -648,33 +683,109 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     private schemaTreeCellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
         const data = cell.getData() as ISchemaTreeEntry;
 
-        let icon;
+        let iconName = "";
         switch (data.type) {
             case SchemaTreeType.Schema: {
-                icon = <Icon src={schemaIcon} width={20} height={20} />;
+                iconName = schemaIcon;
                 break;
             }
 
             case SchemaTreeType.Table: {
-                icon = <Icon src={tableIcon} width={20} height={20} />;
+                iconName = tableIcon;
                 break;
             }
 
             case SchemaTreeType.Column: {
-                icon = <Icon src={columnIcon} width={20} height={20} />;
+                iconName = columnIcon;
                 break;
             }
 
-            default: {
-                icon = "";
+            case SchemaTreeType.StoredFunction:
+            case SchemaTreeType.StoredProcedure: {
+                iconName = routineIcon;
                 break;
             }
+
+            case SchemaTreeType.Event: {
+                iconName = eventIcon;
+                break;
+            }
+
+            case SchemaTreeType.Trigger: {
+                iconName = triggerIcon;
+                break;
+            }
+
+            case SchemaTreeType.View: {
+                iconName = viewIcon;
+                break;
+            }
+
+            case SchemaTreeType.Index: {
+                iconName = indexIcon;
+                break;
+            }
+
+            case SchemaTreeType.ForeignKey: {
+                iconName = foreignKeyIcon;
+                break;
+            }
+
+            case SchemaTreeType.GroupNode: {
+                switch (data.caption) {
+                    case "Tables": {
+                        iconName = tablesIcon;
+                        break;
+                    }
+
+                    case "Columns": {
+                        iconName = columnsIcon;
+                        break;
+                    }
+
+                    case "Events": {
+                        iconName = eventsIcon;
+                        break;
+                    }
+
+                    case "Triggers": {
+                        iconName = triggersIcon;
+                        break;
+                    }
+
+                    case "Foreign Keys": {
+                        iconName = foreignKeyIcon;
+                        break;
+                    }
+
+                    case "Indexes": {
+                        iconName = indexesIcon;
+                        break;
+                    }
+
+                    case "Views": {
+                        iconName = viewsIcon;
+                        break;
+                    }
+
+                    case "Routines": {
+                        iconName = routinesIcon;
+                        break;
+                    }
+
+                    default:
+                }
+
+                break;
+            }
+
+            default:
         }
 
         const host = document.createElement("div");
         host.className = "schemaTreeEntry";
         const content = <>
-            {icon}
+            {iconName && <Icon src={iconName} width={16} height={16} />}
             <Label caption={data.caption} />
         </>;
 
@@ -692,21 +803,16 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 const actualIcon = documentTypeToIcon.get((data as IDBEditorScriptState).language || "text");
 
                 if (actualIcon) {
-                    image = <Image src={actualIcon} width={20} height={20} />;
+                    image = <Image src={actualIcon} width={16} height={16} />;
                 }
 
                 break;
             }
 
             case EntityType.Folder: {
-                // HACK: tabulator-tables provides no API to determine if a row is expanded, so we use internal
-                // structures here, to get this information.
                 const row = cell.getRow();
-
-                /* eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-explicit-any */
-                const treeInfo = (row as any)._row.modules.dataTree;
                 image = <Icon
-                    src={treeInfo.open ? Codicon.FolderOpened : Codicon.Folder}
+                    src={row.isTreeExpanded() ? Codicon.FolderOpened : Codicon.Folder}
                     width={20}
                     height={20}
                 />;
@@ -748,6 +854,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
             entry.expandedOnce = true;
 
             const schema = entry.qualifiedName.schema;
+            const table = entry.qualifiedName.table ?? "";
             const tableOrPromise = this.tableRef.current?.table;
             const tree = tableOrPromise instanceof Tabulator ? tableOrPromise : undefined;
 
@@ -755,23 +862,22 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 case SchemaTreeType.GroupNode: {
                     switch (entry.id) {
                         case "groupNode.Tables": {
-                            this.renderTables(schema, row, tree);
+                            void this.renderTables(schema, row, tree);
                             break;
                         }
 
                         case "groupNode.Views":
                         case "groupNode.Routines":
-                        case "groupNode.Events":
-                        case "groupNode.Triggers":
-                        case "groupNode.Foreign Keys":
-                        case "groupNode.Indexes": {
-                            this.renderObjects(schema, entry.qualifiedName.name ?? "", "", row, tree);
+                        case "groupNode.Events": {
+                            void this.renderSchemaObjects(schema, entry.qualifiedName.name ?? "", "", row, tree);
                             break;
                         }
 
+                        case "groupNode.Triggers":
+                        case "groupNode.Foreign Keys":
+                        case "groupNode.Indexes":
                         case "groupNode.Columns": {
-                            const table = entry.qualifiedName.table ?? "<error>";
-                            this.renderColumns(schema, table, row, tree);
+                            void this.renderTableObjects(schema, table, entry.qualifiedName.name ?? "", row, tree);
                             break;
                         }
 
@@ -796,10 +902,10 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 ret = SchemaTreeType.Table;
                 break;
             case "groupNode.Views":
-                ret = SchemaTreeType.Views;
+                ret = SchemaTreeType.View;
                 break;
             case "groupNode.Routines":
-                ret = SchemaTreeType.Routine;
+                ret = SchemaTreeType.StoredProcedure;
                 break;
             case "groupNode.Events":
                 ret = SchemaTreeType.Event;
@@ -808,10 +914,10 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 ret = SchemaTreeType.Trigger;
                 break;
             case "groupNode.Foreign Keys":
-                ret = SchemaTreeType.ForeignKeys;
+                ret = SchemaTreeType.ForeignKey;
                 break;
             case "groupNode.Indexes":
-                ret = SchemaTreeType.Indexes;
+                ret = SchemaTreeType.Index;
                 break;
             case "groupNode.Columns":
                 ret = SchemaTreeType.Column;
@@ -938,7 +1044,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
             }
 
             case "addFolder": {
-                const { onAddFolder } = this.props;
+                //const { onAddFolder } = this.props;
 
                 break;
             }
@@ -1130,138 +1236,119 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return true;
     };
 
-    private renderTables = (schema: string, row: Tabulator.RowComponent, tree?: Tabulator): void => {
+    private renderTables = async (schema: string, row: Tabulator.RowComponent, tree?: Tabulator): Promise<void> => {
         const { backend } = this.props;
-        const listener = backend.getSchemaObjects(schema, "Table", "");
-        listener.then((event: ICommSimpleResultEvent) => {
-            switch (event.eventType) {
-                case EventType.ErrorResponse: {
-                    void requisitions.execute("showError", ["Table Retrieval Error", String(event.message)]);
-                    break;
-                }
 
-                case EventType.DataResponse:
-                case EventType.FinalResponse: {
-                    tree?.blockRedraw();
-                    this.removeDummyNode(row);
-                    for (const table of event.data?.result as string[]) {
-                        const newChild = {
-                            type: SchemaTreeType.Table,
-                            expanded: false,
-                            expandedOnce: false,
-                            qualifiedName: { schema, table },
-                            id: schema + "." + table,
-                            caption: table,
-                            details: null,
-                            children: [
-                                this.generateGroupNode("Columns", "Column", schema, table),
-                            ],
-                        };
-                        row.addTreeChild(newChild);
-                    }
-                    row.treeExpand();
-                    tree?.restoreRedraw();
+        tree?.blockRedraw();
+        this.removeDummyNode(row);
 
-                    break;
-                }
+        try {
+            const entries = await backend.getSchemaObjectsAsync(schema, "Table");
 
-                default: {
-                    break;
-                }
+            for (const table of entries) {
+                const newChild = {
+                    type: SchemaTreeType.Table,
+                    expanded: false,
+                    expandedOnce: false,
+                    qualifiedName: { schema, table },
+                    id: schema + "." + table,
+                    caption: table,
+                    details: null,
+                    children: [
+                        this.generateGroupNode("Columns", "Column", schema, table),
+                        this.generateGroupNode("Triggers", "Trigger", schema, table),
+                        this.generateGroupNode("Foreign Keys", "Foreign Key", schema, table),
+                        this.generateGroupNode("Indexes", "Index", schema, table),
+                    ],
+                };
+                row.addTreeChild(newChild);
             }
-        });
-    };
-
-    private renderColumns = (schema: string, table: string, row: Tabulator.RowComponent, tree?: Tabulator): void => {
-        const { backend } = this.props;
-        const listener = backend.getSchemaTableColumns(schema, table);
-
-        listener.then((event: ICommMetaDataEvent) => {
-            switch (event.eventType) {
-                case EventType.DataResponse:
-                case EventType.FinalResponse: {
-                    tree?.blockRedraw();
-                    this.removeDummyNode(row);
-
-                    const result = event.data?.result;
-                    if (result && !Array.isArray(result) && result.columns) {
-                        for (const column of result.columns) {
-                            const newChild = {
-                                type: SchemaTreeType.Column,
-                                expanded: false,
-                                expandedOnce: false,
-                                qualifiedName: {
-                                    schema,
-                                    table,
-                                    name: column,
-                                },
-                                id: `${schema}.${table}.${column}`,
-                                caption: column,
-                                details: null,
-                            };
-
-                            row.addTreeChild(newChild);
-                        }
-                    }
-
-                    row.treeExpand();
-                    tree?.restoreRedraw();
-
-                    break;
-                }
-
-                default: {
-                    // Ignore.
-                    break;
-                }
-            }
-        }).catch((event) => {
+        } catch (error) {
             void requisitions.execute("showError",
-                ["Backend Error", "Could not get column information.", String(event.message)]);
-        });
+                ["Backend Error", "Could not get column information.", error as string]);
+        }
+
+        row.treeExpand();
+        tree?.restoreRedraw();
     };
 
-    private renderObjects = (schema: string, type: string, filter: string, row: Tabulator.RowComponent,
-        tree?: Tabulator): void => {
+    private renderTableObjects = async (schema: string, table: string, type: string, row: Tabulator.RowComponent,
+        tree?: Tabulator, filter?: string): Promise<void> => {
+        const { backend } = this.props;
+
+        tree?.blockRedraw();
+        this.removeDummyNode(row);
+
+        const entry = row.getData() as ISchemaTreeEntry;
+        try {
+            const entries = await backend.getTableObjectsAsync(schema, table, type, filter);
+            for (const item of entries) {
+                const newChild = {
+                    type: this.groupNodeToSchemaTreeTypeName(entry.id),
+                    expanded: false,
+                    expandedOnce: false,
+                    qualifiedName: {
+                        schema,
+                        table,
+                        name: item,
+                    },
+                    id: `${schema}.${table}.${item}`,
+                    caption: item,
+                    details: null,
+                };
+
+                row.addTreeChild(newChild);
+            }
+        } catch (error) {
+            void requisitions.execute("showError",
+                ["Backend Error", "Could not get column information.", error as string]);
+        }
+
+        row.treeExpand();
+        tree?.restoreRedraw();
+    };
+
+    private renderSchemaObjects = async (schema: string, type: string, filter: string,
+        row: Tabulator.RowComponent, tree?: Tabulator): Promise<void> => {
 
         const { backend } = this.props;
-        const listener = backend.getSchemaObjects(schema, type, filter);
 
-        listener.then((event: ICommSimpleResultEvent) => {
-            switch (event.eventType) {
-                case EventType.DataResponse:
-                case EventType.FinalResponse: {
-                    tree?.blockRedraw();
-                    this.removeDummyNode(row);
-                    const entry = row.getData() as ISchemaTreeEntry;
-                    for (const item of event.data?.result as string[]) {
-                        const newChild = {
-                            type: this.groupNodeToSchemaTreeTypeName(entry.id),
-                            expanded: false,
-                            expandedOnce: false,
-                            qualifiedName: { schema, name: item },
-                            id: schema + "." + filter + "." + item,
-                            caption: item,
-                            details: null,
-                        };
-                        row.addTreeChild(newChild);
-                    }
-                    row.treeExpand();
-                    tree?.restoreRedraw();
-
-                    break;
-                }
-
-                default: {
-                    // Ignore.
-                    break;
-                }
+        tree?.blockRedraw();
+        try {
+            if (type === "Routine") {
+                let entries = await backend.getSchemaObjectsAsync(schema, type, "function", filter);
+                this.addTreeChildren(row, entries, schema, SchemaTreeType.StoredFunction);
+                entries = await backend.getSchemaObjectsAsync(schema, type, "procedure", filter);
+                this.addTreeChildren(row, entries, schema, SchemaTreeType.StoredProcedure);
+            } else {
+                const entry = row.getData() as ISchemaTreeEntry;
+                const entries = await backend.getSchemaObjectsAsync(schema, type, undefined, filter);
+                this.addTreeChildren(row, entries, schema, this.groupNodeToSchemaTreeTypeName(entry.id));
             }
-        }).catch((event) => {
+        } catch (error) {
             void requisitions.execute("showError",
-                ["Backend Error", "Retrieving schema objects failed:", String(event.message)]);
-        });
+                ["Backend Error", "Retrieving schema objects failed:", error as string]);
+        }
+
+        tree?.restoreRedraw();
     };
+
+    private addTreeChildren(row: Tabulator.RowComponent, list: string[], schema: string, type: SchemaTreeType): void {
+        this.removeDummyNode(row);
+        for (const item of list) {
+            const newChild = {
+                type,
+                expanded: false,
+                expandedOnce: false,
+                qualifiedName: { schema, name: item },
+                id: `${schema}..${item}`,
+                caption: item,
+                details: null,
+            };
+            row.addTreeChild(newChild);
+        }
+        row.treeExpand();
+    }
 
     private generateGroupNode(label: string, name: string, schema: string, table?: string): ISchemaTreeEntry<unknown> {
         return {
@@ -1276,7 +1363,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 type: SchemaTreeType.GroupNode,
                 expanded: false,
                 expandedOnce: false,
-                qualifiedName: { schema: "" },
+                qualifiedName: { schema, table },
                 id: label + "<loading>",
                 caption: "loading...",
                 details: null,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@ import "./Divider.css";
 
 import React from "react";
 
-import { Component, IComponentProperties } from "../Component/Component";
+import { Component, IComponentProperties, MouseEventType } from "../Component/Component";
 
 interface IDividerProperties extends IComponentProperties {
     vertical?: boolean;
@@ -40,13 +40,16 @@ export class Divider extends Component<IDividerProperties> {
 
     public static defaultProps = {
         vertical: false,
-        thickness: 6,
+        thickness: 4,
     };
+
+    private hoverTimer: ReturnType<typeof setTimeout> | null;
 
     public constructor(props: IDividerProperties) {
         super(props);
 
-        this.addHandledProperties("vertical", "thickness", "style", "innerRef");
+        this.addHandledProperties("vertical", "thickness", "innerRef");
+        this.connectEvents("onMouseEnter", "onMouseLeave");
     }
 
     public render(): React.ReactNode {
@@ -59,7 +62,7 @@ export class Divider extends Component<IDividerProperties> {
 
         const newStyle = {
             ...style, ...{
-                "--thickness": `${(thickness ?? 6)}px`,
+                "--thickness": `${(thickness ?? 4)}px`,
             },
         };
 
@@ -74,4 +77,34 @@ export class Divider extends Component<IDividerProperties> {
         );
     }
 
+    protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
+        switch (type) {
+            case MouseEventType.Enter: {
+                if (this.hoverTimer) {
+                    clearTimeout(this.hoverTimer);
+                }
+                this.hoverTimer = setTimeout(() => {
+                    (e.target as Element).classList.add("hover");
+                    this.hoverTimer = null;
+                }, 300);
+
+                break;
+            }
+
+            case MouseEventType.Leave: {
+                if (this.hoverTimer) {
+                    clearTimeout(this.hoverTimer);
+                    this.hoverTimer = null;
+                }
+
+                (e.target as Element).classList.remove("hover");
+
+                break;
+            }
+
+            default:
+        }
+
+        return true;
+    }
 }

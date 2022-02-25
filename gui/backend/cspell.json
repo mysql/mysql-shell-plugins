@@ -41,6 +41,21 @@
         "unparse",
         "dfhd",
         "ughu",
-        "dugt"
+        "dugt",
+        "phmd",
+        "ughu",
+        "pushd",
+        "chdir",
+        "mklink",
+        "nocolor",
+        "signum",
+        "INET",
+        "REUSEADDR",
+        "rennox",
+        "nopager",
+        "ctypes",
+        "incomming",
+        "pydevd",
+        "SIGUSR"
     ]
 }

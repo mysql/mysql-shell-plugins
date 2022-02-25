@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,16 +22,17 @@
  */
 
 export class Cookies {
-    public set(name: string, value: string, expireSecs = 0): void {
+    public set(name: string, value?: string): void {
         if (global.document) {
-            let cookie = `${name}=${value}`;
-            if (expireSecs > 0) {
-                cookie += `; max-age=${expireSecs * 1000}`;
-            } else if (expireSecs < 0) {
-                cookie += ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
+            let cookie = "";
+            if (value) {
+                cookie = `${name}=${value}`;
+            } else {
+                cookie = name;
             }
 
             document.cookie = cookie;
+            //console.log(document.cookie);
         }
     }
 
@@ -54,7 +55,7 @@ export class Cookies {
     }
 
     public remove(name: string): void {
-        this.set(name, "", -1);
+        this.set(name, "");
     }
 
     public clear(): void {

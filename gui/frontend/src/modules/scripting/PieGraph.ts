@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,33 @@
 
 import { PrivateWorker, ScriptingApi } from "./console.worker-types";
 import {
-    IPieGraphLayout, IPieLayoutData, IPieGraphDataPoint, IPieDemoData,
+    IPieGraphLayout, IPieLayoutData, IPieGraphDataPoint, IPieDemoData, IResultSetRow,
 } from "../../components/ResultView/graphs/PieGraphImpl";
 
 // eslint-disable-next-line no-restricted-globals
 const ctx: PrivateWorker = self as unknown as PrivateWorker;
 
+// This is the intermediate Pie graph class, which can be used by the user in JS/TS editors.
+// It forwards all Pie graph calls to the PieGraphImpl component in the application.
 export class PieGraphProxy {
     public static readonly layout: IPieLayoutData = {
         mediumPie: {
+            width: 700,
+            height: 300,
+            innerRadius: 0,
+            outerRadius: 120,
+            centerX: 300,
+            centerY: 150,
+        },
+        mediumDonut: {
+            width: 700,
+            height: 240,
+            innerRadius: 60,
+            outerRadius: 100,
+            centerX: 350,
+            centerY: 120,
+        },
+        largePie: {
             width: 700,
             height: 500,
             innerRadius: 0,
@@ -39,7 +57,7 @@ export class PieGraphProxy {
             centerX: 500,
             centerY: 250,
         },
-        mediumDonut: {
+        largeDonut: {
             width: 700,
             height: 450,
             innerRadius: 130,
@@ -75,7 +93,7 @@ export class PieGraphProxy {
     protected contextId: string | undefined;
     protected taskId: number | undefined;
 
-    public constructor(layout: IPieGraphLayout, data?: IPieGraphDataPoint[]) {
+    public constructor(layout: IPieGraphLayout, data?: IPieGraphDataPoint[] | IResultSetRow[]) {
         // Store the current context id so that we always send additional data points to the same output area,
         // even if that is triggered asynchronously.
         this.contextId = ctx.currentContext;

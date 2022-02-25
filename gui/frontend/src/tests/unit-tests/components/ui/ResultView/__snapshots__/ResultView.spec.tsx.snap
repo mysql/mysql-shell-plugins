@@ -10,7 +10,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container resultView"
+        class="msg container fixedScrollbar resultView"
         style="flex-direction: column;"
       >
         <div
@@ -26,7 +26,7 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container resultView"
+      class="msg container fixedScrollbar resultView"
       style="flex-direction: column;"
     >
       <div

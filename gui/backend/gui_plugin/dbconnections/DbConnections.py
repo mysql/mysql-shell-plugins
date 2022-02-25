@@ -206,8 +206,7 @@ def list_db_connections(profile_id, folder_path='', web_session=None):
             FROM profile_has_db_connection p_dc
                 LEFT JOIN db_connection dc ON
                     p_dc.db_connection_id = dc.id
-            WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ? AND
-                p_dc.active=1''',
+            WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ?''',
                          (profile_id, '%' if folder_path == '' else folder_path),
                          close=(web_session is None))
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,8 +21,13 @@
 
 import shutil
 from gui_plugin.core.Db import GuiBackendDb, BackendSqliteDbManager, convert_workbench_sql_file_to_sqlite, convert_all_workbench_sql_files_to_sqlite
+from gui_plugin.core.GuiBackendDbManager import latest_db_version
+from gui_plugin.core.lib.Version import Version
 import datetime
 import os
+import sqlite3
+import tempfile
+import pytest
 
 
 def test_GuiBackendDb_init():
@@ -165,3 +170,36 @@ def test_convert_all_workbench_sql_files_to_sqlite():
     # Verify that default_schema is gone
     # Verify that DEFAULT CHARACTER SET is gone
     # Verify that DEFAULT NULL is gone
+
+
+def test_upgrade_db():
+    previous_db_version = str(latest_db_version).split(".")
+    previous_db_version[2] = str(int(previous_db_version[2])-1)
+    previous_db_version = Version(previous_db_version)
+
+    previous_version_script = os.path.join(
+        'gui_plugin', 'core', 'db_schema', f'mysqlsh_gui_backend_{previous_db_version}.sqlite.sql')
+    upgrade_script = os.path.join(
+        'gui_plugin', 'core', 'db_schema', f'mysqlsh_gui_backend_{previous_db_version}_to_{latest_db_version}.sqlite.sql')
+    assert os.path.exists(previous_version_script)
+    assert os.path.exists(upgrade_script)
+
+    temp_file = f"{tempfile.NamedTemporaryFile().name}.sqlite3"
+
+    conn = sqlite3.connect(temp_file)
+    cur = conn.cursor()
+
+    with open(previous_version_script, 'r') as sql_file:
+        sql_create = sql_file.read()
+    with open(upgrade_script, 'r') as sql_file:
+        sql_upgrade = sql_file.read()
+
+    try:
+        cur.executescript(sql_create)
+        cur.executescript(sql_upgrade)
+    except Exception as e:
+        pytest.fail(str(e))
+
+    conn.close()
+
+    os.remove(temp_file)

@@ -14,7 +14,8 @@ ws.tokens["types"] = [{"name": "Schema",        "type": "CATALOG_OBJECT"},
                       {"name": "Event",         "type": "SCHEMA_OBJECT"},
                       {"name": "Trigger",       "type": "TABLE_OBJECT"},
                       {"name": "Foreign Key",   "type": "TABLE_OBJECT"},
-                      {"name": "Index",         "type": "TABLE_OBJECT"}]
+                      {"name": "Index",         "type": "TABLE_OBJECT"},
+                      {"name": "Column",        "type": "TABLE_OBJECT"}]
 
 // We're assuming that schema `test_user_story` exists and contains all object listed in script below:
 // CREATE DATABASE  IF NOT EXISTS `test_user_story`;

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,6 @@
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 import gui_plugin.core.Logger as logger
-
 import re
 import json
 import datetime
@@ -203,11 +202,11 @@ class GuiBackendDb():
 
     def log(self, event_type, message):
         # insert this message into the log table
-        self._db.execute('''INSERT INTO gui_log.log(event_time, event_type, message) VALUES(?, ?, ?)''',
+        self._db.execute('''INSERT INTO `gui_log`.`log`(event_time, event_type, message) VALUES(?, ?, ?)''',
                          (datetime.datetime.now(), event_type, message))
 
     def message(self, session_id, is_response, message, request_id):
-        self._db.execute('''INSERT INTO gui_log.message(session_id, request_id, is_response,
+        self._db.execute('''INSERT INTO `gui_log`.`message`(session_id, request_id, is_response,
             message, sent) VALUES(?, ?, ?, ?, ?)''',
                          (session_id, request_id, is_response, message, datetime.datetime.now()))
 
@@ -419,7 +418,7 @@ def convert_workbench_sql_file_to_sqlite(mysql_sql_file_path):
             sqlite_sql_file.write(sql)
 
     except Exception as e:  # pragma: no cover
-        print(f'ERROR: Cannot convert file. {e}')
+        logger.error(f'Cannot convert file. {e}')
 
 
 @plugin_function('gui.core.convertAllWorkbenchSqlFilesToSqlite')
@@ -440,5 +439,5 @@ def convert_all_workbench_sql_files_to_sqlite(directory=None):
     for f_name in listdir(directory):
         if path.isfile(path.join(directory, f_name)) and \
                 f_name.endswith('.mysql.sql'):
-            print(f'Converting {f_name}...')
+            logger.debug(f'Converting {f_name}...')
             convert_workbench_sql_file_to_sqlite(path.join(directory, f_name))

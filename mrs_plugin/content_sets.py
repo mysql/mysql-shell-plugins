@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -88,7 +88,7 @@ def add_content_set(content_dir=None, service_id=None, **kwargs):
         raise_exceptions (bool): If set to true exceptions are raised
 
     Returns:
-        None in interactive mode, a dict with content_set_id and 
+        None in interactive mode, a dict with content_set_id and
             number_of_files_uploaded
     """
 
@@ -184,7 +184,7 @@ def add_content_set(content_dir=None, service_id=None, **kwargs):
             # Upload it to the content table
             res = session.run_sql("""
                 INSERT INTO `mysql_rest_service_metadata`.`content_file`(
-                    content_set_id, request_path, requires_auth, enabled, 
+                    content_set_id, request_path, requires_auth, enabled,
                     content)
                 VALUES(?, ?, ?, ?, ?)
                 """, [content_set_id,
@@ -226,7 +226,7 @@ def get_content_sets(service_id=None, **kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        include_enable_state (bool): Only include items with the given 
+        include_enable_state (bool): Only include items with the given
             enabled state
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
@@ -234,7 +234,7 @@ def get_content_sets(service_id=None, **kwargs):
         return_formatted (bool): If set to true, a list object is returned
 
     Returns:
-        Either a string listing the content sets when interactive is set or list 
+        Either a string listing the content sets when interactive is set or list
         of dicts representing the content sets
     """
 
@@ -257,11 +257,11 @@ def get_content_sets(service_id=None, **kwargs):
             return_formatted=False)
 
         sql = """
-            SELECT cs.id, cs.request_path, cs.requires_auth, 
-                cs.enabled, cs.comments, 
-                CONCAT(h.name, se.url_context_root) AS host_ctx 
-            FROM `mysql_rest_service_metadata`.`content_set` cs 
-                LEFT OUTER JOIN `mysql_rest_service_metadata`.`service` se 
+            SELECT cs.id, cs.request_path, cs.requires_auth,
+                cs.enabled, cs.comments,
+                CONCAT(h.name, se.url_context_root) AS host_ctx
+            FROM `mysql_rest_service_metadata`.`content_set` cs
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.`service` se
                     ON se.id = cs.service_id
                 LEFT JOIN `mysql_rest_service_metadata`.`url_host` h
 				    ON se.url_host_id = h.id
@@ -338,7 +338,7 @@ def get_content_set(request_path=None, **kwargs):
 
             # Check if there already is at least one content_set
             sql = """
-                SELECT COUNT(*) as content_set_count, MIN(id) AS id 
+                SELECT COUNT(*) as content_set_count, MIN(id) AS id
                 FROM `mysql_rest_service_metadata`.`content_set`
                 WHERE service_id = ?
                 """
@@ -378,11 +378,11 @@ def get_content_set(request_path=None, **kwargs):
 
         # Build SQL based on which input has been provided
         sql = """
-            SELECT cs.id, cs.request_path, cs.requires_auth, 
-                cs.enabled, cs.comments, 
-                CONCAT(h.name, se.url_context_root) AS host_ctx 
-            FROM `mysql_rest_service_metadata`.`content_set` cs 
-                LEFT OUTER JOIN `mysql_rest_service_metadata`.`service` se 
+            SELECT cs.id, cs.request_path, cs.requires_auth,
+                cs.enabled, cs.comments,
+                CONCAT(h.name, se.url_context_root) AS host_ctx
+            FROM `mysql_rest_service_metadata`.`content_set` cs
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.`service` se
                     ON se.id = cs.service_id
                 LEFT JOIN `mysql_rest_service_metadata`.`url_host` h
 				    ON se.url_host_id = h.id
@@ -404,7 +404,7 @@ def get_content_set(request_path=None, **kwargs):
         content_sets = core.get_sql_result_as_dict_list(res)
 
         if len(content_sets) != 1:
-            raise Exception("The given schema was not found.")
+            raise Exception("The given content set was not found.")
         else:
             return content_sets[0]
 
@@ -566,7 +566,7 @@ def change_content_set(change_type=None, request_path=None, service_id=None,
                 res = session.run_sql(
                     """
                     SELECT id FROM `mysql_rest_service_metadata`.`content_set`
-                    WHERE request_path = ? AND service_id = ? 
+                    WHERE request_path = ? AND service_id = ?
                     """,
                     [request_path, service.get("id")])
                 row = res.fetch_one()

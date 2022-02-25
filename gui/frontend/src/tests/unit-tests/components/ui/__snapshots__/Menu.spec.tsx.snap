@@ -73,13 +73,13 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container menubar"
+        class="msg container fixedScrollbar menubar"
         style="flex-direction: row; align-items: center;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container menuItem nohover submenu"
+          class="msg container fixedScrollbar menuItem nohover submenu"
           id="fileMenu"
           style="flex-direction: row;"
         >
@@ -95,7 +95,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container menuItem nohover submenu"
+          class="msg container fixedScrollbar menuItem nohover submenu"
           id="editMenu"
           style="flex-direction: row;"
         >
@@ -111,7 +111,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container menuItem nohover submenu"
+          class="msg container fixedScrollbar menuItem nohover submenu"
           id="selectionMenu"
           style="flex-direction: row;"
         >
@@ -127,7 +127,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container menuItem nohover submenu"
+          class="msg container fixedScrollbar menuItem nohover submenu"
           id="viewMenu"
           style="flex-direction: row;"
         >
@@ -143,7 +143,7 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container menuItem nohover submenu"
+          class="msg container fixedScrollbar menuItem nohover submenu"
           id="goMenu"
           style="flex-direction: row;"
         >
@@ -163,13 +163,13 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container menubar"
+      class="msg container fixedScrollbar menubar"
       style="flex-direction: row; align-items: center;"
     >
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container menuItem nohover submenu"
+        class="msg container fixedScrollbar menuItem nohover submenu"
         id="fileMenu"
         style="flex-direction: row;"
       >
@@ -185,7 +185,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container menuItem nohover submenu"
+        class="msg container fixedScrollbar menuItem nohover submenu"
         id="editMenu"
         style="flex-direction: row;"
       >
@@ -201,7 +201,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container menuItem nohover submenu"
+        class="msg container fixedScrollbar menuItem nohover submenu"
         id="selectionMenu"
         style="flex-direction: row;"
       >
@@ -217,7 +217,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container menuItem nohover submenu"
+        class="msg container fixedScrollbar menuItem nohover submenu"
         id="viewMenu"
         style="flex-direction: row;"
       >
@@ -233,7 +233,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container menuItem nohover submenu"
+        class="msg container fixedScrollbar menuItem nohover submenu"
         id="goMenu"
         style="flex-direction: row;"
       >

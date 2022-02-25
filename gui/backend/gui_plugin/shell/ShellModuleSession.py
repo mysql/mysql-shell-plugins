@@ -38,7 +38,6 @@ import gui_plugin.core.Error as Error
 import os.path
 from gui_plugin.core.lib.OciUtils import BastionHandler
 
-
 def remove_dict_useless_items(data):
     result = {}
     # remove empty entries
@@ -92,7 +91,7 @@ class ShellModuleSession(ModuleSession):
     def __init__(self, web_session, request_id, options=None, shell_args=None):
         super().__init__(web_session)
 
-        self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir(
+        self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
             'plugin_data', 'gui_plugin', 'shell_instance_home')
 
         if not os.path.exists(self._subprocess_home):
@@ -102,7 +101,7 @@ class ShellModuleSession(ModuleSession):
         # on the Shell Console
         subprocess_plugins = os.path.join(self._subprocess_home, 'plugins')
         if not os.path.exists(subprocess_plugins):
-            plugins_path = mysqlsh.plugin_manager.general.get_shell_user_dir(
+            plugins_path = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
                 'plugins')
             if os.name == 'nt':
                 p = subprocess.run(
@@ -157,7 +156,7 @@ class ShellModuleSession(ModuleSession):
             '\\history',
             '\\nopager',
             '\\pager', '\\P',
-            '\\quit', '\q',
+            '\\quit', '\\q',
             '\\rehash',
             '\\source', '\\.',
             '\\system', '\\!'
@@ -310,7 +309,6 @@ class ShellModuleSession(ModuleSession):
         # Read characters from the shell stdout and build responses
         # to deliver to the handle_frontend_command method
         reply_line = ""
-        exception_handler = None
         error_buffer = ""
         while not self._shell_exited:
             reply_json = None
@@ -466,7 +464,7 @@ class ShellModuleSession(ModuleSession):
     def kill_command(self):
         # windows. Need CTRL_BREAK_EVENT to raise the signal in the whole process group
         os.kill(self._shell.pid,
-                signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)
+                signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT) # pylint: disable=no-member
 
     def cancel_request(self, request_id):
         self._cancel_requests.append(request_id)

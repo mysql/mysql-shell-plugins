@@ -29,8 +29,9 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { DBEditorModuleId } from "../../../../frontend/src/modules/ModuleInfo";
 import { DBType, IConnectionDetails, ShellInterface } from "../../../../frontend/src/supplement/ShellInterface";
 import {
-    ICommErrorEvent, ICommMetaDataEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent,
-    ICommOpenConnectionEvent, ICommResultSetEvent, ICommSimpleResultEvent,
+    ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent, ICommObjectNamesEvent,
+    ICommOpenConnectionEvent, ICommResultSetEvent, ICommSimpleResultEvent, IShellFeedbackRequest, IShellResultType,
+    ShellPromptResponseType,
 } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
@@ -42,25 +43,15 @@ import { ISqliteConnectionOptions } from "../../../../frontend/src/communication
 import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem";
 import { SchemaItemGroupType } from "./SchemaIndex";
 
-import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
-import { SchemaViewTreeItem } from "./SchemaViewTreeItem";
-import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem";
-import { SchemaTreeColumnTreeItem } from "./SchemaTreeColumnTreeItem";
-import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem";
-import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem";
-import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
-import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem";
-import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem";
-import { MrsTreeItem } from "./MrsTreeItem";
-import { MrsServiceTreeItem } from "./MrsServiceTreeItem";
-import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem";
-import { SchemaEventTreeItem } from "./SchemaEventTreeItem";
-import { SchemaTableMySQLTreeItem } from "./SchemaTableMySQLTreeItem";
-import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem";
-import { AdminTreeItem } from "./AdminTreeItem";
-import { AdminSectionTreeItem } from "./AdminSectionTreeItem";
 import { showStatusText } from "../../extension";
 import { IDictionary } from "../../../../frontend/src/app-logic/Types";
+import {
+    AdminSectionTreeItem, AdminTreeItem, ConnectionMySQLTreeItem, ConnectionSqliteTreeItem, MrsDbObjectTreeItem,
+    MrsSchemaTreeItem, MrsServiceTreeItem, MrsTreeItem, SchemaEventTreeItem, SchemaRoutineTreeItem,
+    SchemaTableColumnTreeItem, SchemaTableForeignKeyTreeItem, SchemaTableIndexTreeItem, SchemaTableMySQLTreeItem,
+    SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
+} from ".";
+import { stripAnsiCode } from "../../../../frontend/src/utilities/helpers";
 
 export interface IConnectionEntry {
     id: string;
@@ -168,16 +159,20 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         }
 
         if (element instanceof SchemaGroupTreeItem) {
-            return this.loadGroupMembers(element);
+            return this.loadSchemaMembers(element);
         }
 
         if (element instanceof SchemaTableTreeItem) {
             return [
-                new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.Columns),
-                new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.Indexes),
-                new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.ForeignKeys),
-                new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.Triggers),
+                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.Columns),
+                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.Indexes),
+                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.ForeignKeys),
+                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.Triggers),
             ];
+        }
+
+        if (element instanceof TableGroupTreeItem) {
+            return this.loadTableMembers(element);
         }
 
         if (element instanceof MrsTreeItem) {
@@ -195,10 +190,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         return Promise.resolve([]);
     }
 
-    private closeAllConnections() {
+    public closeAllConnections(): void {
         this.connections.forEach((entry) => {
             if (entry.backend) {
-                entry.backend.closeSqlEditorSession().catch(() => {/**/ });
+                entry.backend.closeSqlEditorSession().catch(() => { /**/ });
             }
         });
 
@@ -358,6 +353,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                         this.openNewConnection(entry).then((items) => {
                             resolve(items);
                         }).catch((reason) => {
+                            entry.backend?.closeSqlEditorSession();
+                            entry.backend = undefined;
+
                             reject(reason);
                         });
                     }
@@ -420,10 +418,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                                 }
                             }
 
-                            if (entry.details.dbType === DBType.MySQL) {
+                            // TODO: Implement the MySQL Administration subtree,
+                            // leave the current implementation commented out for now on purpose
+                            /*if (entry.details.dbType === DBType.MySQL) {
                                 schemaList.unshift(new AdminTreeItem(
                                     "MySQL Administration", "", entry, true));
-                            }
+                            }*/
 
                             resolve(schemaList);
 
@@ -455,7 +455,41 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 entry.backend.openConnection(entry.details.id).then((event: ICommOpenConnectionEvent) => {
                     switch (event.eventType) {
                         case EventType.DataResponse: {
-                            if (event.message) {
+                            const result = event.data?.result as IShellResultType;
+                            if (this.isShellPromptResult(result)) {
+                                if (result.password) {
+                                    void window.showInputBox({
+                                        title: stripAnsiCode(result.password),
+                                        password: true,
+                                    }).then((value) => {
+                                        if (event.data && event.data.requestId) {
+                                            if (value) {
+                                                entry.backend!.sendReply(event.data.requestId,
+                                                    ShellPromptResponseType.Ok, value);
+                                            } else {
+                                                entry.backend!.sendReply(event.data.requestId,
+                                                    ShellPromptResponseType.Cancel, "");
+                                            }
+                                        }
+                                    });
+                                } else if (result.prompt) {
+                                    void window.showInputBox({
+                                        title: stripAnsiCode(result.prompt),
+                                        password: false,
+                                        value: "N",
+                                    }).then((value) => {
+                                        if (event.data && event.data.requestId) {
+                                            if (value) {
+                                                entry.backend!.sendReply(event.data.requestId,
+                                                    ShellPromptResponseType.Ok, value);
+                                            } else {
+                                                entry.backend!.sendReply(event.data.requestId,
+                                                    ShellPromptResponseType.Cancel, "");
+                                            }
+                                        }
+                                    });
+                                }
+                            } else if (event.message) {
                                 showStatusText(event.message);
                             }
 
@@ -486,13 +520,86 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     }
 
     /**
-     * Loads the list of schemas objects.
+     * Loads a list of schemas object names (tables, views etc.).
      *
      * @param element The tree item for which to load the children.
      *
      * @returns A promise that resolves to a list of tree items for the UI.
      */
-    private loadGroupMembers(element: SchemaGroupTreeItem): Promise<TreeItem[]> {
+    private async loadSchemaMembers(element: SchemaGroupTreeItem): Promise<TreeItem[]> {
+        if (!element.entry.backend) {
+            return [];
+        }
+
+        const name = element.label as string;
+        const schema = element.schema;
+        const entry = element.entry;
+
+        const items: TreeItem[] = [];
+
+        const objectType = name.slice(0, -1);
+        if (objectType === "Routine") {
+            const createItems = (type: "function" | "procedure", list: string[]): void => {
+                for (const objectName of list) {
+                    items.push(new SchemaRoutineTreeItem(objectName, schema, type, entry, false));
+                }
+            };
+
+            try {
+                let list = await element.entry.backend.getSchemaObjectsAsync(element.schema, objectType, "function");
+                createItems("function", list);
+                list = await element.entry.backend.getSchemaObjectsAsync(element.schema, objectType, "procedure");
+                createItems("procedure", list);
+            } catch (error) {
+                void window.showErrorMessage("Error while retrieving schema objects: " + (error as string));
+            }
+        } else {
+            try {
+                const list = await element.entry.backend.getSchemaObjectsAsync(element.schema, objectType);
+                for (const objectName of list) {
+                    switch (name) {
+                        case SchemaItemGroupType.Tables: {
+                            if (element.entry.details.dbType === "MySQL") {
+                                items.push(new SchemaTableMySQLTreeItem(objectName, schema, entry, true));
+                            } else {
+                                items.push(new SchemaTableTreeItem(objectName, schema, entry, true));
+                            }
+
+                            break;
+                        }
+
+                        case SchemaItemGroupType.Views: {
+                            items.push(new SchemaViewTreeItem(objectName, schema, entry, true));
+
+                            break;
+                        }
+
+                        case SchemaItemGroupType.Events: {
+                            items.push(new SchemaEventTreeItem(objectName, schema, entry, false));
+
+                            break;
+                        }
+
+                        default:
+                    }
+                }
+            } catch (error) {
+                void window.showErrorMessage("Error while retrieving schema objects: " + (error as string));
+            }
+
+        }
+
+        return items;
+    }
+
+    /**
+     * Loads a list of table object names (indexes, triggers etc.).
+     *
+     * @param element The tree item for which to load the children.
+     *
+     * @returns A promise that resolves to a list of tree items for the UI.
+     */
+    private loadTableMembers(element: TableGroupTreeItem): Promise<TreeItem[]> {
         return new Promise((resolve, reject) => {
             if (!element.entry.backend) {
                 resolve([]);
@@ -504,10 +611,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
             const name = element.label as string;
             const schema = element.schema;
+            const table = element.table;
             const entry = element.entry;
 
-            element.entry.backend.getSchemaObjects(element.schema, name.slice(0, -1), "")
-                .then((event: ICommMetaDataEvent) => {
+            const type = name === "Indexes" ? "Index" : name.slice(0, -1);
+            element.entry.backend.getTableObjects(element.schema, element.table, type)
+                .then((event: ICommObjectNamesEvent) => {
                     if (!event.data) {
                         return;
                     }
@@ -515,57 +624,29 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                     switch (event.eventType) {
                         case EventType.DataResponse:
                         case EventType.FinalResponse: {
-                            for (const objectName of event.data.result as string[]) {
+                            for (const objectName of event.data.result) {
                                 let item: TreeItem | undefined;
                                 switch (name) {
-                                    case SchemaItemGroupType.Tables: {
-                                        if (element.entry.details.dbType === "MySQL") {
-                                            item = new SchemaTableMySQLTreeItem(objectName, schema, entry, true);
-                                        } else {
-                                            item = new SchemaTableTreeItem(objectName, schema, entry, true);
-                                        }
-
-                                        break;
-                                    }
-
-                                    case SchemaItemGroupType.Views: {
-                                        item = new SchemaViewTreeItem(objectName, schema, entry, true);
-
-                                        break;
-                                    }
-
-                                    case SchemaItemGroupType.Routines: {
-                                        item = new SchemaRoutineTreeItem(objectName, schema, entry, false);
-
-                                        break;
-                                    }
-
-                                    case SchemaItemGroupType.Events: {
-                                        item = new SchemaEventTreeItem(objectName, schema, entry, false);
-
-                                        break;
-                                    }
-
                                     case SchemaItemGroupType.Columns: {
-                                        item = new SchemaTreeColumnTreeItem(objectName, schema, objectName, entry);
+                                        item = new SchemaTableColumnTreeItem(objectName, schema, table, entry);
 
                                         break;
                                     }
 
                                     case SchemaItemGroupType.Indexes: {
-                                        item = new SchemaTableIndexTreeItem(objectName, schema, entry, false);
+                                        item = new SchemaTableIndexTreeItem(objectName, schema, table, entry);
 
                                         break;
                                     }
 
                                     case SchemaItemGroupType.ForeignKeys: {
-                                        item = new SchemaTableForeignKeyTreeItem(objectName, schema, entry, false);
+                                        item = new SchemaTableForeignKeyTreeItem(objectName, schema, table, entry);
 
                                         break;
                                     }
 
                                     case SchemaItemGroupType.Triggers: {
-                                        item = new SchemaTableTriggerTreeItem(objectName, schema, entry, false);
+                                        item = new SchemaTableTriggerTreeItem(objectName, schema, table, entry);
 
                                         break;
                                     }
@@ -697,4 +778,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         return Promise.resolve(true);
     };
+
+    private isShellPromptResult(response?: IShellResultType): response is IShellFeedbackRequest {
+        const candidate = response as IShellFeedbackRequest;
+
+        return candidate?.password !== undefined || candidate?.prompt !== undefined;
+    }
+
 }

@@ -10,7 +10,7 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container dropdown"
+        class="msg container fixedScrollbar dropdown"
         style="flex-direction: row; align-items: center; max-width: 300px;"
         tabindex="0"
       >
@@ -29,7 +29,7 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container dropdown"
+      class="msg container fixedScrollbar dropdown"
       style="flex-direction: row; align-items: center; max-width: 300px;"
       tabindex="0"
     >

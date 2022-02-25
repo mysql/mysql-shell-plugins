@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -32,6 +32,7 @@ import re
 
 beginning_year = 2020
 binding = {}
+plugin_imports = {}
 
 bindings_type_override = {
     "IShellDbConnection": ["IShellDbconnectionsAddDbConnectionConnection", "IShellDbconnectionsUpdateDbConnectionConnection"],
@@ -89,7 +90,7 @@ bindings_template = """/*
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Protocol, IShellRequest, IShellDictionary } from ".";
+import { {__PLUGIN_IMPORTS__} } from ".";
 
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -228,6 +229,10 @@ class PythonParamToJavascript:
         if self.python_type in ["dictionary"]:
             if self.options is not None and len(self.options) > 0:
                 return self.interface_name
+            global plugin_imports
+            if not "IShellDictionary" in plugin_imports[self.plugin_name]:
+                plugin_imports[self.plugin_name].append("IShellDictionary")
+
             return "IShellDictionary"
         if self.python_type in ["bool"]:
             return "boolean"
@@ -369,11 +374,13 @@ def add_to_protocol_ts(definition):
                                  "frontend", "src", "communication", protocol_filename)
 
     global binding
+    global plugin_imports
     global bindings_template
 
     if plugin_name not in binding:
         if os.path.exists(protocol_path):
             os.remove(protocol_path)
+        plugin_imports[plugin_name] = ["Protocol", "IShellRequest"]
         binding[plugin_name] = bindings_template.replace("{__PLUGIN__}", plugin_name)
         binding[plugin_name] = binding[plugin_name].replace("{__COPYRIGHT__}", "Copyright")
 
@@ -502,6 +509,6 @@ def add_to_protocol_ts(definition):
 
     # Save the current Protocol.ts file as it is at this moment
     with open(os.path.join(protocol_path), "w") as f:
-        f.write(binding[plugin_name])
+        f.write(binding[plugin_name].replace("{__PLUGIN_IMPORTS__}", ", ".join(plugin_imports[plugin_name])))
 
 registrar.add_registration_callback(add_to_protocol_ts)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -46,6 +46,7 @@ import { ITreeGridOptions, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { IResultSet, IResultSetRows } from "../../script-execution";
 import { convertToTitleCase } from "../../utilities/helpers";
 import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
+import { requisitions } from "../../supplement/Requisitions";
 
 const emptyParams = {};
 
@@ -63,15 +64,12 @@ interface IResultViewState extends IComponentState {
 
     hasMorePages: boolean;
 
-    // Rows as objects with column ids as their keys.
-    convertedRows: unknown[];
-
     // These values are either copies of the component properties or set during an explicit
     // addData call.
     executionInfo?: IExecutionInfo;
 }
 
-// Implements a grid for result data.
+// Implements a table for result data.
 export class ResultView extends Component<IResultViewProperties, IResultViewState> {
 
     private gridRef = React.createRef<TreeGrid>();
@@ -79,6 +77,9 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
     // Column info not in state but as local variable. This way we don't need to re-render when columns are set
     // via addData().
     private columns?: IColumnInfo[];
+
+    // Rows as objects with column ids as their keys.
+    private convertedRows: unknown[];
 
     // Definitions derived from the columns above.
     private columnDefinitions: Tabulator.ColumnDefinition[] = [];
@@ -102,8 +103,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
             stateVersion: 0,
             dirty: false,
             hasMorePages: false,
-
-            convertedRows: [],
         };
 
         this.addHandledProperties("tableData", "onResultPageChange");
@@ -125,7 +124,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
     }
 
     public render(): React.ReactNode {
-        const { dirty, hasMorePages, convertedRows, executionInfo } = this.state;
+        const { dirty, hasMorePages, executionInfo } = this.state;
 
         const className = this.getEffectiveClassNames(["resultView"]);
 
@@ -138,6 +137,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         };
 
         const gotError = executionInfo && executionInfo.type === MessageType.Error;
+        const gotResponse = executionInfo && executionInfo.type === MessageType.Response;
 
         return (
             <Container
@@ -146,10 +146,10 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                 {...this.unhandledProperties}
             >
                 {
-                    !gotError && <TreeGrid
+                    !gotError && !gotResponse && <TreeGrid
                         ref={this.gridRef}
                         style={{ fontSize: "10pt" }}
-                        tableData={convertedRows}
+                        tableData={this.convertedRows}
                         columns={this.columnDefinitions}
                         options={options}
                         onColumnResized={this.handleColumnResized}
@@ -159,7 +159,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                 {
                     executionInfo && <ResultStatus executionInfo={executionInfo}>
                         {
-                            !gotError && <Toolbar
+                            !gotError && !gotResponse && <Toolbar
                                 dropShadow={false}
                             >
                                 <Button
@@ -391,81 +391,69 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
     private internallyAddData(table: Tabulator, newData: IResultSetRows): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (newData.rows) {
-                if (!this.replacePending && newData.columns.length > 0) {
-                    // This is the first set that contains column data, so store the for later use too.
-                    this.columns = newData.columns;
-                    this.generateColumnDefinitions();
-                    table.setColumns(this.columnDefinitions);
-                }
+            if (!this.replacePending && newData.columns.length > 0) {
+                // This is the first set that contains column data, so store the for later use too.
+                this.columns = newData.columns;
+                this.generateColumnDefinitions();
+                table.setColumns(this.columnDefinitions);
+            }
 
-                if (this.columns) {
-                    let convertedRows: unknown[] = [];
-                    if (newData.rows.length > 0 && !Array.isArray(newData.rows[0])) {
-                        // Table data is already in object format. No need to convert.
-                        convertedRows = newData.rows;
-                    } else {
-                        newData.rows.forEach((entry): void => {
-                            const row = {};
+            if (this.columns) {
+                let convertedRows: unknown[] = [];
+                if (newData.rows.length > 0 && !Array.isArray(newData.rows[0])) {
+                    // Table data is already in object format. No need to convert.
+                    convertedRows = newData.rows;
+                } else {
+                    newData.rows.forEach((entry): void => {
+                        const row = {};
 
-                            this.columns!.forEach((column: IColumnInfo, columnIndex: number): void => {
-                                row[column.name] = (entry as IDictionary)[columnIndex];
-                            });
-                            convertedRows.push(row);
+                        this.columns!.forEach((column: IColumnInfo, columnIndex: number): void => {
+                            row[column.name] = (entry as IDictionary)[columnIndex];
                         });
-                    }
-
-                    let dataPromise: Promise<void | Tabulator.RowComponent>;
-                    if (this.replacePending) {
-                        dataPromise = table.setData(convertedRows);
-                    } else {
-                        dataPromise = table.addData(convertedRows as Array<{}>);
-                    }
-
-                    dataPromise.then(() => {
-                        if (newData.executionInfo) {
-                            table.restoreRedraw();
-
-                            const { stateVersion } = this.state;
-                            this.setState({
-                                stateVersion: stateVersion + 1,
-                                executionInfo: newData.executionInfo,
-                                dirty: false,
-                                hasMorePages: newData.hasMoreRows ?? false,
-                            });
-                        } else {
-                            // Redraw block calls are not counted, but set a simple flag. So we can simply
-                            // block any UI update in that table after the first result arrived
-                            // and re-enable them once the last result was received.
-                            table.blockRedraw();
-                        }
-
-                        resolve();
-                    }).catch((reason) => {
-                        reject(reason);
+                        convertedRows.push(row);
                     });
-
-                    this.replacePending = false;
-
-                    return;
                 }
-            }
 
-            // This way, when no data was actually given.
-            if (newData.executionInfo) {
-                const { stateVersion } = this.state;
-                this.setState({
-                    stateVersion: stateVersion + 1,
-                    executionInfo: newData.executionInfo,
-                    dirty: false,
-                    hasMorePages: false,
+                let dataPromise: Promise<void | Tabulator.RowComponent>;
+                if (this.replacePending) {
+                    this.convertedRows = convertedRows;
+
+                    dataPromise = table.setData(convertedRows);
+                } else {
+                    this.convertedRows.push(...convertedRows);
+
+                    dataPromise = table.addData(convertedRows as Array<{}>);
+                }
+
+                dataPromise.then(() => {
+                    if (newData.executionInfo) {
+                        table.restoreRedraw();
+
+                        const { stateVersion } = this.state;
+                        this.setState({
+                            stateVersion: stateVersion + 1,
+                            executionInfo: newData.executionInfo,
+                            dirty: false,
+                            hasMorePages: newData.hasMoreRows ?? false,
+                        });
+                    } else {
+                        // Redraw block calls are not counted, but set a simple flag. So we can simply
+                        // block any UI update in that table after the first result arrived
+                        // and re-enable them once the last result was received.
+                        table.blockRedraw();
+                    }
+
+                    resolve();
+                }).catch((reason) => {
+                    reject(reason);
                 });
+
+                this.replacePending = false;
+
+                return;
             }
-
-            this.replacePending = false;
-
-            resolve();
-        });
+        },
+        );
     }
 
     private generateColumnDefinitions = (): void => {
@@ -505,7 +493,9 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                     case DBDataType.MultiPoint:
                     case DBDataType.MultiLineString:
                     case DBDataType.MultiPolygon:
-                    case DBDataType.Json: {
+                    case DBDataType.Json:
+                    case DBDataType.Enum:
+                    case DBDataType.Set: {
                         formatter = this.stringFormatter;
                         editor = this.editorHost;
                         editorParams = (): { info: IColumnInfo } => { return { info }; };
@@ -560,24 +550,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
                     case DBDataType.Boolean: {
                         formatter = this.booleanFormatter;
-                        editor = this.editorHost;
-                        editorParams = (): { info: IColumnInfo } => { return { info }; };
-
-                        break;
-                    }
-
-                    case DBDataType.Enum: {
-                        formatter = this.enumFormatter;
-                        formatterParams = { isSet: false };
-                        editor = this.editorHost;
-                        editorParams = (): { info: IColumnInfo } => { return { info }; };
-
-                        break;
-                    }
-
-                    case DBDataType.Set: {
-                        formatter = this.enumFormatter;
-                        formatterParams = { isSet: true };
                         editor = this.editorHost;
                         editorParams = (): { info: IColumnInfo } => { return { info }; };
 
@@ -815,12 +787,12 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                 }
 
                 case "copyFieldMenuItem": {
-                    void navigator.clipboard.writeText(`'${this.currentCell.getValue() as string}'`);
+                    void requisitions.writeToClipboard(`'${this.currentCell.getValue() as string}'`);
                     break;
                 }
 
                 case "copyFieldUnquotedMenuItem": {
-                    void navigator.clipboard.writeText(String(this.currentCell.getValue()));
+                    void requisitions.writeToClipboard(String(this.currentCell.getValue()));
 
                     break;
                 }
@@ -900,7 +872,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                 content += "\n";
             });
 
-            void navigator.clipboard.writeText(content);
+            requisitions.writeToClipboard(content);
         }
     };
 
@@ -960,11 +932,11 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         const { tableData } = this.props;
         const { stateVersion } = this.state;
 
-        let convertedRows: unknown[] = [];
+        this.convertedRows = [];
         if (tableData.rows) {
             if (tableData.rows.length > 0 && !Array.isArray(tableData.rows[0])) {
                 // Table data is already in object format. No need to convert.
-                convertedRows = tableData.rows;
+                this.convertedRows = tableData.rows;
             } else if (tableData.columns) {
                 tableData.rows.forEach((entry: unknown): void => {
                     const row = {};
@@ -972,7 +944,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                     tableData.columns.forEach((column: IColumnInfo, columnIndex: number): void => {
                         row[column.name] = (entry as IDictionary)[columnIndex];
                     });
-                    convertedRows.push(row);
+                    this.convertedRows.push(row);
                 });
             }
         }
@@ -987,7 +959,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
         this.setState({
             stateVersion: stateVersion + 1,
-            convertedRows,
             executionInfo: tableData.executionInfo,
             dirty: false,
             hasMorePages: tableData.hasMoreRows ?? false,
@@ -1246,17 +1217,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         }
 
         render(element, host);
-
-        return host;
-    };
-
-    private enumFormatter = (): string | HTMLElement => {
-        const icon = <Icon src={blobIcon} width={30} height={11} />;
-
-        const host = document.createElement("div");
-        host.className = "blobIcon";
-
-        render(icon, host);
 
         return host;
     };

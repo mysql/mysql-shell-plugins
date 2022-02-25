@@ -110,6 +110,8 @@ def list_bastions(**kwargs):
 
     Keyword Args:
         compartment_id (str): OCID of the parent compartment
+        valid_for_db_system_id (str): OCID of the db_system_id the bastions 
+            needs to be valid for and therefore are in the same subnet
         config (dict): An OCI config object or None
         config_profile (str): The name of an OCI config profile
         interactive (bool): Indicates whether to execute in interactive mode
@@ -123,6 +125,8 @@ def list_bastions(**kwargs):
     """
 
     compartment_id = kwargs.get("compartment_id")
+    valid_for_db_system_id = kwargs.get("valid_for_db_system_id")
+
     config = kwargs.get("config")
     config_profile = kwargs.get("config_profile")
 
@@ -155,9 +159,30 @@ def list_bastions(**kwargs):
             # Filter out all deleted bastions
             bastions = [b for b in bastions if b.lifecycle_state != "DELETED"]
 
+            # Filter out all bastions that are not valid for the given DbSystem
+            if valid_for_db_system_id:
+                valid_bastions = []
+                db_system = mysql_database_service.get_db_system(
+                    db_system_id=valid_for_db_system_id,
+                    config=config, interactive=False,
+                    return_python_object=True)
+                for b in bastions:
+                    bastion = bastion_client.get_bastion(bastion_id=b.id).data
+                    if bastion.target_subnet_id == db_system.subnet_id:
+                        valid_bastions.append(bastion)
+                bastions = valid_bastions
+
+
+            # Add the is_current field
+            current_bastion_id = configuration.get_current_bastion_id(
+                config=config)
+
             for b in bastions:
-                sessions = bastion_client.list_sessions(bastion_id=b.id).data
-                setattr(b, "sessions", sessions)
+                # Add the is_current field to the object, also adding it to
+                # the swagger_types so oci.util.to_dict() does include it
+                setattr(b, "is_current", b.id == current_bastion_id)
+                b.swagger_types["is_current"] = "bool"
+                # bastions[i] = b
 
             if len(bastions) < 1 and interactive:
                 print("This compartment contains no bastions.")
@@ -268,7 +293,8 @@ def get_bastion(**kwargs):
                 if bastion_name:
                     for b in bastions:
                         if b.name == bastion_name:
-                            bastion = b
+                            bastion = bastion_client.get_bastion(
+                                bastion_id=b.id).data
                             break
 
                     if not interactive:
@@ -277,7 +303,8 @@ def get_bastion(**kwargs):
 
                 # Fallback to first in compartment
                 if fallback_to_any_in_compartment:
-                    bastion = bastions[0]
+                    bastion = bastion_client.get_bastion(
+                        bastion_id=bastions[0].id).data
 
             if not bastion and interactive:
                 # If the user_name was not given or found, print out the list
@@ -292,8 +319,9 @@ def get_bastion(**kwargs):
                                     "of the Bastion: "),
                     item_name_property="name", given_value=bastion_name)
 
-                bastion = bastion_client.get_bastion(
-                    bastion_id=selected_bastion.id).data
+                if selected_bastion:
+                    bastion = bastion_client.get_bastion(
+                        bastion_id=selected_bastion.id).data
 
             if bastion and await_state:
                 import time
@@ -434,35 +462,67 @@ def create_bastion(**kwargs):
 
             # Check if the db_system already has a Bastion set in the 
             # freeform_tags
-            if db_system and db_system.freeform_tags.get('bastion_id'):
-                bastion = None
-                # Check if that bastion still exists
-                try:
-                    print("Check if that bastion still exists")
-                    bastion = get_bastion(
-                        bastion_id=db_system.freeform_tags.get('bastion_id'),
-                        config=config, interactive=False)
-                except ValueError:
-                    # If not, remove that old bastion id from the freeform_tags
-                    db_system.freeform_tags.pop('bastion_id', None)
-                    print("If not, remove that old bastion id from the freeform_tags")
-                    mysql_database_service.update_db_system(
-                        db_system_id=db_system.id,
-                        new_freeform_tags=db_system.freeform_tags,
-                        config=config, interactive=False)
+            # if db_system and db_system.freeform_tags.get('bastion_id'):
+            #     bastion = None
+            #     # Check if that bastion still exists
+            #     try:
+            #         print("Check if that bastion still exists")
+            #         bastion = get_bastion(
+            #             bastion_id=db_system.freeform_tags.get('bastion_id'),
+            #             return_type="OBJ",
+            #             config=config, interactive=False)
+            #     except ValueError:
+            #         # If not, remove that old bastion id from the freeform_tags
+            #         db_system.freeform_tags.pop('bastion_id', None)
+            #         mysql_database_service.update_db_system(
+            #             db_system_id=db_system.id,
+            #             new_freeform_tags=db_system.freeform_tags,
+            #             config=config, interactive=False)
 
-                # If the assigned bastion does exist, error out
-                if bastion and bastion.lifecycle_state == \
-                    oci.bastion.models.Bastion.LIFECYCLE_STATE_ACTIVE:
-                    raise ValueError(
-                        "The given MySQL DB System already has a Bastion "
-                        "assigned. Please remove 'bastion_id' from the "
-                        "freeform_tags to create a new Bastion for this "
-                        "DB System. Operation cancelled.")
+            #     # If the assigned bastion does exist, error out
+            #     if bastion and bastion.lifecycle_state == \
+            #         oci.bastion.models.Bastion.LIFECYCLE_STATE_ACTIVE:
+            #         raise ValueError(
+            #             "The given MySQL DB System already has a Bastion "
+            #             "assigned. Please remove 'bastion_id' from the "
+            #             "freeform_tags to create a new Bastion for this "
+            #             "DB System. Operation cancelled.")
+
+            # If a db_system was given, take the compartment_id from there
+            if not compartment_id and db_system:
+                compartment_id = db_system.compartment_id
+            elif not compartment_id:
+                compartment_id = current_compartment_id
 
             if not bastion_name:
                 if db_system:
-                    bastion_name = f"BastionForDbSystems"
+                    import re
+                    # Get a unique name for the new bastion, ensure it does
+                    # not collide with another bastion in the compartment and
+                    # that it only contains of alphanumeric characters
+                    bastion_core_name = (
+                        "Bastion4" + 
+                        re.sub('[\W_]+', '', db_system.display_name[:35]))
+                    bastion_name = bastion_core_name
+
+                    bastions = list_bastions(
+                        compartment_id=compartment_id,
+                        config=config, interactive=False,
+                        return_type="OBJ", raise_exceptions=True)
+                    b_nr = 2
+                    name_found = False
+
+                    # Keep increasing the trailing number till a unique name is 
+                    # found
+                    while not name_found:
+                        name_found = True
+                        for b in bastions:
+                            if b.name == bastion_name:
+                                bastion_name = f'{bastion_core_name}{b_nr}'
+                                name_found = False
+                                b_nr += 1
+                                break
+
                 elif interactive:
                     bastion_name = core.prompt(
                         'Please enter a name for this new Bastion: ')
@@ -471,12 +531,6 @@ def create_bastion(**kwargs):
             if not bastion_name:
                 raise ValueError("No bastion_name given. "
                                  "Operation cancelled.")
-
-            # If a db_system was given, take the compartment_id from there
-            if not compartment_id and db_system:
-                compartment_id = db_system.compartment_id
-            elif not compartment_id:
-                compartment_id = current_compartment_id
 
             if not target_subnet_id:
                 if db_system:
@@ -509,14 +563,14 @@ def create_bastion(**kwargs):
                 create_bastion_details=bastion_details).data
 
             # Update the db_system freeform_tags to hold the assigned bastion 
-            if db_system:
-                print("Update the db_system freeform_tags to hold the assigned bastion ")
-                db_system.freeform_tags["bastion_id"] = new_bastion.id
+            # if db_system:
+            #     print("Update the db_system freeform_tags to hold the assigned bastion ")
+            #     db_system.freeform_tags["bastion_id"] = new_bastion.id
 
-                mysql_database_service.update_db_system(
-                    db_system_id=db_system.id,
-                    new_freeform_tags=db_system.freeform_tags,
-                    config=config, interactive=False)
+            #     mysql_database_service.update_db_system(
+            #         db_system_id=db_system.id,
+            #         new_freeform_tags=db_system.freeform_tags,
+            #         config=config, interactive=False)
 
             return core.oci_object(
                 oci_object=new_bastion,
@@ -618,21 +672,21 @@ def delete_bastion(**kwargs):
             db_system_client = core.get_oci_db_system_client(config=config)
 
             # Update db_systems in the compartment and remove the bastion_id
-            db_systems = mysql_database_service.list_db_systems(
-                compartment_id=bastion.compartment_id,
-                config=config, interactive=False)
-            for db_system in db_systems:
-                if "bastion_id" in db_system.get("freeform_tags"):
-                    if db_system.get("freeform_tags").get("bastion_id") == \
-                            bastion_id:
-                        # Remove the "bastion_id" key from the dict
-                        db_system.get("freeform_tags").pop("bastion_id")
+            # db_systems = mysql_database_service.list_db_systems(
+            #     compartment_id=bastion.compartment_id,
+            #     config=config, interactive=False)
+            # for db_system in db_systems:
+            #     if "bastion_id" in db_system.get("freeform_tags"):
+            #         if db_system.get("freeform_tags").get("bastion_id") == \
+            #                 bastion_id:
+            #             # Remove the "bastion_id" key from the dict
+            #             db_system.get("freeform_tags").pop("bastion_id")
 
-                        # Update the db_system
-                        update_details = oci.mysql.models.UpdateDbSystemDetails(
-                            freeform_tags=db_system.get("freeform_tags"))
-                        db_system_client.update_db_system(
-                            db_system.get("id"), update_details)
+            #             # Update the db_system
+            #             update_details = oci.mysql.models.UpdateDbSystemDetails(
+            #                 freeform_tags=db_system.get("freeform_tags"))
+            #             db_system_client.update_db_system(
+            #                 db_system.get("id"), update_details)
 
             # If the current bastion has been deleted, clear it
             if configuration.get_current_bastion_id(

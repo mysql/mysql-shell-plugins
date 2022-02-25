@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -375,7 +375,7 @@ export class SQLiteParsingServices {
                         break; // Not enough input for that.
                     }
 
-                    const candidate = sql.substr(tail, 9);
+                    const candidate = sql.substring(tail, tail + 9);
                     if (candidate.match(SQLiteParsingServices.delimiterKeyword)) {
                         // Delimiter keyword found - get the new delimiter (everything until the end of the line).
                         // But first push anything we found so far and haven't pushed yet.
@@ -431,14 +431,14 @@ export class SQLiteParsingServices {
                             haveContent = false;
                         } else {
                             // Multi character delimiter?
-                            const candidate = sql.substr(tail, delimiter.length);
+                            const candidate = sql.substring(tail, tail + delimiter.length);
                             if (candidate === delimiter) {
                                 // Multi char delimiter is complete. Tail still points to the start of the delimiter.
                                 tail += delimiter.length;
                                 result.push({
                                     delimiter,
                                     span: { start, length: tail - start },
-                                    contentStart: haveContent ? tail : start - 1,
+                                    contentStart: haveContent ? head : start - 1,
                                     state: StatementFinishState.Complete,
                                 });
 

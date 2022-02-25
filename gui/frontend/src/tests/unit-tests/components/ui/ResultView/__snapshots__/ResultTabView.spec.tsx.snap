@@ -10,13 +10,13 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container tabview top resultHost"
+        class="msg container fixedScrollbar tabview top resultHost"
         style="flex-direction: column;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container content"
+          class="msg container fixedScrollbar content"
           style="flex-direction: column;"
         />
       </div>
@@ -26,13 +26,13 @@ Object {
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg container tabview top resultHost"
+      class="msg container fixedScrollbar tabview top resultHost"
       style="flex-direction: column;"
     >
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg container content"
+        class="msg container fixedScrollbar content"
         style="flex-direction: column;"
       />
     </div>

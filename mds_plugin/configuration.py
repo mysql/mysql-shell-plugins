@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@
     which is stored in the ~/.oci/oci_cli_rc file by default.
 
     When using the MDS plugin API the OCI config selected by the user is stored
-    in getattr(mysqlsh.globals, 'config')
+    in getattr(mysqlsh.globals, 'mds_config')
 
 """
 
@@ -102,8 +102,7 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
                raise_exceptions=False):
     """Loads an oci config
 
-    This function will list all sub-compartments of the compartment with the
-    given parent_id. If parent_id is omitted, all compartments are listed.
+    This function loads an oci config
 
     Args:
         profile (str): The name of the OCI profile
@@ -118,13 +117,14 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
     import oci.config
     import oci.auth
     import oci.signer
+    import oci.exceptions
     import mysqlsh
 
     # If no profile is given, look it up in the CLI config file
     if profile_name is None:
         default_profile_name = get_default_profile()
         profile_name = default_profile_name \
-            if default_profile_name is not None else "DEFAULT"
+            if default_profile_name else "DEFAULT"
 
     # If the profile_name matches instanceprincipal, use an Instance Principals
     # instead of an actual config
@@ -146,6 +146,11 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
                 raise oci.exceptions.ProfileNotFound()
 
             oci.config.validate_config(config)
+
+            # If running in interactive mode and there is no global
+            # config set yet, ensure it gets set
+            if interactive and not 'mds_config' in dir(mysqlsh.globals):
+                set_global_config = True
         except (oci.exceptions.ConfigFileNotFound,
                 oci.exceptions.ProfileNotFound) as e:
             if raise_exceptions:
@@ -158,12 +163,13 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
                 else:
                     print("OCI configuration profile not found.")
 
-            # Start wizard for new profiles
-            config = create_config(
-                profile_name=profile_name, config_file_path=config_file_path)
-            if config is None:
-                return
-            set_global_config = True
+                # Start wizard for new profiles
+                config = create_config(
+                    profile_name=profile_name, 
+                    config_file_path=config_file_path)
+                if config is None:
+                    return
+                set_global_config = True
 
         except oci.exceptions.InvalidConfig as e:
             raise ValueError(f"The configuration profile '{profile_name}' is "
@@ -211,6 +217,10 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
 
     # Add profile name to the config so it can be used later
     config["profile"] = profile_name
+
+    # Set it as global config object
+    if set_global_config:
+        setattr(mysqlsh.globals, 'mds_config', config)
 
     # Load current compartment_id
     current_compartment_id = get_current_compartment_id(
@@ -273,9 +283,9 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
         # Initialize current compartment in the global config
         config["bastion-id"] = current_bastion_id
 
-    # Set it as global config object
+    # Update global config object
     if set_global_config:
-        setattr(mysqlsh.globals, 'config', config)
+        setattr(mysqlsh.globals, 'mds_config', config)
 
     return config
 
@@ -658,7 +668,7 @@ def create_config(**kwargs):
     config = {**oci.config.DEFAULT_CONFIG, **config}
 
     # Set it as global config object
-    setattr(mysqlsh.globals, 'config', config)
+    setattr(mysqlsh.globals, 'mds_config', config)
 
     # Set the new profile as the default profile
     load_profile_as_current(profile_name)
@@ -687,10 +697,10 @@ def get_current_config(config=None, config_profile=None, interactive=None):
             # Check if the current global config matches the config profile
             # name passed in
             global_config = None
-            if 'config' in dir(mysqlsh.globals):
-                global_config = getattr(mysqlsh.globals, 'config')
+            if 'mds_config' in dir(mysqlsh.globals):
+                global_config = getattr(mysqlsh.globals, 'mds_config')
 
-            if global_config and global_config.get('profile') == config:
+            if global_config and global_config.get('profile') == config_profile:
                 config = global_config
             else:
                 # If there is no global config yet or a different config
@@ -700,27 +710,27 @@ def get_current_config(config=None, config_profile=None, interactive=None):
                     print_current_objects=False,
                     interactive=interactive)
 
-                # Check if global object 'config' now has been registered
-                if 'config' in dir(mysqlsh.globals):
-                    config = getattr(mysqlsh.globals, 'config')
+                # Check if global object 'mds_config' now has been registered
+                if 'mds_config' in dir(mysqlsh.globals):
+                    config = getattr(mysqlsh.globals, 'mds_config')
                 else:
                     raise Exception("No OCI configuration set.")
         except Exception as e:
             raise e
     elif config is None:
-        # Check if global object 'config' has already been registered
-        if 'config' in dir(mysqlsh.globals):
-            config = getattr(mysqlsh.globals, 'config')
+        # Check if global object 'mds_config' has already been registered
+        if 'mds_config' in dir(mysqlsh.globals):
+            config = getattr(mysqlsh.globals, 'mds_config')
         else:
             try:
                 # Load the config profile
                 load_profile_as_current(
-                    profile_name=config,
+                    profile_name=config_profile,
                     print_current_objects=False)
 
-                # Check if global object 'config' now has been registered
-                if 'config' in dir(mysqlsh.globals):
-                    config = getattr(mysqlsh.globals, 'config')
+                # Check if global object 'mds_config' now has been registered
+                if 'mds_config' in dir(mysqlsh.globals):
+                    config = getattr(mysqlsh.globals, 'mds_config')
                 else:
                     raise Exception("No OCI configuration set.")
             except Exception as e:
@@ -769,7 +779,7 @@ def load_profile_as_current(profile_name=None, config_file_path="~/.oci/config",
             print("Loading OCI configuration ...")
 
         try:
-            delattr(mysqlsh.globals, 'config')
+            delattr(mysqlsh.globals, 'mds_config')
         except:
             pass
 
@@ -781,7 +791,7 @@ def load_profile_as_current(profile_name=None, config_file_path="~/.oci/config",
             return
 
         # Set it as global config object
-        setattr(mysqlsh.globals, 'config', config)
+        setattr(mysqlsh.globals, 'mds_config', config)
 
         if interactive:
             print(f"\nOCI profile '{config.get('profile')}' loaded.\n")
@@ -1112,16 +1122,17 @@ def get_current_profile(profile_name=None):
     import mysqlsh
 
     # If profile_name was not given, check if there is a config global
-    if profile_name is None and 'config' in dir(mysqlsh.globals):
-        config = getattr(mysqlsh.globals, 'config')
+    if profile_name is None and 'mds_config' in dir(mysqlsh.globals):
+        config = getattr(mysqlsh.globals, 'mds_config')
         # Take the profile from the global config
         profile_name = config.get("profile")
 
     return profile_name
 
 
-def get_current_value(value_name, passthrough_value=None, config=None,
-                      profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
+def get_current_value(
+    value_name, passthrough_value=None, config=None,
+    profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
     """Gets the current value
 
     Either from the global config or the OCI CLI config file
@@ -1131,7 +1142,7 @@ def get_current_value(value_name, passthrough_value=None, config=None,
         passthrough_value (str): If specified, returned instead of the current
         config (dict): The config to be used or None, then global config dict
             will be used
-        profile_name (str): The profile_name is already defined
+        profile_name (str): The profile_name
         cli_rc_file_path (str): The location of the OCI CLI config file
 
     Returns:
@@ -1146,8 +1157,11 @@ def get_current_value(value_name, passthrough_value=None, config=None,
         return passthrough_value
 
     # If no config is given, check the global one
-    if not config and 'config' in dir(mysqlsh.globals):
-        config = getattr(mysqlsh.globals, 'config')
+    if not config:
+        if 'mds_config' in dir(mysqlsh.globals):
+            config = getattr(mysqlsh.globals, 'mds_config')
+        else:
+            config = get_config(profile_name=profile_name)
 
     # Check if current value is already in the config, if so, return that
     if config and value_name in config:
@@ -1215,8 +1229,8 @@ def set_current_value(value_name, value, profile_name=None,
         cli_config.write(configfile)
 
     # Update the global config
-    if 'config' in dir(mysqlsh.globals):
-        config = getattr(mysqlsh.globals, 'config')
+    if 'mds_config' in dir(mysqlsh.globals):
+        config = getattr(mysqlsh.globals, 'mds_config')
         config[value_name] = value
 
 
@@ -1231,6 +1245,7 @@ def set_current_compartment(**kwargs):
         compartment_path (str): The path of the compartment
         compartment_id (str): The OCID of the compartment
         config (dict): The config dict to use
+        config_profile (str): The name of the profile currently
         profile_name (str): The profile_name is already defined
         cli_rc_file_path (str): The location of the OCI CLI config file
         interactive (bool): Whether information should be printed
@@ -1243,6 +1258,7 @@ def set_current_compartment(**kwargs):
     compartment_path = kwargs.get('compartment_path')
     compartment_id = kwargs.get('compartment_id')
     config = kwargs.get('config')
+    config_profile = kwargs.get('config_profile')
     profile_name = kwargs.get('profile_name')
     cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
 
@@ -1251,7 +1267,9 @@ def set_current_compartment(**kwargs):
 
     # Get the active config
     try:
-        config = get_current_config(config=config)
+        config = get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
 
         from mds_plugin import compartment
 
@@ -1297,8 +1315,9 @@ def set_current_compartment(**kwargs):
 
 
 @plugin_function('mds.get.currentCompartmentId', shell=True, cli=True, web=True)
-def get_current_compartment_id(compartment_id=None, config=None,
-                               profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
+def get_current_compartment_id(
+    compartment_id=None, config=None,
+    profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
     """Gets the current compartment_id
 
     Args:

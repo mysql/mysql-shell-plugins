@@ -1,21 +1,21 @@
 {
-    "name": "mysql-shell-vscode",
+    "name": "mysql-shell-for-vs-code",
     "displayName": "MySQL Shell for VS Code",
-    "description": "Manage your MySQL Installations",
+    "description": "The power of MySQL Shell as part of your VS Code workflow.",
     "icon": "images/app-icon.png",
     "galleryBanner": {
         "color": "#2789e1",
         "theme": "dark"
     },
-    "version": "1.0.16",
-    "publisher": "mysql",
+    "version": "1.0.24",
+    "publisher": "Oracle",
     "license": "SEE LICENSE IN LICENSE.txt",
     "repository": {
         "type": "git",
         "url": "https://github.com/mysql/"
     },
     "engines": {
-        "vscode": "^1.60.0"
+        "vscode": "^1.63.0"
     },
     "categories": [
         "Programming Languages",
@@ -29,11 +29,6 @@
         "configuration": {
             "title": "MySQL Shell for VS Code",
             "properties": {
-                "msg.settings.autoSaveInterval": {
-                    "type": "number",
-                    "default": 300,
-                    "markdownDescription": "The time in seconds after which the settings should be automatically saved. Specify `0` to **disable** auto save."
-                },
                 "msg.workers.minWorkerCount": {
                     "type": "number",
                     "default": 3,
@@ -96,7 +91,7 @@
                 },
                 "msg.editor.dbVersion": {
                     "type": "string",
-                    "default": "8.0.25",
+                    "default": "8.0.28",
                     "description": "The default version to be used for MySQL language support, if no version is available."
                 },
                 "msg.editor.sqlMode": {
@@ -108,19 +103,29 @@
                     "default": false,
                     "description": "If this option is set to, execution of scripts will be stopped if an error occurs. Otherwise the script execution continues with the next statement."
                 },
+                "msg.editor.showMinimap": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Determines if code editors should show a minimap of the plain scrollbar, for better navigation."
+                },
+                "msg.editor.defaultDbConnection": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specify the name (title) of a DB connection to be used when running SQL from a text editor and no connection is open yet. Leave empty to show a picker to select a connection from."
+                },
                 "msg.dbEditor.startLanguage": {
                     "type": "string",
                     "default": "sql",
                     "description": "Select the initial language for new DB editors.",
                     "enum": [
+                        "sql",
                         "javascript",
-                        "typescript",
-                        "sql"
+                        "typescript"
                     ],
                     "enumDescriptions": [
                         "Supported in all code editors",
-                        "Supported only in DB editors",
-                        "Supported in all code editors"
+                        "Supported in all code editors",
+                        "Supported only in DB editors"
                     ]
                 },
                 "msg.dbEditor.connectionBrowser.showGreeting": {
@@ -214,22 +219,12 @@
                         "In editor group beside the active one",
                         "In the editor group beneath the active one"
                     ]
-                },
-                "msg.editor.defaultDbConnection": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Specify the name (title) of a DB connection to be used when running SQL from a text editor and no connection is open yet. Leave empty to show a picker to select a connection from."
                 }
             }
         },
-        "commands": [
-            {
+        "commands": [{
                 "command": "msg.execute.normal",
                 "title": "Execute the selected or all statements"
-            },
-            {
-                "command": "msg.execute.singleStatement",
-                "title": "Execute the statement at the caret position"
             },
             {
                 "command": "msg.openDBBrowser",
@@ -305,6 +300,10 @@
                 "title": "Open MySQL Shell Console for this Connection"
             },
             {
+                "command": "msg.defaultConnection",
+                "title": "Set this Connection as Default for Embedded SQL Execution"
+            },
+            {
                 "command": "msg.showSystemSchemasOnConnection",
                 "title": "Show MySQL System Schemas"
             },
@@ -349,24 +348,32 @@
                 "title": "Select a MySQL Shell Profile"
             },
             {
-                "command": "msg.executeSqlFromEditor",
-                "title": "Execute SQL with MySQL Shell"
+                "command": "msg.executeEmbeddedSqlFromEditor",
+                "title": "Execute Embedded SQL with MySQL Shell"
+            },
+            {
+                "command": "msg.executeSelectedSqlFromEditor",
+                "title": "Execute Current Selection with MySQL Shell"
+            },
+            {
+                "command": "msg.runWelcomeWizard",
+                "title": "Relaunch Welcome Wizard"
+            },
+            {
+                "command": "msg.resetWelcomeWizardSetting",
+                "title": "Reset Welcome Wizard Setting"
+            },
+            {
+                "command": "msg.DeleteMySQLShellCertificate",
+                "title": "Delete the MySQL Shell Web Certificate"
             },
             {
                 "command": "msg.restartShell",
-                "title": "Restart the internal MySQL Shell Process"
+                "title": "Restart the Internal MySQL Shell Process"
             },
             {
                 "command": "msg.connectToShell",
                 "title": "Connect to External MySQL Shell Process"
-            },
-            {
-                "command": "msg.refreshOciProfiles",
-                "title": "Reload the OCI Profile list",
-                "icon": {
-                    "dark": "images/dark/refresh.svg",
-                    "light": "images/light/refresh.svg"
-                }
             },
             {
                 "command": "msg.dumpSchemaToDisk",
@@ -377,12 +384,60 @@
                 "title": "Dump Schema to Disk for MDS"
             },
             {
+                "command": "msg.createSchema",
+                "title": "Create Schema..."
+            },
+            {
                 "command": "msg.dropSchema",
-                "title": "Drop Schema"
+                "title": "Drop Schema..."
+            },
+            {
+                "command": "msg.createTable",
+                "title": "Create Table..."
+            },
+            {
+                "command": "msg.dropTable",
+                "title": "Drop Table..."
+            },
+            {
+                "command": "msg.createView",
+                "title": "Create View..."
+            },
+            {
+                "command": "msg.dropView",
+                "title": "Drop View..."
+            },
+            {
+                "command": "msg.createRoutine",
+                "title": "Create Stored Routine..."
+            },
+            {
+                "command": "msg.dropRoutine",
+                "title": "Drop Stored Routine..."
+            },
+            {
+                "command": "msg.createTrigger",
+                "title": "Create Trigger..."
+            },
+            {
+                "command": "msg.dropTrigger",
+                "title": "Drop Trigger..."
+            },
+            {
+                "command": "msg.dropEvent",
+                "title": "Drop Event..."
             },
             {
                 "command": "msg.loadDumpFromDisk",
                 "title": "Load Dump from Disk"
+            },
+            {
+                "command": "msg.copyNameToClipboard",
+                "title": "Name"
+            },
+            {
+                "command": "msg.copyCreateScriptToClipboard",
+                "title": "Create Statement"
             },
             {
                 "command": "msg.mrs.configureMySQLRestService",
@@ -433,12 +488,32 @@
                 "title": "Show Performance Dashboard"
             },
             {
+                "command": "msg.mds.configureOciProfiles",
+                "title": "Configure the OCI Profile list",
+                "icon": {
+                    "dark": "images/dark/config.svg",
+                    "light": "images/light/config.svg"
+                }
+            },
+            {
+                "command": "msg.mds.refreshOciProfiles",
+                "title": "Reload the OCI Profile list",
+                "icon": {
+                    "dark": "images/dark/refresh.svg",
+                    "light": "images/light/refresh.svg"
+                }
+            },
+            {
                 "command": "msg.mds.getProfileInfo",
                 "title": "View Config Profile Information"
             },
             {
                 "command": "msg.mds.getCompartmentInfo",
                 "title": "View Compartment Information"
+            },
+            {
+                "command": "msg.mds.setCurrentCompartment",
+                "title": "Set as Current Compartment"
             },
             {
                 "command": "msg.mds.getDbSystemInfo",
@@ -497,36 +572,43 @@
                 "title": "Get Load Balancer Information"
             }
         ],
+        "submenus": [{
+            "id": "msg.copyToClipboard",
+            "label": "Copy To Clipboard",
+            "command": ""
+        }],
         "menus": {
-            "explorer/context": [],
-            "editor/title/context": [
-                {
-                    "when": "resourceLangId == sql",
-                    "command": "msg.execute.normal",
-                    "group": "msg@1"
-                }
-            ],
-            "editor/title": [
-                {
-                    "when": "resourceLangId == sql",
-                    "command": "msg.execute.normal",
-                    "group": "msg@1"
-                }
-            ],
-            "editor/context": [
-                {
-                    "when": "resourceLangId == sql",
-                    "command": "msg.execute.singleStatement",
+            "msg.copyToClipboard": [{
+                    "command": "msg.copyNameToClipboard",
                     "group": "1_msg@1"
                 },
                 {
-                    "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript",
-                    "command": "msg.executeSqlFromEditor",
-                    "group": "1_msg@1"
+                    "command": "msg.copyCreateScriptToClipboard",
+                    "group": "1_msg@2"
                 }
             ],
-            "view/title": [
+            "editor/title/context": [{
+                "when": "resourceLangId == sql",
+                "command": "msg.execute.normal",
+                "group": "msg@1"
+            }],
+            "editor/title": [{
+                "when": "resourceLangId == sql",
+                "command": "msg.execute.normal",
+                "group": "msg@1"
+            }],
+            "editor/context": [{
+                    "when": "resourceLangId == sql",
+                    "command": "msg.executeSelectedSqlFromEditor",
+                    "group": "navigation"
+                },
                 {
+                    "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript",
+                    "command": "msg.executeEmbeddedSqlFromEditor",
+                    "group": "msg@1"
+                }
+            ],
+            "view/title": [{
                     "command": "msg.addConnection",
                     "group": "navigation",
                     "when": "view == msg.connections"
@@ -548,11 +630,31 @@
                 },
                 {
                     "command": "msg.connectToShell",
+                    "group": "1_msg@2",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.runWelcomeWizard",
                     "group": "2_msg@1",
                     "when": "view == msg.connections"
                 },
                 {
-                    "command": "msg.refreshOciProfiles",
+                    "command": "msg.resetWelcomeWizardSetting",
+                    "group": "2_msg@2",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.DeleteMySQLShellCertificate",
+                    "group": "2_msg@3",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.mds.configureOciProfiles",
+                    "group": "navigation",
+                    "when": "view == msg.oci"
+                },
+                {
+                    "command": "msg.mds.refreshOciProfiles",
                     "group": "navigation",
                     "when": "view == msg.oci"
                 },
@@ -567,8 +669,7 @@
                     "when": "view == msg.consoles"
                 }
             ],
-            "view/item/context": [
-                {
+            "view/item/context": [{
                     "command": "msg.refreshConnection",
                     "when": "view == msg.connections && viewItem =~ /^connection.*/",
                     "group": "inline"
@@ -590,6 +691,11 @@
                 },
                 {
                     "command": "msg.newSessionUsingConnection",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.defaultConnection",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
                     "group": "2_msg@1"
                 },
@@ -626,32 +732,62 @@
                 },
                 {
                     "command": "msg.dumpSchemaToDisk",
-                    "when": "view == msg.connections && viewItem == schemaMySQL",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.dumpSchemaToDiskForMds",
-                    "when": "view == msg.connections && viewItem == schemaMySQL",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL",
                     "group": "1_msg@2"
                 },
                 {
+                    "submenu": "msg.copyToClipboard",
+                    "when": "view == msg.connections && viewItem =~ /^schema.*Item.*/",
+                    "group": "2_msg@9"
+                },
+                {
                     "command": "msg.dropSchema",
-                    "when": "view == msg.connections && viewItem =~ /^schema.*/",
-                    "group": "2_msg@1"
+                    "when": "view == msg.connections && viewItem =~ /^schemaItem.*/",
+                    "group": "9_msg@2"
+                },
+                {
+                    "command": "msg.dropTable",
+                    "when": "view == msg.connections && viewItem =~ /^schemaTableItem.*/",
+                    "group": "9_msg@2"
+                },
+                {
+                    "command": "msg.dropView",
+                    "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
+                    "group": "9_msg@2"
+                },
+                {
+                    "command": "msg.dropRoutine",
+                    "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
+                    "group": "9_msg@2"
+                },
+                {
+                    "command": "msg.dropTrigger",
+                    "when": "view == msg.connections && viewItem =~ /^schemaTriggerItem.*/",
+                    "group": "9_msg@2"
+                },
+                {
+                    "command": "msg.dropEvent",
+                    "when": "view == msg.connections && viewItem =~ /^schemaEventItem.*/",
+                    "group": "9_msg@2"
                 },
                 {
                     "command": "msg.mrs.addSchema",
                     "when": "view == msg.connections && viewItem == schemaMySQL",
-                    "group": "3_msg@1"
-                },
-                {
-                    "command": "msg.showTableData",
-                    "when": "view == msg.connections && viewItem =~ /^schemaTable.*/",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.showTableData",
-                    "when": "view == msg.connections && viewItem =~ /^schemaView.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schemaTableItem.*/",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.showTableData",
+                    "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
                     "group": "1_msg@1"
                 },
                 {
@@ -686,7 +822,7 @@
                 },
                 {
                     "command": "msg.mrs.addTable",
-                    "when": "view == msg.connections && viewItem == schemaTableMySQL",
+                    "when": "view == msg.connections && viewItem == schemaTableItemMySQL",
                     "group": "2_msg@2"
                 },
                 {
@@ -703,6 +839,11 @@
                     "command": "msg.mds.getCompartmentInfo",
                     "when": "view == msg.oci && viewItem == mdsCompartment",
                     "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.setCurrentCompartment",
+                    "when": "view == msg.oci && viewItem == mdsCompartment",
+                    "group": "2_msg@1"
                 },
                 {
                     "command": "msg.mds.getDbSystemInfo",
@@ -784,17 +925,14 @@
             ]
         },
         "viewsContainers": {
-            "activitybar": [
-                {
-                    "id": "msg-view",
-                    "title": "MySQL Shell for vscode",
-                    "icon": "images/mysqlShellForVsCode.svg"
-                }
-            ]
+            "activitybar": [{
+                "id": "msg-view",
+                "title": "MySQL Shell for VSCode",
+                "icon": "images/mysqlShellForVsCode.svg"
+            }]
         },
         "views": {
-            "msg-view": [
-                {
+            "msg-view": [{
                     "id": "msg.connections",
                     "name": "DATABASE"
                 },
@@ -805,10 +943,6 @@
                 {
                     "id": "msg.consoles",
                     "name": "MYSQL SHELL CONSOLES"
-                },
-                {
-                    "id": "msg.scripts",
-                    "name": "SCRIPTS"
                 },
                 {
                     "id": "msg.shellTasks",
@@ -822,7 +956,7 @@
         "antlr4ts": "0.5.0-alpha.4",
         "lodash": "4.17.21",
         "reconnecting-websocket": "4.4.0",
-        "ws": "8.3.0"
+        "ws": "8.5.0"
     },
     "devDependencies": {
         "@types/lodash": "4.14.177",
@@ -840,10 +974,10 @@
         "typescript": "4.5.2"
     },
     "scripts": {
-        "build": "vsce package",
-        "package": "vsce package patch",
+        "package": "vsce package --pre-release",
+        "full_packages": "scripts/package_extension.sh",
+        "full_packages_win": "scripts/package_extension.ps1",
         "lint": "eslint \"./src/**/*.ts\"",
-        "vscode:prepublish": "tsc",
-        "antlr4ts": "antlr4ts -Xexact-output-dir ../frontend/src/parsing/python/PythonLexer.g4  -o src/parsers/generated"
+        "vscode:prepublish": "tsc"
     }
 }

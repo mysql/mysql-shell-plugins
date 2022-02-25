@@ -245,8 +245,16 @@ export interface IMdsProfileData {
     isCurrent: boolean;
 }
 
+export interface IMdsBastionData {
+    id: string;
+}
+
 export interface IShellMdsProfileData extends IGenericResponse {
     result: IMdsProfileData[];
+}
+
+export interface IShellMdsBastionsData extends IGenericResponse {
+    result: IMdsBastionData[];
 }
 
 export interface IShellBackendInformation extends IGenericResponse {
@@ -347,6 +355,10 @@ export interface IDBDataTreeContent {
     result: IDBDataTreeEntry[];
 }
 
+export interface IObjectNames extends IGenericResponse {
+    result: string[];
+}
+
 export interface IErrorData extends IGenericResponse {
     error: string;
 }
@@ -367,6 +379,7 @@ export type ICommDbTypesEvent = IDispatchEvent<IDbTypesData>;
 export type ICommDebuggerScriptsEvent = IDispatchEvent<IDebuggerScriptListData>;
 export type ICommScriptContentEvent = IDispatchEvent<IScriptContentData>;
 export type ICommMetaDataEvent = IDispatchEvent<IMetaData>;
+export type ICommObjectNamesEvent = IDispatchEvent<IObjectNames>;
 
 export type ICommListDataCategoriesEvent = IDispatchEvent<IShellModuleDataCategoriesData>;
 export type ICommModuleAddDataEvent = IDispatchEvent<IShellModuleAddData>;
@@ -381,6 +394,8 @@ export type ICommShellCompletionEvent = IDispatchEvent<IShellCompletionData>;
 export type ICommShellInformationEvent = IDispatchEvent<IShellBackendInformation>;
 
 export type ICommMdsConfigProfileEvent = IDispatchEvent<IShellMdsProfileData>;
+
+export type ICommMdsGetBastionsEvent = IDispatchEvent<IShellMdsBastionsData>;
 
 export type ICommMrsServiceEvent = IDispatchEvent<IMrsServiceResultData>;
 export type ICommMrsSchemaEvent = IDispatchEvent<IMrsSchemaResultData>;

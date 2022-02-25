@@ -273,7 +273,7 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
                     activeModule: props.id || "",
                     debuggerVisible: debuggerVisible && !debuggerMaximized,
                     settingsVisible: false,
-                });
+                }, () => { this.updateActiveHost(); } );
 
                 if (props.id && activeModule === props.id) {
                     // The same activity item was clicked. We use that as a signal to toggle things in modules

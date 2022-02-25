@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -88,7 +88,7 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         raise_exceptions (bool): If set to true exceptions are raised
 
     Returns:
-        None in interactive mode, a dict with content_set_id and 
+        None in interactive mode, a dict with content_set_id and
             number_of_files_uploaded
     """
 
@@ -116,7 +116,7 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         # Get auth_vendor_id
         if not auth_vendor_id and interactive:
             res = session.run_sql("""
-                SELECT id, name 
+                SELECT id, name
                 FROM `mysql_rest_service_metadata`.`auth_vendor`
                 WHERE enabled = 1
                 """)
@@ -229,7 +229,7 @@ def get_auth_apps(service_id=None, **kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        include_enable_state (bool): Only include items with the given 
+        include_enable_state (bool): Only include items with the given
             enabled state
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
@@ -237,7 +237,7 @@ def get_auth_apps(service_id=None, **kwargs):
         return_formatted (bool): If set to true, a list object is returned
 
     Returns:
-        Either a string listing the content sets when interactive is set or list 
+        Either a string listing the content sets when interactive is set or list
         of dicts representing the content sets
     """
 
@@ -260,11 +260,11 @@ def get_auth_apps(service_id=None, **kwargs):
             return_formatted=False)
 
         sql = """
-            SELECT a.id, a.auth_vendor_id, a.service_id, a.name, 
-                a.description, a.url, a.access_token, a.app_id, a.enabled, 
+            SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
+                a.description, a.url, a.access_token, a.app_id, a.enabled,
                 a.limit_to_registered_users, v.name as auth_vendor
-            FROM `mysql_rest_service_metadata`.`auth_app` a 
-                LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v 
+            FROM `mysql_rest_service_metadata`.`auth_app` a
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
                     ON v.id = a.auth_vendor_id
             WHERE a.service_id = ? /*=1*/
             """
@@ -276,13 +276,13 @@ def get_auth_apps(service_id=None, **kwargs):
 
         res = session.run_sql(sql, [service.get("id")])
 
-        content_sets = core.get_sql_result_as_dict_list(res)
+        auth_apps = core.get_sql_result_as_dict_list(res)
 
         if return_formatted:
             return format_auth_app_listing(
-                content_sets=content_sets, print_header=True)
+                auth_apps=auth_apps, print_header=True)
         else:
-            return content_sets
+            return auth_apps
 
     except Exception as e:
         if raise_exceptions:

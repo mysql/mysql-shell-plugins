@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -180,7 +180,7 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
 
         # Check if any service is active
         res = session.run_sql("""
-            SELECT COUNT(*) as cnt 
+            SELECT COUNT(*) as cnt
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
 				    ON se.url_host_id = h.id
@@ -198,7 +198,7 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
         # Get id of the host
         res = session.run_sql("""
             SELECT h.id FROM `mysql_rest_service_metadata`.url_host h
-            WHERE h.name = ? 
+            WHERE h.name = ?
             """, [
             url_host_name if url_host_name else ''])
         row = res.fetch_one()
@@ -215,8 +215,8 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
         # cSpell:ignore mrs
         res = session.run_sql("""
             INSERT INTO `mysql_rest_service_metadata`.`service`(
-                enabled, url_host_id, url_protocol, 
-                url_context_root, is_default, comments) 
+                enabled, url_host_id, url_protocol,
+                url_context_root, is_default, comments)
             VALUES(1, ?, ?, ?, ?, ?)
             """, [
             host_id,
@@ -227,7 +227,7 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
 
         if is_default and res.auto_increment_value > 0:
             session.run_sql("""
-                UPDATE `mysql_rest_service_metadata`.`service` 
+                UPDATE `mysql_rest_service_metadata`.`service`
                 SET is_default = 0
                 WHERE id <> ?
                 """, [res.auto_increment_value])
@@ -250,7 +250,7 @@ def get_service(url_context_root=None, url_host_name=None, service_id=None,
                 **kwargs):
     """Gets a specific MRS service
 
-    If no service is specified, the service that is set as current service is 
+    If no service is specified, the service that is set as current service is
     returned if it was defined before
 
     Args:
@@ -294,7 +294,7 @@ def get_service(url_context_root=None, url_host_name=None, service_id=None,
 
             # Check if there already is at least one service
             sql = """
-                SELECT COUNT(*) as service_count, MIN(id) AS id 
+                SELECT COUNT(*) as service_count, MIN(id) AS id
                 FROM `mysql_rest_service_metadata`.`service`
                 """
             res = session.run_sql(sql)
@@ -328,9 +328,9 @@ def get_service(url_context_root=None, url_host_name=None, service_id=None,
 
         # Build SQL based on which input has been provided
         sql = """
-            SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name, 
+            SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
                 se.url_context_root, se.is_default, se.comments,
-                CONCAT(h.name, se.url_context_root) AS host_ctx 
+                CONCAT(h.name, se.url_context_root) AS host_ctx
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id
@@ -380,7 +380,7 @@ def get_services(**kwargs):
         return_formatted (bool): If set to true, a list object is returned
 
     Returns:
-        Either a string listing the services when interactive is set or list 
+        Either a string listing the services when interactive is set or list
         of dicts representing the services
     """
 
@@ -393,9 +393,9 @@ def get_services(**kwargs):
         session = core.get_current_session(session)
 
         sql = """
-            SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name, 
+            SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
                 se.url_context_root, se.is_default, se.comments,
-                CONCAT(h.name, se.url_context_root) AS host_ctx 
+                CONCAT(h.name, se.url_context_root) AS host_ctx
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id
@@ -463,7 +463,7 @@ def change_service(**kwargs):
         if not url_context_root and not service_id:
             # Check if there already is at least one service
             res = session.run_sql("""
-                SELECT COUNT(*) AS service_count, MAX(id) AS id 
+                SELECT COUNT(*) AS service_count, MAX(id) AS id
                 FROM `mysql_rest_service_metadata`.`service`
                 """)
             row = res.fetch_one()
@@ -513,7 +513,7 @@ def change_service(**kwargs):
                 SELECT se.id FROM `mysql_rest_service_metadata`.`service` se
                     LEFT JOIN `mysql_rest_service_metadata`.url_host h
                         ON se.url_host_id = h.id
-                WHERE h.name = ? AND se.url_context_root = ? 
+                WHERE h.name = ? AND se.url_context_root = ?
                 """,
                 [url_host_name if url_host_name else "", url_context_root])
             row = res.fetch_one()
@@ -565,55 +565,55 @@ def change_service(**kwargs):
             params = [service_id]
             if change_type == SERVICE_DISABLE:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET enabled = FALSE
                     WHERE id = ?
                     """
             elif change_type == SERVICE_ENABLE:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET enabled = TRUE
                     WHERE id = ?
                     """
             elif change_type == SERVICE_DELETE:
                 sql = """
-                    DELETE FROM `mysql_rest_service_metadata`.`service` 
+                    DELETE FROM `mysql_rest_service_metadata`.`service`
                     WHERE id = ?
                     """
             elif change_type == SERVICE_SET_DEFAULT:
                 res = session.run_sql("""
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET is_default = FALSE
                     """)
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET is_default = TRUE
                     WHERE id = ?
                     """
             elif change_type == SERVICE_SET_CONTEXT_ROOT:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET url_context_root = ?
                     WHERE id = ?
                     """
                 params.insert(0, url_ctx_root)
             elif change_type == SERVICE_SET_PROTOCOL:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET url_protocol = ?
                     WHERE id = ?
                     """
                 params.insert(0, value)
             elif change_type == SERVICE_SET_COMMENTS:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET comments = ?
                     WHERE id = ?
                     """
                 params.insert(0, value)
             elif change_type == SERVICE_SET_ALL:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` 
+                    UPDATE `mysql_rest_service_metadata`.`service`
                     SET enabled = ?,
                         url_context_root = ?,
                         url_protocol = ?,
@@ -623,7 +623,7 @@ def change_service(**kwargs):
                     """
                 if str(value.get("is_default")).lower() == "true":
                     res = session.run_sql("""
-                        UPDATE `mysql_rest_service_metadata`.`service` 
+                        UPDATE `mysql_rest_service_metadata`.`service`
                         SET is_default = FALSE
                         """)
 
@@ -675,7 +675,7 @@ def change_service(**kwargs):
 def enable_service(**kwargs):
     """Enables a MRS service
 
-    If there is no service yet, a service with default values will be 
+    If there is no service yet, a service with default values will be
     created and set as default.
 
     Args:

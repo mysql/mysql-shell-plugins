@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,10 +20,12 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 # Implementation of the MySQL Shell GUI web server
 
+from dataclasses import replace
 import subprocess
-from mysqlsh.plugin_manager import plugin_function # pylint: disable=no-name-in-module
+from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
 from gui_plugin.core.ThreadedHTTPServer import ThreadedHTTPServer
+from gui_plugin.core.Certificates import is_shell_web_certificate_installed, install_shell_web_certificate
 import mysqlsh
 import ssl
 import os
@@ -66,16 +68,18 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
     Returns:
         Nothing
     """
+
+    import mysqlsh.plugin_manager.general
+
     # Start the web server
     logger.info(f'Starting MySQL Shell GUI web server...')
-
-    # Get hold of the global shell object
-    shell = mysqlsh.globals.shell
 
     server = None
     try:
         core_path = os.path.abspath(os.path.join(
             os.path.dirname(__file__), '..', 'core'))
+        cert_path = mysqlsh.plugin_manager.general.get_shell_user_dir(
+            "plugin_data", "gui_plugin", "web_certs")
 
         # Set defaults when necessary
         if port is None:
@@ -87,20 +91,52 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
         # cspell:ignore chdir
         if not os.path.isdir(webrootpath):
             raise Exception(
-                f'Cannot start webserver. Root directory does not exist({webrootpath}).')
+                'Cannot start webserver. Root directory does not '
+                f'exist({webrootpath}).')
 
         os.chdir(webrootpath)
 
         # Check if we can supply a default page
         if not os.path.isfile("index.html"):
             raise Exception(
-                f'Cannot start webserver. The "index.html" file does not exist in {webrootpath}.')
+                'Cannot start webserver. The "index.html" file does not '
+                f'exist in {webrootpath}.')
 
-        # try to cast from shell.Dict to dict
-        try:
-            secure = json.loads(str(secure))
-        except:
-            pass
+        if secure is not None:
+            # try to cast from shell.Dict to dict
+            try:
+                secure = json.loads(str(secure))
+            except:
+                pass
+
+            default_cert_used = False
+            if type(secure) is dict:
+                if 'keyfile' not in secure or secure['keyfile'] == "default":
+                    default_cert_used = True
+                    secure['keyfile'] = path.join(*[
+                        cert_path,
+                        'server.key'])
+                    keyfile = secure['keyfile']
+                if 'certfile' not in secure or secure['certfile'] == "default":
+                    default_cert_used = True
+                    secure['certfile'] = path.join(*[
+                        cert_path,
+                        'server.crt'])
+                    certfile = secure['certfile']
+            else:
+                raise ValueError('If specified, the secure parameter need to '
+                                 'be of type dict')
+
+            # If the default cert is used, check if it is already installed
+            logger.info('\tChecking web server certificate...')
+            if (default_cert_used and 
+                not is_shell_web_certificate_installed(check_keychain=True)):
+                # If not, print error
+                logger.info('\tCertificate is not installed. '
+                    'Use gui.core.installShellWebCertificate() to install one.')
+                return
+            else:
+                logger.info('\tCertificate is installed.')
 
         # Replace WSSimpleEcho with your own subclass of HTTPWebSocketHandler
         server = ThreadedHTTPServer(
@@ -110,22 +146,12 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
         server.port = port
         server.single_instance_token = single_instance_token
 
-        if type(secure) is dict:
-            if 'keyfile' not in secure or secure['keyfile'] == "default":
-                secure['keyfile'] = path.join(*[
-                    core_path,
-                    'certificates',
-                    'server.key'])
-            if 'certfile' not in secure or secure['certfile'] == "default":
-                secure['certfile'] = path.join(*[
-                    core_path,
-                    'certificates',
-                    'server.crt'])
-
-            server.socket = ssl.wrap_socket(server.socket,
-                                            keyfile=secure['keyfile'],
-                                            certfile=secure['certfile'],
-                                            server_side=True)
+        if secure:
+            server.socket = ssl.wrap_socket(
+                server.socket,
+                keyfile=secure['keyfile'],
+                certfile=secure['certfile'],
+                server_side=True)
 
         def user_signal_handler(signum, frame):
             server.force_stop()
@@ -152,7 +178,7 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
         except Exception as e:  # pragma: no cover
             logger.error(f'Log message could not be inserted into db. {e}')
     except KeyboardInterrupt:  # pragma: no cover
-        print('^C received, shutting down server')
+        logger.info('^C received, shutting down server')
         if server:
             server.socket.close()
 
@@ -181,10 +207,10 @@ def native_ui():
     try:
         process = Popen(executable_path)
     except Exception as e:
-        print(f"Unable to launch the native application: {str(e)}")
+        logger.exception(e, "Unable to launch the native application")
         return
 
-    print(f"The native client was launched with the PID: {process.pid}")
+    logger.info(f"The native client was launched with the PID: {process.pid}")
 
 
 def browser_app():
@@ -200,17 +226,17 @@ def browser_app():
             Popen([browser_executable, "--version"], stdin=subprocess.PIPE,
                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="UTF-8")
         except FileNotFoundError:
-            print(
+            logger.error(
                 f"Can't find installed Chromium browser. Install it first and then try again.")
             return
 
     elif platform.system() == "Windows":
         browser_executable = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
         if not os.path.exists(browser_executable):
-            print("Unable to find the Microsoft Edge browser.")
+            logger.error("Unable to find the Microsoft Edge browser.")
             return
     else:
-        print("This function is only available on Linux and Windows")
+        logger.error("This function is only available on Linux and Windows")
 
     port = None
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
@@ -233,7 +259,7 @@ def browser_app():
     try:
         # In order to support running more than one instance of the application it is required to use a different user data dir
         # for this reason we create a temporary directory every time the application is launched
-        data_dir_path = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
+        data_dir_path = mysqlsh.plugin_manager.general.get_shell_user_dir(  # pylint: disable=no-member
             'plugin_data', 'gui_plugin')
         with tempfile.TemporaryDirectory(dir=data_dir_path) as data_path:
             leftover_path = data_path

@@ -28,6 +28,7 @@ frontend/e2e/selenium
 
 # production
 frontend/build
+frontend/src/oci-typings
 **/generated
 **/output
 
@@ -50,3 +51,8 @@ frontend/src/app-wrapper/windows/mysql-shell-gui/obj
 frontend/src/app-wrapper/windows/packages
 package-lock.json
 frontend/src/tests/e2e/selenium
+
+# Embedded Shell in Extension
+extension/shell
+extension/packaging
+

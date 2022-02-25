@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,6 @@ from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
 
-
 def check_supported_type(func):
     def wrapper(self, *args, **kwargs):
         def get_supported_type(name):
@@ -53,6 +52,8 @@ def check_supported_type(func):
 class DBCloseTask():
     pass
 
+class DBReconnectTask():
+    pass
 
 class DbTask(BaseTask):
     """

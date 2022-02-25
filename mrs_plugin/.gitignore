@@ -1,3 +1,7 @@
 *.pyc
 .DS_Store
 *.bak
+.coverage
+htmlcov
+plugin-test-coverage.xml
+plugin-tests.xml

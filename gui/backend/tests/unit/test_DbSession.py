@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,7 @@ from gui_plugin.dbconnections import DbConnections
 from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
 from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
 from .MockWebSession import MockWebSession
+import gui_plugin.core.Logger as logger
 from tests import backend_callback, backend_callback_with_pending
 
 
@@ -50,7 +51,7 @@ def create_sqlite3_db(db_path):
 def sqlite_session():  # pragma: no cover
     db_session_class = DbSqliteSession
     # We have to make sure that db exists
-    db_path = os.path.abspath(os.path.join(mysqlsh.plugin_manager.general.get_shell_user_dir(),
+    db_path = os.path.abspath(os.path.join(mysqlsh.plugin_manager.general.get_shell_user_dir(), # pylint: disable=no-member
                                            'plugin_data', 'gui_plugin', f'user_3', 'tests.sqlite3'))
     create_sqlite3_db(db_path)
 
@@ -135,8 +136,8 @@ def mysql_sessions(mysql_connections_exists):  # pragma: no cover
         sessions.append(db_session)
 
     except Exception as e:
-        print(f"GOT EXCEPTION INITIALIZING MYSQL SESSION!!!! {e}")
-        print(connection_options)
+        logger.exception(e, "GOT EXCEPTION INITIALIZING MYSQL SESSION!!!!")
+        logger.debug(connection_options)
         # db_session.close()
 
     yield sessions

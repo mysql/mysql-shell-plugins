@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,6 +21,8 @@
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.Protocols import Response
+import gui_plugin.core.Error as Error
+from gui_plugin.core.Error import MSGException
 
 
 @plugin_function('gui.db.getObjectsTypes', shell=False, web=True)
@@ -57,7 +59,7 @@ def get_catalog_object_names(module_session, request_id, type, filter='%'):
 
 
 @plugin_function('gui.db.getSchemaObjectNames', shell=False, web=True)
-def get_schema_object_names(module_session, request_id, type, schema_name, filter='%'):
+def get_schema_object_names(module_session, request_id, type, schema_name, filter='%', routine_type=None):
     """Returns the names of the existing objects of the given type in the given
         schema that match the provided filter.
 
@@ -67,13 +69,18 @@ def get_schema_object_names(module_session, request_id, type, schema_name, filte
         type (str): the schema object type
         schema_name (str): schema name
         filter (str): object filter
+        routine_type (str): type of the routine ['procedure'|'function']
 
     Returns:
         object: The list of names
     """
+    if routine_type is not None and routine_type not in ['procedure', 'function']:
+        raise MSGException(Error.CORE_INVALID_PARAMETER,
+                               "The routine_type could be only 'procedure' or 'function'.")
     module_session.get_schema_object_names(request_id=request_id,
                                            type=type,
                                            schema_name=schema_name,
+                                           routine_type=routine_type,
                                            filter=filter)
 
 

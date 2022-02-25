@@ -11,6 +11,7 @@
         "Deallocate",
         "esnext",
         "flowtype",
+        "fnames",
         "informations",
         "innodb",
         "ISAM",
@@ -108,7 +109,8 @@
         "uuidv",
         "vnic",
         "webrootpath",
-        "zstd"
+        "zstd",
+        "scrollbox"
     ],
     "ignorePaths": [
         ".eslintrc.json"

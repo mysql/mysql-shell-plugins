@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -286,7 +286,7 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
      * @param event Event data.
      */
     private handleWorkerMessage = (event: MessageEvent): void => {
-        const { taskId, data }: { taskId: number; data: unknown } = event.data;
+        const { taskId, data }: { taskId: number; data: IDictionary } = event.data;
         const task = this.runningTasks.get(taskId);
 
         if (debug) {
@@ -296,13 +296,13 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
         // If there's no task entry for the given id then the task has been cancelled and we ignore this message.
         // Otherwise run the callback and schedule the next waiting task, if there's any.
         if (task) {
-            if ((data as IDictionary).error) {
-                task.onError?.(taskId, (data as IDictionary).error);
+            if (data.error) {
+                task.onError?.(taskId, (data ).error);
             } else {
-                task.onResult?.(taskId, data as WorkerResultType);
+                task.onResult?.(taskId, data as unknown as WorkerResultType);
             }
 
-            if ((data as IDictionary).final) {
+            if (data.final) {
                 this.releaseTask(taskId);
             }
         }

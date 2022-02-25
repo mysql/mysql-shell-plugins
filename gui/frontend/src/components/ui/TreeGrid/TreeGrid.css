@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -49,35 +49,10 @@
     position: relative;
     width: 100%;
     white-space: nowrap;
-    overflow: auto;
-
-    -webkit-overflow-scrolling: touch;
 }
 
 .msg.treeGrid.tabulator .tabulator-tableholder:focus {
     outline: none;
-}
-
-.msg.treeGrid.tabulator .tabulator-tableholder {
-    scrollbar-width: auto;
-    scrollbar-color: var(--scrollbarSlider-background) var(--scrollbarSlider-shadow);
-}
-
-.msg.treeGrid.tabulator .tabulator-tableholder::-webkit-scrollbar {
-    -webkit-appearance: none;
-    width: 7px;
-    height: 7px;
-
-    background-color: var(--scrollbarSlider-shadow);
-}
-
-.msg.treeGrid.tabulator .tabulator-tableholder::-webkit-scrollbar-thumb {
-    border-radius: 4px;
-    background-color: var(--scrollbarSlider-background);
-}
-
-.msg.treeGrid.tabulator .tabulator-tableholder::-webkit-scrollbar-corner {
-    background-color: var(--scrollbarSlider-shadow);
 }
 
 .msg.treeGrid.tabulator[tabulator-layout="fitDataFill"] .tabulator-tableholder .tabulator-table {

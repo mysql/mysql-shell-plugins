@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -59,6 +59,19 @@ ctx.addEventListener("message", (event: MessageEvent) => {
         });
     };
 
+    const runSqlIterative = (sql: string, callback?: (res: unknown) => void, params?: unknown): void => {
+        if (callback) {
+            ctx.pendingRequests.set(data.contextId!, callback);
+        }
+
+        ctx.postContextMessage(taskId, {
+            api: ScriptingApi.RunSqlIterative,
+            contextId: data.contextId!,
+            code: sql,
+            params,
+        });
+    };
+
     const runSql = (sql: string, callback?: (res: unknown) => void, params?: unknown): void => {
         if (callback) {
             ctx.pendingRequests.set(data.contextId!, callback);
@@ -100,6 +113,13 @@ ctx.addEventListener("message", (event: MessageEvent) => {
         const callback = ctx.pendingRequests.get(data.contextId!);
         if (callback) {
             callback(data.result);
+            if (data.final) {
+                ctx.postContextMessage(taskId, {
+                    api: ScriptingApi.Done,
+                    contextId: data.contextId!,
+                    final: true,
+                });
+            }
         } else if (data.final) {
             ctx.postContextMessage(taskId, {
                 api: ScriptingApi.QueryStatus,

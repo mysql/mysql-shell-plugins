@@ -10,7 +10,6 @@ await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.add_data_category",
     "args": {
-        "module_id": "gui.sqleditor",
         "name": "SQL Editor Module Option"
     },
     "request_id": ws.generateRequestId()
@@ -87,7 +86,6 @@ await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.add_data_category",
     "args": {
-        "module_id": "gui.shell",
         "name": "Shell Module Option"
     },
     "request_id": ws.generateRequestId()
