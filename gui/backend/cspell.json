@@ -58,6 +58,7 @@
         "pydevd",
         "SIGUSR",
         "dbsession",
-        "backenddb"
+        "backenddb",
+        "iterdump"
     ]
 }

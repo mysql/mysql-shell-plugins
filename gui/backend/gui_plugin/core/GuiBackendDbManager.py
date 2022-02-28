@@ -30,10 +30,13 @@ from os import path, listdir, rename, remove
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.lib.Version import Version
 import contextlib
+from gui_plugin.core import Error
 
-
-latest_db_version = Version((0, 0, 15))
-default_config = {
+# Refers to the schema version supported by this version of the code
+CURRENT_DB_VERSION = Version((0, 0, 16))
+DROPPED_VERSION_IN_NAME_DB_VERSION = Version((0, 0, 16))
+OLDEST_SUPPORTED_DB_VERSION = Version((0, 0, 11))
+DEFAULT_CONFIG = {
     "log_rotation_period": 7
 }
 
@@ -52,7 +55,7 @@ class BackendDbManager():
         self._web_session = web_session
         self._connection_options = connection_options
 
-        self._config = default_config
+        self._config = DEFAULT_CONFIG
 
         self.ensure_database_exists()
 
@@ -105,9 +108,12 @@ class BackendSqliteDbManager(BackendDbManager):
     """
 
     def __init__(self, log_rotation=False, web_session=None, connection_options=None, check_same_thread=True):
-        # use ~/.mysqlsh/plugin_data/gui_plugin/mysqlsh_gui_backend_{latest_db_version}.sqlite3
-        self.db_dir = mysqlsh.plugin_manager.general.get_shell_user_dir(  # pylint: disable=no-member
-            'plugin_data', 'gui_plugin')
+        if connection_options and "db_dir" in connection_options:
+            self.db_dir = connection_options["db_dir"]
+        else:
+            # use ~/.mysqlsh/plugin_data/gui_plugin/mysqlsh_gui_backend_{CURRENT_DB_VERSION}.sqlite3
+            self.db_dir = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
+                'plugin_data', 'gui_plugin')
 
         self.current_dir = getcwd()
         self.check_same_thread = check_same_thread
@@ -116,11 +122,11 @@ class BackendSqliteDbManager(BackendDbManager):
                          web_session=web_session,
                          connection_options=connection_options if connection_options is not None else {
                              "database_name": "main",
-                             "db_file": path.join(self.db_dir, f'mysqlsh_gui_backend_{latest_db_version}.sqlite3'),
+                             "db_file": path.join(self.db_dir, f'mysqlsh_gui_backend.sqlite3'),
                              "attach": [
                                  {
                                      "database_name": "gui_log",
-                                     "db_file": path.join(self.db_dir, f'mysqlsh_gui_backend_log_{latest_db_version}.sqlite3')
+                                     "db_file": path.join(self.db_dir, f'mysqlsh_gui_backend_log.sqlite3')
                                  }]
                          })
 
@@ -134,114 +140,117 @@ class BackendSqliteDbManager(BackendDbManager):
         return path.isfile(self._connection_options["db_file"])
 
     def check_for_previous_version_and_upgrade(self):
-        latest_version_val = Version()
-        version_to_upgrade = Version()
-
+        logger.debug2(f"Checking for previous version and upgrade\n\tdb_dir: {self.db_dir}")
         makedirs(self.db_dir, exist_ok=True)
-
-        # find the latest version of the database file available
-        for f in listdir(self.db_dir):
-            m = re.match(
-                r'mysqlsh_gui_backend_(\d+)\.(\d+)\.(\d+)\.sqlite3', f)
-            if m:
-                g = Version(m.groups())
-                if g > latest_version_val or latest_version_val == (0, 0, 0):
-                    latest_version_val = g
-                    version_to_upgrade = g
+        final_db_file = "mysqlsh_gui_backend.sqlite3"
+        final_db_log_file = "mysqlsh_gui_backend_log.sqlite3"
+        installed_db_log_file = None
+        installed_db_file = self.find_installed_db_file(self.db_dir)
+        logger.debug2(f"Found installed database file: {installed_db_file}")
+        installed_version = Version()
+        if installed_db_file is not None:
+            installed_version = self.get_db_version(path.join(self.db_dir, installed_db_file))
+        logger.debug2(f"Installed database version: {installed_version}")
 
         # if no earlier version is found, return with False
-        if latest_version_val == (0, 0, 0):
+        if installed_version == (0, 0, 0):
             return False
 
-        if version_to_upgrade > latest_db_version:
+        if installed_version > CURRENT_DB_VERSION:
             raise Exception(f'Cannot downgrade database from '  # pragma: no cover
-                            f'schema {version_to_upgrade} to {latest_db_version}')
+                            f'schema {installed_version} to {CURRENT_DB_VERSION}')
 
-        previous_version = version_to_upgrade - Version((0, 0, 1))
-        # Because we don't know the full path in the script,
-        # we have to change working directory so that new 'mysqlsh_gui_backend_log`
-        # is created in the appropriate location.
-        chdir(self.db_dir)
+        script_dir = path.join(path.dirname(__file__), 'db_schema')
+        upgrade_steps = self.get_upgrade_steps(script_dir)
+        previous_version = Version()
+        for version in upgrade_steps:
+            if version[1] == installed_version:
+                previous_version = version[0]
+                break
+
+        upgrade_scripts = self.find_upgrade_scripts(script_dir, installed_version, CURRENT_DB_VERSION)
+
         try:
-            # run updates until ending up at current version
-            script_dir = path.join(path.dirname(__file__), 'db_schema')
-            # init upgrade_file_found with True to enter while loop
-            upgrade_file_found = True
-            while version_to_upgrade != latest_db_version and upgrade_file_found:
-                # set upgrade_file_found to False to ensure execution will not be
-                # stuck in this loop forever
-                upgrade_file_found = False
-                for f in listdir(script_dir):
-                    m = re.match(
-                        r'mysqlsh_gui_backend_(\d+\.\d+\.\d+)_to_'
-                        r'(\d+\.\d+\.\d+)\.sqlite.sql', f)
-                    if m:
-                        g = m.groups()
+            # Because we don't know the full path in the script,
+            # we have to change working directory so that new 'mysqlsh_gui_backend_log`
+            # is created in the appropriate location.
+            chdir(self.db_dir)
 
-                        update_from_version = Version(g[0])
-                        upgrade_to_version = Version(g[1])
-                        if version_to_upgrade == update_from_version:
-                            upgrade_file_found = True
-                            # copy the existing db, rename the old to .backup
-                            db_file = path.join(self.db_dir,
-                                                f'mysqlsh_gui_backend_{version_to_upgrade}.sqlite3')
-                            upgrade_db_file = path.join(self.db_dir,
-                                                        f'mysqlsh_gui_backend_{upgrade_to_version}.sqlite3')
-                            copyfile(db_file, upgrade_db_file)
-                            self.rename_db_file(db_file, f'{db_file}.backup')
-                            # In BE db newer than 0.0.7 we have to take care also mysqlsh_gui_backend_log_x database
-                            if upgrade_to_version >= (0, 0, 7) and update_from_version >= (0, 0, 7):
-                                upgrade_db_log_file = path.join(self.db_dir,
-                                                                f'mysqlsh_gui_backend_log_{upgrade_to_version}.sqlite3')
-                                db_log_file = path.join(self.db_dir,
-                                                        f'mysqlsh_gui_backend_log_{version_to_upgrade}.sqlite3')
-                                copyfile(db_log_file, upgrade_db_log_file)
-                                self.rename_db_file(
-                                    db_log_file, f'{db_log_file}.backup')
-                            try:
-                                with open(path.join(script_dir, f),
-                                          'r') as sql_file:
-                                    sql = sql_file.read()
+            logger.info(f"Renaming {installed_db_file} to {installed_db_file}.backup")
+            if path.exists(f'{installed_db_file}.backup'):
+                self.rename_db_file(f'{installed_db_file}.backup', f'{installed_db_file}.backup.old')
+            self.backup_db(installed_db_file, f'{installed_db_file}.backup')
+            logger.info(f"Copying {installed_db_file}.backup to {final_db_file}")
+            copyfile(f'{installed_db_file}.backup', final_db_file)
 
-                                conn = sqlite3.connect(upgrade_db_file)
-                                conn.execute("VACUUM")
-                                cursor = conn.cursor()
+            if installed_version < DROPPED_VERSION_IN_NAME_DB_VERSION:
+                installed_db_log_file = f'mysqlsh_gui_backend_log_{installed_version}.sqlite3'
+            else:
+                installed_db_log_file = final_db_log_file
+            logger.info(f"Found installed log database file: {installed_db_log_file}")
+            logger.info(f"Renaming {installed_db_log_file} to {installed_db_log_file}.backup")
+            if path.exists(f'{installed_db_log_file}.backup'):
+                self.rename_db_file(f'{installed_db_log_file}.backup', f'{installed_db_log_file}.backup.old')
+            self.backup_db(installed_db_log_file, f'{installed_db_log_file}.backup')
+            logger.info(f"Copying {installed_db_log_file}.backup to {final_db_log_file}")
+            copyfile(f'{installed_db_log_file}.backup', final_db_log_file)
 
-                                cursor.executescript(sql)
-                                conn.commit()
-                                conn.close()
+            try:
+                logger.debug2("Start upgrading database")
+                conn = sqlite3.connect(final_db_file)
+                conn.execute("VACUUM")
+                cursor = conn.cursor()
+                for script in upgrade_scripts:
+                    with open(path.join(script_dir, script), 'r') as sql_file:
+                        sql = sql_file.read()
+                    logger.info(f"Executing upgrade script: {script}")
+                    logger.debug3(f"SQL: {sql}")
+                    cursor.executescript(sql)
+                conn.commit()
+                conn.close()
+                logger.info(f"Database successfully upgraded")
+            except Exception as e:
+                logger.error(f"Error occurred during database upgrade, rolling back database")
+                logger.exception(e)
+                conn.rollback()
+                conn.close()
+                # move the files back
+                self.remove_db_file(final_db_file)
+                logger.info(f"Renaming file: {installed_db_file}.backup to {installed_db_file}")
+                rename(f'{installed_db_file}.backup', installed_db_file)
+                if path.exists(f'{installed_db_log_file}.backup.old'):
+                    self.rename_db_file(f'{installed_db_log_file}.backup.old', f'{installed_db_log_file}.backup')
 
-                                version_to_upgrade = upgrade_to_version
-                            except Exception as e:
-                                conn.rollback()
-                                conn.close()
-                                # move the files back
-                                self.remove_db_file(upgrade_db_file)
-                                rename(f'{db_file}.backup', db_file)
+                # move the log files back
+                self.remove_db_file(final_db_log_file)
+                logger.info(f"Renaming file: {installed_db_log_file}.backup to {installed_db_log_file}")
+                rename(f'{installed_db_log_file}.backup', installed_db_log_file)
+                if path.exists(f'{installed_db_log_file}.backup.old'):
+                    self.rename_db_file(f'{installed_db_log_file}.backup.old', f'{installed_db_log_file}.backup')
 
-                                # move the log files back
-                                if upgrade_to_version >= (0, 0, 7) and update_from_version >= (0, 0, 7):
-                                    self.remove_db_file(upgrade_db_log_file)
-                                    rename(f'{db_log_file}.backup',
-                                           db_log_file)
+                raise e
 
-                                # logger.error(f'Cannot upgrade database. {e}')
-                                raise e
+            if installed_version < DROPPED_VERSION_IN_NAME_DB_VERSION:
+                self.remove_db_file(installed_db_log_file)
+                self.remove_db_file(installed_db_file)
 
             # Removing previous backup and old log files
-            self.cleanup(previous_version)
+            if previous_version < DROPPED_VERSION_IN_NAME_DB_VERSION:
+                self.cleanup(previous_version)
+            with contextlib.suppress(FileNotFoundError):
+                remove(f'{installed_db_log_file}.backup.old')
+            with contextlib.suppress(FileNotFoundError):
+                remove(f'{installed_db_file}.backup.old')
         finally:
             chdir(self.current_dir)
 
-        if version_to_upgrade != latest_db_version and not upgrade_file_found:
-            raise Exception(f'No upgrade file found to go from database '  # pragma: no cover
-                            f'schema {version_to_upgrade} to {latest_db_version}')
-
         return True
+
 
     def initialize_db(self):
         sql_file_path = path.join(path.dirname(__file__), 'db_schema',
-                                  f'mysqlsh_gui_backend_{latest_db_version}.sqlite.sql')
+                                  f'mysqlsh_gui_backend.sqlite.sql')
+        logger.debug2(f"Starting initializing database:\n\tdatabase file:{self._connection_options['db_file']}\n\tsql_file:{sql_file_path}")
 
         try:
             db_file = self._connection_options["db_file"]
@@ -258,6 +267,8 @@ class BackendSqliteDbManager(BackendDbManager):
             chdir(self.db_dir)
             cursor.executescript(sql)
             conn.commit()
+            version = self.get_db_version(self._connection_options['db_file'])
+            logger.debug2(f"Database successfully initialized\n\tDatabase version: {version}")
         except Exception as e:  # pragma: no cover
             conn.rollback()
             logger.error(f'Cannot initialize database. {e}')
@@ -272,12 +283,12 @@ class BackendSqliteDbManager(BackendDbManager):
         backup_files = []
         for f in listdir(self.db_dir):
             m = re.match(
-                r'\d+\.\d+\.\d+_mysqlsh_gui_backend_log_(\d+)\.(\d+)\.(\d+)\.sqlite3', f)
+                r'\d+\.\d+\.\d+_mysqlsh_gui_backend_log\.sqlite3', f)
             if m:
                 g = m.groups()
                 version = Version(g[0])
 
-                if latest_db_version == version:
+                if CURRENT_DB_VERSION == version:
                     backup_files.append(f)
 
         while len(backup_files) > self._config['log_rotation_period']:
@@ -289,7 +300,7 @@ class BackendSqliteDbManager(BackendDbManager):
             # create new backup file
             # attach it to db as backup
             new_filename = path.join(self.db_dir,
-                                     f"{date.today().strftime('%Y.%m.%d')}_mysqlsh_gui_backend_log_{latest_db_version}.sqlite3")
+                                     f"{date.today().strftime('%Y.%m.%d')}_mysqlsh_gui_backend_log.sqlite3")
             db.execute(
                 f"ATTACH DATABASE '{new_filename}' as 'backup';")
 
@@ -329,27 +340,21 @@ class BackendSqliteDbManager(BackendDbManager):
             db.rollback()
 
     def remove_db_file(self, path):
-        with contextlib.suppress(FileNotFoundError):
-            remove(f'{path}-shm')
-        with contextlib.suppress(FileNotFoundError):
-            remove(f'{path}-wal')
+        self.remove_wal_and_shm_files(path)
         with contextlib.suppress(FileNotFoundError):
             remove(path)
 
     def rename_db_file(self, src, dst):
         rename(src, dst)
-        with contextlib.suppress(FileNotFoundError):
-            remove(f'{src}-shm')
-        with contextlib.suppress(FileNotFoundError):
-            remove(f'{src}-wal')
+        self.remove_wal_and_shm_files(src)
 
-    def cleanup(self, previous_version):
+    def cleanup(self, file_version):
         with contextlib.suppress(FileNotFoundError):
             remove(path.join(self.db_dir,
-                   f'mysqlsh_gui_backend_{previous_version}.sqlite3.backup'))
+                   f'mysqlsh_gui_backend_{file_version}.sqlite3.backup'))
         with contextlib.suppress(FileNotFoundError):
             remove(path.join(
-                self.db_dir, f'mysqlsh_gui_backend_log_{previous_version}.sqlite3.backup'))
+                self.db_dir, f'mysqlsh_gui_backend_log_{file_version}.sqlite3.backup'))
 
         files_to_remove = []
         for f in listdir(self.db_dir):
@@ -359,8 +364,93 @@ class BackendSqliteDbManager(BackendDbManager):
                 g = m.groups()
                 version = Version(g[0])
 
-                if previous_version == version:
+                if file_version == version:
                     files_to_remove.append(f)
 
         for file in files_to_remove:
             remove(file)
+
+    def get_db_version(self, db_path):
+        version = Version()
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            try:
+                row = cursor.execute("SELECT major, minor, patch FROM schema_version;").fetchone()
+                version = Version(row)
+            except Exception as e:
+                logger.exception(e)
+        return version
+
+    def find_installed_db_file(self, db_dir):
+        installed_version = Version()
+
+        # find the latest version of the database file available
+        db_file = "mysqlsh_gui_backend.sqlite3"
+        found = False
+        if not path.exists(path.join(db_dir, db_file)):
+            db_file = None
+            for f in listdir(db_dir):
+                m = re.match(
+                    r'mysqlsh_gui_backend_(\d+)\.(\d+)\.(\d+)\.sqlite3', f)
+                if m:
+                    g = Version(m.groups())
+                    if g > installed_version or installed_version == (0, 0, 0):
+                        found = True
+                        installed_version = g
+
+            if found:
+                if installed_version < OLDEST_SUPPORTED_DB_VERSION:
+                    raise Error.MSGException(Error.DB_UNSUPPORTED_FILE_VERSION, "Database file to upgrade have to be at least in 0.0.11 version.")
+                db_file = f"mysqlsh_gui_backend_{installed_version}.sqlite3"
+
+        return db_file
+
+    def find_upgrade_scripts(self, script_dir, from_version, to_version):
+        upgrade_scripts = []
+        version_to_upgrade = from_version
+        all_scripts = self.get_upgrade_steps(script_dir)
+        for version in all_scripts:
+            if version[0] == version_to_upgrade:
+                upgrade_scripts.append(f"mysqlsh_gui_backend_{version[0]}_to_{version[1]}.sqlite.sql")
+                if version[1] == to_version:
+                    upgrade_file_found = True
+                    break
+                else:
+                    version_to_upgrade = version[1]
+
+        if version_to_upgrade != to_version and not upgrade_file_found:
+            raise Exception(f'No upgrade file found to go from database '  # pragma: no cover
+                            f'schema {version_to_upgrade} to {to_version}')
+
+        return upgrade_scripts
+
+    def backup_db(self, src, dst):
+        source = sqlite3.connect(src)
+        dest = sqlite3.connect(dst)
+        source.backup(dest)
+        source.close()
+        dest.close()
+        self.remove_wal_and_shm_files(src)
+
+    def remove_wal_and_shm_files(self, file):
+        with contextlib.suppress(FileNotFoundError):
+            remove(f'{file}-shm')
+        with contextlib.suppress(FileNotFoundError):
+            remove(f'{file}-wal')
+
+    def get_upgrade_steps(self, script_dir):
+        upgrade_scripts = []
+
+        for f in listdir(script_dir):
+            m = re.match(
+                r'mysqlsh_gui_backend_(\d+\.\d+\.\d+)_to_(\d+\.\d+\.\d+)\.sqlite.sql', f)
+            if not m:
+                continue
+            g = m.groups()
+
+            update_from_version = Version(g[0])
+            upgrade_to_version = Version(g[1])
+
+            upgrade_scripts.append((update_from_version, upgrade_to_version))
+
+        return sorted(upgrade_scripts)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,38 +21,40 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
--- MySQL Workbench Synchronization
-
--- MySQL Workbench Synchronization
--- Generated: 2021-03-18 15:17
--- Model: New Model
--- Version: 1.0
--- Project: Name of the project
--- Author: Mike Zinner
-
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
-CREATE TABLE IF NOT EXISTS `db_connection_new` (
-  `id` INT NOT NULL,
-  `db_type` VARCHAR(45) NOT NULL,
-  `caption` VARCHAR(256) NULL,
-  `description` VARCHAR(200) NULL,
-  `options` TEXT NULL,
-  PRIMARY KEY (`id`))
+DROP TABLE IF EXISTS `db_type` ;
+
+-- -----------------------------------------------------
+-- Table `data_has_tag`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `module_data_has_tag` ;
+
+-- -----------------------------------------------------
+-- Table `data_has_tag`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `data_has_tag` ;
+
+CREATE TABLE IF NOT EXISTS `data_has_tag` (
+  `profile_id` INT NOT NULL,
+  `data_id` INT NOT NULL,
+  `tag_id` INT NOT NULL,
+  PRIMARY KEY (`profile_id`, `data_id`, `tag_id`),
+  INDEX `fk_data_has_tag_tag1_idx` (`tag_id` ASC) VISIBLE,
+  CONSTRAINT `fk_data_has_tag_tag1`
+    FOREIGN KEY (`tag_id`)
+    REFERENCES `tag` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-INSERT INTO `db_connection_new` SELECT c.id, t.name as db_type, c.caption, c.description, c.options
-FROM db_connection c
-LEFT JOIN db_type t
-ON c.db_type_id = t.id;
-
-DROP TABLE `db_connection`;
-
-ALTER TABLE `db_connection_new` RENAME TO `db_connection`;
-
-DROP TABLE IF EXISTS `gui_backend`.`db_type` ;
+-- -----------------------------------------------------
+-- View `schema_version`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `schema_version` ;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 16;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

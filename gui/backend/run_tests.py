@@ -279,7 +279,7 @@ if not shell.returncode == 0:
     print('----------------------------------------')
     print('Backend database log')
     print('----------------------------------------')
-    with sqlite3.connect(os.path.join(paths.runtime.plugin_data.gui_plugin, "mysqlsh_gui_backend_log_0.0.15.sqlite3")) as cur:
+    with sqlite3.connect(os.path.join(paths.runtime.plugin_data.gui_plugin, "mysqlsh_gui_backend_log.sqlite3")) as cur:
         for record in cur.execute("SELECT * FROM log").fetchall():
             print(record)
 

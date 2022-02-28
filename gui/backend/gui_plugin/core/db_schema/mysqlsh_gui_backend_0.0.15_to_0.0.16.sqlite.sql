@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,55 +25,39 @@
 PRAGMA foreign_keys = OFF;
 
 
+DROP TABLE IF EXISTS `db_type` ;
 
 -- -----------------------------------------------------
--- Table `user_group_has_user`
+-- Table `data_has_tag`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `user_group_has_user_new` ;
+DROP TABLE IF EXISTS `module_data_has_tag` ;
 
-CREATE TABLE IF NOT EXISTS `user_group_has_user_new` (
-  `user_group_id` INTEGER NOT NULL,
-  `user_id` INTEGER NOT NULL,
-  `owner` TINYINT NULL,
-  `active` TINYINT NULL,
-  PRIMARY KEY (`user_group_id`, `user_id`),
-  CONSTRAINT `fk_user_group_has_user_user_group1`
-    FOREIGN KEY (`user_group_id`)
-    REFERENCES `user_group` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_user_group_has_user_user1`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `user` (`id`)
+-- -----------------------------------------------------
+-- Table `data_has_tag`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `data_has_tag` ;
+
+CREATE TABLE IF NOT EXISTS `data_has_tag` (
+  `profile_id` INTEGER NOT NULL,
+  `data_id` INTEGER NOT NULL,
+  `tag_id` INTEGER NOT NULL,
+  PRIMARY KEY (`profile_id`, `data_id`, `tag_id`),
+  CONSTRAINT `fk_data_has_tag_tag1`
+    FOREIGN KEY (`tag_id`)
+    REFERENCES `tag` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 
-CREATE INDEX `fk_user_group_has_user_user2_idx` ON `user_group_has_user_new` (`user_id` ASC);
-
-CREATE INDEX `fk_user_group_has_user_user_group2_idx` ON `user_group_has_user_new` (`user_group_id` ASC);
+CREATE INDEX `fk_data_has_tag_tag1_idx` ON `data_has_tag` (`tag_id` ASC);
 
 
 
-
-INSERT INTO `user_group_has_user_new`
-  SELECT `user_group_id`, `user_id`, `owner`, `active`
-  FROM `user_group_has_user`;
-
-DROP TABLE `user_group_has_user`;
-ALTER TABLE `user_group_has_user_new` RENAME TO `user_group_has_user`;
 
 -- -----------------------------------------------------
--- Table `user_group_has_user`
+-- View `schema_version`
 -- -----------------------------------------------------
-ALTER TABLE `user_group_has_module_data`
-  ADD COLUMN `folder_path` VARCHAR(1024) NULL;
-
-
-
-CREATE INDEX fk_user_group_has_module_data_folder_path2_idx ON `user_group_has_module_data` (`folder_path`);
-
-
-
+DROP VIEW IF EXISTS `schema_version` ;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 16;
 
 
 PRAGMA foreign_keys = ON;
