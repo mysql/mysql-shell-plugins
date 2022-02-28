@@ -195,3 +195,6 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
 
     def verify_token(self):
         return self._single_instance_token == self.server.single_instance_token
+
+    def log_message(self, format, *args):
+        logger.debug(format % args)

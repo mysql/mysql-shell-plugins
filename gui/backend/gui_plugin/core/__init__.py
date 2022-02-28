@@ -23,3 +23,4 @@ from .Db import *
 from .Files import *
 from .Info import *
 from .Certificates import *
+from .Logger import *

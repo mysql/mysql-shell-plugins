@@ -30,6 +30,8 @@ export enum ShellAPIGui {
     //  Begin auto generated API names
     GuiClusterIsGuiModuleBackend = "gui.cluster.is_gui_module_backend",
     GuiClusterGetGuiModuleDisplayInfo = "gui.cluster.get_gui_module_display_info",
+    GuiCoreSetLogLevel = "gui.core.set_log_level",
+    GuiCoreGetLogLevel = "gui.core.get_log_level",
     GuiCoreListFiles = "gui.core.list_files",
     GuiCoreCreateFile = "gui.core.create_file",
     GuiCoreValidatePath = "gui.core.validate_path",
@@ -174,6 +176,50 @@ export class ProtocolGui extends Protocol {
     public static getRequestClusterGetGuiModuleDisplayInfo(): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo,
+            {
+                args: {},
+            });
+    }
+
+    /**
+     * Sets the log level
+     *
+     * @param logLevel Level of logging
+     *
+     * @returns Not documented
+     *
+     * Change the logging level for the Backend Server, or disable logging.
+     *
+     * <b>The 'log_level' argument can be one of:</b>
+     *
+     *     - none,     - internal_error,     - error,     - warning,     - info,
+     * - debug,     - debug2,     - debug3
+     *
+     * Specifying 'none' disables logging. Level `info` is the default if you do
+     * not specify this option.
+     *
+     * <b>Returns:</b>
+     *
+     *     The generated shell request record.
+     */
+    public static getRequestCoreSetLogLevel(logLevel = "INFO"): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiCoreSetLogLevel,
+            {
+                args: {
+                    log_level: logLevel,
+                },
+            });
+    }
+
+    /**
+     * Gets the current log level
+     *
+     * @returns The generated shell request record.
+     */
+    public static getRequestCoreGetLogLevel(): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiCoreGetLogLevel,
             {
                 args: {},
             });

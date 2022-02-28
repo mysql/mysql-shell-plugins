@@ -26,6 +26,8 @@ import sys
 import os
 from enum import IntEnum
 from gui_plugin.core.Error import MSGException
+from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
+from gui_plugin.core.Protocols import Response
 
 class LogLevel(IntEnum):
     NONE = 1
@@ -54,7 +56,7 @@ class BackendLogger:
                 "This class is a singleton, use get_instance function to get an instance.")
         else:
             BackendLogger.__instance = self
-            BackendLogger.set_log_level(LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
+            self.set_log_level(LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
 
     @contextmanager
     def log_database(self, log_rotation):
@@ -88,9 +90,11 @@ class BackendLogger:
             if self.__log_level >= log_type:
                 print(f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}")
 
-    @staticmethod
-    def set_log_level(log_level: LogLevel):
+    def set_log_level(self, log_level: LogLevel):
         BackendLogger.__log_level = log_level
+
+    def get_log_level(self):
+        return BackendLogger.__log_level
 
 
 def debug(message, tags=[]):
@@ -140,3 +144,39 @@ def debug3(message, tags=[]):
 def internal_error(message, tags=[]):
     tags = tags + ['stdout']
     BackendLogger.get_instance().message_logger(LogLevel.INTERNAL_ERROR, message, tags)
+
+@plugin_function('gui.core.setLogLevel', shell=False, web=True)
+def set_log_level(log_level=LogLevel.INFO.name):
+    """Sets the log level
+
+    Change the logging level for the Backend Server, or disable logging.
+    The 'log_level' argument can be one of:
+        - none,
+        - internal_error,
+        - error,
+        - warning,
+        - info,
+        - debug,
+        - debug2,
+        - debug3
+    Specifying 'none' disables logging. Level `info` is the default if you do not specify this option.
+
+    Args:
+        log_level (str): Level of logging
+
+    Returns:
+        The generated shell request record.
+    """
+    BackendLogger.get_instance().set_log_level(LogLevel[log_level.upper()])
+
+    return Response.ok("Log level set successfully.")
+
+@plugin_function('gui.core.getLogLevel', shell=False, web=True)
+def get_log_level():
+    """Gets the current log level
+
+    Returns:
+        The generated shell request record.
+    """
+    return BackendLogger.get_instance().get_log_level().name
+
