@@ -110,6 +110,7 @@ export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
                 sqlDialect={dialect}
                 startLanguage={settings.get("dbEditor.startLanguage", "javascript") as EditorLanguage}
                 readonly={readOnly}
+                allowSoftWrap={true}
                 className="scriptingConsole"
                 minimap={{
                     enabled: true,

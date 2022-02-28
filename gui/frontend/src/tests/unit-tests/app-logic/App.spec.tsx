@@ -29,7 +29,7 @@ import { IStatusbarInfo } from "../../../app-logic/Types";
 import { BackendMock } from "../../../BackendMock";
 import { currentConnection } from "../../../communication";
 import { IEditorStatusInfo } from "../../../modules/scripting";
-import { requisitions } from "../../../supplement/Requisitions";
+import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { waitFor } from "../../../utilities/helpers";
 import { eventMock } from "../__mocks__/MockEvents";
 
@@ -66,6 +66,8 @@ describe("Application tests", () => {
     });
 
     afterAll(() => {
+        appParameters.embedded = false;
+
         requisitions.unregister("applicationDidStart", didStartCallback);
 
         const event = new Event("beforeunload");
@@ -249,6 +251,8 @@ describe("Application tests", () => {
     it("Other events", async () => {
         let messageSent = false;
 
+        // Pretend we are embedded.
+        appParameters.embedded = true;
         const listener = (event: MessageEvent): void => {
             if (event.data.command === "themeChanged" && event.data.source === "app") {
                 if (event.data.data.name === "My Theme" && event.data.data.type === "dark") {

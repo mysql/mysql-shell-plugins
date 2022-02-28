@@ -465,7 +465,7 @@ export class ThemeManager {
      * @param entries A list of token entries for which the color values are to be checked.
      */
     private tokenColorSanityCheck(entries: ITokenEntry[]): void {
-        for (const [_, value] of Object.entries(entries)) {
+        entries.forEach((value) => {
             if (value.settings.foreground) {
                 value.settings.foreground = this.checkColor(value.settings.foreground);
             }
@@ -473,7 +473,7 @@ export class ThemeManager {
             if (value.settings.background) {
                 value.settings.background = this.checkColor(value.settings.background);
             }
-        }
+        });
     }
 
     /**

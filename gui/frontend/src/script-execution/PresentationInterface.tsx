@@ -414,62 +414,14 @@ export class PresentationInterface {
 
                     break;
                 }
-                // Fall through, if the existing data is result set data.
-                // In this case the given text acts as status for the given request id.
+
+                // Treat the given data as result rows, if we previously had rows already.
+                // In this case the text serves as execution info.
+                return this.handleNewRows(data as unknown as IResultSetRows);
             }
-            // [falls-through]
 
             case "resultSetRows": {
-                if (this.waitTimer || this.loadingState === LoadingState.Waiting) {
-                    // This is the first result, which arrives here. Switch to the loading state.
-                    if (this.waitTimer) {
-                        clearTimeout(this.waitTimer);
-                        this.waitTimer = null;
-                    }
-                    this.loadingState = LoadingState.Loading;
-                    this.updateMarginDecorations();
-                }
-
-                if (this.resultData.type !== "resultSets") {
-                    return false;
-                }
-
-                const resultSets = this.resultData.sets;
-                if (resultSets.length === 0) {
-                    return false;
-                }
-
-                // Add the data to our internal storage, to support switching tabs for multiple result sets.
-                const resultSet = resultSets.find((candidate) => {
-                    return candidate.requestId === data.requestId;
-                });
-
-                if (resultSet && data.columns && data.rows) {
-                    resultSet.columns.push(...data.columns);
-                    resultSet.rows.push(...(data.rows));
-
-                    if (data.executionInfo) {
-                        resultSet.executionInfo = data.executionInfo;
-                    }
-
-                    if (data.type === "resultSetRows") {
-                        resultSet.hasMoreRows = data.hasMoreRows;
-                        resultSet.currentPage = data.currentPage;
-                    }
-                }
-
-                if (this.resultRef.current) {
-                    await this.resultRef.current.addData(data as IResultSetRows);
-                }
-
-                if (data.executionInfo) {
-                    // This is the last result call, if a status is given.
-                    // So stop also any wait/load animation.
-                    this.loadingState = LoadingState.Idle;
-                    this.updateMarginDecorations();
-                }
-
-                return true;
+                return this.handleNewRows(data as unknown as IResultSetRows);
             }
 
             case "graphData": {
@@ -734,6 +686,63 @@ export class PresentationInterface {
             void requisitions.execute("sqlShowDataAtPage",
                 { context: this.context, oldRequestId: requestId, page: currentPage, sql });
         }
+    };
+
+    private handleNewRows = async (data: IResultSetRows): Promise<boolean> => {
+        if (!this.resultData) {
+            return false;
+        }
+
+        if (this.waitTimer || this.loadingState === LoadingState.Waiting) {
+            // This is the first result, which arrives here. Switch to the loading state.
+            if (this.waitTimer) {
+                clearTimeout(this.waitTimer);
+                this.waitTimer = null;
+            }
+            this.loadingState = LoadingState.Loading;
+            this.updateMarginDecorations();
+        }
+
+        if (this.resultData.type !== "resultSets") {
+            return false;
+        }
+
+        const resultSets = this.resultData.sets;
+        if (resultSets.length === 0) {
+            return false;
+        }
+
+        // Add the data to our internal storage, to support switching tabs for multiple result sets.
+        const resultSet = resultSets.find((candidate) => {
+            return candidate.requestId === data.requestId;
+        });
+
+        if (resultSet && data.columns && data.rows) {
+            resultSet.columns.push(...data.columns);
+            resultSet.rows.push(...(data.rows));
+
+            if (data.executionInfo) {
+                resultSet.executionInfo = data.executionInfo;
+            }
+
+            if (data.type === "resultSetRows") {
+                resultSet.hasMoreRows = data.hasMoreRows;
+                resultSet.currentPage = data.currentPage;
+            }
+        }
+
+        if (this.resultRef.current) {
+            await this.resultRef.current.addData(data );
+        }
+
+        if (data.executionInfo) {
+            // This is the last result call, if a status is given.
+            // So stop also any wait/load animation.
+            this.loadingState = LoadingState.Idle;
+            this.updateMarginDecorations();
+        }
+
+        return true;
     };
 }
 

@@ -122,6 +122,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     detectLinks?: boolean;
     useTabStops?: boolean;
     autofocus?: boolean;
+    allowSoftWrap: boolean;
 
     componentMinWidth?: number; // Min width of embedded components.
     lineDecorationsWidth?: number; // The width of the gutter area where line decorations are shown.
@@ -151,6 +152,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         useTabStops: false,
         componentMinWidth: 200,
         lineNumbers: "on",
+        allowSoftWrap: false,
     };
 
     public static currentThemeId = "";
@@ -195,6 +197,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
         this.addHandledProperties("initialContent", "executeInitialContent", "language", "allowedLanguages",
             "sqlDialect", "readonly", "detectLinks", "showHidden", "useTabStops", "showHidden", "autofocus",
+            "allowSoftWrap",
             "componentMinWidth", "lineDecorationsWidth", "lineDecorationsWidth", "renderLineHighlight",
             "showIndentGuides", "lineNumbers", "minimap", "suggest", "font", "scrollbar",
             "onScriptExecution", "onHelpCommand", "onCursorChange", "onOptionsChanged", "createResultPresentation",
@@ -463,7 +466,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     public render(): React.ReactNode {
         const {
             readonly, minimap, detectLinks, suggest, language, showIndentGuides, renderLineHighlight, useTabStops,
-            font, scrollbar, lineNumbers, lineDecorationsWidth,
+            font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap,
         } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -472,7 +475,9 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         ]);
 
         const showHidden = settings.get("editor.showHidden", false);
-        const wordWrap = settings.get("editor.wordWrap", "off") as ("on" | "off" | "wordWrapColumn" | "bounded");
+        const wordWrap = allowSoftWrap
+            ? settings.get("editor.wordWrap", "off") as ("on" | "off" | "wordWrapColumn" | "bounded")
+            : "off";
         const wordWrapColumn = settings.get("editor.wordWrapColumn", 120);
 
         const model = this.model;
@@ -1593,11 +1598,18 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     };
 
     private toggleSoftWrap = (active: boolean): Promise<boolean> => {
-        const editor = this.backend;
+        const { allowSoftWrap } = this.mergedProps;
 
-        editor?.updateOptions({ wordWrap: active ? "off" : "on" });
+        if (allowSoftWrap) {
+            const editor = this.backend;
 
-        return Promise.resolve(true);
+            editor?.updateOptions({ wordWrap: active ? "off" : "on" });
+
+            return Promise.resolve(true);
+        }
+
+
+        return Promise.resolve(false);
     };
 
 }

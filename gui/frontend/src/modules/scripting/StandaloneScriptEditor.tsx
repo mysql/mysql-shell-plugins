@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,7 +58,7 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
             resultPaneHeight: 300,
         };
 
-        this.addHandledProperties("editorState", "language", "sqlDialect", "onScriptExecution");
+        this.addHandledProperties("editorState", "onScriptExecution");
     }
 
     public componentDidMount(): void {
@@ -105,6 +105,7 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
                             minimap={{
                                 enabled: true,
                             }}
+                            allowSoftWrap={true}
                             font={{
                                 fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
                                 fontSize: 15,
