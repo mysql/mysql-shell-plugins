@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -117,3 +117,15 @@ def complete(data, offset, module_session, request_id):
         A string list with the completion options
     """
     module_session.complete(data=data, offset=offset, request_id=request_id)
+
+
+@plugin_function('gui.shell.killTask', shell=False, web=True)
+def kill_task(module_session, request_id):
+    """Kill a shell task
+    Args:
+        module_session (object): The module_session object that should be closed
+        request_id (str): The request_id of the command.
+    Returns:
+        A dict holding the result message
+    """
+    module_session.kill_shell_task(request_id)

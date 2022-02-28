@@ -113,14 +113,14 @@ class ShellModuleSession(ModuleSession):
         module_file_path = os.path.dirname(__file__)
         plugins_path = os.path.dirname(os.path.dirname(module_file_path))
 
-        # If this is a development setup using the global shell user config dir, 
+        # If this is a development setup using the global shell user config dir,
         # setup a symlink if it does not exist yet
         if (not mysqlsh.plugin_manager.general.get_shell_user_dir().endswith(
             EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME)
             and not os.path.exists(subprocess_plugins)):
             if os.name == 'nt':
                 p = subprocess.run(
-                    f'mklink /J "{subprocess_plugins}" "{plugins_path}"', 
+                    f'mklink /J "{subprocess_plugins}" "{plugins_path}"',
                     shell=True)
                 p.check_returncode()
             else:
@@ -473,6 +473,7 @@ class ShellModuleSession(ModuleSession):
             self._shell.stdin.write(json.dumps(command.command) + "\n")
             self._shell.stdin.flush()
 
+
             # The command has been sent to the shell, now we wait until it completes
             self._command_complete.wait()
             self._command_complete.clear()
@@ -481,7 +482,14 @@ class ShellModuleSession(ModuleSession):
     def kill_command(self):
         # windows. Need CTRL_BREAK_EVENT to raise the signal in the whole process group
         os.kill(self._shell.pid,
-                signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)  # pylint: disable=no-member
+            signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)  # pylint: disable=no-member
 
     def cancel_request(self, request_id):
         self._cancel_requests.append(request_id)
+
+    def kill_shell_task(self, request_id):
+        if not self._command_complete.is_set() and self._pending_request is not None:
+            self.kill_command()
+            self.send_command_response(request_id, 'Command killed')
+        else:
+            self.send_command_response(request_id, 'Nothing to kill')

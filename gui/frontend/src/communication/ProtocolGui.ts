@@ -58,6 +58,7 @@ export enum ShellAPIGui {
     GuiShellCloseSession = "gui.shell.close_session",
     GuiShellExecute = "gui.shell.execute",
     GuiShellComplete = "gui.shell.complete",
+    GuiShellKillTask = "gui.shell.kill_task",
     GuiSqleditorIsGuiModuleBackend = "gui.sqleditor.is_gui_module_backend",
     GuiSqleditorGetGuiModuleDisplayInfo = "gui.sqleditor.get_gui_module_display_info",
     GuiSqleditorStartSession = "gui.sqleditor.start_session",
@@ -734,6 +735,23 @@ export class ProtocolGui extends Protocol {
                 args: {
                     data,
                     offset,
+                    module_session_id: moduleSessionId,
+                },
+            });
+    }
+
+    /**
+     * Kill a shell task
+     *
+     * @param moduleSessionId The module_session object that should be closed
+     *
+     * @returns A dict holding the result message
+     */
+    public static getRequestShellKillTask(moduleSessionId: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiShellKillTask,
+            {
+                args: {
                     module_session_id: moduleSessionId,
                 },
             });
