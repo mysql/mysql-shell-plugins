@@ -65,6 +65,7 @@ export const printChannelOutput = (content: string, reveal = false): void => {
  * @param onStdErrData The callback to handle data error output. If not specified onStdOutData will be used.
  * @param onError The callback to handle other error output. If not specified onStdOutData will be used.
  * @param onExit The callback to handle the shell exit.
+ * @param textForStdin Optional text to be passed to STDIN
  *
  * @returns The shell process
  */
@@ -72,7 +73,8 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
     onStdOutData: (data: unknown) => void,
     onStdErrData?: (data: unknown) => void,
     onError?: (error: Error) => void,
-    onExit?: (code: number) => void): child_process.ChildProcess => {
+    onExit?: (code: number) => void,
+    textForStdin?: string): child_process.ChildProcess => {
 
     // Check if MySQL Shell is bundled with the extension
     let shellPath = join(extensionPath, "shell", "bin", "mysqlsh");
@@ -96,6 +98,12 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
             LOG_LEVEL: "DEBUG3",
         },
     });
+
+    if (textForStdin) {
+        shellProc.stdin.setDefaultEncoding("utf-8");
+        shellProc.stdin.write(`${textForStdin}\n`);
+        shellProc.stdin.end();
+    }
 
     // Assign callbacks
     shellProc.stdout?.on("data", onStdOutData);
@@ -141,7 +149,7 @@ const startShellAndConnect = (extensionPath: string, target?: string): void => {
             const parameters = [
                 "--py",
                 "-e",
-                `gui.start.web_server(port=${port}, secure={}, single_instance_token="${singleUserToken}")`,
+                `gui.start.web_server(port=${port}, secure={}, read_token_on_stdin=True)`,
             ];
 
             shellProcess = runMysqlShell(extensionPath, parameters, (data) => {
@@ -177,7 +185,8 @@ const startShellAndConnect = (extensionPath: string, target?: string): void => {
             }, (data) => {
                 // onStdErrData
                 printChannelOutput(String(data));
-            });
+            },
+            undefined, undefined, singleUserToken);
 
         }).catch((error) => {
             printChannelOutput(String(error), true);

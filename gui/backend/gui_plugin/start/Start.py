@@ -25,7 +25,7 @@ import subprocess
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
 from gui_plugin.core.ThreadedHTTPServer import ThreadedHTTPServer
-from gui_plugin.core.Certificates import is_shell_web_certificate_installed, install_shell_web_certificate
+from gui_plugin.core.Certificates import is_shell_web_certificate_installed
 import mysqlsh
 import ssl
 import os
@@ -47,7 +47,8 @@ import gui_plugin.core.Logger as logger
 
 
 @plugin_function('gui.start.webServer', cli=True)
-def web_server(port=None, secure=None, webrootpath=None, single_instance_token=None):
+def web_server(port=None, secure=None, webrootpath=None,
+               single_instance_token=None, read_token_on_stdin=False):
     """Starts a web server that will serve the MySQL Shell GUI
 
     Args:
@@ -60,6 +61,8 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
             by the web server to serve files
         single_instance_token (str): A token string used to establish
             local user mode.
+        read_token_on_stdin (bool): If set to True, the token will be read
+            from STDIN
 
     Allowed options for secure:
         keyfile (str): The path to the server private key file
@@ -71,8 +74,16 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
 
     import mysqlsh.plugin_manager.general
 
+    # Read single_instance_token from STDIN if read_token_on_stdin is True
+    if read_token_on_stdin:
+        single_instance_token = input(
+            'Please enter the single instance token: ').strip()
+        if not single_instance_token:
+            raise ValueError("No single instance token given on STDIN.")
+        logger.info('Token read from STDIN')
+
     # Start the web server
-    logger.info(f'Starting MySQL Shell GUI web server...')
+    logger.info('Starting MySQL Shell GUI web server...')
 
     server = None
     try:
@@ -116,24 +127,22 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
                     secure['keyfile'] = path.join(*[
                         cert_path,
                         'server.key'])
-                    keyfile = secure['keyfile']
                 if 'certfile' not in secure or secure['certfile'] == "default":
                     default_cert_used = True
                     secure['certfile'] = path.join(*[
                         cert_path,
                         'server.crt'])
-                    certfile = secure['certfile']
             else:
                 raise ValueError('If specified, the secure parameter need to '
                                  'be of type dict')
 
             # If the default cert is used, check if it is already installed
             logger.info('\tChecking web server certificate...')
-            if (default_cert_used and 
-                not is_shell_web_certificate_installed(check_keychain=True)):
+            if (default_cert_used and
+                    not is_shell_web_certificate_installed(check_keychain=True)):
                 # If not, print error
                 logger.info('\tCertificate is not installed. '
-                    'Use gui.core.installShellWebCertificate() to install one.')
+                            'Use gui.core.installShellWebCertificate() to install one.')
                 return
             else:
                 logger.info('\tCertificate is installed.')
@@ -161,14 +170,17 @@ def web_server(port=None, secure=None, webrootpath=None, single_instance_token=N
 
         try:
             logger.info(
-                f"Server started [port:{port}, secure:{'version' in dir(server.socket)}, single user: {server.single_instance_token is not None}]", ['session'])
+                f"Server started [port:{port}, "
+                f"secure:{'version' in dir(server.socket)}, "
+                f"single user: {server.single_instance_token is not None}]", 
+                ['session'])
 
             # Log server start
             logger.info(f"\tPort: {port}")
             logger.info(f"\tSecure: {'version' in dir(server.socket)}")
             logger.info(f"\tWebroot: {webrootpath}")
             logger.info(
-                f"\tMode: {f'Single user [token={server.single_instance_token}]' if server.single_instance_token is not None else 'Multi-user'}")
+                f"\tMode: {f'Single user' if server.single_instance_token is not None else 'Multi-user'}")
 
             # Start web server
             server.serve_forever()
