@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,6 +22,9 @@
  */
 
 import * as net from "net";
+
+import { window, ProgressLocation } from "vscode";
+import { waitFor } from "../../frontend/src/utilities/helpers";
 
 export const findFreePort = (): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -52,4 +55,28 @@ export const findFreePort = (): Promise<number> => {
         });
 
     });
+};
+
+/**
+ * Shows a message that auto closes after a certain timeout. Since there's no API for this functionality the
+ * progress output is used instead, which auto closes at 100%.
+ * This means the function cannot (and should not) be used for warnings or errors. These types of message require
+ * the user to really take note.
+ *
+ * @param message The message to show.
+ * @param timeout The time in milliseconds after which the message should close (default 3secs).
+ */
+export const showMessageWithTimeout = (message: string, timeout = 3000): void => {
+    void window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: message,
+            cancellable: false,
+        },
+
+        async (progress): Promise<void> => {
+            await waitFor(timeout, () => { return false; });
+            progress.report({ increment: 100 });
+        },
+    );
 };

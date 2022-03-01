@@ -27,6 +27,7 @@ import { Command, TreeItem, TreeItemCollapsibleState, env, window, commands } fr
 
 import { ICommResultSetEvent } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
+import { showMessageWithTimeout } from "../../utilities";
 
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
@@ -49,7 +50,7 @@ export class ConnectionsTreeBaseItem extends TreeItem {
 
     public copyNameToClipboard(): void {
         void env.clipboard.writeText(this.name).then(() => {
-            void window.showInformationMessage("The name was copied to the system clipboard");
+            showMessageWithTimeout("The name was copied to the system clipboard");
         });
     }
 
@@ -61,7 +62,7 @@ export class ConnectionsTreeBaseItem extends TreeItem {
                     const index = this.createScriptResultIndex;
                     if (row.length > index) {
                         void env.clipboard.writeText(row[index]).then(() => {
-                            void window.showInformationMessage("The create script was copied to the system clipboard");
+                            showMessageWithTimeout("The create script was copied to the system clipboard");
                         });
                     }
                 }
@@ -78,10 +79,9 @@ export class ConnectionsTreeBaseItem extends TreeItem {
                 this.entry.backend?.execute(query).then((event: ICommResultSetEvent) => {
                     switch (event.eventType) {
                         case EventType.FinalResponse: {
-                                // TODO: refresh only the affected connection.
+                            // TODO: refresh only the affected connection.
                             void commands.executeCommand("msg.refreshConnections");
-                            void window.showInformationMessage(
-                                `The object ${this.name} has been dropped successfully.`);
+                            showMessageWithTimeout(`The object ${this.name} has been dropped successfully.`);
 
                             break;
                         }

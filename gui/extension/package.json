@@ -742,7 +742,7 @@
                 },
                 {
                     "submenu": "msg.copyToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema.*Item.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/",
                     "group": "2_msg@9"
                 },
                 {
