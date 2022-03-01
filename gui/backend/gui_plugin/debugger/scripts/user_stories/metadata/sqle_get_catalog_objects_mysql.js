@@ -20,6 +20,15 @@ lib.sqleditor.with_new_connection.params = {
 
 await ws.execute(lib.sqleditor.with_new_connection.file)
 
+lib.sqleditor.with_new_connection.params = {
+    "database_settings": lib.connection.add_mysql_root,
+    "test": user_stories.metadata.get_user_variables,
+    "validation": lib.sqleditor.open_connection_validate_mysql,
+    "initialization": lib.noop
+}
+
+await ws.execute(lib.sqleditor.with_new_connection.file)
+
 
 //  Terminate
 await ws.execute(lib.sqleditor.close_session.file)

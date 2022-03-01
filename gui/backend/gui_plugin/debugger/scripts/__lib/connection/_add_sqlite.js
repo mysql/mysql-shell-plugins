@@ -19,10 +19,8 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
-            "msg": "The file was created"
-        },
-        "result": ws.tokens["current_test_name"] + ".sqlite3"
+            "msg": ws.matchRegexp("The file was created|The supplied file already exists\.")
+        }
     }
 ])
 

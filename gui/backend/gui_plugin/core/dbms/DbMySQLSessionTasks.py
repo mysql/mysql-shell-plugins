@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -109,8 +109,11 @@ class MySQLOneFieldListTask(DbQueryTask):
                 # Return chunks of buffer_size a time, if buffer_size is 0
                 # or -1, do not return chunks but only the full result set
                 if buffer_size > 0 and len(name_list) >= buffer_size:
-                    self.dispatch_result(
-                        "PENDING" if row else "OK", data=name_list)
-                    name_list = []
+                    if row:
+                        self.dispatch_result("PENDING", data=name_list)
+                        name_list = []
+                    else:
+                        self.dispatch_result("OK", data=name_list)
+                        return
 
         self.dispatch_result("OK", data=name_list)

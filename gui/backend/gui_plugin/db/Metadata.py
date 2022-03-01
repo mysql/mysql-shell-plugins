@@ -23,6 +23,7 @@ from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in
 from gui_plugin.core.Protocols import Response
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
+from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 
 
 @plugin_function('gui.db.getObjectsTypes', shell=False, web=True)
@@ -165,3 +166,73 @@ def get_table_object(module_session, request_id, type, schema_name, table_name, 
                                      schema_name=schema_name,
                                      table_name=table_name,
                                      name=name)
+
+@plugin_function('gui.db.startSession', shell=False, web=True)
+def start_session(request_id, web_session=None):
+    """Starts a DB Session
+
+    Args:
+        request_id (str): The request_id of the command
+        web_session (object): The web_session object this session will belong to
+
+    Returns:
+        A dict holding the result message
+    """
+    new_session = DbModuleSession(web_session)
+
+    result = Response.ok("New DB session created successfully.", {
+        "module_session_id": new_session.module_session_id,
+        "request_id": request_id
+    })
+
+    return result
+
+
+@plugin_function('gui.db.closeSession', shell=False, web=True)
+def close_session(module_session, request_id):
+    """Closes the DB Session
+
+    Args:
+        module_session (object): The module session object that should be closed
+        request_id (str): The request_id of the command
+
+    Returns:
+        A dict holding the result message
+    """
+    module_session.close()
+
+    return Response.ok("DB session has been closed successfully.", {
+        "module_session_id": module_session.module_session_id,
+        "request_id": request_id
+    })
+
+
+@plugin_function('gui.db.openConnection', shell=False, web=True)
+def open_connection(db_connection_id, module_session, request_id, password=None):
+    """Opens the DB Session
+
+    Args:
+        db_connection_id (int): The id of the db_connection
+        module_session (object): The session where the connection will open
+        request_id (str): ID of the request starting the session.
+        password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
+
+    Returns:
+        A dict holding the result message and the connection information
+        when available.
+    """
+    module_session.open_connection(db_connection_id, password, request_id)
+
+@plugin_function('gui.db.reconnect', shell=False, web=True)
+def reconnect(module_session, request_id):
+    """Reconnects the DB Session
+
+    Args:
+        module_session (object): The session where the session will be reconnected
+        request_id (str): ID of the request for reconnection.
+
+    Returns:
+        A dict holding the result message and the connection information
+        when available.
+    """
+    module_session.reconnect(request_id)

@@ -123,6 +123,10 @@ export enum ShellAPIGui {
     GuiDbGetCatalogObject = "gui.db.get_catalog_object",
     GuiDbGetSchemaObject = "gui.db.get_schema_object",
     GuiDbGetTableObject = "gui.db.get_table_object",
+    GuiDbStartSession = "gui.db.start_session",
+    GuiDbCloseSession = "gui.db.close_session",
+    GuiDbOpenConnection = "gui.db.open_connection",
+    GuiDbReconnect = "gui.db.reconnect",
     //  End auto generated API names
 }
 
@@ -1931,6 +1935,74 @@ export class ProtocolGui extends Protocol {
                     schema_name: schemaName,
                     table_name: tableName,
                     name,
+                },
+            });
+    }
+
+    /**
+     * Starts a DB Session
+     *
+     * @returns A dict holding the result message
+     */
+    public static getRequestDbStartSession(): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbStartSession,
+            {
+                args: {},
+            });
+    }
+
+    /**
+     * Closes the DB Session
+     *
+     * @param moduleSessionId The string id for the module session object that should be closed
+     *
+     * @returns A dict holding the result message
+     */
+    public static getRequestDbCloseSession(moduleSessionId: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbCloseSession,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                },
+            });
+    }
+
+    /**
+     * Opens the DB Session
+     *
+     * @param dbConnectionId The id of the db_connection
+     * @param moduleSessionId The session where the connection will open
+     * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
+     *
+     * @returns A dict holding the result message and the connection information     when available.
+     */
+    public static getRequestDbOpenConnection(dbConnectionId: number, moduleSessionId: string, password?: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbOpenConnection,
+            {
+                args: {
+                    db_connection_id: dbConnectionId,
+                    module_session_id: moduleSessionId,
+                    password,
+                },
+            });
+    }
+
+    /**
+     * Reconnects the DB Session
+     *
+     * @param moduleSessionId The session where the session will be reconnected
+     *
+     * @returns A dict holding the result message and the connection information     when available.
+     */
+    public static getRequestDbReconnect(moduleSessionId: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbReconnect,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
                 },
             });
     }
