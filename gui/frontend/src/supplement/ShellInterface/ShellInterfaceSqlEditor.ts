@@ -203,7 +203,7 @@ export class ShellInterfaceSqlEditor implements IShellInterface {
      *
      * @returns A listener for the response.
      */
-    public getCatalogObjects(type: string, filter: string): ListenerEntry {
+    public getCatalogObjects(type: string, filter?: string): ListenerEntry {
         const id = this.moduleSessionId;
         if (!id) {
             return ListenerEntry.resolve();

@@ -79,14 +79,14 @@ export class DynamicSymbolTable extends DBSymbolTable {
 
             switch (kind) {
                 case SymbolKind.Schema: {
-                    const listener = this.backend.getCatalogObjects("Schema", "");
+                    const listener = this.backend.getCatalogObjects("Schema");
                     this.handleResults(listener, parent, resolve, reject, SchemaSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Table: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Table", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Table");
                     this.handleResults(listener, parent, resolve, reject, TableSymbol);
 
                     break;
@@ -102,42 +102,44 @@ export class DynamicSymbolTable extends DBSymbolTable {
                 }
 
                 case SymbolKind.Procedure: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "procedure");
                     this.handleResults(listener, parent, resolve, reject, StoredProcedureSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Function: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "function");
                     this.handleResults(listener, parent, resolve, reject, StoredFunctionSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Udf: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Routine");
                     this.handleResults(listener, parent, resolve, reject, UdfSymbol);
 
                     break;
                 }
 
                 case SymbolKind.View: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "View", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "View");
                     this.handleResults(listener, parent, resolve, reject, ViewSymbol);
 
                     break;
                 }
 
                 case SymbolKind.PrimaryKey: {
-                    const listener = this.backend.getTableObjects(parent.name, "", "Primary Key", "");
+                    // TODO: fix table specifier.
+                    const listener = this.backend.getTableObjects(parent.name, "", "Primary Key");
                     this.handleResults(listener, parent, resolve, reject, ForeignKeySymbol);
 
                     break;
                 }
 
                 case SymbolKind.ForeignKey: {
-                    const listener = this.backend.getTableObjects(parent.name, "", "Foreign Key", "");
+                    // TODO: fix table specifier.
+                    const listener = this.backend.getTableObjects(parent.name, "", "Foreign Key");
                     this.handleResults(listener, parent, resolve, reject, ForeignKeySymbol);
 
                     break;
@@ -149,77 +151,78 @@ export class DynamicSymbolTable extends DBSymbolTable {
                 }
 
                 case SymbolKind.Engine: {
-                    const listener = this.backend.getCatalogObjects("Engine", "");
+                    const listener = this.backend.getCatalogObjects("Engine");
                     this.handleResults(listener, parent, resolve, reject, EngineSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Trigger: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Trigger", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Trigger");
                     this.handleResults(listener, parent, resolve, reject, TriggerSymbol);
 
                     break;
                 }
 
                 case SymbolKind.LogfileGroup: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Routine");
                     this.handleResults(listener, parent, resolve, reject, LogfileGroupSymbol);
 
                     break;
                 }
 
                 case SymbolKind.UserVariable: {
-                    const listener = this.backend.getCatalogObjects("User Variable", "");
+                    const listener = this.backend.getCatalogObjects("User Variable");
                     this.handleResults(listener, parent, resolve, reject, UserVariableSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Tablespace: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Tablespace", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Tablespace");
                     this.handleResults(listener, parent, resolve, reject, UdfSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Event: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Event", "");
+                    const listener = this.backend.getSchemaObjects(parent.name, "Event");
                     this.handleResults(listener, parent, resolve, reject, UdfSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Index: {
-                    const listener = this.backend.getTableObjects(parent.name, "", "Index", "");
+                    // TODO: fix table specifier.
+                    const listener = this.backend.getTableObjects(parent.name, "", "Index");
                     this.handleResults(listener, parent, resolve, reject, IndexSymbol);
 
                     break;
                 }
 
                 case SymbolKind.User: {
-                    const listener = this.backend.getCatalogObjects("User", "");
+                    const listener = this.backend.getCatalogObjects("User");
                     this.handleResults(listener, parent, resolve, reject, UserSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Charset: {
-                    const listener = this.backend.getCatalogObjects("Character Set", "");
+                    const listener = this.backend.getCatalogObjects("Character Set");
                     this.handleResults(listener, parent, resolve, reject, CharsetSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Collation: {
-                    const listener = this.backend.getCatalogObjects("Collation", "");
+                    const listener = this.backend.getCatalogObjects("Collation");
                     this.handleResults(listener, parent, resolve, reject, CollationSymbol);
 
                     break;
                 }
 
                 case SymbolKind.Plugin: {
-                    const listener = this.backend.getCatalogObjects("Plugin", "");
+                    const listener = this.backend.getCatalogObjects("Plugin");
                     this.handleResults(listener, parent, resolve, reject, PluginSymbol);
 
                     break;
