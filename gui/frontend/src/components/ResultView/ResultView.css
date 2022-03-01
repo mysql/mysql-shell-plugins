@@ -41,19 +41,15 @@
     background: transparent;
 }
 
-.zoneHost {
-    padding-top: 4px;
-}
-
-.zoneHost .renderTarget > .divider {
+.msg.codeEditor .zoneHost .renderTarget > .divider {
     cursor: ns-resize;
 }
 
-.zoneHost .renderTarget > .divider.minimum {
+.msg.codeEditor .zoneHost .renderTarget > .divider.minimum {
     cursor: s-resize;
 }
 
-.zoneHost .renderTarget > .divider.maximum {
+.msg.codeEditor .zoneHost .renderTarget > .divider.maximum {
     cursor: n-resize;
 }
 

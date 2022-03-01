@@ -95,7 +95,7 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
         env: {
             ...process.env,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            LOG_LEVEL: "DEBUG3",
+            LOG_LEVEL: "INFO",
         },
     });
 
@@ -209,7 +209,7 @@ export const activate = (context: ExtensionContext): void => {
 
     host = new ExtensionHost(context);
 
-    // Register "msg.runWelcomeWizard" command
+    // Register "msg.runWelcomeWizard" command.
     setupInitialWelcomeWebview(context);
 
     context.subscriptions.push(commands.registerCommand("msg.restartShell", () => {

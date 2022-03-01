@@ -138,8 +138,19 @@ export class ExtensionHost {
         this.mrsCommandHandler.setup(this.context, this);
         this.mdsCommandHandler.setup(this.context, this);
 
+        const updateLogLevel = (): void => {
+            const configuration = workspace.getConfiguration(`msg.debugLog`);
+            const level = configuration.get<string>("level", "INFO");
+
+            void ShellInterface.core.setLogLevel(level).catch((error) => {
+                void window.showErrorMessage("Error while setting log level: " + String(error));
+            });
+        };
+        updateLogLevel();
+
         this.context.subscriptions.push(workspace.onDidChangeConfiguration((event: ConfigurationChangeEvent) => {
             if (event.affectsConfiguration("msg")) {
+                updateLogLevel();
                 this.updateProfileSettings();
             }
         }));

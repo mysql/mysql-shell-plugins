@@ -59,7 +59,7 @@
         "editorPrompt.secondary.sql": "#db8f00",
         "editorPrompt.primary.py": "#3776AB",
         "editorPrompt.secondary.py": "#3776AB",
-        "editorPrompt.result": "#404040",
+        "editorPrompt.result": "#303030",
 
         "activityBar.activeBackground": "#3A3A3A",
         "activityBar.activeBorder": "#FFFFFF",

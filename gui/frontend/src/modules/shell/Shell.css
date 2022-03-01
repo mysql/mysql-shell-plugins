@@ -57,7 +57,6 @@
 .msg#shellModuleTabview #shellEditorHost .renderTarget .textHost .resultText {
     flex: 0 0 auto;
     height: auto;
-    line-height: 1.3em;
     padding-left: 0;
     white-space: pre-wrap;
 }
@@ -326,6 +325,10 @@ body[theme=dark] .msg#shellModuleTabview #shellEditorHost .renderTarget {
     background-color: #00000020;
 }
 
+body .msg#shellModuleTabview #shellEditorHost .zoneMargin {
+    margin-left: 35px;
+}
+
 body[theme=light] .msg#shellModuleTabview .decorationSet-standard .zoneMargin {
     background-color: #00000008;
 }
@@ -346,7 +349,7 @@ body[theme=dark] .msg#shellModuleTabview .decorationSet-standard .zoneMargin {
     position: absolute;
 
     width: 7px;
-    right: 10px;
+    right: 42px;
     top: 0px;
     height: 100%;
 

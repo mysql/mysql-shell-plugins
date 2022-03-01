@@ -29,6 +29,29 @@
         "configuration": {
             "title": "MySQL Shell for VS Code",
             "properties": {
+                "msg.debugLog.level": {
+                    "type": "string",
+                    "default": "INFO",
+                    "enum": [
+                        "NONE",
+                        "ERROR",
+                        "WARNING",
+                        "INFO",
+                        "DEBUG",
+                        "DEBUG2",
+                        "DEBUG3"
+                    ],
+                    "enumDescriptions": [
+                        "Switch logging off, entirely",
+                        "Show only errors",
+                        "Show errors and warnings",
+                        "Show errors, warnings and other normal information",
+                        "Used for problem analysis. Prints additional information",
+                        "Used for problem analysis. Not used currently",
+                        "Used for problem analysis. Print everything, which may include security related things like passwords, connection tokens etc."
+                    ],
+                    "description": "Sets different verbosity levels for the communication log between the extension and the MySQL Shell. To see this log open the OUTPUT channel MySQL Shell for VS Code."
+                },
                 "msg.workers.minWorkerCount": {
                     "type": "number",
                     "default": 3,

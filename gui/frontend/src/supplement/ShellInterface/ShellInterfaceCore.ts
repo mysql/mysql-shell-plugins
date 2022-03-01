@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,9 @@
 */
 
 import { IBackendInformation, IShellInterface } from ".";
-import { currentConnection, ICommShellInformationEvent, ProtocolGui } from "../../communication";
+import {
+    currentConnection, ICommShellInformationEvent, ICommSimpleResultEvent, ProtocolGui,
+} from "../../communication";
 
 import { filterInt } from "../../utilities/string-helpers";
 
@@ -61,4 +63,29 @@ export class ShellInterfaceCore implements IShellInterface {
         });
     }
 
+    public getLogLevel(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const request = ProtocolGui.getRequestCoreGetLogLevel();
+            currentConnection.sendRequest(request, { messageClass: "getLogLevel" })
+                .then((event: ICommSimpleResultEvent) => {
+                    resolve(event.data?.result as string);
+                }).catch((errorEvent) => {
+                    reject(errorEvent.message);
+                });
+        });
+
+    }
+
+    public setLogLevel(level: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const request = ProtocolGui.getRequestCoreSetLogLevel(level);
+            currentConnection.sendRequest(request, { messageClass: "getLogLevel" })
+                .then(() => {
+                    resolve();
+                }).catch((errorEvent) => {
+                    reject(errorEvent.message);
+                });
+        });
+
+    }
 }
