@@ -1,20 +1,130 @@
 ws.execute("__lib/_init.js")
-var lib = ws.tokens.lib
-var user_stories = ws.tokens["user_stories"]
 
 ws.tokens["current_directory"] = "user_stories/shell"
 ws.tokens["current_test_name"] = "sql_query"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 //  Initialize
-await ws.execute(lib.login.admin.file)
-await ws.execute(lib.shell.open_session.file)
+await ws.execute("__lib/login/_admin.js")
+await ws.execute("__lib/shell/_open_session.js")
 
-await ws.execute(user_stories.shell.sql_query.file)
+// Test Execution
+var options = ws.tokens.defaults.database_connections.mysql[0].options
 
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.shell.execute",
+    "args": {
+        "command": "\\c " + options.user + ":@" + options.host + ":" + options.portStr,
+        "module_session_id": ws.lastModuleSessionId,
+    }
+}, [
+    {
+        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_id": ws.lastGeneratedRequestId,
+    },    
+    {
+        'request_id': ws.lastGeneratedRequestId,
+        'request_state': {'type': 'PENDING','msg': 'Executing...'},
+        'result': {
+            'info': "Creating a session to '" + options.user + "@" + options.host + ":" + options.portStr + "'\n"
+        }
+    },
+    {
+        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "info": ws.matchRegexp("Your MySQL connection id is \\d+\\nServer version: .+")
+        }
+    },
+    {
+        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_id": ws.lastGeneratedRequestId,
+    }    
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.shell.execute",
+    "args": {
+        "command": "\\sql",
+        "module_session_id": ws.lastModuleSessionId,
+    }
+}, [
+    {
+        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_id": ws.lastGeneratedRequestId,
+    },    
+    {
+        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "info": "Switching to SQL mode... Commands end with ;\n"
+        }
+    },
+    {
+        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_id": ws.lastGeneratedRequestId,
+    }    
+])
+
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.shell.execute",
+    "args": {
+        "command": "SELECT user FROM mysql.user;",
+        "module_session_id": ws.lastModuleSessionId,
+    }
+}, [
+    {
+        "request_state": {"type": "PENDING","msg": "Execution started..."}
+    },
+    {
+        "request_state": {"type": "PENDING", "msg": "Executing..."},
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "Field 1": {
+                "Name": "`user`",
+                "Org_name": "`User`",
+                "Catalog": "`def`",
+                "Database": "`mysql`",
+                "Table": "`user`",
+                "Org_table": "`user`",
+                "Type": "String",
+                "DbType": "STRING",
+                "Collation": "utf8mb4_0900_ai_ci (255)",
+                "Length": "128",
+                "Decimals": "0",
+                "Flags": "NOT_NULL PRI_KEY BINARY PART_KEY"
+            }
+        }
+    },
+    {
+        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "hasData": true,
+            "rows": [],
+            "executionTime": ws.ignore,
+            "affectedRowCount": 0,
+            "affectedItemsCount": 0,
+            "warningCount": 0,
+            "warningsCount": 0,
+            "warnings": [],
+            "info": "", "autoIncrementValue": 0
+        }
+    },
+    {
+        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_id": ws.lastGeneratedRequestId,
+    }    
+])
 
 //  Terminate
-await ws.execute(lib.shell.close_session.file)
-await ws.execute(lib.login.logout.file)
+await ws.execute("__lib/shell/_close_session.js")
 
 ws.log("-----=== [END] " + ws.tokens["current_test_name"] + " test ===-----")

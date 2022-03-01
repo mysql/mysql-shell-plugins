@@ -224,15 +224,20 @@ export const waitFor = async (timeout: number, condition: () => boolean): Promis
     return timeout > 0 ? true : false;
 };
 
+export interface IConversionOptions {
+    ignore?: string[];
+}
+
 /**
  * Converts all object keys to snake_case, recursively.
  *
  * @param o The object to convert.
+ * @param options Options to control the conversion process.
  *
  * @returns A new object with the converted keys.
  */
-export const convertToSnakeCase = (o: object): object => {
-    return _.deepMapKeys(o, (value, key) => {
+export const convertToSnakeCase = (o: object, options?: IConversionOptions): object => {
+    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
         const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
             return `${match1}_${match2.toLowerCase()}`;
         });
@@ -245,11 +250,12 @@ export const convertToSnakeCase = (o: object): object => {
  * Converts all object keys to camelCase, recursively.
  *
  * @param o The object to convert.
+ * @param options Options to control the conversion process.
  *
  * @returns A new object with the converted keys.
  */
-export const convertToCamelCase = (o: object): object => {
-    return _.deepMapKeys(o, (value, key) => {
+export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions): object => {
+    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
         return key.replace(/_([a-z])/gi, (full, match: string) => {
             return match.toUpperCase();
         });
@@ -264,12 +270,27 @@ export const convertToCamelCase = (o: object): object => {
  *
  * @returns The converted string.
  */
-export const convertToTitleCase = (s: string): string => {
+export const convertCamelToTitleCase = (s: string): string => {
     if (s.length < 1) {
         return "";
     }
 
     return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+/**
+ * This is the opposite direction of `convertCamelToTitleCase` by converting the first letter to lower case.
+ *
+ * @param s The string to convert.
+ *
+ * @returns The converted string.
+ */
+export const convertTitleToCamelCase = (s: string): string => {
+    if (s.length < 1) {
+        return "";
+    }
+
+    return s.charAt(0).toLowerCase() + s.slice(1);
 };
 
 // eslint-disable-next-line no-control-regex
@@ -475,8 +496,8 @@ export const strictEval = (code: string): Function => {
 declare module "lodash" {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     interface LoDashStatic {
-        deepMapKeys: (o: object, fn: (value: unknown, key: string) => unknown) => object;
-        deepMapArray: (a: unknown[], fn: (value: unknown, key: string) => unknown) => unknown[];
+        deepMapKeys: (o: object, ignoreList: string[], fn: (value: unknown, key: string) => unknown) => object;
+        deepMapArray: (a: unknown[], ignoreList: string[], fn: (value: unknown, key: string) => unknown) => unknown[];
     }
 }
 
@@ -486,28 +507,29 @@ declare module "lodash" {
 setImmediate((): void => {
     // Add lodash mixins to recursively map object keys.
     _.mixin({
-        deepMapKeys: (o: object, fn: (value: unknown, key: string) => string): object => {
+        deepMapKeys: (o: object, ignoreList: string[], fn: (value: unknown, key: string) => string): object => {
             const result: IDictionary = {};
 
             _.forOwn(o, (v: unknown, k: string) => {
-                if (_.isPlainObject(v)) {
-                    v = _.deepMapKeys(v as object, fn);
-                } else if (_.isArray(v)) {
-                    v = _.deepMapArray(v, fn);
+                if (!ignoreList.includes(k)) {
+                    if (_.isPlainObject(v)) {
+                        v = _.deepMapKeys(v as object, ignoreList, fn);
+                    } else if (_.isArray(v)) {
+                        v = _.deepMapArray(v, ignoreList, fn);
+                    }
                 }
-
                 result[fn(v, k)] = v;
             });
 
             return result;
         },
 
-        deepMapArray: (a: unknown[], fn: (value: unknown, key: string) => unknown): unknown[] => {
+        deepMapArray: (a: unknown[], ignoreList: string[], fn: (value: unknown, key: string) => unknown): unknown[] => {
             return a.map((v) => {
                 if (_.isPlainObject(v)) {
-                    return _.deepMapKeys(v as object, fn);
+                    return _.deepMapKeys(v as object, ignoreList, fn);
                 } else if (_.isArray(v)) {
-                    return _.deepMapArray(v as unknown[], fn);
+                    return _.deepMapArray(v as unknown[], ignoreList, fn);
                 }
 
                 return v;

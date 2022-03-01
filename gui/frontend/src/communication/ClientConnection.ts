@@ -29,12 +29,13 @@ import {
     dispatcher, IDispatchEventContext, ListenerEntry, eventFilterNoRequests, DispatchEvents, EventType,
     IDispatchDefaultEvent,
 } from "../supplement/Dispatch";
-import { convertToCamelCase, convertToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../utilities/helpers";
+import { convertSnakeToCamelCase, convertToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../utilities/helpers";
 import { IGenericResponse } from "./GeneralEvents";
 
 import ReconnectingWebSocket, { ErrorEvent, Options } from "reconnecting-websocket";
 import ws from "ws";
 import { IDictionary } from "../app-logic/Types";
+import _ from "lodash";
 
 export enum ConnectionEventType {
     Open = 1,
@@ -210,8 +211,10 @@ export class ClientConnection {
 
     private onMessage = (event: MessageEvent): void => {
         // Convert message data string to object and also convert from underscore case to camel case.
+        // However, ignore row data in this process, as it either comes as array (no keys to convert) or comes
+        // as object, whose keys are the real column names (which must stay as is).
         const data = JSON.parse(event.data as string) as object;
-        const serverData = convertToCamelCase(data) as IWebSessionData;
+        const serverData = convertSnakeToCamelCase(data, { ignore: ["rows"] }) as IWebSessionData;
 
         // Note: the context given here by the event factories is replaced by the one specified for a specific
         //       request in the sendRequest call. Only in error cases the context from here might be used.

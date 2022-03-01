@@ -397,11 +397,11 @@ class TestDbMysqlSession:
             row0 = values['rows'][0]
 
             if 'result_format' not in func.options or func.options['result_format'] == 'list':
-                assert values["columns"] == [{'name': 'id', 'type': 'SMALLINT'},
-                                             {'name': 'column1', 'type': 'STRING'},
-                                             {'name': 'column2', 'type': 'STRING'},
-                                             {'name': 'column3', 'type': 'JSON'},
-                                             {'name': 'last_update', 'type': 'DATETIME'}]
+                assert values["columns"] == [{'length': 5, 'name': 'id', 'type': 'SMALLINT'},
+                                             {'length': 180, 'name': 'column1', 'type': 'STRING'},
+                                             {'length': 180, 'name': 'column2', 'type': 'STRING'},
+                                             {'length': 4294967295, 'name': 'column3', 'type': 'JSON'},
+                                             {'length': 19, 'name': 'last_update', 'type': 'DATETIME'}]
                 assert row0[1] == 'column1_0'
                 assert row0[2] == 'column2_0'
                 assert json.loads(row0[3]) == {
@@ -486,7 +486,7 @@ class TestDbMysqlSession:
 
             result = values['rows'][0]
 
-            assert {'name': 'cnt', 'type': 'INTEGER'} in values["columns"]
+            assert {'length': 21, 'name': 'cnt', 'type': 'INTEGER'} in values["columns"]
 
             if count_callback.row_count == -1:
                 count_callback.row_count = result[0]
@@ -544,7 +544,7 @@ class TestDbMysqlSession:
 
             result = values['rows'][0]
 
-            assert {'name': 'cnt', 'type': 'INTEGER'} in values['columns']
+            assert {'length': 21, 'name': 'cnt', 'type': 'INTEGER'} in values['columns']
 
             if count_callback.row_count == -1:
                 count_callback.row_count = result[0]

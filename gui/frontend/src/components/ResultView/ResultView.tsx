@@ -44,7 +44,7 @@ import {
 import { ResultStatus } from "./ResultStatus";
 import { ITreeGridOptions, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { IResultSet, IResultSetRows } from "../../script-execution";
-import { convertToTitleCase } from "../../utilities/helpers";
+import { convertCamelToTitleCase } from "../../utilities/helpers";
 import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
 
@@ -505,7 +505,13 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                     }
 
                     case DBDataType.Binary:
-                    case DBDataType.Varbinary:
+                    case DBDataType.Varbinary: {
+                        formatter = this.binaryFormatter;
+                        // No in-place editor. Uses value editor popup.
+
+                        break;
+                    }
+
                     case DBDataType.TinyBlob:
                     case DBDataType.Blob:
                     case DBDataType.MediumBlob:
@@ -807,7 +813,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
                 case "capitalizeMenuItem": {
                     const value = this.currentCell.getValue() as string;
-                    this.currentCell.setValue(convertToTitleCase(value));
+                    this.currentCell.setValue(convertCamelToTitleCase(value));
 
                     break;
                 }
@@ -1190,6 +1196,31 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
             return host;
         } else {
             return cell.getValue() as string;
+        }
+    };
+
+    private binaryFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+        let element;
+        if (cell.getValue() === null) {
+            const host = document.createElement("div");
+            host.className = "iconHost";
+
+            element = <Icon src={nullIcon} width={30} height={11} />;
+            render(element, host);
+
+            return host;
+        } else {
+            // Binary data is given as a based64 encoded string
+            const val = cell.getValue() as string;
+            if (val) {
+                const buffer = Buffer.from(val, "base64");
+                // Convert to a HEX string and truncate at 32 bytes
+                const bufString = buffer.toString("hex");
+
+                return (bufString.length > 64) ? bufString.substring(0, 63) + "&hellip;" : bufString;
+            } else {
+                return "";
+            }
         }
     };
 

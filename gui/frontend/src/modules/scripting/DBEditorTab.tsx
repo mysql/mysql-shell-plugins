@@ -52,11 +52,12 @@ import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
 import { DBEditorMainToolbar } from "./DBEditorMainToolbar";
-import { DBDataType, IColumnInfo, IExecutionInfo, MessageType } from "../../app-logic/Types";
+import { IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
-import { mysqlInfo, sqliteInfo } from "../../app-logic/RdbmsInfo";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
-import { EditorLanguage, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest } from "../../supplement";
+import {
+    EditorLanguage, generateColumnInfo, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest,
+} from "../../supplement";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
@@ -627,7 +628,8 @@ Execute \\help or \\? for help;`;
                     }
 
                     case EventType.DataResponse: {
-                        const columns = this.generateColumnInfo(event.data.columns);
+                        const { dbType } = this.props;
+                        const columns = generateColumnInfo(dbType, event.data.columns);
                         void ApplicationDB.db.add("dbModuleResultData", {
                             tabId: id!,
                             requestId,
@@ -649,6 +651,8 @@ Execute \\help or \\? for help;`;
                     }
 
                     case EventType.FinalResponse: {
+                        const { dbType } = this.props;
+
                         this.inspectQuery(context, sql);
 
                         let hasMoreRows = false;
@@ -675,7 +679,7 @@ Execute \\help or \\? for help;`;
                             status.type = MessageType.Response;
                         }
 
-                        const columns = this.generateColumnInfo(event.data.columns);
+                        const columns = generateColumnInfo(dbType, event.data.columns);
                         void ApplicationDB.db.add("dbModuleResultData", {
                             tabId: id!,
                             requestId,
@@ -1454,36 +1458,6 @@ Execute \\help or \\? for help;`;
 
             onExplorerResize?.(id, first.size);
         }
-    };
-
-    /**
-     * Generates a generic column info record for each raw column returned from a request. The format of the
-     * raw columns depends on the used RDBMS.
-     *
-     * @param rawColumns Column info as returned by the backend.
-     *
-     * @returns A list of columns with RDBMS-agnostic details.
-     */
-    private generateColumnInfo = (rawColumns?: Array<{ name: string; type: string }>): IColumnInfo[] => {
-        if (!rawColumns) {
-            return [];
-        }
-
-        const { dbType } = this.props;
-
-        const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
-
-        return rawColumns.map((entry) => {
-            const foundType = dataTypes.get(entry.type.toLowerCase());
-            const type = foundType ? foundType.type : DBDataType.Unknown;
-
-            return {
-                name: entry.name,
-                dataType: {
-                    type,
-                },
-            };
-        });
     };
 
 }

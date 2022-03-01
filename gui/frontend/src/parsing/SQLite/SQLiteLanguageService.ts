@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,7 @@ import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
 import { LanguageWorkerPool } from "../worker/LanguageWorkerPool";
 import { sqliteInfo } from "../../app-logic/RdbmsInfo";
 import { DBDataType, ParameterFormatType } from "../../app-logic/Types";
-import { convertToTitleCase } from "../../utilities/helpers";
+import { convertCamelToTitleCase } from "../../utilities/helpers";
 
 // The SQLite specialization of the RDBMS worker class.
 export class SQLiteLanguageService extends RdbmsLanguageService {
@@ -62,7 +62,7 @@ export class SQLiteLanguageService extends RdbmsLanguageService {
             Object.keys(rdbmsInfo.dataTypes).forEach((type: string) => {
                 const value = rdbmsInfo.dataTypes[type];
                 sqliteInfo.dataTypes.set(type.toLowerCase(), {
-                    type: DBDataType[convertToTitleCase(type)],
+                    type: DBDataType[convertCamelToTitleCase(type)],
 
                     characterMaximumLength: value.characterMaximumLength,
                     characterOctetLength: value.characterOctetLength,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@ import { CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTabl
 import { LanguageWorkerPool } from "../worker/LanguageWorkerPool";
 import { mysqlInfo } from "../../app-logic/RdbmsInfo";
 import { DBDataType, IDictionary, ParameterFormatType } from "../../app-logic/Types";
-import { convertToTitleCase } from "../../utilities/helpers";
+import { convertCamelToTitleCase } from "../../utilities/helpers";
 import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
 
 // The MySQL specialization of the RDBMS language service class.
@@ -67,7 +67,7 @@ export class MySQLLanguageService extends RdbmsLanguageService {
             for (const [key, value] of Object.entries(rdbmsInfo.dataTypes)) {
                 const actualValue = value as IDictionary;
                 mysqlInfo.dataTypes.set(key.toLowerCase(), {
-                    type: DBDataType[convertToTitleCase(key)],
+                    type: DBDataType[convertCamelToTitleCase(key)],
 
                     characterMaximumLength: actualValue.characterMaximumLength as number,
                     characterOctetLength: actualValue.characterOctetLength as number,

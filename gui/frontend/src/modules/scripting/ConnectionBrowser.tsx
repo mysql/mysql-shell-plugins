@@ -591,7 +591,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 (<Container orientation={Orientation.TopDown}>
                     <Grid columns={["auto"]} columnGap={5}>
                         <GridCell crossAlignment={ContentAlignment.Stretch}>
-                            There is no Bastion set as default for this MySQL DB System.
+                            There is no Bastion in the compartment of this MySQL DB System that can be used.<br/>
                         </GridCell>
                         <GridCell className="right" crossAlignment={ContentAlignment.Stretch}>
                             Do you want to create a new Bastion in the compartment of the MySQL DB System?

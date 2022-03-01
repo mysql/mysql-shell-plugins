@@ -25,13 +25,14 @@ import * as React from "react";
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
-    DBDataType, IColumnInfo, DialogType, IDialogRequest, MessageType, IDialogResponse, IDictionary,
+    IColumnInfo, DialogType, IDialogRequest, MessageType, IDialogResponse, IDictionary,
     IServicePasswordRequest,
 } from "../../app-logic/Types";
 
 import {
     ICommShellEvent, IShellDocumentData, IShellObjectResult, IShellResultType, IShellRowData,
     IShellSimpleResult, IShellValueResult, ShellPromptResponseType, IShellPromptValues, IShellFeedbackRequest,
+    IShellColumnsMetaData,
 } from "../../communication";
 import {
     Component, Container, ContentAlignment, IComponentProperties, Orientation,
@@ -39,14 +40,16 @@ import {
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContext, IExecutionResult, ITextResultEntry, SQLExecutionContext } from "../../script-execution";
 import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
-import { EditorLanguage } from "../../supplement";
+import { EditorLanguage, generateColumnInfo } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
 import { EventType } from "../../supplement/Dispatch";
 import { settings } from "../../supplement/Settings/Settings";
-import { ShellInterfaceShellSession } from "../../supplement/ShellInterface";
+import { DBType, ShellInterfaceShellSession } from "../../supplement/ShellInterface";
 import { flattenObject, stripAnsiCode } from "../../utilities/helpers";
 import { ShellConsole } from "./ShellConsole";
 import { ShellPrompt } from "./ShellPrompt";
+import _ from "lodash";
+import { unquote } from "../../utilities/string-helpers";
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
@@ -309,6 +312,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         params?: Array<[string, string]>): Promise<void> {
         const { savedState } = this.props;
+        const columns: IColumnInfo[] = [];
 
         return new Promise((resolve, reject) => {
             savedState.backend.execute(command).then((event: ICommShellEvent) => {
@@ -418,6 +422,16 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     executionInfo: { text: result.info },
                                 });
                             }
+                        } else if (this.isShellShellColumnsMetaData(result)) {
+                            const rawColumns = Object.values(result).map((value) => {
+                                return {
+                                    name: unquote(value.Name),
+                                    type: value.Type,
+                                    length: value.Length,
+                                };
+                            });
+                            columns.push(...generateColumnInfo(
+                                context.language === "mysql" ? DBType.MySQL : DBType.Sqlite, rawColumns));
                         } else if (this.isShellShellRowData(result)) {
                             // Document data must be handled first, as that includes an info field,
                             // like the simple result.
@@ -431,14 +445,6 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 status.type = MessageType.Warning;
                                 status.text += `, ${result.warningCount} ` +
                                     `${result.warningCount === 1 ? "warning" : "warnings"}`;
-                            }
-
-                            // Extract column names from the keys of the first record.
-                            const columns: IColumnInfo[] = [];
-                            if (result.rows.length > 0) {
-                                Object.keys(result.rows[0] as object).forEach((key) => {
-                                    columns.push({ name: key, dataType: { type: DBDataType.String } });
-                                });
                             }
 
                             // Flatten nested objects + arrays.
@@ -733,6 +739,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
     private isShellShellDocumentData(response: IShellResultType): response is IShellDocumentData {
         return (response as IShellDocumentData).documents !== undefined;
+    }
+
+    private isShellShellColumnsMetaData(response: IShellResultType): response is IShellColumnsMetaData {
+        return (response as IShellColumnsMetaData)["Field 1"] !== undefined;
     }
 
     private isShellShellRowData(response: IShellResultType): response is IShellRowData {

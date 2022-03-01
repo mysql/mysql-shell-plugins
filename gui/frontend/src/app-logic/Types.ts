@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,6 +44,7 @@ export enum DBDataType {
     MediumInt,
     Int,                // Any integer like number type (numeric is essentially the same) in SQLite.
     Bigint,
+    UInteger,           // Mapped type from the shell.
 
     // Float types.
     Float,
@@ -61,7 +62,7 @@ export enum DBDataType {
     Varchar,
     Nvarchar,
 
-    String,              // XXX: temporarily
+    String,             // Mapped type from the shell.
     TinyText,
     Text,               // Any text in SQLite.
     MediumText,

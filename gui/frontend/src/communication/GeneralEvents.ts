@@ -90,7 +90,7 @@ export type IResultSetStateData = IGenericResponse;
 export interface IResultSetData extends IGenericResponse {
     executionTime?: number;
     rows?: unknown[];
-    columns?: Array<{ name: string; type: string }>;
+    columns?: Array<{ name: string; type: string; length: number }>;
     totalRowCount?: number;
 }
 
@@ -161,6 +161,29 @@ export interface IShellDocumentData extends IShellResultData {
     documents: unknown[];
 }
 
+// The members of this record come with pascal case naming, which is not processed by our snake-to-camel
+// case processing. So for now we define this with the original names here, until this is fixed.
+/* eslint-disable @typescript-eslint/naming-convention */
+export interface IShellColumnMetadataEntry {
+    Name: string;
+    OrgName: string;
+    Catalog: string;
+    Database: string;
+    Table: string;
+    OrgTable: string;
+    Type: string;
+    DbType: string;
+    Collation: string;
+    Length: number;
+    Decimals: number;
+    Flags: string;
+}
+/* eslint-enable @typescript-eslint/naming-convention */
+
+export interface IShellColumnsMetaData {
+    [key: string]: IShellColumnMetadataEntry;
+}
+
 export interface IShellRowData extends IShellResultData {
     rows: unknown[];
 }
@@ -194,7 +217,8 @@ export type IShellResultType =
     | IShellValueResult
     | IShellSimpleResult
     | IShellDocumentData
-    | IShellRowData;
+    | IShellRowData
+    | IShellColumnsMetaData;
 
 export interface IShellResponse extends IGenericResponse {
     result?: IShellResultType;

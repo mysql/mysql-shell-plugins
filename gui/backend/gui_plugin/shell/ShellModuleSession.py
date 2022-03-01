@@ -230,7 +230,7 @@ class ShellModuleSession(ModuleSession):
             "mysqlsh") or sys.executable.endswith("mysqlsh.exe") else "mysqlsh"
 
         popen_args = ["--interactive=full", "--passwords-from-stdin",
-                      "--py", "--json=raw", "--quiet-start=2"]
+                      "--py", "--json=raw", "--quiet-start=2", "--column-type-info"]
 
         # Adds the connection data to the call arguments
         if len(connection_args) > 0:

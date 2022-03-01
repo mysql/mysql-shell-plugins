@@ -21,9 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../app-logic/Types";
+import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo";
+import { DBDataType, IColumnInfo, IDictionary } from "../app-logic/Types";
+import { DBType } from "./ShellInterface";
 
-// Commonly used data types.
+// Commonly used data types and functions.
 
 // These are the supported languages in the code editor.
 // This includes our mixed language (msg), which combines SQL, Python, JS and TS in one editor.
@@ -90,3 +92,44 @@ export type ValueType<T> = T extends string
                 : [T] extends [unknown]
                     ? T
                     : object;
+
+/**
+ * Generates a generic column info record for each raw column returned from a request. The format of the
+ * raw columns depends on the used RDBMS.
+ *
+ * @param dbType Determines for which DB type the conversion happens (MySQL, SQLite and so on).
+ * @param rawColumns Column info as returned by the backend.
+ *
+ * @returns A list of columns with RDBMS-agnostic details.
+ */
+export const generateColumnInfo = (dbType: DBType,
+    rawColumns?: Array<{ name: string; type: string; length: number }>): IColumnInfo[] => {
+    if (!rawColumns) {
+        return [];
+    }
+
+    const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
+
+    return rawColumns.map((entry) => {
+        let type;
+        if (entry.type === "Bytes") {
+            // For now, use length to switch between binary and blob
+            if (entry.length < 256) {
+                type = DBDataType.Binary;
+            } else {
+                type = DBDataType.Blob;
+            }
+        } else {
+            const foundType = dataTypes.get(entry.type.toLowerCase());
+            type = foundType ? foundType.type : DBDataType.Unknown;
+        }
+
+        return {
+            name: entry.name,
+            dataType: {
+                type,
+            },
+        };
+    });
+};
+

@@ -26,7 +26,7 @@ from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLOneFieldTask, MySQLOneFieldListTask
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLBaseObjectTask, MySQLTableObjectTask
-import threading
+import base64
 import gui_plugin.core.Logger as logger
 import sys
 
@@ -143,13 +143,23 @@ class DbMysqlSession(DbSession):
         return type_name[6:-1] if "<Type." in type_name else type_name
 
     def get_column_info(self, row=None):
-        return [{"name": column.get_column_label(), "type": self._strip_type_name(column.get_type())}
-                for column in self.cursor.get_columns()]
+        columns = []
+        for column in self.cursor.get_columns():
+            columns.append({"name": column.get_column_label(),
+                 "type": self._strip_type_name(column.get_type()),
+                 "length": column.get_length()})
+
+        return columns
 
     def row_to_container(self, row, columns):
         row_data = ()
         for index in range(len(columns)):
-            row_data += (row[index], )
+            # If the data is stored in bytes, convert to a base64 string but truncate at 257 bytes
+            if type(row[index]) is bytes:
+                row_data += (base64.b64encode(row[index]
+                             [0:256]).decode("utf-8"), )
+            else:
+                row_data += (row[index], )
 
         return row_data
 
