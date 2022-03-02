@@ -380,6 +380,7 @@ export interface IShellCreateBastionKwargs {
     clientCidr?: string;
     maxSessionTtlInSeconds?: number;
     targetSubnetId?: string;
+    awaitActiveState?: boolean;
     compartmentId?: string;
     config?: IShellDictionary;
     configProfile?: string;
@@ -1410,6 +1411,7 @@ export class ProtocolMds extends Protocol {
                 client_cidr: kwargs.clientCidr,
                 max_session_ttl_in_seconds: kwargs.maxSessionTtlInSeconds,
                 target_subnet_id: kwargs.targetSubnetId,
+                await_active_state: kwargs.awaitActiveState,
                 compartment_id: kwargs.compartmentId,
                 config: kwargs.config,
                 config_profile: kwargs.configProfile,

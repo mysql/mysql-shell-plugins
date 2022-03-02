@@ -380,6 +380,8 @@ def create_bastion(**kwargs):
             session on the bastion can remain active, defaults to 10800
         target_subnet_id (str): The OCID of the subnet, defaults to the
             subnet of the db_system if db_system_id is given
+        await_active_state (bool): Await the ACTIVE lifecycle state before 
+            returning
         compartment_id (str): OCID of the compartment.
         config (dict): An OCI config object or None.
         config_profile (str): The name of an OCI config profile
@@ -400,6 +402,7 @@ def create_bastion(**kwargs):
     max_session_ttl_in_seconds = kwargs.get(
         "max_session_ttl_in_seconds", 10800)
     target_subnet_id = kwargs.get("target_subnet_id")
+    await_active_state = kwargs.get("await_active_state", False)
 
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("bastionconfigname")
@@ -572,13 +575,47 @@ def create_bastion(**kwargs):
             #         new_freeform_tags=db_system.freeform_tags,
             #         config=config, interactive=False)
 
-            return core.oci_object(
-                oci_object=new_bastion,
-                return_type=return_type,
-                format_function=lambda b: print(
-                    f"Bastion {b.name} is being "
-                    f"created. Use mds.list.bastions() to check "
-                    "it's provisioning state.\n"))
+            if new_bastion and await_active_state:
+                import time
+                if interactive:
+                    print(f'Waiting for Bastion to reach '
+                          f'ACTIVE state...')
+
+                bastion_id = new_bastion.id
+
+                # Wait for the Bastion Session to reach state await_state
+                cycles = 0
+                while cycles < 60:
+                    bastion = bastion_client.get_bastion(
+                        bastion_id=bastion_id).data
+                    if bastion.lifecycle_state == "ACTIVE":
+                        break
+                    else:
+                        time.sleep(5)
+                        s = "." * (cycles + 1)
+                        if interactive:
+                            print(f'Waiting for Bastion to reach '
+                                  f'ACTIVE state...{s}')
+                    cycles += 1
+
+                if bastion.lifecycle_state != "ACTIVE":
+                    raise Exception("Bastion did not reach the state "
+                                    f"ACTIVE within 5 minutes.")
+
+                return core.oci_object(
+                    oci_object=bastion,
+                    return_type=return_type,
+                    format_function=lambda b: print(
+                        f"Bastion {b.name} has been created."))
+
+            else:
+                return core.oci_object(
+                    oci_object=new_bastion,
+                    return_type=return_type,
+                    format_function=lambda b: print(
+                        f"Bastion {b.name} is being "
+                        f"created. Use mds.list.bastions() to check "
+                        "it's provisioning state.\n"))
 
         except oci.exceptions.ServiceError as e:
             if raise_exceptions:
@@ -620,7 +657,7 @@ def delete_bastion(**kwargs):
     await_deletion = kwargs.get("await_deletion")
 
     compartment_id = kwargs.get("compartment_id")
-    ignore_current = kwargs.get("ignore_current", False)
+    ignore_current = kwargs.get("ignore_current", True)
     config = kwargs.get("config")
     config_profile = kwargs.get("config_profile")
 
