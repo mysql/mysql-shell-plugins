@@ -56,8 +56,9 @@ def format_auth_app_listing(auth_apps, print_header=False):
     i = 0
     for item in auth_apps:
         i += 1
+        description=item['description'] if item['description'] is not None else ""
         output += (f"{item['id']:>3} {item['name'][:25]:26} "
-                   f"{item['description'][:35]:36} "
+                   f"{description[:35]:36} "
                    f"{item['auth_vendor'][:15]:16} "
                    f"{'Yes' if item['enabled'] else '-':8} ")
         if i < len(auth_apps):

@@ -125,23 +125,22 @@ export class ShellInterfaceMrs {
 
     public addDbObject(dbObjectName: string, dbObjectType: string, schemaName: string, autoAddSchema: boolean,
         requestPath: string, crudOperations: string[], crudOperationFormat: string, requiresAuth: boolean,
-        rowOwnershipEnforced: boolean, rowOwnershipColumn?: string, rowOwnershipParameter?: string,
+        rowUserOwnershipEnforced: boolean, rowUserOwnershipColumn?: string,
         schemaId?: number, itemsPerPage?: number, comments?: string): ListenerEntry {
         const request = ProtocolMrs.getRequestAddDbObject({
             moduleSessionId: this.moduleSessionId,
             dbObjectName,
             dbObjectType,
+            schemaId,
             schemaName,
             autoAddSchema,
             requestPath,
             crudOperations,
             crudOperationFormat,
             requiresAuth,
-            rowOwnershipEnforced,
-            rowOwnershipColumn,
-            rowOwnershipParameter,
-            schemaId,
             itemsPerPage,
+            rowUserOwnershipEnforced,
+            rowUserOwnershipColumn,
             comments,
         });
 

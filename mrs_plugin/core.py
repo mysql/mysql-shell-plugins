@@ -468,7 +468,7 @@ def create_rds_metadata_schema(session=None, interactive=True):
 
     sql_file_path = mysqlsh.plugin_manager.general.get_plugins_dir(
         'mrs_plugin', 'db_schema',
-        f'mrs_metadata_schema_{general.DB_VERSION_STR}.sql')
+        f'mrs_metadata_schema.sql')
 
     with open(sql_file_path) as f:
         sql_script = f.read()

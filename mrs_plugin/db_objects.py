@@ -52,10 +52,8 @@ def add_db_object(**kwargs):
         requires_auth (bool): Whether authentication is required to access
             the schema
         items_per_page (int): The number of items returned per page
-        row_ownership_enforced (bool): Enable row ownership enforcement
-        row_ownership_column (str): The column for row ownership enforcement
-        row_ownership_parameter (str): The alias for the row ownership
-            column as used in the REST API
+        row_user_ownership_enforced (bool): Enable row ownership enforcement
+        row_user_ownership_column (str): The column for row ownership enforcement
         comments (str): Comments for the schema
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
@@ -78,9 +76,8 @@ def add_db_object(**kwargs):
     crud_operation_format = kwargs.get("crud_operation_format")
     requires_auth = kwargs.get("requires_auth")
     items_per_page = kwargs.get("items_per_page")
-    row_ownership_enforced = kwargs.get("row_ownership_enforced")
-    row_ownership_column = kwargs.get("row_ownership_column")
-    row_ownership_parameter = kwargs.get("row_ownership_parameter")
+    row_user_ownership_enforced = kwargs.get("row_user_ownership_enforced")
+    row_user_ownership_column = kwargs.get("row_user_ownership_column")
     comments = kwargs.get("comments")
     session = kwargs.get("session")
 
@@ -88,6 +85,9 @@ def add_db_object(**kwargs):
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
     return_formatted = kwargs.get("return_formatted", interactive)
     return_python_object = kwargs.get("return_python_object", False)
+
+    if crud_operations:
+        crud_operations = list(crud_operations)
 
     try:
         session = core.get_current_session(session)
@@ -317,40 +317,29 @@ def add_db_object(**kwargs):
             else:
                 requires_auth = False
 
-        # Get row_ownership_enforced
-        if not row_ownership_enforced:
+        # Get row_user_ownership_enforced
+        if not row_user_ownership_enforced:
             if interactive:
-                row_ownership_enforced = core.prompt(
+                row_user_ownership_enforced = core.prompt(
                     "Should row ownership be prequired when querying the "
                     "object [y/N]: ",
                     {'defaultValue': 'n'}).strip().lower() == 'y'
             else:
-                row_ownership_enforced = False
+                row_user_ownership_enforced = False
 
-        if row_ownership_enforced and not row_ownership_column:
+        if row_user_ownership_enforced and not row_user_ownership_column:
             if interactive:
                 if db_object_type == "PROCEDURE":
                     # TODO: Give the user the list of params to choose from
-                    row_ownership_column = core.prompt(
+                    row_user_ownership_column = core.prompt(
                         "Which procedure parameter should be used for "
                         "row ownership checks: ").strip()
                 else:
                     # TODO: Give the user the list of columns to choose from
-                    row_ownership_column = core.prompt(
+                    row_user_ownership_column = core.prompt(
                         "Which column should be used for row ownership "
                         "checks: ").strip()
-                if not row_ownership_column or row_ownership_column == "":
-                    raise ValueError('Operation chancelled.')
-
-        if row_ownership_enforced and not row_ownership_parameter:
-            if interactive:
-                row_ownership_parameter = core.prompt(
-                    "Which parameter name (alias) should be used for the "
-                    "ownership checks in the REST API "
-                    f"[{row_ownership_column}]: ",
-                    {'defaultValue': row_ownership_column}).strip()
-                if (not row_ownership_parameter
-                        or row_ownership_parameter == ""):
+                if not row_user_ownership_column or row_user_ownership_column == "":
                     raise ValueError('Operation chancelled.')
 
         # Get items_per_page
@@ -378,16 +367,30 @@ def add_db_object(**kwargs):
             else:
                 comments = ""
 
+        grant_privs = ""
+        for crud_operation in crud_operations:
+            if crud_operation == "CREATE" or crud_operation == "1":
+                grant_privs += "CREATE, "
+            elif crud_operation == "READ" or crud_operation == "2":
+                grant_privs += "SELECT, "
+            elif crud_operation == "UPDATE" or crud_operation == "3":
+                grant_privs += "UPDATE, "
+            elif crud_operation == "DELETE" or crud_operation == "4":
+                grant_privs += "DELETE, "
+            else:
+                raise ValueError(f"The given CRUD operation {crud_operation} "
+                                 "does not exist.")
+
         sql = """
             INSERT INTO mysql_rest_service_metadata.db_object(
                 db_schema_id, name, request_path,
                 object_type, items_per_page, requires_auth,
-                row_ownership_enforced, row_ownership_column,
-                row_ownership_parameter, comments)
+                row_user_ownership_enforced, row_user_ownership_column,
+                crud_operation, format,
+                comments)
             VALUES(?, ?, ?,
                 ?, ?, ?,
-                ?, ?,
-                ?, ?)
+                ?,?,?,?,?)
             """
 
         res = session.run_sql(
@@ -395,35 +398,11 @@ def add_db_object(**kwargs):
             [schema.get("id"), db_object_name, request_path,
              db_object_type, items_per_page,
              1 if requires_auth else 0,
-             1 if row_ownership_enforced else 0, row_ownership_column,
-             row_ownership_parameter, comments])
+             1 if row_user_ownership_enforced else 0, row_user_ownership_column,
+             ",".join(crud_operations), crud_operation_format,
+             comments])
         db_object_id = res.auto_increment_value
 
-        grant_privs = ""
-        for crud_operation in crud_operations:
-            if crud_operation == "CREATE" or crud_operation == "1":
-                crud_operation_id = 1
-                grant_privs += "CREATE, "
-            elif crud_operation == "READ" or crud_operation == "2":
-                crud_operation_id = 2
-                grant_privs += "SELECT, "
-            elif crud_operation == "UPDATE" or crud_operation == "3":
-                crud_operation_id = 3
-                grant_privs += "UPDATE, "
-            elif crud_operation == "DELETE" or crud_operation == "4":
-                crud_operation_id = 4
-                grant_privs += "DELETE, "
-            else:
-                raise ValueError(f"The given CRUD operation {crud_operation} "
-                                 "does not exist.")
-            sql = """
-                INSERT INTO
-                mysql_rest_service_metadata.db_object_has_crud_operation(
-                    db_object_id, crud_operation_id, format)
-                VALUES(?, ?, ?)
-                """
-            res = session.run_sql(
-                sql, [db_object_id, crud_operation_id, crud_operation_format])
 
         # Grant privilege to the 'mrs_provider_data_access' role
         if grant_privs:
@@ -510,11 +489,11 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
         sql = """
             SELECT o.id, o.db_schema_id, o.name, o.request_path,
                 o.requires_auth, o.enabled, o.object_type,
-                o.items_per_page, o.row_ownership_enforced,
-                o.row_ownership_column, o.row_ownership_parameter,
-                o.comments, sc.request_path AS schema_request_path,
+                o.items_per_page, o.row_user_ownership_enforced,
+                o.row_user_ownership_column, o.comments,
+                sc.request_path AS schema_request_path,
                 CONCAT(h.name, se.url_context_root) AS host_ctx,
-                GROUP_CONCAT(co.name) as crud_operations,
+                o.crud_operation,
                 MAX(al.changed_at) as changed_at
             FROM mysql_rest_service_metadata.db_object o
                 LEFT OUTER JOIN mysql_rest_service_metadata.db_schema sc
@@ -523,12 +502,6 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
                     ON se.id = sc.service_id
                 LEFT JOIN mysql_rest_service_metadata.url_host h
                     ON se.url_host_id = h.id
-                LEFT OUTER JOIN
-                    mysql_rest_service_metadata.db_object_has_crud_operation ohc
-                    ON ohc.db_object_id = o.id
-                LEFT OUTER JOIN
-                    mysql_rest_service_metadata.crud_operation co
-                    ON co.id = ohc.crud_operation_id
                 LEFT OUTER JOIN (
                     SELECT new_row_id AS id, MAX(changed_at) as changed_at
                     FROM mysql_rest_service_metadata.audit_log
@@ -638,11 +611,11 @@ def get_db_objects(schema_id, **kwargs):
         sql = """
             SELECT o.id, o.db_schema_id, o.name, o.request_path,
                 o.requires_auth, o.enabled, o.object_type,
-                o.items_per_page, o.row_ownership_enforced,
-                o.row_ownership_column, o.row_ownership_parameter,
+                o.items_per_page, o.row_user_ownership_enforced,
+                o.row_user_ownership_column,
                 o.comments, sc.request_path AS schema_request_path,
                 CONCAT(h.name, se.url_context_root) AS host_ctx,
-                GROUP_CONCAT(co.name) as crud_operations,
+                o.crud_operation as crud_operations,
                 MAX(al.changed_at) as changed_at
             FROM mysql_rest_service_metadata.db_object o
                 LEFT OUTER JOIN mysql_rest_service_metadata.db_schema sc
@@ -651,12 +624,6 @@ def get_db_objects(schema_id, **kwargs):
                     ON se.id = sc.service_id
                 LEFT JOIN mysql_rest_service_metadata.url_host h
 				    ON se.url_host_id = h.id
-                LEFT OUTER JOIN
-                    mysql_rest_service_metadata.db_object_has_crud_operation ohc
-                    ON ohc.db_object_id = o.id
-                LEFT OUTER JOIN
-                    mysql_rest_service_metadata.crud_operation co
-                    ON co.id = ohc.crud_operation_id
                 LEFT OUTER JOIN (
                     SELECT new_row_id AS id, MAX(changed_at) as changed_at
                     FROM mysql_rest_service_metadata.audit_log
@@ -828,34 +795,45 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
             raise ValueError("The crud_operations need to be specified as "
                              "list. Operation chancelled.")
 
-        # Delete the existing CRUD operations
-        session.run_sql("""
-            DELETE FROM
-            mysql_rest_service_metadata.db_object_has_crud_operation
-            WHERE db_object_id = ?
-            """, [db_object.get("id")])
-
-        # Insert the new CRUD operations
+        grant_privs = ""
         for crud_operation in crud_operations:
             if crud_operation == "CREATE" or crud_operation == "1":
-                crud_operation_id = 1
+                grant_privs += "CREATE, "
             elif crud_operation == "READ" or crud_operation == "2":
-                crud_operation_id = 2
+                grant_privs += "SELECT, "
             elif crud_operation == "UPDATE" or crud_operation == "3":
-                crud_operation_id = 3
+                grant_privs += "UPDATE, "
             elif crud_operation == "DELETE" or crud_operation == "4":
-                crud_operation_id = 4
+                grant_privs += "DELETE, "
             else:
                 raise ValueError(f"The given CRUD operation {crud_operation} "
                                  "does not exist.")
 
-            res = session.run_sql("""
-                INSERT INTO
-                    mysql_rest_service_metadata.db_object_has_crud_operation(
-                        db_object_id, crud_operation_id, format)
-                VALUES(?, ?, ?)
-                """, [db_object.get("id"), crud_operation_id,
-                      crud_operation_format])
+        res = session.run_sql("""
+                UPDATE mysql_rest_service_metadata.db_object
+                SET crud_operation = ?, format = ?
+                WHERE id = ?
+                """, [",".join(crud_operations), crud_operation_format, db_object.get("id")])
+        if res.get_affected_row_count() != 1:
+            raise Exception(f"Could not update crud operations for the db_object {db_object.get('name')}.")
+
+        # Update privilege to the 'mrs_provider_data_access' role
+        if grant_privs:
+            grant_privs = grant_privs[0:-2]
+        else:
+            raise ValueError("No valid CRUD Operation specified")
+
+        schema = mrs_schemas.get_schema(schema_id=db_object.get("db_schema_id"), session=session,
+                    interactive=interactive, return_formatted=False)
+        sql = (f"REVOKE ALL ON  "
+            f"{schema.get('name')}.{db_object.get('name')} "
+            "FROM 'mrs_provider_data_access'")
+        res = session.run_sql(sql)
+
+        sql = (f"GRANT {grant_privs} ON "
+            f"{schema.get('name')}.{db_object.get('name')} "
+            "TO 'mrs_provider_data_access'")
+        res = session.run_sql(sql)
 
         if interactive:
             print(f"The db_object {db_object.get('name')} was updated "

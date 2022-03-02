@@ -127,12 +127,12 @@ def add_schema(**kwargs):
 
     try:
         session = core.get_current_session(session)
-
-        service = mrs_services.get_service(
-            service_id=service_id, get_default=False if service_id else True,
-            auto_select_single=True,
-            session=session, interactive=interactive,
-            return_formatted=False)
+        service = core.get_current_service()
+        if service_id is not None or service is None:
+            service = mrs_services.get_service(service_id=service_id, get_default=False if service_id else True,
+                auto_select_single=True,
+                session=session, interactive=interactive,
+                return_formatted=False)
 
         if not schema_name and interactive:
             res = session.run_sql('''

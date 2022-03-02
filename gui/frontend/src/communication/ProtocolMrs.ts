@@ -386,9 +386,8 @@ export interface IShellAddDbObjectKwargs {
     crudOperationFormat?: string;
     requiresAuth?: boolean;
     itemsPerPage?: number;
-    rowOwnershipEnforced?: boolean;
-    rowOwnershipColumn?: string;
-    rowOwnershipParameter?: string;
+    rowUserOwnershipEnforced?: boolean;
+    rowUserOwnershipColumn?: string;
     comments?: string;
     moduleSessionId?: string;
     interactive?: boolean;
@@ -1379,9 +1378,8 @@ export class ProtocolMrs extends Protocol {
                 crud_operation_format: kwargs.crudOperationFormat,
                 requires_auth: kwargs.requiresAuth,
                 items_per_page: kwargs.itemsPerPage,
-                row_ownership_enforced: kwargs.rowOwnershipEnforced,
-                row_ownership_column: kwargs.rowOwnershipColumn,
-                row_ownership_parameter: kwargs.rowOwnershipParameter,
+                row_user_ownership_enforced: kwargs.rowUserOwnershipEnforced,
+                row_user_ownership_column: kwargs.rowUserOwnershipColumn,
                 comments: kwargs.comments,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,

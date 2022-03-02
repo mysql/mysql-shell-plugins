@@ -34,6 +34,7 @@ def test_add_db_object(init_mrs):
         "crud_operation_format": "MEDIA",
         "requires_auth": False,
         "items_per_page": 10,
+        "row_user_ownership_enforced": False,
         "row_ownership_enforced": False,
         "row_ownership_column": "",
         "row_ownership_parameter": "",
@@ -108,9 +109,9 @@ def test_add_db_object(init_mrs):
 
     db_object["crud_operation_format"] = "FEED"
     db_object["crud_operations"] = 1
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(TypeError) as exc_info:
         add_db_object(**db_object)
-    assert str(exc_info.value) == "The crud_operations need to be specified as list. Operation chancelled."
+    assert str(exc_info.value) == "'int' object is not iterable"
 
     db_object["crud_operations"] = ['CRETE']
     with pytest.raises(ValueError) as exc_info:

@@ -26,8 +26,8 @@ from ... general import *
 def test_info():
     info_output = info()
     assert info_output is not None
-    assert info_output == f"""MySQL REST Data Service (MRS) Plugin Version {VERSION} PREVIEW
-               Warning! For testing purposes only!")"""
+    assert info_output == (f"MySQL REST Data Service (MRS) Plugin Version {VERSION} PREVIEW\n"
+               "Warning! For testing purposes only!")
 
 @pytest.mark.usefixtures("init_mrs")
 def test_version():

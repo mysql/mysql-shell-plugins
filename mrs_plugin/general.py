@@ -33,9 +33,9 @@ from mrs_plugin import auth_apps as mrs_auth_apps
 
 
 # Define plugin version
-VERSION = "0.1.27"
+VERSION = "0.1.28"
 
-DB_VERSION = [0, 0, 21]
+DB_VERSION = [0, 0, 22]
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
 
@@ -47,8 +47,8 @@ def info():
     Returns:
         str
     """
-    return f"""MySQL REST Data Service (MRS) Plugin Version {VERSION} PREVIEW
-               Warning! For testing purposes only!")"""
+    return (f"MySQL REST Data Service (MRS) Plugin Version {VERSION} PREVIEW\n"
+             "Warning! For testing purposes only!")
 
 
 @plugin_function('mrs.version', shell=True, cli=True, web=True)
@@ -119,7 +119,7 @@ def ls(path=None, session=None):
                 service_id=service.get('id'), session=session,
                 interactive=False)
 
-            if len(schemas) == 0:
+            if len(schemas) == 0 and len(content_sets) == 0:
                 print("No schemas added to this service yet.\n\n"
                       "Use mrs.add.schema() to add a schema to the service.")
             if len(schemas) > 0:
