@@ -70,8 +70,8 @@ export class ShellInterfaceMds {
         return currentConnection.sendRequest(request, { messageClass: "getMdsBastion" });
     }
 
-    public createBastion(configProfile: string, dbSystemId: string): ListenerEntry {
-        const request = ProtocolMds.getRequestCreateBastion({ configProfile, dbSystemId });
+    public createBastion(configProfile: string, dbSystemId: string, awaitActiveState?: boolean): ListenerEntry {
+        const request = ProtocolMds.getRequestCreateBastion({ configProfile, dbSystemId, awaitActiveState });
 
         return currentConnection.sendRequest(request, { messageClass: "createBastion" });
     }

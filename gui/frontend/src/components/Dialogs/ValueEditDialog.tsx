@@ -142,6 +142,7 @@ interface IValueEditDialogState extends IComponentState {
     description?: string;
     values: IDialogValues;
     validations: IDialogValidations;
+    preventConfirm: boolean;
 
     activeContexts: Set<string>; // A list of ids that allow conditional rendering of sections and values.
 }
@@ -165,6 +166,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 sections: new Map(),
             },
             activeContexts: new Set(),
+            preventConfirm: false,
         };
 
         this.addHandledProperties("caption", "advancedCaption", "advancedAction",
@@ -268,9 +270,13 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
+    public preventConfirm = (preventConfirm: boolean): void => {
+        this.setState({ preventConfirm });
+    };
+
     public render(): React.ReactNode {
         const { caption, advancedCaption, advancedAction, customFooter } = this.props;
-        const { heading, description, validations, activeContexts, values } = this.state;
+        const { heading, description, validations, activeContexts, values, preventConfirm } = this.state;
 
         // Take over any context that is now required to show up due to validation issues.
         if (validations.requiredContexts && validations.requiredContexts.length > 0) {
@@ -335,7 +341,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                             caption="OK"
                             id="ok"
                             key="ok"
-                            disabled={Object.keys(validations.messages).length > 0}
+                            disabled={Object.keys(validations.messages).length > 0 || preventConfirm}
                             onClick={this.handleActionClick}
                         />,
                         <Button

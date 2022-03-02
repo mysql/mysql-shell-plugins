@@ -636,15 +636,26 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     createNew: !(details.id > 0),
                     details,
                 });
-
+            this.editorRef.current?.preventConfirm(true);
+            this.setProgressMessage("Waiting for Bastion creation...");
+            this.showProgress();
+            setTimeout(() => {
+                // update the OCI tree to show the bastion that is created
+                requisitions.executeRemote("refreshOciTree", undefined);
+            }, 5000);
             this.createBastion().then((summary) => {
                 if (summary) {
                     requisitions.executeRemote("refreshOciTree", undefined);
                     this.updateInputValue(summary.id, "bastionId");
                     this.updateInputValue(summary.name, "bastionName");
+                    this.hideProgress();
+                    this.editorRef.current?.preventConfirm(false);
                 }
             }).catch(() => {
+                requisitions.executeRemote("refreshOciTree", undefined);
                 this.updateInputValue("<error loading bastion name data>", "bastionName");
+                this.hideProgress();
+                this.editorRef.current?.preventConfirm(true);
             });
             this.getMdsDatabase(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId).then((system) => {
                 if (system) {
@@ -1563,7 +1574,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
     private createBastion(): Promise<IBastionSummary | undefined> {
         return new Promise((resolve, reject) => {
-            this.shellSession.mds.createBastion(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId)
+            this.shellSession.mds.createBastion(this.liveUpdateFields.profileName,
+                this.liveUpdateFields.dbSystemId, true)
                 .then((event: ICommOciBastionSummaryEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve(event.data?.result);
