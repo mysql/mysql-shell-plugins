@@ -45,12 +45,12 @@
                         "Switch logging off, entirely",
                         "Show only errors",
                         "Show errors and warnings",
-                        "Show errors, warnings and other normal information",
+                        "Show errors, warnings, and other normal information",
                         "Used for problem analysis. Prints additional information",
                         "Used for problem analysis. Not used currently",
-                        "Used for problem analysis. Print everything, which may include security related things like passwords, connection tokens etc."
+                        "Used for problem analysis. Print everything, which may include security related things like passwords, connection tokens, and so on."
                     ],
-                    "description": "Sets different verbosity levels for the communication log between the extension and the MySQL Shell. To see this log open the OUTPUT channel MySQL Shell for VS Code."
+                    "description": "Sets different verbosity levels for the communication log between the extension and the MySQL Shell. To see this log, open the OUTPUT channel MySQL Shell for VS Code."
                 },
                 "msg.workers.minWorkerCount": {
                     "type": "number",
@@ -65,12 +65,12 @@
                 "msg.workers.maxPendingTaskCount": {
                     "type": "number",
                     "default": 100,
-                    "description": "Describes the highest number of waiting tasks for a free background worker. If this number is exceeded an error is thrown, indicating that the worker pool is overloaded and can no longer cope with incoming work."
+                    "description": "Describes the highest number of waiting tasks for a free background worker. An error is thrown if this number is exceeded, indicating that the worker pool is overloaded and can no longer cope with incoming work."
                 },
                 "msg.workers.removeIdleTime": {
                     "type": "number",
                     "default": 60,
-                    "description": "Specifies the number of seconds to pass until the oldest inactive worker is removed. Has no effect if the current number of active workers would fall below the minimal worker count."
+                    "description": "Specifies the number of seconds to pass until the oldest inactive worker is removed. Has no effect if the current number of active workers falls below the minimal worker count."
                 },
                 "msg.editor.theming.decorationSet": {
                     "type": "string",
@@ -96,10 +96,10 @@
                         "bounded"
                     ],
                     "markdownEnumDescriptions": [
-                        "Lines will never wrap",
-                        "Lines will wrap at the viewport width",
-                        "Lines will wrap at `Word Wrap Column`",
-                        "Lines will wrap at the minimum of viewport width or `Word Wrap Column`"
+                        "Lines never wrap",
+                        "Lines wrap at the viewport width",
+                        "Lines wrap at `Word Wrap Column`",
+                        "Lines wrap at the minimum of viewport width or `Word Wrap Column`"
                     ]
                 },
                 "msg.editor.wordWrapColumn": {
@@ -110,7 +110,7 @@
                 "msg.editor.showHidden": {
                     "type": "boolean",
                     "default": false,
-                    "description": "When set to true normally invisible characters (like space or tabulator) are displayed too."
+                    "description": "When set to true, normally invisible characters (like space or tabulator) are displayed too."
                 },
                 "msg.editor.dbVersion": {
                     "type": "string",
@@ -124,17 +124,17 @@
                 "msg.editor.stopOnErrors": {
                     "type": "boolean",
                     "default": false,
-                    "description": "If this option is set to, execution of scripts will be stopped if an error occurs. Otherwise the script execution continues with the next statement."
+                    "description": "If this option is set to true, execution of scripts stops if an error occurs. Otherwise, the script execution continues with the next statement."
                 },
                 "msg.editor.showMinimap": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Determines if code editors should show a minimap of the plain scrollbar, for better navigation."
+                    "description": "Determines if code editors should show a minimap of the plain scrollbar for better navigation."
                 },
                 "msg.editor.defaultDbConnection": {
                     "type": "string",
                     "default": "",
-                    "description": "Specify the name (title) of a DB connection to be used when running SQL from a text editor and no connection is open yet. Leave empty to show a picker to select a connection from."
+                    "description": "Specify the name (title) of a DB connection to be used when running SQL from a text editor and no connection is open yet. Leave empty to select a connection."
                 },
                 "msg.dbEditor.startLanguage": {
                     "type": "string",
@@ -216,7 +216,7 @@
                 "msg.tabPosition.newConnectionWithSql": {
                     "type": "string",
                     "default": "Active",
-                    "description": "Where to place the tab when opening a new DB connection via `Execute SQL with MySQL Shell`.",
+                    "description": "Where to place the tab when opening a new DB connection with `Execute SQL with MySQL Shell`.",
                     "enum": [
                         "Active",
                         "Beside Right",
@@ -404,7 +404,7 @@
             },
             {
                 "command": "msg.dumpSchemaToDiskForMds",
-                "title": "Dump Schema to Disk for MDS"
+                "title": "Dump Schema to Disk for MySQL Database Service"
             },
             {
                 "command": "msg.createSchema",
@@ -556,7 +556,7 @@
             },
             {
                 "command": "msg.mds.createConnectionViaBastionService",
-                "title": "Create Connection via Bastion Service"
+                "title": "Create Connection with Bastion Service"
             },
             {
                 "command": "msg.mds.createRouterEndpoint",
