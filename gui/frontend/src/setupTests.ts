@@ -29,12 +29,16 @@ import "jest-canvas-mock";
 
 Enzyme.configure({ adapter: new Adapter() });
 
+let originalDir = "";
+
 beforeAll(() => {
-    //
+    // Keep the current dir to restore it on exit.
+    originalDir = process.cwd();
+    process.chdir("./src/tests/unit-tests");
 });
 
-afterAll(async () => {
-    //
+afterAll(() => {
+    process.chdir(originalDir);
 });
 
 Object.defineProperty(window, "matchMedia", {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -408,7 +408,7 @@ export class AutoCompletionContext {
             MySQLParser.RULE_serverRef, MySQLParser.RULE_user, MySQLParser.RULE_pluginRef,
             MySQLParser.RULE_componentRef,
 
-            MySQLParser.RULE_userVariable, MySQLParser.RULE_systemVariable, MySQLParser.RULE_labelRef,
+            MySQLParser.RULE_userVariable, MySQLParser.RULE_labelRef,
             MySQLParser.RULE_setSystemVariable,
 
             // For better handling, but will be ignored.
@@ -1011,7 +1011,6 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_systemVariable:
             case MySQLParser.RULE_setSystemVariable: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.SystemVariable });
 

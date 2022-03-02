@@ -31,10 +31,10 @@ import { filterInt } from "../../utilities/string-helpers";
  * @returns The version as a number.
  */
 export const parseVersion = (version: string): number => {
-    const parts = version.split(".");
+    const parts = version.trim().split(".");
 
     let result = 0;
-    if (parts.length > 0) {
+    if (parts.length > 0 && parts[0].length > 0) {
         result += filterInt(parts[0]) * 10000;
         if (parts.length > 1) {
             result += filterInt(parts[1]) * 100;

@@ -24,7 +24,7 @@ parser grammar MySQLParser;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [1b423d9] (17. Juni 2021).
+ * Merged in all changes up to mysql-trunk git revision [15457ff] (21. January 2022).
  *
  * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
@@ -514,19 +514,19 @@ createRoutine: // Rule for external use only.
 ;
 
 createProcedure:
-    definerClause? PROCEDURE_SYMBOL procedureName OPEN_PAR_SYMBOL (
+    definerClause? PROCEDURE_SYMBOL ifNotExists? procedureName OPEN_PAR_SYMBOL (
         procedureParameter (COMMA_SYMBOL procedureParameter)*
     )? CLOSE_PAR_SYMBOL routineCreateOption* compoundStatement
 ;
 
 createFunction:
-    definerClause? FUNCTION_SYMBOL functionName OPEN_PAR_SYMBOL (
+    definerClause? FUNCTION_SYMBOL ifNotExists? functionName OPEN_PAR_SYMBOL (
         functionParameter (COMMA_SYMBOL functionParameter)*
     )? CLOSE_PAR_SYMBOL RETURNS_SYMBOL typeWithOptCollate routineCreateOption* compoundStatement
 ;
 
 createUdf:
-    AGGREGATE_SYMBOL? FUNCTION_SYMBOL udfName RETURNS_SYMBOL type = (
+    AGGREGATE_SYMBOL? FUNCTION_SYMBOL ifNotExists? udfName RETURNS_SYMBOL type = (
         STRING_SYMBOL
         | INT_SYMBOL
         | REAL_SYMBOL
@@ -734,11 +734,11 @@ viewSuid:
 ;
 
 createTrigger:
-    definerClause? TRIGGER_SYMBOL triggerName timing = (BEFORE_SYMBOL | AFTER_SYMBOL) event = (
-        INSERT_SYMBOL
-        | UPDATE_SYMBOL
-        | DELETE_SYMBOL
-    ) ON_SYMBOL tableRef FOR_SYMBOL EACH_SYMBOL ROW_SYMBOL triggerFollowsPrecedesClause? compoundStatement
+    definerClause? TRIGGER_SYMBOL ifNotExists? triggerName timing = (
+        BEFORE_SYMBOL
+        | AFTER_SYMBOL
+    ) event = (INSERT_SYMBOL | UPDATE_SYMBOL | DELETE_SYMBOL) ON_SYMBOL tableRef FOR_SYMBOL EACH_SYMBOL ROW_SYMBOL
+        triggerFollowsPrecedesClause? compoundStatement
 ;
 
 triggerFollowsPrecedesClause:
@@ -1019,7 +1019,14 @@ loadDataFileTargetList:
 ;
 
 fieldOrVariableList:
-    (columnRef | userVariable) (COMMA_SYMBOL (columnRef | userVariable))*
+    (columnRef | AT_SIGN_SYMBOL textOrIdentifier | AT_AT_SIGN_SYMBOL) (
+        COMMA_SYMBOL (
+            columnRef
+            | AT_SIGN_SYMBOL textOrIdentifier
+            | AT_TEXT_SUFFIX
+            | AT_AT_SIGN_SYMBOL
+        )
+    )*
 ;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2237,7 +2244,7 @@ roleList:
 ;
 
 role:
-    roleIdentifierOrText (AT_SIGN_SYMBOL textOrIdentifier | AT_TEXT_SUFFIX)?
+    roleIdentifierOrText userVariable?
 ;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2274,7 +2281,6 @@ repairType:
 //----------------------------------------------------------------------------------------------------------------------
 
 installUninstallStatement:
-    // COMPONENT_SYMBOL is conditionally set in the lexer.
     action = INSTALL_SYMBOL type = PLUGIN_SYMBOL identifier SONAME_SYMBOL textStringLiteral
     | action = INSTALL_SYMBOL type = COMPONENT_SYMBOL textStringLiteralList
     | action = UNINSTALL_SYMBOL type = PLUGIN_SYMBOL pluginRef
@@ -2324,10 +2330,10 @@ optionValueListContinued:
 ;
 
 optionValueNoOptionType:
-    internalVariableName equal setExprOrDefault
+    lvalueVariable equal setExprOrDefault
     | charsetClause
     | userVariable equal expr
-    | setSystemVariable equal setExprOrDefault
+    | AT_AT_SIGN_SYMBOL setVarIdentType? lvalueVariable equal setExprOrDefault
     | NAMES_SYMBOL (
         equal expr
         | charsetName collate?
@@ -2336,12 +2342,12 @@ optionValueNoOptionType:
 ;
 
 optionValue:
-    optionType internalVariableName equal setExprOrDefault
+    optionType lvalueVariable equal setExprOrDefault
     | optionValueNoOptionType
 ;
 
 setSystemVariable:
-    AT_AT_SIGN_SYMBOL setVarIdentType? internalVariableName
+    AT_AT_SIGN_SYMBOL setVarIdentType? lvalueVariable
 ;
 
 startOptionValueListFollowingOptionType:
@@ -2350,7 +2356,7 @@ startOptionValueListFollowingOptionType:
 ;
 
 optionValueFollowingOptionType:
-    internalVariableName equal setExprOrDefault
+    lvalueVariable equal setExprOrDefault
 ;
 
 setExprOrDefault:
@@ -2838,13 +2844,14 @@ bitExpr:
 
 // $antlr-format groupedAlignments off
 simpleExpr:
-    variable (equal expr)?                                                                                      # simpleExprVariable
-    | columnRef jsonOperator?                                                                                   # simpleExprColumnRef
+    columnRef jsonOperator?                                                                                     # simpleExprColumnRef
     | runtimeFunctionCall                                                                                       # simpleExprRuntimeFunction
     | functionCall                                                                                              # simpleExprFunction
     | simpleExpr COLLATE_SYMBOL textOrIdentifier                                                                # simpleExprCollate
     | literalOrNull                                                                                             # simpleExprLiteral
     | PARAM_MARKER                                                                                              # simpleExprParamMarker
+    | rvalueSystemOrUserVariable                                                                                # simpleExpressionRValue
+    | inExpressionUserVariableAssignment                                                                        # simpleExprUserVariableAssignment
     | sumExpr                                                                                                   # simpleExprSum
     | groupingOperation                                                                                         # simpleExprGroupingOperation
     | windowFunctionCall                                                                                        # simpleExprWindowingFunction
@@ -3120,26 +3127,29 @@ udfExpr:
     expr selectAlias?
 ;
 
-variable:
-    userVariable
-    | systemVariable
-;
-
 userVariable:
-    AT_SIGN_SYMBOL textOrIdentifier
-    | AT_TEXT_SUFFIX
+    AT_SIGN_SYMBOL textOrIdentifier | AT_TEXT_SUFFIX
 ;
 
-systemVariable:
-    AT_AT_SIGN_SYMBOL varIdentType? textOrIdentifier dotIdentifier?
+inExpressionUserVariableAssignment:
+    userVariable ASSIGN_OPERATOR expr
 ;
 
-internalVariableName: (
+rvalueSystemOrUserVariable:
+    userVariable
+    | AT_AT_SIGN_SYMBOL rvalueSystemVariableType? rvalueSystemVariable
+;
+
+lvalueVariable: (
         // Check in semantic phase that the first id is not global/local/session/default.
         {this.serverVersion < 80017}? identifier dotIdentifier?
         | {this.serverVersion >= 80017}? lValueIdentifier dotIdentifier?
     )
     | DEFAULT_SYMBOL dotIdentifier
+;
+
+rvalueSystemVariable:
+    textOrIdentifier dotIdentifier?
 ;
 
 whenExpression:
@@ -3412,16 +3422,16 @@ getDiagnosticsStatement:
 // Only a limited subset of expr is allowed in SIGNAL/RESIGNAL/CONDITIONS.
 signalAllowedExpr:
     literal
-    | variable
+    | rvalueSystemOrUserVariable
     | qualifiedIdentifier
 ;
 
 statementInformationItem:
-    (variable | identifier) EQUAL_OPERATOR (NUMBER_SYMBOL | ROW_COUNT_SYMBOL)
+    (userVariable | identifier) EQUAL_OPERATOR (NUMBER_SYMBOL | ROW_COUNT_SYMBOL)
 ;
 
 conditionInformationItem:
-    (variable | identifier) EQUAL_OPERATOR (
+    (userVariable | identifier) EQUAL_OPERATOR (
         signalInformationItemName
         | RETURNED_SQLSTATE_SYMBOL
     )
@@ -4063,7 +4073,7 @@ replacePassword:
 ;
 
 userIdentifierOrText:
-    textOrIdentifier (AT_SIGN_SYMBOL textOrIdentifier | AT_TEXT_SUFFIX)?
+    textOrIdentifier userVariable?
 ;
 
 user:
@@ -4496,7 +4506,7 @@ optionType:
     | SESSION_SYMBOL
 ;
 
-varIdentType:
+rvalueSystemVariableType:
     GLOBAL_SYMBOL DOT_SYMBOL
     | LOCAL_SYMBOL DOT_SYMBOL
     | SESSION_SYMBOL DOT_SYMBOL

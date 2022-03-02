@@ -304,14 +304,12 @@ export class SQLExecutionContext extends ExecutionContext {
                     endColumn: rangeEnd.column,
                 });
 
-                if (text.trim().toLowerCase() !== "delimiter") {
-                    result.push({
-                        text,
-                        offset: details.span.start,
-                        line: rangeStart.lineNumber - this.presentation.startLine + 1,
-                        column: rangeStart.column,
-                    });
-                }
+                result.push({
+                    text,
+                    offset: details.span.start,
+                    line: rangeStart.lineNumber - this.presentation.startLine + 1,
+                    column: rangeStart.column,
+                });
             }
         }
 

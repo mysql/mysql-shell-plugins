@@ -24,7 +24,7 @@ lexer grammar MySQLLexer;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [1b423d9] (17. Juni 2021).
+ * Merged in all changes up to mysql-trunk git revision [15457ff] (21. January 2022).
  *
  * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
