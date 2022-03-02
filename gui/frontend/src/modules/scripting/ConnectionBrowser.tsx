@@ -591,7 +591,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 (<Container orientation={Orientation.TopDown}>
                     <Grid columns={["auto"]} columnGap={5}>
                         <GridCell crossAlignment={ContentAlignment.Stretch}>
-                            There is no Bastion in the compartment of this MySQL DB System that can be used.<br/>
+                            There is no Bastion in the compartment of this MySQL DB System that can be used.<br/><br/>
                         </GridCell>
                         <GridCell className="right" crossAlignment={ContentAlignment.Stretch}>
                             Do you want to create a new Bastion in the compartment of the MySQL DB System?
@@ -637,12 +637,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     details,
                 });
             this.editorRef.current?.preventConfirm(true);
-            this.setProgressMessage("Waiting for Bastion creation...");
+            this.setProgressMessage("Waiting up to 5 minutes for Bastion to be created...");
             this.showProgress();
             setTimeout(() => {
                 // update the OCI tree to show the bastion that is created
                 requisitions.executeRemote("refreshOciTree", undefined);
-            }, 5000);
+            }, 8000);
             this.createBastion().then((summary) => {
                 if (summary) {
                     requisitions.executeRemote("refreshOciTree", undefined);

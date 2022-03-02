@@ -7,7 +7,7 @@
         "color": "#2789e1",
         "theme": "dark"
     },
-    "version": "1.0.25",
+    "version": "1.0.26",
     "publisher": "Oracle",
     "license": "SEE LICENSE IN LICENSE.txt",
     "repository": {
@@ -267,7 +267,7 @@
             },
             {
                 "command": "msg.openConnection",
-                "title": "Open MySQL Connection",
+                "title": "Connect using SQL Notebook",
                 "icon": {
                     "dark": "images/dark/openConnection.svg",
                     "light": "images/light/openConnection.svg"
@@ -283,7 +283,7 @@
             },
             {
                 "command": "msg.openConnectionNewTab",
-                "title": "Open MySQL Connection in New Tab",
+                "title": "Connect using SQL Notebook in New Tab",
                 "icon": {
                     "dark": "images/dark/openConnection.svg",
                     "light": "images/light/openConnection.svg"
@@ -320,7 +320,7 @@
             },
             {
                 "command": "msg.newSessionUsingConnection",
-                "title": "Open MySQL Shell Console for this Connection"
+                "title": "Open MySQL Shell GUI Console for this Connection"
             },
             {
                 "command": "msg.defaultConnection",

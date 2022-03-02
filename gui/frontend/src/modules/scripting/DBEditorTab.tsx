@@ -132,7 +132,7 @@ interface IDBEditorTabState extends IComponentState {
 // A tab page for a single connection (managed by the scripting module).
 export class DBEditorTab extends Component<IDBEditorTabProperties, IDBEditorTabState> {
 
-    private static aboutMessage = `Welcome to the MySQL Shell - DB Editor Console.
+    private static aboutMessage = `Welcome to the MySQL Shell - SQL Notebook.
 
 Press %modifier%+Enter to execute the current statement.
 

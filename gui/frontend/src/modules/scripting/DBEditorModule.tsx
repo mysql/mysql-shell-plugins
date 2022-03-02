@@ -240,7 +240,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             });
 
             toolbarInset = <>
-                <Label style={{ paddingRight: "8px" }}>DB Editor:</Label>
+                <Label style={{ paddingRight: "8px" }}>SQL Notebook:</Label>
                 <Dropdown
                     id="connectionSelector"
                     initialSelection={selectedTab}

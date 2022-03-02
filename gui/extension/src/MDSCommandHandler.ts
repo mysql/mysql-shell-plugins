@@ -68,7 +68,23 @@ export class MDSCommandHandler {
                 void workspaceEdit.createFile(configFile, { ignoreIfExists: true });
                 void workspace.applyEdit(workspaceEdit).then(() => {
                     void workspace.openTextDocument(configFile).then((doc: TextDocument) => {
-                        void window.showTextDocument(doc, 1, false);
+                        void window.showTextDocument(doc, 1, false).then((editor) => {
+                            void editor.edit((edit) => {
+                                const firstLine = doc.lineAt(0);
+                                const lastLine = doc.lineAt(doc.lineCount - 1);
+                                const textRange = new Range(firstLine.range.start, lastLine.range.end);
+                                // cSpell:ignore devguidesetupprereq
+                                edit.replace(textRange,
+                                    ";To add a new OCI Profile, please follow these instructions.\n" +
+                                    ";https://docs.oracle.com/en-us/iaas/Content/API/Concepts/" +
+                                    "devguidesetupprereq.htm.\n" +
+                                    ";Then paste your OCI Config here, replacing these lines and save.\n" +
+                                    ";Click the Reload icon in the ORACLE CLOUD INFRASTRUCTURE View.");
+                            }).then(() => {
+                                const position = editor.selection.start;
+                                editor.selection = new Selection(position, position);
+                            });
+                        });
                     });
                 });
             } else {
