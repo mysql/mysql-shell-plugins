@@ -112,7 +112,7 @@ export const generateColumnInfo = (dbType: DBType,
 
     return rawColumns.map((entry) => {
         let type;
-        if (entry.type === "Bytes") {
+        if (entry.type.toLowerCase() === "bytes") {
             // For now, use length to switch between binary and blob
             if (entry.length < 256) {
                 type = DBDataType.Binary;

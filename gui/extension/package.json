@@ -12,7 +12,7 @@
     "license": "SEE LICENSE IN LICENSE.txt",
     "repository": {
         "type": "git",
-        "url": "https://github.com/mysql/"
+        "url": "https://github.com/mysql/mysql-shell-plugins"
     },
     "engines": {
         "vscode": "^1.63.0"
