@@ -31,7 +31,7 @@
         "resultView.background": "#161616",
         "resultView.foreground": "#C0B4C4",
         "resultView.gridColor": "#080808",
-        "editorZone.background": "#1E1E1E",
+        "editorZone.background": "#1A1A1A",
         "editorZone.foreground": "#B1AEB5",
         "resultStatus.background": "#0A0A0A",
         "resultStatus.foreground": "#777777",

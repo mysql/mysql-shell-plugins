@@ -300,3 +300,30 @@
 .msg.resultGroup .resultView .tabulator .tabulator-placeholder {
     background-color: var(--resultView-background);
 }
+
+.msg.codeEditor .zoneMargin {
+    margin-left: 35px;
+    background-color: var(--editorZone-background);
+}
+
+.msg.codeEditor .zoneMargin {
+    display: block;
+    width: 100%;
+    height: inherit;
+}
+
+.msg.codeEditor .zoneMargin::before {
+    content: "";
+    display: block;
+    position: absolute;
+
+    width: 7px;
+    right: 45px;
+    top: 0px;
+    height: 100%;
+
+    mask-image: url(../../assets/images/editor-side-line-straight.svg);
+    background-color: var(--editorPrompt-result);
+    mask-size: 5px;
+    mask-repeat: repeat-y;
+}
