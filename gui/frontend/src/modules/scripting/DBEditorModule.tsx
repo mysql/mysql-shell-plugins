@@ -51,14 +51,14 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import {
     ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommModuleDataContentEvent,
     ICommOpenConnectionEvent, ICommResultSetEvent, IOpenDBConnectionData,
-    IShellResultType, ShellPromptResponseType,
+    IShellResultType, ShellPromptResponseType, IResultSetData,
 } from "../../communication";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
-import { stripAnsiCode, uuid } from "../../utilities/helpers";
+import { convertSnakeToCamelCase, stripAnsiCode, uuid } from "../../utilities/helpers";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { DBEditorModuleId } from "../ModuleInfo";
@@ -392,9 +392,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const connections: IConnectionDetails[] = [];
             ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
                 .then((event: ICommResultSetEvent) => {
-                    for (const connection of event.data?.rows || []) {
-                        connections.push(connection as IConnectionDetails);
+                    if (!event.data) {
+                        return;
                     }
+
+                    // XXX: temporary workaround.
+                    const resultData = convertSnakeToCamelCase(event.data) as IResultSetData;
+                    connections.push(...resultData.rows as IConnectionDetails[]);
 
                     if (event.eventType === EventType.FinalResponse) {
                         this.setState({ connections, connectionsLoaded: true });

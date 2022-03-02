@@ -91,11 +91,14 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
     }
 
     // Spawn shell process
+    const configuration = workspace.getConfiguration(`msg.debugLog`);
+    const level = configuration.get<string>("level", "INFO");
+
     const shellProc = child_process.spawn(shellPath, parameters, {
         env: {
             ...process.env,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            LOG_LEVEL: "INFO",
+            LOG_LEVEL: level,
         },
     });
 

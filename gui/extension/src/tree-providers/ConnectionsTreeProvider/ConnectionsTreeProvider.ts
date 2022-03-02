@@ -30,8 +30,8 @@ import { DBEditorModuleId } from "../../../../frontend/src/modules/ModuleInfo";
 import { DBType, IConnectionDetails, ShellInterface } from "../../../../frontend/src/supplement/ShellInterface";
 import {
     ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent, ICommObjectNamesEvent,
-    ICommOpenConnectionEvent, ICommResultSetEvent, ICommSimpleResultEvent, IShellFeedbackRequest, IShellResultType,
-    ShellPromptResponseType,
+    ICommOpenConnectionEvent, ICommResultSetEvent, ICommSimpleResultEvent, IResultSetData, IShellFeedbackRequest,
+    IShellResultType, ShellPromptResponseType,
 } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
@@ -51,7 +51,7 @@ import {
     SchemaTableColumnTreeItem, SchemaTableForeignKeyTreeItem, SchemaTableIndexTreeItem, SchemaTableMySQLTreeItem,
     SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
 } from ".";
-import { stripAnsiCode } from "../../../../frontend/src/utilities/helpers";
+import { convertSnakeToCamelCase, stripAnsiCode } from "../../../../frontend/src/utilities/helpers";
 
 export interface IConnectionEntry {
     id: string;
@@ -213,7 +213,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 const details: IConnectionDetails[] = [];
                 ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
                     .then((event: ICommResultSetEvent) => {
-                        const entries = event.data?.rows as IConnectionDetails[];
+                        if (!event.data) {
+                            return;
+                        }
+
+                        const resultData = convertSnakeToCamelCase(event.data) as IResultSetData;
+                        const entries = resultData.rows as IConnectionDetails[];
                         switch (event.eventType) {
                             case EventType.DataResponse: {
                                 if (event.data?.rows) {
