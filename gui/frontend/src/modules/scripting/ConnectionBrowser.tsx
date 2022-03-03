@@ -1147,7 +1147,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 dbFilePath: {
                     caption: "Database Path:",
                     value: optionsSqlite.dbFile,
-                    contentType: ".sqlite3",
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    filters: { "SQLite 3": ["sqlite3"]},
                     placeholder: "<Enter the DB file location>",
                     span: 8,
                     options: [DialogValueOption.Resource],

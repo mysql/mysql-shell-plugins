@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,7 @@ import React from "react";
 import { Button, Component, IComponentProperties, IInputChangeProperties, Input } from "../";
 import { Container, Orientation } from "../Container/Container";
 import { selectFile } from "../../../utilities/helpers";
-import { requisitions } from "../../../supplement/Requisitions";
+import { appParameters, IOpenDialogFilters, requisitions } from "../../../supplement/Requisitions";
 
 export enum FileSelectorEntryType {
     File,
@@ -39,40 +39,69 @@ export enum FileSelectorEntryType {
 export interface IFileSelectorEntry {
     type: FileSelectorEntryType;
     name: string;
-    children?: []; // For folder entry types.
+    children?: IFileSelectorEntry[]; // For folder entry types.
 }
 
 export interface IFileSelectorProperties extends IComponentProperties {
-    path: string;          // Must represent a file system URL. Other schemes are not supported.
+    // Must represent a file system object. Other schemes are not supported.
+    path: string;
+
+    // Text to show in the input, if nothing is selected yet.
     placeholder?: string;
-    contentType?: string;  // A file extension (with leading dot) or mime type.
 
-    canSelectFolder?: boolean; // The user can select/create a folder (default: false).
-    canCreateNew?: boolean;    // The user can select a non-existing file/folder, which will then be created
-    // by the caller (default: false).
+    // A title for the open dialog. Not shown on all platforms.
+    title?: string;
 
-    // If not specified then a platform file selector is presented to the user, to select a file/folder.
+    // The text to be used for the open button in the open dialog. Only used in embedded scenarios.
+    openLabel?: string;
+
+    // A collection of file extensions (w/o leading dot or wildcard) under a descriptive name, like
+    //  "Images": ["png", "jpg"]
+    //  "TypeScript": ["ts", "tsx"].
+    // Additionally mime types are supported (only used in browser mode). For example:
+    //   "mime": ["audio/*", "image/png"].
+    filters?: IOpenDialogFilters;
+
+    // The user can select/create files (default: true). Only used in embedded mode.
+    canSelectFiles?: boolean;
+
+    // The user can select/create folders (default: false). Only used in embedded mode.
+    canSelectFolders?: boolean;
+
+    // The user can select a non-existing file/folder, which will then be created by the caller (default: false).
+    // Only used in embedded mode.
+    canCreateNew?: boolean;
+
+    // Multiple objects can be selected (default: false).
+    multiSelection?: boolean;
+
+    // If not specified then a platform open dialog is presented to the user.
     // Otherwise the tree from this field is rendered in a custom panel.
     content?: IFileSelectorEntry[];
 
     // Triggered for any change in the file/path edit
-    onChange?: (newValue: string, props: IFileSelectorProperties) => void;
+    onChange?: (newValues: string[], props: IFileSelectorProperties) => void;
     onConfirm?: (e: React.KeyboardEvent, props: IFileSelectorProperties) => void;
     onCancel?: (e: React.KeyboardEvent, props: IFileSelectorProperties) => void;
-
 }
 
+// An input field with a button to show/select files and folders. It uses the HTML open dialog in browser mode,
+// otherwise the host provides a native open dialog.
 export class FileSelector extends Component<IFileSelectorProperties> {
 
     public static readonly defaultProps = {
+        canSelectFiles: true,
+        canSelectFolder: false,
         canCreateNew: false,
+        multiSelection: false,
     };
 
     public constructor(props: IFileSelectorProperties) {
         super(props);
 
-        this.addHandledProperties("value", "placeholder", "contentType", "canCreateNew", "content", "onChange",
-            "onSelect");
+        this.addHandledProperties("value", "placeholder", "title", "openLabel", "filters", "canSelectFiles",
+            "canSelectFolder", "canCreateNew", "multiSelection", "content",
+            "onChange", "onConfirm", "onSelect");
     }
 
     public componentDidMount(): void {
@@ -88,6 +117,7 @@ export class FileSelector extends Component<IFileSelectorProperties> {
 
         const className = this.getEffectiveClassNames(["fileSelector"]);
 
+        // XXX: render custom content tree.
         return (
             <Container
                 className={className}
@@ -108,30 +138,60 @@ export class FileSelector extends Component<IFileSelectorProperties> {
         );
     }
 
-    private selectFile = (path: string): Promise<boolean> => {
+    private selectFile = (values: string[]): Promise<boolean> => {
         const { onChange } = this.mergedProps;
 
-        // Only called in single user mode, from a native wrapper.
-        const pathName = new URL(path).pathname;
-        onChange?.(decodeURI(pathName), this.mergedProps);
+        // Only called in single user mode, from a native wrapper or vscode.
+        const result = values.map((value) => {
+            return decodeURI(value.startsWith("file://") ? value.substring("file://".length) : value);
+        });
+        onChange?.(result, this.mergedProps);
 
         return Promise.resolve(true);
     };
 
     private handleButtonClick = async (): Promise<void> => {
-        const { contentType, onChange } = this.mergedProps;
+        const {
+            path, title, openLabel, canSelectFiles = true, canSelectFolders, filters, multiSelection = false, onChange,
+        } = this.mergedProps;
 
-        const file = await selectFile(contentType || "", false);
-        if (file && !Array.isArray(file)) {
-            // Only called for remote/multi user mode.
-            onChange?.(file.name, this.mergedProps);
+        if (appParameters.embedded) {
+            const options = {
+                default: path,
+                title,
+                canSelectFiles,
+                canSelectFolders,
+                canSelectMany: multiSelection,
+                filters,
+                openLabel,
+            };
+            requisitions.executeRemote("showOpenDialog", options);
+        } else {
+            let contentType = "";
+            if (filters) {
+                Object.values(filters).forEach((value: string[], index) => {
+                    if (index > 0) {
+                        contentType += ",";
+                    }
+                    value = value.map((entry) => { return "." + entry; });
+                    contentType += value.join(",");
+                });
+            }
+
+            let result = await selectFile(contentType, multiSelection);
+            if (result) {
+                if (!Array.isArray(result)) {
+                    result = [result];
+                }
+                onChange?.(result.map((value) => { return value.name; }), this.mergedProps);
+            }
         }
     };
 
     private handleInputChange = (e: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
         const { onChange } = this.mergedProps;
 
-        onChange?.(props.value, this.mergedProps);
+        onChange?.([props.value], this.mergedProps);
     };
 
     private handleInputConfirm = (e: React.KeyboardEvent): void => {

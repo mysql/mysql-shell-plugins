@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { requisitions } from "../../../frontend/src/supplement/Requisitions";
+import { Uri, window } from "vscode";
+
+import { IOpenDialogOptions, requisitions } from "../../../frontend/src/supplement/Requisitions";
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
@@ -188,6 +190,7 @@ export class SqlEditorViewProvider extends WebviewProvider {
             this.requisitions.register("refreshConnections", this.refreshConnections);
             this.requisitions.register("refreshOciTree", this.refreshOciTree);
             this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
+            this.requisitions.register("showOpenDialog", this.showOpenDialog);
         }
     }
 
@@ -206,4 +209,27 @@ export class SqlEditorViewProvider extends WebviewProvider {
         return requisitions.execute("codeBlocksUpdate", data);
     };
 
+    private showOpenDialog = (options: IOpenDialogOptions): Promise<boolean> => {
+        return new Promise((resolve) => {
+            const dialogOptions = {
+                defaultUri: Uri.file(options.default ?? ""),
+                openLabel: options.openLabel,
+                canSelectFiles: options.canSelectFiles,
+                canSelectFolders: options.canSelectFolders,
+                canSelectMany: options.canSelectMany,
+                filters: options.filters,
+                title: options.title,
+            };
+
+            void window.showOpenDialog(dialogOptions).then((paths?: Uri[]) => {
+                if (paths) {
+                    void this.requisitions?.executeRemote("selectFile", paths.map((path) => {
+                        return path.fsPath;
+                    }));
+                }
+
+                resolve(true);
+            });
+        });
+    };
 }

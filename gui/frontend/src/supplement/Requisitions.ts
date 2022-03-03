@@ -66,6 +66,37 @@ const parseAppParameters = (): void => {
 
 type SimpleCallback = (_: undefined) => Promise<boolean>;
 
+export interface IOpenDialogFilters {
+    [key: string]: string[];
+}
+
+// This is essentially a copy of the vscode OpenDialogOptions interface.
+export interface IOpenDialogOptions {
+    // The resource the dialog shows when opened.
+    default?: string;
+
+    // A human-readable string for the open button.
+    openLabel?: string;
+
+    // Allow to select files, defaults to `true`.
+    canSelectFiles?: boolean;
+
+    // Allow to select folders, defaults to `false`.
+    canSelectFolders?: boolean;
+
+    // Allow to select many files or folders.
+    canSelectMany?: boolean;
+
+    // A set of file filters that are used by the dialog. For example:
+    //  'Images': ['png', 'jpg']
+    //  'TypeScript': ['ts', 'tsx']
+    filters?: IOpenDialogFilters;
+
+    // Dialog title. This parameter might be ignored, as not all operating systems display a title on
+    // open dialogs (for example, macOS).
+    title?: string;
+}
+
 // The map containing possible requests and their associated callback.
 // The return value in the promise determines if the request was handled or not.
 // Watch out when adding new callbacks! There must be exactly one parameter.
@@ -80,7 +111,8 @@ export interface IRequestTypeMap {
     "editorInfoUpdated": (info: IEditorStatusInfo) => Promise<boolean>;
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
     "openConnectionTab": (data: { details: IConnectionDetails; force: boolean }) => Promise<boolean>;
-    "selectFile": (path: string) => Promise<boolean>;
+    "selectFile": (path: string[]) => Promise<boolean>;
+    "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 
     "editorExecuteSelectedOrAll": (startNewBlock: boolean) => Promise<boolean>;
     "editorExecuteCurrent": (startNewBlock: boolean) => Promise<boolean>;

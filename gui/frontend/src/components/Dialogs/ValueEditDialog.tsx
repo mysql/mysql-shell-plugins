@@ -37,6 +37,7 @@ import {
 } from "../ui";
 import { IDictionary, MessageType } from "../../app-logic/Types";
 import { ParamDialog } from "./ParamDialog";
+import { IOpenDialogFilters } from "../../supplement/Requisitions";
 
 export interface IContextUpdateData {
     add?: string[];
@@ -85,9 +86,8 @@ export interface IDialogValue {
     // A value between 1 and 8 for the grid cells to span horizontally (default: 4).
     span?: number;
 
-    // Used with the Resource value option, to limit user selectable files (can be a file extension or a mime-type or a
-    // comma separated list of the two).
-    contentType?: string;
+    // Used with the Resource value option, to limit user selectable files.
+    filters?: IOpenDialogFilters;
 
     // Called for certain value types (checkbox, choice) when the value was changed.
     onChange?: (value: DialogValueType) => void;
@@ -459,7 +459,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                         onSelectTab={(id: string): void => {
                             let selected = "";
                             group.nodes.forEach((node, nodeIndex) => {
-                                if((`page${nodeIndex}`) === id) {
+                                if ((`page${nodeIndex}`) === id) {
                                     node.section.active = true;
                                     selected = node.caption ?? "";
                                 } else {
@@ -624,11 +624,12 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 />);
             } else if (options?.includes(DialogValueOption.Resource)) {
                 result.push(<FileSelector
+                    className="valueEditor"
                     id={entry.key}
                     key={entry.key}
                     path={entry.value.value as string}
-                    className="valueEditor"
-                    contentType={entry.value.contentType}
+                    filters={entry.value.filters}
+                    multiSelection={false}
                     onChange={this.fileChange}
                     onConfirm={this.acceptOnConfirm}
                 />);
@@ -831,21 +832,23 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
-    private fileChange = (newValue: string, props: IFileSelectorProperties): void => {
+    private fileChange = (newValue: string[], props: IFileSelectorProperties): void => {
         const { onValidate } = this.props;
         const { values } = this.state;
 
-        values.sections.forEach((section) => {
-            if (props.id) {
-                const entry = section.values[props.id];
-                if (!isNil(entry)) {
-                    entry.value = newValue;
+        if (newValue.length > 0) {
+            values.sections.forEach((section) => {
+                if (props.id) {
+                    const entry = section.values[props.id];
+                    if (!isNil(entry)) {
+                        entry.value = newValue[0];
 
-                    const validations = onValidate?.(false, values, this.data) || { messages: {} };
-                    this.setState({ values, validations });
+                        const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                        this.setState({ values, validations });
+                    }
                 }
-            }
-        });
+            });
+        }
     };
 
     private checkboxChange = (checkState: CheckState, props: ICheckboxProperties): void => {

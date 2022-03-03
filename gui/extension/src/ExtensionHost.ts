@@ -22,7 +22,7 @@
  */
 
 import {
-    commands, ExtensionContext, window, workspace, ConfigurationChangeEvent, WorkspaceConfiguration,
+    commands, ExtensionContext, window, workspace, ConfigurationChangeEvent, WorkspaceConfiguration, Uri,
 } from "vscode";
 
 import { isNil } from "lodash";
@@ -48,7 +48,7 @@ import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvide
 
 import { DbEditorCommandHandler } from "./DbEditorCommandHandler";
 import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler";
-import { requisitions } from "../../frontend/src/supplement/Requisitions";
+import { IOpenDialogOptions, requisitions } from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
 import { MRSCommandHandler } from "./MRSCommandHandler";
 
