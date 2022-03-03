@@ -29,13 +29,12 @@ from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
 from gui_plugin.core.Protocols import Response
-from gui_plugin.core.lib.OciUtils import BastionHandler
 import gui_plugin.core.Logger as logger
 
 
 def check_service_database_session(func):
     def wrapper(self, *args, **kwargs):
-        if not self._db_service_session:
+        if self._db_service_session is None:
             raise MSGException(Error.DB_NOT_OPEN,
                                'The database session needs to be opened before SQL can be executed.')
         return func(self, *args, **kwargs)
@@ -49,6 +48,7 @@ class DbModuleSession(ModuleSession):
         self._connection_options = None
         self._db_service_session = None
         self._ping_interval = None
+        self._bastion_options = None
 
     def __del__(self):
         self.close()
@@ -101,6 +101,13 @@ class DbModuleSession(ModuleSession):
                                f"The database file: {path} does not exist for '{database_name}' database.")
 
         return path
+
+    def on_session_message(self, type, message):
+        self._web_session.send_response_message(
+            msg_type=type,
+            msg=message,
+            request_id=self._current_request_id,
+            values=None, api=False)
 
     # Note that this function is executed in the DBSession thread
     # def _handle_db_response(self, request_id, values):
@@ -157,32 +164,22 @@ class DbModuleSession(ModuleSession):
         if self._db_type == "Sqlite":
             options['db_file'] = self._validate_connection_config(options)
 
-        # Check if MDS options have been specified
-        if 'mysql-db-system-id' in options:
-            bastion_handler = BastionHandler(lambda x: self._web_session.send_response_message(
-                msg_type='PENDING',
-                msg=x,
-                request_id=self._current_request_id,
-                values=None, api=False))
-
-            options = bastion_handler.establish_connection(options)
-
-            # Database ping interval of 60 seconds
-            self._ping_interval = 60
-
         self._connection_options = options
 
         return self.connect()
 
     def connect(self):
+        session_id = "ServiceSession-" + self.web_session.session_uuid
         self._db_service_session = DbSessionFactory.create(
-            self._db_type, self._web_session.session_uuid, True,
+            self._db_type, session_id, True,
             self._connection_options,
             self._ping_interval,
+            True,
             self.on_connected,
             lambda x: self.on_fail_connecting(x),
             lambda x: self.on_shell_prompt(x),
-            lambda x: self.on_shell_password(x))
+            lambda x: self.on_shell_password(x),
+            self.on_session_message)
 
     # Temporary hack, right thing would be that the shell unparse_uri
     # supports passing the needed tokens
@@ -226,7 +223,7 @@ class DbModuleSession(ModuleSession):
 
         return self._prompt_replied, self._prompt_reply
 
-    def on_connected(self):
+    def on_connected(self, connection_options):
         data = Response.ok("Connection was successfully opened.", {
             "module_session_id": self._module_session_id,
             "info": self._db_service_session.info(),
@@ -237,6 +234,7 @@ class DbModuleSession(ModuleSession):
 
     def on_fail_connecting(self, exc):
         logger.exception(exc)
+
         self.send_command_response(
             self._current_request_id, Response.exception(exc))
 

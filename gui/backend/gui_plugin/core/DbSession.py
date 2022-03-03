@@ -27,6 +27,7 @@ from contextlib import contextmanager
 from .DbSessionTasks import DbSqlTask, DBCloseTask, DBReconnectTask
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
+import gui_plugin.core.Logger as logger
 
 
 class DbSessionFactory:
@@ -111,9 +112,12 @@ class DbPingHandler(threading.Thread):
 class DbSession(threading.Thread):
     _cancel_requests = []
 
-    def __init__(self, id, threaded, connection_options, ping_interval=None):
+    def __init__(self, id, threaded, connection_options, ping_interval=None,
+                 auto_reconnect=False):
         super().__init__()
         self._id = id
+        # Enable auto-reconnect logic for this session
+        self._auto_reconnect = auto_reconnect
 
         if not isinstance(connection_options, dict):
             raise MSGException(Error.DB_INVALID_OPTIONS,
@@ -140,6 +144,7 @@ class DbSession(threading.Thread):
 
     def open(self):
         self._opened = True
+        logger.debug3(f"Connecting {self._id}...")
         if self._threaded:
             # Start the session thread
             self.start()
@@ -169,7 +174,7 @@ class DbSession(threading.Thread):
     def _close_database(self):
         raise NotImplementedError()
 
-    def _reconnect(self):
+    def _reconnect(self, auto_reconnect=False):
         raise NotImplementedError()
 
     def terminate_thread(self):
@@ -239,7 +244,7 @@ class DbSession(threading.Thread):
             self.add_task(DBReconnectTask())
             self._term_complete.wait()
         else:
-            self._reconnect()
+            self._reconnect(auto_reconnect=False)
 
     def add_task(self, task):
         self._request_queue.put(task)
@@ -351,7 +356,7 @@ class DbSession(threading.Thread):
                 break
 
             if isinstance(task, DBReconnectTask):
-                self._reconnect()
+                self._reconnect(auto_reconnect=False)
                 self._term_complete.set()
             else:
                 if task.request_id in DbSession._cancel_requests:

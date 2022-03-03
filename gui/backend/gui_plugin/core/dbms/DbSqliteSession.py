@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from asyncio.log import logger
 import sqlite3
 import mysqlsh
 import os.path
@@ -30,6 +31,7 @@ from gui_plugin.core.dbms.DbSqliteSessionTasks import SqliteBaseObjectTask, Sqli
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.DbSessionTasks import check_supported_type
+import gui_plugin.core.Logger as logger
 
 
 def find_schema_name(config):
@@ -112,8 +114,11 @@ class DbSqliteSession(DbSession):
                         {"name": "Index",   "type": "TABLE_OBJECT"},
                         {"name": "Column",   "type": "TABLE_OBJECT"}]
 
-    def __init__(self, id, threaded, connection_options, ping_interval=None, on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None):
-        super().__init__(id, threaded, connection_options, ping_interval=ping_interval)
+    def __init__(self, id, threaded, connection_options, ping_interval=None, auto_reconnect=True,
+                 on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None,
+                 message_callback=None):
+        super().__init__(id, threaded, connection_options, ping_interval=ping_interval,
+                         auto_reconnect=auto_reconnect)
 
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
@@ -163,16 +168,17 @@ class DbSqliteSession(DbSession):
                     f"ATTACH '{db_file}' AS '{database_name}';")
 
             if not self._connected_cb is None and notify_success:
-                self._connected_cb()
+                self._connected_cb(self._connection_options)
         except Exception as e:
             if self._failed_cb is None:
                 raise e
             else:
                 self._failed_cb(e)
 
-    def _reconnect(self):
+    def _reconnect(self, auto_reconnect=False):
+        logger.debug3(f"Reconnecting {self._id}...")
         self._close_database()
-        self._open_database(True)
+        self._open_database(auto_reconnect is False)
 
     def _close_database(self):
         self.conn.close()

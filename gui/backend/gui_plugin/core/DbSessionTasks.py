@@ -26,6 +26,7 @@ from .Protocols import Response
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
+import mysqlsh
 
 def check_supported_type(func):
     def wrapper(self, *args, **kwargs):
@@ -136,20 +137,39 @@ class DbQueryTask(DbTask):
             if self._break:
                 break
 
-            try:
-                self._start_time = time.time()
-                self.resultset = self.session.execute_thread(sql, self.params)
-                self._execution_time += time.time() - self._start_time
+            while True:
+                try:
+                    self._start_time = time.time()
+                    self.resultset = self.session.execute_thread(sql, self.params)
+                    self._execution_time += time.time() - self._start_time
 
-                if self.session.is_killed():
-                    self.resultset = "Query killed"
+                    if self.session.is_killed():
+                        self.resultset = "Query killed"
 
-                self.process_result()
-            except Exception as e:
-                logger.exception(e)
-                self.dispatch_result("ERROR", message=str(e),
-                                     data=Response.exception(e))
-                break
+                    self.process_result()
+
+                    break
+                except mysqlsh.DBError as e:
+                    if e.code == 2013:
+                        if self.session._auto_reconnect and self.session._reconnect(True):
+                            continue
+                    logger.exception(e)
+                    self.dispatch_result("ERROR", message=str(e),
+                                        data=Response.exception(e))
+                    break
+                except RuntimeError as e:
+                    if "Not connected." in str(e):
+                        if self.session._auto_reconnect and self.session._reconnect(True):
+                            continue
+                    logger.exception(e)
+                    self.dispatch_result("ERROR", message=str(e),
+                                        data=Response.exception(e))
+                    break
+                except Exception as e:
+                    logger.exception(e)
+                    self.dispatch_result("ERROR", message=str(e),
+                                        data=Response.exception(e))
+                    break
 
     def process_result(self):
         raise NotImplementedError()
