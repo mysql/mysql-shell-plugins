@@ -1099,7 +1099,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     <Input
                         key={entry.id}
                         value={tempCaption}
-                        initialSelection={{ start: 0, end: 1000 }}
                         autoFocus
                         onBlur={this.handleEditingDone}
                         onChange={(e, props): void => {

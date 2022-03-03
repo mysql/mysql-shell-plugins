@@ -626,6 +626,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             this.beginValueUpdating("Loading...", "bastionName");
             this.beginValueUpdating("Loading...", "mysqlDbSystemName");
             this.beginValueUpdating("Loading...", "bastionId");
+
             this.editorRef.current?.show(
                 this.generateEditorConfig(details),
                 initialContexts,
@@ -637,12 +638,14 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     details,
                 });
             this.editorRef.current?.preventConfirm(true);
-            this.setProgressMessage("Waiting up to 5 minutes for Bastion to be created...");
+
+            this.setProgressMessage("Waiting up to 5 minutes for the bastion to be created.");
             this.showProgress();
             setTimeout(() => {
-                // update the OCI tree to show the bastion that is created
+                // Update the OCI tree to show the bastion that is created.
                 requisitions.executeRemote("refreshOciTree", undefined);
             }, 8000);
+
             this.createBastion().then((summary) => {
                 if (summary) {
                     requisitions.executeRemote("refreshOciTree", undefined);
@@ -657,6 +660,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 this.hideProgress();
                 this.editorRef.current?.preventConfirm(true);
             });
+
             this.getMdsDatabase(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId).then((system) => {
                 if (system) {
                     this.updateInputValue(system.displayName, "mysqlDbSystemName");
@@ -1040,7 +1044,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private generateEditorConfig = (details?: IConnectionDetails): IDialogValues => {
         const { connections } = this.props;
 
-        const caption = `New Connection ${connections.length}`;
+        const caption = `New Connection ${connections.length + 1}`;
         const description = "A new Database Connection";
 
         details = details || { // Default for new connections is MySQL.
@@ -1125,6 +1129,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     caption: "Caption:",
                     value: details.caption,
                     placeholder: "<enter a unique caption>",
+                    options: [DialogValueOption.AutoFocus],
                 },
                 description: {
                     caption: "Description:",

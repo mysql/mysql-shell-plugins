@@ -46,11 +46,15 @@ export interface IContextUpdateData {
 export enum DialogValueOption {
     ReadOnly,    // If set then the value is not editable.
     Disabled,
+
+    AutoFocus,   // When set focus an element and select all content. Can only be set once and only for input fields.
     Description, // If set then the value is just a description label (regardless of its type).
     Resource,    // Set to denote the value references a resource (URI, file).
     MultiLine,   // The value is a multi line string and needs a larger input control.
     Password,    // If set then the actual value must be a string interpreted as password.
+
     ShowLoading, // If set a progress indicator is displayed (only for input fields).
+
     Grouped,     // If set then this value is grouped with all following using the same flag, into a single grid cell.
     NewGroup,    // Set to break two consecutive groups apart (set on first member).
 }
@@ -770,6 +774,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                             disabled={options?.includes(DialogValueOption.Disabled)}
                             multiLine={options?.includes(DialogValueOption.MultiLine)}
                             password={options?.includes(DialogValueOption.Password)}
+                            autoFocus={options?.includes(DialogValueOption.AutoFocus)}
                         />
                         {progress}
                     </Container>,

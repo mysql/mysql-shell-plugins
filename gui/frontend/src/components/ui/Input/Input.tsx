@@ -37,11 +37,13 @@ export interface IInputProperties extends IComponentProperties {
     placeholder?: string;
     style?: React.CSSProperties;
     password?: boolean;
+
+    // When auto focus is set then all content is selected as well.
     autoFocus?: boolean;
+
     value?: string;
     textAlignment?: TextAlignment;
     multiLine?: boolean;
-    initialSelection?: IInputTextRange;
     autoComplete?: boolean;
     spellCheck?: boolean;
 
@@ -74,15 +76,12 @@ export class Input extends Component<IInputProperties> {
     }
 
     public componentDidMount(): void {
-        const { autoFocus, initialSelection } = this.mergedProps;
-        if (this.inputRef.current) {
-            if (autoFocus) {
-                this.inputRef.current.focus();
-            }
-
-            if (initialSelection) {
-                (this.inputRef.current as HTMLInputElement)
-                    .setSelectionRange(initialSelection.start, initialSelection.end);
+        const { autoFocus } = this.mergedProps;
+        if (this.inputRef.current && autoFocus) {
+            const element = this.inputRef.current;
+            element.focus();
+            if (element instanceof HTMLInputElement) {
+                element.setSelectionRange(0, element.value.length);
             }
         }
     }
