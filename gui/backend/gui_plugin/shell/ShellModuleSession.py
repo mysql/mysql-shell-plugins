@@ -91,24 +91,35 @@ class ShellModuleSession(ModuleSession):
     def __init__(self, web_session, request_id, options=None, shell_args=None):
         super().__init__(web_session)
 
-        self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
-            'plugin_data', 'gui_plugin', 'shell_instance_home')
-
-        if not os.path.exists(self._subprocess_home):
-            os.mkdir(self._subprocess_home)
-
         # Symlinks the plugins on the master shell as we want them available
         # on the Shell Console
+        self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
+            'plugin_data', 'gui_plugin', 'shell_instance_home')
+        if not os.path.exists(self._subprocess_home):
+            os.makedirs(self._subprocess_home)
+
         subprocess_plugins = os.path.join(self._subprocess_home, 'plugins')
-        if not os.path.exists(subprocess_plugins):
-            plugins_path = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
-                'plugins')
+
+        # We have to re-create the symlink every time since the VSCode extension path changes after updates
+        if os.path.exists(subprocess_plugins):
             if os.name == 'nt':
                 p = subprocess.run(
-                    f'mklink /J "{subprocess_plugins}" "{plugins_path}"', shell=True)
+                    f'rmdir "{subprocess_plugins}"', shell=True)
                 p.check_returncode()
             else:
-                os.symlink(plugins_path, subprocess_plugins)
+                os.unlink(subprocess_plugins)
+
+        # Get the actual plugin path that this gui_plugin is in
+        module_file_path = os.path.dirname(__file__)
+        plugins_path = os.path.dirname(os.path.dirname(module_file_path))
+
+        # Setup the symlink
+        if os.name == 'nt':
+            p = subprocess.run(
+                f'mklink /J "{subprocess_plugins}" "{plugins_path}"', shell=True)
+            p.check_returncode()
+        else:
+            os.symlink(plugins_path, subprocess_plugins)
 
         # Check if MDS options have been specified
         connection_args = []

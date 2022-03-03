@@ -26,7 +26,7 @@ import {
 } from "vscode";
 
 import * as child_process from "child_process";
-import { existsSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { join } from "path";
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
@@ -37,7 +37,7 @@ import { currentConnection } from "../../frontend/src/communication";
 import { ExtensionHost } from "./ExtensionHost";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
-import { platform } from "os";
+import { platform, homedir } from "os";
 
 export let taskOutputChannel: OutputChannel;
 let outputChannel: OutputChannel;
@@ -82,12 +82,33 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
         shellPath += ".exe";
     }
 
+    let shellUserConfigDir: string;
     if (!existsSync(shellPath)) {
         // If not, try to use the mysqlsh installed in the system
         shellPath = "mysqlsh";
-        printChannelOutput("Starting MySQL Shell (from PATH) ...");
+
+        // Use the regular shell user config dir in this case
+        if (platform() === "win32") {
+            shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh");
+        } else {
+            shellUserConfigDir = join(homedir(), ".mysqlsh");
+        }
+
+        printChannelOutput(`Starting MySQL Shell (from PATH), using config dir '${shellUserConfigDir}' ...`);
     } else {
-        printChannelOutput("Starting MySQL Shell ...");
+        // Create a dedicated shell user config dir for the shell gui
+        if (platform() === "win32") {
+            shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh-gui");
+        } else {
+            shellUserConfigDir = join(homedir(), ".mysqlsh-gui");
+        }
+
+        printChannelOutput(`Starting MySQL Shell, using config dir '${shellUserConfigDir}' ...`);
+    }
+
+    // Ensure the shell user config dir exists
+    if (!existsSync(shellUserConfigDir)) {
+        mkdirSync(shellUserConfigDir);
     }
 
     // Spawn shell process
@@ -99,6 +120,8 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
             ...process.env,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             LOG_LEVEL: level,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            MYSQLSH_USER_CONFIG_HOME: shellUserConfigDir,
         },
     });
 
