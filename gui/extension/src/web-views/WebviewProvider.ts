@@ -115,117 +115,114 @@ export class WebviewProvider {
 
     protected createPanel(caption: string, placement?: string): Promise<boolean> {
         return new Promise((resolve) => {
-            const viewColumn = (!placement || placement === "Active") ? ViewColumn.Active : ViewColumn.Beside;
-            if (placement === "Beside Bottom") {
-                void commands.executeCommand("workbench.action.editorLayoutTwoRows");
-            }
+            void this.prepareEditorGroup(placement).then((viewColumn) => {
+                this.panel = window.createWebviewPanel(
+                    "msg-webview", caption, viewColumn, {
+                        enableScripts: true,
+                        retainContextWhenHidden: true,
+                    },
+                );
 
-            this.panel = window.createWebviewPanel(
-                "msg-webview", caption, viewColumn, {
-                    enableScripts: true,
-                    retainContextWhenHidden: true,
-                },
-            );
+                this.panel.onDidDispose(() => { this.handleDispose(); });
 
-            this.panel.onDidDispose(() => { this.handleDispose(); });
+                this.requisitions = new RequisitionHub("host", this.panel.webview);
+                this.requisitions.register("applicationDidStart", (): Promise<boolean> => {
+                    resolve(true);
+                    printChannelOutput("State: application did start");
 
-            this.requisitions = new RequisitionHub("host", this.panel.webview);
-            this.requisitions.register("applicationDidStart", (): Promise<boolean> => {
-                resolve(true);
-                printChannelOutput("State: application did start");
+                    return Promise.resolve(true);
+                });
 
-                return Promise.resolve(true);
-            });
+                this.requisitions.register("settingsChanged", this.updateVscodeSettings);
 
-            this.requisitions.register("settingsChanged", this.updateVscodeSettings);
+                this.requisitionsCreated();
 
-            this.requisitionsCreated();
+                this.panel.webview.onDidReceiveMessage((message: IEmbeddedMessage) => {
+                    if (message.source === "app") {
+                        this.requisitions?.handleRemoteMessage(message);
+                    }
+                });
 
-            this.panel.webview.onDidReceiveMessage((message: IEmbeddedMessage) => {
-                if (message.source === "app") {
-                    this.requisitions?.handleRemoteMessage(message);
+                            // Insert an iframe to load the external URL from the running mysql shell server.
+                this.url.searchParams.set("app", "vscode");
+
+                this.panel.webview.html = `
+<!doctype html><html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src *; img-src http: https:;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline' http: https: data: *;">
+</head>
+<body style="margin:0px;padding:0px;overflow:hidden;">
+<iframe id="frame:${caption}"
+    src="${this.url.toString()}"
+    frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;
+    width:100%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px" height="100%"
+    width="100%">
+</iframe>
+<script>
+    let frame;
+    let vscode;
+
+    document.addEventListener("paste", (event) => {
+        frame.contentWindow.postMessage({
+            source: "host",
+            command: "paste",
+            data: { text: event.clipboardData.getData("text") }
+        }, "*");
+    });
+
+    window.addEventListener('message', (event) => {
+        if (!frame) {
+            vscode = acquireVsCodeApi();
+            frame = document.getElementById("frame:${caption}");
+
+            // Listen to style changes on the outer iframe.
+            const sendThemeMessage = () => {
+                frame.contentWindow.postMessage({
+                    source: "host",
+                    command: "hostThemeChange",
+                    data: { css: document.documentElement.style.cssText, themeClass: document.body.className }
+                }, "*");
+            };
+
+            const observer = new MutationObserver(sendThemeMessage);
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
+
+            // Send initial theme change message.
+            sendThemeMessage();
+        }
+
+        if (event.data.source === "host") {
+            // Forward message from the extension to the iframe.
+            frame.contentWindow.postMessage(event.data, "*");
+        } else if (event.data.source === "app") {
+            // Forward app events either directly or after a conversion to vscode.
+            switch (event.data.command) {
+                case "keydown": {
+                    window.dispatchEvent(new KeyboardEvent("keydown", event.data));
+                    break;
                 }
-            });
-
-            // Insert an iframe to load the external URL from the running mysql shell server.
-            this.url.searchParams.set("app", "vscode");
-
-            this.panel.webview.html = `
-    <!doctype html><html lang="en">
-    <head>
-    <meta http-equiv="Content-Security-Policy" content="default-src *; img-src http: https:;
-        script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline' http: https: data: *;">
-    </head>
-    <body style="margin:0px;padding:0px;overflow:hidden;">
-    <iframe id="frame:${caption}"
-        src="${this.url.toString()}"
-        frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;
-        width:100%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px" height="100%"
-        width="100%">
-    </iframe>
-    <script>
-        let frame;
-        let vscode;
-
-        document.addEventListener("paste", (event) => {
-            frame.contentWindow.postMessage({
-                source: "host",
-                command: "paste",
-                data: { text: event.clipboardData.getData("text") }
-            }, "*");
-        });
-
-        window.addEventListener('message', (event) => {
-            if (!frame) {
-                vscode = acquireVsCodeApi();
-                frame = document.getElementById("frame:${caption}");
-
-                // Listen to style changes on the outer iframe.
-                const sendThemeMessage = () => {
-                    frame.contentWindow.postMessage({
-                        source: "host",
-                        command: "hostThemeChange",
-                        data: { css: document.documentElement.style.cssText, themeClass: document.body.className }
-                    }, "*");
-                };
-
-                const observer = new MutationObserver(sendThemeMessage);
-                observer.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
-
-                // Send initial theme change message.
-                sendThemeMessage();
-            }
-
-            if (event.data.source === "host") {
-                // Forward message from the extension to the iframe.
-                frame.contentWindow.postMessage(event.data, "*");
-            } else if (event.data.source === "app") {
-                // Forward app events either directly or after a conversion to vscode.
-                switch (event.data.command) {
-                    case "keydown": {
-                        window.dispatchEvent(new KeyboardEvent("keydown", event.data));
-                        break;
-                    }
-                    case "keyup": {
-                        window.dispatchEvent(new KeyboardEvent("keyup", event.data));
-                        break;
-                    }
-                    case "writeClipboard": {
-                        // This is a special message and can be handled here.
-                        window.navigator.clipboard.writeText(event.data.text);
-                        break;
-                    }
-                    default: {
-                        vscode.postMessage(event.data);
-                        break;
-                    }
+                case "keyup": {
+                    window.dispatchEvent(new KeyboardEvent("keyup", event.data));
+                    break;
+                }
+                case "writeClipboard": {
+                    // This is a special message and can be handled here.
+                    window.navigator.clipboard.writeText(event.data.text);
+                    break;
+                }
+                default: {
+                    vscode.postMessage(event.data);
+                    break;
                 }
             }
-        });
-    </script>
+        }
+    });
+</script>
 
-    </body></html>
-    `;
+</body></html>
+                    `;
+            });
 
         });
     }
@@ -283,4 +280,14 @@ export class WebviewProvider {
         });
     };
 
+    private prepareEditorGroup = async (placement?: string): Promise<ViewColumn> => {
+        let viewColumn = (!placement || placement === "Active") ? ViewColumn.Active : ViewColumn.Beside;
+        if (placement === "Beside Bottom") {
+            viewColumn = ViewColumn.Active;
+            await commands.executeCommand("workbench.action.editorLayoutTwoRows");
+            await commands.executeCommand("workbench.action.focusSecondEditorGroup");
+        }
+
+        return viewColumn;
+    };
 }

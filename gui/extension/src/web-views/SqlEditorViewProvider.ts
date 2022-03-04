@@ -63,7 +63,7 @@ export class SqlEditorViewProvider extends WebviewProvider {
      */
     public showPageSection(caption: string, page: string, section: string): Promise<boolean> {
         return this.runCommand("showPageSection", { module: DBEditorModuleId, page, section }, caption,
-            "newConnectionWithSql");
+            "newConnection");
     }
 
     /**
@@ -80,7 +80,7 @@ export class SqlEditorViewProvider extends WebviewProvider {
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorRunQuery", parameter: details },
-        ], caption, "newConnectionWithSql");
+        ], caption, details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
     }
 
     /**
@@ -97,7 +97,7 @@ export class SqlEditorViewProvider extends WebviewProvider {
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorRunScript", parameter: details },
-        ], caption, "newConnectionWithSql");
+        ], caption, "newConnection");
     }
 
     /**
@@ -111,7 +111,7 @@ export class SqlEditorViewProvider extends WebviewProvider {
     public insertScriptData(state: IDBEditorScriptState): Promise<boolean> {
         if (state.moduleDataId) {
             return this.runCommand("editorInsertUserScript",
-                { language: state.language, resourceId: state.moduleDataId }, "", "newConnectionWithSql");
+                { language: state.language, resourceId: state.moduleDataId }, "", "newConnection");
         }
 
         return Promise.resolve(false);

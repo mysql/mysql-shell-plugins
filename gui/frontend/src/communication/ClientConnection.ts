@@ -35,7 +35,6 @@ import { IGenericResponse } from "./GeneralEvents";
 import ReconnectingWebSocket, { ErrorEvent, Options } from "reconnecting-websocket";
 import ws from "ws";
 import { IDictionary } from "../app-logic/Types";
-import _ from "lodash";
 
 export enum ConnectionEventType {
     Open = 1,

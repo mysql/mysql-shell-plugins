@@ -201,7 +201,7 @@
                 "msg.tabPosition.newConnection": {
                     "type": "string",
                     "default": "Active",
-                    "description": "Where to place the tab when opening a new DB connection.",
+                    "description": "Where to place the new tab when opening a DB connection.",
                     "enum": [
                         "Active",
                         "Beside Right",
@@ -213,10 +213,10 @@
                         "In the editor group beneath the active one"
                     ]
                 },
-                "msg.tabPosition.newConnectionWithSql": {
+                "msg.tabPosition.newConnectionWithEmbeddedSql": {
                     "type": "string",
                     "default": "Active",
-                    "description": "Where to place the tab when opening a new DB connection with `Execute SQL with MySQL Shell`.",
+                    "description": "Where to place the new tab when running embedded SQL in a DB connection.",
                     "enum": [
                         "Active",
                         "Beside Right",
@@ -231,7 +231,7 @@
                 "msg.tabPosition.newShellConsole": {
                     "type": "string",
                     "default": "Active",
-                    "description": "Where to place the tab when opening a new MySQL Shell Console.",
+                    "description": "Where to place the new tab when opening a MySQL Shell Console.",
                     "enum": [
                         "Active",
                         "Beside Right",

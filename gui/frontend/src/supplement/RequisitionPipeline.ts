@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -80,9 +80,11 @@ export class RequisitionPipeline {
                 this.removeTopRequest();
             });
 
+            console.log("Bug 33901255, 33901233: announceRequest");
             this.watchDog = setTimeout(() => {
+                console.log("Bug 33901255, 33901233: request timed out");
                 this.removeTopRequest();
-            }, 5000);
+            }, 8000);
         }
     };
 

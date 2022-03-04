@@ -35,7 +35,6 @@ export interface IInputTextRange {
 
 export interface IInputProperties extends IComponentProperties {
     placeholder?: string;
-    style?: React.CSSProperties;
     password?: boolean;
 
     // When auto focus is set then all content is selected as well.
@@ -71,8 +70,9 @@ export class Input extends Component<IInputProperties> {
 
         this.inputRef = props.innerRef ?? React.createRef<HTMLElement>();
 
-        this.addHandledProperties("password", "value", "textAlignment", "multiLine", "initialSelection", "spellCheck",
-            "innerRef");
+        // Note: "placeholder", "autocomplete" and "spellCheck" are directly handled in HTML. "autoFocus" is
+        // intentionally written in camel case to indicate this is *not* the HTML autofocus attribute.
+        this.addHandledProperties("password", "autoFocus", "value", "textAlignment", "multiLine", "innerRef");
     }
 
     public componentDidMount(): void {

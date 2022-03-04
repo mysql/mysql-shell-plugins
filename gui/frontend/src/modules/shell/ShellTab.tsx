@@ -48,7 +48,6 @@ import { DBType, ShellInterfaceShellSession } from "../../supplement/ShellInterf
 import { flattenObject, stripAnsiCode } from "../../utilities/helpers";
 import { ShellConsole } from "./ShellConsole";
 import { ShellPrompt } from "./ShellPrompt";
-import _ from "lodash";
 import { unquote } from "../../utilities/string-helpers";
 
 export interface IShellTabPersistentState extends IShellPromptValues {

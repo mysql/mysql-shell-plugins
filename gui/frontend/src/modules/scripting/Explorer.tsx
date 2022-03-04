@@ -1014,7 +1014,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     });
 
                     setTimeout(() => {
-                        // Start editing after a moment, to avoid autofocus stopping an ongoing edit.
+                        // Start editing after a moment, to avoid auto focus stopping an ongoing edit.
                         this.setState({ editing: newId, tempCaption: item?.caption });
                     }, 200);
                 }

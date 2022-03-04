@@ -121,7 +121,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     readonly?: boolean;
     detectLinks?: boolean;
     useTabStops?: boolean;
-    autofocus?: boolean;
+    autoFocus?: boolean;
     allowSoftWrap: boolean;
 
     componentMinWidth?: number; // Min width of embedded components.
@@ -196,7 +196,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         super(props);
 
         this.addHandledProperties("initialContent", "executeInitialContent", "language", "allowedLanguages",
-            "sqlDialect", "readonly", "detectLinks", "showHidden", "useTabStops", "showHidden", "autofocus",
+            "sqlDialect", "readonly", "detectLinks", "showHidden", "useTabStops", "showHidden", "autoFocus",
             "allowSoftWrap",
             "componentMinWidth", "lineDecorationsWidth", "lineDecorationsWidth", "renderLineHighlight",
             "showIndentGuides", "lineNumbers", "minimap", "suggest", "font", "scrollbar",
@@ -322,7 +322,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     }
 
     public componentDidMount(): void {
-        const { language, initialContent, state, autofocus, createResultPresentation } = this.mergedProps;
+        const { language, initialContent, state, autoFocus, createResultPresentation } = this.mergedProps;
 
         const editor = this.backend;
         let createDefaultModel = true;
@@ -348,7 +348,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         }
 
         this.editorRef.current?.editor?.layout();
-        if (autofocus) {
+        if (autoFocus) {
             this.editorRef.current?.editor?.focus();
         }
 
@@ -415,7 +415,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     }
 
     public componentDidUpdate(prevProps: ICodeEditorProperties): void {
-        const { initialContent, state, autofocus, createResultPresentation } = this.mergedProps;
+        const { initialContent, state, autoFocus, createResultPresentation } = this.mergedProps;
 
         const editor = this.backend;
         if (state?.model !== editor?.getModel()) {
@@ -458,7 +458,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         this.editorRef.current?.editor?.layout();
         Monaco.remeasureFonts();
 
-        if (autofocus) {
+        if (autoFocus) {
             this.editorRef.current?.editor?.focus();
         }
     }

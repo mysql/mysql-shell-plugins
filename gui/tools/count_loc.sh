@@ -20,14 +20,14 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-dirs="../frontend/src/"
-exts="ts tsx css"
+dirs="frontend/src extension/src backend ../mds_plugin ../mrs_plugin"
+exts="py js ts tsx css json"
 
 total_files=0
 total=0
 for ext in $exts; do
-    files=`find $dirs -name \*.$ext|grep -v unit-test|wc -l`
-    count=$(wc -l /dev/null `find $dirs -name \*.$ext|grep -v generated`|tail -1|awk '{print $1}')
+    files=`find $dirs -name \*.$ext | grep -v 'generated' | grep -v 'oci-typings' | wc -l`
+    count=$(wc -l /dev/null `find $dirs -name \*.$ext | grep -v 'generated' | grep -v 'oci-typings'` | tail -1 | awk '{print $1}')
 
     echo "$ext:	$count LOC	$files files"
     total=$(($total + $count))

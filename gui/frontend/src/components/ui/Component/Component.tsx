@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -136,7 +136,6 @@ export interface IComponentProperties {
     disabled?: boolean | ((props: IComponentProperties) => boolean);
     role?: string;
     title?: string; // For OS style tooltips.
-    autofocus?: boolean;
 
     // Template handling: a template describes how a single element in a list of potentially many elements looks like.
     // The template is cloned for each list entry and gets assigned the element data for this list entry.
@@ -206,6 +205,7 @@ export class Component<
 
             "onChange",
             "onConfirm",
+            "onCancel",
             "onMouseEnter",
             "onMouseLeave",
             "onMouseDown",
