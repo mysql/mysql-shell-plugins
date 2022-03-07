@@ -22,8 +22,7 @@
  */
 
 import { IDispatchEvent, IDispatchDefaultEvent, DispatchEvents, EventType } from "../supplement/Dispatch";
-import { IShellRequest } from ".";
-import { IDictionary } from "../app-logic/Types";
+import { IShellDictionary, IShellRequest } from ".";
 
 export interface IResponseDictionary {
     [key: string]: unknown;
@@ -39,13 +38,14 @@ export interface IGenericResponse extends IResponseDictionary {
     requestState: IRequestState;
 }
 
-export interface ICommShellProfile extends IDictionary {
+// This interface contains the combined fields from the separate profile add/update APIs, plus the userId field
+// which we need internally. The userId is never sent as part of a profile record to the backend.
+export interface ICommShellProfile {
     id: number;
     userId: number;
     name: string;
-    description?: string;
-    options?: { [key: string]: unknown };
-    active: boolean;
+    description: string;
+    options: IShellDictionary;
 }
 
 export interface IWebSessionData extends IGenericResponse {
@@ -94,12 +94,15 @@ export interface IResultSetData extends IGenericResponse {
     totalRowCount?: number;
 }
 
-export interface IProfileData extends IGenericResponse {
-    result?: ICommShellProfile;
+export interface IProfileListData extends IGenericResponse {
     rows?: Array<{
         id: number;
         name: string;
     }>;
+}
+
+export interface IProfileData extends IGenericResponse {
+    result: ICommShellProfile;
 }
 
 export interface IDbTypesData extends IGenericResponse {
@@ -390,6 +393,7 @@ export type ICommOpenConnectionEvent = IDispatchEvent<IOpenConnectionData>;
 
 export type ICommResultSetStateEvent = IDispatchEvent<IResultSetStateData>;
 export type ICommResultSetEvent = IDispatchEvent<IResultSetData>;
+export type ICommListProfilesEvent = IDispatchEvent<IProfileListData>;
 export type ICommProfileEvent = IDispatchEvent<IProfileData>;
 export type ICommDbTypesEvent = IDispatchEvent<IDbTypesData>;
 export type ICommDebuggerScriptsEvent = IDispatchEvent<IDebuggerScriptListData>;

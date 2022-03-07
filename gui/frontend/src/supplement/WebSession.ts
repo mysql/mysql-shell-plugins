@@ -46,11 +46,11 @@ export class WebSession {
 
     private cookies = new Cookies();
     private shellProfile: ICommShellProfile = {
-        active: false,
         description: "",
         id: -1,
         name: "",
         userId: -1,
+        options: {},
     };
 
     private sessionData: IWebSession;

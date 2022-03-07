@@ -157,6 +157,21 @@ export interface IShellQueryOptions {
     rowPacketSize?: number;
 }
 
+
+export interface IShellUsersUpdateProfileProfile {
+    id: number;
+    name: string;
+    description: string;
+    options: IShellDictionary;
+}
+
+
+export interface IShellUsersAddProfileProfile {
+    name: string;
+    description: string;
+    options: IShellDictionary;
+}
+
 //  End auto generated types
 
 export class ProtocolGui extends Protocol {
@@ -1163,16 +1178,23 @@ export class ProtocolGui extends Protocol {
     /**
      * Updates a user profile.
      *
-     * @param profile A dictionary with the profile information.
+     * @param profile A dictionary with the profile information
      *
      * @returns The generated shell request record.
      */
-    public static getRequestUsersUpdateProfile(profile: IShellDictionary): IShellRequest {
+    public static getRequestUsersUpdateProfile(profile: IShellUsersUpdateProfileProfile): IShellRequest {
+
+        const profileToUse = {
+            id: profile.id,
+            name: profile.name,
+            description: profile.description,
+            options: profile.options,
+        };
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiUsersUpdateProfile,
             {
                 args: {
-                    profile,
+                    profile: profileToUse,
                 },
             });
     }
@@ -1185,13 +1207,19 @@ export class ProtocolGui extends Protocol {
      *
      * @returns The generated shell request record.
      */
-    public static getRequestUsersAddProfile(userId: number, profile: IShellDictionary): IShellRequest {
+    public static getRequestUsersAddProfile(userId: number, profile: IShellUsersAddProfileProfile): IShellRequest {
+
+        const profileToUse = {
+            name: profile.name,
+            description: profile.description,
+            options: profile.options,
+        };
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiUsersAddProfile,
             {
                 args: {
                     user_id: userId,
-                    profile,
+                    profile: profileToUse,
                 },
             });
     }

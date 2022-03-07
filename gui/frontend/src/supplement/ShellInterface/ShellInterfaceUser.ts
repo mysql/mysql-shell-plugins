@@ -23,7 +23,7 @@
 
 import { IShellInterface } from ".";
 import {
-    IShellDictionary, ProtocolGui, ICommAuthenticationEvent, currentConnection, ICommShellProfile,
+    ProtocolGui, ICommAuthenticationEvent, currentConnection, ShellAPIGui, ICommShellProfile,
 } from "../../communication";
 import { ListenerEntry } from "../Dispatch";
 import { webSession } from "../WebSession";
@@ -109,7 +109,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public getProfile(profileId: number): ListenerEntry {
         const request = ProtocolGui.getRequestUsersGetProfile(profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getProfile" });
+        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersGetProfile });
     }
 
     /**
@@ -120,23 +120,22 @@ export class ShellInterfaceUser implements IShellInterface {
      * @returns A listener for the response.
      */
     public updateProfile(profile: ICommShellProfile): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersUpdateProfile(profile as unknown as IShellDictionary);
+        const request = ProtocolGui.getRequestUsersUpdateProfile(profile);
 
-        return currentConnection.sendRequest(request, { messageClass: "updateProfile" });
+        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersUpdateProfile });
     }
 
     /**
      * Adds a new user profile.
      *
-     * @param userId The id of the profile.
      * @param profile The profile.
      *
      * @returns A listener for the response.
      */
-    public addProfile(userId: number, profile: ICommShellProfile): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersAddProfile(userId, profile as unknown as IShellDictionary);
+    public addProfile(profile: ICommShellProfile): ListenerEntry {
+        const request = ProtocolGui.getRequestUsersAddProfile(profile.userId, profile);
 
-        return currentConnection.sendRequest(request, { messageClass: "addProfile" });
+        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersAddProfile });
     }
 
     /**

@@ -75,6 +75,8 @@ def get_schema_object_names(module_session, request_id, type, schema_name, filte
     Returns:
         object: The list of names
     """
+    if isinstance(routine_type, str)  and routine_type.strip() == "":
+        routine_type = None
     if routine_type is not None and routine_type not in ['procedure', 'function']:
         raise MSGException(Error.CORE_INVALID_PARAMETER,
                                "The routine_type could be only 'procedure' or 'function'.")

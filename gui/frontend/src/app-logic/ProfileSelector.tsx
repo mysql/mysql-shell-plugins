@@ -24,7 +24,9 @@
 import React from "react";
 import { isNil } from "lodash";
 
-import { ICommAuthenticationEvent, ICommProfileEvent, ICommShellProfile, ICommWebSessionEvent } from "../communication";
+import {
+    ICommAuthenticationEvent, ICommListProfilesEvent, ICommProfileEvent, ICommShellProfile, ICommWebSessionEvent,
+} from "../communication";
 import {
     CheckState, ComponentPlacement, Container, ICheckboxProperties, IComponentState, ILabelProperties,
     IMenuItemProperties, Label, List, Menu, MenuItem, Orientation,
@@ -191,23 +193,23 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
     };
 
     private getProfileList = (userId: number): void => {
-        ShellInterface.users
-            .listProfiles(userId)
-            .then((event: ICommProfileEvent) => {
-                if (!event.data?.rows) {
-                    return;
-                }
-                this.activeProfiles = event.data.rows.map((row) => {
-                    return {
-                        id: row.id,
-                        userId,
-                        name: row.name,
-                        active: true,
-                    };
-                });
-                this.sendUpdateProfileInfoMsg();
-                this.generatePopupMenuEntries();
+        ShellInterface.users.listProfiles(userId).then((event: ICommListProfilesEvent) => {
+            if (!event.data?.rows) {
+                return;
+            }
+
+            this.activeProfiles = event.data.rows.map((row) => {
+                return {
+                    id: row.id,
+                    userId,
+                    name: row.name,
+                    description: "",
+                    options: {},
+                };
             });
+            this.sendUpdateProfileInfoMsg();
+            this.generatePopupMenuEntries();
+        });
     };
 
     private generatePopupMenuEntries = (): void => {
@@ -418,11 +420,13 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                             const data = item.data as ICheckboxProperties;
                             if (data.checkState === 1) {
                                 const profile = this.activeProfiles.find(
-                                    (profile: ICommShellProfile) => { return String(profile.id) === data.dataKey; },
+                                    (profile: ICommShellProfile) => {
+                                        return String(profile.id) === data.dataKey;
+                                    },
                                 );
-                                const profileToUpdate = Object.assign({}, profile);
-                                profileToUpdate.active = false;
-                                this.deleteList.push(profileToUpdate);
+                                if (profile) {
+                                    this.deleteList.push(profile);
+                                }
                             }
                         });
                         this.deleteProfileConfirm();
@@ -454,8 +458,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
             if (setDefault) {
                 const defaultId = event.data.result?.id;
-                ShellInterface.users
-                    .setDefaultProfile(webSession.userId, defaultId)
+                ShellInterface.users.setDefaultProfile(webSession.userId, defaultId)
                     .then((event: ICommProfileEvent) => {
                         if (!event.data?.requestState || event.data.requestState.type !== "OK") {
                             return;
@@ -521,40 +524,41 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
     private insertProfile = (profileName: string, baseProfile?: ICommShellProfile): void => {
         if (baseProfile) {
-            ShellInterface.users
-                .getProfile(baseProfile.id)
-                .then((event: ICommProfileEvent) => {
-                    if (!event.data?.result) {
-                        return;
+            ShellInterface.users.getProfile(baseProfile.id).then((event: ICommProfileEvent) => {
+                if (!event.data?.result) {
+                    return;
+                }
+
+                // Make a copy for the insertion.
+                const newProfile: ICommShellProfile = {
+                    ...event.data.result,
+                    name: profileName,
+                    id: -1,
+                };
+
+                ShellInterface.users.addProfile(newProfile).then((addEvent: ICommProfileEvent) => {
+                    if (addEvent.data?.result) {
+                        newProfile.id = addEvent.data.result.id;
+                        this.activeProfiles.push(newProfile);
+                        this.sendUpdateProfileInfoMsg();
+                        this.generatePopupMenuEntries();
                     }
-                    const newProfile = Object.assign({}, event.data.result);
-                    newProfile.name = profileName;
-                    newProfile.id = -1;
-                    ShellInterface.users.addProfile(webSession.userId, newProfile)
-                        .then((addEvent: ICommProfileEvent) => {
-                            if (!addEvent.data?.result) {
-                                return;
-                            }
-                            newProfile.id = addEvent.data.result.id;
-                            this.activeProfiles.push(newProfile);
-                            this.sendUpdateProfileInfoMsg();
-                            this.generatePopupMenuEntries();
-                        });
                 });
+            });
         } else {
             const newProfile: ICommShellProfile = {
                 id: -1,
                 userId: webSession.userId,
                 name: profileName,
                 description: "",
-                options: Object.assign({}, webSession.profile.options),
-                active: true,
+                options: webSession.profile.options,
             };
 
-            ShellInterface.users.addProfile(webSession.userId, newProfile).then((addEvent: ICommProfileEvent) => {
+            ShellInterface.users.addProfile(newProfile).then((addEvent: ICommProfileEvent) => {
                 if (!addEvent.data?.result) {
                     return;
                 }
+
                 newProfile.id = addEvent.data?.result.id;
                 this.activeProfiles.push(newProfile);
                 this.sendUpdateProfileInfoMsg();
@@ -625,7 +629,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                         const result: ICheckboxProperties = {
                             dataKey: item.id.toString(),
                             caption: item.name,
-                            checkState: item.active ? CheckState.Unchecked : CheckState.Checked,
+                            checkState: CheckState.Unchecked,
                         };
 
                         return { data: result };
@@ -673,7 +677,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 choices: this.activeProfiles.map((profile) => {
                     return {
                         label: profile.name,
-                        data: profile,
+                        data: { ...profile },
                     };
                 }),
             },

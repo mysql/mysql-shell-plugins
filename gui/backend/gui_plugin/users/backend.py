@@ -24,9 +24,10 @@ import os
 import json
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
-from gui_plugin.core.Protocols import Response
+import secrets
 
 ALL_USERS_GROUP_ID = 1
+LOCAL_USERNAME = "LocalAdministrator"
 
 def create_group(db, name, description):
     """Returns the ID of the created user_group.
@@ -411,3 +412,11 @@ def remove_user_group(db, group_id):
                 (group_id,))
 
     return db.rows_affected != 0
+
+def create_local_user(db):
+    try:
+        get_user_id(db, LOCAL_USERNAME)
+    except MSGException as e:
+        if e.code == Error.USER_INVALID_USER:
+            create_user(db, LOCAL_USERNAME, secrets.token_hex(
+                32), "Administrator", "localhost")

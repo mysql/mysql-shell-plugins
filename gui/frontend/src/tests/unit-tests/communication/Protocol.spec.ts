@@ -344,11 +344,13 @@ describe("ProtocolGui file tests", (): void => {
         result = ProtocolGui.getRequestUsersGetProfile(2);
         testStandardFields(result, ShellAPIGui.GuiUsersGetProfile, { profile_id: 2 });
 
-        result = ProtocolGui.getRequestUsersUpdateProfile({ a: 1, b: "test" });
-        testStandardFields(result, ShellAPIGui.GuiUsersUpdateProfile, { profile: { a: 1, b: "test" } });
+        result = ProtocolGui.getRequestUsersUpdateProfile({ id: 1, name: "test", description: "blah", options: {} });
+        testStandardFields(result, ShellAPIGui.GuiUsersUpdateProfile,
+            { profile: { id: 1, name: "test", description: "blah", options: {} } });
 
-        result = ProtocolGui.getRequestUsersAddProfile(1, { a: 1, b: "test" });
-        testStandardFields(result, ShellAPIGui.GuiUsersAddProfile, { user_id: 1, profile: { a: 1, b: "test" } });
+        result = ProtocolGui.getRequestUsersAddProfile(1, { name: "test", description: "blah", options: {} });
+        testStandardFields(result, ShellAPIGui.GuiUsersAddProfile,
+            { user_id: 1, profile: { name: "test", description: "blah", options: {} } });
 
         result = ProtocolGui.getRequestUsersDeleteProfile(1, 2);
         testStandardFields(result, ShellAPIGui.GuiUsersDeleteProfile, { user_id: 1, profile_id: 2 });

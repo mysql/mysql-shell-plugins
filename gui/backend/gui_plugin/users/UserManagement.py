@@ -22,16 +22,12 @@
 import re
 import json
 import mysqlsh
-from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.core.Db import BackendDatabase, BackendTransaction
 from gui_plugin.core.Protocols import Response
-import secrets
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from . import backend
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
-
-LOCAL_USERNAME = "LocalAdministrator"
 
 
 @plugin_function('gui.users.createUser', cli=True, web=True)
@@ -368,9 +364,15 @@ def update_profile(profile, web_session=None):
     """Updates a user profile.
 
     Args:
-        profile (dict): A dictionary with the profile information.
+        profile (dict): A dictionary with the profile information
         web_session (object): The webserver session object, optional. Will be
             passed in by the webserver automatically
+
+    Allowed options for profile:
+        id (int,required): The id of profile
+        name (str,required): The profile name
+        description (str,required): A longer description for profile
+        options (dict,required): The options specific for the profile
 
     Returns:
         The generated shell request record.
@@ -403,6 +405,11 @@ def add_profile(user_id, profile, web_session=None):
         profile (dict): The profile to add
         web_session (object): The webserver session object, optional. Will be
             passed in by the webserver automatically
+
+    Allowed options for profile:
+        name (str,required): The profile name
+        description (str,required): A longer description for profile
+        options (dict,required): The options specific for the profile
 
     Returns:
         The generated shell request record.
@@ -498,15 +505,6 @@ def set_current_profile(profile_id, web_session):
     web_session.set_active_profile_id(profile_id)
 
     return Response.ok("Profile set successfully.")
-
-
-def create_local_user():
-    try:
-        get_user_id(LOCAL_USERNAME)
-    except MSGException as e:
-        if e.code == Error.USER_INVALID_USER:
-            create_user(LOCAL_USERNAME, secrets.token_hex(
-                32), "Administrator", "localhost")
 
 
 @plugin_function('gui.users.listUserGroups', cli=True, web=True)

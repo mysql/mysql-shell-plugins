@@ -440,11 +440,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         username = json_msg.get('username')
         try:
             if self.is_local_session:
-                if username != gui.users.LOCAL_USERNAME:
+                if username != gui.users.backend.LOCAL_USERNAME:
                     raise Exception('Incorrect username or password')
-                result = gui.users.create_local_user()  # pylint: disable=assignment-from-no-return
-                if result != None:
-                    raise Exception(result['request_state']['msg'])
+                gui.users.backend.create_local_user(self.db)
             row = self.db.execute(
                 'SELECT id, password_hash FROM user '
                 'WHERE upper(name) = upper(?)',

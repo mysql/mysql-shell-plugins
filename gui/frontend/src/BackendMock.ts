@@ -37,7 +37,6 @@ const defaultProfile: ICommShellProfile = {
     options: {
 
     },
-    active: true,
 };
 
 const profile2: ICommShellProfile = {
@@ -48,7 +47,6 @@ const profile2: ICommShellProfile = {
     options: {
 
     },
-    active: true,
 };
 
 // A class to simulate the client/server protocol.
