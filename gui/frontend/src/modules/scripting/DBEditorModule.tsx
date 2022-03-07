@@ -118,7 +118,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private promptDialogRef = React.createRef<ValueEditDialog>();
 
-    private pendingProgress: ReturnType<typeof setTimeout>;
+    private pendingProgress: ReturnType<typeof setTimeout> | null;
 
     public static get info(): IModuleInfo {
         return {
@@ -211,7 +211,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     public render(): React.ReactNode {
         const { innerRef } = this.props;
-        const { connections, selectedTab, editorTabs, showExplorer, showTabs, loading, progressMessage } = this.state;
+        const {
+            connections, connectionsLoaded, selectedTab, editorTabs, showExplorer, showTabs, loading, progressMessage,
+        } = this.state;
 
         // Generate the main toolbar inset based on the current display mode.
         let toolbarInset: React.ReactElement | undefined;
@@ -256,7 +258,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         const pages: ITabviewPage[] = [];
 
         let actualSelection = selectedTab;
-        if (loading) {
+        if (loading || !connectionsLoaded) {
             const content = <>
                 <ProgressIndicator
                     id="loadingProgressIndicator"
@@ -393,6 +395,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
                 .then((event: ICommResultSetEvent) => {
                     if (!event.data) {
+                        resolve(false);
+
                         return;
                     }
 
@@ -401,6 +405,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     connections.push(...resultData.rows as IConnectionDetails[]);
 
                     if (event.eventType === EventType.FinalResponse) {
+                        resolve(true);
                         this.setState({ connections, connectionsLoaded: true });
                     }
                 }).catch((event) => {
@@ -621,7 +626,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 });
                         }
                     }).catch((errorEvent: ICommErrorEvent) => {
-                        this.hideProgress();
+                        this.hideProgress(true);
                         void requisitions.execute("showError", ["Module Session Error", String(errorEvent.message)]);
                         reject();
                     });
@@ -809,7 +814,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             explorerWidth: -1,
                         };
 
-                        this.hideProgress();
                         this.connectionState.set(id, connectionState);
 
                         editorTabs.push({
@@ -819,7 +823,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             suppressAbout,
                         });
 
-                        this.setState({ editorTabs, selectedTab: id }, () => { resolve(true); });
+                        this.hideProgress(false);
+                        this.setState({ editorTabs, selectedTab: id, loading: false }, () => {
+                            resolve(true);
+                        });
 
                         break;
                     }
@@ -833,7 +840,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                 const { lastTab } = this.state;
                 this.setState({ selectedTab: lastTab ?? "connections" }, () => { resolve(false); });
-                this.hideProgress();
+                this.hideProgress(true);
             });
         });
     }
@@ -967,7 +974,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                 const { lastTab } = this.state;
                 this.setState({ selectedTab: lastTab ?? "connections" });
-                this.hideProgress();
+                this.hideProgress(true);
                 reject();
             });
         });
@@ -1420,9 +1427,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }, 500);
     };
 
-    private hideProgress = (): void => {
-        clearTimeout(this.pendingProgress);
-        this.setState({ loading: false });
+    private hideProgress = (reRender: boolean): void => {
+        if (this.pendingProgress) {
+            clearTimeout(this.pendingProgress);
+            this.pendingProgress = null;
+
+            if (reRender) {
+                this.setState({ loading: false });
+            }
+        }
     };
 
     private handleSaveSchemaTree = (id: string, schemaTree: ISchemaTreeEntry[]): void => {
