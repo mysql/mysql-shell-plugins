@@ -23,10 +23,21 @@
 
 import { IRequestListEntry, IRequestTypeMap, RequisitionHub } from "./Requisitions";
 
+type IPendingRequestListEntry = IRequestListEntry<keyof IRequestTypeMap> & {
+    jobId: number;
+};
+
 // A class to manage a list of requests that must be executed in sequential order.
 export class RequisitionPipeline {
+    // The time in seconds how long a pending request is kept alive for execution.
+    // If the job was not handled in this time frame, it will be removed and ignored.
+    private static readonly offeringTime = 30;
+
+    // Determines the rate at which pending requests are announced (milliseconds between announces).
+    private static readonly announceInterval = 100;
+
     // A FIFO list with open requests.
-    private pendingRequests: Array<IRequestListEntry<keyof IRequestTypeMap>> = [];
+    private pendingRequests: IPendingRequestListEntry[] = [];
 
     // A timer to announce pending requests to the application in a regular interval.
     private announceTimer?: ReturnType<typeof setInterval>;
@@ -35,6 +46,8 @@ export class RequisitionPipeline {
     private watchDog?: ReturnType<typeof setTimeout>;
 
     private announcePromise?: Promise<boolean>;
+
+    private nextJobId = 0;
 
     public constructor(private hub: RequisitionHub) {
         hub.register("job", this.addJob);
@@ -48,10 +61,16 @@ export class RequisitionPipeline {
      * @returns A promise which is immediately resolved to true.
      */
     public addJob = (job: Array<IRequestListEntry<keyof IRequestTypeMap>>): Promise<boolean> => {
-        this.pendingRequests.push(...job);
+        this.pendingRequests.push(...job.map((request) => {
+            return {
+                ...request,
+                jobId: this.nextJobId,
+            };
+        }));
 
+        ++this.nextJobId;
         if (!this.announceTimer) {
-            this.announceTimer = setInterval(this.announceRequest, 100);
+            this.announceTimer = setInterval(this.announceRequest, RequisitionPipeline.announceInterval);
         }
 
         return Promise.resolve(true);
@@ -80,11 +99,9 @@ export class RequisitionPipeline {
                 this.removeTopRequest();
             });
 
-            console.log("Bug 33901255, 33901233: announceRequest");
             this.watchDog = setTimeout(() => {
-                console.log("Bug 33901255, 33901233: request timed out");
-                this.removeTopRequest();
-            }, 8000);
+                this.cancelCurrentJob();
+            }, RequisitionPipeline.offeringTime * 1000);
         }
     };
 
@@ -99,6 +116,33 @@ export class RequisitionPipeline {
 
         this.announcePromise = undefined;
         this.pendingRequests.shift();
+
+        if (this.pendingRequests.length === 0 && this.announceTimer) {
+            // Stop the announcement timer if no more requests are waiting.
+            clearInterval(this.announceTimer);
+            this.announceTimer = undefined;
+        }
+    };
+
+    /**
+     * Not only removes the top entry in the pending list, but all requests that belong to the same job as that
+     * top entry.
+     *
+     * If any part of a job fails to execute then all following parts cannot be executed either.
+     */
+    private cancelCurrentJob = (): void => {
+        if (this.watchDog) {
+            clearTimeout(this.watchDog);
+            this.watchDog = undefined;
+        }
+
+        this.announcePromise = undefined;
+        const current = this.pendingRequests.shift();
+        if (current) {
+            while (this.pendingRequests.length > 0 && this.pendingRequests[0].jobId === current.jobId) {
+                this.pendingRequests.shift();
+            }
+        }
 
         if (this.pendingRequests.length === 0 && this.announceTimer) {
             // Stop the announcement timer if no more requests are waiting.
