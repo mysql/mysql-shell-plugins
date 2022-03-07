@@ -61,19 +61,19 @@ await ws.sendAndValidate({
 }, [
     {
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "PENDING","msg": "Execution started..."}
+        "request_state": { "type": "PENDING", "msg": "Execution started..." }
     },
     {
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "PENDING","msg": "New Shell session initiated..."},
+        "request_state": { "type": "PENDING", "msg": "New Shell session initiated..." },
         "module_session_id": ws.lastModuleSessionId,
         "result": {}
     },
     {
-        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
         "request_state": { "msg": "New Shell Interactive session created successfully." },
-        "result": {"prompt_descriptor": {"mode": "Py"}}
+        "result": { "prompt_descriptor": { "mode": "Py" } }
     }
 ])
 
@@ -88,14 +88,14 @@ await ws.sendAndValidate({
 }, [
     {
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "PENDING","msg": "Execution started..."}
+        "request_state": { "type": "PENDING", "msg": "Execution started..." }
     },
     {
-        "result": {"info": "Switching to SQL mode... Commands end with ;\n"}
+        "result": { "info": "Switching to SQL mode... Commands end with ;\n" }
     },
     {
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "OK", "msg": ws.ignore}
+        "request_state": { "type": "OK", "msg": ws.ignore }
     }
 ])
 
@@ -110,38 +110,38 @@ await ws.sendAndValidate({
 }, [
     {
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "PENDING","msg": "Execution started..."}
+        "request_state": { "type": "PENDING", "msg": "Execution started..." }
     },
     {
-        "request_state": {"type": "PENDING", "msg": "Executing..."}, 
-        "request_id": ws.lastGeneratedRequestId, 
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
+        "request_id": ws.lastGeneratedRequestId,
         "result": {
             "Field 1": {
-                "Name": "`Database`", 
-                "Org_name": "`Database`", 
-                "Catalog": "`def`", 
-                "Database": "``", 
-                "Table": "`SCHEMATA`", 
-                "Org_table": "`schemata`", 
-                "Type": "String", 
-                "DbType": "VAR_STRING", 
-                "Collation": "utf8mb4_0900_ai_ci (255)", 
-                "Length": "256", 
-                "Decimals": "0", 
-                "Flags": "NOT_NULL BINARY NO_DEFAULT_VALUE"
+                "Name": "`Database`",
+                "Org_name": "`Database`",
+                "Catalog": "`def`",
+                "Database": "``",
+                "Table": "`SCHEMATA`",
+                "Org_table": ws.ignore,
+                "Type": "String",
+                "DbType": "VAR_STRING",
+                "Collation": "utf8mb4_0900_ai_ci (255)",
+                "Length": "256",
+                "Decimals": "0",
+                "Flags": ws.ignore
             }
         }
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             'hasData': 1,
             'rows': ws.matchList([
-                {'Database': 'information_schema'},
-                {'Database': 'mysql'},
-                {'Database': 'performance_schema'},
-                {'Database': 'sys'}
+                { 'Database': 'information_schema' },
+                { 'Database': 'mysql' },
+                { 'Database': 'performance_schema' },
+                { 'Database': 'sys' }
             ], 0),
             'executionTime': ws.ignore,
             'affectedRowCount': 0,
@@ -155,7 +155,7 @@ await ws.sendAndValidate({
     },
     {
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "OK", "msg": ws.ignore}
+        "request_state": { "type": "OK", "msg": ws.ignore }
     }
 ])
 

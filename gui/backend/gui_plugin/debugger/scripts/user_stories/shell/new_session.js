@@ -20,20 +20,20 @@ await ws.sendAndValidate(
             "module_session_id": ws.lastModuleSessionId,
         }
     }, ws.matchList([
-    {
-        "request_state": {"type": "PENDING","msg": "Execution started..."},
-        "request_id": ws.lastGeneratedRequestId,
-    },
-    {
-        "result": {"info": " autocomplete.nameCache          false\n"},
-    },
-    {
-        "result": {"info": " batchContinueOnError            false\n"}
-    },
-    {
-        "request_state": {"type": "OK","msg": ws.ignore},
-        "request_id": ws.lastGeneratedRequestId,
-    }], false))
+        {
+            "request_state": { "type": "PENDING", "msg": "Execution started..." },
+            "request_id": ws.lastGeneratedRequestId,
+        },
+        {
+            "result": { "info": " autocomplete.nameCache          false\n" },
+        },
+        {
+            "result": { "info": " batchContinueOnError            false\n" }
+        },
+        {
+            "request_state": { "type": "OK", "msg": ws.ignore },
+            "request_id": ws.lastGeneratedRequestId,
+        }], false))
 
 
 await ws.sendAndValidate(
@@ -47,25 +47,25 @@ await ws.sendAndValidate(
         }
     }, [
     {
-        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_state": { "type": "PENDING", "msg": "Execution started..." },
         "request_id": ws.lastGeneratedRequestId,
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "info": "Creating a session to '" + default_mysql_options.user + "@" + default_mysql_options.host + ":" + default_mysql_options.portStr + "'\n"
         }
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "info": ws.matchRegexp("Your MySQL connection id is \\d+\nServer version: .+")
         }
     },
     {
-        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
     }])
 
@@ -79,18 +79,18 @@ await ws.sendAndValidate({
     }
 }, [
     {
-        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_state": { "type": "PENDING", "msg": "Execution started..." },
         "request_id": ws.lastGeneratedRequestId,
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "info": "Switching to SQL mode... Commands end with ;\n"
         }
     },
     {
-        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
     }])
 
@@ -104,11 +104,11 @@ await ws.sendAndValidate({
     }
 }, [
     {
-        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_state": { "type": "PENDING", "msg": "Execution started..." },
         "request_id": ws.lastGeneratedRequestId,
     },
     {
-        "request_state": {"type": "PENDING", "msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "Field 1": {
@@ -117,26 +117,26 @@ await ws.sendAndValidate({
                 "Catalog": "`def`",
                 "Database": "``",
                 "Table": "`SCHEMATA`",
-                "Org_table": "`schemata`",
+                "Org_table": ws.ignore,
                 "Type": "String",
                 "DbType": "VAR_STRING",
                 "Collation": "utf8mb4_0900_ai_ci (255)",
                 "Length": "256",
                 "Decimals": "0",
-                "Flags": "NOT_NULL BINARY NO_DEFAULT_VALUE"
+                "Flags": ws.ignore
             }
         }
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         'result': {
             'hasData': 1,
             'rows': ws.matchList([
-                {'Database': 'information_schema'},
-                {'Database': 'mysql'},
-                {'Database': 'performance_schema'},
-                {'Database': 'sys'}
+                { 'Database': 'information_schema' },
+                { 'Database': 'mysql' },
+                { 'Database': 'performance_schema' },
+                { 'Database': 'sys' }
             ], 0),
             'executionTime': ws.ignore,
             'affectedRowCount': 0,
@@ -149,7 +149,7 @@ await ws.sendAndValidate({
         }
     },
     {
-        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
     }
 ])

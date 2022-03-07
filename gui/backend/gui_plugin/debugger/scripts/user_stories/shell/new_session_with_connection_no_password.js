@@ -31,7 +31,7 @@ await ws.sendAndValidate({
     }
 }, [
     {
-        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "db_connection_id": ws.matchRegexp("\\d+")
@@ -53,17 +53,17 @@ await ws.sendAndValidate({
     }
 }, ws.matchList([
     {
-        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_state": { "type": "PENDING", "msg": "Execution started..." },
         "request_id": ws.lastGeneratedRequestId,
     },
     {
-        "request_state": {"type": "PENDING","msg": "New Shell session initiated..."},
+        "request_state": { "type": "PENDING", "msg": "New Shell session initiated..." },
         "request_id": ws.lastGeneratedRequestId,
         "module_session_id": ws.lastModuleSessionId,
         "result": {}
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "password": "Please provide the password for '" + ws.tokens["uri"] + "': "
@@ -82,7 +82,7 @@ if (ws.tokens["hasCredentialManager"]) {
         "module_session_id": ws.lastModuleSessionId,
     }, [
         {
-            "request_state":{"type": "PENDING","msg": "Executing..."},
+            "request_state": { "type": "PENDING", "msg": "Executing..." },
             "request_id": request_id,
             "result":
             {
@@ -122,20 +122,20 @@ await ws.sendAndValidate({
     }
 }, [
     {
-        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_state": { "type": "PENDING", "msg": "Execution started..." },
         "request_id": ws.lastGeneratedRequestId,
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "info": "Switching to SQL mode... Commands end with ;\n"
         }
     },
     {
-        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
-    }    
+    }
 ])
 
 await ws.sendAndValidate({
@@ -148,31 +148,31 @@ await ws.sendAndValidate({
     }
 }, [
     {
-        "request_state": {"type": "PENDING","msg": "Execution started..."},
+        "request_state": { "type": "PENDING", "msg": "Execution started..." },
         "request_id": ws.lastGeneratedRequestId,
     },
     {
-        "request_state": {"type": "PENDING", "msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
             "Field 1": {
-                "Name": "`Database`", 
+                "Name": "`Database`",
                 "Org_name": "`Database`",
                 "Catalog": "`def`",
                 "Database": "``",
                 "Table": "`SCHEMATA`",
-                "Org_table": "`schemata`",
+                "Org_table": ws.ignore,
                 "Type": "String",
                 "DbType": "VAR_STRING",
                 "Collation": "utf8mb4_0900_ai_ci (255)",
                 "Length": "256",
                 "Decimals": "0",
-                "Flags": "NOT_NULL BINARY NO_DEFAULT_VALUE"
+                "Flags": ws.ignore
             }
         }
     },
     {
-        "request_state": {"type": "PENDING","msg": "Executing..."},
+        "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         'result': {
             'hasData': true,
@@ -193,9 +193,9 @@ await ws.sendAndValidate({
         }
     },
     {
-        "request_state": {"type": "OK","msg": ws.ignore},
+        "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
-    }    
+    }
 ])
 
 //  Terminate
