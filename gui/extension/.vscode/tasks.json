@@ -3,6 +3,7 @@
 	"tasks": [
         {
             "label": "tsc: extension",
+            "type": "shell",
             "command": "tsc",
             "args": [
                 "-w",
