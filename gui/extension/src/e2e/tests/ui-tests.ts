@@ -175,7 +175,7 @@ describe("MySQL Shell for VS", () => {
 
     });
 
-    describe.skip("DATABASE toolbar action tests", () => {
+    describe("DATABASE toolbar action tests", () => {
 
         afterEach(async () => {
             const edView = new EditorView();
@@ -495,11 +495,7 @@ describe("MySQL Shell for VS", () => {
                 }, 5000, "Database was not updated");
 
                 await deleteDBConnection(driver, "EditedConn", ctxMenu);
-            } catch (e) {
-                throw new Error(String(e));
-            } finally {
-                conn.caption = "Localhost";
-            }
+            } catch (e) { throw new Error(String(e)); } finally { conn.caption = "Localhost"; }
 
         });
 
