@@ -241,7 +241,7 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
             callback,
         }, () => {
             this.popupRef.current?.open(currentTarget.getBoundingClientRect(),
-                { closeOnPortalClick: true, lockFocus: false });
+                { closeOnPortalClick: true });
         });
     };
 

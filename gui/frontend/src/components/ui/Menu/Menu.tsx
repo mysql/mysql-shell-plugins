@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -187,10 +187,7 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
 
     public open(currentTarget: DOMRect, activateFirstEntry: boolean, options?: IPortalOptions,
         payload?: unknown): void {
-        this.popupRef?.current?.open(currentTarget, {
-            lockFocus: false,
-            ...options,
-        });
+        this.popupRef?.current?.open(currentTarget, options);
 
         if (activateFirstEntry && this.itemRefs.length > 0) {
             this.setState({ activeItemIndex: 0, payload });

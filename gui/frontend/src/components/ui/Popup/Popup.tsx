@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,8 +58,6 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
     private portalRef = React.createRef<Portal>();
     private containerRef: React.RefObject<HTMLElement>;
 
-    private resizeObserver?: ResizeObserver; // Not available in Safari (macOS, iOS).
-
     public constructor(props: IPopupProperties) {
         super(props);
 
@@ -70,10 +68,6 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
         this.containerRef = props.innerRef ?? React.createRef<HTMLElement>();
 
         this.addHandledProperties("header", "placement", "show", "pinned", "showArrow", "orientation", "innerRef");
-
-        if (typeof ResizeObserver !== "undefined") {
-            this.resizeObserver = new ResizeObserver(this.handleTargetResize);
-        }
     }
 
     public render(): React.ReactNode {
@@ -112,6 +106,7 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
         this.setState({ currentTarget }, () => {
             this.portalRef.current?.open({
                 closeOnEscape: true,
+                closeOnPortalClick: true,
                 backgroundOpacity: 0,
                 ...options,
             });
@@ -130,15 +125,10 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
         return undefined;
     }
 
-    private handleClose = (): void => {
+    private handleClose = (cancelled: boolean): void => {
         const { onClose } = this.mergedProps;
-        const { currentTarget } = this.state;
 
-        if (currentTarget instanceof HTMLElement) {
-            this.resizeObserver?.unobserve(currentTarget);
-        }
-
-        onClose?.(true, this.mergedProps);
+        onClose?.(cancelled, this.mergedProps);
     };
 
     private handleOpen = (): void => {
@@ -146,10 +136,6 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
         const { currentTarget } = this.state;
 
         if (currentTarget) {
-            if (currentTarget instanceof HTMLElement) {
-                this.resizeObserver?.observe(currentTarget);
-            }
-
             onOpen?.(this.mergedProps);
 
             if (this.containerRef.current && placement) {

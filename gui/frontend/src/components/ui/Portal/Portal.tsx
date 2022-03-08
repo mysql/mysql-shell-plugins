@@ -29,11 +29,14 @@ import { createPortal } from "preact/compat";
 import { Component, IComponentProperties } from "../Component/Component";
 import keyboardKey from "keyboard-key";
 import { IDictionary } from "../../../app-logic/Types";
+import { Stack } from "../../../supplement";
+
+// The list of currently open portals. Auto close handling applies only to the TOS.
+const portalStack = new Stack<Portal>();
 
 // Options that can change on every show action.
 export interface IPortalOptions {
     backgroundOpacity?: number;   // A value to determine translucency of the background element (0..1, default: 0.5);
-    lockFocus?: boolean;          // If true then the keyboard focus is kept strictly to the portals content.
 
     closeOnEscape?: boolean;      // If true close portal on pressing the escape key (default: true).
     closeOnPortalClick?: boolean; // If true close portal on clicking the portal beside the target (default: true).
@@ -111,17 +114,13 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
         if (!open) {
             const activeOptions: IPortalOptions = {
                 closeOnEscape: true,
-                closeOnPortalClick: true,
+                closeOnPortalClick: false,
                 ...options,
             };
 
-            // Register own handlers for actions FocusOn doesn't handle or are disabled because of certain
-            // options.
-            if (!activeOptions.lockFocus) {
-                document.body.addEventListener("keydown", this.handleDocumentKeyInput);
-            }
-
             this.setState({ open: true, options: activeOptions }, (): void => {
+                portalStack.push(this);
+
                 const { onOpen } = this.mergedProps;
                 onOpen?.(this.mergedProps);
             });
@@ -129,19 +128,17 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
     };
 
     public close = (cancelled: boolean): void => {
-        const { open, options } = this.state;
+        const { open } = this.state;
 
         if (open) {
-            if (!options.lockFocus) {
-                document.body.removeEventListener("keydown", this.handleDocumentKeyInput);
-            }
-
             // First notify descendants so they can act properly *before* this portal is closed
             // (think of sub menus).
             const { onClose } = this.mergedProps;
             onClose?.(cancelled, this.mergedProps);
 
-            this.setState({ open: false, currentTarget: undefined, options: {} });
+            this.setState({ open: false, options: {} }, () => {
+                portalStack.pop();
+            });
         }
     };
 
@@ -158,28 +155,20 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
         }
     };
 
-    /**
-     * FocusOn handler when the focus lock is active.
-     */
-    private handleEscapeKey = (): void => {
-        const { open, options } = this.state;
-
-        if (open && options.closeOnEscape) {
-            this.close(true);
-        }
-    };
-
-    /**
-     * Keyboard handler if focus lock is not active.
-     *
-     * @param e The keyboard event to handle.
-     */
-    private handleDocumentKeyInput = (e: KeyboardEvent): void => {
-        const { open, options } = this.state;
-        if (open && options.closeOnEscape && keyboardKey.getCode(e) === keyboardKey.Escape) {
-            e.stopImmediatePropagation();
-            e.stopPropagation();
-            this.close(true);
-        }
-    };
 }
+
+// Add a single keydown handler for all portals.
+document.body.addEventListener("keydown", (e: KeyboardEvent): void => {
+    if (portalStack.length > 0 && keyboardKey.getCode(e) === keyboardKey.Escape) {
+        const portal = portalStack.top;
+        if (portal) {
+            const { options } = portal.state;
+            if (options.closeOnEscape) {
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                portal.close(true);
+            }
+        }
+    }
+});
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -422,14 +422,11 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         }
     };
 
-    private handleClose = (): void => {
+    private handleClose = (cancelled: boolean): void => {
         const { multiSelect } = this.mergedProps;
-        if (!multiSelect) {
-            // Since we don't know here what the close reason was we assume the user cancelled and hence
-            // restore the previous selection. However, if multi selection is active then each change is final
-            // anyway and we don't need a restore.
-            // In single selection mode the selection is saved right before closing the dropdown, if the user
-            // confirmed the temporary selection, and this restore call has no effect.
+
+        // In multi selection mode changes are already saved and cannot be restored here.
+        if (!multiSelect && cancelled) {
             this.restoreSelection();
         }
 
