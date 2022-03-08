@@ -76,7 +76,13 @@ PROPERTIES
 
 FUNCTIONS
       help([member])
-            Provides help about this object and it's members'''
+            Provides help about this object and it's members
+
+      info()
+            Returns basic information about this plugin.
+
+      version()
+            Returns the version number of the plugin'''
 
     assert help_text == mysqlsh.globals.gui.help() # pylint: disable=no-member
 

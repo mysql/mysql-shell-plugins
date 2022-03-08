@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -49,7 +49,7 @@ class gui():
         # Import all sub-modules to register the decorated functions there
         from gui_plugin import cluster, core, dbconnections, mds, modeler
         from gui_plugin import shell, sqleditor, users, debugger, start
-        from gui_plugin import modules, db
+        from gui_plugin import modules, db, general
 
     class cluster():
         """The InnoDB Cluster MySQL Shell GUI backend module

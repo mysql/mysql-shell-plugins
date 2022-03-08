@@ -161,6 +161,8 @@ def list_bastions(**kwargs):
 
             # Filter out all bastions that are not valid for the given DbSystem
             if valid_for_db_system_id:
+                # Just consider active bastions here
+                bastions = [b for b in bastions if b.lifecycle_state == "ACTIVE"]
                 valid_bastions = []
                 db_system = mysql_database_service.get_db_system(
                     db_system_id=valid_for_db_system_id,

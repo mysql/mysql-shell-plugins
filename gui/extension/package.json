@@ -7,7 +7,7 @@
         "color": "#2789e1",
         "theme": "dark"
     },
-    "version": "1.0.27",
+    "version": "1.0.28",
     "publisher": "Oracle",
     "license": "SEE LICENSE IN LICENSE.txt",
     "repository": {
@@ -27,26 +27,22 @@
     ],
     "main": "./output/extension/src/extension.js",
     "contributes": {
-        "languages": [
-            {
-                "id": "sql",
-                "extensions": [
-                    ".sql",
-                    ".mysql"
-                ],
-                "aliases": [
-                    "MySQL SQL"
-                ],
-                "configuration": "./syntaxes/language-configuration.json"
-            }
-        ],
-        "grammars": [
-            {
-                "language": "sql",
-                "scopeName": "source.mysql",
-                "path": "./syntaxes/mysql.json"
-            }
-        ],
+        "languages": [{
+            "id": "sql",
+            "extensions": [
+                ".sql",
+                ".mysql"
+            ],
+            "aliases": [
+                "MySQL SQL"
+            ],
+            "configuration": "./syntaxes/language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "sql",
+            "scopeName": "source.mysql",
+            "path": "./syntaxes/mysql.json"
+        }],
         "configuration": {
             "title": "MySQL Shell for VS Code",
             "properties": {
@@ -266,8 +262,7 @@
                 }
             }
         },
-        "commands": [
-            {
+        "commands": [{
                 "command": "msg.execute.normal",
                 "title": "Execute the selected or all statements"
             },
@@ -617,16 +612,13 @@
                 "title": "Get Load Balancer Information"
             }
         ],
-        "submenus": [
-            {
-                "id": "msg.copyToClipboard",
-                "label": "Copy To Clipboard",
-                "command": ""
-            }
-        ],
+        "submenus": [{
+            "id": "msg.copyToClipboard",
+            "label": "Copy To Clipboard",
+            "command": ""
+        }],
         "menus": {
-            "msg.copyToClipboard": [
-                {
+            "msg.copyToClipboard": [{
                     "command": "msg.copyNameToClipboard",
                     "group": "1_msg@1"
                 },
@@ -635,22 +627,17 @@
                     "group": "1_msg@2"
                 }
             ],
-            "editor/title/context": [
-                {
-                    "when": "resourceLangId == sql",
-                    "command": "msg.execute.normal",
-                    "group": "msg@1"
-                }
-            ],
-            "editor/title": [
-                {
-                    "when": "resourceLangId == sql",
-                    "command": "msg.execute.normal",
-                    "group": "msg@1"
-                }
-            ],
-            "editor/context": [
-                {
+            "editor/title/context": [{
+                "when": "resourceLangId == sql",
+                "command": "msg.execute.normal",
+                "group": "msg@1"
+            }],
+            "editor/title": [{
+                "when": "resourceLangId == sql",
+                "command": "msg.execute.normal",
+                "group": "msg@1"
+            }],
+            "editor/context": [{
                     "when": "resourceLangId == sql",
                     "command": "msg.executeSelectedSqlFromEditor",
                     "group": "navigation"
@@ -661,8 +648,7 @@
                     "group": "msg@1"
                 }
             ],
-            "view/title": [
-                {
+            "view/title": [{
                     "command": "msg.addConnection",
                     "group": "navigation",
                     "when": "view == msg.connections"
@@ -723,8 +709,7 @@
                     "when": "view == msg.consoles"
                 }
             ],
-            "view/item/context": [
-                {
+            "view/item/context": [{
                     "command": "msg.refreshConnection",
                     "when": "view == msg.connections && viewItem =~ /^connection.*/",
                     "group": "inline"
@@ -980,17 +965,14 @@
             ]
         },
         "viewsContainers": {
-            "activitybar": [
-                {
-                    "id": "msg-view",
-                    "title": "MySQL Shell for VSCode",
-                    "icon": "images/mysqlShellForVsCode.svg"
-                }
-            ]
+            "activitybar": [{
+                "id": "msg-view",
+                "title": "MySQL Shell for VSCode",
+                "icon": "images/mysqlShellForVsCode.svg"
+            }]
         },
         "views": {
-            "msg-view": [
-                {
+            "msg-view": [{
                     "id": "msg.connections",
                     "name": "DATABASE"
                 },
