@@ -369,6 +369,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         const details = connections.find((candidate) => { return candidate.id === connectionId; });
         if (details) {
             this.doHandleTileAction("remove", details, undefined);
+            requisitions.executeRemote("refreshConnections", undefined);
 
             return Promise.resolve(true);
         }
@@ -383,6 +384,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         if (details) {
             this.connectionId = -1;
             this.doHandleTileAction("duplicate", details, undefined);
+            requisitions.executeRemote("refreshConnections", undefined);
 
             return Promise.resolve(true);
         }
