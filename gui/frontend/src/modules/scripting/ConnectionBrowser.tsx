@@ -254,7 +254,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             <Container
                 className={className}
                 orientation={Orientation.TopDown}
-                wrap={ContentWrap.Wrap}
+                wrap={ContentWrap.NoWrap}
             >
                 {toolbar}
                 <ConfirmDialog
