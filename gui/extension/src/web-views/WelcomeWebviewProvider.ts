@@ -364,29 +364,6 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
 };
 
 export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
-    context.subscriptions.push(commands.registerCommand("msg.resetWelcomeWizardSetting", () => {
-        void context.globalState.update("MySQLShellInitialRun", "");
-        void window.showInformationMessage("The Welcome Wizard setting has been reset.");
-    }));
-
-    context.subscriptions.push(commands.registerCommand("msg.DeleteMySQLShellCertificate", () => {
-        // Run the shell command to delete the cert
-        const parameters = [
-            "--", "gui", "core", "remove-shell-web-certificate",
-        ];
-        runMysqlShell(context.extensionPath, parameters,
-            // onStdOutData
-            (data) => {
-                // Pass the result to the webview
-                const output = String(data);
-                if (output.includes("true")) {
-                    void window.showInformationMessage("Certificate removed successfully.");
-                } else {
-                    void window.showInformationMessage(output);
-                }
-            });
-    }));
-
     context.subscriptions.push(commands.registerCommand("msg.runWelcomeWizard", () => {
         const panel = window.createWebviewPanel(
             "mysqlShellInitialSetup",

@@ -91,6 +91,8 @@ class ShellModuleSession(ModuleSession):
     def __init__(self, web_session, request_id, options=None, shell_args=None):
         super().__init__(web_session)
 
+        EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME = "mysqlsh-gui"
+
         # Symlinks the plugins on the master shell as we want them available
         # on the Shell Console
         self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
@@ -100,26 +102,22 @@ class ShellModuleSession(ModuleSession):
 
         subprocess_plugins = os.path.join(self._subprocess_home, 'plugins')
 
-        # We have to re-create the symlink every time since the VSCode extension path changes after updates
-        if os.path.exists(subprocess_plugins):
-            if os.name == 'nt':
-                p = subprocess.run(
-                    f'rmdir "{subprocess_plugins}"', shell=True)
-                p.check_returncode()
-            else:
-                os.unlink(subprocess_plugins)
-
         # Get the actual plugin path that this gui_plugin is in
         module_file_path = os.path.dirname(__file__)
         plugins_path = os.path.dirname(os.path.dirname(module_file_path))
 
-        # Setup the symlink
-        if os.name == 'nt':
-            p = subprocess.run(
-                f'mklink /J "{subprocess_plugins}" "{plugins_path}"', shell=True)
-            p.check_returncode()
-        else:
-            os.symlink(plugins_path, subprocess_plugins)
+        # If this is a development setup using the global shell user config dir, 
+        # setup a symlink if it does not exist yet
+        if (not mysqlsh.plugin_manager.general.get_shell_user_dir().endswith(
+            EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME)
+            and not os.path.exists(subprocess_plugins)):
+            if os.name == 'nt':
+                p = subprocess.run(
+                    f'mklink /J "{subprocess_plugins}" "{plugins_path}"', 
+                    shell=True)
+                p.check_returncode()
+            else:
+                os.symlink(plugins_path, subprocess_plugins)
 
         # Check if MDS options have been specified
         connection_args = []
@@ -147,7 +145,7 @@ class ShellModuleSession(ModuleSession):
                 mysqlsh.globals.shell.unparse_uri(options))
 
         self._last_prompt = {}
-        # Empty command to keep track of the shell intialization
+        # Empty command to keep track of the shell initialization
         self._pending_request = ShellCommandTask(
             request_id, "", result_callback=self._handle_api_response)
         self._last_info = None

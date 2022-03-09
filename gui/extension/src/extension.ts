@@ -26,7 +26,7 @@ import {
 } from "vscode";
 
 import * as child_process from "child_process";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, rmSync } from "fs";
 import { join } from "path";
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
@@ -46,14 +46,91 @@ let statusBarItem: StatusBarItem;
 let shellProcess: child_process.ChildProcess | undefined;
 let host: ExtensionHost;
 
+/**
+ * When the extension is deployed with an embedded MySQL Shell, a custom shell user config dir is used, as defined in
+ * the extensionShellUserConfigFolderBaseName constant. If this constant should be changed at some point in the future,
+ * it is important to note that the corresponding constant EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME in the
+ * ShellModuleSession.py file of the gui_plugin needs to be adjusted as well.
+ */
+const extensionShellUserConfigFolderBaseName = "mysqlsh-gui";
+
+// Dialog Messages
 const restartMessage = "This will close all MySQL Shell tabs and restart the underlying process. " +
     "After that a new connection will automatically be established.";
+const resetMessage = "This will completely reset the MySQL Shell for VS Code extension by deleting the " +
+    "web certificate and user settings directory.";
+const resetRestartMessage = "The MySQL Shell for VS Code extension has been reset. Please restart VS Code " +
+    "to initialize the extension again or remove it from the Extensions View Container.";
 
+/**
+ * Prints the given content on the MySQL Shell for VS Code output channel.
+ *
+ * @param content The content to be printed.
+ * @param reveal Whether the output channel should be revealed.
+ */
 export const printChannelOutput = (content: string, reveal = false): void => {
     outputChannel.appendLine(content);
     if (reveal) {
         outputChannel.show(true);
     }
+};
+
+/**
+ * Returns the path to the MySQL Shell that should be used
+ *
+ * The function checks if a MySQL Shell is embedded with the extension. If so,
+ * the path to that extension is returned. Otherwise it is returns just the
+ * name of the binary mysqlsh, assuming that the MySQL Shell is installed and
+ * that it is in the PATH
+ *
+ * @param extensionPath The file system path of the extension.
+ *
+ * @returns The path to the MySQL Shell as string
+ */
+export const getShellPath = (extensionPath: string): string => {
+    let shellPath = join(extensionPath, "shell", "bin", "mysqlsh");
+    if (platform() === "win32") {
+        shellPath += ".exe";
+    }
+
+    // Check if MySQL Shell is bundled with the extension
+    if (!existsSync(shellPath)) {
+        // If not, try to use the mysqlsh installed in the system PATH
+        shellPath = "mysqlsh";
+    }
+
+    return shellPath;
+};
+
+/**
+ * Returns the MySQL Shell User Config Dir that should be used
+ *
+ * @param extensionPath The file system path of the extension.
+ *
+ * @returns The MySQL Shell User Config Dir as string
+ */
+export const getShellUserConfigDir = (extensionPath: string): string => {
+    const shellPath = getShellPath(extensionPath);
+    let shellUserConfigDir: string;
+
+    // Check if MySQL Shell is bundled with the extension
+    if (shellPath !== "mysqlsh" && existsSync(shellPath)) {
+        // If so, create a dedicated shell user config dir for the shell gui
+        if (platform() === "win32") {
+            shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", extensionShellUserConfigFolderBaseName);
+        } else {
+            shellUserConfigDir = join(homedir(), `.${extensionShellUserConfigFolderBaseName}`);
+        }
+    } else {
+        // If not, use the regular shell user config dir in this case
+        if (platform() === "win32") {
+            shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh");
+        } else {
+            shellUserConfigDir = join(homedir(), ".mysqlsh");
+        }
+    }
+
+    return shellUserConfigDir;
 };
 
 /**
@@ -76,35 +153,14 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
     onExit?: (code: number) => void,
     textForStdin?: string): child_process.ChildProcess => {
 
-    // Check if MySQL Shell is bundled with the extension
-    let shellPath = join(extensionPath, "shell", "bin", "mysqlsh");
-    if (platform() === "win32") {
-        shellPath += ".exe";
-    }
+    // Use the MySQL Shell that is bundled with the extension - and only if there is no bundled shell, use the one
+    // that is installed on the system
+    const shellPath = getShellPath(extensionPath);
+    const shellUserConfigDir = getShellUserConfigDir(extensionPath);
 
-    let shellUserConfigDir: string;
-    if (!existsSync(shellPath)) {
-        // If not, try to use the mysqlsh installed in the system
-        shellPath = "mysqlsh";
-
-        // Use the regular shell user config dir in this case
-        if (platform() === "win32") {
-            shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh");
-        } else {
-            shellUserConfigDir = join(homedir(), ".mysqlsh");
-        }
-
-        printChannelOutput(`Starting MySQL Shell (from PATH), using config dir '${shellUserConfigDir}' ...`);
-    } else {
-        // Create a dedicated shell user config dir for the shell gui
-        if (platform() === "win32") {
-            shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh-gui");
-        } else {
-            shellUserConfigDir = join(homedir(), ".mysqlsh-gui");
-        }
-
-        printChannelOutput(`Starting MySQL Shell, using config dir '${shellUserConfigDir}' ...`);
-    }
+    // Print which MySQL Shell is actually used to the ChannelOutput
+    const embedded = shellPath.startsWith(extensionPath) ? "embedded " : "";
+    printChannelOutput(`Starting ${embedded}MySQL Shell, using config dir '${shellUserConfigDir}' ...`);
 
     // Ensure the shell user config dir exists
     if (!existsSync(shellUserConfigDir)) {
@@ -153,6 +209,12 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
     return shellProc;
 };
 
+/**
+ * Starts the MySQL Shell gui_plugin webserver and connects to the websocket
+ *
+ * @param extensionPath The path of the extension
+ * @param target If a target URL is specified, the extension connects to that remote shell instead
+ */
 const startShellAndConnect = (extensionPath: string, target?: string): void => {
     if (target) {
         const url = new URL(target);
@@ -266,6 +328,43 @@ export const activate = (context: ExtensionContext): void => {
             webSession.clearSessionData();
 
             startShellAndConnect(context.extensionPath, value);
+        });
+    }));
+
+    context.subscriptions.push(commands.registerCommand("msg.resetExtension", () => {
+        void window.showWarningMessage(resetMessage, "Reset Extension", "Cancel").then((choice) => {
+            if (choice === "Reset Extension") {
+                // Reset the MySQLShellInitialRun flag
+                void context.globalState.update("MySQLShellInitialRun", "");
+
+                // Delete the web certificate before removing shell user config dir
+                const parameters = [
+                    "--", "gui", "core", "remove-shell-web-certificate",
+                ];
+                runMysqlShell(context.extensionPath, parameters,
+                    // onStdOutData
+                    (data) => {
+                        // Delete the shell user settings folder, only if it is the dedicated one for the extension
+                        const shellUserConfigDir = getShellUserConfigDir(context.extensionPath);
+                        if (shellUserConfigDir.endsWith(extensionShellUserConfigFolderBaseName)) {
+                            rmSync(shellUserConfigDir, { recursive: true, force: true });
+                        }
+
+                        const output = String(data);
+                        if (output.includes("true")) {
+                            void window.showWarningMessage(resetRestartMessage,
+                                "Restart VS Code", "Cancel").then((choice) => {
+                                if (choice === "Restart VS Code") {
+                                    void commands.executeCommand("workbench.action.reloadWindow");
+                                }
+                            });
+                        } else {
+                            void window.showInformationMessage(
+                                `The following error occurred while deleting the certificate: ${output} ` +
+                                "Cancelled reset operation.");
+                        }
+                    });
+            }
         });
     }));
 

@@ -7,7 +7,7 @@
         "color": "#2789e1",
         "theme": "dark"
     },
-    "version": "1.0.28",
+    "version": "1.0.29",
     "publisher": "Oracle",
     "license": "SEE LICENSE IN LICENSE.txt",
     "repository": {
@@ -400,12 +400,8 @@
                 "title": "Relaunch Welcome Wizard"
             },
             {
-                "command": "msg.resetWelcomeWizardSetting",
-                "title": "Reset Welcome Wizard Setting"
-            },
-            {
-                "command": "msg.DeleteMySQLShellCertificate",
-                "title": "Delete the MySQL Shell Web Certificate"
+                "command": "msg.resetExtension",
+                "title": "Reset MySQL Shell for VS Code Extension"
             },
             {
                 "command": "msg.restartShell",
@@ -679,13 +675,8 @@
                     "when": "view == msg.connections"
                 },
                 {
-                    "command": "msg.resetWelcomeWizardSetting",
+                    "command": "msg.resetExtension",
                     "group": "2_msg@2",
-                    "when": "view == msg.connections"
-                },
-                {
-                    "command": "msg.DeleteMySQLShellCertificate",
-                    "group": "2_msg@3",
                     "when": "view == msg.connections"
                 },
                 {
