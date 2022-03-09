@@ -63,7 +63,7 @@ def params():
     del connection_options['portStr']
 
     result = dbconnections.add_db_connection(1, {
-        "db_type_id": 1,
+        "db_type": "MySQL",
         "caption": "This is a test MySQL database",
         "description": "This is a test MySQL database description",
         "options": connection_options

@@ -25,6 +25,8 @@ from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.DbSession import DbSessionFactory
 from gui_plugin.core.Db import BackendDatabase, BackendTransaction
+import gui_plugin.core.Error as Error
+from gui_plugin.core.Error import MSGException
 
 
 @plugin_function('gui.dbconnections.addDbConnection', shell=False, web=True)
@@ -58,6 +60,19 @@ def add_db_connection(profile_id, connection, folder_path='',
     """
     # if a web_session object is passed in, use that to get the db object
     db = web_session.db if web_session else GuiBackendDb()
+
+    # Verify connection parameters
+    if not 'caption' in connection \
+            or not isinstance(connection['caption'], str) \
+            or connection['caption'].strip() == "":
+        raise MSGException(Error.CORE_INVALID_PARAMETER,
+                               "The connection must contain valid caption.")
+
+    if not 'db_type' in connection \
+            or not isinstance(connection['db_type'], str) \
+            or not connection['db_type'].upper() in ["MYSQL", "SQLITE"]:
+        raise MSGException(Error.CORE_INVALID_PARAMETER,
+                               "The connection must contain valid database type.")
 
     with BackendDatabase(web_session) as db:
         # TODO: Encrypt stored password. The password will be inside "options", but we

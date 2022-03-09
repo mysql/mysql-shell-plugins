@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,6 +20,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 from gui_plugin.dbconnections import DbConnections
 import config
+import pytest
 
 def validate_response(response):
     assert not response is None
@@ -187,4 +188,51 @@ class TestDbConnectionMySQL:
 
         assert len(results3['rows']) == len(results1['rows'])
 
+    def test_add_wrong_db_connection_mysql(self):
+        default_root_config = config.Config.get_instance().database_connections[0]
 
+        with pytest.raises(Exception) as exp:
+            _ = DbConnections.add_db_connection(1, {
+                "caption": "This is a test MySQL database",
+                "description": "This is a test MySQL database description",
+                "options": {
+                    'host': default_root_config['options']['host'],
+                    'port': default_root_config['options']['port'],
+                    'user': default_root_config['options']['user'],
+                    'password': default_root_config['options']['password'],
+                    'scheme': default_root_config['options']['scheme']
+                }
+            }, 'tests')
+
+        assert str(exp.value) == "Error[MSG-1012]: The connection must contain valid database type."
+
+        with pytest.raises(Exception) as exp:
+            _ = DbConnections.add_db_connection(1, {
+                "db_type": "MSyQL",
+                "caption": "This is a test MySQL database",
+                "description": "This is a test MySQL database description",
+                "options": {
+                    'host': default_root_config['options']['host'],
+                    'port': default_root_config['options']['port'],
+                    'user': default_root_config['options']['user'],
+                    'password': default_root_config['options']['password'],
+                    'scheme': default_root_config['options']['scheme']
+                }
+            }, 'tests')
+
+        assert str(exp.value) == "Error[MSG-1012]: The connection must contain valid database type."
+
+        with pytest.raises(Exception) as exp:
+            _ = DbConnections.add_db_connection(1, {
+                "db_type": default_root_config['type'],
+                "description": "This is a test MySQL database description",
+                "options": {
+                    'host': default_root_config['options']['host'],
+                    'port': default_root_config['options']['port'],
+                    'user': default_root_config['options']['user'],
+                    'password': default_root_config['options']['password'],
+                    'scheme': default_root_config['options']['scheme']
+                }
+            }, 'tests')
+
+        assert str(exp.value) == "Error[MSG-1012]: The connection must contain valid caption."
