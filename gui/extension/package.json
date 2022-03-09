@@ -28,7 +28,7 @@
     "main": "./output/extension/src/extension.js",
     "contributes": {
         "languages": [{
-            "id": "sql",
+            "id": "mysql",
             "extensions": [
                 ".sql",
                 ".mysql"
@@ -39,7 +39,7 @@
             "configuration": "./syntaxes/language-configuration.json"
         }],
         "grammars": [{
-            "language": "sql",
+            "language": "mysql",
             "scopeName": "source.mysql",
             "path": "./syntaxes/mysql.json"
         }],
@@ -628,17 +628,17 @@
                 }
             ],
             "editor/title/context": [{
-                "when": "resourceLangId == sql",
+                "when": "resourceLangId == mysql",
                 "command": "msg.execute.normal",
                 "group": "msg@1"
             }],
             "editor/title": [{
-                "when": "resourceLangId == sql",
+                "when": "resourceLangId == mysql",
                 "command": "msg.execute.normal",
                 "group": "msg@1"
             }],
             "editor/context": [{
-                    "when": "resourceLangId == sql",
+                    "when": "resourceLangId == mysql",
                     "command": "msg.executeSelectedSqlFromEditor",
                     "group": "navigation"
                 },

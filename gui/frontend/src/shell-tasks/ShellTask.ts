@@ -89,8 +89,7 @@ export class ShellTask {
                     }
 
                     if (event.data.moduleSessionId) {
-                        this.shellSession = new ShellInterfaceShellSession("shell.task",
-                            event.data.moduleSessionId as string);
+                        this.shellSession = new ShellInterfaceShellSession(event.data.moduleSessionId as string);
                     } else if (result) {
                         if (this.isShellPromptResult(result as IShellResultType)) {
                             let text: string;

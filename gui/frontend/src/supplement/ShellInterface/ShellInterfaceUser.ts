@@ -30,8 +30,7 @@ import { webSession } from "../WebSession";
 
 export class ShellInterfaceUser implements IShellInterface {
 
-    public constructor(public moduleName: string) {
-    }
+    public readonly id = "user";
 
     /**
      * Authenticate a user.

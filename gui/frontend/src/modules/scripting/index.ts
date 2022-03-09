@@ -21,9 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ICommDbTypesEvent } from "../../communication";
 import { EditorLanguage } from "../../supplement";
-import { ShellInterfaceDbConnection } from "../../supplement/ShellInterface";
 
 // The of an entry in trees etc.
 export enum EntityType {
@@ -111,26 +109,3 @@ export const languageMap: Map<EditorLanguage, string> = new Map([
     ["mysql", "MySQL"],
     ["sql", "SQlite"],
 ]);
-
-const registeredDbTypes: string[] = [];
-
-export const enumerateDbTypeNames = (): string[] => {
-    return registeredDbTypes;
-};
-
-/**
- * Called on creation of the connection browser to load known database types if not yet done.
- * They are used to convert db IDs to our DB enum.
- *
- * @param backend The interface to the communication backend.
- */
-export const initializeDbTypes = (backend: ShellInterfaceDbConnection): void => {
-    if (registeredDbTypes.length === 0) {
-        backend.getDbTypes().then((event: ICommDbTypesEvent) => {
-            if (event.data) {
-                registeredDbTypes.push(...event.data.dbType);
-            }
-        });
-    }
-};
-

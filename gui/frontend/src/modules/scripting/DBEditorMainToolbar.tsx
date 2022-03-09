@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -52,8 +52,6 @@ import { IOpenEditorState } from "./DBEditorTab";
 import { requisitions } from "../../supplement/Requisitions";
 import { IEditorStatusInfo } from ".";
 import { LoadingState } from "../../script-execution";
-import { ICommSimpleResultEvent } from "../../communication";
-import { EventType } from "../../supplement/Dispatch";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
 export interface IDBEditorMainToolbarProperties extends IComponentProperties {
@@ -303,17 +301,16 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
         return Promise.resolve(true);
     };
 
-    private toggleAutoCommit = (active: boolean): Promise<boolean> => {
+    private toggleAutoCommit = async (active: boolean): Promise<boolean> => {
         const { backend } = this.props;
 
-        backend?.setAutoCommit(!active).then((event: ICommSimpleResultEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                this.queryAutoCommit();
-            }
-        }).catch((errorEvent) => {
+        try {
+            await backend?.setAutoCommit(!active);
+            await this.queryAutoCommit();
+        } catch(reason) {
             void requisitions.execute("showError",
-                ["Execution Error", "Cannot Switch Auto Commit Mode.", String(errorEvent.message)]);
-        });
+                ["Execution Error", "Cannot Switch Auto Commit Mode.", String(reason)]);
+        }
 
         this.updateState();
 
@@ -327,14 +324,14 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
         return Promise.resolve(true);
     };
 
-    private transactionEnded = (): Promise<boolean> => {
-        this.queryAutoCommit();
+    private transactionEnded = async (): Promise<boolean> => {
+        await this.queryAutoCommit();
         this.updateState();
 
-        return Promise.resolve(true);
+        return true;
     };
 
-    private executeSelectedOrAll = (commandId: string, args?: unknown[]): Promise<boolean> => {
+    private executeSelectedOrAll = async (commandId: string, args?: unknown[]): Promise<boolean> => {
         switch (commandId) {
             case "editor:toggleStopExecutionOnError": {
                 const stopOnErrors = args?.[0] ?? true;
@@ -348,14 +345,13 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
 
                 const autoCommit = args?.[0] ?? true;
 
-                backend?.setAutoCommit(!autoCommit).then((event: ICommSimpleResultEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        this.queryAutoCommit();
-                    }
-                }).catch((errorEvent) => {
+                try {
+                    await backend?.setAutoCommit(!autoCommit);
+                    await this.queryAutoCommit();
+                } catch(reason) {
                     void requisitions.execute("showError",
-                        ["Execution Error", "Cannot Switch Auto Commit Mode.", String(errorEvent.message)]);
-                });
+                        ["Execution Error", "Cannot Switch Auto Commit Mode.", String(reason)]);
+                }
 
                 break;
             }
@@ -368,7 +364,7 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
             }
 
             case "sql:transactionChanged": {
-                this.queryAutoCommit();
+                await this.queryAutoCommit();
                 break;
             }
 
@@ -379,7 +375,7 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
 
         this.updateState();
 
-        return Promise.resolve(true);
+        return true;
     };
 
     private updateState(): void {
@@ -399,13 +395,17 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
     /**
      * Queries the backend for the current auto commit mode and sets the internal state according to the result.
      */
-    private queryAutoCommit = (): void => {
-        const { backend } = this.props;
+    private queryAutoCommit = (): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            const { backend } = this.props;
 
-        backend?.getAutoCommit().then((event: ICommSimpleResultEvent): void => {
-            if (event.eventType === EventType.FinalResponse) {
-                this.setState({ autoCommit: (event.data?.result as number) !== 0 });
-            }
+            backend?.getAutoCommit().then((value: boolean): void => {
+                this.setState({ autoCommit: value }, () => {
+                    resolve();
+                });
+            }).catch((reason) => {
+                reject(reason);
+            });
         });
     };
 }

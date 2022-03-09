@@ -26,10 +26,10 @@ import { ListenerEntry } from "../Dispatch";
 import { IConnectionDetails, IShellInterface } from ".";
 import { convertToSnakeCase } from "../../utilities/helpers";
 
+// Interface for connection management.
 export class ShellInterfaceDbConnection implements IShellInterface {
 
-    public constructor(public moduleName: string) {
-    }
+    public readonly id = "dbConnection";
 
     /**
      * Adds a new database connection to a profile.
@@ -112,15 +112,5 @@ export class ShellInterfaceDbConnection implements IShellInterface {
     public getDbConnection(connectionId: number): ListenerEntry {
         return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbConnection(connectionId),
             { messageClass: "getDbConnection" });
-    }
-
-    /**
-     * Returns a list of all supported DB types.
-     *
-     * @returns A listener for the response.
-     */
-    public getDbTypes(): ListenerEntry {
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbTypes(),
-            { messageClass: "getDbTypes" });
     }
 }

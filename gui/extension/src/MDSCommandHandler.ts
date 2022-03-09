@@ -30,7 +30,6 @@ import { homedir } from "os";
 import { existsSync } from "fs";
 
 import { ICommErrorEvent, ICommOciBastionEvent, ICommOciSessionResultEvent } from "../../frontend/src/communication";
-import { ShellModuleId } from "../../frontend/src/modules/ModuleInfo";
 import { IDispatchDefaultEvent, EventType } from "../../frontend/src/supplement/Dispatch";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface";
 import { taskOutputChannel } from "./extension";
@@ -45,7 +44,7 @@ import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoa
 import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem";
 
 export class MDSCommandHandler {
-    private shellSession = new ShellInterfaceShellSession(ShellModuleId);
+    private shellSession = new ShellInterfaceShellSession();
 
     private ociTreeDataProvider: OciTreeDataProvider;
 

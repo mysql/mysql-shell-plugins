@@ -23,15 +23,15 @@
 
 import { IBackendInformation, IShellInterface } from ".";
 import {
-    currentConnection, ICommShellInformationEvent, ICommSimpleResultEvent, ProtocolGui,
+    currentConnection, ICommDbTypesEvent, ICommShellInformationEvent, ICommSimpleResultEvent, ProtocolGui,
 } from "../../communication";
 
 import { filterInt } from "../../utilities/string-helpers";
+import { EventType } from "../Dispatch";
 
 export class ShellInterfaceCore implements IShellInterface {
 
-    public constructor(public moduleName: string) {
-    }
+    public readonly id = "core";
 
     /**
      * Returns information about the backend, e.g. for showing in the about box.
@@ -86,6 +86,24 @@ export class ShellInterfaceCore implements IShellInterface {
                     reject(errorEvent.message);
                 });
         });
+    }
 
+    /**
+     * @returns Returns a promise resolving to a list of DB type names.
+     */
+    public getDbTypes(): Promise<string[]> {
+        return new Promise((resolve) => {
+            const result: string[] = [];
+            currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbTypes(),
+                { messageClass: "getDbTypes" }).then((event: ICommDbTypesEvent) => {
+                if (event.data) {
+                    result.push(...event.data.dbType);
+                }
+
+                if (event.eventType === EventType.FinalResponse) {
+                    resolve(result);
+                }
+            });
+        });
     }
 }

@@ -73,8 +73,7 @@ import {
 import { EntityType, IDBEditorScriptState, IEntityBase, IModuleDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
 import { IOpenEditorState } from "./DBEditorTab";
-import { ICommErrorEvent, ICommSimpleResultEvent } from "../../communication";
-import { EventType } from "../../supplement/Dispatch";
+import { ICommErrorEvent } from "../../communication";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { EditorLanguage } from "../../supplement";
@@ -644,37 +643,28 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         const { backend } = this.props;
         const schemaList: ISchemaTreeEntry[] = [];
 
-        backend.getCatalogObjects("Schema", "").then((schemaEvent: ICommSimpleResultEvent) => {
-            switch (schemaEvent.eventType) {
-                case EventType.DataResponse:
-                case EventType.FinalResponse: {
-                    for (const schema of (schemaEvent.data?.result as string[])) {
-                        const schemaEntry: ISchemaTreeEntry = {
-                            type: SchemaTreeType.Schema,
-                            expanded: false,
-                            expandedOnce: false,
-                            qualifiedName: { schema },
-                            id: schema,
-                            caption: schema,
-                            details: null,
-                            children: [
-                                this.generateGroupNode("Tables", "Table", schema),
-                                this.generateGroupNode("Views", "View", schema),
-                                this.generateGroupNode("Routines", "Routine", schema),
-                                this.generateGroupNode("Events", "Event", schema),
-                            ],
-                        };
-                        schemaList.push(schemaEntry);
+        backend.getCatalogObjects("Schema", "").then((names) => {
+            names.forEach((schema) => {
+                const schemaEntry: ISchemaTreeEntry = {
+                    type: SchemaTreeType.Schema,
+                    expanded: false,
+                    expandedOnce: false,
+                    qualifiedName: { schema },
+                    id: schema,
+                    caption: schema,
+                    details: null,
+                    children: [
+                        this.generateGroupNode("Tables", "Table", schema),
+                        this.generateGroupNode("Views", "View", schema),
+                        this.generateGroupNode("Routines", "Routine", schema),
+                        this.generateGroupNode("Events", "Event", schema),
+                    ],
+                };
+                schemaList.push(schemaEntry);
 
-                    }
-                    this.setState({ schemaList });
-                    break;
-                }
+            });
 
-                default: {
-                    break;
-                }
-            }
+            this.setState({ schemaList });
         }).catch((errorEvent: ICommErrorEvent): void => {
             void requisitions.execute("showError", ["Backend Error", String(errorEvent.message)]);
         });
@@ -1242,9 +1232,9 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         this.removeDummyNode(row);
 
         try {
-            const entries = await backend.getSchemaObjectsAsync(schema, "Table");
+            const names = await backend.getSchemaObjects(schema, "Table");
 
-            for (const table of entries) {
+            for (const table of names) {
                 const newChild = {
                     type: SchemaTreeType.Table,
                     expanded: false,
@@ -1280,8 +1270,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
         const entry = row.getData() as ISchemaTreeEntry;
         try {
-            const entries = await backend.getTableObjectsAsync(schema, table, type, filter);
-            for (const item of entries) {
+            const names = await backend.getTableObjects(schema, table, type, filter);
+            names.forEach((item) => {
                 const newChild = {
                     type: this.groupNodeToSchemaTreeTypeName(entry.id),
                     expanded: false,
@@ -1297,7 +1287,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 };
 
                 row.addTreeChild(newChild);
-            }
+            });
         } catch (error) {
             void requisitions.execute("showError",
                 ["Backend Error", "Could not get column information.", error as string]);
@@ -1315,14 +1305,14 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         tree?.blockRedraw();
         try {
             if (type === "Routine") {
-                let entries = await backend.getSchemaObjectsAsync(schema, type, "function", filter);
-                this.addTreeChildren(row, entries, schema, SchemaTreeType.StoredFunction);
-                entries = await backend.getSchemaObjectsAsync(schema, type, "procedure", filter);
-                this.addTreeChildren(row, entries, schema, SchemaTreeType.StoredProcedure);
+                let names = await backend.getSchemaObjects(schema, type, "function", filter);
+                this.addTreeChildren(row, names, schema, SchemaTreeType.StoredFunction);
+                names = await backend.getSchemaObjects(schema, type, "procedure", filter);
+                this.addTreeChildren(row, names, schema, SchemaTreeType.StoredProcedure);
             } else {
                 const entry = row.getData() as ISchemaTreeEntry;
-                const entries = await backend.getSchemaObjectsAsync(schema, type, undefined, filter);
-                this.addTreeChildren(row, entries, schema, this.groupNodeToSchemaTreeTypeName(entry.id));
+                const names = await backend.getSchemaObjects(schema, type, undefined, filter);
+                this.addTreeChildren(row, names, schema, this.groupNodeToSchemaTreeTypeName(entry.id));
             }
         } catch (error) {
             void requisitions.execute("showError",

@@ -118,14 +118,6 @@ export interface ISimpleResultData extends IGenericResponse {
     result: number | string | string[];
 }
 
-// For meta data requests (list of schemas, tables etc.).
-export interface IMetaData extends IGenericResponse {
-    result: string[] | {
-        name?: string;
-        columns?: string[];
-    };
-}
-
 export interface IShellPromptValues {
     promptDescriptor?: {
         host?: string;
@@ -379,8 +371,8 @@ export interface IDBDataTreeContent {
     result: IDBDataTreeEntry[];
 }
 
-export interface IObjectNames extends IGenericResponse {
-    result: string[];
+export interface IObjectNamesData extends IGenericResponse {
+    result?: string[];
 }
 
 export interface IErrorData extends IGenericResponse {
@@ -402,8 +394,7 @@ export type ICommProfileEvent = IDispatchEvent<IProfileData>;
 export type ICommDbTypesEvent = IDispatchEvent<IDbTypesData>;
 export type ICommDebuggerScriptsEvent = IDispatchEvent<IDebuggerScriptListData>;
 export type ICommScriptContentEvent = IDispatchEvent<IScriptContentData>;
-export type ICommMetaDataEvent = IDispatchEvent<IMetaData>;
-export type ICommObjectNamesEvent = IDispatchEvent<IObjectNames>;
+export type ICommObjectNamesEvent = IDispatchEvent<IObjectNamesData>;
 
 export type ICommListDataCategoriesEvent = IDispatchEvent<IShellModuleDataCategoriesData>;
 export type ICommModuleAddDataEvent = IDispatchEvent<IShellModuleAddData>;

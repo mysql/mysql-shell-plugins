@@ -424,7 +424,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             if (!sessionState) {
                 // Create a new shell session.
                 this.showProgress();
-                const backend = new ShellInterfaceShellSession(ShellModule.info.id);
+                const backend = new ShellInterfaceShellSession();
 
                 this.setProgressMessage("Starting shell session...");
                 backend.startShellSession(id, session.dbConnectionId).then((event: ICommShellEvent) => {
@@ -753,9 +753,13 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         serverVersion: number, sqlMode: string, currentSchema: string): IShellEditorModel {
         const model = Monaco.createModel(text, language) as IShellEditorModel;
         model.executionContexts = new ExecutionContexts(StoreType.Shell, serverVersion, sqlMode, currentSchema);
-        model.symbols = new DynamicSymbolTable(undefined, "db symbols", { allowDuplicateSymbols: true });
+
         model.editorMode = CodeEditorMode.Terminal;
         model.session = session;
+
+        // Create a default symbol table with no DB connection. This will be replaced in ShellTab, depending
+        // on the connection the user opens.
+        model.symbols = new DynamicSymbolTable(undefined, "db symbols", { allowDuplicateSymbols: true });
 
         return model;
     }

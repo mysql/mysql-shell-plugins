@@ -31,6 +31,8 @@ import { ShellInterfaceMds } from "./ShellInterfaceMds";
 
 export class ShellInterfaceShellSession implements IShellInterface {
 
+    public readonly id = "shellSession";
+
     public mds: ShellInterfaceMds = new ShellInterfaceMds();
 
     private moduleSessionLookupId = "";
@@ -38,13 +40,12 @@ export class ShellInterfaceShellSession implements IShellInterface {
     /**
      * Creates a new instance of the shell interface.
      *
-     * @param moduleName The name of the module that hosts this interface.
      * @param sessionId If given this specifies an existing shell session, so we don't get a startShellSession
      *                  call later.
      */
-    public constructor(public moduleName: string, sessionId?: string) {
+    public constructor(sessionId?: string) {
         if (sessionId) {
-            this.moduleSessionLookupId = this.moduleName + ".temporary";
+            this.moduleSessionLookupId = this.id + ".temporary";
             webSession.setModuleSessionId(this.moduleSessionLookupId, sessionId);
         }
     }
@@ -65,7 +66,7 @@ export class ShellInterfaceShellSession implements IShellInterface {
      * @returns A listener for the response.
      */
     public startShellSession(id: string, dbConnectionId?: number): ListenerEntry {
-        this.moduleSessionLookupId = this.moduleName + "." + id;
+        this.moduleSessionLookupId = this.id + "." + id;
 
         if (this.hasSession) {
             return ListenerEntry.resolve();

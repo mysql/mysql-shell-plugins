@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,13 +28,13 @@ import { ShellInterfaceModule } from "./ShellInterfaceModule";
 import { ShellInterfaceUser } from "./ShellInterfaceUser";
 
 // This class serves as central point for singleton shell interfaces like core or modules.
-// Other interfaces (e.g. sql editor) are not singletons and have to be managed locally.
+// Singletons are all those shell interfaces, which don't need a session for their work.
 export class ShellInterface {
     private static interfaces: { [key: string]: IShellInterface } = {};
 
     public static get core(): ShellInterfaceCore {
         if (ShellInterface.interfaces.core === undefined) {
-            ShellInterface.interfaces.core = new ShellInterfaceCore("core");
+            ShellInterface.interfaces.core = new ShellInterfaceCore();
         }
 
         return ShellInterface.interfaces.core as ShellInterfaceCore;
@@ -42,7 +42,7 @@ export class ShellInterface {
 
     public static get users(): ShellInterfaceUser {
         if (ShellInterface.interfaces.users === undefined) {
-            ShellInterface.interfaces.users = new ShellInterfaceUser("users");
+            ShellInterface.interfaces.users = new ShellInterfaceUser();
         }
 
         return ShellInterface.interfaces.users as ShellInterfaceUser;
@@ -50,7 +50,7 @@ export class ShellInterface {
 
     public static get modules(): ShellInterfaceModule {
         if (ShellInterface.interfaces.modules === undefined) {
-            ShellInterface.interfaces.modules = new ShellInterfaceModule("modules");
+            ShellInterface.interfaces.modules = new ShellInterfaceModule();
         }
 
         return ShellInterface.interfaces.modules as ShellInterfaceModule;
@@ -58,7 +58,7 @@ export class ShellInterface {
 
     public static get dbConnections(): ShellInterfaceDbConnection {
         if (ShellInterface.interfaces.dbConnections === undefined) {
-            ShellInterface.interfaces.dbConnections = new ShellInterfaceDbConnection("dbConnections");
+            ShellInterface.interfaces.dbConnections = new ShellInterfaceDbConnection();
         }
 
         return ShellInterface.interfaces.dbConnections as ShellInterfaceDbConnection;

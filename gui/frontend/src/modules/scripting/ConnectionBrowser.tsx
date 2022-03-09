@@ -51,14 +51,12 @@ import {
     IMySQLConnectionOptions, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
 } from "../../communication/MySQL";
 import { filterInt } from "../../utilities/string-helpers";
-import { enumerateDbTypeNames } from ".";
 import { settings } from "../../supplement/Settings/Settings";
 import { ConfirmDialog } from "../../components/Dialogs";
 import {
     IBastionSummary, ICommErrorEvent, ICommMdsConfigProfileEvent, ICommMdsGetBastionsEvent, ICommOciBastionSummaryEvent,
     ICommOciMySQLDbSystemEvent, ICommOpenConnectionEvent, ICommSimpleResultEvent, IMdsProfileData, IMySQLDbSystem,
 } from "../../communication";
-import { DBEditorModuleId, ShellModuleId } from "../ModuleInfo";
 import { EventType } from "../../supplement/Dispatch";
 import { IDictionary, IServicePasswordRequest } from "../../app-logic/Types";
 
@@ -113,7 +111,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private confirmNewBastionDialogRef = React.createRef<ConfirmDialog>();
     private confirmClearPasswordDialogRef = React.createRef<ConfirmDialog>();
 
-    private shellSession = new ShellInterfaceShellSession(ShellModuleId);
+    private shellSession = new ShellInterfaceShellSession();
 
     private currentTileDetails?: IConnectionDetails; // Set during context menu invocation.
 
@@ -124,8 +122,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private ociProfileNames?: IMdsProfileData[];
     private activeOciProfileName?: string;
 
+    private knowDbTypes: string[] = [];
+
     public constructor(props: IConnectionBrowserProperties) {
         super(props);
+
         this.liveUpdateFields = {
             bastionId: { value: "", loading: false },
             bastionName: { value: "", loading: false },
@@ -133,10 +134,15 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             profileName: "",
             dbSystemId: "",
         };
+
         this.state = {
             loading: false,
             progressMessage: "Trying to open connection...",
         };
+
+        void ShellInterface.core.getDbTypes().then((list) => {
+            this.knowDbTypes = list;
+        });
     }
 
     public componentDidMount(): void {
@@ -1104,9 +1110,9 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 databaseType: {
                     caption: "Database Type:",
                     value: details.dbType,
-                    choices: enumerateDbTypeNames(),
+                    choices: this.knowDbTypes,
                     onChange: (value: DialogValueType): void => {
-                        const availableNames = [...enumerateDbTypeNames()];
+                        const availableNames = [...this.knowDbTypes]; // Need a copy.
                         const index = availableNames.findIndex((name) => {
                             return name === value as string;
                         });
@@ -1759,7 +1765,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
     private testConnection = (values: IDialogValues): void => {
         const { connections } = this.props;
-        const backend = new ShellInterfaceSqlEditor(DBEditorModuleId);
+        const backend = new ShellInterfaceSqlEditor();
         if (this.connectionId !== -1) {
             const details = connections.find((candidate) => { return candidate.id === this.connectionId; });
             if (details) {

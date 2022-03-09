@@ -35,7 +35,7 @@ import {
 import { DBType, ShellInterface, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import {
-    ICommResultSetEvent, ICommErrorEvent, IResultSetData, ICommSimpleResultEvent, ICommModuleDataContentEvent,
+    ICommResultSetEvent, ICommErrorEvent, IResultSetData, ICommModuleDataContentEvent,
 } from "../../communication";
 import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
@@ -908,13 +908,9 @@ Execute \\help or \\? for help;`;
                 case QueryType.Use: {
                     // The user wants to change the current schema.
                     // This may have failed so query the backend for the current schema and then trigger the command.
-                    backend?.getCurrentSchema().then((event: ICommSimpleResultEvent) => {
-                        if (event.eventType === EventType.FinalResponse) {
-                            if (id && event.data && typeof event.data.result === "string") {
-                                void requisitions.execute("sqlSetCurrentSchema",
-                                    { id, connectionId, schema: event.data.result });
-                            }
-                        }
+                    void backend?.getCurrentSchema().then((schema: string) => {
+                        void requisitions.execute("sqlSetCurrentSchema",
+                            { id: id ?? "", connectionId, schema });
                     });
 
                     break;

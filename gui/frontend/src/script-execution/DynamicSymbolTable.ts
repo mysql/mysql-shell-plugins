@@ -23,21 +23,19 @@
 
 import { Symbol, ScopedSymbol, SymbolTableOptions } from "antlr4-c3";
 
-import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface";
+import { ShellInterfaceDb } from "../supplement/ShellInterface";
 import {
     CharsetSymbol, CollationSymbol, ColumnSymbol, DBSymbolTable, EngineSymbol, ForeignKeySymbol, IndexSymbol,
     LogfileGroupSymbol, PluginSymbol, SchemaSymbol, StoredFunctionSymbol, StoredProcedureSymbol, TableSymbol,
     TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol, ViewSymbol,
 } from "../parsing/DBSymbolTable";
 import { SymbolKind } from "../parsing/parser-common";
-import { ICommErrorEvent, ICommMetaDataEvent } from "../communication";
-import { EventType, ListenerEntry } from "../supplement/Dispatch";
 
 // An enhanced database symbol table, which is able to retrieve their content from a shell DB connection on demand.
 export class DynamicSymbolTable extends DBSymbolTable {
 
     public constructor(
-        private backend: ShellInterfaceSqlEditor | undefined,
+        private backend: ShellInterfaceDb | undefined,
         name: string,
         options: SymbolTableOptions) {
         super(name, options);
@@ -71,247 +69,201 @@ export class DynamicSymbolTable extends DBSymbolTable {
      *
      * @returns The list of new symbols that have been added to this symbol table.
      */
-    public loadSymbolsOfKind(parent: ScopedSymbol, kind: SymbolKind): Promise<Set<Symbol>> {
-        return new Promise((resolve, reject) => {
-            if (!this.backend) {
-                return resolve(new Set());
+    public async loadSymbolsOfKind(parent: ScopedSymbol, kind: SymbolKind): Promise<Set<Symbol>> {
+        if (!this.backend) {
+            return new Set();
+        }
+
+        switch (kind) {
+            case SymbolKind.Schema: {
+                const data = await this.backend.getCatalogObjects("Schema");
+                this.handleResults(data, parent, SchemaSymbol);
+
+                break;
             }
 
-            switch (kind) {
-                case SymbolKind.Schema: {
-                    const listener = this.backend.getCatalogObjects("Schema");
-                    this.handleResults(listener, parent, resolve, reject, SchemaSymbol);
+            case SymbolKind.Table: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Table");
+                this.handleResults(data, parent, TableSymbol);
 
-                    break;
-                }
-
-                case SymbolKind.Table: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Table");
-                    this.handleResults(listener, parent, resolve, reject, TableSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Column: {
-                    if (parent.parent) {
-                        const listener = this.backend.getSchemaTableColumns(parent.parent.name, parent.name);
-                        this.handleResults(listener, parent, resolve, reject, ColumnSymbol);
-                    }
-
-                    break;
-                }
-
-                case SymbolKind.Procedure: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "procedure");
-                    this.handleResults(listener, parent, resolve, reject, StoredProcedureSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Function: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine", "function");
-                    this.handleResults(listener, parent, resolve, reject, StoredFunctionSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Udf: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine");
-                    this.handleResults(listener, parent, resolve, reject, UdfSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.View: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "View");
-                    this.handleResults(listener, parent, resolve, reject, ViewSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.PrimaryKey: {
-                    // TODO: fix table specifier.
-                    const listener = this.backend.getTableObjects(parent.name, "", "Primary Key");
-                    this.handleResults(listener, parent, resolve, reject, ForeignKeySymbol);
-
-                    break;
-                }
-
-                case SymbolKind.ForeignKey: {
-                    // TODO: fix table specifier.
-                    const listener = this.backend.getTableObjects(parent.name, "", "Foreign Key");
-                    this.handleResults(listener, parent, resolve, reject, ForeignKeySymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Operator: {
-
-                    break;
-                }
-
-                case SymbolKind.Engine: {
-                    const listener = this.backend.getCatalogObjects("Engine");
-                    this.handleResults(listener, parent, resolve, reject, EngineSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Trigger: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Trigger");
-                    this.handleResults(listener, parent, resolve, reject, TriggerSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.LogfileGroup: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Routine");
-                    this.handleResults(listener, parent, resolve, reject, LogfileGroupSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.UserVariable: {
-                    const listener = this.backend.getCatalogObjects("User Variable");
-                    this.handleResults(listener, parent, resolve, reject, UserVariableSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Tablespace: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Tablespace");
-                    this.handleResults(listener, parent, resolve, reject, UdfSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Event: {
-                    const listener = this.backend.getSchemaObjects(parent.name, "Event");
-                    this.handleResults(listener, parent, resolve, reject, UdfSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Index: {
-                    // TODO: fix table specifier.
-                    const listener = this.backend.getTableObjects(parent.name, "", "Index");
-                    this.handleResults(listener, parent, resolve, reject, IndexSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.User: {
-                    const listener = this.backend.getCatalogObjects("User");
-                    this.handleResults(listener, parent, resolve, reject, UserSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Charset: {
-                    const listener = this.backend.getCatalogObjects("Character Set");
-                    this.handleResults(listener, parent, resolve, reject, CharsetSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Collation: {
-                    const listener = this.backend.getCatalogObjects("Collation");
-                    this.handleResults(listener, parent, resolve, reject, CollationSymbol);
-
-                    break;
-                }
-
-                case SymbolKind.Plugin: {
-                    const listener = this.backend.getCatalogObjects("Plugin");
-                    this.handleResults(listener, parent, resolve, reject, PluginSymbol);
-
-                    break;
-                }
-
-                default: {
-                    // Everything else can either not be loaded (e.g. catalog) or exists already somewhere else
-                    // (e.g. system functions and keywords).
-                    resolve(new Set());
-
-                    break;
-                }
+                break;
             }
-        });
+
+            case SymbolKind.Column: {
+                if (parent.parent) {
+                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Column");
+                    this.handleResults(data, parent, ColumnSymbol);
+                }
+
+                break;
+            }
+
+            case SymbolKind.Procedure: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Routine", "procedure");
+                this.handleResults(data, parent, StoredProcedureSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Function: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Routine", "function");
+                this.handleResults(data, parent, StoredFunctionSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Udf: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Routine");
+                this.handleResults(data, parent, UdfSymbol);
+
+                break;
+            }
+
+            case SymbolKind.View: {
+                const data = await this.backend.getSchemaObjects(parent.name, "View");
+                this.handleResults(data, parent, ViewSymbol);
+
+                break;
+            }
+
+            case SymbolKind.PrimaryKey: {
+                if (parent.parent) {
+                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Primary Key");
+                    this.handleResults(data, parent, ForeignKeySymbol);
+                }
+
+                break;
+            }
+
+            case SymbolKind.ForeignKey: {
+                if (parent.parent) {
+                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Foreign Key");
+                    this.handleResults(data, parent, ForeignKeySymbol);
+                }
+
+                break;
+            }
+
+            case SymbolKind.Operator: {
+
+                break;
+            }
+
+            case SymbolKind.Engine: {
+                const data = await this.backend.getCatalogObjects("Engine");
+                this.handleResults(data, parent, EngineSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Trigger: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Trigger");
+                this.handleResults(data, parent, TriggerSymbol);
+
+                break;
+            }
+
+            case SymbolKind.LogfileGroup: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Routine");
+                this.handleResults(data, parent, LogfileGroupSymbol);
+
+                break;
+            }
+
+            case SymbolKind.UserVariable: {
+                const data = await this.backend.getCatalogObjects("User Variable");
+                this.handleResults(data, parent, UserVariableSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Tablespace: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Tablespace");
+                this.handleResults(data, parent, UdfSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Event: {
+                const data = await this.backend.getSchemaObjects(parent.name, "Event");
+                this.handleResults(data, parent, UdfSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Index: {
+                if (parent.parent) {
+                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Index");
+                    this.handleResults(data, parent, IndexSymbol);
+                }
+
+                break;
+            }
+
+            case SymbolKind.User: {
+                const data = await this.backend.getCatalogObjects("User");
+                this.handleResults(data, parent, UserSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Charset: {
+                const data = await this.backend.getCatalogObjects("Character Set");
+                this.handleResults(data, parent, CharsetSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Collation: {
+                const data = await this.backend.getCatalogObjects("Collation");
+                this.handleResults(data, parent, CollationSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Plugin: {
+                const data = await this.backend.getCatalogObjects("Plugin");
+                this.handleResults(data, parent, PluginSymbol);
+
+                break;
+            }
+
+            // Everything else can either not be loaded (e.g. catalog) or exists already somewhere else
+            // (e.g. system functions and keywords).
+            default:
+        }
+
+        return new Set();
     }
 
     /**
      * Common handling of object listing results from the backend.
      *
-     * @param listener The listener that provides the data.
+     * @param names The result data to process.
      * @param parent The parent symbol where to add new symbols.
-     * @param resolve The resolve method to call for valid results.
-     * @param reject The reject method to call for errors.
      * @param t The type of the symbol to add.
      */
-    private handleResults<T extends Symbol>(listener: ListenerEntry, parent: ScopedSymbol,
-        resolve: (resolve: Set<Symbol> | PromiseLike<Set<Symbol>>) => void,
+    private handleResults<T extends Symbol>(names: string[], parent: ScopedSymbol,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        reject: (reason?: unknown) => void, t: new (...args: any[]) => T): void {
+        t: new (...args: any[]) => T): void {
 
         const symbolNames: string[] = [];
+        /*if (names.names) {
+            names.names.forEach((item) => {
+                symbolNames.push(item);
+            });
+        } else if (names.columns) {
+            names.columns.columns.forEach((item) => {
+                symbolNames.push(item);
+            });
+        }*/
+        names.forEach((item) => {
+            symbolNames.push(item);
+        });
 
-        listener.then((event: ICommMetaDataEvent) => {
-            if (!event.data) {
-                return;
-            }
-
-            switch (event.eventType) {
-                case EventType.ErrorResponse: {
-                    reject(event.message);
-
-                    break;
-                }
-
-                case EventType.DataResponse: {
-                    if (!Array.isArray(event.data.result)) {
-                        if (event.data.result.columns) {
-                            event.data.result.columns.forEach((item) => {
-                                symbolNames.push(item);
-                            });
-                        }
-                    } else if (event.data.result) {
-                        event.data.result.forEach((item) => {
-                            symbolNames.push(item);
-                        });
-                    }
-
-                    break;
-                }
-
-                case EventType.FinalResponse: {
-                    if (!Array.isArray(event.data.result)) {
-                        if (event.data.result.columns) {
-                            event.data.result.columns.forEach((item) => {
-                                symbolNames.push(item);
-                            });
-                        }
-                    } else if (event.data.result) {
-                        event.data.result.forEach((item) => {
-                            symbolNames.push(item);
-                        });
-                    }
-
-                    const symbols: Set<T> = new Set();
-                    symbolNames.forEach((symbolName) => {
-                        symbols.add(this.addNewSymbolOfType(t, parent, symbolName));
-                    });
-
-                    resolve(symbols);
-
-                    break;
-                }
-
-                default: {
-                    break;
-                }
-            }
-        }).catch((error: ICommErrorEvent) => {
-            reject(error.message);
+        const symbols: Set<T> = new Set();
+        symbolNames.forEach((symbolName) => {
+            symbols.add(this.addNewSymbolOfType(t, parent, symbolName));
         });
     }
 }

@@ -33,7 +33,6 @@ import {
 
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 
-import { ShellModuleId } from "../../../../frontend/src/modules/ModuleInfo";
 import { ShellInterfaceShellSession } from "../../../../frontend/src/supplement/ShellInterface";
 import {
     OciConfigProfileTreeItem, OciCompartmentTreeItem, OciDbSystemTreeItem, OciComputeInstanceTreeItem,
@@ -49,7 +48,7 @@ interface IConfigProfileCompartments {
 export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
     private changeEvent = new EventEmitter<TreeItem | undefined>();
 
-    private shellSession = new ShellInterfaceShellSession(ShellModuleId);
+    private shellSession = new ShellInterfaceShellSession();
 
     // The cache of compartments for each config profile
     private compartmentCache: IConfigProfileCompartments = {};

@@ -26,11 +26,14 @@ import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 
 export * from "./ShellInterface";
 export * from "./ShellInterfaceCore";
+export * from "./ShellInterfaceDb";
 export * from "./ShellInterfaceDbConnection";
 export * from "./ShellInterfaceModule";
 export * from "./ShellInterfaceShellSession";
 export * from "./ShellInterfaceSqlEditor";
 export * from "./ShellInterfaceUser";
+export * from "./ShellInterfaceMds";
+export * from "./ShellInterfaceMrs";
 
 // Database types we can handle.
 export enum DBType {
@@ -80,10 +83,9 @@ export interface IShellSessionDetails {
     dbConnectionId?: number; // The id of the database connection to open
 }
 
-// All available shell (backend) interfaces to access the functionality of the backend.
-
+// Base interface for all specialized interfaces to access the functionality of the backend.
 export interface IShellInterface {
-    moduleName: string;
+    id: string; // Unique string to identify an interface. Has nothing to do with module names.
 }
 
 export interface IBackendInformation {

@@ -25,12 +25,12 @@ import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window
 
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { DBEditorModuleId } from "../../../../frontend/src/modules/ModuleInfo";
-import { DBType, IConnectionDetails, ShellInterface } from "../../../../frontend/src/supplement/ShellInterface";
 import {
-    ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent, ICommObjectNamesEvent,
-    ICommOpenConnectionEvent, ICommResultSetEvent, ICommSimpleResultEvent, IResultSetData, IShellFeedbackRequest,
+    DBType, IConnectionDetails, ShellInterface, ShellInterfaceSqlEditor,
+} from "../../../../frontend/src/supplement/ShellInterface";
+import {
+    ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent,
+    ICommOpenConnectionEvent, ICommResultSetEvent, IResultSetData, IShellFeedbackRequest,
     IShellResultType, ShellPromptResponseType,
 } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
@@ -193,7 +193,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     public closeAllConnections(): void {
         this.connections.forEach((entry) => {
             if (entry.backend) {
-                entry.backend.closeSqlEditorSession().catch(() => { /**/ });
+                entry.backend.closeSession().catch(() => { /**/ });
             }
         });
 
@@ -271,7 +271,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                                             // Current entry no longer exists. Close the session (if one is open)
                                             // and remove it from the current list.
                                             const entry = this.connections.splice(left, 1)[0];
-                                            entry.backend?.closeSqlEditorSession();
+                                            void entry.backend?.closeSession();
 
                                             // Reset the right index to the top of the list and keep the current
                                             // index where it is (points already to the next entry after removal).
@@ -293,7 +293,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                                 // Remove all remaining entries we haven't touched yet.
                                 while (left < this.connections.length) {
                                     const entry = this.connections.splice(left, 1)[0];
-                                    entry.backend?.closeSqlEditorSession();
+                                    void entry.backend?.closeSession();
                                 }
 
                                 resolve();
@@ -325,8 +325,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     private updateSchemaList(entry: IConnectionEntry): Promise<TreeItem[]> {
         if (!entry.backend) {
             return new Promise((resolve, reject) => {
-                entry.backend = new ShellInterfaceSqlEditor(DBEditorModuleId);
-                entry.backend.startSqlEditorSession(entry.id).then(() => {
+                entry.backend = new ShellInterfaceSqlEditor();
+
+                entry.backend.startSession(entry.id).then(() => {
                     // Before opening the connection check the DB file, if this is an sqlite connection.
                     if (entry.backend && entry.details.dbType === DBType.Sqlite) {
                         const options = entry.details.options as ISqliteConnectionOptions;
@@ -358,7 +359,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                         this.openNewConnection(entry).then((items) => {
                             resolve(items);
                         }).catch((reason) => {
-                            entry.backend?.closeSqlEditorSession();
+                            void entry.backend?.closeSession();
                             entry.backend = undefined;
 
                             reject(reason);
@@ -387,62 +388,44 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             if (entry.backend) {
                 const schemaList: TreeItem[] = [];
 
-                entry.backend.getCatalogObjects("Schema", "").then((schemaEvent: ICommSimpleResultEvent) => {
-                    if (!schemaEvent.data) {
-                        resolve([]);
-
-                        return;
-                    }
-
-                    switch (schemaEvent.eventType) {
-                        case EventType.DataResponse:
-                        case EventType.FinalResponse: {
-                            const list = schemaEvent.data.result as string[];
-                            for (const schema of list) {
-                                if (entry.details.dbType === "MySQL") {
-                                    if (schema === "mysql_rest_service_metadata") {
-                                        schemaList.unshift(
-                                            new MrsTreeItem("MySQL REST Service", schema, entry, true));
-                                    }
-
-                                    // Only show system schemas if the options is set
-                                    let hideSystemSchemas = true;
-                                    if (entry.details.hideSystemSchemas !== undefined) {
-                                        hideSystemSchemas = entry.details.hideSystemSchemas;
-                                    }
-
-                                    if ((schema !== "mysql" &&
-                                        schema !== "mysql_innodb_cluster_metadata" &&
-                                        schema !== "mysql_rest_service_metadata")
-                                        || !hideSystemSchemas) {
-                                        schemaList.push(
-                                            new SchemaMySQLTreeItem(schema, schema, entry, true));
-                                    }
-                                } else {
-                                    schemaList.push(new SchemaTreeItem(schema, schema, entry, true));
-                                }
+                entry.backend.getCatalogObjects("Schema", "").then((schemas) => {
+                    schemas.forEach((schema) => {
+                        if (entry.details.dbType === "MySQL") {
+                            if (schema === "mysql_rest_service_metadata") {
+                                schemaList.unshift(
+                                    new MrsTreeItem("MySQL REST Service", schema, entry, true));
                             }
 
-                            // TODO: Implement the MySQL Administration subtree,
-                            // leave the current implementation commented out for now on purpose
-                            /*if (entry.details.dbType === DBType.MySQL) {
-                                schemaList.unshift(new AdminTreeItem(
-                                    "MySQL Administration", "", entry, true));
-                            }*/
+                            // Only show system schemas if the options is set
+                            let hideSystemSchemas = true;
+                            if (entry.details.hideSystemSchemas !== undefined) {
+                                hideSystemSchemas = entry.details.hideSystemSchemas;
+                            }
 
-                            resolve(schemaList);
-
-                            break;
+                            if ((schema !== "mysql" &&
+                                schema !== "mysql_innodb_cluster_metadata" &&
+                                schema !== "mysql_rest_service_metadata")
+                                || !hideSystemSchemas) {
+                                schemaList.push(
+                                    new SchemaMySQLTreeItem(schema, schema, entry, true));
+                            }
+                        } else {
+                            schemaList.push(new SchemaTreeItem(schema, schema, entry, true));
                         }
+                    });
 
-                        default: {
-                            break;
-                        }
-                    }
+                    // TODO: Implement the MySQL Administration subtree,
+                    // leave the current implementation commented out for now on purpose
+                    /*if (entry.details.dbType === DBType.MySQL) {
+                        schemaList.unshift(new AdminTreeItem(
+                            "MySQL Administration", "", entry, true));
+                    }*/
 
-                }).catch((errorEvent: ICommErrorEvent): void => {
-                    reject(`Error retrieving schema list: ${errorEvent.message ?? "<unknown>"}`);
+                    resolve(schemaList);
+                }).catch((reason) => {
+                    reject(`Error retrieving schema list: ${String(reason)}`);
                 });
+
             } else {
                 reject();
             }
@@ -551,17 +534,17 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             };
 
             try {
-                let list = await element.entry.backend.getSchemaObjectsAsync(element.schema, objectType, "function");
-                createItems("function", list);
-                list = await element.entry.backend.getSchemaObjectsAsync(element.schema, objectType, "procedure");
-                createItems("procedure", list);
+                let names = await element.entry.backend.getSchemaObjects(element.schema, objectType, "function");
+                createItems("function", names);
+                names = await element.entry.backend.getSchemaObjects(element.schema, objectType, "procedure");
+                createItems("procedure", names);
             } catch (error) {
                 void window.showErrorMessage("Error while retrieving schema objects: " + (error as string));
             }
         } else {
             try {
-                const list = await element.entry.backend.getSchemaObjectsAsync(element.schema, objectType);
-                for (const objectName of list) {
+                const names = await element.entry.backend.getSchemaObjects(element.schema, objectType);
+                names.forEach((objectName) => {
                     switch (name) {
                         case SchemaItemGroupType.Tables: {
                             if (element.entry.details.dbType === "MySQL") {
@@ -587,7 +570,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
                         default:
                     }
-                }
+                });
             } catch (error) {
                 void window.showErrorMessage("Error while retrieving schema objects: " + (error as string));
             }
@@ -620,55 +603,30 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             const entry = element.entry;
 
             const type = name === "Indexes" ? "Index" : name.slice(0, -1);
-            element.entry.backend.getTableObjects(element.schema, element.table, type)
-                .then((event: ICommObjectNamesEvent) => {
-                    if (!event.data) {
-                        return;
-                    }
+            element.entry.backend.getTableObjects(element.schema, element.table, type).then((names) => {
+                names.forEach((objectName) => {
+                    let item: TreeItem | undefined;
+                    switch (name) {
+                        case SchemaItemGroupType.Columns: {
+                            item = new SchemaTableColumnTreeItem(objectName, schema, table, entry);
 
-                    switch (event.eventType) {
-                        case EventType.DataResponse:
-                        case EventType.FinalResponse: {
-                            for (const objectName of event.data.result) {
-                                let item: TreeItem | undefined;
-                                switch (name) {
-                                    case SchemaItemGroupType.Columns: {
-                                        item = new SchemaTableColumnTreeItem(objectName, schema, table, entry);
+                            break;
+                        }
 
-                                        break;
-                                    }
+                        case SchemaItemGroupType.Indexes: {
+                            item = new SchemaTableIndexTreeItem(objectName, schema, table, entry);
 
-                                    case SchemaItemGroupType.Indexes: {
-                                        item = new SchemaTableIndexTreeItem(objectName, schema, table, entry);
+                            break;
+                        }
 
-                                        break;
-                                    }
+                        case SchemaItemGroupType.ForeignKeys: {
+                            item = new SchemaTableForeignKeyTreeItem(objectName, schema, table, entry);
 
-                                    case SchemaItemGroupType.ForeignKeys: {
-                                        item = new SchemaTableForeignKeyTreeItem(objectName, schema, table, entry);
+                            break;
+                        }
 
-                                        break;
-                                    }
-
-                                    case SchemaItemGroupType.Triggers: {
-                                        item = new SchemaTableTriggerTreeItem(objectName, schema, table, entry);
-
-                                        break;
-                                    }
-
-                                    default: {
-                                        break;
-                                    }
-                                }
-
-                                if (item) {
-                                    itemList.push(item);
-                                }
-                            }
-
-                            if (event.eventType === EventType.FinalResponse) {
-                                resolve(itemList);
-                            }
+                        case SchemaItemGroupType.Triggers: {
+                            item = new SchemaTableTriggerTreeItem(objectName, schema, table, entry);
 
                             break;
                         }
@@ -677,9 +635,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             break;
                         }
                     }
-                }).catch((event) => {
-                    reject("Error while retrieving schema objects: " + String(event));
+
+                    if (item) {
+                        itemList.push(item);
+                    }
                 });
+
+                resolve(itemList);
+            }).catch((reason) => {
+                reject("Error while retrieving schema objects: " + String(reason));
+            });
         });
     }
 

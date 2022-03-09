@@ -43,6 +43,8 @@ export enum StandardDataCategories {
 
 export class ShellInterfaceModule implements IShellInterface {
 
+    public readonly id = "module";
+
     // Mappings between script category ids and editor languages.
     private scriptCategoryToLanguage = new Map<number, EditorLanguage>([
         [StandardDataCategories.MySQLScript, "mysql"],
@@ -61,9 +63,6 @@ export class ShellInterfaceModule implements IShellInterface {
         ["sql", StandardDataCategories.MySQLScript],
         ["json", StandardDataCategories.MySQLScript],
     ]);
-
-    public constructor(public moduleName: string) {
-    }
 
     /**
      * Creates a new data record in the data tree given by the tree identifier.

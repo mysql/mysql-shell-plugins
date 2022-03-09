@@ -44,7 +44,7 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails, ShellInterface } from "../../supplement/ShellInterface";
-import { EntityType, IDBEditorScriptState, IModuleDataEntry, initializeDbTypes, ISchemaTreeEntry } from ".";
+import { EntityType, IDBEditorScriptState, IModuleDataEntry, ISchemaTreeEntry } from ".";
 import { documentTypeToIcon, IExplorerSectionState } from "./Explorer";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
@@ -146,7 +146,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         CodeEditor.addTypings(typings as string, "Runtime");
 
-        initializeDbTypes(ShellInterface.dbConnections);
         void this.loadConnections();
         ShellInterface.modules.loadScriptsTree().then((tree) => {
             this.scriptsTree = tree;
@@ -162,7 +161,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             editorTabs.forEach((tab) => {
                 const state = this.connectionState.get(tab.id);
                 if (state) {
-                    state.backend.startSqlEditorSession(tab.id).then(() => {
+                    void state.backend.startSession(tab.id).then(() => {
                         void this.reOpenConnection(state.backend, tab.details);
                     });
                 }
@@ -585,10 +584,22 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     this.showProgress();
 
                     // Create a new module session and open a DB connection.
-                    const backend = new ShellInterfaceSqlEditor(DBEditorModuleId);
+                    const backend = new ShellInterfaceSqlEditor();
+
+                    const handleOutcome = (success: boolean) => {
+                        if (!success) {
+                            backend.closeSession().then(() => {
+                                resolve(false);
+                            }).catch((reason) => {
+                                reject(reason);
+                            });
+                        } else {
+                            resolve(true);
+                        }
+                    };
 
                     this.setProgressMessage("Starting editor session...");
-                    backend.startSqlEditorSession(id).then(() => {
+                    backend.startSession(id).then(() => {
                         this.setProgressMessage("Session created, opening new connection...");
 
                         // Before opening the connection check the DB file, if this is an sqlite connection.
@@ -597,11 +608,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             backend.validatePath(options.dbFile).then(() => {
                                 void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
                                     .then((success) => {
-                                        if (!success) {
-                                            backend.closeSqlEditorSession();
-                                        }
-
-                                        resolve(true);
+                                        handleOutcome(success);
                                     });
                             }).catch(() => {
                                 // If the path is not ok then we might have to create the DB file first.
@@ -618,11 +625,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         } else {
                             void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
                                 .then((success) => {
-                                    if (!success) {
-                                        backend.closeSqlEditorSession();
-                                    }
-
-                                    resolve(true);
+                                    handleOutcome(success);
                                 });
                         }
                     }).catch((errorEvent: ICommErrorEvent) => {
@@ -1007,7 +1010,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const connectionState = this.connectionState.get(id);
             if (connectionState) {
                 this.connectionState.delete(id);
-                connectionState.backend.closeSqlEditorSession();
+                await connectionState.backend.closeSession();
             }
 
             editorTabs.splice(index, 1);
@@ -1028,7 +1031,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             this.setState({ selectedTab: newSelection, editorTabs });
         }
 
-        return Promise.resolve(true);
+        return true;
     }
 
     /**

@@ -21,25 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { EventType, ListenerEntry } from "../Dispatch";
+import { ListenerEntry } from "../Dispatch";
 import {
-    ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ShellPromptResponseType,
-    ICommObjectNamesEvent,
+    ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
-import { IShellInterface } from ".";
-import { ShellInterfaceMds } from "./ShellInterfaceMds";
-import { ShellInterfaceMrs } from "./ShellInterfaceMrs";
+import { ShellInterfaceDb, ShellInterfaceMds, ShellInterfaceMrs } from ".";
 
-export class ShellInterfaceSqlEditor implements IShellInterface {
+export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
 
     public mds: ShellInterfaceMds = new ShellInterfaceMds();
     public mrs: ShellInterfaceMrs = new ShellInterfaceMrs();
 
-    private moduleSessionLookupId = "";
-
-    public constructor(public moduleName: string) {
+    public get id(): string {
+        return "sqlEditor";
     }
 
     /**
@@ -50,57 +46,58 @@ export class ShellInterfaceSqlEditor implements IShellInterface {
     }
 
     /**
-     * Begins a new session for a specific SQL editor.
+     * Begins a new session for a specific SQL editor. This overrides the underlying DB session handling.
      *
-     * @param connectionId A value identifying the SQL editor.
+     * @param id A value identifying the SQL editor.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the operation was concluded.
      */
-    public startSqlEditorSession(connectionId: string): ListenerEntry {
-        this.moduleSessionLookupId = this.moduleName + "." + connectionId;
-        this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
+    public startSession(id: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.moduleSessionLookupId = this.id + "." + id;
+            this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
 
-        if (this.hasSession) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestSqleditorStartSession();
-        const listener = currentConnection.sendRequest(request, { messageClass: "startModuleSession" });
-
-        listener.then((event: ICommStartSessionEvent): unknown => {
-            if (!event.data) {
-                return;
+            if (this.hasSession) {
+                resolve();
             }
 
-            webSession.setModuleSessionId(this.moduleSessionLookupId, event.data.moduleSessionId);
-        }).catch((event: ICommErrorEvent): unknown => {
-            throw new Error(event.message);
-        });
+            const request = ProtocolGui.getRequestSqleditorStartSession();
+            const listener = currentConnection.sendRequest(request,
+                { messageClass: ShellAPIGui.GuiSqleditorStartSession });
 
-        return listener;
+            listener.then((event: ICommStartSessionEvent) => {
+                if (event.data) {
+                    webSession.setModuleSessionId(this.moduleSessionLookupId, event.data.moduleSessionId);
+
+                    resolve();
+                }
+            }).catch((event: ICommErrorEvent) => {
+                reject(event.message);
+            });
+        });
     }
 
     /**
      * Closes this editor session and all open connections.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the operation was concluded.
      */
-    public closeSqlEditorSession(): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestSqleditorCloseSession(id);
-        const listener = currentConnection.sendRequest(request, { messageClass: "closeModuleSession" });
-
-        listener.then(() => {
-            webSession.setModuleSessionId(this.moduleSessionLookupId);
-        }).catch((event: ICommErrorEvent) => {
-            throw new Error(event.message);
+    public closeSqlEditorSession(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const id = this.moduleSessionId;
+            if (!id) {
+                resolve();
+            } else {
+                const request = ProtocolGui.getRequestSqleditorCloseSession(id);
+                currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorCloseSession })
+                    .then(() => {
+                        webSession.setModuleSessionId(this.moduleSessionLookupId);
+                        resolve();
+                    }).catch((event: ICommErrorEvent) => {
+                        reject(event.message);
+                    });
+            }
         });
-
-        return listener;
     }
 
     /**
@@ -195,293 +192,4 @@ export class ShellInterfaceSqlEditor implements IShellInterface {
         return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorKillQuery });
     }
 
-    /**
-     * Returns the list of available catalog objects.
-     *
-     * @param type Which type of object to retrieve.
-     * @param filter A search filter.
-     *
-     * @returns A listener for the response.
-     */
-    public getCatalogObjects(type: string, filter?: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestDbGetCatalogObjectNames(id, type, filter);
-
-        return currentConnection.sendRequest(request, { messageClass: "getRequestGetCatalogObjectNames" });
-    }
-
-    /**
-     * Returns a list of schema object names (tables, views etc.).
-     *
-     * @param schema The schema for which to retrieve the names.
-     * @param type Which type of object to retrieve.
-     * @param routineType Valid only for routines. Can be either "function" or "procedure".
-     * @param filter A search filter.
-     *
-     * @returns A listener for the response.
-     */
-    public getSchemaObjects(schema: string, type: string, routineType?: string, filter?: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestDbGetSchemaObjectNames(id, type, schema, filter, routineType);
-
-        return currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" });
-    }
-
-    /**
-     * Promisified version of `getSchemaObjects`.
-     *
-     * @param schema The schema for which to retrieve the names.
-     * @param type Which type of object to retrieve.
-     * @param routineType Valid only for routines. Can be either "function" or "procedure".
-     * @param filter A search filter.
-     *
-     * @returns A promise that resolves to a list of object names.
-     */
-    public getSchemaObjectsAsync(schema: string, type: string, routineType?: string,
-        filter?: string): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                resolve([]);
-            } else {
-                const request = ProtocolGui.getRequestDbGetSchemaObjectNames(id, type, schema, filter, routineType);
-
-                const entries: string[] = [];
-                currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" })
-                    .then((event: ICommObjectNamesEvent) => {
-                        switch (event.eventType) {
-                            case EventType.DataResponse:
-                            case EventType.FinalResponse: {
-                                if (event.data) {
-                                    entries.push(...(event.data.result));
-                                }
-
-                                if (event.eventType === EventType.FinalResponse) {
-                                    resolve(entries);
-                                }
-
-                                break;
-                            }
-
-                            default:
-                        }
-                    })
-                    .catch((event) => {
-                        reject("Retrieving schema objects failed: " + String(event.message));
-                    });
-            }
-        });
-    }
-
-    /**
-     * Returns a list of table object names (FKs, triggers etc.).
-     *
-     * @param schema The schema for which to retrieve the names.
-     * @param table The table for which to retrieve the names.
-     * @param type Which type of object to retrieve.
-     * @param filter A search filter.
-     *
-     * @returns A listener for the response.
-     */
-    public getTableObjects(schema: string, table: string, type: string, filter?: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestDbGetTableObjectNames(id, type, schema, table, filter);
-
-        return currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" });
-    }
-
-    /**
-     * Promisified version of `getTableObjects`.
-     *
-     * @param schema The schema for which to retrieve the names.
-     * @param table The table for which to retrieve the names.
-     * @param type Which type of object to retrieve.
-     * @param filter A search filter.
-     *
-     * @returns A promise that resolves to a list of object names.
-     */
-    public getTableObjectsAsync(schema: string, table: string, type: string, filter?: string): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                resolve([]);
-            } else {
-                const request = ProtocolGui.getRequestDbGetTableObjectNames(id, type, schema, table, filter);
-
-                const entries: string[] = [];
-                currentConnection.sendRequest(request, { messageClass: "getRequestGetSchemaObjectNames" })
-                    .then((event: ICommObjectNamesEvent) => {
-                        switch (event.eventType) {
-                            case EventType.DataResponse:
-                            case EventType.FinalResponse: {
-                                if (event.data) {
-                                    entries.push(...(event.data.result));
-                                }
-
-                                if (event.eventType === EventType.FinalResponse) {
-                                    resolve(entries);
-                                }
-
-                                break;
-                            }
-
-                            default:
-                        }
-                    })
-                    .catch((event) => {
-                        reject("Retrieving table objects failed: " + String(event.message));
-                    });
-            }
-        });
-    }
-
-    /**
-     * Returns the list of columns for a specific table.
-     *
-     * @param schema The owning schema of the table.
-     * @param table The table for which to get the columns.
-     *
-     * @returns A listener for the response.
-     */
-    public getSchemaTableColumns(schema: string, table: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestDbGetSchemaObject(id, "Table", schema, table);
-
-        return currentConnection.sendRequest(request, { messageClass: "getSchemaTableColumns" });
-    }
-
-    /**
-     * Sets the auto commit mode for the current connection.
-     * Note: this mode can implicitly be changed by executing certain SQL code (begin, set autocommit, rollback, etc.).
-     *
-     * @param value A flag indicating if the mode should be enabled or disabled.
-     *
-     * @returns A listener for the response.
-     */
-    public setAutoCommit(value: boolean): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestSqleditorSetAutoCommit(id, value);
-
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetAutoCommit });
-    }
-
-    /**
-     * Returns the current auto commit mode, if supported.
-     *
-     * @returns A listener for the response.
-     */
-    public getAutoCommit(): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestSqleditorGetAutoCommit(id);
-
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetAutoCommit });
-    }
-
-    /**
-     * Checks if the given path is valid and points to an existing file.
-     *
-     * @param path The path to check.
-     *
-     * @returns A listener for the response.
-     */
-    public validatePath(path: string): ListenerEntry {
-        const request = ProtocolGui.getRequestCoreValidatePath(path);
-
-        return currentConnection.sendRequest(request, { messageClass: "validatePath" });
-    }
-
-    /**
-     * Creates the database file for an sqlite3 connection. The file must not exist yet.
-     *
-     * @param path The path to the file to create.
-     *
-     * @returns A listener for the response.
-     */
-    public createDatabaseFile(path: string): ListenerEntry {
-        const request = ProtocolGui.getRequestCoreCreateFile(path);
-
-        return currentConnection.sendRequest(request, { messageClass: "createDbFile" });
-    }
-
-    /**
-     * Returns the current default schema, if supported.
-     *
-     * @returns A listener for the response.
-     */
-    public getCurrentSchema(): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestSqleditorGetCurrentSchema(id);
-
-        return currentConnection.sendRequest(request, { messageClass: "getCurrentSchema" });
-    }
-
-    /**
-     * Sets the current default schema, if supported.
-     *
-     * @param schema The schema to set as the default.
-     *
-     * @returns A listener for the response.
-     */
-    public setCurrentSchema(schema: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestSqleditorSetCurrentSchema(id, schema);
-
-        return currentConnection.sendRequest(request, { messageClass: "setCurrentSchema" });
-    }
-
-    /**
-     * Sends a reply from the user back to the backend (e.g. passwords, choices etc.).
-     *
-     * @param requestId The same request ID that was used to request input from the user.
-     * @param type Indicates if the user accepted the request or cancelled it.
-     * @param reply The reply from the user.
-     *
-     * @returns A listener for the response.
-     */
-    public sendReply(requestId: string, type: ShellPromptResponseType, reply: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestPromptReply(requestId, type, reply, id);
-
-        return currentConnection.sendRequest(request, { messageClass: "sendReply" });
-    }
-
-    private get moduleSessionId(): string | undefined {
-        return webSession.moduleSessionId(this.moduleSessionLookupId);
-    }
 }
