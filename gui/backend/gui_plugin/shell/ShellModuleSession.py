@@ -38,6 +38,7 @@ import gui_plugin.core.Error as Error
 import os.path
 from gui_plugin.core.lib.OciUtils import BastionHandler
 
+
 def remove_dict_useless_items(data):
     result = {}
     # remove empty entries
@@ -87,6 +88,12 @@ class ShellCommandTask(CommandTask):
         self.dispatch_result("CANCELLED")
 
 
+class ShellQuitTask(ShellCommandTask):
+    def __init__(self, request_id=None, params=None, result_queue=None, result_callback=None, options=None):
+        super().__init__(request_id, {"execute": "\\quit"},
+                         params, result_queue, result_callback, options)
+
+
 class ShellModuleSession(ModuleSession):
     def __init__(self, web_session, request_id, options=None, shell_args=None):
         super().__init__(web_session)
@@ -95,7 +102,7 @@ class ShellModuleSession(ModuleSession):
 
         # Symlinks the plugins on the master shell as we want them available
         # on the Shell Console
-        self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir( # pylint: disable=no-member
+        self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir(  # pylint: disable=no-member
             'plugin_data', 'gui_plugin', 'shell_instance_home')
         if not os.path.exists(self._subprocess_home):
             os.makedirs(self._subprocess_home)
@@ -278,8 +285,7 @@ class ShellModuleSession(ModuleSession):
 
     def close(self):
         # do cleanup,  a \q to terminate the shell, overriding the command black list
-        self._request_queue.put(ShellCommandTask(
-            request_id=None, command=json.dumps({"command": "\\quit"}),
+        self._request_queue.put(ShellQuitTask(
             result_callback=self.terminate_complete, options=None))
 
         self._terminate_complete.wait()
@@ -414,18 +420,17 @@ class ShellModuleSession(ModuleSession):
                                 self._pending_request.send_output(reply_json)
             elif reply_line == "Bye!":
                 self._shell_exited = True
-                self._pending_request.complete()    # This will call self._terminate_complete
-                self._command_complete.set()
             else:
                 # Some shell errors are not reported as JSON, i.e. initialization errors
                 error_buffer += reply_line
 
             reply_line = ''
 
-        # A pending request is expected to be present in 2 cases:
+        # A pending request is expected to be present in 3 cases:
         # - When the initialization of the session failed
         # - When a CLI call was done
-        if self._pending_request:
+        # - When the Shell session is closed
+        if not self._pending_request is None:
             exit_status = None
             attempts = 3
             while exit_status is None and attempts > 0:
@@ -441,8 +446,11 @@ class ShellModuleSession(ModuleSession):
                 self._pending_request.complete(
                     data={"exit_status": exit_status})
 
-            # Finally closes the module session
-            self.close()
+            self._command_complete.set()
+
+            # Finally closes the module session if not already being closed
+            if not isinstance(self._pending_request, ShellQuitTask):
+                self.close()
 
         # On error conditions no processing will take place, still the frontend handler thread is waiting, we need to let it go
         self._shell_exited = True
@@ -473,7 +481,7 @@ class ShellModuleSession(ModuleSession):
     def kill_command(self):
         # windows. Need CTRL_BREAK_EVENT to raise the signal in the whole process group
         os.kill(self._shell.pid,
-                signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT) # pylint: disable=no-member
+                signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)  # pylint: disable=no-member
 
     def cancel_request(self, request_id):
         self._cancel_requests.append(request_id)
