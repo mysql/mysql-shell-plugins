@@ -25,7 +25,6 @@ import "./CodeEditor.css";
 
 import { SymbolTable } from "antlr4-c3";
 import React from "react";
-import MonacoEditor from "react-monaco-editor";
 
 import {
     ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextsState, KeyCode, KeyMod,
@@ -176,7 +175,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
     private static monacoConfigured = false;
 
-    private editorRef = React.createRef<MonacoEditor>();
+    private hostRef = React.createRef<HTMLDivElement>();
+    private editor: Monaco.IStandaloneCodeEditor | undefined;
 
     // Set when a new execution context is being added. Requires special handling in the change event.
     private addingNewContext = false;
@@ -187,7 +187,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
     // Automatic re-layout on host resize.
     private resizeObserver?: ResizeObserver;
-    private hostRef = React.createRef<HTMLDivElement>();
 
     // All allocated event handlers that must be explicitly disposed off.
     private disposables: IDisposable[] = [];
@@ -322,39 +321,114 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     }
 
     public componentDidMount(): void {
-        const { language, initialContent, state, autoFocus, createResultPresentation } = this.mergedProps;
-
-        const editor = this.backend;
-        let createDefaultModel = true;
-        if (state) {
-            if (!state.model.isDisposed()) {
-                editor?.setModel(state.model);
-                createDefaultModel = false;
-            }
-
-            if (state.viewState) {
-                editor?.restoreViewState(state.viewState);
-            }
+        if (!this.hostRef.current) {
+            return;
         }
 
-        if (createDefaultModel) {
-            // No model was given.
-            const defaultModel = Monaco.createModel(initialContent ?? "", language) as ICodeEditorModel;
-            defaultModel.executionContexts =
+        const {
+            language, initialContent, state, autoFocus, createResultPresentation,
+            readonly, minimap, detectLinks, suggest, showIndentGuides, renderLineHighlight, useTabStops,
+            font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap,
+        } = this.mergedProps;
+
+        const className = this.getEffectiveClassNames([
+            "codeEditor",
+            `decorationSet-${settings.get("editor.theming.decorationSet", "standard")}`,
+        ]);
+
+        const showHidden = settings.get("editor.showHidden", false);
+        const wordWrap = allowSoftWrap
+            ? settings.get("editor.wordWrap", "off") as ("on" | "off" | "wordWrapColumn" | "bounded")
+            : "off";
+        const wordWrapColumn = settings.get("editor.wordWrapColumn", 120);
+
+        const combinedLanguage = language === "msg";
+        const guides: Monaco.IGuidesOptions = {
+            indentation: showIndentGuides,
+        };
+
+        const showMinimap = settings.get("editor.showMinimap", true);
+        const effectiveMinimapSettings = minimap ?? {
+            enabled: true,
+        };
+        effectiveMinimapSettings.enabled = showMinimap;
+
+        let model: ICodeEditorModel;
+        if (state && !state.model.isDisposed()) {
+            model = state.model;
+        } else {
+            model = Monaco.createModel(initialContent ?? "", language) as ICodeEditorModel;
+            model.executionContexts =
                 new ExecutionContexts(undefined, settings.get("editor.dbVersion", 80024),
                     settings.get("editor.sqlMode", ""), "");
-            defaultModel.symbols = new SymbolTable("default", { allowDuplicateSymbols: true });
-            editor?.setModel(defaultModel);
+            model.symbols = new SymbolTable("default", { allowDuplicateSymbols: true });
         }
 
-        this.editorRef.current?.editor?.layout();
+        const options: Monaco.IStandaloneEditorConstructionOptions = {
+            extraEditorClassName: className,
+            rulers: [],
+            cursorSurroundingLines: 2,
+            readOnly: readonly,
+            minimap: effectiveMinimapSettings,
+            find: {
+                seedSearchStringFromSelection: "selection",
+                autoFindInSelection: "never",
+                addExtraSpaceOnTop: false,
+            },
+            cursorSmoothCaretAnimation: false,
+            fontLigatures: true,
+            wordWrap,
+            wordWrapColumn,
+            wrappingIndent: "indent",
+            wrappingStrategy: "advanced",
+            hover: {
+                enabled: true,
+            },
+            links: detectLinks,
+            colorDecorators: true,
+            contextmenu: model?.editorMode !== CodeEditorMode.Terminal,
+            suggest,
+            emptySelectionClipboard: false,
+            copyWithSyntaxHighlighting: true,
+            codeLens: !combinedLanguage,
+            folding: !combinedLanguage,
+            foldingStrategy: "auto",
+            glyphMargin: !combinedLanguage,
+            showFoldingControls: "always",
+            lightbulb: { enabled: false },
+            renderWhitespace: showHidden ? "all" : "none",
+            renderControlCharacters: showHidden,
+            guides,
+            renderLineHighlight,
+            useTabStops,
+            fontFamily: font?.fontFamily,
+            fontWeight: font?.fontWeight,
+            fontSize: font?.fontSize,
+            lineHeight: font?.lineHeight,
+            letterSpacing: font?.letterSpacing,
+            showUnused: true,
+            scrollbar,
+            lineNumbers,
+            scrollBeyondLastLine: false, //true,
+            lineDecorationsWidth: lineDecorationsWidth ?? (combinedLanguage ? 49 : 20),
+
+            model,
+            //suggestFontSize: 12,
+        };
+
+        this.editor = Monaco.create(this.hostRef.current, options);
+
+        if (state?.viewState) {
+            this.editor.restoreViewState(state.viewState);
+        }
+
+        this.editor.layout();
         if (autoFocus) {
-            this.editorRef.current?.editor?.focus();
+            this.editor.focus();
         }
 
         this.resizeObserver?.observe(this.hostRef.current as Element);
 
-        const model = this.model;
         if (model) {
             if (state && state.contextStates && state.contextStates.length > 0 && createResultPresentation) {
                 model.executionContexts.restoreFromState(this, createResultPresentation, state.contextStates);
@@ -368,9 +442,9 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         }
 
         this.prepareUse();
-        if (editor && state?.viewState) {
+        if (state?.viewState) {
             const position = state.viewState.viewState.firstPosition.lineNumber ?? 0;
-            editor.revealLineNearTop(position, Monaco.ScrollType.Immediate);
+            this.editor.revealLineNearTop(position, Monaco.ScrollType.Immediate);
         }
 
         requisitions.register("settingsChanged", this.handleSettingsChanged);
@@ -455,106 +529,20 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             }
         }
 
-        this.editorRef.current?.editor?.layout();
+        this.editor?.layout();
         Monaco.remeasureFonts();
 
         if (autoFocus) {
-            this.editorRef.current?.editor?.focus();
+            this.editor?.focus();
         }
     }
 
     public render(): React.ReactNode {
-        const {
-            readonly, minimap, detectLinks, suggest, language, showIndentGuides, renderLineHighlight, useTabStops,
-            font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap,
-        } = this.mergedProps;
-
-        const className = this.getEffectiveClassNames([
-            "codeEditor",
-            `decorationSet-${settings.get("editor.theming.decorationSet", "standard")}`,
-        ]);
-
-        const showHidden = settings.get("editor.showHidden", false);
-        const wordWrap = allowSoftWrap
-            ? settings.get("editor.wordWrap", "off") as ("on" | "off" | "wordWrapColumn" | "bounded")
-            : "off";
-        const wordWrapColumn = settings.get("editor.wordWrapColumn", 120);
-
-        const model = this.model;
-        const combinedLanguage = language === "msg";
-        const guides: Monaco.IGuidesOptions = {
-            indentation: showIndentGuides,
-        };
-
-        const showMinimap = settings.get("editor.showMinimap", true);
-        const effectiveMinimapSettings = minimap ?? {
-            enabled: true,
-        };
-        effectiveMinimapSettings.enabled = showMinimap;
-
-        const opts: Monaco.IEditorConstructionOptions = {
-            extraEditorClassName: className,
-            rulers: [],
-            cursorSurroundingLines: 2,
-            readOnly: readonly,
-            minimap: effectiveMinimapSettings,
-            find: {
-                seedSearchStringFromSelection: "selection",
-                autoFindInSelection: "never",
-                addExtraSpaceOnTop: false,
-            },
-            cursorSmoothCaretAnimation: false,
-            fontLigatures: true,
-            wordWrap,
-            wordWrapColumn,
-            wrappingIndent: "indent",
-            wrappingStrategy: "advanced",
-            hover: {
-                enabled: true,
-            },
-            links: detectLinks,
-            colorDecorators: true,
-            contextmenu: model?.editorMode !== CodeEditorMode.Terminal,
-            suggest,
-            emptySelectionClipboard: false,
-            copyWithSyntaxHighlighting: true,
-            codeLens: !combinedLanguage,
-            folding: !combinedLanguage,
-            foldingStrategy: "auto",
-            glyphMargin: !combinedLanguage,
-            showFoldingControls: "always",
-            lightbulb: { enabled: false },
-            renderWhitespace: showHidden ? "all" : "none",
-            renderControlCharacters: showHidden,
-            guides,
-            renderLineHighlight,
-            useTabStops,
-            fontFamily: font?.fontFamily,
-            fontWeight: font?.fontWeight,
-            fontSize: font?.fontSize,
-            lineHeight: font?.lineHeight,
-            letterSpacing: font?.letterSpacing,
-            showUnused: true,
-            scrollbar,
-            lineNumbers,
-            scrollBeyondLastLine: false, //true,
-            lineDecorationsWidth: lineDecorationsWidth ?? (combinedLanguage ? 49 : 20),
-
-            //suggestFontSize: 12,
-        };
-
         return (
             <div
                 className="msg editorHost"
                 ref={this.hostRef}
-            >
-                <MonacoEditor
-                    ref={this.editorRef}
-                    language={language}
-                    options={opts}
-                    {...this.unhandledProperties}
-                />
-            </div>
+            />
         );
     }
 
@@ -566,9 +554,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     };
 
     public focus(): void {
-        if (this.editorRef.current) {
-            this.editorRef.current.editor?.focus();
-        }
+        this.editor?.focus();
     }
 
     public get options(): ICodeEditorOptions {
@@ -753,7 +739,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
      * @returns The underlying monaco editor interface.
      */
     public get backend(): Monaco.IStandaloneCodeEditor | undefined {
-        return this.editorRef.current?.editor;
+        return this.editor;
     }
 
     public get content(): string {
@@ -1086,17 +1072,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         this.scanForLanguageSwitches(range);
     };
 
-    private get model(): ICodeEditorModel | undefined {
-        if (this.editorRef.current && this.editorRef.current.editor) {
-            const model = this.editorRef.current.editor.getModel();
-            if (model === null) {
-                return undefined;
-            }
-
-            return model as ICodeEditorModel;
-        }
-
-        return undefined;
+    private get model(): ICodeEditorModel | null {
+        return this.editor?.getModel() as ICodeEditorModel;
     }
 
     /**
@@ -1418,7 +1395,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     private handleEditorResize = (entries: readonly ResizeObserverEntry[]): void => {
         if (entries.length > 0) {
             const rect = entries[0].contentRect;
-            this.editorRef.current?.editor?.layout({ width: rect.width, height: rect.height });
+            this.editor?.layout({ width: rect.width, height: rect.height });
         }
     };
 
