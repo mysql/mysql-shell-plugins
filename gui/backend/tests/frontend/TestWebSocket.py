@@ -169,13 +169,14 @@ class ObjectEncoder(json.JSONEncoder):
 class TWebSocket:
     '''Web Socket Wrapper with the API required to test user stories'''
 
-    def __init__(self, token=None, logger=None):
+    def __init__(self, token=None, logger=None, script_reader=read_script):
         # Cleanup the user table
         self._last_module_session_id = None
         self.token = token
         self.ws, self.session_id = connect_and_get_session(token=token)
         self.logger = logger
         self.validation_trace = []
+        self._script_reader = script_reader
 
         temp_dir = tempfile.mkdtemp()
         command = sys.executable if sys.executable else "mysqlsh"
@@ -238,7 +239,7 @@ class TWebSocket:
     def lastResponse(self):
         return self._last_response
 
-    
+
     def validateResponse(self,actual, expected):
         self.validation_trace.clear()
         self._validateResponse(actual, expected)
@@ -368,15 +369,15 @@ class TWebSocket:
         pre_script = None
         post_script = None
         try:
-            pre_script = read_script(story[:-3] + ".pre")
+            pre_script = self._script_reader(story[:-3] + ".pre")
         except:
             pass
         try:
-            post_script = read_script(story[:-3] + ".post")
+            post_script = self._script_reader(story[:-3] + ".post")
         except:
             pass
 
-        script = self.pythonize_script(read_script(story))
+        script = self.pythonize_script(self._script_reader(story))
 
         ws = self  # pylint: disable=unused-variable
 
@@ -385,7 +386,7 @@ class TWebSocket:
             exec(pre_script)
             self._story_stack = self._story_stack[:-1]
 
-        script = self.pythonize_script(read_script(story))
+        script = self.pythonize_script(self._script_reader(story))
 
         self._story_stack.append(story)
         exec(script)
