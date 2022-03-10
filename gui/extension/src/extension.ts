@@ -55,9 +55,9 @@ let host: ExtensionHost;
 const extensionShellUserConfigFolderBaseName = "mysqlsh-gui";
 
 // Dialog Messages
-const restartMessage = "This will close all MySQL Shell tabs and restart the underlying process. " +
-    "After that a new connection will automatically be established.";
-const resetMessage = "This will completely reset the MySQL Shell for VS Code extension by deleting the " +
+const restartMessage = "This action closes all MySQL Shell tabs and restarts the underlying process. " +
+    "Then, a new connection is established automatically.";
+const resetMessage = "This action completely resets the MySQL Shell for VS Code extension by deleting the " +
     "web certificate and user settings directory.";
 const resetRestartMessage = "The MySQL Shell for VS Code extension has been reset. Please restart VS Code " +
     "to initialize the extension again or remove it from the Extensions View Container.";
