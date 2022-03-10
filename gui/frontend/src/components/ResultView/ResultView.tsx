@@ -134,6 +134,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
             horizontalGridLines: true,
             alternatingRowBackgrounds: false,
             selectionType: SelectionType.Multi,
+            resizableRows: true,
         };
 
         const gotError = executionInfo && executionInfo.type === MessageType.Error;

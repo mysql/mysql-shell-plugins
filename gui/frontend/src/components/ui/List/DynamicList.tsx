@@ -24,18 +24,18 @@
 import "./List.css";
 
 import React from "react";
-import { FixedSizeList, VariableSizeList } from "react-window";
+import { render } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
-import { DynamicItemSizeFunction } from "..";
+import { Component, IComponentProperties, IComponentState, SelectionType } from "../Component/Component";
 import { IDictionary } from "../../../app-logic/Types";
+import { ITreeGridOptions, Tabulator, TreeGrid } from "../TreeGrid/TreeGrid";
 
 export interface IDynamicListProperties extends IComponentProperties {
     // This control requires a fixed height.
     height: number;
 
     // The height of an item. Can be a number size all items the same, or a callback to compute individual heights.
-    rowHeight: number | DynamicItemSizeFunction;
+    rowHeight?: number;
 
     // The UI structure to render for each element.
     template: React.ReactElement;
@@ -44,56 +44,103 @@ export interface IDynamicListProperties extends IComponentProperties {
     elements: IDictionary[];
 }
 
-interface IListChildComponentProps extends IComponentProperties {
-    index: number;
-    style: object;
+interface IDynamicListState extends IComponentState {
+    columnField: string;
 }
+
 
 // This list is virtual, which means items are only rendered when in view. That allows for million of entries.
 // However, this list uses absolute positioning for the items and can therefore not be used for ul/ol.
-export class DynamicList extends Component<IDynamicListProperties> {
-
-    public static defaultProps = {
-    };
+export class DynamicList extends Component<IDynamicListProperties, IDynamicListState> {
 
     public constructor(props: IDynamicListProperties) {
         super(props);
 
+        this.state = {
+            columnField: this.columnField,
+        };
+
         this.addHandledProperties("height", "rowHeight", "template", "elements");
     }
 
-    public render(): React.ReactNode {
-        const { id, height, rowHeight, template, elements } = this.mergedProps;
+    public componentDidUpdate(prevProps: IDynamicListProperties): void {
+        const { elements } = this.mergedProps;
 
-        const baseId = id ?? "dynamicList";
+        // Note: we only do simple checks here. If the data changed in place no re-rendering will happen!
+        if (prevProps.elements !== elements || prevProps.elements.length !== elements.length) {
+            this.setState({ columnField: this.columnField });
+        }
+    }
+
+    public render(): React.ReactNode {
+        const { height, elements } = this.mergedProps;
+        const { columnField } = this.state;
+
         const className = this.getEffectiveClassNames(["dynamicList"]);
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-        const ListType: any = (typeof rowHeight === "number") ? FixedSizeList : VariableSizeList;
+        const columns: Tabulator.ColumnDefinition[] = [{
+            title: "",
+            field: columnField,
+            formatter: this.cellFormatter,
+        }];
+
+        const options: ITreeGridOptions = {
+            layout: "fitColumns",
+            verticalGridLines: false,
+            horizontalGridLines: false,
+            alternatingRowBackgrounds: false,
+            selectionType: SelectionType.Highlight,
+            showHeader: false,
+        };
 
         return (
-            <ListType
+            <TreeGrid
                 height={height}
-                itemCount={elements.length}
-                itemSize={rowHeight}
                 className={className}
-                innerElementType={this.renderAs()}
-                overscanCount={3}
+                tableData={elements}
+                columns={columns}
+                options={options}
                 {...this.unhandledProperties}
-            >
-                {({ index, style }: IListChildComponentProps): React.ReactElement => {
-                    const elementId = elements[index].id ?? `${baseId}${index}`;
-
-                    return React.cloneElement(template, {
-                        id: elementId,
-                        key: elementId as string,
-                        data: elements[index % elements.length],
-                        tabIndex: 0,
-                        style,
-                    });
-                }}
-            </ListType>
+            />
         );
     }
 
+    private cellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+        const { template, rowHeight } = this.mergedProps;
+        const { columnField } = this.state;
+
+        const host = document.createElement("div");
+        host.classList.add("dynamicListEntry");
+        if (rowHeight) {
+            host.style.height = `${rowHeight}px`;
+        }
+
+        const element = React.cloneElement(template, {
+            data: { [columnField]: cell.getValue() },
+            tabIndex: 0,
+        });
+
+        render(element, host);
+
+        return host;
+    };
+
+    /**
+     * Determines the field ID to be used for column, to create an association between that and the data.
+     *
+     * @returns A string which can be used for the column field.
+     */
+    private get columnField(): string {
+        const { elements } = this.mergedProps;
+
+        // Take the column field id from the first element entry. All entries must have the same structure.
+        if (elements.length > 0) {
+            const keys = Object.keys(elements[0]);
+            if (keys.length > 0) {
+                return keys[0];
+            }
+        }
+
+        return "data";
+    }
 }

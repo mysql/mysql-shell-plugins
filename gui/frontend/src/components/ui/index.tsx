@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,8 +24,6 @@
 import React from "react";
 
 import { ICodeEditorOptions } from "./CodeEditor";
-
-export type DynamicItemSizeFunction = (index: number) => number;
 
 export const defaultEditorOptions: ICodeEditorOptions = {
     tabSize: 4,
@@ -54,7 +52,6 @@ export * from "./Portal/Portal";
 
 export * from "./Grid/Grid";
 export * from "./Grid/GridCell";
-export * from "./Grid/DynamicGrid";
 
 export * from "./Label/Label";
 export * from "./Input/Input";

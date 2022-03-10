@@ -25,7 +25,7 @@ import "./TreeGrid.css";
 
 import {
     Tabulator, DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
-    ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule,
+    ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule, ResizeRowsModule,
 } from "tabulator-tables";
 
 import React from "react";
@@ -75,10 +75,11 @@ export interface ITreeGridOptions {
     // Used to expand specific levels in the tree on first display.
     expandedLevels?: boolean[];
 
+    resizableRows?: boolean;
 }
 
 export interface ITreeGridProperties extends IComponentProperties {
-    height?: number;
+    height?: string | number;
     columns: Tabulator.ColumnDefinition[];
 
     // A list of objects each with a member for each column.
@@ -134,7 +135,8 @@ export class TreeGrid extends Component<ITreeGridProperties> {
 
     public static initialize(): void {
         Tabulator.registerModule([DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
-            ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule]);
+            ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule,
+            ResizeRowsModule]);
     }
 
     public componentDidMount(): void {
@@ -251,7 +253,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
      */
     private get tabulatorOptions(): Tabulator.Options {
         const {
-            columns, tableData, options, rowContextMenu, isRowExpanded, onFormatRow,
+            height = "100%", columns, tableData, options, rowContextMenu, isRowExpanded, onFormatRow,
         } = this.mergedProps;
 
         let selectable: number | boolean | "highlight";
@@ -301,12 +303,13 @@ export class TreeGrid extends Component<ITreeGridProperties> {
 
             rowContextMenu,
 
-            autoResize: true,
+            autoResize: false,
             layoutColumnsOnNewData: options?.layoutColumnsOnNewData,
+            resizableRows: options?.resizableRows,
 
             // We have to set a fixed height to enable the virtual DOM in Tabulator. However this is a severe
             // limitation in flex box layouts, which need extra counter measures.
-            height: "100%",
+            height,
         };
 
         // Tabulator is not consistent when dealing with missing callback functions. In some situations it tests for

@@ -42,7 +42,7 @@
     position: relative;
     width: 16px;
     height: 16px;
-    margin: 0 4px 0 2px;
+    margin: 0 8px 0 2px;
 
     background-color: var(--checkbox-background);
     border: 1px solid var(--checkbox-border);

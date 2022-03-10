@@ -100,7 +100,7 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
                 className={className}
                 caption={
                     <>
-                        <Icon src={Codicon.Briefcase} />
+                        <Icon src={Codicon.Question} />
                         <Label>{caption}</Label>
                     </>
                 }

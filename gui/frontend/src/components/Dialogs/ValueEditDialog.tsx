@@ -674,6 +674,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                             id={entry.key}
                             key={entry.key}
                             dataId="data"
+                            className="stretch"
                             checkState={CheckState.Unchecked}
                             onChange={this.checkboxChange}>
                         </Checkbox>
@@ -683,7 +684,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 result.push(<DynamicList
                     id={entry.key}
                     key={entry.key}
-                    height={100}
+                    height={150}
                     rowHeight={29}
                     template={containerListEntry}
                     elements={entry.value.list}
