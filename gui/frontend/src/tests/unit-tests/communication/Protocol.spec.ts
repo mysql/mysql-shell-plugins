@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -39,7 +39,17 @@ describe("ProtocolGui file tests", (): void => {
     };
 
     const testStandardFieldsWithSession = (result: IShellRequest, command: unknown, args: object): void => {
-        testStandardFields(result, command, { ...args, module_session_id: moduleSessionId});
+        testStandardFields(result, command, { ...args, module_session_id: moduleSessionId });
+    };
+
+    const testStandardFieldsWithKwArgs = (result: IShellRequest, command: unknown, kwargs: unknown): void => {
+        // Note: in setupTests.ts a function is defined for crypt.getRandomValues(), which is used to generate
+        //       uuids. This way we can generate the same UUID all the time.
+        expect(result.request_id).toEqual("98888888-9888-4888-0888-988888888888");
+        expect(result.request).toEqual("execute");
+        expect(result.args).toEqual({});
+        expect(result.kwargs).toEqual(kwargs);
+        expect(result.command).toEqual(command);
     };
 
     it("Test Base Requests", () => {
@@ -98,6 +108,24 @@ describe("ProtocolGui file tests", (): void => {
 
         result = ProtocolGui.getRequestUsersGetGuiModuleList(123);
         testStandardFields(result, ShellAPIGui.GuiUsersGetGuiModuleList, { user_id: 123 });
+
+        result = ProtocolGui.getRequestCoreIsShellWebCertificateInstalled();
+        testStandardFieldsWithKwArgs(result, ShellAPIGui.GuiCoreIsShellWebCertificateInstalled, undefined);
+
+        result = ProtocolGui.getRequestCoreIsShellWebCertificateInstalled({});
+        testStandardFieldsWithKwArgs(result, ShellAPIGui.GuiCoreIsShellWebCertificateInstalled, {});
+
+        result = ProtocolGui.getRequestCoreIsShellWebCertificateInstalled({ checkKeychain: false });
+        testStandardFieldsWithKwArgs(result, ShellAPIGui.GuiCoreIsShellWebCertificateInstalled,
+            { check_keychain: false });
+
+        result = ProtocolGui.getRequestCoreInstallShellWebCertificate();
+        testStandardFieldsWithKwArgs(result, ShellAPIGui.GuiCoreInstallShellWebCertificate, undefined);
+
+        result = ProtocolGui.getRequestCoreInstallShellWebCertificate({ keychain: true, replaceExisting: false });
+        testStandardFieldsWithKwArgs(result, ShellAPIGui.GuiCoreInstallShellWebCertificate,
+            { keychain: true, replace_existing: false });
+
     });
 
     it("Test connection requests", () => {
@@ -240,7 +268,7 @@ describe("ProtocolGui file tests", (): void => {
         testStandardFieldsWithSession(result, ShellAPIGui.GuiDbGetCatalogObjectNames, { type: "Schema", filter: "%" });
 
         result = ProtocolGui.getRequestDbGetSchemaObjectNames(moduleSessionId, "Table", "sakila");
-        testStandardFieldsWithSession(result, ShellAPIGui.GuiDbGetSchemaObjectNames,  {
+        testStandardFieldsWithSession(result, ShellAPIGui.GuiDbGetSchemaObjectNames, {
             schema_name: "sakila",
             filter: "%",
             type: "Table",
@@ -380,8 +408,23 @@ describe("ProtocolGui file tests", (): void => {
         testStandardFieldsWithSession(result, ShellAPIGui.GuiDbGetSchemaObject, {
             type: "camel",
             schema_name: "sakila",
-            name:"my.camel",
+            name: "my.camel",
         });
+    });
+
+    it("Test logger requests", () => {
+        let result = ProtocolGui.getRequestCoreSetLogLevel();
+        testStandardFields(result, ShellAPIGui.GuiCoreSetLogLevel, { log_level: "INFO" });
+
+        result = ProtocolGui.getRequestCoreGetLogLevel();
+        testStandardFields(result, ShellAPIGui.GuiCoreGetLogLevel, {});
+
+        result = ProtocolGui.getRequestCoreSetLogLevel("NONE");
+        testStandardFields(result, ShellAPIGui.GuiCoreSetLogLevel, { log_level: "NONE" });
+
+        result = ProtocolGui.getRequestCoreSetLogLevel("ERROR");
+        testStandardFields(result, ShellAPIGui.GuiCoreSetLogLevel, { log_level: "ERROR" });
+
     });
 
 });

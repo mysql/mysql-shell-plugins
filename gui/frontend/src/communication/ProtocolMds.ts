@@ -30,6 +30,7 @@ export enum ShellAPIMds {
     //  Begin auto generated API names
     MdsGetRegions = "mds.get.regions",
     MdsListConfigProfiles = "mds.list.config_profiles",
+    MdsSetDefaultConfigProfile = "mds.set.default_config_profile",
     MdsGetDefaultConfigProfile = "mds.get.default_config_profile",
     MdsSetCurrentCompartment = "mds.set.current_compartment",
     MdsGetCurrentCompartmentId = "mds.get.current_compartment_id",
@@ -507,6 +508,27 @@ export class ProtocolMds extends Protocol {
             {
                 args: {},
                 kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Sets the default profile
+     *
+     * @param profileName The name of the profile currently in use
+     * @param configFileLocation The location of the OCI config file
+     * @param cliRcFileLocation The location of the OCI CLI config file
+     *
+     * @returns None
+     */
+    public static getRequestSetDefaultConfigProfile(profileName?: string, configFileLocation = "~/.oci/config", cliRcFileLocation = "~/.oci/oci_cli_rc"): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsSetDefaultConfigProfile,
+            {
+                args: {
+                    profile_name: profileName,
+                    config_file_location: configFileLocation,
+                    cli_rc_file_location: cliRcFileLocation,
+                },
             });
     }
 

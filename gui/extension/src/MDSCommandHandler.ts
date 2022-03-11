@@ -130,6 +130,23 @@ export class MDSCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.mds.setDefaultProfile",
+            (item?: OciConfigProfileTreeItem) => {
+                if (item && item.profile.profile) {
+                    window.setStatusBarMessage(`Setting current config profile to ${item.profile.profile} ...`, 10000);
+                    this.shellSession.mds.setDefaultConfigProfile(
+                        item.profile.profile).then((event: IDispatchDefaultEvent) => {
+                        if (event.eventType === EventType.FinalResponse) {
+                            void commands.executeCommand("msg.mds.refreshOciProfiles");
+                            window.setStatusBarMessage(`Default config profile set to ${item.profile.profile}.`, 5000);
+                        }
+                    }).catch((errorEvent: ICommErrorEvent): void => {
+                        void window.showErrorMessage(`Error while setting default config profile: ` +
+                        `${errorEvent.message ?? "<unknown>"}`);
+                    });
+                }
+            }));
+
         context.subscriptions.push(commands.registerCommand("msg.mds.getCompartmentInfo",
             (item?: OciCompartmentTreeItem) => {
                 if (item && item.compartment.id) {

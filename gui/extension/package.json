@@ -544,6 +544,10 @@
                 "title": "View Config Profile Information"
             },
             {
+                "command": "msg.mds.setDefaultProfile",
+                "title": "Set as New Default Config Profile"
+            },
+            {
                 "command": "msg.mds.getCompartmentInfo",
                 "title": "View Compartment Information"
             },
@@ -865,6 +869,11 @@
                     "command": "msg.mds.getProfileInfo",
                     "when": "view == msg.oci && viewItem == mdsConfigProfile",
                     "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.setDefaultProfile",
+                    "when": "view == msg.oci && viewItem == mdsConfigProfile",
+                    "group": "2_msg@1"
                 },
                 {
                     "command": "msg.mds.getCompartmentInfo",

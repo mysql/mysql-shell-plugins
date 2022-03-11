@@ -127,6 +127,8 @@ export enum ShellAPIGui {
     GuiDbCloseSession = "gui.db.close_session",
     GuiDbOpenConnection = "gui.db.open_connection",
     GuiDbReconnect = "gui.db.reconnect",
+    GuiInfo = "gui.info",
+    GuiVersion = "gui.version",
     //  End auto generated API names
 }
 
@@ -2004,6 +2006,32 @@ export class ProtocolGui extends Protocol {
                 args: {
                     module_session_id: moduleSessionId,
                 },
+            });
+    }
+
+    /**
+     * Returns basic information about this plugin.
+     *
+     * @returns str
+     */
+    public static getRequestInfo(): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiInfo,
+            {
+                args: {},
+            });
+    }
+
+    /**
+     * Returns the version number of the plugin
+     *
+     * @returns str
+     */
+    public static getRequestVersion(): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiVersion,
+            {
+                args: {},
             });
     }
 

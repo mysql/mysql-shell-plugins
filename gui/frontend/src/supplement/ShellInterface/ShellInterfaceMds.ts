@@ -34,6 +34,12 @@ export class ShellInterfaceMds {
         return currentConnection.sendRequest(request, { messageClass: "getMdsConfigProfiles" });
     }
 
+    public setDefaultConfigProfile(profile: string): ListenerEntry {
+        const request = ProtocolMds.getRequestSetDefaultConfigProfile(profile);
+
+        return currentConnection.sendRequest(request, { messageClass: "setMdsDefaultConfigProfile" });
+    }
+
     public getMdsCompartments(configProfile: string, compartmentId?: string): ListenerEntry {
         const request = ProtocolMds.getRequestListCompartments({ configProfile, compartmentId });
 

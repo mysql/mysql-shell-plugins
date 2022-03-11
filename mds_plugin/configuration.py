@@ -1008,7 +1008,7 @@ def set_current_profile(profile_name=None, config_file_path="~/.oci/config",
                                     config_file_path=config_file_path)
 
 
-@plugin_function('mds.set.defaultConfigProfile')
+@plugin_function('mds.set.defaultConfigProfile', cli=True, web=True)
 def set_default_profile(profile_name=None,
                         config_file_location="~/.oci/config",
                         cli_rc_file_location="~/.oci/oci_cli_rc"):

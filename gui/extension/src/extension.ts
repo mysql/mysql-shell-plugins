@@ -60,7 +60,7 @@ const restartMessage = "This action closes all MySQL Shell tabs and restarts the
 const resetMessage = "This action completely resets the MySQL Shell for VS Code extension by deleting the " +
     "web certificate and user settings directory.";
 const resetRestartMessage = "The MySQL Shell for VS Code extension has been reset. Please restart VS Code " +
-    "to initialize the extension again or remove it from the Extensions View Container.";
+    "to initialize the extension again or press [Cancel] and remove the Extension from the Extensions View Container.";
 
 /**
  * Prints the given content on the MySQL Shell for VS Code output channel.
