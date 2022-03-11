@@ -482,7 +482,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         e.currentTarget.classList.remove("dropTarget");
     };
 
-    private handleMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleMenuItemClick = (_e: React.MouseEvent, props: IMenuItemProperties): boolean => {
         if (!props.children || React.Children.count(props.children) === 0) {
             this.doHandleTileAction(props.id || "", this.currentTileDetails, {});
 
@@ -537,7 +537,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                             "compartment-id": options.compartmentId,
                             "mysql-db-system-id": options.id,
                             "profile-name": options.profileName ?? "DEFAULT",
-                            "bastion-id": (options.freeformTags as IDictionary)?.bastionId ?? undefined,
+                            // Disable support for bastion to be stored in freeform tags for the time being
+                            // "bastion-id": (options.freeformTags as IDictionary)?.bastionId ?? undefined,
                             host,
                             "scheme": MySQLConnectionScheme.MySQL,
                         },
@@ -1699,7 +1700,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         this.editorRef.current?.updateInputValue(value, valueId);
     };
 
-    private storePassword = (id: string, values: IDialogValues): void => {
+    private storePassword = (_id: string, values: IDialogValues): void => {
         const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
         const user = mysqlDetailsSection.userName.value as string;
         const host = mysqlDetailsSection.hostName.value as string;
@@ -1718,7 +1719,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         }
     };
 
-    private clearPassword = (id: string, values: IDialogValues): void => {
+    private clearPassword = (_id: string, values: IDialogValues): void => {
         const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
         const user = mysqlDetailsSection.userName.value as string;
         const host = mysqlDetailsSection.hostName.value as string;
@@ -1763,7 +1764,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         });
     };
 
-    private testConnection = (values: IDialogValues): void => {
+    private testConnection = (_values: IDialogValues): void => {
         const { connections } = this.props;
         const backend = new ShellInterfaceSqlEditor();
         if (this.connectionId !== -1) {

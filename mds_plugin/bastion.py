@@ -502,12 +502,19 @@ def create_bastion(**kwargs):
             if not bastion_name:
                 if db_system:
                     import re
+
+                    vcn_client = core.get_oci_virtual_network_client(
+                        config=config)
+
+                    subnet = vcn_client.get_subnet(
+                        subnet_id=db_system.subnet_id).data
+                    
                     # Get a unique name for the new bastion, ensure it does
                     # not collide with another bastion in the compartment and
                     # that it only contains of alphanumeric characters
                     bastion_core_name = (
                         "Bastion4" + 
-                        re.sub('[\W_]+', '', db_system.display_name[:35]))
+                        re.sub('[\W_]+', '', subnet.display_name[:35]))
                     bastion_name = bastion_core_name
 
                     bastions = list_bastions(
