@@ -6,6 +6,8 @@ This extension enables interactive editing and execution of SQL for MySQL Databa
 
 ## Feature Highlights
 
+Feature highlights include:
+
 ### Full OCI MDS Integration
 
 Browse and manage your MySQL DB Systems on the Oracle Cloud Infrastructure.
@@ -18,9 +20,9 @@ The embedded DB Editor offers you a fresh way to work interactively with your da
 
 Switch from SQL to JavaScript or TypeScript to query, manipulate, and visualize your data.
 
-###  MySQL Shell GUI Console
+### MySQL Shell GUI Console
 
-Provides the full power of the MySQL Shell inside a notebook-interface styled editor.
+Provides the full power of the MySQL Shell inside a notebook-interface-styled editor.
 
 Multi-line command editing, interactive auto-completion, and powerful plugins.
 
@@ -30,9 +32,9 @@ MySQL Shell for VS Code integrates seamlessly into your development workflow.
 
 Takes SQL embedded in your source files and runs it inside the DB Editor. Updates modified SQL in your source file.
 
-## Features Include
+### Features Include
 
-- Database Connection Manager
+- Database Connection Manager:
   - Management of database connections to MySQL Server and MySQL Database Service (MDS) instances.
   - Browse through schema catalog
   - Dump schemas and load schemas with support for MDS instances
@@ -40,24 +42,24 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
   - Open MySQL Shell GUI Console for a database connection
 - Oracle Cloud Infrastructure (OCI) Browser
   - Support for standard OCI profile configuration
-  - Browse OCI compartments, MySQL DB Systems, Bastions, Compute Instances and Load Balancers
+  - Browse OCI compartments, MySQL DB Systems, Bastions, Compute Instances, and Load Balancers
   - Start/Stop operations for MySQL DB Systems
   - Creation of OCI Bastions and tunneled connections to MDS instance on private OCI networks
-- DB Editor to work with live database connections
+- DB Editor to work with live database connections:
   - Notebook Interface
-  - Support for SQL, TypeScript and JavaScript to work with the database
+  - Support for SQL, TypeScript, and JavaScript to work with the database
   - Auto-completion for SQL, TypeScript and JavaScript
-  - Query result set browsing in paged result grid
+  - Query result set browsing in a paged result grid
   - Support for multiple result sets in tabbed result grids
   - Support for text output for TypeScript and JavaScript code
-  - Support for graphs for TypeScript and JavaScript code 
-- MySQL Shell GUI Console
+  - Support for graphs for TypeScript and JavaScript code
+- MySQL Shell GUI Console:
   - Notebook Interface
-  - Support for SQL, Python and JavaScript
-  - Query result set browsing in result grid
-- Execute SQL from source files in DB Editor
+  - Support for SQL, Python, and JavaScript
+  - Query result set browsing in a result grid
+- Execute SQL from source files in DB Editor:
   - Execute any selected SQL commands from SQL files
-  - Execute multiline SQL blocks from Python files
+  - Execute multi-line SQL blocks from Python files
     - Update original Python files with changes made in DB Editor
 
-Copyright (c) 2022, Oracle and/or its affiliates.
+Copyright &copy; 2022, Oracle and/or its affiliates.
