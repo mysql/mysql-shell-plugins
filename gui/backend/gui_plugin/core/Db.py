@@ -71,7 +71,7 @@ class GuiBackendDb():
     Interface to handle CRUD operations on the Backend Database
     """
 
-    def __init__(self, log_rotation=False, web_session=None):
+    def __init__(self, log_rotation=False, web_session=None, check_same_thread=True):
         # Creates the database manager which will do the automatic maintenance tasks:
         # - Database Initialization
         # - Log Rotation: should be enabled only on specific instances of the backend database
@@ -82,7 +82,8 @@ class GuiBackendDb():
 
         backend_db_manager = BackendSqliteDbManager(
             log_rotation=log_rotation,
-            web_session=web_session)
+            web_session=web_session,
+            check_same_thread=check_same_thread)
 
         # Opens the session to the backend database
         self._db = backend_db_manager.open_database()
@@ -178,10 +179,10 @@ class GuiBackendDb():
         res = self.execute('''SELECT db_type, options
                                 FROM db_connection
                                 WHERE id = ?''',
-                           (db_connection_id,)).fetch_one()
+                        (db_connection_id,)).fetch_one()
         if not res:
             raise Error.MSGException(Error.DB_INVALID_CONNECTION_ID,
-                                     f'There is no db_connection with the id {db_connection_id}.')
+                                    f'There is no db_connection with the id {db_connection_id}.')
 
         db_type = None
         options = None
@@ -192,7 +193,7 @@ class GuiBackendDb():
             options = json.loads(res['options'])
         except ValueError as e:
             raise Error.MSGException(Error.DB_INVALID_OPTIONS,
-                                     f'The connection options are not valid JSON. {e}.')
+                                    f'The connection options are not valid JSON. {e}.')
 
         return (db_type, options)
 
@@ -203,12 +204,12 @@ class GuiBackendDb():
     def log(self, event_type, message):
         # insert this message into the log table
         self._db.execute('''INSERT INTO `gui_log`.`log`(event_time, event_type, message) VALUES(?, ?, ?)''',
-                         (datetime.datetime.now(), event_type, message))
+                        (datetime.datetime.now(), event_type, message))
 
     def message(self, session_id, is_response, message, request_id):
         self._db.execute('''INSERT INTO `gui_log`.`message`(session_id, request_id, is_response,
             message, sent) VALUES(?, ?, ?, ?, ?)''',
-                         (session_id, request_id, is_response, message, datetime.datetime.now()))
+                        (session_id, request_id, is_response, message, datetime.datetime.now()))
 
 
 def convert_workbench_sql_to_sqlite(sql):

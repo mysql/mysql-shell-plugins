@@ -38,11 +38,9 @@ import mysqlsh
 from contextlib import contextmanager
 from gui_plugin.users import backend as user_handler
 from gui_plugin.users.backend import get_id_personal_user_group
-from gui_plugin.core.Error import MSGException
-import traceback
-import sys
 from queue import Queue
 from gui_plugin.core.RequestHandler import RequestHandler
+from gui_plugin.core.BackendDbLogger import BackendDbLogger
 
 
 class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
@@ -131,7 +129,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
                 # log message, if logging does not work, do not process
                 # the message due to security concerns
-                if not self.log_session_message(json.dumps(message), is_response=False,
+                if not BackendDbLogger.message(self.session_id, json.dumps(message), is_response=False,
                                                 request_id=request_id):
                     raise Exception("Unable to process the request.")
 
@@ -143,7 +141,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     args['request_id'] = json_message["request_id"]
 
                 # log the original message
-                self.log_session_message(
+                BackendDbLogger.message(self.session_id,
                     json.dumps(message), is_response=False)
                 self.send_json_response(Response.exception(e, args))
 
@@ -262,7 +260,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
     def on_ws_sending_message(self, message):
         json_message = json.loads(message)
-        if self.log_session_message(message, is_response=True,
+        if BackendDbLogger.message(self.session_id, message, is_response=True,
                                     request_id=json_message.get('request_id', None)):
             return message
         logger.error("Failed to log message in the database.")
@@ -307,18 +305,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             db.close()
 
         return success
-
-    def log_session_message(self, message, is_response, request_id=None):
-        # insert this message into the message table
-        try:
-            with self.db_tx() as db:
-                db.message(self.session_id, is_response, message, request_id)
-        except Exception as e:  # pragma: no cover
-            logger.error(
-                f'Session message could not be inserted into db. {e}.')
-
-            return False
-        return True
 
     def send_json_response(self, json_message):
         # Special handling required for shell objects

@@ -29,14 +29,12 @@ from gui_plugin.core.Certificates import is_shell_web_certificate_installed
 import mysqlsh
 import ssl
 import os
-import sqlite3
 from os import path
 import json
 import socket
 from contextlib import closing
 import uuid
 from subprocess import Popen
-import re
 import time
 import platform
 import sys
@@ -81,6 +79,10 @@ def web_server(port=None, secure=None, webrootpath=None,
         if not single_instance_token:
             raise ValueError("No single instance token given on STDIN.")
         logger.info('Token read from STDIN')
+
+    if platform.system() == 'Darwin':
+        result = subprocess.run(['ulimit', '-a'], stdout=subprocess.PIPE)
+        logger.debug(f"ULIMIT:\n{result.stdout.decode('utf-8')}")
 
     # Start the web server
     logger.info('Starting MySQL Shell GUI web server...')
@@ -172,7 +174,7 @@ def web_server(port=None, secure=None, webrootpath=None,
             logger.info(
                 f"Server started [port:{port}, "
                 f"secure:{'version' in dir(server.socket)}, "
-                f"single user: {server.single_instance_token is not None}]", 
+                f"single user: {server.single_instance_token is not None}]",
                 ['session'])
 
             # Log server start

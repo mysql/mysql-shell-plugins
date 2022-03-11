@@ -48,7 +48,7 @@ class BackendDbManager():
     Subclasses of this class handle the specific implementation details
     """
 
-    def __init__(self, log_rotation=False, web_session=None, connection_options=None):
+    def __init__(self, log_rotation=False, web_session=None, connection_options=None, check_same_thread=True):
         self._web_session = web_session
         self._connection_options = connection_options
 
@@ -104,12 +104,13 @@ class BackendSqliteDbManager(BackendDbManager):
     Implementation details for the backend database in Sqlite
     """
 
-    def __init__(self, log_rotation=False, web_session=None, connection_options=None):
+    def __init__(self, log_rotation=False, web_session=None, connection_options=None, check_same_thread=True):
         # use ~/.mysqlsh/plugin_data/gui_plugin/mysqlsh_gui_backend_{latest_db_version}.sqlite3
         self.db_dir = mysqlsh.plugin_manager.general.get_shell_user_dir(  # pylint: disable=no-member
             'plugin_data', 'gui_plugin')
 
         self.current_dir = getcwd()
+        self.check_same_thread = check_same_thread
 
         super().__init__(log_rotation=log_rotation,
                          web_session=web_session,
@@ -126,7 +127,8 @@ class BackendSqliteDbManager(BackendDbManager):
     def open_database(self):
         session_id = f"BackendDB-" + \
             "anonymous" if self._web_session is None else self._web_session.session_uuid
-        return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options)
+        return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options,
+            None, True, None, None, None, None, None, self.check_same_thread)
 
     def current_database_exist(self):
         return path.isfile(self._connection_options["db_file"])

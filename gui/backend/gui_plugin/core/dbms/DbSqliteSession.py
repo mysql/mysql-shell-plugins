@@ -116,13 +116,14 @@ class DbSqliteSession(DbSession):
 
     def __init__(self, id, threaded, connection_options, ping_interval=None, auto_reconnect=True,
                  on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None,
-                 message_callback=None):
+                 message_callback=None, check_same_thread=True):
         super().__init__(id, threaded, connection_options, ping_interval=ping_interval,
                          auto_reconnect=auto_reconnect)
 
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
         self.session = None
+        self.check_same_thread = check_same_thread
 
         self._databases = {}
 
@@ -154,7 +155,7 @@ class DbSqliteSession(DbSession):
     def _open_database(self, notify_success=True):
         try:
             self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=5, factory=SqliteConnection,
-                                        isolation_level=None)
+                                        isolation_level=None, check_same_thread=self.check_same_thread)
             self.cursor = self.conn.cursor()
 
             init_cursor = self.conn.cursor()

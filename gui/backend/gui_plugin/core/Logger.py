@@ -28,6 +28,7 @@ from enum import IntEnum
 from gui_plugin.core.Error import MSGException
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.Protocols import Response
+from gui_plugin.core.BackendDbLogger import BackendDbLogger
 
 class LogLevel(IntEnum):
     NONE = 1
@@ -58,30 +59,11 @@ class BackendLogger:
             BackendLogger.__instance = self
             self.set_log_level(LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
 
-    @contextmanager
-    def log_database(self, log_rotation):
-        from gui_plugin.core.Db import GuiBackendDb
-        db = None
-        try:
-            db = GuiBackendDb(log_rotation=log_rotation)
-
-            db.start_transaction()
-            yield db
-            db.commit()
-        except Exception as e:
-            error(f"Exception while attempting to log to the database: {e}")
-            if db is not None:
-                db.rollback()
-        finally:
-            if db is not None:
-                db.close()
-
     def message_logger(self, log_type, message, tags=[], context={}):
         now = datetime.datetime.now()
 
         if 'session' in tags:
-            with self.log_database(True) as db:
-                db.log(event_type=log_type.name, message=message)
+            BackendDbLogger.log(event_type=log_type.name, message=message)
 
         if 'shell' in tags:
             mysqlsh.globals.shell.log(log_type.name, f"[MSG] {message}") # pylint: disable=no-member
