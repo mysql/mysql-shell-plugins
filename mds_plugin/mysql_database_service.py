@@ -1170,6 +1170,8 @@ def delete_db_system(**kwargs):
     Keyword Args:
         db_system_name (str): The name of the DB System.
         db_system_id (str): OCID of the DbSystem.
+        await_completion (bool): Whether to wait till the DbSystem reaches
+            the desired lifecycle state
         ignore_current (bool): Whether to not default to the current bastion.
         compartment_id (str): OCID of the parent compartment
         config (dict): An OCI config object or None
@@ -1184,6 +1186,7 @@ def delete_db_system(**kwargs):
 
     db_system_name = kwargs.get("db_system_name")
     db_system_id = kwargs.get("db_system_id")
+    await_completion = kwargs.get("await_completion")
     ignore_current = kwargs.get("ignore_current", False)
 
     compartment_id = kwargs.get("compartment_id")
@@ -1235,7 +1238,13 @@ def delete_db_system(**kwargs):
             # Delete the DB System
             db_sys.delete_db_system(db_system.id)
 
-            if interactive:
+            # If the function should wait till the bastion reaches the correct
+            # lifecycle state
+            if await_completion:
+                await_lifecycle_state(
+                    db_system.id, "DELETED", "complete the deletion process", 
+                    config, interactive)
+            elif interactive:
                 print(f"MySQL DB System '{db_system.display_name}' is being "
                       "deleted.")
         except oci.exceptions.ServiceError as e:
@@ -1247,7 +1256,6 @@ def delete_db_system(**kwargs):
         if raise_exceptions:
             raise
         print(f'ERROR: {e}')
-
 
 @plugin_function('mds.stop.dbSystem', shell=True, cli=True, web=True)
 def stop_db_system(**kwargs):
@@ -1447,34 +1455,12 @@ def change_lifecycle_state(**kwargs):
                         shutdown_type="IMMEDIATE"
                     ))
 
-            # If the function should wait till the bastion reaches the DELETED
+            # If the function should wait till the bastion reaches the correct
             # lifecycle state
             if await_completion:
-                import time
-                if interactive:
-                    print(f'Waiting for DB System to {action_name}...')
-
-                # Wait for the Bastion Session to be ACTIVE
-                cycles = 0
-                while cycles < 48:
-                    db_system = db_sys.get_db_system(
-                        db_system_id=db_system_id).data
-                    if db_system.lifecycle_state == action_state:
-                        break
-                    else:
-                        time.sleep(5)
-                        s = "." * (cycles + 1)
-                        if interactive:
-                            print(
-                                f'Waiting for DB System to {action_name}...{s}')
-                    cycles += 1
-
-                if db_system.lifecycle_state != action_state:
-                    raise Exception("The DB System did not reach the correct "
-                                    "state within 4 minutes.")
-                if interactive:
-                    print(f"DB System '{db_system.display_name}' did "
-                          f"{action_name} successfully.")
+                await_lifecycle_state(
+                    db_system_id, action_state, action_name, 
+                    config, interactive)
             elif interactive:
                 print(f"MySQL DB System '{db_system.display_name}' is being "
                       f"{action_name}{'p' if action_name == 'stop' else ''}ed.")
@@ -1487,3 +1473,47 @@ def change_lifecycle_state(**kwargs):
         if raise_exceptions:
             raise
         print(f'ERROR: {e}')
+
+
+def await_lifecycle_state(db_system_id, action_state, action_name, config, interactive):
+    """Waits of the db_system to reach the desired lifecycle state
+
+    Args:
+        db_system_id (str): OCID of the DbSystem.
+        action_state (str): The lifecycle state to reach
+        action_name (str): The name of the action to be performed
+        config (dict): An OCI config object or None
+        interactive (bool): Indicates whether to execute in interactive mode
+
+    Returns:
+       None
+    """
+    import time
+
+    # Get DbSystem Client
+    db_sys = core.get_oci_db_system_client(config=config)
+
+    if interactive:
+        print(f'Waiting for DB System to {action_name}...')
+
+    # Wait for the lifecycle to reach desired state
+    cycles = 0
+    while cycles < 48:
+        db_system = db_sys.get_db_system(
+            db_system_id=db_system_id).data
+        if db_system.lifecycle_state == action_state:
+            break
+        else:
+            time.sleep(5)
+            s = "." * (cycles + 1)
+            if interactive:
+                print(
+                    f'Waiting for DB System to {action_name}...{s}')
+        cycles += 1
+
+    if db_system.lifecycle_state != action_state:
+        raise Exception("The DB System did not reach the correct "
+                        "state within 4 minutes.")
+    if interactive:
+        print(f"DB System '{db_system.display_name}' did "
+                f"{action_name} successfully.")

@@ -220,7 +220,7 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                         <a href="#">Browse Tutorial &gt;</a>
                         <a href="#">Read Docs &gt;</a>
                     </div>
-                    <p>Please press [Next >] to complete the installation of the
+                    <p>Please click [Next >] to complete the installation of the 
                         MySQL Shell for VSCode extension.</p>
                 </div>
                 <div id="page2" class="page inactivePage">
@@ -233,7 +233,7 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                         In the next step a security dialog will be show, asking if
                         the certificate should be installed.<br>
                         <br>
-                        Please press [Next >] to start the installation of the
+                        Please click [Next >] to start the installation of the 
                         MySQL Shell certificate.</p>
                 </div>
                 <div id="page3" class="page inactivePage">

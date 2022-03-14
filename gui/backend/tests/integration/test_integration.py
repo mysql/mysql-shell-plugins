@@ -31,11 +31,10 @@ except ModuleNotFoundError:
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
 def test_gui():
     help_text = '''NAME
-      gui - Plugin to manage the MySQL Database Service on OCI.
+      gui - MySQL Shell GUI backend plugin.
 
 DESCRIPTION
-      This global object exposes a list of shell extensions to work with cloud
-      vendors.
+      This plugin serves as the backend for the MySQL Shell GUI projects.
 
 PROPERTIES
       cluster

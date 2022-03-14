@@ -180,29 +180,17 @@ export class MDSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mds.getDbSystemInfo",
             (item?: OciDbSystemTreeItem) => {
                 if (item && item.dbSystem.id) {
-                    this.showNewJsonDocument(
-                        `${item.dbSystem.displayName.toString()} Info.json`,
-                        JSON.stringify(item.dbSystem, null, 4));
-                /*const shellArgs: string[] = [
-                    "--",
-                    "mds",
-                    "get",
-                    "db-system",
-                    `--db_system_id=${item.dbSystem.id.toString()}`,
-                    `--config_profile=${item.profile.profile.toString()}`,
-                    "--raise_exceptions=true",
-                    "--return_formatted=false",
-                ];
-
-                void host.addNewShellTask("View DB System Information", shellArgs).then((result) => {
-                    if (typeof result === "object") {
-                        this.showNewJsonDocument(
-                            `${item.dbSystem.displayName.toString()} Info.json`,
-                            JSON.stringify(result, null, 4));
-                    }
-
-                    this.shellTasksTreeDataProvider.refresh();
-                });*/
+                    this.shellSession.mds.getMdsMySQLDbSystem(item.profile.profile, item.dbSystem.id)
+                        .then((event: ICommOciBastionEvent) => {
+                            if (event.eventType === EventType.FinalResponse) {
+                                this.showNewJsonDocument(
+                                    `${item.dbSystem.displayName ?? "<unknown>"} Info.json`,
+                                    JSON.stringify(event.data?.result, null, 4));
+                            }
+                        }).catch((errorEvent: ICommErrorEvent): void => {
+                            void window.showErrorMessage(`Error while fetching the DB System data: ` +
+                        `${errorEvent.message ?? "<unknown>"}`);
+                        });
                 }
             }));
 
@@ -262,6 +250,26 @@ export class MDSCommandHandler {
                     ];
 
                     void host.addNewShellTask("Restart DB System", shellArgs).then(() => {
+                        void commands.executeCommand("msg.mds.refreshOciProfiles");
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mds.deleteDbSystem",
+            (item?: OciDbSystemTreeItem) => {
+                if (item && item.dbSystem.id) {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "delete",
+                        "db-system",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    void host.addNewShellTask("Delete DB System", shellArgs).then(() => {
                         void commands.executeCommand("msg.mds.refreshOciProfiles");
                     });
                 }

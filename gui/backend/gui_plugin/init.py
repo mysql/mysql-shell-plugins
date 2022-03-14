@@ -34,10 +34,9 @@ from mysqlsh.plugin_manager import plugin # pylint: disable=import-error
 # @register_plugin decorator to register it
 @plugin
 class gui():
-    """Plugin to manage the MySQL Database Service on OCI.
+    """MySQL Shell GUI backend plugin.
 
-    This global object exposes a list of shell extensions
-    to work with cloud vendors.
+    This plugin serves as the backend for the MySQL Shell GUI projects.
     """
 
     def __init__(self):

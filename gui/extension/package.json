@@ -572,6 +572,10 @@
                 "title": "Stop the DB System"
             },
             {
+                "command": "msg.mds.deleteDbSystem",
+                "title": "Delete the DB System"
+            },
+            {
                 "command": "msg.mds.createConnectionViaBastionService",
                 "title": "Create Connection with Bastion Service"
             },
@@ -908,14 +912,19 @@
                     "group": "2_msg@3"
                 },
                 {
-                    "command": "msg.mds.createConnectionViaBastionService",
+                    "command": "msg.mds.deleteDbSystem",
                     "when": "view == msg.oci && viewItem == mdsDbSystem",
                     "group": "3_msg@1"
                 },
                 {
+                    "command": "msg.mds.createConnectionViaBastionService",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "4_msg@1"
+                },
+                {
                     "command": "msg.mds.createRouterEndpoint",
                     "when": "view == msg.oci && viewItem == mdsDbSystem",
-                    "group": "3_msg@2"
+                    "group": "4_msg@2"
                 },
                 {
                     "command": "msg.mds.getBastion",
