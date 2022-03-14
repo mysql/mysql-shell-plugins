@@ -22,7 +22,7 @@
  */
 
 import {
-    commands, ExtensionContext, window, workspace, ConfigurationChangeEvent, WorkspaceConfiguration, Uri,
+    commands, ExtensionContext, window, workspace, ConfigurationChangeEvent, WorkspaceConfiguration,
 } from "vscode";
 
 import { isNil } from "lodash";
@@ -48,7 +48,7 @@ import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvide
 
 import { DbEditorCommandHandler } from "./DbEditorCommandHandler";
 import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler";
-import { IOpenDialogOptions, requisitions } from "../../frontend/src/supplement/Requisitions";
+import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
 import { MRSCommandHandler } from "./MRSCommandHandler";
 
@@ -427,8 +427,7 @@ export class ExtensionHost {
                     buttons[i] = buttons[i].charAt(0).toUpperCase() + buttons[i].slice(1);
                 }
 
-                void window.showInformationMessage(
-                    text.substring(0, match.index) + "?", ...buttons).then((value) => {
+                void window.showInformationMessage(text.substring(0, match.index) + "?", ...buttons).then((value) => {
                     resolve(value);
                 });
             } else {

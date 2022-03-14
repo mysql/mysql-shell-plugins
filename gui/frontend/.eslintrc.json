@@ -6,8 +6,8 @@
         "jest": true
     },
     "extends": [
+        "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:react/recommended",
         "plugin:jsx-a11y/recommended",
@@ -24,7 +24,7 @@
         "ecmaFeatures": {
             "jsx": true
         },
-        "ecmaVersion": 8
+        "ecmaVersion": 2022
     },
     "plugins": [
         "@typescript-eslint",
@@ -245,7 +245,7 @@
         ],
         "no-throw-literal": "error",
         "no-undef": [
-            "error"
+            "off"
         ],
         "no-restricted-globals": [
             "error",
@@ -339,6 +339,9 @@
         ],
         "no-whitespace-before-property": [
             "warn"
+        ],
+        "no-constant-condition": [
+            "off"
         ],
         "require-yield": [
             "warn"

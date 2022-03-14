@@ -23,7 +23,7 @@
 
 import { IBackendInformation, IShellInterface } from ".";
 import {
-    currentConnection, ICommDbTypesEvent, ICommShellInformationEvent, ICommSimpleResultEvent, ProtocolGui,
+    currentConnection, ICommDbTypesEvent, ICommShellInformationEvent, ICommSimpleResultEvent, ProtocolGui, ShellAPIGui,
 } from "../../communication";
 
 import { filterInt } from "../../utilities/string-helpers";
@@ -93,17 +93,18 @@ export class ShellInterfaceCore implements IShellInterface {
      */
     public getDbTypes(): Promise<string[]> {
         return new Promise((resolve) => {
-            const result: string[] = [];
-            currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbTypes(),
-                { messageClass: "getDbTypes" }).then((event: ICommDbTypesEvent) => {
-                if (event.data) {
-                    result.push(...event.data.dbType);
-                }
+            const result: string[] = [];
+            const context = { messageClass: ShellAPIGui.GuiDbconnectionsGetDbTypes };
+            currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbTypes(), context)
+                .then((event: ICommDbTypesEvent) => {
+                    if (event.data) {
+                        result.push(...event.data.dbType);
+                    }
 
-                if (event.eventType === EventType.FinalResponse) {
-                    resolve(result);
-                }
-            });
+                    if (event.eventType === EventType.FinalResponse) {
+                        resolve(result);
+                    }
+                });
         });
     }
 }

@@ -25,7 +25,7 @@
 import { ExtensionContext, Uri, commands, window, ViewColumn } from "vscode";
 import { join } from "path";
 import { printChannelOutput, runMysqlShell } from "../extension";
-import { platform} from "os";
+import { platform } from "os";
 
 /**
  * Build content for the initial setup webview
@@ -213,14 +213,14 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
             <div id="pages">
                 <div id="page1" class="page">
                     <h3>Welcome to MySQL Shell for VSCode.</h3>
-                    <p>This extension provides the powerful tool set of MySQL Shell 
+                    <p>This extension provides the powerful tool set of MySQL Shell
                         to users of Visual Studio Code.</p>
                     <div class="links">
                         <a href="#">Learn More &gt;</a>
                         <a href="#">Browse Tutorial &gt;</a>
                         <a href="#">Read Docs &gt;</a>
                     </div>
-                    <p>Please press [Next >] to complete the installation of the 
+                    <p>Please press [Next >] to complete the installation of the
                         MySQL Shell for VSCode extension.</p>
                 </div>
                 <div id="page2" class="page inactivePage">
@@ -228,17 +228,17 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     <p>This extension needs a certificate to be installed on your local
                         user account in order to securely access the MySQL Shell.</p>
                     <p class="pWithImg securityDialogInfo">
-                        <img src="${rootPath.toString()}/images/welcome/trustSettingDlg-${platform()}.png" 
+                        <img src="${rootPath.toString()}/images/welcome/trustSettingDlg-${platform()}.png"
                             width="171px" height="87px" alt="Trust Dialog" align="left" hspace="15px"/>
-                        In the next step a security dialog will be show, asking if 
+                        In the next step a security dialog will be show, asking if
                         the certificate should be installed.<br>
                         <br>
-                        Please press [Next >] to start the installation of the 
+                        Please press [Next >] to start the installation of the
                         MySQL Shell certificate.</p>
                 </div>
                 <div id="page3" class="page inactivePage">
                     <h3>Installation of Certificate.</h3>
-                    <p class="securityDialogInfo">Please confirm the installation of the certificate in order 
+                    <p class="securityDialogInfo">Please confirm the installation of the certificate in order
                         to complete the installation of the extension.</p>
                     <p class="manualCertInstallInfo">The certificate is being generated.</p>
                     <div id="waitForConfirmation"><div class="pingEffect"><div></div><div></div></div></div>
@@ -254,7 +254,7 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     <h3>Please Complete the Installation</h3>
                     <p>The certificate has been created at the following location.<br>
                     <code>~/mysqlsh/plugin_data/gui_plugin/web_certs/rootCA.crt</code></p>
-                    <p>Please perform the following step <b>manually</b>. For more details see 
+                    <p>Please perform the following step <b>manually</b>. For more details see
                     <a href="https://chromium.googlesource.com/chromium/src/+/lkgr/docs/linux/cert_management.md">
                     here</a>.<br>
                     <code>cd ~/.mysqlsh/plugin_data/gui_plugin/web_certs<br>
@@ -344,7 +344,7 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                                 } else {
                                     showPage(5);
                                 }
-                                
+
                                 nextBtn.value = "Reload VS Code Window";
                             } else if (message.output.includes("ERROR")) {
                                 document.getElementById("certError").innerHTML = message.output;
@@ -365,15 +365,11 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
 
 export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
     context.subscriptions.push(commands.registerCommand("msg.runWelcomeWizard", () => {
-        const panel = window.createWebviewPanel(
-            "mysqlShellInitialSetup",
-            "Welcome to MySQL Shell",
-            ViewColumn.One, {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [Uri.file(join(context.extensionPath, "images"))],
-            },
-        );
+        const panel = window.createWebviewPanel("mysqlShellInitialSetup", "Welcome to MySQL Shell", ViewColumn.One, {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+            localResourceRoots: [Uri.file(join(context.extensionPath, "images"))],
+        });
 
         panel.webview.html = getWelcomeWebviewContent(
             panel.webview.asWebviewUri(Uri.file(context.extensionPath)));
@@ -382,7 +378,7 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
         panel.webview.onDidReceiveMessage(
             (message) => {
                 switch (message.command) {
-                    case "installCert":
+                    case "installCert": {
                         // Run the shell command to install the cert
                         const parameters = [
                             "--", "gui", "core", "install-shell-web-certificate",
@@ -394,26 +390,29 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
                                 // Pass the result to the webview
                                 const output = String(data);
                                 printChannelOutput(output);
-                                void panel.webview.postMessage({ command: "installCertResult", output});
+                                void panel.webview.postMessage({ command: "installCertResult", output });
                             });
 
                         return;
+                    }
 
-                    case "restartVsCode":
+                    case "restartVsCode": {
                         // Close the webview and start the shell
                         panel.dispose();
 
                         void commands.executeCommand("workbench.action.reloadWindow");
 
                         return;
+                    }
 
-                    case "done":
+                    case "done": {
                         // Close the webview
                         panel.dispose();
 
                         return;
+                    }
+
                     default:
-                        return;
                 }
             },
             undefined,

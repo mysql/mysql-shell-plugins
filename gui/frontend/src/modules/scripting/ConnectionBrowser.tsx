@@ -122,7 +122,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private ociProfileNames?: IMdsProfileData[];
     private activeOciProfileName?: string;
 
-    private knowDbTypes: string[] = [];
+    private knowDbTypes: string[] = [];
 
     public constructor(props: IConnectionBrowserProperties) {
         super(props);
@@ -600,7 +600,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 (<Container orientation={Orientation.TopDown}>
                     <Grid columns={["auto"]} columnGap={5}>
                         <GridCell crossAlignment={ContentAlignment.Stretch}>
-                            There is no Bastion in the compartment of this MySQL DB System that can be used.<br/><br/>
+                            There is no Bastion in the compartment of this MySQL DB System that can be used.<br /><br />
                         </GridCell>
                         <GridCell className="right" crossAlignment={ContentAlignment.Stretch}>
                             Do you want to create a new Bastion in the compartment of the MySQL DB System?
@@ -742,30 +742,34 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
             } else if (details && !details.options["bastion-id"] && details.options["profile-name"]
                 && details.options["mysql-db-system-id"]) {
-                // We have only profileName and mds database id, but no bastion id
-                this.liveUpdateFields.profileName = details.options["profile-name"];
-                this.liveUpdateFields.dbSystemId = details.options["mysql-db-system-id"];
-                const compartmentId: string = details.options["compartment-id"];
+
+                const profileName = details.options["profile-name"] as string;
+                const dbSystemId = details.options["mysql-db-system-id"] as string;
+                const compartmentId = details.options["compartment-id"] as string;
                 delete details.options["compartment-id"];
+
+                // We have only profileName and mds database id, but no bastion id
+                this.liveUpdateFields.profileName = profileName;
+                this.liveUpdateFields.dbSystemId = dbSystemId;
 
                 // Get all available bastions that are in the same compartment as the DbSystem but ensure that
                 // these bastions are valid for the specific DbSystem by having a matching target_subnet_id
-                this.shellSession.mds.getMdsBastions(
-                    this.liveUpdateFields.profileName, compartmentId,
-                    this.liveUpdateFields.dbSystemId).then((event: ICommMdsGetBastionsEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data && event.data.result.length > 0) {
+                this.shellSession.mds.getMdsBastions(profileName, compartmentId, dbSystemId)
+                    .then((event: ICommMdsGetBastionsEvent) => {
+                        if (event.eventType === EventType.FinalResponse) {
+                            if (event.data && event.data.result.length > 0) {
                                 // If there is a bastion in the same compartment
-                            details.options["bastion-id"] = event.data.result[0].id;
-                            this.liveUpdateFields.bastionId.value = details.options["bastion-id"];
-                            this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
-                        } else {
-                            this.confirmBastionCreation(details);
+                                details.options["bastion-id"] = event.data.result[0].id;
+                                this.liveUpdateFields.bastionId.value = details.options["bastion-id"];
+                                this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
+                            } else {
+                                this.confirmBastionCreation(details);
+                            }
                         }
-                    }
-                }).catch((_reason) => {
-                    // Do nothing
-                });
+                    })
+                    .catch((_reason) => {
+                        // Do nothing
+                    });
             } else {
                 this.editorRef.current.show(
                     this.generateEditorConfig(details),
@@ -1157,7 +1161,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     caption: "Database Path:",
                     value: optionsSqlite.dbFile,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    filters: { "SQLite 3": ["sqlite3"]},
+                    filters: { "SQLite 3": ["sqlite3"] },
                     placeholder: "<Enter the DB file location>",
                     span: 8,
                     options: [DialogValueOption.Resource],
