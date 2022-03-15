@@ -22,5 +22,6 @@
         "src/*.ts",
         "src/**/*.ts"
     ],
-    "exclude": ["node_modules", ".vscode-test", "test-resources", "src/e2e/**/*.ts"]
+    "exclude": ["node_modules", 
+        ".vscode-test", "test-resources", "src/e2e/**/*.ts"]
 }
