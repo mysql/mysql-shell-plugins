@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,20 +21,31 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {Builder, By, until} from "selenium-webdriver";
+/* cspell: disable */
 
-export const getDriver = () => {
-  const driver = new Builder()
-                     .forBrowser("chrome")
-                     .usingServer("http://localhost:4444/wd/hub")
-                     .build();
 
-  driver.manage().setTimeouts({implicit: 5000});
+import { error } from "console";
+import { exit } from "process";
 
-  return driver;
-};
+jest.setTimeout(80000);
 
-export async function load(driver) {
-  await driver.get("http://localhost:8000/?token=1234test");
-  await driver.wait(until.elementLocated(By.id("root")), 10000);
+// Check required environment variables before any test starts.
+if (!process.env.DBHOSTNAME) {
+    error("No value for environment var DBHOSTNAME was provided");
+    exit(1);
+}
+
+if (!process.env.DBUSERNAME) {
+    error("No value for environment var DBUSERNAME was provided");
+    exit(1);
+}
+
+if (!process.env.DBPASSWORD) {
+    error("No value for environment var DBPASSWORD was provided");
+    exit(1);
+}
+
+if (!process.env.DBPORT) {
+    error("No value for environment var DBPORT was provided");
+    exit(1);
 }

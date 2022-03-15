@@ -56,3 +56,13 @@ frontend/src/tests/e2e/selenium
 extension/shell
 extension/packaging
 
+# e2e
+frontend/src/tests/e2e/screenshots
+frontend/src/tests/e2e/attachScreenshots.js
+frontend/src/tests/e2e/test-report.html
+
+extension/test-resources
+extension/src/e2e/**/*.js
+
+
+

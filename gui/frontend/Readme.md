@@ -179,11 +179,21 @@ $ npm run start
 
 This will build the app and open it in a browser as normal.
 
+End to end tests need a MySQL database with some data. Please setup one and run the scripts under src/tests/e2e/sql
+
+Some environment variables need to be setup as well:
+- DBHOSTNAME
+- DBUSERNAME
+- DBPASSWORD
+- DBPORT
+- HEADLESS (optional) (1 - headless mode enabled / 0 - headless mode disabled)
+
 Finally let's fire up another new terminal and call Jest to run the tests for us -
 
 ```bash
 $ npm run e2e
 ```
+Be aware that the tests run in headless mode by default. If you want to see the browser opening and see the tests running just set the HEADLESS var to 0
 
 ## Automatically running the tests
 

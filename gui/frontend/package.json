@@ -75,26 +75,25 @@
         "typescript": "3.9.10",
         "typescript-eslint-parser": "22.0.0",
         "webdriver-manager": "12.1.8",
-        "worker-loader": "3.0.8"
+        "worker-loader": "3.0.8",
+        "jest-html-reporter": "3.4.2"
     },
     "scripts": {
         "launch-shell-web-server": "bash ./scripts/launch-shell-webserver.sh",
         "launch-dev-server": "bash ./scripts/launch-dev-server.sh 3001",
         "launch-dev-server-win": "set PORT=3001&&set HTTPS=true&&call scripts/launch-dev-server.cmd",
-
         "build": "bash ./scripts/production-build.sh false",
         "build-with-maps": "bash ./scripts/production-build.sh true",
         "build-win": "call scripts/production-build.cmd false",
         "build-win-with-maps": "call scripts/production-build.cmd true",
-
         "update-snapshots": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --watchAll=false -u",
         "test-local": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --coverage --watchAll=false --maxWorkers=1",
         "test": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --coverage --watchAll=false",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
-
-        "e2e": "react-scripts test --detectOpenHandles --testMatch [ \"**/tests/e2e/**/*.spec.[jt]s?(x)\" ] --setupFilesAfterEnv \"./src/tests/e2e/setupTests.js\" --coverage --watchAll=false",
+        "e2e": "react-scripts test --detectOpenHandles --testMatch [ \"**/src/tests/e2e/tests/*.spec.ts?(x)\" ] --setupFilesAfterEnv \"./src/tests/e2e/setupTests.ts\" --testResultsProcessor \"./node_modules/jest-html-reporter\" --maxWorkers=2 --watchAll=false --useStderr --verbose",
+        "e2e-start": "webdriver-manager start --out_dir ../../src/tests/e2e/selenium",
         "e2e-update": "webdriver-manager update --out_dir ../../src/tests/e2e/selenium",
-        "e2e-start": "webdriver-manager start --out_dir ../../src/tests/e2e/selenium"
+        "e2e-report": "tsc src/tests/e2e/attachScreenshots.ts && node src/tests/e2e/attachScreenshots.js"
     },
     "browserslist": [
         ">0.2%",
@@ -108,6 +107,7 @@
         ],
         "collectCoverageFrom": [
             "src/**/*.{ts,tsx}",
+            "!src/tests/**",
             "!**/node_modules/**",
             "!src/app-wrapper/**",
             "!src/assets/**",

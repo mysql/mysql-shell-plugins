@@ -1020,13 +1020,23 @@
         "eslint-plugin-import": "2.25.3",
         "eslint-plugin-jsdoc": "37.1.0",
         "eslint-plugin-prefer-arrow": "1.2.3",
-        "typescript": "4.5.2"
+        "typescript": "4.5.2",
+        "@nut-tree/nut-js": "2.0.1",
+        "@types/chai": "4.3.0",
+        "@types/mocha": "9.1.0",
+        "chai": "4.3.6",
+        "mocha": "9.2.0"
+    },
+    "optionalDependencies": {
+        "vscode-extension-tester": "4.2.3"
     },
     "scripts": {
         "package": "vsce package --pre-release",
         "full_packages": "scripts/package_extension.sh",
         "full_packages_win": "scripts/package_extension.ps1",
         "lint": "eslint \"./src/**/*.ts\"",
-        "vscode:prepublish": "tsc"
+        "vscode:prepublish": "tsc",
+        "e2e-setup": "extest get-vscode && extest get-chromedriver && extest install-vsix -f",
+        "e2e": "tsc src/e2e/**/*.ts && extest run-tests src/e2e/tests/*.js"
     }
 }

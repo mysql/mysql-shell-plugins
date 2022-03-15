@@ -62,4 +62,26 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
   - Execute multi-line SQL blocks from Python files
     - Update original Python files with changes made in DB Editor
 
+## E2E tests
+
+## Pre-requisites
+
+To run the E2e tests, your system needs a MySQL Database installed or setup a remote MySQL database.
+
+Open a connection to your database and execute the sql files under frontend/src/tests/e2e/sql.
+
+Define the following environment variables, regarding your db connection:
+
+- DBHOSTNAME
+- DBUSERNAME
+- DBPASSWORD
+- DBPORT
+
+## Running
+
+Open a new terminal and run the following:
+
+- npm run e2e-setup <path/to/vsix_file>
+- npm run e2e
+
 Copyright &copy; 2022, Oracle and/or its affiliates.
