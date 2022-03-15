@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ import { ResultView } from ".";
 import { IResultSet, IResultSetRows } from "../../script-execution";
 
 export interface IResultGroupProperties extends IComponentProperties {
-    resultData: IResultSet;
+    resultSet: IResultSet;
 
     onResultPageChange?: (requestId: string, currentPage: number, sql: string) => void;
 }
@@ -52,19 +52,19 @@ export class ResultGroup extends Component<IResultGroupProperties, IResultGroupS
     }
 
     public render(): React.ReactNode {
-        const { resultData, onResultPageChange } = this.props;
+        const { resultSet, onResultPageChange } = this.props;
         const { selectedTab } = this.state;
 
         const pages: ITabviewPage[] = [];
 
-        const resultSet = <ResultView
+        const resultView = <ResultView
             key="resultSet"
             ref={this.resultRef}
-            tableData={resultData}
+            resultSet={resultSet}
             onResultPageChange={onResultPageChange}
         />;
 
-        pages.push({ id: "resultSet", caption: "RS", tooltip: "Result Set", content: resultSet });
+        pages.push({ id: "resultSet", caption: "RS", tooltip: "Result Set", content: resultView });
 
         // TODO: Temporarily disabled. Add a mode to the tabview where no tab is shown and tabs are switched
         // programmatically.
@@ -88,15 +88,9 @@ export class ResultGroup extends Component<IResultGroupProperties, IResultGroupS
         );
     }
 
-    public async addData(newData: IResultSetRows): Promise<void> {
+    public async addData(newData: IResultSetRows, replace: boolean): Promise<void> {
         if (this.resultRef.current) {
-            await this.resultRef.current.addData(newData);
-        }
-    }
-
-    public markReplace(): void {
-        if (this.resultRef.current) {
-            this.resultRef.current.markReplace();
+            await this.resultRef.current.addData(newData, replace);
         }
     }
 

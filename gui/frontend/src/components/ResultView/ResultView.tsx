@@ -42,8 +42,8 @@ import {
     ComponentPlacement, IMenuItemProperties, TextAlignment,
 } from "../ui";
 import { ResultStatus } from "./ResultStatus";
-import { ITreeGridOptions, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
-import { IResultSet, IResultSetRows } from "../../script-execution";
+import { ITreeGridOptions, SetDataAction, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
+import { IResultSetContent, IResultSet, IResultSetRows } from "../../script-execution";
 import { convertCamelToTitleCase } from "../../utilities/helpers";
 import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
@@ -51,14 +51,12 @@ import { requisitions } from "../../supplement/Requisitions";
 const emptyParams = {};
 
 export interface IResultViewProperties extends IComponentProperties {
-    tableData: IResultSet; // The data to show.
+    resultSet: IResultSet;
 
     onResultPageChange?: (requestId: string, currentPage: number, sql: string) => void;
 }
 
 interface IResultViewState extends IComponentState {
-    stateVersion: number;
-
     // Set to true when the user edited values in the grid.
     dirty: boolean;
 
@@ -74,16 +72,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
     private gridRef = React.createRef<TreeGrid>();
 
-    // Column info not in state but as local variable. This way we don't need to re-render when columns are set
-    // via addData().
-    private columns?: IColumnInfo[];
-
-    // Rows as objects with column ids as their keys.
-    private convertedRows: unknown[];
-
-    // Definitions derived from the columns above.
-    private columnDefinitions: Tabulator.ColumnDefinition[] = [];
-
     // Keeps user defined (or computed) column widths across result set updates.
     private columnWidthCache = new Map<string, number>();
 
@@ -93,14 +81,10 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
     private currentPage = 0;
 
-    // When set it means the next addData call will actually replace all data currently in the grid.
-    private replacePending = false;
-
     public constructor(props: IResultViewProperties) {
         super(props);
 
         this.state = {
-            stateVersion: 0,
             dirty: false,
             hasMorePages: false,
         };
@@ -109,18 +93,15 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
     }
 
     public componentDidMount(): void {
-        this.prepareData();
+        const { resultSet } = this.props;
+
+        if (this.gridRef.current) {
+            void this.internallyAddData(this.gridRef.current, resultSet.data, false);
+        }
     }
 
-    public componentDidUpdate(prevProps: IResultViewProperties, prevState: IResultViewState): void {
-        const { stateVersion } = this.state;
-
-        // When the state version is the same as before it means the update was triggered by changing the
-        // component. So equality means: state not yet updated.
-        if (prevState.stateVersion === stateVersion) {
-            this.currentCell = undefined;
-            this.prepareData();
-        }
+    public componentDidUpdate(): void {
+        this.currentCell = undefined;
     }
 
     public render(): React.ReactNode {
@@ -150,8 +131,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                     !gotError && !gotResponse && <TreeGrid
                         ref={this.gridRef}
                         style={{ fontSize: "10pt" }}
-                        tableData={this.convertedRows}
-                        columns={this.columnDefinitions}
                         options={options}
                         onColumnResized={this.handleColumnResized}
                         onCellContext={this.handleCellContext}
@@ -364,238 +343,204 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
      *
      * @param newData The new data to add to the view. If columns are given with that, they replace any existing
      *                columns in the grid.
+     * @param replace If true, the new data will actually replace the current result grid content.
      *
      * @returns A promise to wait for, before another call is made to add further data.
      */
-    public async addData(newData: IResultSetRows): Promise<void> {
+    public async addData(newData: IResultSetRows, replace: boolean): Promise<void> {
         return new Promise((resolve) => {
-            if (this.gridRef.current) {
-                const tableOrPromise = this.gridRef.current.table;
-                if (tableOrPromise instanceof Tabulator) {
-                    void this.internallyAddData(tableOrPromise, newData).then(() => {
+            void this.gridRef.current?.table.then((table) => {
+                if (table && this.gridRef.current) {
+                    void this.internallyAddData(this.gridRef.current, newData, replace).then(() => {
                         resolve();
                     });
-                } else {
-                    void tableOrPromise.then((table) => {
-                        void this.internallyAddData(table, newData).then(() => {
-                            resolve();
-                        });
-                    });
                 }
-            }
+            });
         });
     }
 
-    public markReplace(): void {
-        this.replacePending = true;
-    }
-
-    private internallyAddData(table: Tabulator, newData: IResultSetRows): Promise<void> {
+    private internallyAddData(grid: TreeGrid, newData: IResultSetContent, replace: boolean): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (!this.replacePending && newData.columns.length > 0) {
-                // This is the first set that contains column data, so store the for later use too.
-                this.columns = newData.columns;
-                this.generateColumnDefinitions();
-                table.setColumns(this.columnDefinitions);
+            if (!replace && newData.columns.length > 0) {
+                grid.setColumns(this.generateColumnDefinitions(newData.columns));
             }
 
-            if (this.columns) {
-                let convertedRows: unknown[] = [];
-                if (newData.rows.length > 0 && !Array.isArray(newData.rows[0])) {
-                    // Table data is already in object format. No need to convert.
-                    convertedRows = newData.rows;
-                } else {
-                    newData.rows.forEach((entry): void => {
-                        const row = {};
+            let convertedRows: unknown[] = [];
+            if (newData.rows.length > 0 && !Array.isArray(newData.rows[0])) {
+                // Table data is already in object format. No need to convert.
+                convertedRows = newData.rows;
+            } else {
+                newData.rows.forEach((entry): void => {
+                    const row = {};
 
-                        this.columns!.forEach((column: IColumnInfo, columnIndex: number): void => {
-                            row[column.name] = (entry as IDictionary)[columnIndex];
-                        });
-                        convertedRows.push(row);
+                    newData.columns.forEach((column: IColumnInfo, columnIndex: number): void => {
+                        row[column.name] = (entry as IDictionary)[columnIndex];
+                    });
+                    convertedRows.push(row);
+                });
+            }
+
+            let dataPromise: Promise<unknown>;
+            if (replace) {
+                dataPromise = grid.setData(convertedRows, SetDataAction.Replace);
+            } else {
+                dataPromise = grid.setData(convertedRows, SetDataAction.Add);
+            }
+
+            dataPromise.then(() => {
+                if (newData.executionInfo) {
+                    this.setState({
+                        executionInfo: newData.executionInfo,
+                        dirty: false,
+                        hasMorePages: newData.hasMoreRows ?? false,
                     });
                 }
 
-                let dataPromise: Promise<void | Tabulator.RowComponent>;
-                if (this.replacePending) {
-                    this.convertedRows = convertedRows;
+                resolve();
+            }).catch((reason) => {
+                reject(reason);
+            });
 
-                    dataPromise = table.setData(convertedRows);
-                } else {
-                    this.convertedRows.push(...convertedRows);
-
-                    dataPromise = table.addData(convertedRows as Array<{}>);
-                }
-
-                dataPromise.then(() => {
-                    if (newData.executionInfo) {
-                        table.restoreRedraw();
-
-                        const { stateVersion } = this.state;
-                        this.setState({
-                            stateVersion: stateVersion + 1,
-                            executionInfo: newData.executionInfo,
-                            dirty: false,
-                            hasMorePages: newData.hasMoreRows ?? false,
-                        });
-                    } else {
-                        // Redraw block calls are not counted, but set a simple flag. So we can simply
-                        // block any UI update in that table after the first result arrived
-                        // and re-enable them once the last result was received.
-                        table.blockRedraw();
-                    }
-
-                    resolve();
-                }).catch((reason) => {
-                    reject(reason);
-                });
-
-                this.replacePending = false;
-
-                return;
-            }
-        },
-        );
+            return;
+        });
     }
 
-    private generateColumnDefinitions = (): void => {
+    private generateColumnDefinitions = (columns: IColumnInfo[]): Tabulator.ColumnDefinition[] => {
         // Map column info from the backend to column definitions for Tabulator.
-        this.columnDefinitions = [];
-        if (this.columns) {
-            this.columnDefinitions = this.columns.map((info): Tabulator.ColumnDefinition => {
-                let formatter: Tabulator.Formatter | undefined;
-                let formatterParams = emptyParams;
-                let minWidth = 50;
+        return columns.map((info): Tabulator.ColumnDefinition => {
+            let formatter: Tabulator.Formatter | undefined;
+            let formatterParams = emptyParams;
+            let minWidth = 50;
 
-                let editor: Tabulator.Editor | undefined;
-                let editorParams: Tabulator.EditorParams | undefined;
+            let editor: Tabulator.Editor | undefined;
+            let editorParams: Tabulator.EditorParams | undefined;
 
-                switch (info.dataType.type) {
-                    case DBDataType.TinyInt:
-                    case DBDataType.SmallInt:
-                    case DBDataType.MediumInt:
-                    case DBDataType.Int:
-                    case DBDataType.Bigint: {
-                        formatter = "plaintext";
-                        editor = this.editorHost;
-                        editorParams = (): { info: IColumnInfo } => { return { info }; };
+            switch (info.dataType.type) {
+                case DBDataType.TinyInt:
+                case DBDataType.SmallInt:
+                case DBDataType.MediumInt:
+                case DBDataType.Int:
+                case DBDataType.Bigint: {
+                    formatter = "plaintext";
+                    editor = this.editorHost;
+                    editorParams = (): { info: IColumnInfo } => { return { info }; };
 
-                        break;
-                    }
-
-                    case DBDataType.String:
-                    case DBDataType.Text:
-                    case DBDataType.MediumText:
-                    case DBDataType.LongText:
-                    case DBDataType.Geometry:
-                    case DBDataType.Point:
-                    case DBDataType.LineString:
-                    case DBDataType.Polygon:
-                    case DBDataType.GeometryCollection:
-                    case DBDataType.MultiPoint:
-                    case DBDataType.MultiLineString:
-                    case DBDataType.MultiPolygon:
-                    case DBDataType.Json:
-                    case DBDataType.Enum:
-                    case DBDataType.Set: {
-                        formatter = this.stringFormatter;
-                        editor = this.editorHost;
-                        editorParams = (): { info: IColumnInfo } => { return { info }; };
-                        minWidth = 150;
-
-                        break;
-                    }
-
-                    case DBDataType.Binary:
-                    case DBDataType.Varbinary: {
-                        formatter = this.binaryFormatter;
-                        // No in-place editor. Uses value editor popup.
-
-                        break;
-                    }
-
-                    case DBDataType.TinyBlob:
-                    case DBDataType.Blob:
-                    case DBDataType.MediumBlob:
-                    case DBDataType.LongBlob: {
-                        formatter = this.blobFormatter;
-                        // No in-place editor. Uses value editor popup.
-
-                        break;
-                    }
-
-                    case DBDataType.Date:
-                    case DBDataType.DateTime:
-                    case DBDataType.DateTime_f: {
-                        //formatter = "datetime";
-                        formatter = "plaintext";
-                        editor = true;
-
-                        break;
-                    }
-
-                    case DBDataType.Time:
-                    case DBDataType.Time_f: {
-                        formatter = "datetime";
-                        formatterParams = {
-                            outputFormat: "HH:mm:ss",
-                        };
-                        editor = true;
-
-                        break;
-                    }
-
-                    case DBDataType.Year: {
-                        formatter = "datetime";
-                        formatterParams = {
-                            outputFormat: "YYYY",
-                        };
-                        editor = true;
-
-                        break;
-                    }
-
-
-                    case DBDataType.Boolean: {
-                        formatter = this.booleanFormatter;
-                        editor = this.editorHost;
-                        editorParams = (): { info: IColumnInfo } => { return { info }; };
-
-                        break;
-                    }
-
-                    default: {
-                        formatter = "textarea";
-                        editor = this.editorHost;
-                        editorParams = (): { info: IColumnInfo; verticalNavigation: string } => {
-                            return {
-                                info,
-                                verticalNavigation: "editor",
-                            };
-                        };
-
-                        break;
-                    }
+                    break;
                 }
 
-                const width = this.columnWidthCache.get(info.name);
+                case DBDataType.String:
+                case DBDataType.Text:
+                case DBDataType.MediumText:
+                case DBDataType.LongText:
+                case DBDataType.Geometry:
+                case DBDataType.Point:
+                case DBDataType.LineString:
+                case DBDataType.Polygon:
+                case DBDataType.GeometryCollection:
+                case DBDataType.MultiPoint:
+                case DBDataType.MultiLineString:
+                case DBDataType.MultiPolygon:
+                case DBDataType.Json:
+                case DBDataType.Enum:
+                case DBDataType.Set: {
+                    formatter = this.stringFormatter;
+                    editor = this.editorHost;
+                    editorParams = (): { info: IColumnInfo } => { return { info }; };
+                    minWidth = 150;
 
-                return {
-                    title: info.name,
-                    field: info.name,
-                    formatter,
-                    formatterParams,
-                    editor,
-                    editorParams,
-                    width,
-                    minWidth,
-                    resizable: true,
-                    editable: this.checkEditable,
+                    break;
+                }
 
-                    cellEditing: this.cellEditing,
-                    cellEdited: this.cellEdited,
-                };
-            });
-        }
+                case DBDataType.Binary:
+                case DBDataType.Varbinary: {
+                    formatter = this.binaryFormatter;
+                    // No in-place editor. Uses value editor popup.
+
+                    break;
+                }
+
+                case DBDataType.TinyBlob:
+                case DBDataType.Blob:
+                case DBDataType.MediumBlob:
+                case DBDataType.LongBlob: {
+                    formatter = this.blobFormatter;
+                    // No in-place editor. Uses value editor popup.
+
+                    break;
+                }
+
+                case DBDataType.Date:
+                case DBDataType.DateTime:
+                case DBDataType.DateTime_f: {
+                    //formatter = "datetime";
+                    formatter = "plaintext";
+                    editor = true;
+
+                    break;
+                }
+
+                case DBDataType.Time:
+                case DBDataType.Time_f: {
+                    formatter = "datetime";
+                    formatterParams = {
+                        outputFormat: "HH:mm:ss",
+                    };
+                    editor = true;
+
+                    break;
+                }
+
+                case DBDataType.Year: {
+                    formatter = "datetime";
+                    formatterParams = {
+                        outputFormat: "YYYY",
+                    };
+                    editor = true;
+
+                    break;
+                }
+
+
+                case DBDataType.Boolean: {
+                    formatter = this.booleanFormatter;
+                    editor = this.editorHost;
+                    editorParams = (): { info: IColumnInfo } => { return { info }; };
+
+                    break;
+                }
+
+                default: {
+                    formatter = "textarea";
+                    editor = this.editorHost;
+                    editorParams = (): { info: IColumnInfo; verticalNavigation: string } => {
+                        return {
+                            info,
+                            verticalNavigation: "editor",
+                        };
+                    };
+
+                    break;
+                }
+            }
+
+            const width = this.columnWidthCache.get(info.name);
+
+            return {
+                title: info.name,
+                field: info.name,
+                formatter,
+                formatterParams,
+                editor,
+                editorParams,
+                width,
+                minWidth,
+                resizable: true,
+                editable: this.checkEditable,
+
+                cellEditing: this.cellEditing,
+                cellEdited: this.cellEdited,
+            };
+        });
     };
 
     /**
@@ -614,9 +559,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
      *
      */
     private cellEdited = (): void => {
-        const { stateVersion } = this.state;
-
-        this.setState({ dirty: true, stateVersion: stateVersion + 1 });
+        this.setState({ dirty: true });
     };
 
     private handleColumnResized = (column: Tabulator.ColumnComponent): void => {
@@ -633,9 +576,8 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
             return true;
         }
 
-        const tableOrPromise = this.gridRef.current.table;
-        if (tableOrPromise instanceof Tabulator) {
-            const selectCount = tableOrPromise.getSelectedRows().length;
+        void this.gridRef.current.table.then((table) => {
+            const selectCount = table?.getSelectedRows().length ?? 0;
 
             switch (props.id!) {
                 case "openValueMenuItem": {
@@ -710,9 +652,9 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                     return true;
                 }
             }
-        } else {
-            return true;
-        }
+        });
+
+        return true;
     };
 
     private handleCellContext = (e: Event, cell: Tabulator.CellComponent): void => {
@@ -844,9 +786,8 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
     };
 
     private copyRows = (withNames: boolean, unquoted: boolean, separatorChar = " "): void => {
-        const tableOrPromise = this.gridRef.current?.table;
-        if (tableOrPromise instanceof Tabulator) {
-            let rows = tableOrPromise.getSelectedRows();
+        void this.gridRef.current?.table.then((table) => {
+            let rows = table?.getSelectedRows() ?? [];
             if (rows.length === 0 && this.currentCell) {
                 rows = [this.currentCell.getRow()];
             }
@@ -880,13 +821,11 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
             });
 
             requisitions.writeToClipboard(content);
-        }
+        });
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private checkEditable = (cell: Tabulator.CellComponent): boolean => { return false; }
-        /* For now disabled.
-        const { status } = this.state;
+    private checkEditable = (_cell: Tabulator.CellComponent): boolean => {
+        /*const { status } = this.state;
 
         if (isNil(status) || !cell.getRow().isSelected()) {
             // No editing while loading the result or the row is not selected (allowing so the row to select,
@@ -902,7 +841,9 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         }
 
         return true;*/
-    ;
+
+        return false;
+    };
 
     private showActionMenu = (e: React.SyntheticEvent): void => {
         e.stopPropagation();
@@ -932,52 +873,12 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         return true;
     };
 
-    /**
-     * Converts the given table data into a format that's valid for the data table.
-     */
-    private prepareData = (): void => {
-        const { tableData } = this.props;
-        const { stateVersion } = this.state;
-
-        this.convertedRows = [];
-        if (tableData.rows) {
-            if (tableData.rows.length > 0 && !Array.isArray(tableData.rows[0])) {
-                // Table data is already in object format. No need to convert.
-                this.convertedRows = tableData.rows;
-            } else if (tableData.columns) {
-                tableData.rows.forEach((entry: unknown): void => {
-                    const row = {};
-
-                    tableData.columns.forEach((column: IColumnInfo, columnIndex: number): void => {
-                        row[column.name] = (entry as IDictionary)[columnIndex];
-                    });
-                    this.convertedRows.push(row);
-                });
-            }
-        }
-        const tableOrPromise = this.gridRef.current?.table;
-        if (tableOrPromise instanceof Tabulator) {
-            tableOrPromise.clearData();
-        }
-
-        this.currentPage = tableData.currentPage;
-        this.columns = tableData.columns;
-        this.generateColumnDefinitions();
-
-        this.setState({
-            stateVersion: stateVersion + 1,
-            executionInfo: tableData.executionInfo,
-            dirty: false,
-            hasMorePages: tableData.hasMoreRows ?? false,
-        });
-    };
-
     private previousPage = (): void => {
         if (this.currentPage > 0) {
             --this.currentPage;
 
-            const { tableData, onResultPageChange } = this.props;
-            onResultPageChange?.(tableData.requestId, this.currentPage, tableData.sql);
+            const { resultSet, onResultPageChange } = this.props;
+            onResultPageChange?.(resultSet.head.requestId, this.currentPage, resultSet.head.sql);
         }
     };
 
@@ -986,8 +887,8 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         if (hasMorePages) {
             ++this.currentPage;
 
-            const { tableData, onResultPageChange } = this.props;
-            onResultPageChange?.(tableData.requestId, this.currentPage, tableData.sql);
+            const { resultSet, onResultPageChange } = this.props;
+            onResultPageChange?.(resultSet.head.requestId, this.currentPage, resultSet.head.sql);
         }
     };
 

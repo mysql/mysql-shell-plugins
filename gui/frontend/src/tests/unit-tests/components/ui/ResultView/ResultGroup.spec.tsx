@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,12 +34,17 @@ describe("Result group tests", (): void => {
             <ResultGroup
                 id="resultGroup1"
                 className="resultGroup"
-                resultData={{
-                    requestId: "123",
-                    columns: [],
-                    rows: [],
-                    currentPage: 0,
-                    sql: "select 1",
+                resultSet={{
+                    head: {
+                        requestId: "123",
+                        sql: "select 1",
+                    },
+                    data: {
+                        requestId: "123",
+                        rows: [],
+                        columns: [],
+                        currentPage: 0,
+                    },
                 }}
             />,
         );
@@ -59,12 +64,17 @@ describe("Result group tests", (): void => {
             <ResultGroup
                 id="resultGroup1"
                 className="resultGroup"
-                resultData={{
-                    requestId: "123",
-                    columns: [],
-                    rows: [],
-                    currentPage: 0,
-                    sql: "select 1",
+                resultSet={{
+                    head: {
+                        requestId: "123",
+                        sql: "select 1",
+                    },
+                    data: {
+                        requestId: "123",
+                        rows: [],
+                        columns: [],
+                        currentPage: 0,
+                    },
                 }}
             />,
         );

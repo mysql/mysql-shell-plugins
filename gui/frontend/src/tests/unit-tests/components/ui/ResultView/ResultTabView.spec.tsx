@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,24 +22,48 @@
  */
 
 import { render } from "@testing-library/preact";
-import { shallow } from "enzyme";
+import { mount } from "enzyme";
 import React from "react";
 import { IResultTabViewProperties, ResultTabView } from "../../../../../components/ResultView";
 
 describe("Result tabview tests", (): void => {
 
     it("Result tabview elements", () => {
-        const component = shallow<IResultTabViewProperties>(
+        const component = mount<IResultTabViewProperties>(
             <ResultTabView
                 resultSets={{
                     type: "resultSets",
-                    sets: [],
+                    sets: [{
+                        head: {
+                            sql: "select 1",
+                            requestId: "123",
+                        },
+                        data: {
+                            requestId: "123",
+                            columns: [],
+                            rows: [],
+                            currentPage: 0,
+                        },
+                    }, {
+                        head: {
+                            sql: "select 2",
+                            requestId: "456",
+                        },
+                        data: {
+                            requestId: "456",
+                            columns: [],
+                            rows: [],
+                            currentPage: 10,
+                        },
+                    }],
                 }}
             />,
         );
 
         const props = component.props();
-        expect(props.className).toEqual("resultHost");
+        expect(props.resultSets.sets.length).toEqual(2);
+
+        component.unmount();
     });
 
     it("Result tabview (Snapshot) 1", () => {
@@ -47,7 +71,29 @@ describe("Result tabview tests", (): void => {
             <ResultTabView
                 resultSets={{
                     type: "resultSets",
-                    sets: [],
+                    sets: [{
+                        head: {
+                            sql: "select 1",
+                            requestId: "123",
+                        },
+                        data: {
+                            requestId: "123",
+                            columns: [],
+                            rows: [],
+                            currentPage: 0,
+                        },
+                    }, {
+                        head: {
+                            sql: "select 2",
+                            requestId: "456",
+                        },
+                        data: {
+                            requestId: "456",
+                            columns: [],
+                            rows: [],
+                            currentPage: 10,
+                        },
+                    }],
                 }}
             />,
         );

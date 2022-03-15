@@ -130,11 +130,11 @@ export class ExecutionContexts {
                             sets,
                         };
 
-                        state.result.list.forEach((id) => {
-                            this.loadResultSet(id).then((resultSet) => {
+                        state.result.list.forEach((requestId) => {
+                            this.loadResultSet(requestId).then((resultSet) => {
                                 if (resultSet) {
                                     sets.push(resultSet);
-                                    context.setResult(result, state.manualHeight);
+                                    context.setResult(result, state.currentHeight);
                                 }
                             }).catch(() => {
                                 // Ignore load errors.
@@ -145,7 +145,7 @@ export class ExecutionContexts {
                     }
 
                     default: {
-                        context.setResult(state.result, state.manualHeight);
+                        context.setResult(state.result, state.currentHeight);
 
                         break;
                     }
@@ -296,30 +296,35 @@ export class ExecutionContexts {
             const data = ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", requestId);
             data.then((values) => {
                 const result: IResultSet = {
-                    requestId,
-                    columns: [],
-                    rows: [],
-                    sql: "",
-                    hasMoreRows: false,
-                    currentPage: 0,
+                    head: {
+                        requestId,
+                        sql: "",
+                    },
+                    data: {
+                        requestId,
+                        columns: [],
+                        rows: [],
+                        hasMoreRows: false,
+                        currentPage: 0,
+                    },
                 };
 
                 if (this.isDbModuleResultData(values)) {
                     values.forEach((value) => {
                         if (value.sql) {
-                            result.sql = value.sql;
+                            result.head.sql = value.sql;
                         }
 
-                        result.columns.push(...value.columns ?? []);
-                        result.rows.push(...value.rows);
+                        result.data.columns.push(...value.columns ?? []);
+                        result.data.rows.push(...value.rows);
 
                         if (value.executionInfo) {
-                            result.executionInfo = value.executionInfo;
+                            result.data.executionInfo = value.executionInfo;
                         }
 
                         if (value.hasMoreRows) {
-                            result.hasMoreRows = true;
-                            result.currentPage = value.currentPage;
+                            result.data.hasMoreRows = true;
+                            result.data.currentPage = value.currentPage;
                         }
                     });
                 }

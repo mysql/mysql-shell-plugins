@@ -23,6 +23,7 @@ Object {
             __self="[object Object]"
             __source="[object Object]"
             class="msg container fixedScrollbar resultView"
+            resultset="[object Object]"
             style="flex-direction: column;"
           >
             <div
@@ -53,6 +54,7 @@ Object {
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar resultView"
+          resultset="[object Object]"
           style="flex-direction: column;"
         >
           <div

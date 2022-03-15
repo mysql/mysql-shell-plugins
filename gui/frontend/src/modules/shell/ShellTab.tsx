@@ -348,11 +348,16 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             context.setResult({
                                 type: "resultSets",
                                 sets: [{
-                                    requestId,
-                                    rows: [],
-                                    columns: [],
-                                    sql: "",
-                                    currentPage: 0,
+                                    head: {
+                                        requestId,
+                                        sql: "",
+                                    },
+                                    data: {
+                                        requestId,
+                                        rows: [],
+                                        columns: [],
+                                        currentPage: 0,
+                                    },
                                 }],
                             });
                         } else {
@@ -360,11 +365,16 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             context.addResultPage({
                                 type: "resultSets",
                                 sets: [{
-                                    requestId,
-                                    rows: [],
-                                    columns: [],
-                                    sql: "",
-                                    currentPage: 0,
+                                    head: {
+                                        requestId,
+                                        sql: "",
+                                    },
+                                    data: {
+                                        requestId,
+                                        rows: [],
+                                        columns: [],
+                                        currentPage: 0,
+                                    },
                                 }],
                             });
                         }
@@ -466,12 +476,17 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 context.setResult({
                                     type: "resultSets",
                                     sets: [{
-                                        requestId,
-                                        rows: result.rows,
-                                        columns,
-                                        sql: "",
-                                        currentPage: 0,
-                                        executionInfo: status,
+                                        head: {
+                                            requestId,
+                                            sql: "",
+                                        },
+                                        data: {
+                                            requestId,
+                                            rows: result.rows,
+                                            columns,
+                                            currentPage: 0,
+                                            executionInfo: status,
+                                        },
                                     }],
                                 });
                             } else {

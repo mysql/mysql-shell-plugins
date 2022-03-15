@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -271,55 +271,51 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
 
     private handleValueListScroll = (top: string, direction: "up" | "down"): void => {
         if (!this.scrolling && this.treeRef.current) {
-            const tableOrPromise = this.treeRef.current.table;
-            if (tableOrPromise instanceof Tabulator) {
-                this.scrolling = true;
-
-                try {
-                    const parts = top.split(".");
-                    if (parts.length > 1) {
-                        // Remove the last part of the id, which is a specific setting. We need the category however.
-                        parts.pop();
-                        top = parts.join(".");
-                    }
-
-                    // Collapse and deselect the currently active node.
-                    tableOrPromise.getSelectedRows().forEach((row) => {
-                        if (!top.startsWith((row.getData() as IDictionary).id as string)) {
-                            let current: Tabulator.RowComponent | false = row;
-                            while (current) {
-                                current.treeCollapse();
-                                current = current.getTreeParent();
-                            }
-                        }
-                        row.deselect();
-
-                        // If we are scrolling down, expand the previous row to make its children available
-                        // for search + selection.
-                        if (direction === "down") {
-                            const prevRow = row.getPrevRow();
-                            if (prevRow) {
-                                prevRow.treeExpand();
-                            }
-                        }
-                    });
-
-                    const rows = tableOrPromise.getRows("visible");
-                    const row = rows.find((row) => {
-                        return (row.getData() as IDictionary).id === top;
-                    });
-
-                    if (row) {
-                        if (direction === "up") {
-                            row.treeExpand();
-                        }
-                        void row.scrollTo();
-                        row.select();
-                    }
-                } finally {
-                    this.scrolling = false;
-                }
+            this.scrolling = true;
+            const parts = top.split(".");
+            if (parts.length > 1) {
+                // Remove the last part of the id, which is a specific setting. We need the category however.
+                parts.pop();
+                top = parts.join(".");
             }
+
+            // Collapse and deselect the currently active node.
+            void this.treeRef.current?.table.then((table) => {
+                table?.getSelectedRows().forEach((row) => {
+                    if (!top.startsWith((row.getData() as IDictionary).id as string)) {
+                        let current: Tabulator.RowComponent | false = row;
+                        while (current) {
+                            current.treeCollapse();
+                            current = current.getTreeParent();
+                        }
+                    }
+                    row.deselect();
+
+                    // If we are scrolling down, expand the previous row to make its children available
+                    // for search + selection.
+                    if (direction === "down") {
+                        const prevRow = row.getPrevRow();
+                        if (prevRow) {
+                            prevRow.treeExpand();
+                        }
+                    }
+                });
+
+                const rows = table?.getRows("visible") ?? [];
+                const row = rows.find((row) => {
+                    return (row.getData() as IDictionary).id === top;
+                });
+
+                if (row) {
+                    if (direction === "up") {
+                        row.treeExpand();
+                    }
+                    void row.scrollTo();
+                    row.select();
+                }
+
+                this.scrolling = false;
+            });
         }
     };
 

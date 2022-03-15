@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,7 @@
  */
 
 import { render } from "@testing-library/preact";
-import { shallow } from "enzyme";
+import { mount } from "enzyme";
 import React from "react";
 
 import { IResultViewProperties, ResultView } from "../../../../../components/ResultView";
@@ -30,31 +30,41 @@ import { IResultViewProperties, ResultView } from "../../../../../components/Res
 describe("Result view tests", (): void => {
 
     it("Result view elements", () => {
-        const component = shallow<IResultViewProperties>(
+        const component = mount<IResultViewProperties>(
             <ResultView
-                tableData={{
-                    sql: "select 1",
-                    requestId: "123",
-                    columns: [],
-                    rows: [],
-                    currentPage: 0,
+                resultSet={{
+                    head: {
+                        sql: "select 1",
+                        requestId: "123",
+                    },
+                    data: {
+                        requestId: "123",
+                        columns: [],
+                        rows: [],
+                        currentPage: 0,
+                    },
                 }}
             />,
         );
 
         const props = component.props();
-        expect(props.className).toEqual("msg resultView");
+        expect(props.resultSet.head.sql).toEqual("select 1");
     });
 
     it("Result view (Snapshot) 1", () => {
         const component = render(
             <ResultView
-                tableData={{
-                    sql: "select 1",
-                    requestId: "123",
-                    columns: [],
-                    rows: [],
-                    currentPage: 0,
+                resultSet={{
+                    head: {
+                        sql: "select 1",
+                        requestId: "123",
+                    },
+                    data: {
+                        requestId: "123",
+                        columns: [],
+                        rows: [],
+                        currentPage: 0,
+                    },
                 }}
             />,
         );

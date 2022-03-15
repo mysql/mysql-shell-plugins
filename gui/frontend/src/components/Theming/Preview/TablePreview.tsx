@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -50,15 +50,13 @@ export class TablePreview extends Component<{}, ITablePreviewState> {
     }
 
     public componentDidMount(): void {
-        setTimeout(() => {
-            const tableOrPromise = this.ref.current?.table;
-            if (tableOrPromise instanceof Tabulator) {
-                const rows = tableOrPromise.getRows();
+        void this.ref.current?.table.then((table) => {
+            const rows = table?.getRows();
+            if (rows && rows.length > 0) {
                 rows[0].treeExpand();
-                tableOrPromise.selectRow([1, 12]);
             }
-
-        }, 500);
+            table?.selectRow([1, 12]);
+        });
     }
 
     public render(): React.ReactNode {

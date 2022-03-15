@@ -529,8 +529,8 @@ Execute \\help or \\? for help;`;
                             });
 
                         } else {
-                            this.processListener(backend.execute(sql, actualParams), context, sql, index, false, page,
-                                oldRequestId).then(() => {
+                            const listener = backend.execute(sql, actualParams);
+                            this.processListener(listener, context, sql, index, false, page, oldRequestId).then(() => {
                                 resolve(true);
                             }).catch((reason) => {
                                 reject(reason);
@@ -603,23 +603,33 @@ Execute \\help or \\? for help;`;
                             context.setResult({
                                 type: "resultSets",
                                 sets: [{
-                                    requestId,
-                                    rows: [],
-                                    columns: [],
-                                    sql,
-                                    currentPage,
+                                    head: {
+                                        requestId,
+                                        sql,
+                                    },
+                                    data: {
+                                        requestId,
+                                        columns: [],
+                                        rows: [],
+                                        currentPage: 0,
+                                    },
                                 }],
                             });
                         } else {
                             context.addResultPage({
                                 type: "resultSets",
                                 sets: [{
-                                    requestId,
-                                    oldRequestId,
-                                    rows: [],
-                                    columns: [],
-                                    sql,
-                                    currentPage,
+                                    head: {
+                                        requestId,
+                                        oldRequestId,
+                                        sql,
+                                    },
+                                    data: {
+                                        requestId,
+                                        columns: [],
+                                        rows: [],
+                                        currentPage: 0,
+                                    },
                                 }],
                             });
                         }

@@ -229,8 +229,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     protected updateRenderTarget(): void {
         this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.resultInfo && this.renderTarget) {
-                if (this.manualHeight) {
-                    this.resultInfo.zone.heightInPx = this.manualHeight;
+                if (this.currentHeight) {
+                    this.resultInfo.zone.heightInPx = this.currentHeight;
                     changeAccessor.layoutZone(this.resultInfo.zoneId);
                 } else {
                     // Make the render resize to its content size, temporarily.
@@ -239,6 +239,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     const usedHeight = this.renderTarget.getBoundingClientRect().height;
 
                     this.resultInfo.zone.heightInPx = Math.ceil(usedHeight) + 4;
+                    this.currentHeight = this.resultInfo.zone.heightInPx;
                     changeAccessor.layoutZone(this.resultInfo.zoneId);
 
                     this.renderTarget.style.height = "";
@@ -275,12 +276,18 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         const marginNode = document.createElement("div");
         marginNode.className = "zoneMargin";
 
+        if (this.currentHeight) {
+            // If we already have an explicitly height then we don't need a delayed update.
+            this.targetUpdated = true;
+        }
+
         let zoneId = "";
         const zone = {
             afterLineNumber: this.endLine,
             domNode: zoneNode,
             marginDomNode: marginNode,
             suppressMouseDown: false,
+            heightInPx: this.currentHeight,
             onComputedHeight: () => {
                 // This is triggered when the view zone computed its current height, which we use as indicator
                 // that the view is about to be shown. We give it a few more milliseconds before we do our
@@ -315,7 +322,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     private handleDividerPointerUp = (e: React.PointerEvent): void => {
         e.currentTarget.releasePointerCapture(e.pointerId);
         if (this.resultInfo) {
-            this.manualHeight = this.resultInfo.zone.heightInPx;
+            this.currentHeight = this.resultInfo.zone.heightInPx;
         }
 
         this.resizingZone = false;
@@ -325,8 +332,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         if (this.resizingZone) {
             const delta = e.screenY - this.lastMouseY;
 
-            if (!this.manualHeight) {
-                this.manualHeight = this.renderTarget?.getBoundingClientRect().height
+            if (!this.currentHeight) {
+                this.currentHeight = this.renderTarget?.getBoundingClientRect().height
                     ?? PresentationInterface.maxAutoHeight;
             }
 
@@ -334,7 +341,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 this.dividerRef.current?.classList.remove("minimum");
                 this.dividerRef.current?.classList.remove("maximum");
 
-                const newHeight = (this.manualHeight ?? 0) + delta;
+                const newHeight = (this.currentHeight ?? 0) + delta;
                 const minHeight = this.minHeight ?? 0;
                 if (newHeight >= minHeight && newHeight <= PresentationInterface.maxHeight) {
                     this.resultInfo.zone.heightInPx = newHeight;

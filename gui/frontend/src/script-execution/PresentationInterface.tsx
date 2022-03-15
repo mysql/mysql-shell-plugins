@@ -61,7 +61,7 @@ export class PresentationInterface {
     protected static maxAutoHeight = 292;
 
     // The size of the result area after manual resize by the user.
-    public manualHeight?: number;
+    public currentHeight?: number;
     public resultData?: IExecutionResult;
     public loadingState = LoadingState.Idle;
 
@@ -147,7 +147,7 @@ export class PresentationInterface {
             }
 
             case "resultSets": {
-                return this.resultData.sets.map((set) => { return set.requestId; });
+                return this.resultData.sets.map((set) => { return set.head.requestId; });
             }
 
             default: {
@@ -202,7 +202,7 @@ export class PresentationInterface {
                     this.minHeight = 40;
 
                     const allFinished = data.sets.every((value) => {
-                        return !isNil(value.executionInfo);
+                        return !isNil(value.data.executionInfo);
                     });
 
                     // Start the wait timer. If not cancelled it will cause the wait animation to show.
@@ -240,7 +240,7 @@ export class PresentationInterface {
         }
 
         if (manualHeight) {
-            this.manualHeight = manualHeight;
+            this.currentHeight = manualHeight;
         }
 
         if (this.renderTarget) { // Do we have a result already?
@@ -309,23 +309,20 @@ export class PresentationInterface {
                 let needUpdate = false;
                 data.sets.forEach((set) => {
                     let addNew = true;
-                    if (set.oldRequestId) {
+                    if (set.head.oldRequestId) {
                         // When an old request id is specified that means we are actually replacing a page, not adding
                         // a new one.
                         const existing = existingSets.find((candidate) => {
-                            return candidate.requestId === set.oldRequestId;
+                            return candidate.head.requestId === set.head.oldRequestId;
                         });
 
                         if (existing) {
                             addNew = false;
-                            existing.requestId = set.requestId;
-                            existing.columns = set.columns;
-                            existing.rows = set.rows;
-                            existing.executionInfo = set.executionInfo;
-                            existing.sql = set.sql;
+                            existing.head.requestId = set.head.requestId;
+                            existing.head.sql = set.head.sql;
 
                             if (this.resultRef.current) {
-                                this.resultRef.current.reassignData(set.oldRequestId, set.requestId);
+                                this.resultRef.current.reassignData(set.head.oldRequestId, set.head.requestId);
                             }
                         }
                     }
@@ -333,12 +330,16 @@ export class PresentationInterface {
                     if (addNew) {
                         needUpdate = true;
                         existingSets.push({
-                            requestId: set.requestId,
-                            columns: set.columns,
-                            rows: set.rows,
-                            executionInfo: set.executionInfo,
-                            sql: set.sql,
-                            currentPage: 0,
+                            head: {
+                                requestId: set.head.requestId,
+                                sql: set.head.sql,
+                            },
+                            data: {
+                                requestId: set.head.requestId,
+                                columns: [],
+                                rows: [],
+                                currentPage: 0,
+                            },
                         });
                     }
                 });
@@ -417,7 +418,19 @@ export class PresentationInterface {
 
                 // Treat the given data as result rows, if we previously had rows already.
                 // In this case the text serves as execution info.
-                return this.handleNewRows(data as unknown as IResultSetRows);
+                if (data.requestId) {
+                    const rows: IResultSetRows = {
+                        type: "resultSetRows",
+                        requestId: data.requestId,
+                        columns: [],
+                        rows: [],
+                        currentPage: 0,
+                    };
+
+                    return this.handleNewRows(rows);
+                }
+
+                break;
             }
 
             case "resultSetRows": {
@@ -599,7 +612,7 @@ export class PresentationInterface {
 
     protected removeRenderTarget(): void {
         this.renderTarget = undefined;
-        this.manualHeight = undefined;
+        this.currentHeight = undefined;
     }
 
     protected updateRenderTarget(): void {
@@ -714,25 +727,25 @@ export class PresentationInterface {
 
         // Add the data to our internal storage, to support switching tabs for multiple result sets.
         const resultSet = resultSets.find((candidate) => {
-            return candidate.requestId === data.requestId;
+            return candidate.head.requestId === data.requestId;
         });
 
         if (resultSet && data.columns && data.rows) {
-            resultSet.columns.push(...data.columns);
-            resultSet.rows.push(...(data.rows));
+            resultSet.data.columns.push(...data.columns);
+            resultSet.data.rows.push(...(data.rows));
 
             if (data.executionInfo) {
-                resultSet.executionInfo = data.executionInfo;
+                resultSet.data.executionInfo = data.executionInfo;
             }
 
             if (data.type === "resultSetRows") {
-                resultSet.hasMoreRows = data.hasMoreRows;
-                resultSet.currentPage = data.currentPage;
+                resultSet.data.hasMoreRows = data.hasMoreRows;
+                resultSet.data.currentPage = data.currentPage;
             }
         }
 
         if (this.resultRef.current) {
-            await this.resultRef.current.addData(data );
+            await this.resultRef.current.addData(data);
         }
 
         if (data.executionInfo) {

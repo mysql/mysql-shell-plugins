@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,6 +38,9 @@ interface IResultTabViewState extends IComponentState {
 
     // React refs to the used ResultGroup instances, keyed by the request ID for the result set.
     groupRefs: Map<string, React.RefObject<ResultGroup>>;
+
+    // Groups that are marked as having got a new request ID and their data must be completely replaced.
+    replacePending: Set<React.RefObject<ResultGroup>>;
 }
 
 // Holds a collection of result views and other output in a tabbed interface.
@@ -49,6 +52,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         this.state = {
             selectedTab: "",
             groupRefs: new Map(),
+            replacePending: new Set(),
         };
     }
 
@@ -58,7 +62,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
 
         const pages = resultSets.sets.map((entry: IResultSet, index: number): ITabviewPage => {
             const ref = React.createRef<ResultGroup>();
-            groupRefs.set(entry.requestId, ref);
+            groupRefs.set(entry.head.requestId, ref);
 
             return {
                 id: `resultGroup${index}`,
@@ -66,7 +70,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                 content: (
                     <ResultGroup
                         ref={ref}
-                        resultData={entry}
+                        resultSet={entry}
 
                         onResultPageChange={onResultPageChange}
                     />
@@ -97,11 +101,16 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * @returns A promise the resolves when the operation is complete.
      */
     public async addData(newData: IResultSetRows): Promise<void> {
-        const { groupRefs } = this.state;
+        const { groupRefs, replacePending } = this.state;
 
         const groupRef = groupRefs.get(newData.requestId);
         if (groupRef && groupRef.current) {
-            await groupRef.current.addData(newData);
+            if (replacePending.has(groupRef)) {
+                replacePending.delete(groupRef);
+                await groupRef.current.addData(newData, true);
+            } else {
+                await groupRef.current.addData(newData, false);
+            }
         }
     }
 
@@ -114,14 +123,14 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * @param newRequestId The ID under which this group is accessible after return.
      */
     public reassignData(oldRequestId: string, newRequestId: string): void {
-        const { groupRefs } = this.state;
+        const { groupRefs, replacePending } = this.state;
 
         const groupRef = groupRefs.get(oldRequestId);
         if (groupRef && groupRef.current) {
             groupRefs.delete(oldRequestId);
             groupRefs.set(newRequestId, groupRef);
 
-            groupRef.current.markReplace();
+            replacePending.add(groupRef);
         }
     }
 

@@ -32,7 +32,7 @@ import { render } from "preact";
 import { Component, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/Component";
 import {
     Container, Accordion, SplitContainer, Orientation, Toolbar, Label, Button, Divider, ISplitterPane, Tabview,
-    ITabviewPage, Icon, Codicon, TreeGrid, ITreeGridOptions, ISplitterPaneSizeInfo, Tabulator,
+    ITabviewPage, Icon, Codicon, TreeGrid, ITreeGridOptions, ISplitterPaneSizeInfo, Tabulator, SetDataAction,
 } from "../ui";
 
 import { ListenerEntry, IDispatchDefaultEvent, EventType } from "../../supplement/Dispatch";
@@ -86,8 +86,6 @@ export interface ICommunicationDebuggerProperties extends IComponentProperties {
 }
 
 interface ICommunicationDebuggerState extends IComponentState {
-    scripts: IScriptTreeEntry[];
-
     // Input area tabs.
     activeInputTab: string;
     scriptTabs: ITabviewPage[];      // Tabs for each open test/debugger script.
@@ -97,6 +95,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
 
     private messageOutputRef = React.createRef<CodeEditor>();
     private inputRef = React.createRef<CodeEditor>();
+    private scriptTreeRef = React.createRef<TreeGrid>();
 
     private outputState: IEditorPersistentState;
     private inputState: IEditorPersistentState;
@@ -111,8 +110,6 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         super(props);
 
         this.state = {
-            scripts: [],
-
             activeInputTab: "interactiveTab",
             scriptTabs: [],
         };
@@ -141,18 +138,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     }
 
     public render(): React.ReactNode {
-        const { scripts } = this.state;
-
         const className = this.getEffectiveClassNames(["debugger"]);
-
-        const scriptTreeColumns: Tabulator.ColumnDefinition[] = [{
-            title: "",
-            field: "name",
-            resizable: false,
-            hozAlign: "left",
-            cellDblClick: this.handleScriptTreeDoubleClick,
-            formatter: this.scriptTreeCellFormatter,
-        }];
 
         const scriptTreeOptions: ITreeGridOptions = {
             treeColumn: "name",
@@ -162,14 +148,11 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             expandedLevels: [true, false, true],
         };
 
-        const scriptSectionContent = (scripts.length || 0) === 0
-            ? <Accordion.Item caption="<no scripts>" />
-            : <TreeGrid
-                className="scriptTree"
-                tableData={scripts}
-                columns={scriptTreeColumns}
-                options={scriptTreeOptions}
-            />;
+        const scriptSectionContent = <TreeGrid
+            className="scriptTree"
+            ref={this.scriptTreeRef}
+            options={scriptTreeOptions}
+        />;
 
         return (
             <SplitContainer
@@ -517,7 +500,18 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
                     }
                 });
 
-                this.setState({ scripts });
+                if (this.scriptTreeRef.current) {
+                    this.scriptTreeRef.current.setColumns([{
+                        title: "",
+                        field: "name",
+                        resizable: false,
+                        hozAlign: "left",
+                        cellDblClick: this.handleScriptTreeDoubleClick,
+                        formatter: this.scriptTreeCellFormatter,
+                    }]);
+
+                    void this.scriptTreeRef.current.setData(scripts, SetDataAction.Set);
+                }
 
             })
             .catch((event) => {

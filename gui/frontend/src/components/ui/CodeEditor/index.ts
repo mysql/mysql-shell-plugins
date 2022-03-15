@@ -103,8 +103,8 @@ export interface IExecutionContextsState {
     // Optionally: an attached result (reference).
     result?: IExecuteResultReference;
 
-    // Set if the user resized the result area.
-    manualHeight?: number;
+    // The height of the result set.
+    currentHeight?: number;
 
     statements: IStatementSpan[];
 }

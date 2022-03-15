@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -62,7 +62,7 @@
     margin-right: 20px;
 }
 
-.msg.settingsEditor .content #settingsHost > #settingsTreeHost {
+.msg.settingsEditor .content #settingsHost>#settingsTreeHost {
     flex: 1 1 auto;
 }
 
@@ -81,12 +81,16 @@
     height: 18px;
 }
 
-.msg.settingsEditor #settingsTree .treeToggle + .settingsTreeCell {
+.msg.settingsEditor #settingsTree .treeToggle+.settingsTreeCell {
     padding-left: 0px;
 }
 
 .msg.settingsEditor #settingsValueList {
     flex: 1 1 auto;
+}
+
+.msg.settingsEditor #settingsValueList .tabulator-table {
+    width: 100%;
 }
 
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row .tabulator-cell,
@@ -141,7 +145,7 @@
     width: 100%;
 }
 
-.msg.settingsEditor #settingsValueList .settingValueDescription > span {
+.msg.settingsEditor #settingsValueList .settingValueDescription>span {
     display: block;
     word-break: break-word;
 }
@@ -155,7 +159,7 @@
     max-width: 400px;
 }
 
-.msg.settingsEditor #settingsValueList .settingValue > .checkMark {
+.msg.settingsEditor #settingsValueList .settingValue>.checkMark {
     margin-right: 8px;
 }
 

@@ -96,7 +96,7 @@ export class ExecutionContext implements IExecutionContext {
                 case "resultSets": {
                     const list: string[] = [];
                     data.sets.forEach((value) => {
-                        list.push(value.requestId);
+                        list.push(value.head.requestId);
                     });
 
                     result = {
@@ -126,7 +126,7 @@ export class ExecutionContext implements IExecutionContext {
             end: this.presentation.endLine,
             language: this.language,
             result,
-            manualHeight: this.presentation.manualHeight,
+            currentHeight: this.presentation.currentHeight,
             statements: this.statementSpans,
         };
     }

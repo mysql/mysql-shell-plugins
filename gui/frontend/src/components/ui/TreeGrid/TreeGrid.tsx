@@ -32,8 +32,20 @@ import React from "react";
 import { isNil } from "lodash";
 
 import { IComponentProperties, Component, SelectionType } from "..";
+import { IComponentState } from "../Component/Component";
+import { waitFor } from "../../../utilities/helpers";
 
 export { Tabulator } from "tabulator-tables";
+
+// This type excludes methods from the Tabulator type, which are implemented in the TreeGrid.
+export type TabulatorProxy = Omit<Tabulator, "setData" | "setColumns">;
+
+export enum SetDataAction {
+    Replace, // Like Set, but doesn't do any additional handling like scrolling, filtering, sorting and so on.
+    Update,  // Requires an index field in each row and updates only existing data (for matching indexes).
+    Add,     // Adds new records to existing data.
+    Set,     // Full update of the grid content.
+}
 
 export interface ITreeGridMenuEntry {
     label?: string | ((component: Tabulator.RowComponent) => string);
@@ -80,10 +92,11 @@ export interface ITreeGridOptions {
 
 export interface ITreeGridProperties extends IComponentProperties {
     height?: string | number;
-    columns: Tabulator.ColumnDefinition[];
 
-    // A list of objects each with a member for each column.
-    tableData: unknown[];
+    // For convenience these fields allow to specify initial (or static) data.
+    // Most of the time you want to use `setColumns` and `setData` instead.
+    columns?: Tabulator.ColumnDefinition[];
+    tableData?: unknown[];
 
     // A list of row IDs that should be selected initially.
     // Note that the specified selection mode might limit that list (no selection or single selection).
@@ -115,13 +128,22 @@ export interface ITreeGridProperties extends IComponentProperties {
     onColumnResized?: (column: Tabulator.ColumnComponent) => void;
 }
 
+export interface ITreeGridState extends IComponentState {
+    // For data that was set while the tree was being set up.
+    pendingColumns?: Tabulator.ColumnDefinition[];
+    pendingData?: unknown[];
+}
+
 // This component shows data in dynamic lists with or without a tree column, or can show only a tree.
-// Currently this component is neither fully controlled, nor fully uncontrolled, which implies some problems.
-export class TreeGrid extends Component<ITreeGridProperties> {
+// This is an uncontrolled component, keeping all data in the underlying tabulator module.
+export class TreeGrid extends Component<ITreeGridProperties, ITreeGridState> {
 
     private hostRef = React.createRef<HTMLDivElement>();
     private tabulator?: Tabulator;
     private tableReady = false;
+
+    // A counter to manage redraw blocks.
+    private updateCount = 0;
 
     public constructor(props: ITreeGridProperties) {
         super(props);
@@ -145,7 +167,8 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         if (this.hostRef.current) {
             this.tabulator = new Tabulator(this.hostRef.current, this.tabulatorOptions);
             this.tabulator.on("tableBuilt", () => {
-                const { selectedIds, tableData, columns } = this.mergedProps;
+                const { selectedIds } = this.mergedProps;
+                const { pendingColumns, pendingData } = this.state;
 
                 this.tableReady = true;
                 if (this.tabulator) {
@@ -155,8 +178,15 @@ export class TreeGrid extends Component<ITreeGridProperties> {
                         this.tabulator.selectRow(selectedIds);
                     }
 
-                    this.tabulator.setColumns(columns);
-                    void this.tabulator.setData(tableData);
+                    if (pendingColumns) {
+                        this.tabulator.setColumns(pendingColumns);
+                    }
+
+                    if (pendingData) {
+                        void this.tabulator.setData(pendingData);
+                    }
+
+                    this.setState({ pendingColumns: undefined, pendingData: undefined });
                 }
 
                 // Assign the table holder class our fixed scrollbar class too.
@@ -186,20 +216,13 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         }
     }
 
-    /**
-     * This method is necessary to update the grid on re-render (e.g. when switching between tabs, each having
-     * a grid on it).
-     */
     public componentDidUpdate(): void {
         if (this.tabulator && this.tableReady) {
-            const { selectedIds, tableData, columns } = this.mergedProps;
+            const { selectedIds } = this.mergedProps;
 
             if (selectedIds) {
                 this.tabulator.selectRow(selectedIds);
             }
-
-            this.tabulator.setColumns(columns);
-            void this.tabulator.setData(tableData);
         }
     }
 
@@ -225,25 +248,100 @@ export class TreeGrid extends Component<ITreeGridProperties> {
     /**
      * Provides access to the underlying Tabulator table object.
      *
-     * @returns The table directly if it is already mounted and built. Otherwise a promise is returned which resolves
-     *          once the table is accessible.
+     * @returns The table when it is available otherwise undefined.
      */
-    public get table(): Promise<Tabulator> | Tabulator {
-        if (this.tableReady) {
-            return this.tabulator!;
-        }
-
-        const resolver = (resolve: (value: Tabulator | PromiseLike<Tabulator>) => void): void => {
-            if (this.tableReady && this.tabulator) {
-                resolve(this.tabulator);
-            } else {
-                setTimeout(() => { resolver(resolve); }, 100);
-            }
-        };
-
+    public get table(): Promise<TabulatorProxy | undefined> {
         return new Promise((resolve) => {
-            setTimeout(() => { resolver(resolve); }, 100);
+            void waitFor(1000, () => {
+                return this.tableReady;
+            }).then((success) => {
+                if (success) {
+                    resolve(this.tabulator);
+                } else {
+                    resolve(undefined);
+                }
+            });
         });
+    }
+
+    public setColumns(columns: Tabulator.ColumnDefinition[]): void {
+        void this.table.then(() => {
+            this.tabulator?.setColumns(columns);
+        });
+    }
+
+    public setData(data: unknown[], action: SetDataAction): Promise<void> {
+        return new Promise((resolve) => {
+            void this.table.then((table) => {
+                if (!table) {
+                    resolve();
+
+                    return;
+                }
+
+                switch (action) {
+                    case SetDataAction.Add: {
+                        void table.addData(data as Array<{}>).then(() => {
+                            resolve();
+                        });
+                        break;
+                    }
+
+                    case SetDataAction.Replace: {
+                        void table.replaceData(data as Array<{}>).then(() => {
+                            resolve();
+                        });
+                        break;
+                    }
+
+                    case SetDataAction.Update: {
+                        void table.updateData(data as Array<{}>).then(() => {
+                            resolve();
+                        });
+                        break;
+                    }
+
+                    case SetDataAction.Set: {
+                        void (table as Tabulator).setData(data as Array<{}>).then(() => {
+                            resolve();
+                        });
+                        break;
+                    }
+
+                    default: {
+                        resolve();
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * Sets the grid to a special mode where no visual updates are done until `endUpdate()` was called.
+     * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
+     */
+    public beginUpdate(): void {
+        if (this.tableReady && this.tabulator) {
+            ++this.updateCount;
+            if (this.updateCount === 1) {
+                this.tabulator.blockRedraw();
+            }
+        }
+    }
+
+    /**
+     * Decreases the update counter. If that counter becomes 0, normal rendering is enabled again.
+     * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
+     */
+    public endUpdate(): void {
+        if (this.tableReady && this.tabulator) {
+            if (this.updateCount > 0) {
+                --this.updateCount;
+                if (this.updateCount === 0) {
+                    this.tabulator.restoreRedraw();
+                }
+            }
+        }
     }
 
     /**
@@ -253,7 +351,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
      */
     private get tabulatorOptions(): Tabulator.Options {
         const {
-            height = "100%", columns, tableData, options, rowContextMenu, isRowExpanded, onFormatRow,
+            height = "100%", columns = [], tableData = [], options, rowContextMenu, isRowExpanded, onFormatRow,
         } = this.mergedProps;
 
         let selectable: number | boolean | "highlight";
@@ -280,7 +378,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         }
 
         const result: Tabulator.Options = {
-            debugInvalidOptions: true,
+            debugInvalidOptions: process.env.NODE_ENV === "development",
 
             columns,
             data: tableData,

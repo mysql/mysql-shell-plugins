@@ -16,9 +16,91 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
+          class="msg container fixedScrollbar selector horizontal tabArea"
+          style="flex-direction: row;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar selectorItem stepDown"
+            id="selectorItemstepDown"
+            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+          />
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar selectorItem selected normal"
+            id="resultGroup0"
+            style="flex-direction: row; justify-content: center; align-items: center;"
+          >
+            <label
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              Result 1
+            </label>
+          </div>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar selectorItem normal"
+            id="resultGroup1"
+            style="flex-direction: row; justify-content: center; align-items: center;"
+          >
+            <label
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              Result 2
+            </label>
+          </div>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar selectorItem stepUp"
+            id="selectorItemstepUp"
+            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
           class="msg container fixedScrollbar content"
           style="flex-direction: column;"
-        />
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar tabview right resultGroup"
+            style="flex-direction: row-reverse;"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar resultView"
+                resultset="[object Object]"
+                style="flex-direction: column;"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg treeGrid horizontalGrid verticalGrid"
+                  style="font-size: 10pt;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </body>,
@@ -32,9 +114,91 @@ Object {
       <div
         __self="[object Object]"
         __source="[object Object]"
+        class="msg container fixedScrollbar selector horizontal tabArea"
+        style="flex-direction: row;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar selectorItem stepDown"
+          id="selectorItemstepDown"
+          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+        />
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar selectorItem selected normal"
+          id="resultGroup0"
+          style="flex-direction: row; justify-content: center; align-items: center;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label"
+            data-tooltip="inherit"
+          >
+            Result 1
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar selectorItem normal"
+          id="resultGroup1"
+          style="flex-direction: row; justify-content: center; align-items: center;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label"
+            data-tooltip="inherit"
+          >
+            Result 2
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar selectorItem stepUp"
+          id="selectorItemstepUp"
+          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+        />
+      </div>
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
         class="msg container fixedScrollbar content"
         style="flex-direction: column;"
-      />
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar tabview right resultGroup"
+          style="flex-direction: row-reverse;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar content"
+            style="flex-direction: column;"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar resultView"
+              resultset="[object Object]"
+              style="flex-direction: column;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg treeGrid horizontalGrid verticalGrid"
+                style="font-size: 10pt;"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>,
   "debug": [Function],

@@ -68,12 +68,8 @@ export interface ITextResult {
     text?: ITextResultEntry[];
     executionInfo?: IExecutionInfo;
 
-    // The following fields are here only to allow handling a text result (which is *usually* just that, text) as
-    // part of result sets. Columns and rows will never contain anything and the optional request ID allows to set
-    // the given text as status to an existing result set.
+    // When given, allows to set the given text as status to an existing result set.
     requestId?: string;
-    columns?: IColumnInfo[];
-    rows?: unknown[];
 }
 
 export interface IResultSetContent {
@@ -90,12 +86,19 @@ export interface IResultSetContent {
     executionInfo?: IExecutionInfo;
 }
 
-export interface IResultSet extends IResultSetContent {
+export interface IResultSetHead {
+    requestId: string;
+
     // Set when this result set replaces an existing one from a previous request (e.g. when paging results).
     oldRequestId?: string;
 
     // Original query without automatic adjustments (like a LIMIT clause).
     sql: string;
+}
+
+export interface IResultSet {
+    head: IResultSetHead;
+    data: IResultSetContent;
 }
 
 export interface IResultSets {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -78,18 +78,17 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
 
     public componentDidUpdate(prevProps: ISettingsEditorListProperties): void {
         const scrollTree = (): void => {
-            const tableOrPromise = this.gridRef.current?.table;
-            if (tableOrPromise instanceof Tabulator) {
+            void this.gridRef.current?.table.then((table) => {
                 const { selectedId } = this.state;
 
                 if (selectedId.length > 0) {
-                    const row = tableOrPromise.getRow(selectedId);
+                    const row = table?.getRow(selectedId);
                     if (row) {
                         void row.scrollTo();
                         row.select();
                     }
                 }
-            }
+            });
         };
 
         const { settingsTree } = this.props;
@@ -114,6 +113,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         const settingsListOptions: ITreeGridOptions = {
             showHeader: false,
             selectionType: SelectionType.Single,
+            layout: "fitColumns",
         };
 
         return (
@@ -129,10 +129,9 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
     }
 
     public scrollToId(id: string): void {
-        const tableOrPromise = this.gridRef.current?.table;
-        if (tableOrPromise instanceof Tabulator) {
-            void tableOrPromise.scrollToRow(id, "top");
-        }
+        void this.gridRef.current?.table.then((table) => {
+            void table?.scrollToRow(id, "top");
+        });
     }
 
     private collectSettingsValues(): Array<ISettingCategory | ISettingValue> {
@@ -166,9 +165,8 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         }
         this.saveTimer = setTimeout(() => { settings.saveSettings(); }, 1000);
 
-        const tableOrPromise = this.gridRef.current?.table;
-        if (tableOrPromise instanceof Tabulator) {
-            const selectedRows = tableOrPromise.getSelectedRows();
+        void this.gridRef.current?.table.then((table) => {
+            const selectedRows = table?.getSelectedRows() ?? [];
             if (selectedRows.length > 0) {
                 // Update the row to show the changed data. There can only be one row selected.
                 const row = selectedRows[0];
@@ -188,19 +186,18 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
                     edit.focus();
                 }
             }
-        }
+        });
 
         return Promise.resolve(true);
     };
 
     private handleVerticalScrolling = (top: number): void => {
-        const tableOrPromise = this.gridRef.current?.table;
-        if (tableOrPromise instanceof Tabulator) {
+        void this.gridRef.current?.table.then((table) => {
             const { onListScroll } = this.props;
 
-            const rows = tableOrPromise.getRows();
+            const rows = table?.getRows();
             let foundRow: Tabulator.RowComponent | undefined;
-            rows.forEach((row) => {
+            rows?.forEach((row) => {
                 if (!foundRow && row.getElement().offsetTop > top) {
                     foundRow = row;
                 }
@@ -211,7 +208,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
                 this.lastScrollPos = top;
                 onListScroll((foundRow.getData() as IDictionary).id as string, direction);
             }
-        }
+        });
     };
 
     private formatSettingsListCell = (cell: Tabulator.CellComponent): string | HTMLElement => {

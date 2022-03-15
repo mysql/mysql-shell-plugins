@@ -68,7 +68,7 @@ import { isNil } from "lodash";
 import {
     Accordion, Component, IComponentProperties, Label, Icon, IComponentState, Input, SelectionType,
     IAccordionProperties, Menu, ComponentPlacement, IMenuItemProperties, MenuItem, TreeGrid, ITreeGridOptions, Image,
-    Tabulator,
+    Tabulator, TabulatorProxy,
 } from "../../components/ui";
 import { EntityType, IDBEditorScriptState, IEntityBase, IModuleDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
@@ -179,18 +179,18 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }
 
         if (markedSchema !== prevProps.markedSchema) {
-            const tableOrPromise = this.tableRef.current?.table;
-            const tree = tableOrPromise instanceof Tabulator ? tableOrPromise : undefined;
-            if (tree) {
-                let rows = tree.searchRows("caption", "=", markedSchema);
-                rows.forEach((row) => {
-                    row.reformat();
-                });
-                rows = tree.searchRows("caption", "=", prevProps.markedSchema);
-                rows.forEach((row) => {
-                    row.reformat();
-                });
-            }
+            void this.tableRef.current?.table.then((table) => {
+                if (table) {
+                    let rows = table.searchRows("caption", "=", markedSchema);
+                    rows.forEach((row) => {
+                        row.reformat();
+                    });
+                    rows = table.searchRows("caption", "=", prevProps.markedSchema);
+                    rows.forEach((row) => {
+                        row.reformat();
+                    });
+                }
+            });
         }
     }
 
@@ -223,7 +223,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 ref={this.tableRef}
                 options={schemaTreeOptions}
                 columns={schemaTreeColumns}
-                tableData={schemaList!}
+                tableData={schemaList}
 
                 onRowExpanded={this.handleRowExpanded}
                 onRowCollapsed={this.handleRowCollapsed}
@@ -845,43 +845,43 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
             const schema = entry.qualifiedName.schema;
             const table = entry.qualifiedName.table ?? "";
-            const tableOrPromise = this.tableRef.current?.table;
-            const tree = tableOrPromise instanceof Tabulator ? tableOrPromise : undefined;
+            void this.tableRef.current?.table.then((tree) => {
+                switch (entry.type) {
+                    case SchemaTreeType.GroupNode: {
+                        switch (entry.id) {
+                            case "groupNode.Tables": {
+                                void this.renderTables(schema, row, tree);
+                                break;
+                            }
 
-            switch (entry.type) {
-                case SchemaTreeType.GroupNode: {
-                    switch (entry.id) {
-                        case "groupNode.Tables": {
-                            void this.renderTables(schema, row, tree);
-                            break;
-                        }
+                            case "groupNode.Views":
+                            case "groupNode.Routines":
+                            case "groupNode.Events": {
+                                void this.renderSchemaObjects(schema, entry.qualifiedName.name ?? "", "", row, tree);
+                                break;
+                            }
 
-                        case "groupNode.Views":
-                        case "groupNode.Routines":
-                        case "groupNode.Events": {
-                            void this.renderSchemaObjects(schema, entry.qualifiedName.name ?? "", "", row, tree);
-                            break;
-                        }
+                            case "groupNode.Triggers":
+                            case "groupNode.Foreign Keys":
+                            case "groupNode.Indexes":
+                            case "groupNode.Columns": {
+                                void this.renderTableObjects(schema, table, entry.qualifiedName.name ?? "", row, tree);
+                                break;
+                            }
 
-                        case "groupNode.Triggers":
-                        case "groupNode.Foreign Keys":
-                        case "groupNode.Indexes":
-                        case "groupNode.Columns": {
-                            void this.renderTableObjects(schema, table, entry.qualifiedName.name ?? "", row, tree);
-                            break;
+                            default: {
+                                break;
+                            }
                         }
-
-                        default: {
-                            break;
-                        }
+                        break;
                     }
-                    break;
-                }
 
-                default: {
-                    break;
+                    default: {
+                        break;
+                    }
                 }
-            }
+            });
+
         }
     };
 
@@ -1225,7 +1225,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return true;
     };
 
-    private renderTables = async (schema: string, row: Tabulator.RowComponent, tree?: Tabulator): Promise<void> => {
+    private async renderTables(schema: string, row: Tabulator.RowComponent, tree?: TabulatorProxy): Promise<void> {
         const { backend } = this.props;
 
         tree?.blockRedraw();
@@ -1253,16 +1253,16 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 row.addTreeChild(newChild);
             }
         } catch (error) {
-            void requisitions.execute("showError",
-                ["Backend Error", "Could not get column information.", error as string]);
+            void requisitions.execute("showError", ["Backend Error", "Could not get column information.",
+                error as string]);
         }
 
         row.treeExpand();
         tree?.restoreRedraw();
-    };
+    }
 
     private renderTableObjects = async (schema: string, table: string, type: string, row: Tabulator.RowComponent,
-        tree?: Tabulator, filter?: string): Promise<void> => {
+        tree?: TabulatorProxy, filter?: string): Promise<void> => {
         const { backend } = this.props;
 
         tree?.blockRedraw();
@@ -1298,7 +1298,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     };
 
     private renderSchemaObjects = async (schema: string, type: string, filter: string,
-        row: Tabulator.RowComponent, tree?: Tabulator): Promise<void> => {
+        row: Tabulator.RowComponent, tree?: TabulatorProxy): Promise<void> => {
 
         const { backend } = this.props;
 
