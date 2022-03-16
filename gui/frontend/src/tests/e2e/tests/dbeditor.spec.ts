@@ -845,10 +845,11 @@ describe("DB Editor", () => {
             await execSel?.click();
 
             const resultHost = await driver.findElement(By.css(".resultHost"));
-            const variableNameCol = await resultHost.findElement(By.xpath
-            ("//div[contains(@tabulator-field, 'Variable_name') and contains(@role, 'gridcell')]"));
-            const valueCol = await resultHost.findElement(By.xpath
-            ("//div[contains(@tabulator-field, 'Value') and contains(@role, 'gridcell')]"));
+            const xpath = "//div[contains(@tabulator-field, 'Variable_name') and contains(@role, 'gridcell')]";
+            const variableNameCol = await resultHost.findElement(By.xpath(xpath));
+
+            const xpath1 = "//div[contains(@tabulator-field, 'Value') and contains(@role, 'gridcell')]";
+            const valueCol = await resultHost.findElement(By.xpath(xpath1));
 
             await driver.wait(until.elementTextContains(variableNameCol, "Ssl_cipher"),
                 3000, "No ssl cipher");

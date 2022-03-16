@@ -53,7 +53,7 @@ try{
 
         $msg | Out-File $log -Append
 
-        Invoke-Expression "Write-Host `"$msg`" $option"
+        Invoke-Expression "write-host `"$msg`" $option"
         
     }
     
@@ -66,16 +66,6 @@ try{
     if(!$env:WORKSPACE){
         Throw "Please define 'WORKSPACE' env variable"
     }
-
-    if(!$env:TESTSUITE){
-        $env:TESTSUITE = "*";
-    }
-
-    writeMsg "Setting TESTSUITE TO RUN on PACKAGE.JSON ... ($env:TESTSUITE)" "-NoNewLine"
-    $json = Get-Content -Path "$basePath\package.json" | Out-String | ConvertFrom-Json
-    $json.scripts.e2e = "react-scripts test --detectOpenHandles --testMatch [ `"**/e2e/**/$env:TESTSUITE.spec.[jt]s?(x)`" ] --setupFilesAfterEnv `"./src/e2e/setupTests.js`" --testResultsProcessor `"./node_modules/jest-html-reporter`" --maxWorkers=2 --watchAll=false"
-    $json | ConvertTo-Json -Depth 3 | Set-Content "$basePath\package.json"
-    writeMsg "DONE"
     
     if( Test-Path -Path $log ){
         Remove-Item -Path $log -Recurse -Force	
@@ -162,8 +152,6 @@ try{
     writeMsg "Creating plugins folder ($guipluginPath) ..." "-NoNewline"
     New-Item -ItemType "directory" -Force -Path $guipluginPath 
     writeMsg "DONE"
-
-    $guiPluginFolder = Join-Path $env:WORKSPACE "gui_plugin"
     
     #DOWNLOAD PORTABLE.ZIP
     if(!$env:PLUGIN_PUSH_ID){
@@ -177,7 +165,7 @@ try{
         ( $_.product -eq "mysql-shell-ui-plugin_binary_commercial_portable_zip" ) -or
         ( $_.product -eq "mysql-shell-ui-plugin_binary_gui-plugin_zip" )
         }).artifacts | Where-Object {
-            $_.name -eq "gui_plugin"
+            $_.name -like "mysql-shell-gui-plugin"
         }
 
     if($plugin){
@@ -201,7 +189,14 @@ try{
     writeMsg "DONE"
 
     #MOVE gui_plugin TO FOLDER
-    writeMsg "Moving plugins folder to destination..." "-NoNewLine"        
+    writeMsg "Moving plugins folder to destination..." "-NoNewLine"
+    $item = Get-ChildItem -Path $env:WORKSPACE | where { 
+        $_ -like "*mysql-shell-gui-plugin*" -and 
+        $_ -notlike "*.zip*" 
+    }
+    $item = $item.Name      
+    Rename-Item -Path "$env:WORKSPACE\$item" -NewName "gui_plugin"
+    $guiPluginFolder = Join-Path $env:WORKSPACE "gui_plugin"
     Copy-Item $guiPluginFolder $guipluginPath -Recurse -Force
     writeMsg "DONE"
     
@@ -412,7 +407,7 @@ try{
     $hasPassedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsErr.log" | Select-String -Pattern "(\d+) passed" | % { $_.Matches.Groups[0].Value })
 
     if( $hasFailedTests -or (!$hasFailedTests -and !$hasPassedTests) ){
-        $screenshots = Join-Path $basePath, "src", "tests", "e2e", "screenshots" 
+        $screenshots = Join-Path $basePath "src" "tests" "e2e" "screenshots" 
         if( Test-Path $screenshots ){
             $files = Get-ChildItem -Path $screenshots
             writeMsg "Adding screenshots to html-report ($($files.Length))" "-NoNewLine"
@@ -557,7 +552,4 @@ finally{
         exit 1
     }
 }
-
-
-
 
