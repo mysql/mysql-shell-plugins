@@ -22,6 +22,8 @@
 from encodings import utf_8
 from mysqlsh.plugin_manager import plugin_function
 import gui_plugin.core.Logger as logger
+from pathlib import Path
+from .lib import get_os_name, run_system_command, create_certificate_installer, create_certificate_uninstaller
 
 
 @plugin_function('gui.core.isShellWebCertificateInstalled', shell=True, cli=True, web=True)
@@ -56,23 +58,32 @@ def is_shell_web_certificate_installed(**kwargs):
 
     check_string = ''
     if check_keychain:
-        system = platform.system()
-        if system == "Darwin":
+        os_name = get_os_name()
+        if os_name == "Darwin":
             # Keychain Access.app can be used on macOS to manually check certs
             cmd = ["security", "find-certificate", "-a",
                    os.path.join(os.path.expanduser("~"),
                                 "Library", "Keychains", "login.keychain-db")]
             check_string = (
                 '"labl"<blob>="MySQL Shell Auto Generated CA Certificate"')
-        elif system == "Windows":
+        elif os_name == "Windows":
             # cSpell:ignore certutil
             # certmgr.msc can be used on Windows to manually check certs
             cmd = ["certutil", "-verifystore", "-user", "ROOT",
-            "MySQL Shell Auto Generated CA Certificate"]
+                   "MySQL Shell Auto Generated CA Certificate"]
             check_string = 'CN=MySQL Shell Auto Generated CA Certificate'
+        elif os_name in ["OracleLinux", "RedHat", "Fedora"]:
+            cmd = ["trust", "list"]
+            check_string = 'MySQL Shell Auto Generated CA Certificate'
         else:
-            return True
-
+            # Assumes the rest are linuxes that work with the certutil
+            home_dir = Path.home()
+            if not home_dir:
+                raise Exception("No home directory set")
+            cert_db_path = os.path.join(home_dir, ".pki", "nssdb")
+            cmd = ["certutil", "-d", cert_db_path,
+                   "-L", "-n", "MySQL Shell"]
+            check_string = 'CN=MySQL Shell Auto Generated CA Certificate'
         try:
             exit_code, output = run_shell_cmd(cmd)
 
@@ -134,8 +145,18 @@ def install_shell_web_certificate(**kwargs):
             cmd = ["certutil", "-addstore", "-user", "-f", "ROOT",
                    os.path.join(cert_path, "rootCA.crt")]
         else:
-            # TODO(rennox): Linux installation is pending
-            return True
+            installer_path = create_certificate_installer()
+
+            # Verifies if gnome-terminal is available
+            exit_code, output = run_system_command(['which', 'gnome-terminal'])
+            if exit_code == 0:
+                cmd = [output, '--wait', '--', installer_path]
+            else:
+                exit_code, output = run_system_command(['which', 'xterm'])
+                if exit_code == 0:
+                    cmd = [output, '-e', installer_path]
+                else:
+                    raise SystemError("UNABLE to find terminal!")
 
         try:
             exit_code, output = run_shell_cmd(cmd)
@@ -159,6 +180,7 @@ def remove_shell_web_certificate():
     import mysqlsh.plugin_manager.general
     from cryptography import x509
     from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.backends import default_backend
     import platform
     import os.path
     import shutil
@@ -174,7 +196,8 @@ def remove_shell_web_certificate():
         root_ca_path = os.path.join(cert_path, "rootCA.crt")
 
         cert_file_string = open(root_ca_path, "rb").read()
-        cert = x509.load_pem_x509_certificate(cert_file_string)
+        cert = x509.load_pem_x509_certificate(
+            cert_file_string, backend=default_backend())
 
         sha1 = cert.fingerprint(hashes.SHA1()).hex()
 
@@ -186,10 +209,20 @@ def remove_shell_web_certificate():
                                 "Library", "Keychains", "login.keychain-db")]
         elif system == "Windows":
             cmd = ["certutil", "-delstore", "-user", "ROOT",
-                "MySQL Shell Auto Generated CA Certificate"]
+                   "MySQL Shell Auto Generated CA Certificate"]
         else:
-            # TODO(rennox): Linux installation is pending
-            return False
+            uninstaller_path = create_certificate_uninstaller()
+
+            # Verifies if gnome-terminal is available
+            exit_code, output = run_system_command(['which', 'gnome-terminal'])
+            if exit_code == 0:
+                cmd = [output, '--wait', '--', uninstaller_path]
+            else:
+                exit_code, output = run_system_command(['which', 'xterm'])
+                if exit_code == 0:
+                    cmd = [output, '-e', uninstaller_path]
+                else:
+                    raise SystemError("UNABLE to find terminal!")
 
         try:
             exit_code, output = run_shell_cmd(cmd)

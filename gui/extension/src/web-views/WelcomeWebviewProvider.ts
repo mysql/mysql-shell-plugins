@@ -193,12 +193,6 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     opacity: 0;
                 }
             }
-            .securityDialogInfo {
-                display: ${((platform() === "darwin" || platform() === "win32") ? "block" : "none")};
-            }
-            .manualCertInstallInfo {
-                display: ${((platform() === "darwin" || platform() === "win32") ? "none" : "block")};
-            }
             code {
                 font-size: 10pt;
                 font-weight: 400;
@@ -227,7 +221,7 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     <h3>Installation of Certificate.</h3>
                     <p>This extension needs a certificate to be installed on your local
                         user account in order to securely access the MySQL Shell.</p>
-                    <p class="pWithImg securityDialogInfo">
+                    <p class="pWithImg">
                         <img src="${rootPath.toString()}/images/welcome/trustSettingDlg-${platform()}.png"
                             width="171px" height="87px" alt="Trust Dialog" align="left" hspace="15px"/>
                         In the next step a security dialog will be show, asking if
@@ -238,9 +232,8 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                 </div>
                 <div id="page3" class="page inactivePage">
                     <h3>Installation of Certificate.</h3>
-                    <p class="securityDialogInfo">Please confirm the installation of the certificate in order
+                    <p>Please confirm the installation of the certificate in order
                         to complete the installation of the extension.</p>
-                    <p class="manualCertInstallInfo">The certificate is being generated.</p>
                     <div id="waitForConfirmation"><div class="pingEffect"><div></div><div></div></div></div>
                     <p id="certError" class="pError"></p>
                 </div>
@@ -249,17 +242,6 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     <p>Thank you for installing the MySQL Shell for VSCode extension!</p>
                     <p>A reload of the VSCode window is needed to be able to use the MySQL Shell.</p>
                     <h3>Please click the [Reload VSCode Window] button.</h3>
-                </div>
-                <div id="page5" class="page inactivePage">
-                    <h3>Please Complete the Installation</h3>
-                    <p>The certificate has been created at the following location.<br>
-                    <code>~/mysqlsh/plugin_data/gui_plugin/web_certs/rootCA.crt</code></p>
-                    <p>Please perform the following step <b>manually</b>. For more details see
-                    <a href="https://chromium.googlesource.com/chromium/src/+/lkgr/docs/linux/cert_management.md">
-                    here</a>.<br>
-                    <code>cd ~/.mysqlsh/plugin_data/gui_plugin/web_certs<br>
-                    sudo trust anchor rootCA.crt</code></p>
-                    <p>Afterwards, click the [Reload VSCode Window] button.</p>
                 </div>
             </div>
             <form name="welcomeControls" class="welcomeControls">
@@ -274,7 +256,6 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                 const pageInstallCert = 3, pageLast = 4;
                 const nextBtn = document.getElementById('nextBtn');
                 const cancelBtn = document.getElementById('cancelBtn');
-                const platformMacOrWin = ${((platform() === "darwin" || platform() === "win32") ? "true" : "false")};
                 var currentPage = 1;
                 var restartWizard = false;
 
@@ -338,12 +319,7 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
                             nextBtn.classList.remove("disabledBtn");
 
                             if (message.output.includes("true")) {
-                                // Depending on platform, either show complete message or manual instructions
-                                if (platformMacOrWin) {
-                                    showPage(4);
-                                } else {
-                                    showPage(5);
-                                }
+                                showPage(4);
 
                                 nextBtn.value = "Reload VS Code Window";
                             } else if (message.output.includes("ERROR")) {
