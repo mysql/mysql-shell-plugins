@@ -318,6 +318,7 @@ class TWebSocket:
                 expected_copy.remove(expected_item)
             else:
                 for expected_item in expected_copy:
+                    found = False
                     try:
                         if isinstance(expected_item, Object):
                             self._validateResponse(
@@ -335,8 +336,11 @@ class TWebSocket:
                                 self.validation_trace.insert(0, diff(actual_item, expected_item, prefix))
                                 assert expected_item == actual_item, "".join(self.validation_trace)
                                 self.validation_trace.remove(self.validation_trace[0])
-                    except:
+                        found = True
+                    except Exception as e:
                         continue
+                    assert found, f"part not found {actual_item}"
+
                     expected_copy.remove(expected_item)
                     break
 

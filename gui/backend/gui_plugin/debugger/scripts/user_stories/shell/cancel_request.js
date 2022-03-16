@@ -34,26 +34,41 @@ await ws.sendAndValidate({
 ws.tokens["task1_req_id"] = ws.generateRequestId()
 ws.tokens["task2_req_id"] = ws.generateRequestId()
 
-await ws.send({
+await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.tokens["task1_req_id"],
     "command": "gui.shell.execute",
     "args": {
-        "command": "import time; time.sleep(2)",
+        "command": "import time; time.sleep(5)",
         "module_session_id": ws.lastModuleSessionId,
     }
-})
+}, [
+    {
+        "request_id": ws.tokens["task1_req_id"],
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Execution started..."
+        }
+    }
+])
 
-await ws.send({
+await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.tokens["task2_req_id"],
     "command": "gui.shell.execute",
     "args": {
-        "command": "import time; time.sleep(2)",
+        "command": "import time; time.sleep(5)",
         "module_session_id": ws.lastModuleSessionId,
     }
-})
-
+}, [
+    {
+        "request_id": ws.tokens["task2_req_id"],
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Execution started..."
+        }
+    }
+])
 
 await ws.sendAndValidate({
     "request": "cancel",
@@ -65,6 +80,13 @@ await ws.sendAndValidate({
             "msg": "Request cancelled."
         },
         "request_id": ws.tokens["task2_req_id"],
+    },
+    {
+        'request_state': {
+            'type': 'OK',
+            'msg': ''
+        },
+        'request_id': ws.tokens["task1_req_id"]
     },
     {
         "request_state": {

@@ -11,14 +11,14 @@ ws.tokens["task6_req_id"] = ws.generateRequestId()
 await ws.send(
     Object.assign(Object(), requests.sqleditor.execute, {
         "request_id": ws.tokens["task1_req_id"],
-        "args": { "sql": "SELECT SLEEP(3)" }
+        "args": { "sql": "SELECT SLEEP(5)" }
     }),
 )
 
 await ws.send(
     Object.assign(Object(), requests.sqleditor.execute, {
         "request_id": ws.tokens["task2_req_id"],
-        "args": { "sql": "SELECT SLEEP(3)" }
+        "args": { "sql": "SELECT SLEEP(5)" }
     }),
 )
 
