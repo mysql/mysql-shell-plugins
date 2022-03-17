@@ -831,6 +831,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         editor.addCommand(KeyCode.Delete, this.handleDelete);
         editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyA, this.handleSelectAll);
 
+        this.disposables.push(editor);
         this.disposables.push(editor.onDidChangeCursorPosition((e: Monaco.ICursorPositionChangedEvent) => {
             if (language === "msg") {
                 const model = this.model;

@@ -25,8 +25,8 @@ import * as React from "react";
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
-    IColumnInfo, DialogType, IDialogRequest, MessageType, IDialogResponse, IDictionary,
-    IServicePasswordRequest,
+    IColumnInfo, DialogType, IDialogRequest, MessageType, IDialogResponse, IDictionary, IServicePasswordRequest,
+    DBDataType,
 } from "../../app-logic/Types";
 
 import {
@@ -461,10 +461,24 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 flattenObject(value as IDictionary);
                             });
 
+                            // XXX: temporary workaround: create generic columns from data.
+                            // Column info should actually be return in the columns meta data response above.
+                            if (columns.length === 0 && result.rows.length > 0) {
+                                const row = result.rows[0] as object;
+                                Object.keys(row).forEach((value) => {
+                                    columns.push({
+                                        name: value,
+                                        dataType: {
+                                            type: DBDataType.String,
+                                        },
+                                    });
+                                });
+                            }
+
                             void ApplicationDB.db.add("shellModuleResultData", {
                                 tabId: id,
                                 requestId,
-                                rows: result.rows || [],
+                                rows: result.rows,
                                 columns,
                                 executionInfo: status,
                             });
