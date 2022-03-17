@@ -169,7 +169,7 @@ def test_profile(user, password, role):
     user_id = msg["id"]
 
     msg = UserManagement.add_profile(user_id, profile)
-    profile_id = int(msg["result"].get("profile_id"))
+    profile_id = int(msg["result"].get("id"))
     assert profile_id > 0
     profiles = UserManagement.list_profiles(user_id)
     assert name_in_message(profile_name, profiles)

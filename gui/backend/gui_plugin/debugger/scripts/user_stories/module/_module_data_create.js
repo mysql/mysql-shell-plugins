@@ -341,7 +341,7 @@ await ws.sendAndValidate({
     "request_id": ws.lastGeneratedRequestId
 }])
 
-ws.tokens['admin1_profile_id'] = ws.lastResponse['result']['profile_id']
+ws.tokens['admin1_profile_id'] = ws.lastResponse['result']['id']
 
 await ws.sendAndValidate({
     "request": "execute",

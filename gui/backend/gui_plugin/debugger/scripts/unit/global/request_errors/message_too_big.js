@@ -4412,7 +4412,7 @@ ws.sendAndValidate({
              "msg": ws.ignore
             },
             "result": {
-                "profile_id": 1
+                "id": 1
             },
             "request_id": ws.lastGeneratedRequestId
         }
@@ -4451,7 +4451,7 @@ ws.sendAndValidate({
              "msg": ws.ignore
             },
             "result": {
-                "profile_id": 1
+                "id": 1
             },
             "request_id": ws.lastGeneratedRequestId
         }

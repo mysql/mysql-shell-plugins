@@ -391,7 +391,7 @@ def update_profile(profile, web_session=None):
                     profile.get('id')))
 
     result = Response.fromStatus(db.get_last_status(), {
-        "result": {"profile_id": profile.get('id')}})
+        "result": {"id": profile.get('id')}})
 
     return result
 
@@ -418,7 +418,7 @@ def add_profile(user_id, profile, web_session=None):
         profile_id = backend.add_profile(db, user_id, profile)
 
     result = Response.fromStatus(db.get_last_status(), {
-        "result": {"profile_id": profile_id}})
+        "result": {"id": profile_id}})
 
     return result
 
