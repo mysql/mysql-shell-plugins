@@ -208,6 +208,9 @@ class TWebSocket:
             target=self._read_responses_thread)
         self._reading_thread.start()
 
+    def close(self):
+        self.ws.close()
+
     def doSend(self, request):
         while True:
             try:

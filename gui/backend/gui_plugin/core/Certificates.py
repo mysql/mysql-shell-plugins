@@ -195,7 +195,8 @@ def remove_shell_web_certificate():
     if is_shell_web_certificate_installed(check_keychain=True):
         root_ca_path = os.path.join(cert_path, "rootCA.crt")
 
-        cert_file_string = open(root_ca_path, "rb").read()
+        with open(root_ca_path, "rb") as cert_file:
+            cert_file_string = cert_file.read()
         cert = x509.load_pem_x509_certificate(
             cert_file_string, backend=default_backend())
 

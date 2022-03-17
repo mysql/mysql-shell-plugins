@@ -244,7 +244,8 @@ class BackendSqliteDbManager(BackendDbManager):
                                   f'mysqlsh_gui_backend_{latest_db_version}.sqlite.sql')
 
         try:
-            conn = sqlite3.connect(self._connection_options["db_file"])
+            db_file = self._connection_options["db_file"]
+            conn = sqlite3.connect(db_file)
             cursor = conn.cursor()
 
             # Do a fresh initialization of the database

@@ -30,6 +30,12 @@ from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
 
+_db_files_count = 0
+_files_count = 0
+_process_count = 0
+_thread_count = 0
+
+
 class LogLevel(IntEnum):
     NONE = 1
     INTERNAL_ERROR = 2
@@ -40,6 +46,7 @@ class LogLevel(IntEnum):
     DEBUG2 = 7
     DEBUG3 = 8
     MAX_LEVEL = 8
+
 
 class BackendLogger:
     __instance = None
@@ -57,7 +64,8 @@ class BackendLogger:
                 "This class is a singleton, use get_instance function to get an instance.")
         else:
             BackendLogger.__instance = self
-            self.set_log_level(LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
+            self.set_log_level(
+                LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
 
     def message_logger(self, log_type, message, tags=[], context={}):
         now = datetime.datetime.now()
@@ -66,11 +74,13 @@ class BackendLogger:
             BackendDbLogger.log(event_type=log_type.name, message=message)
 
         if 'shell' in tags:
-            mysqlsh.globals.shell.log(log_type.name, f"[MSG] {message}") # pylint: disable=no-member
+            mysqlsh.globals.shell.log(
+                log_type.name, f"[MSG] {message}")  # pylint: disable=no-member
 
         if 'stdout' in tags:
             if self.__log_level >= log_type:
-                print(f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}")
+                print(
+                    f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}")
 
     def set_log_level(self, log_level: LogLevel):
         BackendLogger.__log_level = log_level
@@ -84,22 +94,27 @@ def debug(message, tags=[]):
     tags = tags + ['stdout']
     BackendLogger.get_instance().message_logger(LogLevel.DEBUG, message, tags)
 
+
 def info(message, tags=[], context={}):
     # TODO: tweak these tags according the environment settings
     if 'session' not in tags:
         tags = tags + ['stdout', 'shell']
-    BackendLogger.get_instance().message_logger(LogLevel.INFO, message, tags, context)
+    BackendLogger.get_instance().message_logger(
+        LogLevel.INFO, message, tags, context)
+
 
 def warning(message, tags=[]):
     # TODO: tweak these tags according the environment settings
     tags = tags + ['stdout', 'shell']
     BackendLogger.get_instance().message_logger(LogLevel.WARNING, message, tags)
 
+
 def error(message, tags=[]):
     # TODO: tweak these tags according the environment settings
     tags = tags + ['stdout', 'shell']
     # convert to string in case we're logging an exception
     BackendLogger.get_instance().message_logger(LogLevel.ERROR, str(message), tags)
+
 
 def exception(e, msg=None, tags=[]):
     if msg:
@@ -109,23 +124,83 @@ def exception(e, msg=None, tags=[]):
     else:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         exception_info = "".join(traceback.format_exception(exc_type, exc_value,
-                            exc_traceback))
+                                                            exc_traceback))
         # the shell seems to be stripping initial spaces on every log line,
         # but I want indentation on exception reports
         exception_info = exception_info.strip().replace('\n', '\n-')
         error(f"Exception information:\n{exception_info}")
 
+
 def debug2(message, tags=[]):
     tags = tags + ['stdout']
     BackendLogger.get_instance().message_logger(LogLevel.DEBUG2, message, tags)
+
 
 def debug3(message, tags=[]):
     tags = tags + ['stdout']
     BackendLogger.get_instance().message_logger(LogLevel.DEBUG3, message, tags)
 
+
 def internal_error(message, tags=[]):
     tags = tags + ['stdout']
-    BackendLogger.get_instance().message_logger(LogLevel.INTERNAL_ERROR, message, tags)
+    BackendLogger.get_instance().message_logger(
+        LogLevel.INTERNAL_ERROR, message, tags)
+
+
+def track_print(type):
+    pass
+    # import psutil
+    # import threading
+    # debug3(
+    #     f"{type} opened, open db files: {_db_files_count}, open files: {_files_count}, open processes: {_process_count}, handles: {len(psutil.Process().open_files())}, threads: {threading.active_count()} [{_thread_count}]")
+    # for f in psutil.Process().open_files():
+    #     debug3(f"--> {f}")
+
+
+def track_open(type):
+    global _db_files_count
+    global _files_count
+    global _process_count
+    global _thread_count
+
+    if type == "db":
+        _db_files_count += 1
+        # traceback.print_stack(limit=10)
+    elif type == "file":
+        _files_count += 1
+    elif type == "process":
+        _process_count += 1
+    elif type == "thread":
+        _thread_count += 1
+        # traceback.print_stack(limit=10)
+    track_print(type)
+
+
+def track_close(type):
+    global _db_files_count
+    global _files_count
+    global _process_count
+    global _thread_count
+
+    if type == "db":
+        _db_files_count -= 1
+        if _db_files_count < 0:
+            debug3("Trying closing db file that is already closed.")
+            # traceback.print_stack(limit=10)
+    elif type == "file":
+        _files_count -= 1
+        if _files_count < 0:
+            debug3("Trying closing file that is already closed.")
+            traceback.print_stack(limit=10)
+    elif type == "process":
+        _process_count -= 1
+        if _process_count < 0:
+            debug3("Trying closing process that is already closed.")
+            # traceback.print_stack(limit=10)
+    elif type == "thread":
+        _thread_count -= 1
+    track_print(type)
+
 
 @plugin_function('gui.core.setLogLevel', shell=False, web=True)
 def set_log_level(log_level=LogLevel.INFO.name):
@@ -153,6 +228,7 @@ def set_log_level(log_level=LogLevel.INFO.name):
 
     return Response.ok("Log level set successfully.")
 
+
 @plugin_function('gui.core.getLogLevel', shell=False, web=True)
 def get_log_level():
     """Gets the current log level
@@ -161,4 +237,3 @@ def get_log_level():
         The generated shell request record.
     """
     return BackendLogger.get_instance().get_log_level().name
-

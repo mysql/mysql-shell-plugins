@@ -171,7 +171,7 @@ class DbSession(threading.Thread):
     def _open_database(self, notify_success=True):
         raise NotImplementedError()
 
-    def _close_database(self):
+    def _close_database(self, finalize):
         raise NotImplementedError()
 
     def _reconnect(self, auto_reconnect=False):
@@ -181,7 +181,7 @@ class DbSession(threading.Thread):
         if not self._db_pinger is None:
             self._db_pinger.stop()
             self._db_pinger.join()
-        self._close_database()
+        self._close_database(True)
         self._term_complete.set()
 
     def execute_thread(self, sql, params):
@@ -237,7 +237,7 @@ class DbSession(threading.Thread):
             self.add_task(DBCloseTask())
             self._term_complete.wait()
         else:
-            self._close_database()
+            self._close_database(True)
 
     def reconnect(self):
         if self._threaded:

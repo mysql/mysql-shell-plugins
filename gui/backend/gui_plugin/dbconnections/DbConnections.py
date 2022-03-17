@@ -58,9 +58,6 @@ def add_db_connection(profile_id, connection, folder_path='',
     Returns:
         string: The connection_id in a result JSON string
     """
-    # if a web_session object is passed in, use that to get the db object
-    db = web_session.db if web_session else GuiBackendDb()
-
     # Verify connection parameters
     if not 'caption' in connection \
             or not isinstance(connection['caption'], str) \
@@ -134,9 +131,6 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
         Nothing
     """
 
-    # if a web_session object is passed in, use that to get the db object
-    db = web_session.db if web_session else GuiBackendDb()
-
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
             if "db_type" in connection:
@@ -174,7 +168,6 @@ def remove_db_connection(profile_id, connection_id, web_session=None):
     Returns:
         Nothing
     """
-    db = web_session.db if web_session else GuiBackendDb()
 
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
@@ -212,11 +205,9 @@ def list_db_connections(profile_id, folder_path='', web_session=None):
     Returns:
         str: The list of connections in a result JSON string
     """
-    # if a web_session object is passed in, use that to get the db object
-    db = web_session.db if web_session else GuiBackendDb()
-
+    result = None
     with BackendDatabase(web_session) as db:
-        return db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
+        result = db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
             dc.description, dc.db_type, dc.options
             FROM profile_has_db_connection p_dc
                 LEFT JOIN db_connection dc ON
@@ -224,6 +215,8 @@ def list_db_connections(profile_id, folder_path='', web_session=None):
             WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ?''',
                          (profile_id, '%' if folder_path == '' else folder_path),
                          close=(web_session is None))
+
+    return result
 
 
 @plugin_function('gui.dbconnections.getDbConnection', shell=False, web=True)
@@ -238,12 +231,12 @@ def get_db_connection(db_connection_id, web_session=None):
     Returns:
         str: The db_connections in a result JSON string
     """
-    # if a web_session object is passed in, use that to get the db object
-    db = web_session.db if web_session else GuiBackendDb()
-
+    result = None
     with BackendDatabase(web_session) as db:
-        return db.select('SELECT * FROM db_connection WHERE id = ?',
+        result = db.select('SELECT * FROM db_connection WHERE id = ?',
                          (db_connection_id,), close=(web_session is None))
+
+    return result
 
 
 @plugin_function('gui.dbconnections.getDbTypes', shell=False, web=True)

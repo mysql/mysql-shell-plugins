@@ -38,7 +38,7 @@ import mysqlsh
 from contextlib import contextmanager
 from gui_plugin.users import backend as user_handler
 from gui_plugin.users.backend import get_id_personal_user_group
-from queue import Queue
+from queue import Queue, Empty
 from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
 
@@ -69,7 +69,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
     def process_responses(self):
         while self.connected:
-            json_message = self._response_queue.get()
+            try:
+                json_message = self._response_queue.get(timeout=1)
+            except Empty as e:
+                continue
+
             self.send_message(json.dumps(json_message, default=str))
 
     def process_message(self, json_message):
@@ -255,6 +259,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         # close module sessions. use a copy so that we don't change the dict during the for
         for module_session in dict(self._module_sessions).values():
             module_session.close()
+
+        if self._response_thread.is_alive():
+            self._response_thread.join()
 
         logger.info("Websocket closed")
 

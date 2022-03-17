@@ -23,7 +23,6 @@ from gui_plugin.core.Protocols import Response
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.modules import ModuleSession, cancellable
 from gui_plugin.core.BaseTask import CommandTask
-import gui_plugin.core.Logger as logger
 import subprocess
 import threading
 from queue import Queue, Empty

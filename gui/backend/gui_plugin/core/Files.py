@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -80,33 +80,30 @@ def list_files(path="", web_session=None):
     Returns:
         A list of files that exist in the requested directory
     """
-    # if a web_session object is passed in, use that to get the db object
-    db = web_session.db if web_session else GuiBackendDb()
 
-    with BackendDatabase(web_session) as db:
-        # the rel_path is the full_path on local sessions
-        full_path, rel_path = resolve_path(path, web_session)
+    # the rel_path is the full_path on local sessions
+    full_path, rel_path = resolve_path(path, web_session)
 
-        if not os.path.exists(full_path):
-            raise MSGException(Error.CORE_PATH_NOT_EXIST,
-                               "The supplied path does not exist.")
+    if not os.path.exists(full_path):
+        raise MSGException(Error.CORE_PATH_NOT_EXIST,
+                            "The supplied path does not exist.")
 
-        if not os.path.isdir(full_path):
-            raise MSGException(Error.CORE_NOT_DIRECTORY,
-                               "The supplied path is not a directory.")
+    if not os.path.isdir(full_path):
+        raise MSGException(Error.CORE_NOT_DIRECTORY,
+                            "The supplied path is not a directory.")
 
-        if not os.access(full_path, os.R_OK):
-            raise MSGException(Error.CORE_PERMISSION_DENIED,
-                               "No permissions to access the directory.")
+    if not os.access(full_path, os.R_OK):
+        raise MSGException(Error.CORE_PERMISSION_DENIED,
+                            "No permissions to access the directory.")
 
-        list_of_files = []
-        for item in os.listdir(full_path):
-            p = Path(os.path.join(rel_path, item))
-            list_of_files.append(p.as_posix())
+    list_of_files = []
+    for item in os.listdir(full_path):
+        p = Path(os.path.join(rel_path, item))
+        list_of_files.append(p.as_posix())
 
-        result = Response.ok("Files in directory", {
-            "result": list_of_files
-        })
+    result = Response.ok("Files in directory", {
+        "result": list_of_files
+    })
 
     return result
 
@@ -134,38 +131,36 @@ def create_file(path, web_session=None):
     Returns:
         The path to the created file on success.
     """
-    # if a web_session object is passed in, use that to get the db object
-    db = web_session.db if web_session else GuiBackendDb()
 
-    with BackendDatabase(web_session) as db:
-        if path == "":
-            raise MSGException(Error.CORE_PATH_NOT_SUPPLIED,
-                               "The supplied path is empty.")
+    if path == "":
+        raise MSGException(Error.CORE_PATH_NOT_SUPPLIED,
+                            "The supplied path is empty.")
 
-        # the rel_path is the full_path on local sessions
-        full_path, rel_path = resolve_path(path, web_session)
+    # the rel_path is the full_path on local sessions
+    full_path, rel_path = resolve_path(path, web_session)
 
-        if os.path.isdir(full_path):
-            raise MSGException(Error.CORE_NOT_FILE,
-                               "The supplied path is not a file.")
+    if os.path.isdir(full_path):
+        raise MSGException(Error.CORE_NOT_FILE,
+                            "The supplied path is not a file.")
 
-        if not os.access(os.path.dirname(full_path), os.W_OK):
-            raise MSGException(Error.CORE_PERMISSION_DENIED,
-                               "No permissions to access the directory.")
+    if not os.access(os.path.dirname(full_path), os.W_OK):
+        raise MSGException(Error.CORE_PERMISSION_DENIED,
+                            "No permissions to access the directory.")
 
-        if os.path.exists(full_path):
-            raise MSGException(Error.CORE_PATH_ALREADY_EXISTS,
-                               "The supplied file already exists.")
+    if os.path.exists(full_path):
+        raise MSGException(Error.CORE_PATH_ALREADY_EXISTS,
+                            "The supplied file already exists.")
 
-        if full_path.endswith(".sqlite") or full_path.endswith(".sqlite3"):
-            sqlite3.connect(full_path)
-        else:
-            raise MSGException(Error.CORE_INVALID_EXTENSION,
-                               "The file does not have a valid extension.")
+    if full_path.endswith(".sqlite") or full_path.endswith(".sqlite3"):
+        conn = sqlite3.connect(full_path)
+        conn.close()
+    else:
+        raise MSGException(Error.CORE_INVALID_EXTENSION,
+                            "The file does not have a valid extension.")
 
-        result = Response.ok("The file was created", {
-            "result": rel_path
-        })
+    result = Response.ok("The file was created", {
+        "result": rel_path
+    })
 
     return result
 
@@ -189,8 +184,6 @@ def validate_path(path, web_session=None):
     Returns:
         The path to the created file on success.
     """
-    # if a web_session object is passed in, use that to get the db object
-    db = web_session.db if web_session else GuiBackendDb()
 
     try:
         # the rel_path is the full_path on local sessions
@@ -222,8 +215,5 @@ def validate_path(path, web_session=None):
                 "path": return_path if 'return_path' in locals() else path
             }
         })
-    finally:
-        if web_session is None:
-            db.close()
 
     return result

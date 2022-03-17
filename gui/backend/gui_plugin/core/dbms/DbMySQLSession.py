@@ -63,6 +63,7 @@ class DbMysqlSession(DbSession):
         self._failed_cb = on_failed_cb
         self.session = None
         self._message_callback = message_callback if message_callback is not None else message_callback
+        self._shell_ctx = None
 
         if not 'scheme' in self._connection_options:
             raise MSGException(Error.DB_INVALID_OPTIONS,
@@ -144,12 +145,15 @@ class DbMysqlSession(DbSession):
             self._failed_cb(e)
         return False
 
-    def _close_database(self):
+    def _close_database(self, finalize):
         if self.session and self.session.is_open():
             self.session.close()
 
+        if finalize and not self._shell_ctx is None:
+            self._shell_ctx.finalize()
+
     def _reconnect(self, auto_reconnect=False):
-        self._close_database()
+        self._close_database(False)
 
         if auto_reconnect and self._auto_reconnect:
             # Automtic reconnection loop only if enabled and required

@@ -178,10 +178,10 @@ class DbSqliteSession(DbSession):
 
     def _reconnect(self, auto_reconnect=False):
         logger.debug3(f"Reconnecting {self._id}...")
-        self._close_database()
+        self._close_database(False)
         self._open_database(auto_reconnect is False)
 
-    def _close_database(self):
+    def _close_database(self, finalize):
         self.conn.close()
 
     # DbSession overrides
