@@ -27,22 +27,26 @@
     ],
     "main": "./output/extension/src/extension.js",
     "contributes": {
-        "languages": [{
-            "id": "mysql",
-            "extensions": [
-                ".sql",
-                ".mysql"
-            ],
-            "aliases": [
-                "MySQL SQL"
-            ],
-            "configuration": "./syntaxes/language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "mysql",
-            "scopeName": "source.mysql",
-            "path": "./syntaxes/mysql.json"
-        }],
+        "languages": [
+            {
+                "id": "mysql",
+                "extensions": [
+                    ".sql",
+                    ".mysql"
+                ],
+                "aliases": [
+                    "MySQL SQL"
+                ],
+                "configuration": "./syntaxes/language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "mysql",
+                "scopeName": "source.mysql",
+                "path": "./syntaxes/mysql.json"
+            }
+        ],
         "configuration": {
             "title": "MySQL Shell for VS Code",
             "properties": {
@@ -262,7 +266,8 @@
                 }
             }
         },
-        "commands": [{
+        "commands": [
+            {
                 "command": "msg.execute.normal",
                 "title": "Execute the selected or all statements"
             },
@@ -616,13 +621,16 @@
                 "title": "Get Load Balancer Information"
             }
         ],
-        "submenus": [{
-            "id": "msg.copyToClipboard",
-            "label": "Copy To Clipboard",
-            "command": ""
-        }],
+        "submenus": [
+            {
+                "id": "msg.copyToClipboard",
+                "label": "Copy To Clipboard",
+                "command": ""
+            }
+        ],
         "menus": {
-            "msg.copyToClipboard": [{
+            "msg.copyToClipboard": [
+                {
                     "command": "msg.copyNameToClipboard",
                     "group": "1_msg@1"
                 },
@@ -631,17 +639,22 @@
                     "group": "1_msg@2"
                 }
             ],
-            "editor/title/context": [{
-                "when": "resourceLangId == mysql",
-                "command": "msg.execute.normal",
-                "group": "msg@1"
-            }],
-            "editor/title": [{
-                "when": "resourceLangId == mysql",
-                "command": "msg.execute.normal",
-                "group": "msg@1"
-            }],
-            "editor/context": [{
+            "editor/title/context": [
+                {
+                    "when": "resourceLangId == mysql",
+                    "command": "msg.execute.normal",
+                    "group": "msg@1"
+                }
+            ],
+            "editor/title": [
+                {
+                    "when": "resourceLangId == mysql",
+                    "command": "msg.execute.normal",
+                    "group": "msg@1"
+                }
+            ],
+            "editor/context": [
+                {
                     "when": "resourceLangId == mysql",
                     "command": "msg.executeSelectedSqlFromEditor",
                     "group": "navigation"
@@ -652,7 +665,8 @@
                     "group": "msg@1"
                 }
             ],
-            "view/title": [{
+            "view/title": [
+                {
                     "command": "msg.addConnection",
                     "group": "navigation",
                     "when": "view == msg.connections"
@@ -708,7 +722,8 @@
                     "when": "view == msg.consoles"
                 }
             ],
-            "view/item/context": [{
+            "view/item/context": [
+                {
                     "command": "msg.refreshConnection",
                     "when": "view == msg.connections && viewItem =~ /^connection.*/",
                     "group": "inline"
@@ -974,14 +989,17 @@
             ]
         },
         "viewsContainers": {
-            "activitybar": [{
-                "id": "msg-view",
-                "title": "MySQL Shell for VSCode",
-                "icon": "images/mysqlShellForVsCode.svg"
-            }]
+            "activitybar": [
+                {
+                    "id": "msg-view",
+                    "title": "MySQL Shell for VSCode",
+                    "icon": "images/mysqlShellForVsCode.svg"
+                }
+            ]
         },
         "views": {
-            "msg-view": [{
+            "msg-view": [
+                {
                     "id": "msg.connections",
                     "name": "DATABASE"
                 },
@@ -1008,7 +1026,10 @@
         "ws": "8.5.0"
     },
     "devDependencies": {
+        "@nut-tree/nut-js": "2.0.1",
+        "@types/chai": "4.3.0",
         "@types/lodash": "4.14.177",
+        "@types/mocha": "9.1.0",
         "@types/node": "16.11.11",
         "@types/vscode": "1.60.0",
         "@types/ws": "8.2.1",
@@ -1016,16 +1037,13 @@
         "@typescript-eslint/eslint-plugin-tslint": "5.5.0",
         "@typescript-eslint/parser": "5.5.0",
         "antlr4ts-cli": "0.5.0-alpha.4",
+        "chai": "4.3.6",
         "eslint": "7.32.0",
         "eslint-plugin-import": "2.25.3",
         "eslint-plugin-jsdoc": "37.1.0",
         "eslint-plugin-prefer-arrow": "1.2.3",
-        "typescript": "4.5.2",
-        "@nut-tree/nut-js": "2.0.1",
-        "@types/chai": "4.3.0",
-        "@types/mocha": "9.1.0",
-        "chai": "4.3.6",
-        "mocha": "9.2.0"
+        "mocha": "9.2.0",
+        "typescript": "4.5.2"
     },
     "optionalDependencies": {
         "vscode-extension-tester": "4.2.3"
@@ -1036,7 +1054,8 @@
         "full_packages_win": "scripts/package_extension.ps1",
         "lint": "eslint \"./src/**/*.ts\"",
         "vscode:prepublish": "tsc",
-        "e2e-setup": "extest get-vscode && extest get-chromedriver && extest install-vsix -f",
-        "e2e": "tsc src/e2e/**/*.ts && extest run-tests src/e2e/tests/*.js"
+        "e2e-tests-setup": "extest get-vscode && extest get-chromedriver && extest install-vsix -f",
+        "e2e-tests-local-setup": "extest setup-tests -s tests/e2e/test-resources -e tests/e2e/test-resources/test-extension -t stable",
+        "e2e-tests": "tsc -p tests/e2e/ && extest run-tests -s tests/e2e/test-resources -e tests/e2e/test-resources/test-extension -t stable -f ./tests/e2e/output/tests/*.js"
     }
 }

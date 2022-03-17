@@ -20,6 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import {
     WebDriver,
     WebElement,
@@ -203,7 +204,7 @@ export const startServer = async (driver: WebDriver): Promise<ChildProcess> => {
     });
 
     try {
-        await driver.wait( () => {
+        await driver.wait(() => {
             if (serverOutput.indexOf("Starting MySQL Shell GUI web server...") !== -1) {
                 return true;
             }
@@ -316,7 +317,7 @@ export const welcomeMySQLShell = async (): Promise<boolean> => {
 };
 
 export const deleteDBConnection = async (driver: WebDriver, dbName: string,
-    ctx: IContextMenu): Promise <void> => {
+    ctx: IContextMenu): Promise<void> => {
     const el = await getTreeElement(driver, "DATABASE", dbName);
     expect(el).to.exist;
 
@@ -349,7 +350,7 @@ export const deleteDBConnection = async (driver: WebDriver, dbName: string,
     await driver.switchTo().defaultContent();
 };
 
-export const clearPassword = async (driver: WebDriver, dbName: string): Promise <void> => {
+export const clearPassword = async (driver: WebDriver, dbName: string): Promise<void> => {
     const el = await getTreeElement(driver, "DATABASE", dbName);
     expect(el).to.exist;
 

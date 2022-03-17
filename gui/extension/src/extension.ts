@@ -250,12 +250,12 @@ const startShellAndConnect = (extensionPath: string, target?: string): void => {
                     void window.showInformationMessage(
                         "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
                         "not installed? Do you want to run the Welcome Wizard to install it?",
-                        "Run Welcome Wizard", "Cancel").then((answer) => {
-                        if (answer !== "Cancel") {
-                            void commands.executeCommand("msg.runWelcomeWizard");
-                        }
-                    },
-                    );
+                        "Run Welcome Wizard", "Cancel")
+                        .then((answer) => {
+                            if (answer !== "Cancel") {
+                                void commands.executeCommand("msg.runWelcomeWizard");
+                            }
+                        });
                 }
 
                 // If the MySQL Shell web server is running and indicates Single user mode, connect to it
@@ -273,8 +273,7 @@ const startShellAndConnect = (extensionPath: string, target?: string): void => {
             }, (data) => {
                 // onStdErrData
                 printChannelOutput(String(data));
-            },
-            undefined, undefined, singleUserToken);
+            }, undefined, undefined, singleUserToken);
 
         }).catch((error) => {
             printChannelOutput(String(error), true);
@@ -352,12 +351,12 @@ export const activate = (context: ExtensionContext): void => {
 
                         const output = String(data);
                         if (output.includes("true")) {
-                            void window.showWarningMessage(resetRestartMessage,
-                                "Restart VS Code", "Cancel").then((choice) => {
-                                if (choice === "Restart VS Code") {
-                                    void commands.executeCommand("workbench.action.reloadWindow");
-                                }
-                            });
+                            void window.showWarningMessage(resetRestartMessage, "Restart VS Code", "Cancel")
+                                .then((choice) => {
+                                    if (choice === "Restart VS Code") {
+                                        void commands.executeCommand("workbench.action.reloadWindow");
+                                    }
+                                });
                         } else {
                             void window.showInformationMessage(
                                 `The following error occurred while deleting the certificate: ${output} ` +

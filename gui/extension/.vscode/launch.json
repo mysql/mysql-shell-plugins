@@ -16,6 +16,28 @@
             "preLaunchTask": "tsc: extension",
             "trace": false,
             "smartStep": true
+        },
+        {
+            "name": "Debug UI Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/.bin/extest",
+            "args": [
+                "run-tests",
+                "-s",
+                "tests/e2e/test-resources",
+                "-e",
+                "tests/e2e/test-resources/test-extension",
+                "-t",
+                "stable",
+                "-f",
+                "${workspaceFolder}/tests/e2e/output/tests/*.js",
+            ],
+            "preLaunchTask": "tsc: e2e",
+            "console": "integratedTerminal",
+            "env": {
+                "MSG_TESTING": "E2E"
+            }
         }
     ]
 }

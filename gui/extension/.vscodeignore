@@ -9,3 +9,5 @@ tsconfig.json
 **/.antlr
 packaging/**
 images/screenshots/**
+tests/e2e/output/**
+tests/e2e/test-resources/**

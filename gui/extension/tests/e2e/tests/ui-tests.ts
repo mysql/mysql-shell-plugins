@@ -20,6 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import {
     VSBrowser,
     WebDriver,
@@ -564,9 +565,9 @@ describe("MySQL Shell for VS", () => {
             await bottomBar.toggle(false);
 
             expect(await getTreeElement(driver, "MYSQL SHELL TASKS", "Configure MySQL REST Service (done)")).to.exist;
-            const item = await driver.wait(until.elementLocated(By.xpath(
-                "//div[contains(@aria-label, 'MySQL REST Service')]")),
-            5000, "MySQL REST Service tree item was not found");
+            const item = await driver.wait(
+                until.elementLocated(By.xpath("//div[contains(@aria-label, 'MySQL REST Service')]")), 5000,
+                "MySQL REST Service tree item was not found");
             await driver.wait(until.elementIsVisible(item), 5000, "MySQL REST Service tree item was not visible");
 
             await driver.actions()

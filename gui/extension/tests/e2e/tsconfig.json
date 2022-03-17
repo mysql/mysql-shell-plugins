@@ -19,13 +19,13 @@
     },
     "compileOnSave": true,
     "include": [
-        "src/*.ts",
-        "src/**/*.ts"
+        "lib/*.ts",
+        "tests/**/*.ts"
     ],
     "exclude": [
         "node_modules",
         ".vscode-test",
         "test-resources",
-        "tests/e2e/**/*.ts"
+        "output"
     ]
 }

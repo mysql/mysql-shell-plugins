@@ -1,34 +1,34 @@
 {
-  "compilerOptions": {
-    "target": "es2020",
-    "module": "esnext",
-    "allowJs": true,
-    "outDir": "./output/",
-    "removeComments": true,
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "noImplicitAny": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "jsx": "react",
-    "sourceRoot": "src",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
-    "skipLibCheck": false,
-    "experimentalDecorators": false,
-    "allowSyntheticDefaultImports": true,
-    "strictPropertyInitialization": false,
-    "emitDecoratorMetadata": false,
-    "noFallthroughCasesInSwitch": false
-  },
-  "include": [
-    "src"
-  ]
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "esnext",
+        "allowJs": true,
+        "outDir": "./output/",
+        "removeComments": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "noImplicitAny": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "jsx": "react",
+        "sourceRoot": "src",
+        "lib": [
+            "es2020",
+            "dom"
+        ],
+        "skipLibCheck": false,
+        "experimentalDecorators": false,
+        "allowSyntheticDefaultImports": true,
+        "strictPropertyInitialization": false,
+        "emitDecoratorMetadata": false,
+        "noFallthroughCasesInSwitch": false
+    },
+    "include": [
+        "src"
+    ]
 }

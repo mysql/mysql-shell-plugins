@@ -28,7 +28,7 @@ import {
 import { isNil } from "lodash";
 
 import {
-    ICommAuthenticationEvent, ICommErrorEvent, ICommListDataCategoriesEvent, ICommProfileEvent, ICommShellProfile,
+    ICommAuthenticationEvent, ICommErrorEvent, ICommListDataCategoriesEvent, ICommListProfilesEvent, ICommShellProfile,
     ICommWebSessionEvent, IShellModuleDataCategoriesEntry,
 } from "../../frontend/src/communication";
 
@@ -390,7 +390,7 @@ export class ExtensionHost {
 
     private selectProfile(): void {
         if (this.activeProfile) {
-            ShellInterface.users.listProfiles(this.activeProfile.userId).then((event: ICommProfileEvent) => {
+            ShellInterface.users.listProfiles(this.activeProfile.userId).then((event: ICommListProfilesEvent) => {
                 if (event.data?.rows) {
                     const items = event.data.rows.map((value) => {
                         return value.name;
