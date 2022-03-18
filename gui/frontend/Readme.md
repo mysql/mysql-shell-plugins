@@ -162,16 +162,18 @@ That's it. You can now either run the included tests or launch the web browser (
 
 # Running Specs
 
-Open a new terminal and run the following
+Update your Chrome browser to the latest available version.
+
+Open a new terminal and run the following:
 
 ```bash
 $ npm install
-$ npm run e2e-update
-$ npm run e2e-start
+$ npm run e2e-tests-update
+$ npm run e2e-tests-start
 ```
 
-Under the covers, the project uses `webdriver-manager` to manage the Selenium server. The first script uses it to download the latest Selenium package and drivers for your browsers. The second starts up a new local Selenium server which you'll need to leave running otherwise the tests won't have a Selenium server to connect to.
-Open a new terminal and serve up the app -
+Under the covers, the project uses `webdriver-manager` to manage the Selenium server. The first script uses it to download the latest Selenium package and drivers for your browsers. The second starts up a new local Selenium server which you'll need to leave running otherwise, the tests won't have a Selenium server to connect to.
+Open a new terminal and start the app -
 
 ```bash
 $ npm run start
@@ -181,7 +183,10 @@ This will build the app and open it in a browser as normal.
 
 End to end tests need a MySQL database with some data. Please setup one and run the scripts under src/tests/e2e/sql
 
+Enable SSL on your server to use the ssl certificates in frontend/src/tests/e2e/ssl_certificates
+
 Some environment variables need to be setup as well:
+
 - DBHOSTNAME
 - DBUSERNAME
 - DBPASSWORD
@@ -191,16 +196,16 @@ Some environment variables need to be setup as well:
 Finally let's fire up another new terminal and call Jest to run the tests for us -
 
 ```bash
-$ npm run e2e
+$ npm run e2e-test-run
 ```
-Be aware that the tests run in headless mode by default. If you want to see the browser opening and see the tests running just set the HEADLESS var to 0
+Be aware that the tests run in headless mode by default. If you want to see the browser opening and see the tests running just set the HEADLESS var to 0.
 
 ## Automatically running the tests
 
 As well as running the tests once, you can also start Jest in watch mode to automatically run your tests whenever they change by running -
 
 ```bash
-$ npm run e2e -- --watch
+$ npm run e2e-test-run -- --watch
 ```
 
 ## Running the tests sequentially
@@ -208,7 +213,7 @@ $ npm run e2e -- --watch
 You can also pass any other arguments through to Jest in this fashion.
 
 ```bash
-$ npm run e2e -- --runInBand
+$ npm run e2e-test-run -- --runInBand
 ```
 
 ## Using environment specific values
@@ -216,7 +221,7 @@ $ npm run e2e -- --runInBand
 Values can be injected in to the tests by specifying them as globals when running Jest -
 
 ```bash
-$ npm run e2e --globals "{\"baseUrl\": \"https://example.com\"}
+$ npm run e2e-test-run --globals "{\"baseUrl\": \"https://example.com\"}
 ```
 
 There's no ready-to-use launch configuration for MSG in the repository, so you first need to create that with the content below (or copy the relevant parts into your existing config):

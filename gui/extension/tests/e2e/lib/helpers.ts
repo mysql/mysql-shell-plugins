@@ -20,7 +20,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 import {
     WebDriver,
     WebElement,
@@ -118,7 +117,8 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConnect
     await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
     await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
 
-    const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
+    const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+        10000, "Connection dialog was not loaded");
     await driver.wait(async () => {
         await newConDialog.findElement(By.id("caption")).clear();
 
@@ -204,7 +204,7 @@ export const startServer = async (driver: WebDriver): Promise<ChildProcess> => {
     });
 
     try {
-        await driver.wait(() => {
+        await driver.wait( () => {
             if (serverOutput.indexOf("Starting MySQL Shell GUI web server...") !== -1) {
                 return true;
             }
@@ -275,10 +275,21 @@ export const getTreeElement = async (driver: WebDriver, section: string, el: str
     return sec?.findElement(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
 };
 
-export const toggleTreeElement = async (driver: WebDriver, section: string, el: string): Promise<void> => {
-    const element = await getTreeElement(driver, section, el);
-    const toggle = await element?.findElement(By.css(".codicon-tree-item-expanded"));
-    await toggle?.click();
+export const toggleTreeElement = async (driver: WebDriver, section: string,
+    el: string, expanded: boolean): Promise<void> => {
+    await driver.wait(async () => {
+        const element = await getTreeElement(driver, section, el);
+        if (await element.getAttribute("aria-expanded") !== String(expanded)) {
+            const toggle = await element?.findElement(By.css(".codicon-tree-item-expanded"));
+            await toggle?.click();
+            await driver.sleep(200);
+
+            return false;
+        } else {
+
+            return true;
+        }
+    }, 3000, `${section} > ${el} was not toggled`);
 };
 
 export const toggleSection = async (driver: WebDriver, section: string, open: boolean): Promise<void> => {
@@ -317,7 +328,7 @@ export const welcomeMySQLShell = async (): Promise<boolean> => {
 };
 
 export const deleteDBConnection = async (driver: WebDriver, dbName: string,
-    ctx: IContextMenu): Promise<void> => {
+    ctx: IContextMenu): Promise <void> => {
     const el = await getTreeElement(driver, "DATABASE", dbName);
     expect(el).to.exist;
 
@@ -350,7 +361,7 @@ export const deleteDBConnection = async (driver: WebDriver, dbName: string,
     await driver.switchTo().defaultContent();
 };
 
-export const clearPassword = async (driver: WebDriver, dbName: string): Promise<void> => {
+export const clearPassword = async (driver: WebDriver, dbName: string): Promise <void> => {
     const el = await getTreeElement(driver, "DATABASE", dbName);
     expect(el).to.exist;
 

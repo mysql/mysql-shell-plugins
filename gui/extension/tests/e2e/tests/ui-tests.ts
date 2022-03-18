@@ -20,7 +20,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 import {
     VSBrowser,
     WebDriver,
@@ -120,7 +119,7 @@ describe("MySQL Shell for VS", () => {
                     return true;
                 }
             }
-        }, 7000, "Could not find MySQL Shell for VSCode View");
+        }, 10000, "Could not find MySQL Shell for VSCode on Activity Bar");
 
         const editorView = new EditorView();
         await driver.wait(async () => {
@@ -130,7 +129,7 @@ describe("MySQL Shell for VS", () => {
                     return true;
                 }
             }
-        }, 7000, "Welcome to MySQL Shell tab was not opened");
+        }, 10000, "Welcome to MySQL Shell tab was not opened");
 
         const workbench = new Workbench();
         await workbench.executeCommand("workbench.action.reloadWindow");
@@ -142,28 +141,37 @@ describe("MySQL Shell for VS", () => {
 
         const bottomBar = new BottomBarPanel();
         const outputView = await bottomBar.openOutputView();
-        const select = await driver.findElement(By.xpath("//select[contains(@aria-label, 'Output Channels')]"));
 
         await driver.wait(async () => {
-            await select.click();
-            await driver.sleep(500);
-            const options = await select.findElements(By.css("option"));
+            try {
+                const select = await driver.findElement(By.xpath("//select[contains(@aria-label, 'Output Channels')]"));
+                await select.click();
+                await driver.sleep(500);
+                const options = await select.findElements(By.css("option"));
 
-            for (const option of options) {
-                if (await option.getAttribute("value") === "MySQL Shell for VS Code") {
-                    await option.click();
+                for (const option of options) {
+                    if (await option.getAttribute("value") === "MySQL Shell for VS Code") {
+                        await option.click();
 
-                    return true;
+                        return true;
+                    }
+                }
+            } catch(e) {
+                if(String(e).indexOf("StaleElementReferenceError") !== -1) {
+                    return false;
+                } else {
+                    throw new Error(String(e));
                 }
             }
-        }, 7000, "MySQL Shell for VS Code channel was not found");
+
+        }, 30000, "MySQL Shell for VS Code channel was not found");
 
         await driver.wait(async () => {
             const text = await outputView.getText();
             if (text.indexOf("Mode: Single user") !== -1) {
                 return true;
             }
-        }, 10000, "Could not check extension load from output tab");
+        }, 15000, "Could not check extension load from output tab");
 
         await bottomBar.toggle(false);
 
@@ -247,6 +255,40 @@ describe("MySQL Shell for VS", () => {
 
         });
 
+        it("Connect to external MySQL Shell process", async () => {
+            let prc: ChildProcess;
+            try {
+                prc = await startServer(driver);
+                const moreActionsBtn = await getLeftSectionButton(driver, "DATABASE", "More Actions...");
+                await moreActionsBtn?.click();
+                await driver.sleep(500);
+                await selectItem(ctxMenu.dbActionsConnectShellProcess);
+
+                const input = new InputBox();
+                await input.setText("http://localhost:8000");
+                await input.confirm();
+
+                let serverOutput = "";
+                prc!.stdout!.on("data", (data) => {
+                    serverOutput += data as String;
+                });
+
+                await driver.wait(() => {
+                    if (serverOutput.indexOf(
+                        "Registering session") !== -1) {
+                        return true;
+                    }
+                }, 10000, "External process was not successful");
+
+            } catch (e) {
+                throw new Error(String(e));
+            } finally {
+                if (prc!) {
+                    prc.kill();
+                }
+            }
+        });
+
         it("Restart internal MySQL Shell process", async () => {
 
             const bottomBar = new BottomBarPanel();
@@ -281,40 +323,6 @@ describe("MySQL Shell for VS", () => {
                 throw new Error(String(e));
             } finally {
                 await bottomBar.toggle(false);
-            }
-        });
-
-        it("Connect to external MySQL Shell process", async () => {
-            let prc: ChildProcess;
-            try {
-                prc = await startServer(driver);
-                const moreActionsBtn = await getLeftSectionButton(driver, "DATABASE", "More Actions...");
-                await moreActionsBtn?.click();
-                await driver.sleep(500);
-                await selectItem(ctxMenu.dbActionsConnectShellProcess);
-
-                const input = new InputBox();
-                await input.setText("http://localhost:8000");
-                await input.confirm();
-
-                let serverOutput = "";
-                prc!.stdout!.on("data", (data) => {
-                    serverOutput += data as String;
-                });
-
-                await driver.wait(() => {
-                    if (serverOutput.indexOf(
-                        "Registering session") !== -1) {
-                        return true;
-                    }
-                }, 10000, "External process was not successful");
-
-            } catch (e) {
-                throw new Error(String(e));
-            } finally {
-                if (prc!) {
-                    prc.kill();
-                }
             }
         });
 
@@ -354,6 +362,9 @@ describe("MySQL Shell for VS", () => {
             await reloadConnsBtn?.click();
             const el = await getTreeElement(driver, "DATABASE", conn.caption);
             expect(el).to.exist;
+            await toggleSection(driver, "ORACLE CLOUD INFRASTRUCTURE", false);
+            await toggleSection(driver, "MYSQL SHELL CONSOLES", false);
+            await toggleSection(driver, "MYSQL SHELL TASKS", false);
         });
 
         after(async () => {
@@ -443,10 +454,20 @@ describe("MySQL Shell for VS", () => {
             expect(await item.getText()).to.contain("Welcome to the MySQL Shell - GUI Console");
             await driver.switchTo().defaultContent();
 
-            expect(await getTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Session to " + conn.caption)).to.exist;
+            await toggleSection(driver, "MYSQL SHELL CONSOLES", true);
+            try {
+                expect(await getTreeElement(driver,
+                    "ORACLE CLOUD INFRASTRUCTURE", "Session to " + conn.caption)).to.exist;
+            } catch(e) {
+                throw new Error(String(e));
+            } finally {
+                await toggleSection(driver, "MYSQL SHELL CONSOLES", false);
+            }
+
         });
 
         it("Connection Context Menu - Edit connection", async () => {
+            const aux = conn.caption;
             try {
                 conn.caption = "toEdit";
                 await createDBconnection(driver, conn);
@@ -496,7 +517,7 @@ describe("MySQL Shell for VS", () => {
                 }, 5000, "Database was not updated");
 
                 await deleteDBConnection(driver, "EditedConn", ctxMenu);
-            } catch (e) { throw new Error(String(e)); } finally { conn.caption = "Localhost"; }
+            } catch (e) { throw new Error(String(e)); } finally { conn.caption = aux; }
 
         });
 
@@ -541,7 +562,7 @@ describe("MySQL Shell for VS", () => {
 
         it("Connection Context Menu - Configure MySQL REST Service and Show MySQL System Schemas", async () => {
 
-            await toggleTreeElement(driver, "DATABASE", conn.caption);
+            await toggleTreeElement(driver, "DATABASE", conn.caption, true);
             const el = await getTreeElement(driver, "DATABASE", conn.caption);
             await driver.actions()
                 .mouseMove(el)
@@ -551,8 +572,11 @@ describe("MySQL Shell for VS", () => {
             await driver.sleep(500);
             await selectItem(ctxMenu.dbConfigRest);
 
+            await toggleSection(driver, "MYSQL SHELL TASKS", true);
+
             expect(await getTreeElement(driver,
                 "MYSQL SHELL TASKS", "Configure MySQL REST Service (running)")).to.exist;
+
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
 
@@ -565,9 +589,10 @@ describe("MySQL Shell for VS", () => {
             await bottomBar.toggle(false);
 
             expect(await getTreeElement(driver, "MYSQL SHELL TASKS", "Configure MySQL REST Service (done)")).to.exist;
-            const item = await driver.wait(
-                until.elementLocated(By.xpath("//div[contains(@aria-label, 'MySQL REST Service')]")), 5000,
-                "MySQL REST Service tree item was not found");
+            await toggleSection(driver, "MYSQL SHELL TASKS", false);
+            const item = await driver.wait(until.elementLocated(By.xpath(
+                "//div[contains(@aria-label, 'MySQL REST Service')]")),
+            5000, "MySQL REST Service tree item was not found");
             await driver.wait(until.elementIsVisible(item), 5000, "MySQL REST Service tree item was not visible");
 
             await driver.actions()
@@ -578,20 +603,19 @@ describe("MySQL Shell for VS", () => {
             await driver.sleep(500);
             await selectItem(ctxMenu.dbShowSchemas);
 
-            await toggleSection(driver, "ORACLE CLOUD INFRASTRUCTURE", false);
-            await toggleSection(driver, "MYSQL SHELL CONSOLES", false);
-            await toggleSection(driver, "MYSQL SHELL TASKS", false);
+            await toggleTreeElement(driver, "DATABASE", "mysql_rest_service_metadata", true);
+            await toggleTreeElement(driver, "DATABASE", "Tables", true);
 
-            await toggleTreeElement(driver, "DATABASE", "mysql_rest_service_metadata");
-            await toggleTreeElement(driver, "DATABASE", "Tables");
-
-            expect(await getTreeElement(driver, "DATABASE", "audit_log")).to.exist;
-            expect(await getTreeElement(driver, "DATABASE", "auth_app")).to.exist;
-            expect(await getTreeElement(driver, "DATABASE", "auth_user")).to.exist;
-
-            await toggleSection(driver, "ORACLE CLOUD INFRASTRUCTURE", true);
-            await toggleSection(driver, "MYSQL SHELL CONSOLES", true);
-            await toggleSection(driver, "MYSQL SHELL TASKS", true);
+            try {
+                expect(await getTreeElement(driver, "DATABASE", "audit_log")).to.exist;
+                expect(await getTreeElement(driver, "DATABASE", "auth_app")).to.exist;
+                expect(await getTreeElement(driver, "DATABASE", "auth_user")).to.exist;
+            } catch (e) {
+                throw new Error(String(e));
+            } finally {
+                await toggleTreeElement(driver, "DATABASE", "Tables", false);
+                await toggleTreeElement(driver, "DATABASE", "mysql_rest_service_metadata", false);
+            }
 
         });
 
@@ -638,7 +662,7 @@ describe("MySQL Shell for VS", () => {
             const reloadConnsBtn = await getLeftSectionButton(driver, "DATABASE", "Reload the connection list");
             await reloadConnsBtn?.click();
 
-            await toggleTreeElement(driver, "DATABASE", conn.caption);
+            await toggleTreeElement(driver, "DATABASE", conn.caption, true);
             const schema = await getTreeElement(driver, "DATABASE", "testSchema");
 
             await driver.actions()
@@ -668,9 +692,9 @@ describe("MySQL Shell for VS", () => {
 
         it("Table Context Menu - Show Data", async () => {
 
-            await toggleTreeElement(driver, "DATABASE", conn.caption);
-            await toggleTreeElement(driver, "DATABASE", conn.schema);
-            await toggleTreeElement(driver, "DATABASE", "Tables");
+            await toggleTreeElement(driver, "DATABASE", conn.caption, true);
+            await toggleTreeElement(driver, "DATABASE", conn.schema, true);
+            await toggleTreeElement(driver, "DATABASE", "Tables", true);
 
             const el = await getTreeElement(driver, "DATABASE", "actor");
             await driver.actions()
@@ -699,9 +723,9 @@ describe("MySQL Shell for VS", () => {
         //feature under dev
         it.skip("Table Context Menu - Add Table to REST Service", async () => {
 
-            await toggleTreeElement(driver, "DATABASE", conn.caption);
-            await toggleTreeElement(driver, "DATABASE", conn.schema);
-            await toggleTreeElement(driver, "DATABASE", "Tables");
+            await toggleTreeElement(driver, "DATABASE", conn.caption,  true);
+            await toggleTreeElement(driver, "DATABASE", conn.schema, true);
+            await toggleTreeElement(driver, "DATABASE", "Tables", true);
 
             const el = await getTreeElement(driver, "DATABASE", "actor");
             await driver.actions()
@@ -716,7 +740,7 @@ describe("MySQL Shell for VS", () => {
             expect(await input.getText()).equals("/actor");
             await input.confirm();
 
-            await toggleTreeElement(driver, "DATABASE", "MySQL REST Service");
+            await toggleTreeElement(driver, "DATABASE", "MySQL REST Service", true);
 
         });
 

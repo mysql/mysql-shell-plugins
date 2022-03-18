@@ -89,7 +89,7 @@ try{
     writeMsg "Running Webdriver update..." "-NoNewLine"
     $env:PROXY = 'http://www-proxy.us.oracle.com:80'
     $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
-	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-update" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
+	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-update" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
     writeMsg "DONE"
 
     #DOWNLOAD SHELL
@@ -235,7 +235,7 @@ try{
 
     #START SELENIUM
     writeMsg "Starting Selenium..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-start" -WorkingDirectory "$basePath" -RedirectStandardOutput "$env:WORKSPACE\selenium.log" -RedirectStandardError "$env:WORKSPACE\seleniumErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-start" -WorkingDirectory "$basePath" -RedirectStandardOutput "$env:WORKSPACE\selenium.log" -RedirectStandardError "$env:WORKSPACE\seleniumErr.log"
     
     function isSeleniumReady(){
         return $null -ne (Get-Content -Path "$env:WORKSPACE\seleniumErr.log" | Select-String -Pattern "Selenium Server is up and running on port 4444" | % { $_.Matches.Groups[0].Value }) 
@@ -399,7 +399,7 @@ try{
 
     #EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\results.log" -RedirectStandardError "$env:WORKSPACE\resultsErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\results.log" -RedirectStandardError "$env:WORKSPACE\resultsErr.log"
     writeMsg "DONE"
 
     #CHECK RESULTS
@@ -411,7 +411,7 @@ try{
         if( Test-Path $screenshots ){
             $files = Get-ChildItem -Path $screenshots
             writeMsg "Adding screenshots to html-report ($($files.Length))" "-NoNewLine"
-            Start-Process -FilePath "npm" -ArgumentList "run", "e2e-report" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\addScreenshots.log" -RedirectStandardError "$env:WORKSPACE\addScreenshotsErr.log"
+            Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-report" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\addScreenshots.log" -RedirectStandardError "$env:WORKSPACE\addScreenshotsErr.log"
             writeMsg "DONE"
         }
     }
