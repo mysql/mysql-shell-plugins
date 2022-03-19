@@ -203,10 +203,10 @@ export const getWelcomeWebviewContent = (rootPath: Uri): string => {
     <body>
         <div id="welcome">
             <div id="sakilaLogo"></div>
-            <h2>MySQL Shell for VSCode</h2>
+            <h2>MySQL Shell for VS Code</h2>
             <div id="pages">
                 <div id="page1" class="page">
-                    <h3>Welcome to MySQL Shell for VSCode.</h3>
+                    <h3>Welcome to MySQL Shell for VS Code.</h3>
                     <p>This extension provides the powerful tool set of MySQL Shell
                         to users of Visual Studio Code.</p>
                     <div class="links">
