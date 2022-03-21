@@ -375,12 +375,12 @@ try{
                 #RE-WRITE PACKAGE.JSON WITH TESTS TO RE-RUN
                 if($failed.Length -gt 0){
                     $json = Get-Content -Path "$basePath\package.json" | Out-String | ConvertFrom-Json
-                    if($json.scripts.e2e -like "*testNamePattern*"){
-                        $json.scripts.e2e -match '--testNamePattern=''([^'']*)'''
-                        $json.scripts.e2e = $json.scripts.e2e.replace($matches[1], $failed)
+                    if($json.scripts["e2e-tests-run"] -like "*testNamePattern*"){
+                        $json.scripts["e2e-tests-run"] -match '--testNamePattern=''([^'']*)'''
+                        $json.scripts["e2e-tests-run"] = $json.scripts["e2e-tests-run"].replace($matches[1], $failed)
                     }
                     else{
-                        $json.scripts.e2e += " --testNamePattern='$failed'"
+                        $json.scripts["e2e-tests-run"] += " --testNamePattern='$failed'"
                     }
                     
                     $json | ConvertTo-Json -Depth 3 | Set-Content "$basePath\package.json"

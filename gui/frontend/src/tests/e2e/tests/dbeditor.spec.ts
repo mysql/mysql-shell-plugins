@@ -1475,26 +1475,25 @@ describe("DB Editor", () => {
 
                 const context = await driver.findElement(By.id("scriptSectionHost"));
 
-                expect(
-                    await context.findElement(By.css(".schemaTreeEntry img")).getAttribute("src"),
-                ).toContain("typescript");
+                let src = await context.findElement(By.css(".schemaTreeEntry img")).getAttribute("src");
+
+                expect(src.indexOf("typescript") !== -1 ).toBe(true);
 
                 expect(
                     await context.findElement(By.css(".schemaTreeEntry label")).getText(),
                 ).toBe("Script 1");
 
                 expect(
-                    await driver
-                        .findElement(By.css("div.editorHost > div"))
-                        .getAttribute("data-mode-id"),
+                    await driver.findElement(By.css(".editorHost")).getAttribute("data-mode-id"),
+
                 ).toBe("typescript");
 
+                src = await driver.findElement(By.id("documentSelector")).findElement(By.css("img"))
+                    .getAttribute("src");
+
                 expect(
-                    await driver
-                        .findElement(By.id("documentSelector"))
-                        .findElement(By.css("img"))
-                        .getAttribute("src"),
-                ).toContain("typescript");
+                    src.indexOf("typescript") !== -1,
+                ).toBe(true);
 
                 expect(
                     await driver
@@ -1507,11 +1506,10 @@ describe("DB Editor", () => {
                     await (await getOpenEditor(driver, "Script 1"))!.getAttribute("class"),
                 ).toContain("selected");
 
-                expect(
-                    await (await getOpenEditor(driver, "Script 1"))!
-                        .findElement(By.css("img"))
-                        .getAttribute("src"),
-                ).toContain("typescript");
+                src = (await (await getOpenEditor(driver, "Script 1"))!.findElement(By.css("img"))
+                    .getAttribute("src"));
+
+                expect(src.indexOf("typescript") !== -1).toBe(true);
 
                 await driver
                     .findElement(By.id("editorPaneHost"))
@@ -1549,9 +1547,11 @@ describe("DB Editor", () => {
 
                 const context = await driver.findElement(By.id("scriptSectionHost"));
 
+                const src = await context.findElement(By.css(".schemaTreeEntry img")).getAttribute("src");
+
                 expect(
-                    await context.findElement(By.css(".schemaTreeEntry img")).getAttribute("src"),
-                ).toContain("mysql");
+                    src.indexOf("mysql") !== -1,
+                ).toBe(true);
 
                 expect(
                     await context.findElement(By.css(".schemaTreeEntry label")).getText(),
@@ -1559,7 +1559,7 @@ describe("DB Editor", () => {
 
                 expect(
                     await driver
-                        .findElement(By.css("div.editorHost > div"))
+                        .findElement(By.css(".editorHost"))
                         .getAttribute("data-mode-id"),
                 ).toBe("mysql");
 
