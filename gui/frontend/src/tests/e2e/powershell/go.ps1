@@ -275,14 +275,15 @@ try{
     $hasSSL = Select-String -Path "C:\tools\mysql\current\my.ini" -Pattern "ssl"
     
     if($null -eq $hasSSL){
+        $updatedPath = $basePath.replace("\", "\\")
         Add-Content -Path "C:\tools\mysql\current\my.ini" -Value "`r`n
-        ssl-ca=$basePath\\src\\tests\\e2e\\ssl_certificates\\ca-cert.pem`r`n
-        ssl-cert=$basePath\\src\\tests\\e2e\\ssl_certificates\\server-cert.pem`r`n
-        ssl-key=$basePath\\src\\tests\\e2e\\ssl_certificates\\server-key.pem`r`n
+        ssl-ca=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\ca-cert.pem`r`n
+        ssl-cert=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\server-cert.pem`r`n
+        ssl-key=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\server-key.pem`r`n
         [client]`r`n
-        ssl-ca=$basePath\\src\\tests\\e2e\\ssl_certificates\\ca-cert.pem`r`n
-        ssl-cert=$basePath\\src\\tests\\e2e\\ssl_certificates\\client-cert.pem`r`n
-        ssl-key=$basePath\\src\\tests\\e2e\\ssl_certificates\\client-key.pem"
+        ssl-ca=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\ca-cert.pem`r`n
+        ssl-cert=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\client-cert.pem`r`n
+        ssl-key=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\client-key.pem"
         writeMsg "DONE"
     }
     else{
