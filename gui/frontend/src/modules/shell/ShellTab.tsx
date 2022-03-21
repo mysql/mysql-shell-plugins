@@ -40,7 +40,7 @@ import {
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContext, IExecutionResult, ITextResultEntry, SQLExecutionContext } from "../../script-execution";
 import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
-import { EditorLanguage, generateColumnInfo } from "../../supplement";
+import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
 import { EventType } from "../../supplement/Dispatch";
 import { settings } from "../../supplement/Settings/Settings";
@@ -475,10 +475,12 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 });
                             }
 
+                            const rows = convertRows(columns, result.rows);
+
                             void ApplicationDB.db.add("shellModuleResultData", {
                                 tabId: id,
                                 requestId,
-                                rows: result.rows,
+                                rows,
                                 columns,
                                 executionInfo: status,
                             });
@@ -496,7 +498,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                         },
                                         data: {
                                             requestId,
-                                            rows: result.rows,
+                                            rows,
                                             columns,
                                             currentPage: 0,
                                             executionInfo: status,
@@ -507,7 +509,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 addResultData({
                                     type: "resultSetRows",
                                     requestId,
-                                    rows: result.rows,
+                                    rows,
                                     columns,
                                     currentPage: 0,
                                     executionInfo: status,

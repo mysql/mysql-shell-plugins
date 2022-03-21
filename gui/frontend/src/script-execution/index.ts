@@ -22,7 +22,7 @@
  */
 
 import { languages } from "monaco-editor";
-import { IColumnInfo, IExecutionInfo, MessageType } from "../app-logic/Types";
+import { IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../app-logic/Types";
 import { ResultTextLanguage } from "../components/ResultView";
 
 import { LanguageCompletionKind } from "../parsing/parser-common";
@@ -76,7 +76,7 @@ export interface IResultSetContent {
     requestId: string;
 
     columns: IColumnInfo[];
-    rows: unknown[];
+    rows: IDictionary[];    // Keys represent column IDs.
 
     // Paging support.
     currentPage: number;

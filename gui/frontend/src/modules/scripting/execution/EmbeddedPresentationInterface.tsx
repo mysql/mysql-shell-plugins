@@ -322,6 +322,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     private handleDividerPointerUp = (e: React.PointerEvent): void => {
         e.currentTarget.releasePointerCapture(e.pointerId);
         if (this.resultInfo) {
+            this.manuallyResized = true;
             this.currentHeight = this.resultInfo.zone.heightInPx;
         }
 

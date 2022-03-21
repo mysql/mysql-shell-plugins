@@ -470,9 +470,9 @@ export class SQLiteParsingServices {
         // Add remaining text to the range list.
         if (head < end) {
             result.push({
-                delimiter,
+                delimiter: "",
                 span: { start, length: end - start },
-                contentStart: haveContent ? head : start - 1,
+                contentStart: haveContent ? head : start,
                 state: StatementFinishState.NoDelimiter,
             });
         }

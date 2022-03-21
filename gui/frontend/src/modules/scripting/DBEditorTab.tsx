@@ -56,6 +56,7 @@ import { IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
+    convertRows,
     EditorLanguage, generateColumnInfo, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest,
 } from "../../supplement";
 
@@ -640,10 +641,12 @@ Execute \\help or \\? for help;`;
                     case EventType.DataResponse: {
                         const { dbType } = this.props;
                         const columns = generateColumnInfo(dbType, event.data.columns);
+                        const rows = convertRows(columns, event.data.rows);
+
                         void ApplicationDB.db.add("dbModuleResultData", {
                             tabId: id!,
                             requestId,
-                            rows: event.data.rows || [],
+                            rows,
                             columns,
                             hasMoreRows: false,
                             currentPage,
@@ -652,7 +655,7 @@ Execute \\help or \\? for help;`;
                         this.addTimedResult(context, {
                             type: "resultSetRows",
                             requestId,
-                            rows: event.data.rows || [],
+                            rows,
                             columns,
                             currentPage,
                         });
@@ -667,14 +670,13 @@ Execute \\help or \\? for help;`;
 
                         let hasMoreRows = false;
                         let rowCount = event.data.totalRowCount ?? 0;
-                        const rows = event.data.rows ?? [];
                         if (explicitPaging) {
                             // We added 1 to the total count for the LIMIT clause to allow determining if
                             // more pages are available. That's why we have to decrement the row count for display.
                             const pageSize = settings.get("sql.limitRowCount", 1000);
                             if (pageSize < rowCount) {
                                 --rowCount;
-                                rows.pop();
+                                event.data.rows?.pop();
 
                                 hasMoreRows = true;
                             }
@@ -684,12 +686,15 @@ Execute \\help or \\? for help;`;
                             text: event.data.requestState.type + ", " + formatWithNumber("record", rowCount) +
                                 " retrieved in " + formatTime(event.data.executionTime),
                         };
+
                         if (rowCount === 0) {
                             // Indicate that this data is a simple response (no data actually).
                             status.type = MessageType.Response;
                         }
 
                         const columns = generateColumnInfo(dbType, event.data.columns);
+                        const rows = convertRows(columns, event.data.rows);
+
                         void ApplicationDB.db.add("dbModuleResultData", {
                             tabId: id!,
                             requestId,

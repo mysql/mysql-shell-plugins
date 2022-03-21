@@ -28,6 +28,7 @@ import React from "react";
 import { Component, IComponentProperties, IComponentState, ITabviewPage, TabPosition, Tabview } from "../ui";
 import { ResultView } from ".";
 import { IResultSet, IResultSetRows } from "../../script-execution";
+import { IColumnInfo } from "../../app-logic/Types";
 
 export interface IResultGroupProperties extends IComponentProperties {
     resultSet: IResultSet;
@@ -86,6 +87,12 @@ export class ResultGroup extends Component<IResultGroupProperties, IResultGroupS
                 onSelectTab={this.handleTabSelection}
             />
         );
+    }
+
+    public async updateColumns(columns: IColumnInfo[]): Promise<void> {
+        if (this.resultRef.current) {
+            await this.resultRef.current.updateColumns(columns);
+        }
     }
 
     public async addData(newData: IResultSetRows, replace: boolean): Promise<void> {

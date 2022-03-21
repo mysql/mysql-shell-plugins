@@ -27,7 +27,7 @@ import { DBSchema, deleteDB, IDBPDatabase, openDB } from "idb";
 
 import { requisitions } from "../supplement/Requisitions";
 import { uuid } from "../utilities/helpers";
-import { IColumnInfo, IExecutionInfo } from "./Types";
+import { IColumnInfo, IDictionary, IExecutionInfo } from "./Types";
 
 export enum StoreType {
     Unused = "unused",
@@ -42,7 +42,7 @@ export interface IDbModuleResultData {
     tabId: string;
     requestId: string;
     columns?: IColumnInfo[];
-    rows: unknown[];
+    rows: IDictionary[];
     executionInfo?: IExecutionInfo;
 
     // Paging support.

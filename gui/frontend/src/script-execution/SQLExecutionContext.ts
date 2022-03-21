@@ -512,7 +512,9 @@ export class SQLExecutionContext extends ExecutionContext {
                     // A single statement. Check if it will affect following statements. If so, we have to combine it
                     // with the next statement(s) and re-schedule the split action.
                     const storeValuesAndValidate = (): void => {
-                        nextDetails.delimiter = ranges[0].delimiter;
+                        // For the last statement, if no final delimiter was provided, no delimiter is returned.
+                        // In that case use the default delimiter.
+                        nextDetails.delimiter = ranges[0].delimiter || ";";
                         nextDetails.state = ranges[0].state;
                         nextDetails.contentStart = nextDetails.span.start + ranges[0].contentStart;
 

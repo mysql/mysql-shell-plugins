@@ -1,7 +1,6 @@
 {
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "firefox",
             "request": "launch",
@@ -107,7 +106,7 @@
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run-script",
-                "test"
+                "unit-tests"
             ],
             "args": [
                 "--",

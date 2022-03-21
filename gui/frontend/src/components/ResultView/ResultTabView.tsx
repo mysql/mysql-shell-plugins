@@ -26,6 +26,7 @@ import React from "react";
 import { Component, IComponentProperties, IComponentState, ITabviewPage, TabPosition, Tabview } from "../ui";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution";
 import { ResultGroup } from ".";
+import { IColumnInfo } from "../../app-logic/Types";
 
 export interface IResultTabViewProperties extends IComponentProperties {
     resultSets: IResultSets;
@@ -39,8 +40,8 @@ interface IResultTabViewState extends IComponentState {
     // React refs to the used ResultGroup instances, keyed by the request ID for the result set.
     groupRefs: Map<string, React.RefObject<ResultGroup>>;
 
-    // Groups that are marked as having got a new request ID and their data must be completely replaced.
-    replacePending: Set<React.RefObject<ResultGroup>>;
+    // Result IDs that are marked for purge.
+    purgePending: Set<string>;
 }
 
 // Holds a collection of result views and other output in a tabbed interface.
@@ -52,7 +53,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         this.state = {
             selectedTab: "",
             groupRefs: new Map(),
-            replacePending: new Set(),
+            purgePending: new Set(),
         };
     }
 
@@ -60,9 +61,9 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         const { resultSets, onResultPageChange } = this.props;
         const { selectedTab, groupRefs } = this.state;
 
-        const pages = resultSets.sets.map((entry: IResultSet, index: number): ITabviewPage => {
+        const pages = resultSets.sets.map((resultSet: IResultSet, index: number): ITabviewPage => {
             const ref = React.createRef<ResultGroup>();
-            groupRefs.set(entry.head.requestId, ref);
+            groupRefs.set(resultSet.head.requestId, ref);
 
             return {
                 id: `resultGroup${index}`,
@@ -70,7 +71,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                 content: (
                     <ResultGroup
                         ref={ref}
-                        resultSet={entry}
+                        resultSet={resultSet}
 
                         onResultPageChange={onResultPageChange}
                     />
@@ -93,6 +94,21 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     }
 
     /**
+     * Triggers a column update in the group which belongs to the given request id.
+     *
+     * @param requestId The actual request ID which identifies a specific result group.
+     * @param columns The columns to set.
+     */
+    public async updateColumns(requestId: string, columns: IColumnInfo[]): Promise<void> {
+        const { groupRefs } = this.state;
+
+        const groupRef = groupRefs.get(requestId);
+        if (groupRef && groupRef.current) {
+            await groupRef.current.updateColumns(columns);
+        }
+    }
+
+    /**
      * In order to update large result sets without re-rendering everything we use direct methods
      * to add new data.
      *
@@ -101,16 +117,12 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * @returns A promise the resolves when the operation is complete.
      */
     public async addData(newData: IResultSetRows): Promise<void> {
-        const { groupRefs, replacePending } = this.state;
+        const { groupRefs, purgePending } = this.state;
 
+        const needPurge = purgePending.delete(newData.requestId);
         const groupRef = groupRefs.get(newData.requestId);
         if (groupRef && groupRef.current) {
-            if (replacePending.has(groupRef)) {
-                replacePending.delete(groupRef);
-                await groupRef.current.addData(newData, true);
-            } else {
-                await groupRef.current.addData(newData, false);
-            }
+            await groupRef.current.addData(newData, needPurge);
         }
     }
 
@@ -123,15 +135,21 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * @param newRequestId The ID under which this group is accessible after return.
      */
     public reassignData(oldRequestId: string, newRequestId: string): void {
-        const { groupRefs, replacePending } = this.state;
+        const { groupRefs, purgePending } = this.state;
 
         const groupRef = groupRefs.get(oldRequestId);
         if (groupRef && groupRef.current) {
             groupRefs.delete(oldRequestId);
             groupRefs.set(newRequestId, groupRef);
 
-            replacePending.add(groupRef);
+            purgePending.add(newRequestId);
         }
+    }
+
+    public markPendingReplace(requestId: string): void {
+        const { purgePending } = this.state;
+
+        purgePending.add(requestId);
     }
 
     private handleTabSelection = (id: string): void => {

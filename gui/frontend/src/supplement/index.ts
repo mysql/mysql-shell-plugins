@@ -133,3 +133,35 @@ export const generateColumnInfo = (dbType: DBType,
     });
 };
 
+/**
+ * Converts the given rows into a dictionary format as required by the UI, if it isn't already in that format.
+ *
+ * @param columns Column informations to find column IDs.
+ * @param rows The rows to convert.
+ *
+ * @returns The converted rows.
+ */
+export const convertRows = (columns: IColumnInfo[], rows?: unknown[]): IDictionary[] => {
+    if (!rows || rows.length === 0) {
+        return [];
+    }
+
+    if (Array.isArray(rows[0])) {
+        // Data is array of arrays of fields.
+        const convertedRows: IDictionary[] = [];
+        rows.forEach((value): void => {
+            const row: IDictionary = {};
+
+            const entry = value as unknown[];
+            columns.forEach((column: IColumnInfo, columnIndex: number): void => {
+                row[column.name] = entry[columnIndex];
+            });
+            convertedRows.push(row);
+        });
+
+        return convertedRows;
+    }
+
+    return rows as IDictionary[];
+};
+

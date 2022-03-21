@@ -60,7 +60,7 @@ export class PresentationInterface {
     protected static maxHeight = 800;
     protected static maxAutoHeight = 292;
 
-    // The size of the result area after manual resize by the user.
+    // The size of the result area after adding data or manual resize by the user.
     public currentHeight?: number;
     public resultData?: IExecutionResult;
     public loadingState = LoadingState.Idle;
@@ -75,6 +75,9 @@ export class PresentationInterface {
 
     // The target HTML element to which we render the React nodes dynamically.
     protected renderTarget?: HTMLDivElement;
+
+    // Set, when user manually resized the height of the result view.
+    protected manuallyResized = false;
 
     // The minimum for the result area. Depends on the content.
     protected minHeight = 180;
@@ -184,6 +187,7 @@ export class PresentationInterface {
         // Send out a notification that the current data is about to be replaced.
         this.onRemoveResult?.(this.requestIds);
 
+        let pendingPurge;
         if (data) {
             switch (data.type) {
                 case "text": {
@@ -194,6 +198,7 @@ export class PresentationInterface {
                 }
 
                 case "resultSets": {
+                    pendingPurge = data.sets.length > 0 ? data.sets[0].head.requestId : undefined;
                     element = <ResultTabView
                         ref={this.resultRef}
                         resultSets={data}
@@ -243,7 +248,13 @@ export class PresentationInterface {
             this.currentHeight = manualHeight;
         }
 
-        if (this.renderTarget) { // Do we have a result already?
+        // Do we have a result already?
+        if (this.renderTarget) {
+            // Clear existing data. We need this extra step, as we enter new data via direct calls, not properties.
+            if (pendingPurge) {
+                this.resultRef.current?.markPendingReplace(pendingPurge);
+            }
+
             if (element) {
                 // Update it.
                 render(
@@ -292,6 +303,11 @@ export class PresentationInterface {
 
         let element: React.ReactElement;
 
+        if (!this.manuallyResized) {
+            // Reset the current height to make the target compute the height again.
+            this.currentHeight = undefined;
+        }
+
         switch (data.type) {
             // For now only result sets support multiple pages (e.g. for multiple queries).
             case "resultSets": {
@@ -320,6 +336,10 @@ export class PresentationInterface {
                             addNew = false;
                             existing.head.requestId = set.head.requestId;
                             existing.head.sql = set.head.sql;
+                            existing.data.requestId = set.data.requestId;
+                            existing.data.rows = set.data.rows;
+                            existing.data.columns = set.data.columns;
+                            existing.data.executionInfo = set.data.executionInfo;
 
                             if (this.resultRef.current) {
                                 this.resultRef.current.reassignData(set.head.oldRequestId, set.head.requestId);
@@ -389,6 +409,11 @@ export class PresentationInterface {
         }
 
         let element: React.ReactNode;
+
+        if (!this.manuallyResized) {
+            // Reset the current height to make the target compute the height again.
+            this.currentHeight = undefined;
+        }
 
         switch (data.type) {
             case "text": {
@@ -730,29 +755,38 @@ export class PresentationInterface {
             return candidate.head.requestId === data.requestId;
         });
 
-        if (resultSet && data.columns && data.rows) {
-            resultSet.data.columns.push(...data.columns);
-            resultSet.data.rows.push(...(data.rows));
+        if (resultSet) {
+            if (data.columns.length > 0) {
+                if (data.columns) {
+                    resultSet.data.columns.push(...data.columns);
+                }
+                await this.resultRef.current?.updateColumns(data.requestId, resultSet.data.columns);
+            }
+
+            if (data.rows.length > 0) {
+                resultSet.data.rows.push(...data.rows);
+
+                resultSet.data.hasMoreRows = data.hasMoreRows;
+                resultSet.data.currentPage = data.currentPage;
+
+                if (this.resultRef.current) {
+                    await this.resultRef.current.addData(data);
+                }
+            } else if (data.executionInfo) {
+                // Also sent a data call if the execution info came in, even if no additional data exist.
+                if (this.resultRef.current) {
+                    await this.resultRef.current.addData(data);
+                }
+            }
 
             if (data.executionInfo) {
                 resultSet.data.executionInfo = data.executionInfo;
+
+                // This is the last result call, if a status is given.
+                // So stop also any wait/load animation.
+                this.loadingState = LoadingState.Idle;
+                this.updateMarginDecorations();
             }
-
-            if (data.type === "resultSetRows") {
-                resultSet.data.hasMoreRows = data.hasMoreRows;
-                resultSet.data.currentPage = data.currentPage;
-            }
-        }
-
-        if (this.resultRef.current) {
-            await this.resultRef.current.addData(data);
-        }
-
-        if (data.executionInfo) {
-            // This is the last result call, if a status is given.
-            // So stop also any wait/load animation.
-            this.loadingState = LoadingState.Idle;
-            this.updateMarginDecorations();
         }
 
         return true;

@@ -32,7 +32,6 @@ import React from "react";
 import { isNil } from "lodash";
 
 import { IComponentProperties, Component, SelectionType } from "..";
-import { IComponentState } from "../Component/Component";
 import { waitFor } from "../../../utilities/helpers";
 
 export { Tabulator } from "tabulator-tables";
@@ -128,15 +127,10 @@ export interface ITreeGridProperties extends IComponentProperties {
     onColumnResized?: (column: Tabulator.ColumnComponent) => void;
 }
 
-export interface ITreeGridState extends IComponentState {
-    // For data that was set while the tree was being set up.
-    pendingColumns?: Tabulator.ColumnDefinition[];
-    pendingData?: unknown[];
-}
-
 // This component shows data in dynamic lists with or without a tree column, or can show only a tree.
-// This is an uncontrolled component, keeping all data in the underlying tabulator module.
-export class TreeGrid extends Component<ITreeGridProperties, ITreeGridState> {
+// It differs in the way data is added from other controls. Data (columns, rows) can be passed in as properties and
+// can also be added on demand using the methods `setColumns` and `setRows`.
+export class TreeGrid extends Component<ITreeGridProperties> {
 
     private hostRef = React.createRef<HTMLDivElement>();
     private tabulator?: Tabulator;
@@ -165,60 +159,56 @@ export class TreeGrid extends Component<ITreeGridProperties, ITreeGridState> {
         const { onVerticalScroll } = this.mergedProps;
 
         if (this.hostRef.current) {
-            this.tabulator = new Tabulator(this.hostRef.current, this.tabulatorOptions);
-            this.tabulator.on("tableBuilt", () => {
-                const { selectedIds } = this.mergedProps;
-                const { pendingColumns, pendingData } = this.state;
+            // Defer the creation of the table a bit, because it directly manipulates the DOM and that randomly
+            // fails with preact, if the table is created directly on mount.
+            setTimeout(() => {
+                // The tabulator options can contain data, passed in as properties.
+                this.tabulator = new Tabulator(this.hostRef.current!, this.tabulatorOptions);
+                this.tabulator.on("tableBuilt", () => {
+                    const { selectedIds } = this.mergedProps;
 
-                this.tableReady = true;
-                if (this.tabulator) {
-                    this.tabulator.off("tableBuilt");
+                    if (this.tabulator) {
+                        this.tabulator.off("tableBuilt");
 
-                    if (selectedIds) {
-                        this.tabulator.selectRow(selectedIds);
+                        if (selectedIds) {
+                            this.tabulator.selectRow(selectedIds);
+                        }
                     }
 
-                    if (pendingColumns) {
-                        this.tabulator.setColumns(pendingColumns);
+                    // Assign the table holder class our fixed scrollbar class too.
+                    if (this.hostRef.current) {
+                        (this.hostRef.current.lastChild as HTMLElement).classList.add("fixedScrollbar");
                     }
 
-                    if (pendingData) {
-                        void this.tabulator.setData(pendingData);
-                    }
+                    this.tableReady = true;
+                });
 
-                    this.setState({ pendingColumns: undefined, pendingData: undefined });
+                this.tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
+                this.tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
+                this.tabulator.on("rowContext", this.handleRowContext);
+                this.tabulator.on("cellContext", this.handleCellContext);
+                this.tabulator.on("rowSelected", this.handleRowSelected);
+                this.tabulator.on("rowDeselected", this.handleRowDeselected);
+                this.tabulator.on("columnResized", this.handleColumnResized);
+
+                if (onVerticalScroll) {
+                    this.tabulator.on("scrollVertical", onVerticalScroll);
                 }
-
-                // Assign the table holder class our fixed scrollbar class too.
-                if (this.hostRef.current) {
-                    (this.hostRef.current.lastChild as HTMLElement).classList.add("fixedScrollbar");
-                }
-            });
-
-            this.tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
-            this.tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
-            this.tabulator.on("rowContext", this.handleRowContext);
-            this.tabulator.on("cellContext", this.handleCellContext);
-            this.tabulator.on("rowSelected", this.handleRowSelected);
-            this.tabulator.on("rowDeselected", this.handleRowDeselected);
-            this.tabulator.on("columnResized", this.handleColumnResized);
-
-            if (onVerticalScroll) {
-                this.tabulator.on("scrollVertical", onVerticalScroll);
-            }
-
-            const { selectedIds } = this.mergedProps;
-
-            if (selectedIds) {
-                this.tabulator.selectRow(selectedIds);
-            }
-
+            }, 10);
         }
     }
 
     public componentDidUpdate(): void {
         if (this.tabulator && this.tableReady) {
-            const { selectedIds } = this.mergedProps;
+            const { selectedIds, columns, tableData } = this.mergedProps;
+
+            if (columns) {
+                this.tabulator.setColumns(columns);
+            }
+
+            if (tableData) {
+                void this.tabulator.setData(tableData);
+            }
 
             if (selectedIds) {
                 this.tabulator.selectRow(selectedIds);
@@ -264,9 +254,14 @@ export class TreeGrid extends Component<ITreeGridProperties, ITreeGridState> {
         });
     }
 
-    public setColumns(columns: Tabulator.ColumnDefinition[]): void {
-        void this.table.then(() => {
-            this.tabulator?.setColumns(columns);
+    public setColumns(columns: Tabulator.ColumnDefinition[]): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.table.then(() => {
+                this.tabulator?.setColumns(columns);
+                resolve();
+            }).catch((reason) => {
+                reject(reason);
+            });
         });
     }
 
@@ -475,4 +470,5 @@ export class TreeGrid extends Component<ITreeGridProperties, ITreeGridState> {
     };
 }
 
+// TODO: replace with static initializer, once we can raise eslint to support ES2022.
 TreeGrid.initialize();

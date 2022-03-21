@@ -43,7 +43,7 @@ import {
 } from "../ui";
 import { ResultStatus } from "./ResultStatus";
 import { ITreeGridOptions, SetDataAction, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
-import { IResultSetContent, IResultSet, IResultSetRows } from "../../script-execution";
+import { IResultSet, IResultSetRows } from "../../script-execution";
 import { convertCamelToTitleCase } from "../../utilities/helpers";
 import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
@@ -62,8 +62,8 @@ interface IResultViewState extends IComponentState {
 
     hasMorePages: boolean;
 
-    // These values are either copies of the component properties or set during an explicit
-    // addData call.
+    // The execution info is held separately to allow adding a info bar.
+    // This is either from the passed in resultSet property or from an explicit addData call.
     executionInfo?: IExecutionInfo;
 }
 
@@ -87,17 +87,10 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         this.state = {
             dirty: false,
             hasMorePages: false,
+            executionInfo: props.resultSet.data.executionInfo,
         };
 
         this.addHandledProperties("tableData", "onResultPageChange");
-    }
-
-    public componentDidMount(): void {
-        const { resultSet } = this.props;
-
-        if (this.gridRef.current) {
-            void this.internallyAddData(this.gridRef.current, resultSet.data, false);
-        }
     }
 
     public componentDidUpdate(): void {
@@ -105,6 +98,8 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
     }
 
     public render(): React.ReactNode {
+        const { resultSet } = this.mergedProps;
+
         const { dirty, hasMorePages, executionInfo } = this.state;
 
         const className = this.getEffectiveClassNames(["resultView"]);
@@ -132,6 +127,8 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                         ref={this.gridRef}
                         style={{ fontSize: "10pt" }}
                         options={options}
+                        columns={this.generateColumnDefinitions(resultSet.data.columns)}
+                        tableData={resultSet.data.rows}
                         onColumnResized={this.handleColumnResized}
                         onCellContext={this.handleCellContext}
                     />
@@ -335,6 +332,14 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         );
     }
 
+    public updateColumns(columns: IColumnInfo[]): Promise<void> {
+        if (this.gridRef.current) {
+            return this.gridRef.current.setColumns(this.generateColumnDefinitions(columns));
+        }
+
+        return Promise.resolve();
+    }
+
     /**
      * Direct data pump, to fill in data as quickly as possible. This does not re-render the entire grid, but
      * uses internal handling to add the new rows (and to update columns).
@@ -348,61 +353,23 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
      * @returns A promise to wait for, before another call is made to add further data.
      */
     public async addData(newData: IResultSetRows, replace: boolean): Promise<void> {
-        return new Promise((resolve) => {
-            void this.gridRef.current?.table.then((table) => {
-                if (table && this.gridRef.current) {
-                    void this.internallyAddData(this.gridRef.current, newData, replace).then(() => {
-                        resolve();
-                    });
-                }
-            });
-        });
-    }
+        this.currentPage = newData.currentPage;
 
-    private internallyAddData(grid: TreeGrid, newData: IResultSetContent, replace: boolean): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!replace && newData.columns.length > 0) {
-                grid.setColumns(this.generateColumnDefinitions(newData.columns));
+        if (this.gridRef.current) {
+            if (replace) {
+                await this.gridRef.current.setData(newData.rows, SetDataAction.Replace);
+            } else {
+                await this.gridRef.current.setData(newData.rows, SetDataAction.Add);
             }
 
-            let convertedRows: unknown[] = [];
-            if (newData.rows.length > 0 && !Array.isArray(newData.rows[0])) {
-                // Table data is already in object format. No need to convert.
-                convertedRows = newData.rows;
-            } else {
-                newData.rows.forEach((entry): void => {
-                    const row = {};
-
-                    newData.columns.forEach((column: IColumnInfo, columnIndex: number): void => {
-                        row[column.name] = (entry as IDictionary)[columnIndex];
-                    });
-                    convertedRows.push(row);
+            if (newData.executionInfo) {
+                this.setState({
+                    executionInfo: newData.executionInfo,
+                    dirty: false,
+                    hasMorePages: newData.hasMoreRows ?? false,
                 });
             }
-
-            let dataPromise: Promise<unknown>;
-            if (replace) {
-                dataPromise = grid.setData(convertedRows, SetDataAction.Replace);
-            } else {
-                dataPromise = grid.setData(convertedRows, SetDataAction.Add);
-            }
-
-            dataPromise.then(() => {
-                if (newData.executionInfo) {
-                    this.setState({
-                        executionInfo: newData.executionInfo,
-                        dirty: false,
-                        hasMorePages: newData.hasMoreRows ?? false,
-                    });
-                }
-
-                resolve();
-            }).catch((reason) => {
-                reject(reason);
-            });
-
-            return;
-        });
+        }
     }
 
     private generateColumnDefinitions = (columns: IColumnInfo[]): Tabulator.ColumnDefinition[] => {
