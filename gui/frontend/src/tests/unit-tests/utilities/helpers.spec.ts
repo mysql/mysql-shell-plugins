@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,6 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { IShellFeedbackRequest } from "../../../communication";
+import { PromptUtils } from "../../../modules/common/PromptUtils";
+import { ShellInterfaceShellSession } from "../../../supplement/ShellInterface";
 import { binarySearch, flattenObject } from "../../../utilities/helpers";
 
 describe("Utilities Tests", (): void => {
@@ -95,5 +98,34 @@ describe("Utilities Tests", (): void => {
         expect(index).toEqual(-1);
         index = binarySearch(entries, (current) => { return 5e4 - current.id; });
         expect(index).toEqual(-7);
+    });
+
+    it("", (): void => {
+        const result: IShellFeedbackRequest = {};
+        result.password = "1234567";
+        let passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
+            "request1", { } as ShellInterfaceShellSession);
+
+        expect(passwordRequest).toBeDefined();
+        expect(passwordRequest.caption).toEqual("1234567");
+
+        result.password = "[1mPlease provide the password for 'root@localhost:3306': [0m";
+        passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
+            "request1", { } as ShellInterfaceShellSession);
+
+        expect(passwordRequest).toBeDefined();
+        expect(passwordRequest.caption).toEqual("Open MySQL Connection in Shell Session");
+        expect(passwordRequest.user).toEqual("root");
+        expect(passwordRequest.service).toEqual("root@localhost:3306");
+
+        result.password = "Please provide the password for ssh://user1@viking01:22:";
+        passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
+            "request1", { } as ShellInterfaceShellSession);
+
+        expect(passwordRequest).toBeDefined();
+        expect(passwordRequest.caption).toEqual("Open SSH tunnel in Shell Session");
+        expect(passwordRequest.service).toEqual("ssh://user1@viking01:22");
+        expect(passwordRequest.user).toEqual("user1");
+
     });
 });

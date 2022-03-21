@@ -38,10 +38,11 @@ import {
     Component, Label, Container, Orientation, ConnectionTile, FrontPage,
     ContentWrap, IConnectionTileProperties, Menu, ComponentPlacement, MenuItem, IMenuItemProperties,
     IComponentProperties, BrowserTileType, Toolbar, ICheckboxProperties, CheckState, Grid,
-    GridCell, ContentAlignment, IBrowserTileProperties, IComponentState, ProgressIndicator,
+    GridCell, ContentAlignment, IBrowserTileProperties, IComponentState, ProgressIndicator, IButtonProperties,
 } from "../../components/ui";
 import {
     ValueEditDialog, IDialogValues, IDialogValidations, DialogValueOption, DialogValueType, IDialogSection,
+    ICallbackData,
 } from "../../components/Dialogs/ValueEditDialog";
 import { requisitions } from "../../supplement/Requisitions";
 import { webSession } from "../../supplement/WebSession";
@@ -54,11 +55,13 @@ import { filterInt } from "../../utilities/string-helpers";
 import { settings } from "../../supplement/Settings/Settings";
 import { ConfirmDialog } from "../../components/Dialogs";
 import {
-    IBastionSummary, ICommErrorEvent, ICommMdsConfigProfileEvent, ICommMdsGetBastionsEvent, ICommOciBastionSummaryEvent,
-    ICommOciMySQLDbSystemEvent, ICommOpenConnectionEvent, ICommSimpleResultEvent, IMdsProfileData, IMySQLDbSystem,
+    IBastionSummary, ICommAddConnectionEvent, ICommErrorEvent, ICommMdsConfigProfileEvent, ICommMdsGetBastionsEvent,
+    ICommOciBastionSummaryEvent, ICommOciMySQLDbSystemEvent, ICommOpenConnectionEvent, ICommSimpleResultEvent,
+    IMdsProfileData, IMySQLDbSystem, IShellResultType,
 } from "../../communication";
 import { EventType } from "../../supplement/Dispatch";
 import { IDictionary, IServicePasswordRequest } from "../../app-logic/Types";
+import { PromptUtils } from "../common/PromptUtils";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     connections: IConnectionDetails[];
@@ -66,6 +69,7 @@ interface IConnectionBrowserProperties extends IComponentProperties {
 
     onAddConnection: (details: IConnectionDetails) => void;
     onDropConnection: (connectionId: number) => void;
+    onPushSavedConnection?: (details: IConnectionDetails) => void;
 }
 
 interface ILiveUpdateField {
@@ -109,7 +113,10 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private hostRef = React.createRef<HTMLElement>();
     private confirmDialogRef = React.createRef<ConfirmDialog>();
     private confirmNewBastionDialogRef = React.createRef<ConfirmDialog>();
+    private keepConnectionDialogRef = React.createRef<ConfirmDialog>();
     private confirmClearPasswordDialogRef = React.createRef<ConfirmDialog>();
+    private promptDialogRef = React.createRef<ValueEditDialog>();
+    private testNotExisting = false;
 
     private shellSession = new ShellInterfaceShellSession();
 
@@ -266,8 +273,14 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 <ConfirmDialog
                     ref={this.confirmNewBastionDialogRef}
                     id="confirmNewBastionDialog"
-                    caption="Create new bastion"
+                    caption="Create New Bastion"
                     onClose={this.handleCreateNewBastion}
+                />
+                <ConfirmDialog
+                    ref={this.keepConnectionDialogRef}
+                    id="keepConnectionDialogRef"
+                    caption="MySQL Connection Testing"
+                    onClose={this.handleKeepConnection}
                 />
                 <ValueEditDialog
                     ref={this.editorRef}
@@ -275,8 +288,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     caption="Database Connection Configuration"
                     onValidate={this.validateConnectionValues}
                     onClose={this.handleOptionsDialogClose}
-                    // advancedAction={this.testConnection}
-                    // advancedCaption="Test connection"
+                    advancedAction={this.testConnection}
+                    advancedActionCaption="Test connection"
                     onSelectTab={this.handleTabSelect}
                     customFooter={customFooter}
                 />
@@ -290,6 +303,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     id="confirmDeleteDialog"
                     caption="Delete Connection"
                     onClose={this.handleConnectionRemoval}
+                />
+                <ValueEditDialog
+                    ref={this.promptDialogRef}
+                    id="shellPromptDialog"
+                    caption="Feedback Requested"
+                    onClose={PromptUtils.handleClosePromptDialog}
                 />
                 <Menu
                     id="tileActionMenu"
@@ -681,6 +700,56 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         }
     };
 
+    private confirmKeepConnection = (connection?: IConnectionDetails): void => {
+        if (this.keepConnectionDialogRef.current) {
+            this.keepConnectionDialogRef.current.show(
+                (<Container orientation={Orientation.TopDown}>
+                    <Grid columns={["auto"]} columnGap={5}>
+                        <GridCell className="right" crossAlignment={ContentAlignment.Stretch}>
+                            A successful MySQL connection was made with the parameters defined for this connection.
+                        </GridCell>
+                        <GridCell className="right" crossAlignment={ContentAlignment.Stretch}>
+                            Do you want to save connection the MySQL DB System?
+                        </GridCell>
+                    </Grid>
+                </Container>),
+                "Cancel",
+                "Save",
+                connection,
+            );
+        }
+
+    };
+
+    private successConnectionInfo = (connection?: IConnectionDetails): void => {
+        if (this.keepConnectionDialogRef.current) {
+            this.keepConnectionDialogRef.current.show(
+                (<Container orientation={Orientation.TopDown}>
+                    <Grid columns={["auto"]} columnGap={5}>
+                        <GridCell className="right" crossAlignment={ContentAlignment.Stretch}>
+                            A successful MySQL connection was made with the parameters defined for this connection.
+                        </GridCell>
+                    </Grid>
+                </Container>),
+                "Ok",
+                "",
+                connection,
+            );
+        }
+
+    };
+
+    private handleKeepConnection = (accepted: boolean, payload?: unknown): void => {
+        const details = payload as IConnectionDetails;
+        if (accepted) {
+            const { onPushSavedConnection } = this.props;
+            onPushSavedConnection?.(details);
+            requisitions.executeRemote("refreshConnections", undefined);
+        } else {
+            this.dropTempConnection(details?.id);
+        }
+    };
+
     // TODO: change tile reorder to use module state not settings.
     /**
      * Triggered after the user dragged one tile onto another. This is used to reorder tiles.
@@ -924,7 +993,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         return result;
     };
 
-    private handleOptionsDialogClose = (accepted: boolean, values: IDialogValues, data?: IDictionary): void => {
+    private handleOptionsDialogClose = (accepted: boolean, values: IDialogValues, data?: IDictionary,
+        callbackData?: ICallbackData): void => {
         if (accepted) {
             const generalSection = values.sections.get("general")!.values;
             const informationSection = values.sections.get("information")!.values;
@@ -1030,10 +1100,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     } as IMySQLConnectionOptions;
                 }
 
-                if (data?.createNew) {
+                if (callbackData?.onAddConnection) {
+                    (callbackData?.onAddConnection)(details);
+                } else if (data?.createNew) {
                     const { onAddConnection } = this.props;
                     onAddConnection(details);
-
                     requisitions.executeRemote("refreshConnections", undefined);
                 } else {
                     ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, details)
@@ -1768,32 +1839,151 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         });
     };
 
-    private testConnection = (_values: IDialogValues): void => {
+    private testConnection = (values: IDialogValues, buttonProps: IButtonProperties): void => {
         const { connections } = this.props;
-        const backend = new ShellInterfaceSqlEditor();
-        if (this.connectionId !== -1) {
-            const details = connections.find((candidate) => { return candidate.id === this.connectionId; });
-            if (details) {
-                void this.testOpenConnection(backend, details);
-                this.showProgress();
+        switch(buttonProps?.caption) {
+            case "Abort":
+                this.hideProgress();
+                this.editorRef.current?.changeAdvActionText("Test connection");
+                break;
+            default: {
+                this.editorRef.current?.preventConfirm(true);
+                if (this.connectionId !== -1) {
+                    this.testNotExisting = false;
+                    const details = connections.find((candidate) => { return candidate.id === this.connectionId; });
+                    this.runTest(details);
+                } else {
+                    // First create connection, then open and test.
+                    // At the end open confirm dialog with question: keep or delete connection.
+                    this.testNotExisting = true;
+                    const result = this.validateConnectionValues(true, values, { creteNew : true });
+                    if (Object.keys(result.messages).length > 0) {
+                        let problems = "";
+                        Object.keys(result.messages).forEach((name: string) => {
+                            problems += `${result.messages[name]}; `;
+                        });
+                        void requisitions.execute("showError", ["Missing Connection Details", problems]);
+                        this.editorRef.current?.preventConfirm(false);
+                        this.hideProgress();
+                        this.editorRef.current?.changeAdvActionText("Test connection");
+                    } else {
+                        this.handleOptionsDialogClose(true, values, { createNew : true },
+                            { onAddConnection: this.saveAndTestConnection } as ICallbackData);
+                    }
+                }
             }
-
-            this.doHandleTileAction("edit", details, undefined);
-        } else {
-            //create open and delete
         }
     };
 
+    private saveAndTestConnection = (details: IConnectionDetails): void => {
+        ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, details, "")
+            .then((event: ICommAddConnectionEvent) => {
+                if (event.data) {
+                    details.id = event.data.result.dbConnectionId;
+                    this.connectionId = details.id;
+                    this.runTest(details);
+                }
+            });
+    };
+
+    private dropTempConnection = (connectionId: number): void => {
+        ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connectionId)
+            .then(() => {
+                this.testNotExisting = false;
+                this.connectionId = -1;
+            });
+    };
+
+    private runTest(details?: IConnectionDetails) {
+        const backend = new ShellInterfaceSqlEditor();
+        this.showProgress();
+        if (details) {
+            const id = `${details.caption}.ID-${this.connectionId}`;
+            this.editorRef.current?.changeAdvActionText("Abort");
+            this.setProgressMessage("Starting session...");
+            backend.startSession(id).then(() => {
+                this.setProgressMessage("Session created, opening connection...");
+
+                // Before opening the connection check the DB file, if this is an sqlite connection.
+                if (details.dbType === DBType.Sqlite) {
+                    const options = details.options as ISqliteConnectionOptions;
+                    backend.validatePath(options.dbFile).then(() => {
+                        void this.testOpenConnection(backend, details);
+                    }).catch(() => {
+                        // If the path is not ok then we might have to create the DB file first.
+                        backend.createDatabaseFile(options.dbFile).then(() => {
+                            void this.testOpenConnection(backend, details);
+                        }).catch((errorEvent: ICommErrorEvent) => {
+                            void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
+                            if (this.testNotExisting) {
+                                this.dropTempConnection(this.connectionId);
+                            }
+                        });
+                    });
+                } else {
+                    void this.testOpenConnection(backend, details);
+                }
+                this.hideProgress();
+                this.editorRef.current?.changeAdvActionText(undefined);
+                this.editorRef.current?.preventConfirm(false);
+            }).catch((errorEvent: ICommErrorEvent) => {
+                if (this.testNotExisting) {
+                    this.dropTempConnection(this.connectionId);
+                }
+                void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
+                this.editorRef.current?.changeAdvActionText(undefined);
+                this.hideProgress();
+                this.editorRef.current?.preventConfirm(false);
+            });
+        }
+    }
+
     private testOpenConnection(backend: ShellInterfaceSqlEditor, connection: IConnectionDetails): Promise<boolean> {
         return new Promise((resolve, reject) => {
-
             backend.openConnection(connection.id).then((event: ICommOpenConnectionEvent) => {
                 if (!event.data) {
                     return;
                 }
+                switch (event.eventType) {
+                    case EventType.DataResponse: {
+                        const data = event.data;
+                        const result = data.result as IShellResultType;
+                        if (PromptUtils.isShellPasswordResult(result)) {
+                            const passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
+                                event.data.requestId!, backend);
+                            void requisitions.execute("requestPassword", passwordRequest);
+                        } else if (PromptUtils.isShellMdsPromptResult(data)) {
+                            PromptUtils.showBackendPromptDialog(this.promptDialogRef, data.result.prompt,
+                                event.data.requestId ?? "", backend);
+                        } else if (PromptUtils.isShellPromptResult(result)) {
+                            PromptUtils.showBackendPromptDialog(this.promptDialogRef, result.prompt as string,
+                                event.data.requestId ?? "", backend);
+                        } else {
+                            this.setProgressMessage(event.message ?? "Loading ...");
+                        }
+                        break;
+                    }
+                    case EventType.FinalResponse: {
+                        this.setProgressMessage("Test connection successfully.");
+                        if(this.testNotExisting) {
+                            this.confirmKeepConnection(connection);
+                        } else {
+                            this.successConnectionInfo(connection);
+                        }
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
+                this.hideProgress();
+                this.editorRef.current?.changeAdvActionText(undefined);
                 resolve(true);
             }).catch((errorEvent: ICommErrorEvent) => {
                 void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
+                if (this.testNotExisting) {
+                    this.dropTempConnection(this.connectionId);
+                }
                 reject();
             });
         });
@@ -1808,6 +1998,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     };
 
     private hideProgress = (): void => {
-        this.setState({ loading: false });
+        this.setState({ loading: false, progressMessage: "" });
     };
 }

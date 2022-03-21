@@ -39,7 +39,7 @@ import { IShellSessionDetails } from "../../supplement/ShellInterface";
 import { IShellTabPersistentState, ShellTab } from "./ShellTab";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
 import {
-    ICommErrorEvent, ICommShellEvent, IShellResultType, ShellPromptResponseType,
+    ICommErrorEvent, ICommShellEvent, IShellResultType,
 } from "../../communication";
 import { settings } from "../../supplement/Settings/Settings";
 import { CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
@@ -50,7 +50,7 @@ import { ShellModuleId } from "../ModuleInfo";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { IShellEditorModel } from ".";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
-import { IDialogSection, IDialogValues, ValueEditDialog } from "../../components/Dialogs";
+import { IDialogSection, ValueEditDialog } from "../../components/Dialogs";
 import { PromptUtils } from "../common/PromptUtils";
 import { IServicePasswordRequest } from "../../app-logic/Types";
 import { stripAnsiCode } from "../../utilities/helpers";
@@ -72,11 +72,6 @@ interface IShellModuleState extends IModuleState {
     pendingConnectionProgress: "inactive" | "inProgress";
 
     progressMessage: string;
-}
-
-interface IPromptData {
-    requestId: string;
-    backend: ShellInterfaceShellSession;
 }
 
 export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModuleState> {
@@ -297,7 +292,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     ref={this.promptDialogRef}
                     id="shellPromptDialog"
                     caption="Feedback Requested"
-                    onClose={this.handleClosePromptDialog}
+                    onClose={PromptUtils.handleClosePromptDialog}
                 />
             </Container>
         );
@@ -602,62 +597,12 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     const result = data.result as IShellResultType;
                     if (PromptUtils.isShellPasswordResult(result)) {
                         // Extract the service id (and from that the user name) from the password prompt.
-                        if (result !== undefined && result.password !== undefined) {
-                            const passwordRequest: IServicePasswordRequest = {
-                                requestId: event.data.requestId!,
-                                caption: "Open MySQL Connection in Shell Session",
-                                payload: backend,
-                                service: "",
-                                user: "",
-                            };
-                            let parts = result.password.split("'");
-                            if (parts.length >= 3) {
-                                const parts2 = parts[1].split("@");
-                                passwordRequest.service = parts[1];
-                                passwordRequest.user = parts2[0];
-                            } else {
-                                parts = result.password.split("ssh://");
-                                if (parts.length >= 2) {
-                                    passwordRequest.caption = "Open SSH tunnel in Shell Session";
-                                    const parts2 = parts[1].split("@");
-                                    passwordRequest.service = `ssh://${parts[1]}`.trim();
-                                    if (passwordRequest.service.endsWith(":")) {
-                                        passwordRequest.service = passwordRequest.service.slice(0, -1);
-                                    }
-                                    passwordRequest.user = parts2[0];
-                                } else {
-                                    passwordRequest.caption = result.password;
-                                }
-                            }
-                            void requisitions.execute("requestPassword", passwordRequest);
-                        }
+                        const passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
+                            event.data.requestId!, backend);
+                        void requisitions.execute("requestPassword", passwordRequest);
                     } else if (PromptUtils.isShellPromptResult(result)) {
-                        if (this.promptDialogRef.current) {
-                            const prompt = stripAnsiCode(result.prompt as string);
-                            const promptSection: IDialogSection = {
-                                values: {
-                                    input: {
-                                        caption: prompt,
-                                        value: "",
-                                        span: 8,
-                                    },
-                                },
-                            };
-
-                            this.promptDialogRef.current.show(
-                                {
-                                    id: "shellPrompt",
-                                    sections: new Map<string, IDialogSection>([
-                                        ["prompt", promptSection],
-                                    ]),
-                                },
-                                [],
-                                { backgroundOpacity: 0.1 },
-                                "",
-                                prompt,
-                                { backend, requestId: event.data.requestId },
-                            );
-                        }
+                        PromptUtils.showBackendPromptDialog(this.promptDialogRef, result.prompt as string,
+                            event.data.requestId ?? "", backend);
                     } else {
                         this.setProgressMessage(event.message ?? "Loading ...");
                     }
@@ -779,18 +724,4 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
         this.setState({ selectedTab: newTab, progressMessage: "" });
     };
-
-    private handleClosePromptDialog = (accepted: boolean, values: IDialogValues, payload?: unknown): void => {
-        const data = payload as IPromptData;
-        if (accepted) {
-            const promptSection = values.sections.get("prompt");
-            if (promptSection) {
-                const entry = promptSection.values.input;
-                data.backend.sendReply(data.requestId, ShellPromptResponseType.Ok, entry.value as string);
-            }
-        } else {
-            data.backend.sendReply(data.requestId, ShellPromptResponseType.Cancel, "");
-        }
-    };
-
 }

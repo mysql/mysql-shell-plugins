@@ -38,6 +38,7 @@ import {
 import { IDictionary, MessageType } from "../../app-logic/Types";
 import { ParamDialog } from "./ParamDialog";
 import { IOpenDialogFilters } from "../../supplement/Requisitions";
+import { IConnectionDetails } from "../../supplement/ShellInterface";
 
 export interface IContextUpdateData {
     add?: string[];
@@ -129,14 +130,18 @@ interface IDialogValuePair {
     value: IDialogValue;
 }
 
+export interface ICallbackData {
+    onAddConnection?: (vale: IConnectionDetails) => void;
+}
+
 export interface IValueEditDialogProperties extends IComponentProperties {
     caption: string;
-    advancedCaption?: string; // If given a checkbox is shown with this caption, in the action footer.
-    advancedAction?: (values: IDialogValues) => void;
+    advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
+    advancedActionCaption?: string;
     customFooter?: React.ReactNode;
 
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
-    onClose?: (accepted: boolean, values: IDialogValues, data?: IDictionary) => void;
+    onClose?: (accepted: boolean, values: IDialogValues, data?: IDictionary, callbackData? : ICallbackData) => void;
     onToggleAdvanced?: (checked: boolean) => void;
     onSelectTab?: (id: string) => void;
 }
@@ -147,6 +152,7 @@ interface IValueEditDialogState extends IComponentState {
     values: IDialogValues;
     validations: IDialogValidations;
     preventConfirm: boolean;
+    actionText?: string;
 
     activeContexts: Set<string>; // A list of ids that allow conditional rendering of sections and values.
 }
@@ -173,7 +179,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             preventConfirm: false,
         };
 
-        this.addHandledProperties("caption", "advancedCaption", "advancedAction",
+        this.addHandledProperties("caption", "advancedAction", "advancedActionCaption",
             "customFooter", "onClose", "onValidate", "onToggleAdvanced");
     }
 
@@ -243,6 +249,10 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
+    public changeAdvActionText = (actionText? :string): void => {
+        this.setState({ actionText });
+    };
+
     public updateDropdownValue = (items: string[], active: string, id: string): void => {
         const { values } = this.state;
 
@@ -279,8 +289,8 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     };
 
     public render(): React.ReactNode {
-        const { caption, advancedCaption, advancedAction, customFooter } = this.props;
-        const { heading, description, validations, activeContexts, values, preventConfirm } = this.state;
+        const { caption, advancedActionCaption, advancedAction, customFooter } = this.props;
+        const { heading, actionText, description, validations, activeContexts, values, preventConfirm } = this.state;
 
         // Take over any context that is now required to show up due to validation issues.
         if (validations.requiredContexts && validations.requiredContexts.length > 0) {
@@ -294,11 +304,11 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         const groups = this.renderGroups();
 
         const customActions = [];
-        if (advancedCaption && advancedCaption.length > 0) {
+        if (advancedActionCaption && advancedActionCaption.length > 0) {
             if (advancedAction) {
                 customActions.push(
                     <Button
-                        caption={advancedCaption}
+                        caption={actionText ?? advancedActionCaption}
                         key="advanced-btn"
                         onClick={this.advancedBtnClick}
                     />);
@@ -306,7 +316,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 customActions.push(
                     <Checkbox
                         key="show-advanced"
-                        caption={advancedCaption}
+                        caption={advancedActionCaption}
                         checkState={activeContexts.has("advanced") ? CheckState.Checked : CheckState.Unchecked}
                         onChange={this.advancedSettingsChange}
                     />,
@@ -797,7 +807,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         return;
     };
 
-    private handleActionClick = (e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
+    private handleActionClick = (_e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;
         const { values } = this.state;
         let accepted = false;
@@ -816,7 +826,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         this.dialogRef.current?.close(!accepted);
     };
 
-    private inputChange = (e: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private inputChange = (_e: React.ChangeEvent, props: IInputChangeProperties): void => {
         const { onValidate } = this.props;
         const { values } = this.state;
 
@@ -884,7 +894,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
-    private btnClick = (e: React.SyntheticEvent, props: IButtonProperties): void => {
+    private btnClick = (_e: React.SyntheticEvent, props: IButtonProperties): void => {
         const { values } = this.state;
 
         values.sections.forEach((section) => {
@@ -897,11 +907,11 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
-    private advancedBtnClick = (): void => {
+    private advancedBtnClick = (_e: React.SyntheticEvent, props: IButtonProperties): void => {
         const { advancedAction } = this.props;
         const { values } = this.state;
 
-        advancedAction?.(values);
+        advancedAction?.(values, props);
     };
 
     private upDownChange = (item: string | number, props: IUpDownProperties): void => {
@@ -967,7 +977,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
     };
 
-    private onBlur = (e: React.SyntheticEvent, props: IInputProperties): void => {
+    private onBlur = (_e: React.SyntheticEvent, props: IInputProperties): void => {
         const { values } = this.state;
 
         values.sections.forEach((section) => {

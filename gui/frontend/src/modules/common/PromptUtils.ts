@@ -25,8 +25,15 @@ import { IServicePasswordRequest } from "../../app-logic/Types";
 import {
     IOpenConnectionData, IOpenMdsConnectionData, IShellFeedbackRequest, IShellResultType, ShellPromptResponseType,
 } from "../../communication";
+import { IDialogSection, IDialogValues, ValueEditDialog } from "../../components/Dialogs";
 import { requisitions } from "../../supplement/Requisitions";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
+import { ShellInterfaceShellSession, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
+import { stripAnsiCode } from "../../utilities/helpers";
+
+export interface IPromptData {
+    requestId: string;
+    backend: ShellInterfaceSqlEditor;
+}
 
 export class PromptUtils {
 
@@ -47,6 +54,84 @@ export class PromptUtils {
 
         return candidate?.password !== undefined;
     }
+
+    public static splitAndBuildPasswdRequest = (result: IShellResultType, requestId: string,
+        payload: ShellInterfaceSqlEditor | ShellInterfaceShellSession): IServicePasswordRequest => {
+        const feedbackRequest = result as IShellFeedbackRequest;
+        let passwordRequest: IServicePasswordRequest = { requestId, caption: "" };
+        if (feedbackRequest !== undefined && feedbackRequest.password !== undefined) {
+            passwordRequest = {
+                requestId,
+                caption: "Open MySQL Connection in Shell Session",
+                payload,
+                service: "",
+                user: "",
+            };
+            let parts = feedbackRequest.password.split("'");
+            if (parts.length >= 3) {
+                const parts2 = parts[1].split("@");
+                passwordRequest.service = parts[1];
+                passwordRequest.user = parts2[0];
+            } else {
+                parts = feedbackRequest.password.split("ssh://");
+                if (parts.length >= 2) {
+                    passwordRequest.caption = "Open SSH tunnel in Shell Session";
+                    const parts2 = parts[1].split("@");
+                    passwordRequest.service = `ssh://${parts[1]}`.trim();
+                    if (passwordRequest.service.endsWith(":")) {
+                        passwordRequest.service = passwordRequest.service.slice(0, -1);
+                    }
+                    passwordRequest.user = parts2[0];
+                } else {
+                    passwordRequest.caption = feedbackRequest.password;
+                }
+            }
+        }
+
+        return passwordRequest;
+    };
+
+    public static showBackendPromptDialog = (promptDialogRef: React.RefObject<ValueEditDialog>, text: string,
+        requestId: string, backend: ShellInterfaceSqlEditor | ShellInterfaceShellSession): void => {
+        if (promptDialogRef.current) {
+            const prompt = stripAnsiCode(text);
+            const promptSection: IDialogSection = {
+                values: {
+                    input: {
+                        caption: prompt,
+                        value: "",
+                        span: 8,
+                    },
+                },
+            };
+            promptDialogRef.current.show(
+                {
+                    id: "shellPrompt",
+                    sections: new Map<string, IDialogSection>([
+                        ["prompt", promptSection],
+                    ]),
+                },
+                [],
+                { backgroundOpacity: 0.1 },
+                "",
+                prompt,
+                { backend, requestId },
+            );
+        }
+    };
+
+    public static handleClosePromptDialog = (accepted: boolean, values: IDialogValues, payload?: unknown): void => {
+        const data = payload as IPromptData;
+        if (accepted) {
+            const promptSection = values.sections.get("prompt");
+            if (promptSection) {
+                const entry = promptSection.values.input;
+                data.backend.sendReply(data.requestId, ShellPromptResponseType.Ok, entry.value as string);
+            }
+        } else {
+            data.backend.sendReply(data.requestId, ShellPromptResponseType.Cancel, "");
+        }
+    };
 
     public static acceptPassword = (data: { request: IServicePasswordRequest; password: string }): Promise<boolean> => {
         return new Promise((resolve) => {
