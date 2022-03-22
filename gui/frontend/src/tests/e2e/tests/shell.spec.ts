@@ -150,7 +150,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "3")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -190,7 +190,7 @@ describe("MySQL Shell Sessions", () => {
             expect((await driver.findElements(By.id("session_1"))).length).toBe(0);
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -232,7 +232,7 @@ describe("MySQL Shell Sessions", () => {
             expect((await driver.findElements(By.id("session_1"))).length).toBe(0);
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -302,7 +302,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -338,12 +338,11 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
-    //bug https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33944617
-    xit("Using db global variable", async () => {
+    it("Using db global variable", async () => {
         try {
             const editor = await driver.findElement(By.id("shellEditorHost"));
 
@@ -396,7 +395,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -450,7 +449,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -505,7 +504,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -573,7 +572,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -610,7 +609,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetLangResult(driver)).toBe("json");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -664,7 +663,7 @@ describe("MySQL Shell Sessions", () => {
             expect(result).toBe("Default schema `" + schema2 + "` accessible through db.");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 });

@@ -124,7 +124,7 @@ describe("Main pages", () => {
             expect((await driver.findElements(By.id("settings"))).length).toBe(1);
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -163,7 +163,7 @@ describe("Main pages", () => {
             ).toBe("Add a new database connection");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -210,7 +210,7 @@ describe("Main pages", () => {
             expect(await downLabels[5].getText()).toBe("Clear Context");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -315,7 +315,7 @@ describe("Main pages", () => {
             expect(color).toBe("#FFFFFF");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -389,7 +389,7 @@ describe("Main pages", () => {
             expect((await driver.findElements(By.css(".copyright"))).length).toBe(1);
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -472,7 +472,7 @@ describe("Main pages", () => {
             expect(await themePreviewLabels[18].getText()).toBe("Symbols");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -488,7 +488,7 @@ describe("Main pages", () => {
                 By.css(".content label"))).getText() ).toBe("Could not establish a connection to the backend.");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -504,7 +504,7 @@ describe("Main pages", () => {
                 By.css(".content label"))).getText() ).toBe("Could not establish a connection to the backend.");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -574,7 +574,7 @@ describe("Main pages", () => {
                 expect(hex).toBe(refColor);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -618,7 +618,7 @@ describe("Main pages", () => {
                     parseInt(hsl![2], 10))).toUpperCase() ).toBe(refColor);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -651,7 +651,7 @@ describe("Main pages", () => {
                 await toggleUiColorsMenu(driver, "Base Colors", "close");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -692,7 +692,7 @@ describe("Main pages", () => {
                 await toggleUiColorsMenu(driver, "Window/Dialog Colors", "close");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -744,7 +744,7 @@ describe("Main pages", () => {
                 await toggleUiColorsMenu(driver, "Popup Colors", "close");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -779,7 +779,7 @@ describe("Main pages", () => {
                 await toggleUiColorsMenu(driver, "Button Colors", "close");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -831,7 +831,7 @@ describe("Main pages", () => {
                 await toggleUiColorsMenu(driver, "Dropdown Colors", "close");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -864,7 +864,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "borderColor") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -897,7 +897,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "color") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -923,7 +923,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "background") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -941,8 +941,11 @@ describe("Main pages", () => {
                 await driver.executeScript("arguments[0].scrollIntoView(true)",
                     await driver.findElement(By.xpath("//p[contains(text(), 'Grid / Table')]")));
 
-                const element = (await driver.findElements
-                (By.css(".msg.treeGrid.tabulator .tabulator-row.tabulator-selected .tabulator-cell")))[0];
+                const element = (await driver
+                    .findElements(By.css(".msg.treeGrid.tabulator .tabulator-row.tabulator-selected .tabulator-cell"))
+                )[0];
+
+
                 let elStyle = await getElementStyle(driver, element, "backgroundColor");
 
                 await setThemeEditorColors(driver, "--list-activeSelectionBackground", "luminanceInput", "84");
@@ -955,7 +958,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "color") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -987,7 +990,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "color") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1018,7 +1021,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "color") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1049,7 +1052,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "backgroundColor") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1084,7 +1087,7 @@ describe("Main pages", () => {
                 }, 5000, "color did not changed on editor")).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1112,7 +1115,7 @@ describe("Main pages", () => {
                 }, 3000, "boxShadow did not changed on editor")).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1164,7 +1167,7 @@ describe("Main pages", () => {
                     "backgroundColor") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1193,7 +1196,7 @@ describe("Main pages", () => {
                 expect(await getElementStyle(driver, element, "color") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1229,7 +1232,7 @@ describe("Main pages", () => {
                 }, 3000, "background color did not changed")).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1262,7 +1265,7 @@ describe("Main pages", () => {
                 expect(await getElementStyle(driver, element, "color") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1304,7 +1307,7 @@ describe("Main pages", () => {
                 expect(await getElementStyle(driver, element, "color") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1340,7 +1343,7 @@ describe("Main pages", () => {
                 expect(await getElementStyle(driver, element, "borderColor") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1377,7 +1380,7 @@ describe("Main pages", () => {
                 expect(await getElementStyle(driver, element, "backgroundColor") !== elStyle).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1417,7 +1420,7 @@ describe("Main pages", () => {
                 }, 3000, "foreground color did not changed")).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1589,7 +1592,7 @@ describe("Main pages", () => {
                 }, 3000, "Destination element is not underlined") );
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1650,7 +1653,7 @@ describe("Main pages", () => {
                 expect( await getElementStyle(driver, element, "color") ).toBe(elFgrd);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1683,7 +1686,7 @@ describe("Main pages", () => {
                 expect( (await dropDownList.findElements(By.id("ClientQA Theme"))).length ).toBe(0);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 

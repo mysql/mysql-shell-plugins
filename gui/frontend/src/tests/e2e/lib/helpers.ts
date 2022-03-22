@@ -330,6 +330,8 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
         if( codeMenu.length > 0 ) {
             await textArea.sendKeys(Key.ENTER);
         }
+    } else {
+        await textArea.sendKeys(Key.ENTER);
     }
     await pressEnter(driver);
 
@@ -1182,4 +1184,17 @@ export const getSettingValue = async (driver: WebDriver, settingId: string, type
     }
 
     return settingValue;
+};
+
+export const setDBEditorStartLang = async(driver: WebDriver, lang: string): Promise<void> => {
+    await driver.findElement(By.id("settings")).click();
+    const settings = await driver.findElement(By.id("settingsHost"));
+    const settingsTreeRows = await settings.findElements(
+        By.css(".settingsTreeCell label"),
+    );
+    await settingsTreeRows[2].click();
+    await driver.findElement(By.id("dbEditor.startLanguage")).click();
+    const dropDown = await driver.wait(until.elementLocated(By.css(".dropdownList.manualFocus")),
+        3000, "dropDown not displayed");
+    await dropDown.findElement(By.id(lang)).click();
 };

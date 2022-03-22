@@ -60,6 +60,7 @@ import {
     closeDBconnection,
     setFeedbackRequested,
     IDbConfig,
+    setDBEditorStartLang,
 } from "../lib/helpers";
 
 import { startServer, setupServerFolder } from "../lib/env";
@@ -362,7 +363,7 @@ describe("DB Editor", () => {
             );
         } catch (e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -419,7 +420,7 @@ describe("DB Editor", () => {
                 .toBe("my other connection");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -529,7 +530,7 @@ describe("DB Editor", () => {
             expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -611,7 +612,7 @@ describe("DB Editor", () => {
             await driver.findElement(By.id("cancel")).click();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
 
     });
@@ -659,7 +660,7 @@ describe("DB Editor", () => {
             );
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -761,7 +762,7 @@ describe("DB Editor", () => {
             expect(await resultHeaderRows[4].getText()).toBe("options");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
 
     });
@@ -857,7 +858,7 @@ describe("DB Editor", () => {
             expect(await valueCol.getText()).toMatch(new RegExp(/TLS_(.*)/));
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -891,7 +892,7 @@ describe("DB Editor", () => {
                 expect(await defaultSchema.findElement(By.css("label")).getText()).toBe(String(dbConfig.schema));
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
 
         });
@@ -950,7 +951,7 @@ describe("DB Editor", () => {
                 expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(3);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1010,7 +1011,7 @@ describe("DB Editor", () => {
                 expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(4);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1113,7 +1114,7 @@ describe("DB Editor", () => {
                 expect(await resultHeaderRows[0].getText()).toBe("category_id");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1220,7 +1221,7 @@ describe("DB Editor", () => {
                 );
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1299,7 +1300,7 @@ describe("DB Editor", () => {
                 expect(await finder.getAttribute("aria-hidden")).toBe("true");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1383,7 +1384,7 @@ describe("DB Editor", () => {
                 expect(attr.split(" ").includes("expanded") === false).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1450,7 +1451,7 @@ describe("DB Editor", () => {
                 )!.click();
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1521,7 +1522,7 @@ describe("DB Editor", () => {
                 )!.click();
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1615,7 +1616,7 @@ describe("DB Editor", () => {
                 expect(await columns[3].getText()).toBe("last_update");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1687,7 +1688,7 @@ describe("DB Editor", () => {
                 ).toBe("SELECT * FROM sakila.actor;");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1889,7 +1890,7 @@ describe("DB Editor", () => {
                 );
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -1960,7 +1961,7 @@ describe("DB Editor", () => {
                 ).toBe("Standard Console");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -2035,7 +2036,7 @@ describe("DB Editor", () => {
                 expect( await getResultColumnName(driver, "actor_id") ).toBeDefined();
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -2117,7 +2118,7 @@ describe("DB Editor", () => {
                 expect( z !== result3).toBe(true);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -2170,10 +2171,10 @@ describe("DB Editor", () => {
 
                 const textArea = await contentHost.findElement(By.css("textarea"));
                 let text = `
-            DELIMITER $$
-                select 2 $$
-            select 1  
-            `;
+                DELIMITER $$
+                    select 2 $$
+                select 1  
+                `;
                 text = text.trim();
                 await textArea.sendKeys(text);
 
@@ -2224,7 +2225,7 @@ describe("DB Editor", () => {
                 }, 5000, "Line 2 does not have the statement start");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -2281,7 +2282,7 @@ describe("DB Editor", () => {
                 );
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -2345,12 +2346,14 @@ describe("DB Editor", () => {
                 expect(items[2]).toContain("testing");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
         it("Context Menu - Execute", async () => {
             try {
+                await setDBEditorStartLang(driver, "sql");
+
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
                 await driver.executeScript(
@@ -2367,10 +2370,9 @@ describe("DB Editor", () => {
 
                 await toggleExplorerHost(driver, "close");
 
-                await setEditorLanguage(driver, "mysql");
-
                 const textArea = await driver.findElement(By.id("contentHost")).findElement(By.css("textarea"));
                 await textArea.sendKeys("select * from sakila.actor");
+                await textArea.sendKeys(Key.ENTER);
 
                 await clickDBEditorContextItem(driver, "Execute Block");
 
@@ -2391,7 +2393,7 @@ describe("DB Editor", () => {
                         .length > 0,
                 ).toBe(true);
 
-                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(3);
+                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(2);
 
                 if(platform() === "darwin") {
                     await textArea.sendKeys(Key.chord(Key.COMMAND, "a"));
@@ -2406,7 +2408,7 @@ describe("DB Editor", () => {
                     .perform();
 
                 await textArea.sendKeys("select * from sakila.city");
-
+                await textArea.sendKeys(Key.ENTER);
                 await clickDBEditorContextItem(driver, "Execute Block and Advance");
 
                 await driver.sleep(1000);
@@ -2428,15 +2430,16 @@ describe("DB Editor", () => {
                         .length > 0,
                 ).toBe(true);
 
-                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(4);
+                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(3);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
         it("Demo Pie Graphs", async () => {
             try {
+                await setDBEditorStartLang(driver, "typescript");
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
                 await driver.executeScript(
@@ -2453,14 +2456,12 @@ describe("DB Editor", () => {
 
                 await toggleExplorerHost(driver, "close");
 
-                await setEditorLanguage(driver, "typescript");
-
                 const contentHost = await driver.findElement(By.id("contentHost"));
                 let textArea = await contentHost.findElement(By.css("textarea"));
 
                 await enterCmd(driver, textArea, "new PieGraph(PieGraph.layout.mediumDonut, PieGraph.demoData.budget)");
 
-                let pieChart = await getPieChart(driver, 2);
+                let pieChart = await getPieChart(driver, 1);
 
                 expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
                 expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
@@ -2481,7 +2482,7 @@ describe("DB Editor", () => {
 
                 await enterCmd(driver, textArea, "new PieGraph(PieGraph.layout.mediumPie, PieGraph.demoData.budget)");
 
-                pieChart = await getPieChart(driver, 3);
+                pieChart = await getPieChart(driver, 2);
 
                 expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
                 expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
@@ -2499,12 +2500,13 @@ describe("DB Editor", () => {
                 expect( await labels[7].getAttribute("innerHTML") ).toContain("Motor Vehicles/Tires/Parts");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
         it("Pie Graph based on DB table", async () => {
             try {
+                await setDBEditorStartLang(driver, "typescript");
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
                 await driver.executeScript(
@@ -2520,8 +2522,6 @@ describe("DB Editor", () => {
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
-
-                await setEditorLanguage(driver, "typescript");
 
                 const contentHost = await driver.findElement(By.id("contentHost"));
                 const textArea = await contentHost.findElement(By.css("textarea"));
@@ -2552,7 +2552,7 @@ describe("DB Editor", () => {
                 });
             `);
 
-                const pieChart = await getPieChart(driver, 2);
+                const pieChart = await getPieChart(driver, 1);
 
                 expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
                 expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
@@ -2567,7 +2567,7 @@ describe("DB Editor", () => {
                 expect( await labels[4].getText() ).toBe("JOHNNY");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
 
         });
@@ -2620,7 +2620,7 @@ describe("DB Editor", () => {
                 }
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -2654,7 +2654,7 @@ describe("DB Editor", () => {
                 expect( await feedbackDialog.findElement(By.css(".title label")).getText() ).toBe("Feedback Requested");
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 
@@ -2687,7 +2687,7 @@ describe("DB Editor", () => {
                     .toBe(dbConfig.caption);
             } catch(e) {
                 testFailed = true;
-                throw new Error(String(e));
+                throw e;
             }
         });
 

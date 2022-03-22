@@ -101,7 +101,7 @@ describe("Login", () => {
             expect(await driver.findElement(By.id("loginPassword"))).toBeDefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -111,12 +111,12 @@ describe("Login", () => {
             await driver.findElement(By.id("loginPassword")).sendKeys("client");
             await driver.findElement(By.id("loginButton")).click();
 
-            expect( await (await driver.findElement(By.css
-            ("div.message.error"))).getText() )
+            expect( await (await driver.findElement(By.css("div.message.error"))).getText() )
+
                 .toBe("User could not be authenticated. Incorrect username or password.") ;
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -135,7 +135,7 @@ describe("Login", () => {
             expect(result).toBe(true);
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 

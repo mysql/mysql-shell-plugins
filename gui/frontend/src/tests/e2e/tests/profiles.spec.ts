@@ -123,7 +123,7 @@ xdescribe("Profiles", () => {
             expect(await getProfile(driver, "ClientQA1")).toBeDefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -163,7 +163,7 @@ xdescribe("Profiles", () => {
             expect(await getProfile(driver, "ClientQA1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -201,7 +201,7 @@ xdescribe("Profiles", () => {
             expect(await getCurrentProfile(driver)).toBe("ClientQA1");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -244,7 +244,7 @@ xdescribe("Profiles", () => {
             );
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -295,7 +295,7 @@ xdescribe("Profiles", () => {
             expect(await getProfile(driver, "ClientQA2")).toBeUndefined();
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -338,7 +338,7 @@ xdescribe("Profiles", () => {
                 .toBe(0);
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 
@@ -472,7 +472,7 @@ xdescribe("Profiles", () => {
             ).toBe("unchecked");
         } catch(e) {
             testFailed = true;
-            throw new Error(String(e));
+            throw e;
         }
     });
 });
