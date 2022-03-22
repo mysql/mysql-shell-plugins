@@ -325,15 +325,20 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
     cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
     const prevBlocks = await driver.findElements(By.css(".zoneHost"));
     await textArea.sendKeys(cmd);
-    await textArea.sendKeys(Key.ENTER);
+    if (cmd.indexOf("\\") !== -1) {
+        const codeMenu = await driver.findElements(By.css("div.contents"));
+        if( codeMenu.length > 0 ) {
+            await textArea.sendKeys(Key.ENTER);
+        }
+    }
     await pressEnter(driver);
 
-    if(cmd !== "\\q") {
+    if (cmd !== "\\q") {
         await driver.wait(async () => {
             const blocks = await driver.findElements(By.css(".zoneHost"));
 
             return blocks.length > prevBlocks.length;
-        }, 5000, "Command '" + cmd + "' did not triggered a new results block");
+        }, 10000, "Command '" + cmd + "' did not triggered a new results block");
     }
 };
 
@@ -900,8 +905,8 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
     const themeTabView = await driver.findElement(By.id("themeTabview"));
 
     await driver.wait(async ()=> {
-        const els = await themeTabView.findElements
-        (By.css(".tabulator-tableholder .tabulator-selectable"));
+        const els = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
+
         try {
             await els[0].findElement(By.css("label")).getText();
 
@@ -911,8 +916,7 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
         }
     }, 2000, "Elements are stale");
 
-    const uiColorsItems = await themeTabView.findElements
-    (By.css(".tabulator-tableholder .tabulator-selectable"));
+    const uiColorsItems = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
 
     for(let i=0; i <= uiColorsItems.length-1; i++) {
         if( await uiColorsItems[i].findElement(By.css("label")).getText() === menu ) { //base colors
@@ -1096,6 +1100,8 @@ export const setSetting = async (driver: WebDriver, settingId: string, type: str
     await clickSettingArea(driver, settingId);
     const el = settingsValueList.findElement(By.id(settingId));
     await driver.executeScript("arguments[0].scrollIntoView(true)", el);
+    const dropDownList = await driver.findElement(By.css(".dropdownList"));
+    const classes = (await el.getAttribute("class")).split(" ");
     switch (type) {
         case "input":
             await driver.executeScript("arguments[0].click()", el);
@@ -1109,7 +1115,6 @@ export const setSetting = async (driver: WebDriver, settingId: string, type: str
             break;
         case "selectList":
             await el.click();
-            const dropDownList = await driver.findElement(By.css(".dropdownList"));
             try {
                 await dropDownList
                     .findElement(By.xpath("//div[contains(@id, '" + value + "')]"))
@@ -1119,7 +1124,6 @@ export const setSetting = async (driver: WebDriver, settingId: string, type: str
             }
             break;
         case "checkbox":
-            const classes = (await el.getAttribute("class")).split(" ");
             if (value === "checked") {
                 if (classes.includes("unchecked")) {
                     await el.findElement(By.css("span")).click();
@@ -1153,6 +1157,7 @@ export const getSettingValue = async (driver: WebDriver, settingId: string, type
     const el = settingsValueList.findElement(By.id(settingId));
     await driver.executeScript("arguments[0].scrollIntoView(true)", el);
     let settingValue = "";
+    const classes = (await el.getAttribute("class")).split(" ");
     switch (type) {
         case "input":
             if ( (await el.getTagName()) === "input") {
@@ -1165,7 +1170,6 @@ export const getSettingValue = async (driver: WebDriver, settingId: string, type
             settingValue = await el.findElement(By.css("label")).getText();
             break;
         case "checkbox":
-            const classes = (await el.getAttribute("class")).split(" ");
             if (classes.includes("unchecked")) {
                 settingValue = "unchecked";
             }
