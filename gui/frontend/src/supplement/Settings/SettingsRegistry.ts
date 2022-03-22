@@ -171,68 +171,166 @@ const registerSetting = (path: string, title: string, description: string, value
 
 export const registerSettings = (): void => {
     registerSettingCategory("workers", "Background Workers", "Settings related to background workers");
-    registerSetting("workers.minWorkerCount", "Minimum Background Worker Count",
-        "The number of workers that are always available.", "number", 3, true);
-    registerSetting("workers.maxWorkerCount", "Maximum Background Worker Count",
-        "The number of workers that are at most active.", "number", 3, true);
-    registerSetting("workers.maxPendingTaskCount", "Maximum Number of Waiting Tasks",
+    registerSetting(
+        "workers.minWorkerCount",
+        "Minimum Background Worker Count",
+        "The number of workers that are always available.",
+        "number",
+        3,
+        true,
+    );
+    registerSetting(
+        "workers.maxWorkerCount",
+        "Maximum Background Worker Count",
+        "The number of workers that are at most active.",
+        "number",
+        3,
+        true,
+    );
+    registerSetting(
+        "workers.maxPendingTaskCount",
+        "Maximum Number of Waiting Tasks",
         "Describes the highest number of waiting tasks for a free background worker. If this number is exceeded an " +
         "error is thrown, indicating that the worker pool is overloaded and can no longer cope with incoming work.",
-        "number", 100, true);
-    registerSetting("workers.removeIdleTime", "Delay to Remove Inactive Workers",
+        "number",
+        100,
+        true,
+    );
+    registerSetting(
+        "workers.removeIdleTime",
+        "Delay to Remove Inactive Workers",
         "Specifies the number of seconds to pass until the oldest inactive worker is removed. Has no effect if the " +
-        "current number of active workers would fall below the minimal worker count.", "number", 60, true);
+        "current number of active workers would fall below the minimal worker count.",
+        "number",
+        60,
+        true,
+    );
 
-    registerSettingCategory("theming", "Theme Settings", "Values used to theme the application. There's a dedicated " +
-        "editor to change these values.");
-    registerSetting("theming.currentTheme", "Current Theme", "Select the active theme for the current profile",
-        "choice", "auto", false);
-    registerSetting("theming.themes", "Registered Themes", "Themes can be edited in the Theme Editor.", "action",
-        "Click to Open the Theme Editor", false, { action: "showThemeEditor" });
-    registerSetting("theming.colorPadColors", "Color Pad Colors", "", "list", [], false);
+    registerSettingCategory(
+        "theming",
+        "Theme Settings",
+        "Values used to theme the application. There's a dedicated editor to change these values.",
+    );
+    registerSetting(
+        "theming.currentTheme",
+        "Current Theme",
+        "Select the active theme for the current profile",
+        "choice",
+        "auto",
+        false,
+    );
+    registerSetting(
+        "theming.themes",
+        "Registered Themes",
+        "Themes can be edited in the Theme Editor.",
+        "action",
+        "Click to Open the Theme Editor",
+        false,
+        { action: "showThemeEditor" },
+    );
+    registerSetting(
+        "theming.colorPadColors",
+        "Color Pad Colors",
+        "",
+        "list",
+        [],
+        false,
+    );
 
     //registerSettingCategory("general", "General", "Settings that do not fit in the more specialized sections.");
 
     registerSettingCategory("editor", "Code Editor", "Settings related to all code editors.");
     registerSettingCategory("editor.theming", "Theming", "Settings related to theming.");
-    registerSetting("editor.theming.decorationSet", "Decoration Set for Code Editor Gutters", "Select one of the " +
-        "sets to be used to mark code block and results in mixed language code editors.", "choice", "standard", false, {
-        choices: [
-            ["Standard Set", "standard", "Includes only a solid marker for editor rows"],
-            [
-                "Alternative Set",
-                "alternative",
-                "Uses a hatch pattern with different colors to mark editor content and result areas",
+    registerSetting(
+        "editor.theming.decorationSet",
+        "Decoration Set for Code Editor Gutters",
+        "Select one of the sets to be used to mark code block and results in mixed language code editors.",
+        "choice",
+        "standard",
+        false,
+        {
+            choices: [
+                ["Standard Set", "standard", "Includes only a solid marker for editor rows"],
+                [
+                    "Alternative Set",
+                    "alternative",
+                    "Uses a hatch pattern with different colors to mark editor content and result areas",
+                ],
             ],
-        ],
-    });
-    registerSetting("editor.wordWrap", "Word Wrapping", "Determines how long lines should be wrapped automatically " +
-        "by the editor.", "choice", "off", false, {
-        choices: [
-            ["Off", "off", "Lines will never wrap"],
-            ["On", "on", "Lines will wrap at the viewport width"],
-            ["Word Wrap Column", "wordWrapColumn", "Lines will wrap at \"Code Editor: Word Wrap Column\""],
-            ["Bounded", "bounded",
-                "Lines will wrap at the minimum of viewport width or \"Code Editor: Word Wrap Column\""],
-        ],
-    });
-    registerSetting("editor.wordWrapColumn", "Word Wrap Column", "Controls the column of the editor to wrap long " +
-        "lines when Code Editor: Word Wrap is `wordWrapColumn` or `bounded`.", "number", 120, false);
-    registerSetting("editor.showHidden", "Invisible Characters", "When set to true normally invisible characters (" +
-        "like space or tabulator) are displayed too.", "boolean", false, false);
-    registerSetting("editor.dbVersion", "MySQL DB Version", "The default version to be used for MySQL language " +
-        "support, if no version is available.", "string", "8.0.25", false);
-    registerSetting("editor.sqlMode", "MySQL SQL Mode", "The default SQL mode to be used for MySQL language " +
-        "support, if mode information is not available.", "string", "", false);
-    registerSetting("editor.stopOnErrors", "Stop on Errors", "If this option is set to, execution of scripts will be " +
-        "stopped if an error occurs. Otherwise the script execution continues with the next statement.", "boolean",
-    false, false);
-    registerSetting("editor.showMinimap", "Show the Minimap", "Determines if code editors should show a minimap " +
-        "instead of the plain scrollbar, for better navigation.", "boolean", true, false);
+        },
+    );
+    registerSetting(
+        "editor.wordWrap",
+        "Word Wrapping",
+        "Determines how long lines should be wrapped automatically by the editor.",
+        "choice",
+        "off",
+        false,
+        {
+            choices: [
+                ["Off", "off", "Lines will never wrap"],
+                ["On", "on", "Lines will wrap at the viewport width"],
+                ["Word Wrap Column", "wordWrapColumn", "Lines will wrap at \"Code Editor: Word Wrap Column\""],
+                ["Bounded", "bounded",
+                    "Lines will wrap at the minimum of viewport width or \"Code Editor: Word Wrap Column\""],
+            ],
+        },
+    );
+    registerSetting(
+        "editor.wordWrapColumn",
+        "Word Wrap Column",
+        "Controls the column of the editor to wrap long lines when Code Editor: Word Wrap is `wordWrapColumn` or " +
+        "`bounded`.",
+        "number",
+        120,
+        false,
+    );
+    registerSetting(
+        "editor.showHidden",
+        "Invisible Characters",
+        "When set to true normally invisible characters (like space or tabulator) are displayed too.",
+        "boolean",
+        false,
+        false,
+    );
+    registerSetting(
+        "editor.dbVersion",
+        "MySQL DB Version",
+        "The default version to be used for MySQL language support, if no version is available.",
+        "string",
+        "8.0.25",
+        false,
+    );
+    registerSetting(
+        "editor.sqlMode",
+        "MySQL SQL Mode",
+        "The default SQL mode to be used for MySQL language support, if mode information is not available.",
+        "string",
+        "",
+        false,
+    );
+    registerSetting(
+        "editor.stopOnErrors",
+        "Stop on Errors",
+        "If this option is set to, execution of scripts will be stopped if an error occurs. Otherwise the script " +
+        "execution continues with the next statement.", "boolean",
+        false, false);
+    registerSetting(
+        "editor.showMinimap",
+        "Show the Minimap",
+        "Determines if code editors should show a minimap instead of the plain scrollbar, for better navigation.",
+        "boolean",
+        true,
+        false,
+    );
 
     registerSettingCategory("dbEditor", "DB Editor", "Settings related to a DB editor");
-    registerSetting("dbEditor.startLanguage", "Start Language", "Select the initial language for new DB editors.",
-        "choice", "sql", false, {
+    registerSetting(
+        "dbEditor.startLanguage",
+        "Start Language",
+        "Select the initial language for new DB editors.",
+        "choice", "sql", false,
+        {
             choices: [
                 ["Javascript", "javascript", "Supported in all code editors"],
                 ["Typescript", "typescript", "Supported only in DB editors"],
@@ -240,32 +338,75 @@ export const registerSettings = (): void => {
                 ["SQL", "sql", "Supported in all code editors"],
             ],
         });
+    registerSetting(
+        "dbEditor.upperCaseKeywords",
+        "Use UPPER case keywords in code completion",
+        "When set key words shown in code completion popups will appear all in upper case letters and are also " +
+        "inserted so in the SQL code editors.",
+        "boolean",
+        true,
+        false,
+    );
 
     registerSettingCategory("dbEditor.connectionBrowser", "Connection Browser", "Settings related to the connection " +
         "overview page in the DB Editor Module");
-    registerSetting("dbEditor.connectionBrowser.showGreeting", "Show Greeting", "If set, a message section is shown " +
-        "with some useful links.", "boolean", true, false);
+    registerSetting(
+        "dbEditor.connectionBrowser.showGreeting",
+        "Show Greeting",
+        "If set, a message section is shown with some useful links.",
+        "boolean",
+        true,
+        false,
+    );
 
     registerSettingCategory("sql", "SQL Execution", "Settings related to how SQL queries are handled");
-    registerSetting("sql.limitRowCount", "Result Set Page Size", "Determines the size of one page in a result set, " +
-        "but has no effect if a top-level LIMIT clause is specified in the query. Set to 0 to disable auto adding " +
-        "a LIMIT clause and return all records as single page. Be cautious however with large row counts (> 50000).",
-    "number", 1000, false, { range: [0, 10000] });
-    registerSetting("sql.rowPacketSize", "Row Packet Size", "Determines the number of result records that are sent " +
-        "in a single response from the backend.", "number", 1000, true);
+    registerSetting(
+        "sql.limitRowCount",
+        "Result Set Page Size",
+        "Determines the size of one page in a result set, but has no effect if a top-level LIMIT clause is specified " +
+        "in the query. Set to 0 to disable auto adding a LIMIT clause and return all records as single page. Be " +
+        "cautious however with large row counts (> 50000).",
+        "number",
+        1000,
+        false,
+        { range: [0, 10000] },
+    );
+    registerSetting(
+        "sql.rowPacketSize",
+        "Row Packet Size",
+        "Determines the number of result records that are sent in a single response from the backend.",
+        "number",
+        1000,
+        true,
+    );
 
     registerSettingCategory("shellSession", "Shell Session", "Settings related to a shell session");
-    registerSettingCategory("shellSession.sessionBrowser", "Shell Session Browser", "Settings related to the shell " +
-        "session overview page in the Shell Session Module");
-    registerSetting("shellSession.sessionBrowser.showGreeting", "Show Greeting", "If set, a message section is " +
-        "shown with some useful links.", "boolean", true, false);
-
-    registerSetting("shellSession.startLanguage", "Start Language", "Select the initial language for " +
-        "a new shell session.", "choice", "javascript", false, {
-        choices: [
-            ["Javascript", "javascript", "Supported in all code editors"],
-            ["Python", "python", "Supported only in shell session editors"],
-            ["SQL", "sql", "Supported in all code editors"],
-        ],
-    });
+    registerSettingCategory(
+        "shellSession.sessionBrowser",
+        "Shell Session Browser",
+        "Settings related to the shell session overview page in the Shell Session Module",
+    );
+    registerSetting(
+        "shellSession.sessionBrowser.showGreeting",
+        "Show Greeting",
+        "If set, a message section is shown with some useful links.",
+        "boolean",
+        true,
+        false,
+    );
+    registerSetting(
+        "shellSession.startLanguage",
+        "Start Language",
+        "Select the initial language for a new shell session.",
+        "choice",
+        "javascript",
+        false,
+        {
+            choices: [
+                ["Javascript", "javascript", "Supported in all code editors"],
+                ["Python", "python", "Supported only in shell session editors"],
+                ["SQL", "sql", "Supported in all code editors"],
+            ],
+        },
+    );
 };

@@ -41,6 +41,7 @@ import {
     DBSymbolTable,
 } from "../DBSymbolTable";
 import { WorkerPool } from "../../supplement/WorkerPool";
+import { settings } from "../../supplement/Settings/Settings";
 
 // A string for lookup if schemas have been loaded already.
 const schemaKey = "\u0010schemas\u0010";
@@ -119,7 +120,7 @@ export class RdbmsLanguageService {
         const model = context.model as ICodeEditorModel;
         this.localSymbols.addDependencies(model.symbols);
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const statement = context.getStatementAtPosition(position);
             if (!statement) {
                 resolve(null);
@@ -148,7 +149,7 @@ export class RdbmsLanguageService {
                         endColumn: info.endColumn,
                     });
 
-                    void this.transformCompletionItems(result.completions, replaceRange, false).then((suggestions) => {
+                    this.transformCompletionItems(result.completions, replaceRange).then((suggestions) => {
                         if (suggestions.length === 0) {
                             // Add a special item here if nothing was found.
                             // Otherwise we get some meaningless default suggestions.
@@ -167,6 +168,8 @@ export class RdbmsLanguageService {
                         });
 
                         this.localSymbols.removeDependency(model.symbols);
+                    }).catch((reason) => {
+                        reject(reason);
                     });
                 } else {
                     resolve(null);
@@ -176,15 +179,16 @@ export class RdbmsLanguageService {
         });
     }
 
-    private transformCompletionItems = async (data: ICompletionData, range: IRange,
-        uppercaseKeywords: boolean): Promise<CompletionItem[]> => {
+    private transformCompletionItems = async (data: ICompletionData, range: IRange): Promise<CompletionItem[]> => {
         const result: CompletionItem[] = [];
 
+        const uppercaseKeywords = settings.get("dbEditor.upperCaseKeywords", true);
         let sortKey = this.sortKeys.get(LanguageCompletionKind.Keyword)!;
         data.keywords.forEach((keyword) => {
             if (!uppercaseKeywords) {
                 keyword = keyword.toLowerCase();
             }
+
             result.push({
                 label: keyword,
                 kind: mapCompletionKind.get(LanguageCompletionKind.Keyword)!,
@@ -223,12 +227,12 @@ export class RdbmsLanguageService {
         };
 
         // Sort the objects so that parent elements are handled before the sub elements (schema before tables etc.).
+        // This way also all symbols of the same type are listed together.
         data.dbObjects.sort((lhs, rhs) => {
             return lhs.kind - rhs.kind;
         });
 
-        const itemPromises: Array<Promise<CompletionItem[]>> = [];
-        data.dbObjects.forEach((entry) => {
+        for await (const entry of data.dbObjects) {
             switch (entry.kind) {
                 case LanguageCompletionKind.Procedure:
                 case LanguageCompletionKind.Function:
@@ -239,7 +243,8 @@ export class RdbmsLanguageService {
                     if (entry.schemas) {
                         if (!findHandledKind(entry)) {
                             handledKinds.push(entry);
-                            itemPromises.push(this.collectItemsFromSchemas(entry.kind, entry.schemas, range));
+                            const list = await this.collectItemsFromSchemas(entry.kind, entry.schemas, range);
+                            result.push(...list);
                         }
                     }
 
@@ -250,7 +255,8 @@ export class RdbmsLanguageService {
                     if (entry.schemas && entry.tables) {
                         if (!findHandledKind(entry)) {
                             handledKinds.push(entry);
-                            itemPromises.push(this.collectColumns(entry.schemas, entry.tables, range));
+                            const list = await this.collectColumns(entry.schemas, entry.tables, range);
+                            result.push(...list);
                         }
                     }
 
@@ -261,7 +267,8 @@ export class RdbmsLanguageService {
                     if (!findHandledKind(entry)) {
                         // Special handling for system functions as we have individual descriptions for each of them.
                         handledKinds.push(entry);
-                        itemPromises.push(this.collectSystemFunctions(range));
+                        const list = await this.collectSystemFunctions(range);
+                        result.push(...list);
                     }
 
                     break;
@@ -270,7 +277,8 @@ export class RdbmsLanguageService {
                 case LanguageCompletionKind.UserVariable: {
                     if (!findHandledKind(entry)) {
                         handledKinds.push(entry);
-                        itemPromises.push(this.collectUserVariables(range));
+                        const list = await this.collectUserVariables(range);
+                        result.push(...list);
                     }
 
                     break;
@@ -279,7 +287,8 @@ export class RdbmsLanguageService {
                 case LanguageCompletionKind.SystemVariable: {
                     if (!findHandledKind(entry)) {
                         handledKinds.push(entry);
-                        itemPromises.push(this.collectSystemVariables(range));
+                        const list = await this.collectSystemVariables(range);
+                        result.push(...list);
                     }
 
                     break;
@@ -289,18 +298,14 @@ export class RdbmsLanguageService {
                     if (!findHandledKind(entry)) {
                         handledKinds.push(entry);
 
-                        itemPromises.push(this.collectItems(this.localSymbols, entry.kind, range));
+                        const list = await this.collectItems(this.localSymbols, entry.kind, range);
+                        result.push(...list);
                     }
 
                     break;
                 }
             }
-        });
-
-        const lists = await Promise.all(itemPromises);
-        lists.forEach((list) => {
-            result.push(...list);
-        });
+        }
 
         return result;
     };
@@ -495,7 +500,7 @@ export class RdbmsLanguageService {
                 },
                 insertText: name,
                 sortText: sortKey + name,
-                documentation: (symbol ).description[1],
+                documentation: (symbol).description[1],
             });
         }
 

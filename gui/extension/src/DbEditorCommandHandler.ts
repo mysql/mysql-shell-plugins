@@ -75,9 +75,15 @@ export class DbEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.showTableData", (item: SchemaTableTreeItem) => {
             const provider = this.currentProvider;
+
+            const configuration = workspace.getConfiguration(`msg.dbEditor`);
+            const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
+            const select = uppercaseKeywords ? "SELECT" : "select";
+            const from = uppercaseKeywords ? "FROM" : "from";
+
             void provider?.runQuery(item.entry.details.caption, String(item.entry.details.id), {
                 linkId: -1,
-                query: `SELECT * FROM \`${item.schema}\`.\`${item.label as string}\``,
+                query: `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``,
                 data: {},
                 parameters: [],
             });

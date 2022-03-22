@@ -271,10 +271,13 @@ export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
             let sql;
 
             const tableName = `${quote(schema)}.${quote(table ?? "")}`;
+            const uppercaseKeywords = settings.get("dbEditor.upperCaseKeywords", true);
+            const select = uppercaseKeywords ? "SELECT" : "select";
+            const from = uppercaseKeywords ? "FROM" : "from";
             if (entry.type === SchemaTreeType.Column) {
-                sql = `select ${tableName}.${quote(entry.qualifiedName.name ?? "")} from ${tableName}`;
+                sql = `${select} ${tableName}.${quote(entry.qualifiedName.name ?? "")} ${from} ${tableName}`;
             } else {
-                sql = `select * from ${tableName}`;
+                sql = `${select} * ${from} ${tableName}`;
             }
 
             this.executeQuery(sql);
