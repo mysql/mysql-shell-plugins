@@ -175,7 +175,7 @@
                 "msg.dbEditor.upperCaseKeywords": {
                     "type": "boolean",
                     "default": true,
-                    "description": "When set key words shown in code completion popups will appear all in upper case letters and are also inserted so in the SQL code editors."
+                    "description": "When set, keywords shown in code-completion popups appear in all uppercase letters and are inserted as such in the SQL code editors."
                 },
                 "msg.dbEditor.connectionBrowser.showGreeting": {
                     "type": "boolean",

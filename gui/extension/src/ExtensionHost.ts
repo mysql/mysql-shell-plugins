@@ -55,6 +55,7 @@ import { MRSCommandHandler } from "./MRSCommandHandler";
 // This class manages some extension wide things like authentication handling etc.
 export class ExtensionHost {
     private activeProfile?: ICommShellProfile;
+    private updatingSettings = false;
 
     private dbEditorCommandHandler = new DbEditorCommandHandler();
     private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
@@ -304,36 +305,41 @@ export class ExtensionHost {
      * Triggered when the user changed a vscode setting. Updates the current profile.
      */
     private updateProfileSettings(): void {
+        if (!this.updatingSettings) {
+            this.updatingSettings = true;
 
-        const updateFromChildren = (children?: ISettingCategory[], configuration?: WorkspaceConfiguration): void => {
-            children?.forEach((child) => {
-                child.values.forEach((value) => {
-                    const configValue = configuration?.get(`${child.key}.${value.key}`);
-                    if (!isNil(configValue)) {
-                        settings.set(value.id, configValue);
-                    }
+            const handleChildren = (children?: ISettingCategory[], configuration?: WorkspaceConfiguration): void => {
+                children?.forEach((child) => {
+                    child.values.forEach((value) => {
+                        const configValue = configuration?.get(`${child.key}.${value.key}`);
+                        if (!isNil(configValue)) {
+                            settings.set(value.id, configValue);
+                        }
+                    });
+
+                    handleChildren(child.children, configuration);
                 });
+            };
 
-                updateFromChildren(child.children, configuration);
-            });
-        };
+            const categories = settingCategories.children;
+            if (categories) {
+                categories.forEach((category) => {
+                    const configuration = workspace.getConfiguration(`msg.${category.key}`);
+                    category.values.forEach((value) => {
+                        const configValue = configuration.get(value.key);
+                        if (!isNil(configValue)) {
+                            settings.set(value.id, configValue);
+                        }
+                    });
 
-        const categories = settingCategories.children;
-        if (categories) {
-            categories.forEach((category) => {
-                const configuration = workspace.getConfiguration(`msg.${category.key}`);
-                category.values.forEach((value) => {
-                    const configValue = configuration.get(value.key);
-                    if (!isNil(configValue)) {
-                        settings.set(value.id, configValue);
-                    }
+                    handleChildren(category.children, configuration);
                 });
+            }
 
-                updateFromChildren(category.children, configuration);
-            });
+            settings.saveSettings();
+
+            this.updatingSettings = false;
         }
-
-        settings.saveSettings();
     }
 
     /**
@@ -345,47 +351,59 @@ export class ExtensionHost {
      *
      * @returns A promise resolving to true.
      */
-    private updateVscodeSettings = (entry?: { key: string; value: unknown }): Promise<boolean> => {
-        return new Promise((resolve) => {
+    private updateVscodeSettings = async (entry?: { key: string; value: unknown }): Promise<boolean> => {
+        if (!this.updatingSettings) {
+            this.updatingSettings = true;
             if (entry) {
                 const parts = entry.key.split(".");
                 if (parts.length === 3) {
                     const configuration = workspace.getConfiguration(`msg.${parts[0]}`);
-                    void configuration.update(`${parts[1]}.${parts[2]}`, entry.value, true).then(() => {
-                        resolve(true);
-                    });
+                    const currentValue = configuration.get(`${parts[1]}.${parts[2]}`);
+                    if (currentValue !== entry.value) {
+                        await configuration.update(`${parts[1]}.${parts[2]}`, entry.value, true);
+                    }
                 }
             } else {
                 const categories = settingCategories.children;
                 if (categories) {
-                    const updateFromChildren = (children?: ISettingCategory[],
-                        configuration?: WorkspaceConfiguration): void => {
-                        children?.forEach((child) => {
-                            child.values.forEach((value) => {
-                                const setting = settings.get(value.id);
-                                void configuration?.update(`${child.key}.${value.key}`, setting, true);
-                            });
+                    const updateFromChildren = async (children?: ISettingCategory[],
+                        configuration?: WorkspaceConfiguration): Promise<void> => {
+                        if (children && configuration) {
+                            for await (const child of children) {
+                                for await (const value of child.values) {
+                                    const setting = settings.get(value.id);
+                                    const currentValue = configuration.get(`${child.key}.${value.key}`);
+                                    if (setting !== currentValue) {
+                                        await configuration.update(`${child.key}.${value.key}`, setting, true);
+                                    }
+                                }
 
-                            updateFromChildren(child.children, configuration);
-                        });
+                                await updateFromChildren(child.children, configuration);
+                            }
+                        }
                     };
 
-
-                    categories.forEach((category) => {
+                    for await (const category of categories) {
                         if (category.key !== "theming") {
                             const configuration = workspace.getConfiguration(`msg.${category.key}`);
-                            category.values.forEach((value) => {
+                            for await (const value of category.values) {
                                 const setting = settings.get(value.id);
-                                void configuration.update(value.key, setting, true);
-                            });
+                                const currentValue = configuration.get(value.key);
+                                if (setting !== currentValue) {
+                                    await configuration.update(value.key, setting, true);
+                                }
+                            }
 
-                            updateFromChildren(category.children, configuration);
+                            await updateFromChildren(category.children, configuration);
                         }
-                    });
+                    }
                 }
-
             }
-        });
+
+            this.updatingSettings = false;
+        }
+
+        return true;
     };
 
     private selectProfile(): void {

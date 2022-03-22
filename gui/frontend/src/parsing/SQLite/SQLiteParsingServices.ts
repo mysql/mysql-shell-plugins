@@ -472,7 +472,7 @@ export class SQLiteParsingServices {
             result.push({
                 delimiter: "",
                 span: { start, length: end - start },
-                contentStart: haveContent ? head : start,
+                contentStart: haveContent ? head : start - 1, // -1 to indicate no content
                 state: StatementFinishState.NoDelimiter,
             });
         }

@@ -182,7 +182,7 @@ export const registerSettings = (): void => {
     registerSetting(
         "workers.maxWorkerCount",
         "Maximum Background Worker Count",
-        "The number of workers that are at most active.",
+        "The maximum number of workers that are active at the same time.",
         "number",
         3,
         true,
@@ -199,8 +199,8 @@ export const registerSettings = (): void => {
     registerSetting(
         "workers.removeIdleTime",
         "Delay to Remove Inactive Workers",
-        "Specifies the number of seconds to pass until the oldest inactive worker is removed. Has no effect if the " +
-        "current number of active workers would fall below the minimal worker count.",
+        "Specifies the number of seconds that pass until the oldest inactive worker is removed. Has no effect if the " +
+        "current number of active workers fall below the minimal worker count.",
         "number",
         60,
         true,
@@ -209,12 +209,12 @@ export const registerSettings = (): void => {
     registerSettingCategory(
         "theming",
         "Theme Settings",
-        "Values used to theme the application. There's a dedicated editor to change these values.",
+        "Values used to theme the application. There is a dedicated editor to change these values.",
     );
     registerSetting(
         "theming.currentTheme",
         "Current Theme",
-        "Select the active theme for the current profile",
+        "Select the active theme for the current profile.",
         "choice",
         "auto",
         false,
@@ -244,7 +244,7 @@ export const registerSettings = (): void => {
     registerSetting(
         "editor.theming.decorationSet",
         "Decoration Set for Code Editor Gutters",
-        "Select one of the sets to be used to mark code block and results in mixed language code editors.",
+        "Select one of the sets for code-block decoration that results in mixed language code editors.",
         "choice",
         "standard",
         false,
@@ -254,7 +254,7 @@ export const registerSettings = (): void => {
                 [
                     "Alternative Set",
                     "alternative",
-                    "Uses a hatch pattern with different colors to mark editor content and result areas",
+                    "Uses a hatch pattern with different colors to separate editor content and result areas",
                 ],
             ],
         },
@@ -268,11 +268,11 @@ export const registerSettings = (): void => {
         false,
         {
             choices: [
-                ["Off", "off", "Lines will never wrap"],
-                ["On", "on", "Lines will wrap at the viewport width"],
-                ["Word Wrap Column", "wordWrapColumn", "Lines will wrap at \"Code Editor: Word Wrap Column\""],
+                ["Off", "off", "Lines never wrap"],
+                ["On", "on", "Lines wrap at the viewport width"],
+                ["Word Wrap Column", "wordWrapColumn", "Lines wrap at \"Code Editor: Word Wrap Column\""],
                 ["Bounded", "bounded",
-                    "Lines will wrap at the minimum of viewport width or \"Code Editor: Word Wrap Column\""],
+                    "Lines wrap at the minimum of viewport width or \"Code Editor: Word Wrap Column\""],
             ],
         },
     );
@@ -288,7 +288,7 @@ export const registerSettings = (): void => {
     registerSetting(
         "editor.showHidden",
         "Invisible Characters",
-        "When set to true normally invisible characters (like space or tabulator) are displayed too.",
+        "When set to true, normally invisible characters (like space or tabulator) are displayed too.",
         "boolean",
         false,
         false,
@@ -312,13 +312,13 @@ export const registerSettings = (): void => {
     registerSetting(
         "editor.stopOnErrors",
         "Stop on Errors",
-        "If this option is set to, execution of scripts will be stopped if an error occurs. Otherwise the script " +
+        "If this option is set, execution of scripts will be stopped if an error occurs. Otherwise, the script " +
         "execution continues with the next statement.", "boolean",
         false, false);
     registerSetting(
         "editor.showMinimap",
         "Show the Minimap",
-        "Determines if code editors should show a minimap instead of the plain scrollbar, for better navigation.",
+        "Determines if code editors should show a minimap, instead of the plain scrollbar, for better navigation.",
         "boolean",
         true,
         false,
@@ -341,8 +341,8 @@ export const registerSettings = (): void => {
     registerSetting(
         "dbEditor.upperCaseKeywords",
         "Use UPPER case keywords in code completion",
-        "When set key words shown in code completion popups will appear all in upper case letters and are also " +
-        "inserted so in the SQL code editors.",
+        "When set, keywords shown in code-completion popups appear in all uppercase letters and are inserted as such " +
+        "in the SQL code editors.",
         "boolean",
         true,
         false,
@@ -364,8 +364,8 @@ export const registerSettings = (): void => {
         "sql.limitRowCount",
         "Result Set Page Size",
         "Determines the size of one page in a result set, but has no effect if a top-level LIMIT clause is specified " +
-        "in the query. Set to 0 to disable auto adding a LIMIT clause and return all records as single page. Be " +
-        "cautious however with large row counts (> 50000).",
+        "in the query. Set to 0 to disable auto adding a LIMIT clause and return all records as a single page. " +
+        "However, be cautious with large row counts (> 50000).",
         "number",
         1000,
         false,
