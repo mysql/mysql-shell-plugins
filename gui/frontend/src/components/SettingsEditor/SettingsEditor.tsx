@@ -281,7 +281,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
 
             // Collapse and deselect the currently active node.
             void this.treeRef.current?.table.then((table) => {
-                table?.getSelectedRows().forEach((row) => {
+                this.treeRef.current?.getSelectedRows().forEach((row) => {
                     if (!top.startsWith((row.getData() as IDictionary).id as string)) {
                         let current: Tabulator.RowComponent | false = row;
                         while (current) {

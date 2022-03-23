@@ -22,13 +22,6 @@
  */
 
 import "./ResultView.css";
-import gridIcon from "../../assets/images/toolbar/grid.svg";
-import commitIcon from "../../assets/images/toolbar/commit.svg";
-import rollbackIcon from "../../assets/images/toolbar/rollback.svg";
-import expandIcon from "../../assets/images/toolbar/expand.svg";
-import menuIcon from "../../assets/images/toolbar/menu.svg";
-import previousPageIcon from "../../assets/images/toolbar/page-previous.svg";
-import nextPageIcon from "../../assets/images/toolbar/page-next.svg";
 
 import blobIcon from "../../assets/images/blob.svg";
 import nullIcon from "../../assets/images/null.svg";
@@ -37,45 +30,31 @@ import React from "react";
 import { render } from "preact";
 
 import {
-    Component, IComponentState, Container, Orientation, IComponentProperties, SelectionType, Toolbar, Dropdown,
-    Divider, Button, Icon, IInputChangeProperties, UpDown, Checkbox, CheckState, Input, Menu, MenuItem,
+    Component, Container, Orientation, IComponentProperties, SelectionType, Icon,
+    IInputChangeProperties, UpDown, Checkbox, CheckState, Input, Menu, MenuItem,
     ComponentPlacement, IMenuItemProperties, TextAlignment,
 } from "../ui";
-import { ResultStatus } from "./ResultStatus";
 import { ITreeGridOptions, SetDataAction, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { IResultSet, IResultSetRows } from "../../script-execution";
 import { convertCamelToTitleCase } from "../../utilities/helpers";
-import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
+import { DBDataType, IColumnInfo, IDictionary, MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
-
-const emptyParams = {};
 
 export interface IResultViewProperties extends IComponentProperties {
     resultSet: IResultSet;
 
-    onResultPageChange?: (requestId: string, currentPage: number, sql: string) => void;
-}
-
-interface IResultViewState extends IComponentState {
-    // Set to true when the user edited values in the grid.
-    dirty: boolean;
-
-    hasMorePages: boolean;
-
-    // The execution info is held separately to allow adding a info bar.
-    // This is either from the passed in resultSet property or from an explicit addData call.
-    executionInfo?: IExecutionInfo;
+    // Triggered when the user edited data.
+    onEdit?: (resultSet: IResultSet) => void;
 }
 
 // Implements a table for result data.
-export class ResultView extends Component<IResultViewProperties, IResultViewState> {
+export class ResultView extends Component<IResultViewProperties> {
 
     private gridRef = React.createRef<TreeGrid>();
 
     // Keeps user defined (or computed) column widths across result set updates.
     private columnWidthCache = new Map<string, number>();
 
-    private actionMenuRef = React.createRef<Menu>();
     private cellContextMenuRef = React.createRef<Menu>();
     private currentCell?: Tabulator.CellComponent;
 
@@ -85,12 +64,9 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         super(props);
 
         this.state = {
-            dirty: false,
-            hasMorePages: false,
-            executionInfo: props.resultSet.data.executionInfo,
         };
 
-        this.addHandledProperties("tableData", "onResultPageChange");
+        this.addHandledProperties("tableData");
     }
 
     public componentDidUpdate(): void {
@@ -99,8 +75,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
     public render(): React.ReactNode {
         const { resultSet } = this.mergedProps;
-
-        const { dirty, hasMorePages, executionInfo } = this.state;
 
         const className = this.getEffectiveClassNames(["resultView"]);
 
@@ -113,6 +87,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
             resizableRows: true,
         };
 
+        const executionInfo = resultSet.data.executionInfo;
         const gotError = executionInfo && executionInfo.type === MessageType.Error;
         const gotResponse = executionInfo && executionInfo.type === MessageType.Response;
 
@@ -132,77 +107,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                         onColumnResized={this.handleColumnResized}
                         onCellContext={this.handleCellContext}
                     />
-                }
-                {
-                    executionInfo && <ResultStatus executionInfo={executionInfo}>
-                        {
-                            !gotError && !gotResponse && <Toolbar
-                                dropShadow={false}
-                            >
-                                <Button
-                                    id="previousPageButton"
-                                    imageOnly={true}
-                                    disabled={this.currentPage === 0}
-                                    data-tooltip="Previous Page"
-                                    onClick={this.previousPage}
-                                >
-                                    <Icon src={previousPageIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Button
-                                    id="nextPageButton"
-                                    imageOnly={true}
-                                    disabled={!hasMorePages}
-                                    data-tooltip="Next Page"
-                                    onClick={this.nextPage}
-                                >
-                                    <Icon src={nextPageIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Divider vertical={true} />
-                                <Button
-                                    id="applyButton"
-                                    imageOnly={true}
-                                    disabled={!dirty}
-                                    data-tooltip="Apply Changes"
-                                >
-                                    <Icon src={commitIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Button
-                                    id="revertButton"
-                                    imageOnly={true}
-                                    disabled={!dirty}
-                                    data-tooltip="Revert Changes"
-                                    onClick={this.rollbackChanges}
-                                >
-                                    <Icon src={rollbackIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Divider id="editSeparator" vertical={true} />
-                                <Button
-                                    imageOnly={true}
-                                    data-tooltip="Maximize Result Set View"
-                                >
-                                    <Icon src={expandIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Divider vertical={true} />
-                                <Dropdown
-                                    id="viewStyleDropDown"
-                                    initialSelection="grid"
-                                    data-tooltip="Select a View Section for the Result Set"
-                                >
-                                    <Dropdown.Item
-                                        id="grid"
-                                        picture={<Icon src={gridIcon} data-tooltip="inherit" />}
-                                    />
-                                </Dropdown>
-                                <Divider vertical={true} />
-                                <Button
-                                    imageOnly={true}
-                                    onClick={this.showActionMenu}
-                                >
-                                    <Icon src={menuIcon} data-tooltip="inherit" />
-                                </Button>
-                            </Toolbar>
-                        }
-                    </ResultStatus>
                 }
 
                 <Menu
@@ -310,24 +214,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
                     />
                 </Menu>
 
-                <Menu
-                    id="actionMenu"
-                    ref={this.actionMenuRef}
-                    placement={ComponentPlacement.BottomLeft}
-                    onItemClick={this.handleActionMenuItemClick}
-                >
-                    <MenuItem
-                        id="exportMenuItem"
-                        caption="Export Result Set"
-                        disabled
-                    />
-                    <MenuItem
-                        id="importMenuItem"
-                        caption="Import Result Set"
-                        disabled
-                    />
-                </Menu>
-
             </Container>
         );
     }
@@ -364,9 +250,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
 
             if (newData.executionInfo) {
                 this.setState({
-                    executionInfo: newData.executionInfo,
                     dirty: false,
-                    hasMorePages: newData.hasMoreRows ?? false,
                 });
             }
         }
@@ -376,7 +260,7 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         // Map column info from the backend to column definitions for Tabulator.
         return columns.map((info): Tabulator.ColumnDefinition => {
             let formatter: Tabulator.Formatter | undefined;
-            let formatterParams = emptyParams;
+            let formatterParams = {};
             let minWidth = 50;
 
             let editor: Tabulator.Editor | undefined;
@@ -526,7 +410,8 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
      *
      */
     private cellEdited = (): void => {
-        this.setState({ dirty: true });
+        const { resultSet, onEdit } = this.mergedProps;
+        onEdit?.(resultSet);
     };
 
     private handleColumnResized = (column: Tabulator.ColumnComponent): void => {
@@ -543,85 +428,81 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
             return true;
         }
 
-        void this.gridRef.current.table.then((table) => {
-            const selectCount = table?.getSelectedRows().length ?? 0;
+        const selectCount = this.gridRef.current?.getSelectedRows().length ?? 0;
 
-            switch (props.id!) {
-                case "openValueMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                case "setNullMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                case "saveToFileMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                case "loadFromFileMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                case "copyRowMenuItem1": {
-                    return false;
-                }
-
-                case "copyRowMenuItem2": {
-                    return false;
-                }
-
-                case "copyRowMenuItem3": {
-                    return false;
-                }
-
-                case "copyRowMenuItem4": {
-                    return false;
-                }
-
-                case "copyRowMenuItem5": {
-                    return false;
-                }
-
-                case "copyRowMenuItem6": {
-                    return false;
-                }
-
-                case "copyFieldMenuItem": {
-                    return selectCount > 1;
-                }
-
-                case "copyFieldUnquotedMenuItem": {
-                    return selectCount > 1;
-                }
-
-                case "pasteRowMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                case "deleteRowMenuItem": {
-                    return true;
-                }
-
-                case "capitalizeMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                case "lowerCaseMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                case "upperCaseMenuItem": {
-                    return true; // selectCount > 1;
-                }
-
-                default: {
-                    return true;
-                }
+        switch (props.id!) {
+            case "openValueMenuItem": {
+                return true; // selectCount > 1;
             }
-        });
 
-        return true;
+            case "setNullMenuItem": {
+                return true; // selectCount > 1;
+            }
+
+            case "saveToFileMenuItem": {
+                return true; // selectCount > 1;
+            }
+
+            case "loadFromFileMenuItem": {
+                return true; // selectCount > 1;
+            }
+
+            case "copyRowMenuItem1": {
+                return false;
+            }
+
+            case "copyRowMenuItem2": {
+                return false;
+            }
+
+            case "copyRowMenuItem3": {
+                return false;
+            }
+
+            case "copyRowMenuItem4": {
+                return false;
+            }
+
+            case "copyRowMenuItem5": {
+                return false;
+            }
+
+            case "copyRowMenuItem6": {
+                return false;
+            }
+
+            case "copyFieldMenuItem": {
+                return selectCount > 1;
+            }
+
+            case "copyFieldUnquotedMenuItem": {
+                return selectCount > 1;
+            }
+
+            case "pasteRowMenuItem": {
+                return true; // selectCount > 1;
+            }
+
+            case "deleteRowMenuItem": {
+                return true;
+            }
+
+            case "capitalizeMenuItem": {
+                return true; // selectCount > 1;
+            }
+
+            case "lowerCaseMenuItem": {
+                return true; // selectCount > 1;
+            }
+
+            case "upperCaseMenuItem": {
+                return true; // selectCount > 1;
+            }
+
+            default: {
+                return true;
+            }
+        }
     };
 
     private handleCellContext = (e: Event, cell: Tabulator.CellComponent): void => {
@@ -753,42 +634,41 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
     };
 
     private copyRows = (withNames: boolean, unquoted: boolean, separatorChar = " "): void => {
-        void this.gridRef.current?.table.then((table) => {
-            let rows = table?.getSelectedRows() ?? [];
-            if (rows.length === 0 && this.currentCell) {
-                rows = [this.currentCell.getRow()];
+        let rows = this.gridRef.current?.getSelectedRows() ?? [];
+        if (rows.length === 0 && this.currentCell) {
+            rows = [this.currentCell.getRow()];
+        }
+
+        const quoteChar = unquoted ? "" : "'";
+        const separator = "," + separatorChar;
+        let content = "";
+
+        if (withNames && rows.length > 0) {
+            content += "# ";
+            rows[0].getCells().forEach((cell) => {
+                content += cell.getColumn().getDefinition().title + separator;
+            });
+            if (content.endsWith(separator)) {
+                content = content.substring(0, content.length - 2);
             }
+            content += "\n";
 
-            const quoteChar = unquoted ? "" : "'";
-            const separator = "," + separatorChar;
-            let content = "";
+        }
 
-            if (withNames && rows.length > 0) {
-                content += "# ";
-                rows[0].getCells().forEach((cell) => {
-                    content += cell.getColumn().getDefinition().title + separator;
-                });
-                if (content.endsWith(separator)) {
-                    content = content.substring(0, content.length - 2);
-                }
-                content += "\n";
-
-            }
-
-            rows.forEach((row) => {
-                row.getCells().forEach((cell) => {
-                    content += `${quoteChar}${cell.getValue() as string}${quoteChar}${separator}`;
-                });
-
-                if (content.endsWith(separator)) {
-                    content = content.substring(0, content.length - 2);
-                }
-
-                content += "\n";
+        rows.forEach((row) => {
+            row.getCells().forEach((cell) => {
+                content += `${quoteChar}${cell.getValue() as string}${quoteChar}${separator}`;
             });
 
-            requisitions.writeToClipboard(content);
+            if (content.endsWith(separator)) {
+                content = content.substring(0, content.length - 2);
+            }
+
+            content += "\n";
         });
+
+        requisitions.writeToClipboard(content);
+
     };
 
     private checkEditable = (_cell: Tabulator.CellComponent): boolean => {
@@ -810,58 +690,6 @@ export class ResultView extends Component<IResultViewProperties, IResultViewStat
         return true;*/
 
         return false;
-    };
-
-    private showActionMenu = (e: React.SyntheticEvent): void => {
-        e.stopPropagation();
-
-        const event = e.nativeEvent as MouseEvent;
-        const targetRect = new DOMRect(event.clientX, event.clientY, 2, 2);
-
-        this.actionMenuRef.current?.close();
-        this.actionMenuRef.current?.open(targetRect, false);
-    };
-
-    private handleActionMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
-        switch (props.id ?? "") {
-            case "exportMenuItem": {
-                break;
-            }
-
-            case "importMenuItem": {
-                break;
-            }
-
-            default: {
-                break;
-            }
-        }
-
-        return true;
-    };
-
-    private previousPage = (): void => {
-        if (this.currentPage > 0) {
-            --this.currentPage;
-
-            const { resultSet, onResultPageChange } = this.props;
-            onResultPageChange?.(resultSet.head.requestId, this.currentPage, resultSet.head.sql);
-        }
-    };
-
-    private nextPage = (): void => {
-        const { hasMorePages } = this.state;
-        if (hasMorePages) {
-            ++this.currentPage;
-
-            const { resultSet, onResultPageChange } = this.props;
-            onResultPageChange?.(resultSet.head.requestId, this.currentPage, resultSet.head.sql);
-        }
-    };
-
-    private rollbackChanges = (): void => {
-        // This will reload data from the properties and return so to the last result set state.
-        this.setState({ dirty: false });
     };
 
     /**

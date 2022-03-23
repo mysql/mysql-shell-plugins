@@ -204,7 +204,7 @@ export class PresentationInterface {
                         resultSets={data}
                         onResultPageChange={this.handleResultPageChange}
                     />;
-                    this.minHeight = 40;
+                    this.minHeight = 36;
 
                     const allFinished = data.sets.every((value) => {
                         return !isNil(value.data.executionInfo);
@@ -756,6 +756,17 @@ export class PresentationInterface {
         });
 
         if (resultSet) {
+            if (data.executionInfo) {
+                resultSet.data.executionInfo = data.executionInfo;
+                resultSet.data.hasMoreRows = data.hasMoreRows;
+                resultSet.data.currentPage = data.currentPage;
+
+                // This is the last result call, if a status is given.
+                // So stop also any wait/load animation.
+                this.loadingState = LoadingState.Idle;
+                this.updateMarginDecorations();
+            }
+
             if (data.columns.length > 0) {
                 if (data.columns) {
                     resultSet.data.columns.push(...data.columns);
@@ -765,9 +776,6 @@ export class PresentationInterface {
 
             if (data.rows.length > 0) {
                 resultSet.data.rows.push(...data.rows);
-
-                resultSet.data.hasMoreRows = data.hasMoreRows;
-                resultSet.data.currentPage = data.currentPage;
 
                 if (this.resultRef.current) {
                     await this.resultRef.current.addData(data);
@@ -779,14 +787,6 @@ export class PresentationInterface {
                 }
             }
 
-            if (data.executionInfo) {
-                resultSet.data.executionInfo = data.executionInfo;
-
-                // This is the last result call, if a status is given.
-                // So stop also any wait/load animation.
-                this.loadingState = LoadingState.Idle;
-                this.updateMarginDecorations();
-            }
         }
 
         return true;

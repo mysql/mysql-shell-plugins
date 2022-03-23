@@ -37,7 +37,7 @@ import { waitFor } from "../../../utilities/helpers";
 export { Tabulator } from "tabulator-tables";
 
 // This type excludes methods from the Tabulator type, which are implemented in the TreeGrid.
-export type TabulatorProxy = Omit<Tabulator, "setData" | "setColumns">;
+export type TabulatorProxy = Omit<Tabulator, "setData" | "setColumns" | "getSelectedRows">;
 
 export enum SetDataAction {
     Replace, // Like Set, but doesn't do any additional handling like scrolling, filtering, sorting and so on.
@@ -309,6 +309,14 @@ export class TreeGrid extends Component<ITreeGridProperties> {
                 }
             });
         });
+    }
+
+    public getSelectedRows(): Tabulator.RowComponent[] {
+        if (this.tableReady && this.tabulator) {
+            return this.tabulator.getSelectedRows();
+        }
+
+        return [];
     }
 
     /**

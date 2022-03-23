@@ -238,7 +238,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     this.renderTarget.style.height = "fit-content";
                     const usedHeight = this.renderTarget.getBoundingClientRect().height;
 
-                    this.resultInfo.zone.heightInPx = Math.ceil(usedHeight) + 4;
+                    this.resultInfo.zone.heightInPx = Math.ceil(usedHeight);
                     this.currentHeight = this.resultInfo.zone.heightInPx;
                     changeAccessor.layoutZone(this.resultInfo.zoneId);
 

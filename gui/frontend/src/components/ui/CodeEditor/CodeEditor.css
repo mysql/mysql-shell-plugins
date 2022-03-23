@@ -76,7 +76,7 @@
     height: 3px;
 
     position: absolute;
-    bottom: 0px;
+    bottom: 0;
 
     background-image: repeating-linear-gradient(-45deg,
             var(--loading-progress-color) 25%,
@@ -87,7 +87,7 @@
             transparent 75%,
             transparent);
     background-size: 7px 3px;
-    background-position: 0px;
+    background-position: 0;
 
     animation: linearMovement 1s;
     animation-iteration-count: infinite;
@@ -110,13 +110,13 @@
     height: 3px;
 
     position: absolute;
-    bottom: 0px;
+    bottom: 0;
 
     background: linear-gradient(to right,
             var(--waiting-progress-color) 50%,
             transparent 50%,
             transparent);
-    background-position: 0px;
+    background-position: 0;
     background-repeat: no-repeat;
 
     animation: bouncingMovement 1s;
@@ -190,7 +190,7 @@
             var(--editorPrompt-secondary-ts) 57%,
             transparent 57%);
     background-size: 6px 6px;
-    background-position: 0px;
+    background-position: 0;
     background-attachment: fixed;
 }
 
@@ -239,7 +239,7 @@
             var(--editorPrompt-secondary-js) 57%,
             transparent 57%);
     background-size: 6px 6px;
-    background-position: 0px;
+    background-position: 0;
     background-attachment: fixed;
 }
 
@@ -288,7 +288,7 @@
             var(--editorPrompt-secondary-sql) 57%,
             transparent 57%);
     background-size: 6px 6px;
-    background-position: 0px;
+    background-position: 0;
     background-attachment: fixed;
 }
 
@@ -334,7 +334,7 @@
             var(--editorPrompt-secondary-py) 57%,
             transparent 57%);
     background-size: 6px 6px;
-    background-position: 0px;
+    background-position: 0;
     background-attachment: fixed;
 }
 

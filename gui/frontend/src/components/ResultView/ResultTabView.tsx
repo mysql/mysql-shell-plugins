@@ -21,12 +21,24 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import gridIcon from "../../assets/images/toolbar/grid.svg";
+import commitIcon from "../../assets/images/toolbar/commit.svg";
+import rollbackIcon from "../../assets/images/toolbar/rollback.svg";
+import expandIcon from "../../assets/images/toolbar/expand.svg";
+import menuIcon from "../../assets/images/toolbar/menu.svg";
+import previousPageIcon from "../../assets/images/toolbar/page-previous.svg";
+import nextPageIcon from "../../assets/images/toolbar/page-next.svg";
+
 import React from "react";
 
-import { Component, IComponentProperties, IComponentState, ITabviewPage, TabPosition, Tabview } from "../ui";
+import {
+    Button, Component, ComponentPlacement, Container, Divider, Dropdown, IComponentProperties, IComponentState, Icon,
+    IMenuItemProperties, ITabviewPage, Menu, MenuItem, Orientation, TabPosition, Tabview, Toolbar,
+} from "../ui";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution";
-import { ResultGroup } from ".";
-import { IColumnInfo } from "../../app-logic/Types";
+import { IColumnInfo, MessageType } from "../../app-logic/Types";
+import { ResultView } from "./ResultView";
+import { ResultStatus } from ".";
 
 export interface IResultTabViewProperties extends IComponentProperties {
     resultSets: IResultSets;
@@ -35,61 +47,196 @@ export interface IResultTabViewProperties extends IComponentProperties {
 }
 
 interface IResultTabViewState extends IComponentState {
-    selectedTab: string;
-
-    // React refs to the used ResultGroup instances, keyed by the request ID for the result set.
-    groupRefs: Map<string, React.RefObject<ResultGroup>>;
-
-    // Result IDs that are marked for purge.
-    purgePending: Set<string>;
+    currentResultSet?: IResultSet;
 }
 
 // Holds a collection of result views and other output in a tabbed interface.
 export class ResultTabView extends Component<IResultTabViewProperties, IResultTabViewState> {
 
+    private actionMenuRef = React.createRef<Menu>();
+
+    // A set of request IDs for tabs with edited data.
+    private edited = new Set<string>();
+
+    // A set of request IDs that are marked for purge.
+    private purgePending = new Set<string>();
+
+    // React refs to the used ResultView instances, keyed by the request ID for the result set.
+    private viewRefs = new Map<string, React.RefObject<ResultView>>();
+
     public constructor(props: IResultTabViewProperties) {
         super(props);
 
         this.state = {
-            selectedTab: "",
-            groupRefs: new Map(),
-            purgePending: new Set(),
+            currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
+        };
+    }
+
+    public static getDerivedStateFromProps(newProps: IResultTabViewProperties,
+        oldState: IResultTabViewState): IResultTabViewState {
+
+        const { currentResultSet } = oldState;
+        const found = newProps.resultSets.sets.find((candidate) => {
+            return candidate === currentResultSet;
+        });
+
+        // If the current result set is still in the list then keep it selected. Otherwise take the first one
+        // in the set.
+        if (found) {
+            return {};
+        }
+
+        return {
+            currentResultSet: newProps.resultSets.sets.length > 0 ? newProps.resultSets.sets[0] : undefined,
         };
     }
 
     public render(): React.ReactNode {
-        const { resultSets, onResultPageChange } = this.props;
-        const { selectedTab, groupRefs } = this.state;
+        const { resultSets } = this.props;
+        const { currentResultSet } = this.state;
+
+        const className = this.getEffectiveClassNames(["resultHost"]);
+
+        this.viewRefs.clear();
 
         const pages = resultSets.sets.map((resultSet: IResultSet, index: number): ITabviewPage => {
-            const ref = React.createRef<ResultGroup>();
-            groupRefs.set(resultSet.head.requestId, ref);
+            const ref = React.createRef<ResultView>();
+            this.viewRefs.set(resultSet.head.requestId, ref);
 
             return {
-                id: `resultGroup${index}`,
+                id: resultSet.head.requestId,
                 caption: `Result ${index + 1}`,
                 content: (
-                    <ResultGroup
+                    <ResultView
                         ref={ref}
                         resultSet={resultSet}
-
-                        onResultPageChange={onResultPageChange}
+                        onEdit={this.handleEdit}
                     />
                 ),
             };
         });
 
-        return (
-            <Tabview
-                className="resultHost"
-                stretchTabs={false}
-                hideSingleTab={true}
-                selectedId={selectedTab !== "" ? selectedTab : "resultGroup0"}
-                tabPosition={TabPosition.Top}
-                pages={pages}
 
-                onSelectTab={this.handleTabSelection}
-            />
+        let executionInfo;
+        let currentPage = 0;
+        let hasMorePages = false;
+        let dirty = false;
+        if (currentResultSet) {
+            executionInfo = currentResultSet.data.executionInfo;
+            currentPage = currentResultSet.data.currentPage;
+            hasMorePages = currentResultSet.data.hasMoreRows ?? false;
+            dirty = this.edited.has(currentResultSet.head.requestId);
+        }
+
+        const gotError = executionInfo && executionInfo.type === MessageType.Error;
+        const gotResponse = executionInfo && executionInfo.type === MessageType.Response;
+
+        return (
+            <Container
+                className={className}
+                orientation={Orientation.TopDown}
+            >
+                <Tabview
+                    className="resultTabview"
+                    stretchTabs={false}
+                    hideSingleTab={true}
+                    selectedId={currentResultSet ? currentResultSet.head.requestId : undefined}
+                    tabPosition={TabPosition.Top}
+                    pages={pages}
+
+                    onSelectTab={this.handleTabSelection}
+                />
+                {
+                    executionInfo && <ResultStatus executionInfo={executionInfo}>
+                        {
+                            !gotError && !gotResponse && <Toolbar
+                                dropShadow={false}
+                            >
+                                <Button
+                                    id="previousPageButton"
+                                    imageOnly={true}
+                                    disabled={currentPage === 0}
+                                    data-tooltip="Previous Page"
+                                    onClick={this.previousPage}
+                                >
+                                    <Icon src={previousPageIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Button
+                                    id="nextPageButton"
+                                    imageOnly={true}
+                                    disabled={!hasMorePages}
+                                    data-tooltip="Next Page"
+                                    onClick={this.nextPage}
+                                >
+                                    <Icon src={nextPageIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Divider vertical={true} />
+                                <Button
+                                    id="applyButton"
+                                    imageOnly={true}
+                                    disabled={!dirty}
+                                    data-tooltip="Apply Changes"
+                                >
+                                    <Icon src={commitIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Button
+                                    id="revertButton"
+                                    imageOnly={true}
+                                    disabled={!dirty}
+                                    data-tooltip="Revert Changes"
+                                    onClick={this.rollbackChanges}
+                                >
+                                    <Icon src={rollbackIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Divider id="editSeparator" vertical={true} />
+                                <Button
+                                    imageOnly={true}
+                                    data-tooltip="Maximize Result Set View"
+                                >
+                                    <Icon src={expandIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Divider vertical={true} />
+                                <Dropdown
+                                    id="viewStyleDropDown"
+                                    initialSelection="grid"
+                                    data-tooltip="Select a View Section for the Result Set"
+                                >
+                                    <Dropdown.Item
+                                        id="grid"
+                                        picture={<Icon src={gridIcon} data-tooltip="inherit" />}
+                                    />
+                                </Dropdown>
+                                <Divider vertical={true} />
+                                <Button
+                                    imageOnly={true}
+                                    onClick={this.showActionMenu}
+                                >
+                                    <Icon src={menuIcon} data-tooltip="inherit" />
+                                </Button>
+                            </Toolbar>
+                        }
+                    </ResultStatus>
+                }
+
+                <Menu
+                    id="actionMenu"
+                    ref={this.actionMenuRef}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleActionMenuItemClick}
+                >
+                    <MenuItem
+                        id="exportMenuItem"
+                        caption="Export Result Set"
+                        disabled
+                    />
+                    <MenuItem
+                        id="importMenuItem"
+                        caption="Import Result Set"
+                        disabled
+                    />
+                </Menu>
+
+            </Container>
         );
     }
 
@@ -100,11 +247,9 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * @param columns The columns to set.
      */
     public async updateColumns(requestId: string, columns: IColumnInfo[]): Promise<void> {
-        const { groupRefs } = this.state;
-
-        const groupRef = groupRefs.get(requestId);
-        if (groupRef && groupRef.current) {
-            await groupRef.current.updateColumns(columns);
+        const viewRef = this.viewRefs.get(requestId);
+        if (viewRef && viewRef.current) {
+            await viewRef.current.updateColumns(columns);
         }
     }
 
@@ -117,17 +262,19 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * @returns A promise the resolves when the operation is complete.
      */
     public async addData(newData: IResultSetRows): Promise<void> {
-        const { groupRefs, purgePending } = this.state;
+        const needPurge = this.purgePending.delete(newData.requestId);
+        const viewRef = this.viewRefs.get(newData.requestId);
+        if (viewRef && viewRef.current) {
+            await viewRef.current.addData(newData, needPurge);
+        }
 
-        const needPurge = purgePending.delete(newData.requestId);
-        const groupRef = groupRefs.get(newData.requestId);
-        if (groupRef && groupRef.current) {
-            await groupRef.current.addData(newData, needPurge);
+        if (newData.executionInfo) {
+            this.forceUpdate();
         }
     }
 
     /**
-     * Moves existing data for the old request ID to a new ID and sends the underlying group a call to
+     * Moves existing data for the old request ID to a new ID and sends the underlying view a call to
      * note that next incoming data has to replace existing data.
      * We don't remove existing data here, to avoid flickering.
      *
@@ -135,25 +282,90 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * @param newRequestId The ID under which this group is accessible after return.
      */
     public reassignData(oldRequestId: string, newRequestId: string): void {
-        const { groupRefs, purgePending } = this.state;
+        const viewRef = this.viewRefs.get(oldRequestId);
+        if (viewRef && viewRef.current) {
+            this.viewRefs.delete(oldRequestId);
+            this.viewRefs.set(newRequestId, viewRef);
 
-        const groupRef = groupRefs.get(oldRequestId);
-        if (groupRef && groupRef.current) {
-            groupRefs.delete(oldRequestId);
-            groupRefs.set(newRequestId, groupRef);
-
-            purgePending.add(newRequestId);
+            this.purgePending.add(newRequestId);
         }
     }
 
     public markPendingReplace(requestId: string): void {
-        const { purgePending } = this.state;
-
-        purgePending.add(requestId);
+        this.purgePending.add(requestId);
     }
 
     private handleTabSelection = (id: string): void => {
-        this.setState({ selectedTab: id });
+        const { resultSets } = this.props;
+
+        const currentResultSet = resultSets.sets.find((candidate) => {
+            return candidate.head.requestId === id;
+        });
+
+        this.setState({ currentResultSet });
     };
 
+    private showActionMenu = (e: React.SyntheticEvent): void => {
+        e.stopPropagation();
+
+        const event = e.nativeEvent as MouseEvent;
+        const targetRect = new DOMRect(event.clientX, event.clientY, 2, 2);
+
+        this.actionMenuRef.current?.close();
+        this.actionMenuRef.current?.open(targetRect, false);
+    };
+
+    private handleActionMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+        switch (props.id ?? "") {
+            case "exportMenuItem": {
+                break;
+            }
+
+            case "importMenuItem": {
+                break;
+            }
+
+            default: {
+                break;
+            }
+        }
+
+        return true;
+    };
+
+    private previousPage = (): void => {
+        const { currentResultSet } = this.state;
+
+        if (currentResultSet) {
+            if (currentResultSet.data.currentPage > 0) {
+                const { onResultPageChange } = this.props;
+
+                --currentResultSet.data.currentPage;
+                onResultPageChange?.(currentResultSet.head.requestId, currentResultSet.data.currentPage,
+                    currentResultSet.head.sql);
+            }
+        }
+    };
+
+    private nextPage = (): void => {
+        const { currentResultSet } = this.state;
+
+        if (currentResultSet) {
+            if (currentResultSet.data.hasMoreRows) {
+                const { onResultPageChange } = this.props;
+
+                ++currentResultSet.data.currentPage;
+                onResultPageChange?.(currentResultSet.head.requestId, currentResultSet.data.currentPage,
+                    currentResultSet.head.sql);
+            }
+        }
+    };
+
+    private rollbackChanges = (): void => {
+        // nothing for now
+    };
+
+    private handleEdit = (resultSet: IResultSet): void => {
+        this.edited.add(resultSet.head.requestId);
+    };
 }

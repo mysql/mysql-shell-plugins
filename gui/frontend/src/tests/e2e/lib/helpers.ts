@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -112,7 +112,7 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig)
     await newConDialog
         .findElement(By.id("defaultSchema"))
         .sendKeys(String(dbConfig.schema));
-    if(dbConfig.clearPassword) {
+    if (dbConfig.clearPassword) {
         await newConDialog.findElement(By.id("clearPassword")).click();
     }
     await selectDatabaseType(driver, dbConfig.dbType);
@@ -170,8 +170,8 @@ export const closeDBconnection = async (driver: WebDriver, name: string): Promis
     const connections = await driver
         .findElements(By.xpath("//div[contains(@id, 'connection_') and contains(@class, 'selectorItem')]"));
 
-    for(const connection of connections) {
-        if(await connection.findElement(By.css("label")).getText() === name) {
+    for (const connection of connections) {
+        if (await connection.findElement(By.css("label")).getText() === name) {
             await connection.findElement(By.css(".closeButton > div")).click();
         }
     }
@@ -231,7 +231,7 @@ const getSettingArea = async (driver: WebDriver, title: string): Promise<WebElem
     );
 
     for (const setting of settingsTreeRows) {
-        if( (await setting.getText()) === title) {
+        if ((await setting.getText()) === title) {
             return setting;
         }
     }
@@ -239,8 +239,8 @@ const getSettingArea = async (driver: WebDriver, title: string): Promise<WebElem
 
 export const setStartLanguage = async (driver: WebDriver, section: string, value: string): Promise<void> => {
     await driver.findElement(By.id("settings")).click();
-    await (await getSettingArea(driver, section) )!.click();
-    if(section === "DB Editor") {
+    await (await getSettingArea(driver, section))!.click();
+    if (section === "DB Editor") {
         await driver.findElement(By.id("dbEditor.startLanguage")).click();
     } else {
         await driver.findElement(By.id("shellSession.startLanguage")).click();
@@ -250,7 +250,7 @@ export const setStartLanguage = async (driver: WebDriver, section: string, value
     await driver.findElement(By.id(value)).click();
 };
 
-export const openShellSession = async (driver: WebDriver): Promise <void> => {
+export const openShellSession = async (driver: WebDriver): Promise<void> => {
     await driver.findElement(By.id("-1")).click();
     await driver.wait(
         until.elementLocated(By.id("shellEditorHost")),
@@ -302,7 +302,7 @@ export const shellGetLangResult = async (driver: WebDriver): Promise<string> => 
 };
 
 export const pressEnter = async (driver: WebDriver): Promise<void> => {
-    if(platform() === "win32") {
+    if (platform() === "win32") {
         await driver
             .actions()
             .keyDown(Key.CONTROL)
@@ -310,7 +310,7 @@ export const pressEnter = async (driver: WebDriver): Promise<void> => {
             .keyUp(Key.CONTROL)
             .keyUp(Key.ENTER)
             .perform();
-    } else if(platform() === "darwin") {
+    } else if (platform() === "darwin") {
         await driver
             .actions()
             .keyDown(Key.COMMAND)
@@ -327,7 +327,7 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
     await textArea.sendKeys(cmd);
     if (cmd.indexOf("\\") !== -1) {
         const codeMenu = await driver.findElements(By.css("div.contents"));
-        if( codeMenu.length > 0 ) {
+        if (codeMenu.length > 0) {
             await textArea.sendKeys(Key.ENTER);
         }
     } else {
@@ -346,7 +346,7 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
 
 export const shellGetResultTable = async (driver: WebDriver): Promise<WebElement | string> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-    const zoneHost = zoneHosts[zoneHosts.length-1];
+    const zoneHost = zoneHosts[zoneHosts.length - 1];
     const error = await zoneHost.findElements(
         By.css(".error"),
     );
@@ -363,7 +363,7 @@ export const shellGetResultTable = async (driver: WebDriver): Promise<WebElement
 
 export const shellGetTotalRows = async (driver: WebDriver): Promise<string> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-    const zoneHost = zoneHosts[zoneHosts.length-1];
+    const zoneHost = zoneHosts[zoneHosts.length - 1];
 
     return zoneHost
         .findElement(By.css(".resultStatus .info"))
@@ -427,7 +427,7 @@ export const getCurrentProfile = async (driver: WebDriver): Promise<string | und
     }
 };
 
-export const openProfileMenu = async (driver: WebDriver): Promise<WebElement | undefined> =>  {
+export const openProfileMenu = async (driver: WebDriver): Promise<WebElement | undefined> => {
     let isOpened;
     if ((await driver.findElements(By.css(".noArrow.menu"))).length > 0) {
         isOpened = true;
@@ -622,7 +622,7 @@ export const getSchemaObject = async (driver: WebDriver,
     );
 
     const findItem = async (scrollNumber: number): Promise<WebElement | undefined> => {
-        if(scrollNumber <= 4) {
+        if (scrollNumber <= 4) {
             const sectionHost = await driver.findElement(By.id("schemaSectionHost"));
             const objects = await sectionHost.findElements(
                 By.css(`.tabulator-table .tabulator-tree-level-${level}`),
@@ -636,9 +636,9 @@ export const getSchemaObject = async (driver: WebDriver,
                         return object;
                     }
                 }
-            } catch(e) {null;}
+            } catch (e) { null; }
 
-            return findItem(scrollNumber+1);
+            return findItem(scrollNumber + 1);
         } else {
             return undefined;
         }
@@ -736,15 +736,15 @@ export const selectCurrentEditor = async (driver: WebDriver, editorName: string,
 
 export const getResultTab = async (driver: WebDriver, tabName: string): Promise<WebElement | undefined> => {
     await driver.wait(until.elementsLocated(By.css(".tabArea")), 5000, "Tabs were not found in time");
-    const resultGroups = await driver.findElements(By.xpath("//div[contains(@id, 'resultGroup')]"));
-    for(const result of resultGroups) {
-        if( await (await result.findElement(By.css("label"))).getText() === tabName ) {
+    const resultViews = await driver.findElements(By.xpath("//div[contains(@id, 'resultView')]"));
+    for (const result of resultViews) {
+        if (await (await result.findElement(By.css("label"))).getText() === tabName) {
             return result;
         }
     }
 };
 
-export const getResultColumnName = async (driver: WebDriver, columnName: string): Promise <WebElement | undefined> => {
+export const getResultColumnName = async (driver: WebDriver, columnName: string): Promise<WebElement | undefined> => {
     const resultSet = await driver.findElement(
         By.css(".resultHost .tabulator-headers"),
     );
@@ -753,15 +753,15 @@ export const getResultColumnName = async (driver: WebDriver, columnName: string)
         By.css(".tabulator-col-title"),
     );
 
-    for(const row of resultHeaderRows) {
-        if( await row.getText() === columnName ) {
+    for (const row of resultHeaderRows) {
+        if (await row.getText() === columnName) {
             return row;
         }
     }
 };
 
 export const findFreePort = async (): Promise<number> => {
-    return new Promise( (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         const server = net.createServer();
         let calledFn = false;
 
@@ -793,8 +793,8 @@ export const findFreePort = async (): Promise<number> => {
 const existsAboutInformation = async (driver: WebDriver): Promise<boolean> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     const span = await zoneHosts[0].findElements(By.css("span"));
-    if(span.length > 0) {
-        if( (await span[0].getText()).indexOf("Welcome") !== -1 ) {
+    if (span.length > 0) {
+        if ((await span[0].getText()).indexOf("Welcome") !== -1) {
             return true;
         }
     }
@@ -805,10 +805,10 @@ const existsAboutInformation = async (driver: WebDriver): Promise<boolean> => {
 export const getPieChart = async (driver: WebDriver, blockNbr: number): Promise<WebElement> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     let context;
-    if(await existsAboutInformation(driver)) {
+    if (await existsAboutInformation(driver)) {
         context = zoneHosts[blockNbr]; //first element is the about information
     } else {
-        context = zoneHosts[blockNbr-1];
+        context = zoneHosts[blockNbr - 1];
     }
 
     return context.findElement(By.css(".pieChart"));
@@ -817,20 +817,20 @@ export const getPieChart = async (driver: WebDriver, blockNbr: number): Promise<
 export const getOutput = async (driver: WebDriver, blockNbr: number): Promise<string> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     let context;
-    if(await existsAboutInformation(driver)) {
+    if (await existsAboutInformation(driver)) {
         context = zoneHosts[blockNbr]; //first element is the about information
     } else {
-        context = zoneHosts[blockNbr-1];
+        context = zoneHosts[blockNbr - 1];
     }
 
     let items = await context.findElements(By.css("label"));
     const otherItems = await context.findElements(By.css(".textHost span"));
     let text;
 
-    if(items.length > 0) {
+    if (items.length > 0) {
         text = await items[0].getText();
-    } else if(otherItems.length > 0) {
-        text =  await otherItems[0].getText();
+    } else if (otherItems.length > 0) {
+        text = await otherItems[0].getText();
     } else {
         items = await context.findElements(By.css(".info"));
         text = await items[0].getText();
@@ -841,14 +841,14 @@ export const getOutput = async (driver: WebDriver, blockNbr: number): Promise<st
 
 const getEditorLanguage = async (driver: WebDriver): Promise<string> => {
     const editors = await driver.findElements(By.css(".editorPromptFirst"));
-    const editorClasses = (await editors[editors.length-1].getAttribute("class")).split(" ");
+    const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
 
     return editorClasses[2].replace("my", "");
 };
 
 export const setEditorLanguage = async (driver: WebDriver, language: string): Promise<void> => {
     const curLang = await getEditorLanguage(driver);
-    if(curLang !== language) {
+    if (curLang !== language) {
         const contentHost = await driver.findElement(By.id("contentHost"));
         const textArea = await contentHost.findElement(By.css("textarea"));
         await enterCmd(driver, textArea, "\\" + language.replace("my", ""));
@@ -875,22 +875,22 @@ export const toggleExplorerHost = async (driver: WebDriver, action: string): Pro
     const explorerWidth = async (driver: WebDriver) => {
         const explorerHost = await driver.findElement(By.id("explorerHost"));
         const styles = (await explorerHost.getAttribute("style")).split(";");
-        const getWidth = (element: string) => {return element.indexOf("width") !== -1;};
+        const getWidth = (element: string) => { return element.indexOf("width") !== -1; };
         const widthIdx = styles.findIndex(getWidth);
         const match = styles[widthIdx].match(/(\d+)/gm);
 
         return parseInt(match![0], 10);
     };
 
-    if(action === "open") {
-        if(await explorerWidth(driver) === 0 ) {
+    if (action === "open") {
+        if (await explorerWidth(driver) === 0) {
             await guiSqlEditor.click();
             await driver.wait(async () => {
                 return await explorerWidth(driver) > 0;
             }, 3000, "Explorer was not opened");
         }
     } else {
-        if(await explorerWidth(driver) > 0 ) {
+        if (await explorerWidth(driver) > 0) {
             await guiSqlEditor.click();
             await driver.wait(async () => {
                 return await explorerWidth(driver) === 0;
@@ -906,30 +906,30 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
 
     const themeTabView = await driver.findElement(By.id("themeTabview"));
 
-    await driver.wait(async ()=> {
+    await driver.wait(async () => {
         const els = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
 
         try {
             await els[0].findElement(By.css("label")).getText();
 
             return true;
-        } catch(e) {
+        } catch (e) {
             return false;
         }
     }, 2000, "Elements are stale");
 
     const uiColorsItems = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
 
-    for(let i=0; i <= uiColorsItems.length-1; i++) {
-        if( await uiColorsItems[i].findElement(By.css("label")).getText() === menu ) { //base colors
+    for (let i = 0; i <= uiColorsItems.length - 1; i++) {
+        if (await uiColorsItems[i].findElement(By.css("label")).getText() === menu) { //base colors
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await uiColorsItems[i].findElement(By.css("label")));
-            if(action === "open") {
-                if( !(await isTabOpened(uiColorsItems[i])) ) {
+            if (action === "open") {
+                if (!(await isTabOpened(uiColorsItems[i]))) {
                     await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
                 }
             } else {
-                if( await isTabOpened(uiColorsItems[i]) ) {
+                if (await isTabOpened(uiColorsItems[i])) {
                     await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
                 }
             }
@@ -941,7 +941,7 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
 export const setThemeEditorColors = async (driver: WebDriver, optionId: string,
     detail: string, value: string): Promise<void> => {
 
-    await driver.wait(async ()=> {
+    await driver.wait(async () => {
         await driver.findElement(By.id(optionId)).click();
 
         return (await driver.findElements(By.css(".colorPopup"))).length > 0;
@@ -966,7 +966,7 @@ export const rgbToHex = (r: string, g: string, b: string): string => {
     };
 
     const result = "#" + componentToHex(parseInt(r, 10)) +
-    componentToHex(parseInt(g, 10)) + componentToHex(parseInt(b, 10));
+        componentToHex(parseInt(g, 10)) + componentToHex(parseInt(b, 10));
 
     return result.toUpperCase();
 };
@@ -992,12 +992,12 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig
 
     let service;
     let username;
-    for(let i=0; i<=gridDivs.length-1; i++) {
-        if( await gridDivs[i].getText() === "Service:" ) {
-            service = await gridDivs[i+1].findElement(By.css(".resultText span")).getText();
+    for (let i = 0; i <= gridDivs.length - 1; i++) {
+        if (await gridDivs[i].getText() === "Service:") {
+            service = await gridDivs[i + 1].findElement(By.css(".resultText span")).getText();
         }
-        if( await gridDivs[i].getText() === "User Name:" ) {
-            username = await gridDivs[i+1].findElement(By.css(".resultText span")).getText();
+        if (await gridDivs[i].getText() === "User Name:") {
+            username = await gridDivs[i + 1].findElement(By.css(".resultText span")).getText();
         }
     }
 
@@ -1012,12 +1012,12 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig
 
 export const setFeedbackRequested = async (driver: WebDriver, dbConfig: IDbConfig, value: string): Promise<void> => {
     const feedbackDialog = await driver.findElement(By.css(".valueEditDialog"));
-    expect( await feedbackDialog.findElement(By.css(".title label")).getText() ).toBe("Feedback Requested");
+    expect(await feedbackDialog.findElement(By.css(".title label")).getText()).toBe("Feedback Requested");
 
-    expect( await feedbackDialog.findElement(By.css(".valueTitle")).getText() )
+    expect(await feedbackDialog.findElement(By.css(".valueTitle")).getText())
         .toContain(`${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}`);
 
-    expect( await feedbackDialog.findElement(By.css(".valueTitle")).getText() )
+    expect(await feedbackDialog.findElement(By.css(".valueTitle")).getText())
         .toContain("? [Y]es/[N]o/Ne[v]er (default No):");
 
     await feedbackDialog.findElement(By.css("input")).sendKeys(value);
@@ -1027,7 +1027,7 @@ export const setFeedbackRequested = async (driver: WebDriver, dbConfig: IDbConfi
 
 export const clickDBEditorContextItem = async (driver: WebDriver, itemName: string): Promise<void> => {
     let taps = 0;
-    switch(itemName) {
+    switch (itemName) {
         case "Execute Block":
             taps = 7;
             break;
@@ -1050,7 +1050,7 @@ export const clickDBEditorContextItem = async (driver: WebDriver, itemName: stri
     }
 
     const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-    const el = lines[lines.length-1];
+    const el = lines[lines.length - 1];
     await driver
         .actions()
         .contextClick(el)
@@ -1058,7 +1058,7 @@ export const clickDBEditorContextItem = async (driver: WebDriver, itemName: stri
 
     await driver.sleep(500);
     const action = driver.actions();
-    for(let i=1; i<= taps; i++) {
+    for (let i = 1; i <= taps; i++) {
         action.keyDown(Key.ARROW_DOWN).keyUp(Key.ARROW_DOWN).pause(100);
     }
     await action.keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
@@ -1135,7 +1135,7 @@ export const setSetting = async (driver: WebDriver, settingId: string, type: str
                 if (classes.includes("checked")) {
                     await driver.wait(async () => {
                         let attrs = (await el.getAttribute("class")).split(" ");
-                        if(attrs.includes("checked")) {
+                        if (attrs.includes("checked")) {
                             await el.findElement(By.css("span")).click();
                         }
                         attrs = (await settingsValueList.findElement(By.id(settingId))
@@ -1162,7 +1162,7 @@ export const getSettingValue = async (driver: WebDriver, settingId: string, type
     const classes = (await el.getAttribute("class")).split(" ");
     switch (type) {
         case "input":
-            if ( (await el.getTagName()) === "input") {
+            if ((await el.getTagName()) === "input") {
                 return el.getAttribute("value");
             } else {
                 settingValue = await el.findElement(By.css(type)).getAttribute("value");
@@ -1186,7 +1186,7 @@ export const getSettingValue = async (driver: WebDriver, settingId: string, type
     return settingValue;
 };
 
-export const setDBEditorStartLang = async(driver: WebDriver, lang: string): Promise<void> => {
+export const setDBEditorStartLang = async (driver: WebDriver, lang: string): Promise<void> => {
     await driver.findElement(By.id("settings")).click();
     const settings = await driver.findElement(By.id("settingsHost"));
     const settingsTreeRows = await settings.findElements(

@@ -165,28 +165,26 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         }
         this.saveTimer = setTimeout(() => { settings.saveSettings(); }, 1000);
 
-        void this.gridRef.current?.table.then((table) => {
-            const selectedRows = table?.getSelectedRows() ?? [];
-            if (selectedRows.length > 0) {
-                // Update the row to show the changed data. There can only be one row selected.
-                const row = selectedRows[0];
-                row.reformat();
+        const selectedRows = this.gridRef.current?.getSelectedRows() ?? [];
+        if (selectedRows.length > 0) {
+            // Update the row to show the changed data. There can only be one row selected.
+            const row = selectedRows[0];
+            row.reformat();
 
-                // And there's always a single cell. Refocus the field editor.
-                const cell = row.getCells()[0];
-                const cellElement = cell.getElement();
+            // And there's always a single cell. Refocus the field editor.
+            const cell = row.getCells()[0];
+            const cellElement = cell.getElement();
 
-                let elements = cellElement.getElementsByClassName("settingValue");
-                if (elements.length > 0) {
-                    let edit = elements[0] as HTMLElement;
-                    if (edit.classList.contains("upDown")) {
-                        elements = edit.getElementsByClassName("input");
-                        edit = elements[0] as HTMLElement;
-                    }
-                    edit.focus();
+            let elements = cellElement.getElementsByClassName("settingValue");
+            if (elements.length > 0) {
+                let edit = elements[0] as HTMLElement;
+                if (edit.classList.contains("upDown")) {
+                    elements = edit.getElementsByClassName("input");
+                    edit = elements[0] as HTMLElement;
                 }
+                edit.focus();
             }
-        });
+        }
 
         return Promise.resolve(true);
     };
