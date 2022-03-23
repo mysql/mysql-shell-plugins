@@ -74,8 +74,8 @@
     padding-left: 16px;
 }
 
-.msg.connectionTabHost .scriptingExplorer .treeToggle+.schemaTreeEntry {
-    padding-left: 0px;
+.msg.connectionTabHost .scriptingExplorer .treeToggle + .schemaTreeEntry {
+    padding-left: 0;
 }
 
 .msg.connectionTabHost .scriptingExplorer .schemaTreeEntry > .label {
@@ -165,7 +165,7 @@
     width: 26px;
     height: 26px;
 
-    padding: 0px;
+    padding: 0;
     margin: 0 5px 0 0;
 }
 
