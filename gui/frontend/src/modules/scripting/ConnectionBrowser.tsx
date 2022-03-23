@@ -288,8 +288,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     caption="Database Connection Configuration"
                     onValidate={this.validateConnectionValues}
                     onClose={this.handleOptionsDialogClose}
-                    advancedAction={this.testConnection}
-                    advancedActionCaption="Test connection"
+                    //advancedAction={this.testConnection}
+                    //advancedActionCaption="Test connection"
                     onSelectTab={this.handleTabSelect}
                     customFooter={customFooter}
                 />
