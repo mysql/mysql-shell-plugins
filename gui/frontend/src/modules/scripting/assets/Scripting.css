@@ -40,7 +40,7 @@
     color: var(--sideBar-markerBackground);
 }
 
-.msg.connectionTabHost .scriptingExplorer .tabulator-tableHolder {
+.msg.connectionTabHost .scriptingExplorer .tabulator-tableholder {
     overflow-x: hidden;
 }
 

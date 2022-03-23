@@ -73,7 +73,7 @@
     flex: 1 1 auto;
 }
 
-.msg.resultGroup .resultView .tabulator-tableHolder {
+.msg.resultGroup .resultView .tabulator-tableholder {
     background-color: var(--resultView-background);
     color: var(--resultView-foreground);
 

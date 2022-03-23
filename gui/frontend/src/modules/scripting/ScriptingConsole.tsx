@@ -108,7 +108,7 @@ export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
                 language="msg"
                 allowedLanguages={["javascript", "typescript", "sql"]}
                 sqlDialect={dialect}
-                startLanguage={settings.get("dbEditor.startLanguage", "javascript") as EditorLanguage}
+                startLanguage={settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
                 readonly={readOnly}
                 allowSoftWrap={true}
                 className="scriptingConsole"
