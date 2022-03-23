@@ -157,11 +157,10 @@ ws.execute(lib.init_lib_item.file)
 lib.init_lib_item.params.name = "connect_database_default"
 ws.execute(lib.init_lib_item.file)
 
-//  Lib::SqlEditor
+//  Lib::DBSession
 lib.init_lib_component.params.name = "dbsession"
 ws.execute(lib.init_lib_component.file)
 lib.init_lib_item.params.component = lib.dbsession
-
 
 lib.init_lib_item.params.name = "open_db_session"
 ws.execute(lib.init_lib_item.file)
@@ -169,16 +168,10 @@ ws.execute(lib.init_lib_item.file)
 lib.init_lib_item.params.name = "close_db_session"
 ws.execute(lib.init_lib_item.file)
 
-lib.init_lib_item.params.name = "open_db_connection"
-ws.execute(lib.init_lib_item.file)
-
 lib.init_lib_item.params.name = "open_connection_validate_mysql"
 ws.execute(lib.init_lib_item.file)
 
 lib.init_lib_item.params.name = "open_connection_validate_sqlite"
-ws.execute(lib.init_lib_item.file)
-
-lib.init_lib_item.params.name = "with_new_connection"
 ws.execute(lib.init_lib_item.file)
 
 lib.init_lib_item.params.name = "init_db"

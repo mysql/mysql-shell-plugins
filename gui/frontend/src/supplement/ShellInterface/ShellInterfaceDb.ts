@@ -45,15 +45,16 @@ export class ShellInterfaceDb implements IShellInterface {
      * Starts a simple DB session for certain DB object related work.
      *
      * @param id A unique ID to identify this session.
+     * @param connectionId The SQL
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public startSession(id: string): Promise<void> {
+    public startSession(id: string, connectionId: number): Promise<void> {
         this.moduleSessionLookupId = this.id + "." + id;
 
         return new Promise((resolve, reject) => {
-            const request = ProtocolGui.getRequestDbStartSession();
-            const listener = currentConnection.sendRequest(request, { messageClass: "startDbSession" });
+            const request = ProtocolGui.getRequestDbStartSession(connectionId);
+            const listener = currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbStartSession });
             listener.then((event: ICommStartSessionEvent) => {
                 if (event.data) {
                     const id = event.data.moduleSessionId;
@@ -64,6 +65,7 @@ export class ShellInterfaceDb implements IShellInterface {
             }).catch((event: ICommErrorEvent) => {
                 reject(event.message);
             });
+
         });
     }
 
@@ -87,25 +89,6 @@ export class ShellInterfaceDb implements IShellInterface {
                 });
             }
         });
-    }
-
-    /**
-     * Opens a MySQL connection.
-     * Cannot promisify this method, because of possible interaction (e.g. password requests).
-     *
-     * @param connectionId The SQL editor connection ID.
-     *
-     * @returns A listener for the response.
-     */
-    public openConnection(connectionId: number): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestDbOpenConnection(connectionId, id);
-
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbOpenConnection });
     }
 
     /**

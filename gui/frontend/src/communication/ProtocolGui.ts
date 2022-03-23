@@ -128,7 +128,6 @@ export enum ShellAPIGui {
     GuiDbGetTableObject = "gui.db.get_table_object",
     GuiDbStartSession = "gui.db.start_session",
     GuiDbCloseSession = "gui.db.close_session",
-    GuiDbOpenConnection = "gui.db.open_connection",
     GuiDbReconnect = "gui.db.reconnect",
     GuiInfo = "gui.info",
     GuiVersion = "gui.version",
@@ -2047,13 +2046,19 @@ export class ProtocolGui extends Protocol {
     /**
      * Starts a DB Session
      *
+     * @param dbConnectionId The id of the db_connection
+     * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
+     *
      * @returns A dict holding the result message
      */
-    public static getRequestDbStartSession(): IShellRequest {
+    public static getRequestDbStartSession(dbConnectionId: number, password?: string): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbStartSession,
             {
-                args: {},
+                args: {
+                    db_connection_id: dbConnectionId,
+                    password,
+                },
             });
     }
 
@@ -2070,27 +2075,6 @@ export class ProtocolGui extends Protocol {
             {
                 args: {
                     module_session_id: moduleSessionId,
-                },
-            });
-    }
-
-    /**
-     * Opens the DB Session
-     *
-     * @param dbConnectionId The id of the db_connection
-     * @param moduleSessionId The session where the connection will open
-     * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
-     *
-     * @returns A dict holding the result message and the connection information     when available.
-     */
-    public static getRequestDbOpenConnection(dbConnectionId: number, moduleSessionId: string, password?: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbOpenConnection,
-            {
-                args: {
-                    db_connection_id: dbConnectionId,
-                    module_session_id: moduleSessionId,
-                    password,
                 },
             });
     }

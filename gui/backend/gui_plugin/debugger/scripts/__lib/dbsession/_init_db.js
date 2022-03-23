@@ -12,5 +12,3 @@ lib.sqleditor.open_connection.params = {
 await ws.execute(lib.sqleditor.open_connection.file)
 await ws.execute(_this.params["init"].file)
 await ws.execute(lib.sqleditor.close_session.file)
-
-await ws.execute(lib.dbsession.open_db_session.file)

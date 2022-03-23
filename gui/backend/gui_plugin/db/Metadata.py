@@ -170,17 +170,20 @@ def get_table_object(module_session, request_id, type, schema_name, table_name, 
                                      name=name)
 
 @plugin_function('gui.db.startSession', shell=False, web=True)
-def start_session(request_id, web_session=None):
+def start_session(request_id, db_connection_id, password=None, web_session=None):
     """Starts a DB Session
 
     Args:
         request_id (str): The request_id of the command
+        db_connection_id (int): The id of the db_connection
+        password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
         web_session (object): The web_session object this session will belong to
 
     Returns:
         A dict holding the result message
     """
     new_session = DbModuleSession(web_session)
+    new_session.open_connection(db_connection_id, password, request_id)
 
     result = Response.ok("New DB session created successfully.", {
         "module_session_id": new_session.module_session_id,
@@ -208,22 +211,6 @@ def close_session(module_session, request_id):
         "request_id": request_id
     })
 
-
-@plugin_function('gui.db.openConnection', shell=False, web=True)
-def open_connection(db_connection_id, module_session, request_id, password=None):
-    """Opens the DB Session
-
-    Args:
-        db_connection_id (int): The id of the db_connection
-        module_session (object): The session where the connection will open
-        request_id (str): ID of the request starting the session.
-        password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
-
-    Returns:
-        A dict holding the result message and the connection information
-        when available.
-    """
-    module_session.open_connection(db_connection_id, password, request_id)
 
 @plugin_function('gui.db.reconnect', shell=False, web=True)
 def reconnect(module_session, request_id):

@@ -15,16 +15,25 @@ lib.dbsession.init_db.params = {
     "init": lib.init_mysql
 }
 await ws.execute(lib.dbsession.init_db.file)
-await ws.execute(lib.dbsession.open_db_session.file)
 
-//  Test for MySQL
-lib.dbsession.with_new_connection.params = {
+// Open DB session
+lib.dbsession.open_db_session.params = {
     "database_settings": settings,
-    "test": user_stories.metadata.get_schema_objects_mysql,
+    "connection_id": settings.result["connection_id"],
     "validation": lib.dbsession.open_connection_validate_mysql
 }
+await ws.execute(lib.dbsession.open_db_session.file)
 
-await ws.execute(lib.dbsession.with_new_connection.file)
+// Test for MySQL
+await ws.execute(user_stories.metadata.get_schema_objects_mysql.file)
+
+// Remove connection
+lib.connection.remove.params = {
+    "profile_id": settings.result["profile_id"],
+    "connection_id": settings.result["connection_id"]
+}
+
+await ws.execute(lib.connection.remove.file)
 
 
 //  Terminate

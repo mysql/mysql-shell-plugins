@@ -5,13 +5,16 @@
 //
 var lib = ws.tokens.lib
 var _this = lib.dbsession.open_db_session
+var settings = _this.params["database_settings"]
 
 
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
     "command": "gui.db.start_session",
-    "args": {}
+    "args": {
+        "db_connection_id": _this.params["connection_id"],
+    }
 }, [
     {
         "request_id": ws.lastGeneratedRequestId,
@@ -24,3 +27,8 @@ await ws.sendAndValidate({
 ])
 
 _this.result["session_id"] = ws.lastResponse['module_session_id']
+
+// Validation of opened connection
+_this.params["validation"].params["default_schema"] = settings.result["default_schema"]
+ws.execute(_this.params["validation"].file)
+
