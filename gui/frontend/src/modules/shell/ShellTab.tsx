@@ -26,7 +26,7 @@ import * as React from "react";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
     IColumnInfo, DialogType, IDialogRequest, MessageType, IDialogResponse, IDictionary, IServicePasswordRequest,
-    DBDataType,
+    DBDataType, IExecutionInfo,
 } from "../../app-logic/Types";
 
 import {
@@ -643,17 +643,14 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             });
                         } else {
                             // If no specialized result then print as is.
-                            const text: ITextResultEntry[] = [{
-                                type: MessageType.Info,
-                                content: JSON.stringify(result, undefined, "\t"),
-                                language: "json",
-                            }];
-
+                            const executionInfo: IExecutionInfo = {
+                                text: JSON.stringify(event.data.requestState, undefined, "\t"),
+                            };
                             addResultData({
                                 type: "text",
-                                text,
+                                text: [],
+                                executionInfo,
                             });
-
                         }
 
                         break;

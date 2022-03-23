@@ -135,6 +135,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
     private hostRef = React.createRef<HTMLDivElement>();
     private tabulator?: Tabulator;
     private tableReady = false;
+    private timeoutId: ReturnType<typeof setTimeout> | null;
 
     // A counter to manage redraw blocks.
     private updateCount = 0;
@@ -161,15 +162,15 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         if (this.hostRef.current) {
             // Defer the creation of the table a bit, because it directly manipulates the DOM and that randomly
             // fails with preact, if the table is created directly on mount.
-            setTimeout(() => {
+            this.timeoutId = setTimeout(() => {
+
                 // The tabulator options can contain data, passed in as properties.
+                this.timeoutId = null;
                 this.tabulator = new Tabulator(this.hostRef.current!, this.tabulatorOptions);
                 this.tabulator.on("tableBuilt", () => {
                     const { selectedIds } = this.mergedProps;
-
                     if (this.tabulator) {
                         this.tabulator.off("tableBuilt");
-
                         if (selectedIds) {
                             this.tabulator.selectRow(selectedIds);
                         }
@@ -179,10 +180,8 @@ export class TreeGrid extends Component<ITreeGridProperties> {
                     if (this.hostRef.current) {
                         (this.hostRef.current.lastChild as HTMLElement).classList.add("fixedScrollbar");
                     }
-
                     this.tableReady = true;
                 });
-
                 this.tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
                 this.tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
                 this.tabulator.on("rowContext", this.handleRowContext);
@@ -190,11 +189,17 @@ export class TreeGrid extends Component<ITreeGridProperties> {
                 this.tabulator.on("rowSelected", this.handleRowSelected);
                 this.tabulator.on("rowDeselected", this.handleRowDeselected);
                 this.tabulator.on("columnResized", this.handleColumnResized);
-
                 if (onVerticalScroll) {
                     this.tabulator.on("scrollVertical", onVerticalScroll);
                 }
             }, 10);
+        }
+    }
+
+    public componentWillUnmount(): void {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
         }
     }
 
