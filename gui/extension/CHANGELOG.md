@@ -1,5 +1,14 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.0.31+8.0.28
+
+### Fixes
+
+- Fixed a bug where the result view context menu did not enable any menu item.
+- Fixed broken update of status bar when switching result set tabs
+- Fixed SQL Notebook default language to be SQL
+- Fixed leaking file descriptors
+
 ## Changes in 1.0.30+8.0.28
 
 ### Additions
@@ -9,9 +18,8 @@
 - Added menu option to set default OCI Profile
 - Added menu option to delete MDS DB Systems
 
-### Fixes 
+### Fixes
 
-- Fixed SQL Notebook default language to be SQL
 - Fixed Auto Completion to net fetch table and column names in some cases
 - Fixed Result Set row output not displaying content in some cases
 - Fixed SQL Block Decorator size in Python files

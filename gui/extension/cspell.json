@@ -67,7 +67,9 @@
         "varchar",
         "VARCHARACTER",
         "whitespaces",
-        "ZEROFILL"
+        "ZEROFILL",
+        "chromedriver",
+        "vsix"
     ],
     "ignoreWords": [
         "Xexact",
