@@ -124,22 +124,18 @@ export class ExecutionContexts {
                     case "requestIds": {
                         // Convert result data references back to result data. Result set data is loaded from
                         // the storage DB, if possible.
-                        const sets: IResultSet[] = [];
                         const result: IExecutionResult = {
                             type: "resultSets",
-                            sets,
+                            sets: [],
                         };
 
-                        state.result.list.forEach((requestId) => {
-                            this.loadResultSet(requestId).then((resultSet) => {
-                                if (resultSet) {
-                                    sets.push(resultSet);
-                                    context.setResult(result, state.currentHeight);
-                                }
-                            }).catch(() => {
-                                // Ignore load errors.
-                            });
+                        this.loadResultSets(state.result.list).then((resultSets) => {
+                            result.sets = resultSets;
+                            context.setResult(result, state.currentHeight);
+                        }).catch(() => {
+                            // Ignore load errors.
                         });
+
 
                         break;
                     }
@@ -285,55 +281,55 @@ export class ExecutionContexts {
     }
 
     /**
-     * Attempts to load a result set back from the storage DB into a result set structure.
+     * Attempts to load all result sets back from the storage DB into a result set structure.
      *
-     * @param requestId The previous request ID used to get the result set from the backend. This is the ID under which
-     *                  the data was cached before.
-     * @returns If the given request ID was found the data is loaded and returned as a result set.
+     * @param requestIds A list of previous request ID used to get the result sets from the backend.
+     *                   This is the ID under which the data was cached before.
+     *
+     * @returns If the given request ID was found the data is loaded and returned as a list of result sets.
      */
-    private loadResultSet(requestId: string): Promise<IResultSet | undefined> {
-        return new Promise((resolve, reject) => {
-            const data = ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", requestId);
-            data.then((values) => {
-                const result: IResultSet = {
-                    head: {
-                        requestId,
-                        sql: "",
-                    },
-                    data: {
-                        requestId,
-                        columns: [],
-                        rows: [],
-                        hasMoreRows: false,
-                        currentPage: 0,
-                    },
-                };
+    private async loadResultSets(requestIds: string[]): Promise<IResultSet[]> {
+        const sets: IResultSet[] = [];
 
-                if (this.isDbModuleResultData(values)) {
-                    values.forEach((value) => {
-                        if (value.sql) {
-                            result.head.sql = value.sql;
-                        }
+        for await (const requestId of requestIds) {
+            const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", requestId);
+            const set: IResultSet = {
+                head: {
+                    requestId,
+                    sql: "",
+                },
+                data: {
+                    requestId,
+                    columns: [],
+                    rows: [],
+                    hasMoreRows: false,
+                    currentPage: 0,
+                },
+            };
+            sets.push(set);
 
-                        result.data.columns.push(...value.columns ?? []);
-                        result.data.rows.push(...value.rows);
+            if (this.isDbModuleResultData(values)) {
+                values.forEach((value) => {
+                    if (value.sql) {
+                        set.head.sql = value.sql;
+                    }
 
-                        if (value.executionInfo) {
-                            result.data.executionInfo = value.executionInfo;
-                        }
+                    set.data.columns.push(...value.columns ?? []);
+                    set.data.rows.push(...value.rows);
 
-                        if (value.hasMoreRows) {
-                            result.data.hasMoreRows = true;
-                            result.data.currentPage = value.currentPage;
-                        }
-                    });
-                }
+                    if (value.executionInfo) {
+                        set.data.executionInfo = value.executionInfo;
+                    }
 
-                resolve(result);
-            }).catch((reason) => {
-                reject(reason);
-            });
-        });
+                    if (value.hasMoreRows) {
+                        set.data.hasMoreRows = true;
+                        set.data.currentPage = value.currentPage;
+                    }
+                });
+            }
+        }
+
+        return sets;
     }
 
     private onResultRemoval = (requestIds: string[]): void => {
