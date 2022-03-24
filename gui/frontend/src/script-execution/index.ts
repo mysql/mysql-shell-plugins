@@ -58,6 +58,7 @@ export const mapCompletionKind: Map<LanguageCompletionKind, languages.Completion
 
 export interface ITextResultEntry {
     type: MessageType;
+    index: number;
     content: string;
     language?: ResultTextLanguage;
 }
@@ -97,6 +98,7 @@ export interface IResultSetHead {
 }
 
 export interface IResultSet {
+    index: number;
     head: IResultSetHead;
     data: IResultSetContent;
 }
@@ -104,6 +106,7 @@ export interface IResultSet {
 export interface IResultSets {
     type: "resultSets";
 
+    output?: ITextResultEntry[]; // Simple text output in addition to the result set content.
     sets: IResultSet[];
 }
 

@@ -65,6 +65,15 @@
     align-content: stretch;
 }
 
+.msg.resultHost .resultTabview .outputHost {
+    flex: 1 1 auto;
+    background: var(--editorZone-background);
+}
+
+.msg.resultHost .resultTabview .outputHost .cmdIndex {
+    color: var(--resultStatus-foreground);
+}
+
 .msg.resultHost .resultView .tabulator {
     flex: 1 1 auto;
 }
@@ -201,7 +210,7 @@
     background-color: var(--editorZone-background);
     color: var(--resultZone-foreground);
     overflow: auto;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .msg.resultHost .resultText > .label {

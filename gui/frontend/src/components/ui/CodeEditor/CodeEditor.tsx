@@ -1432,14 +1432,14 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                     if (helpText) {
                         block.setResult({
                             type: "text",
-                            text: [{ type: MessageType.Info, content: helpText, language: "markdown" }],
+                            text: [{ type: MessageType.Info, index: -1, content: helpText, language: "markdown" }],
                         });
 
                         this.prepareNextExecutionBlock(index);
                     } else {
                         block.setResult({
                             type: "text",
-                            text: [{ type: MessageType.Error, content: "No help available" }],
+                            text: [{ type: MessageType.Error, index: -1, content: "No help available" }],
                         });
                     }
 

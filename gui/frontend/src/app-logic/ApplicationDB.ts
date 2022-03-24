@@ -49,6 +49,9 @@ export interface IDbModuleResultData {
     currentPage: number;
     hasMoreRows: boolean;
 
+    // Describes the query from which this entry was produced.
+    index: number;
+
     // SQL text exists only for the start response.
     sql?: string;
 }
@@ -62,6 +65,9 @@ export interface IShellModuleResultData {
     columns?: IColumnInfo[];
     rows: unknown[];
     executionInfo?: IExecutionInfo;
+
+    // Describes the query from which this entry was produced.
+    index: number;
 }
 
 // Application object store schema. Each module uses an own store.

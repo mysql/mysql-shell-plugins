@@ -35,6 +35,7 @@ describe("ApplicationDB tests", () => {
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
+            index: -1,
         });
 
         let data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "tabIndex", "1");
@@ -60,6 +61,7 @@ describe("ApplicationDB tests", () => {
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
+            index: -1,
         });
 
         let data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "123");
@@ -90,6 +92,7 @@ describe("ApplicationDB tests", () => {
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
+            index: -1,
         });
 
         await ApplicationDB.db.put(StoreType.DbEditor, {
@@ -99,6 +102,7 @@ describe("ApplicationDB tests", () => {
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
+            index: -1,
         });
 
         // Close and reopen with the same DB version. Should keep the data.

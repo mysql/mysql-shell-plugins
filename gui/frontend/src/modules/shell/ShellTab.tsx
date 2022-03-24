@@ -203,7 +203,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     context?.setResult({
                         type: "text",
                         requestId: "",
-                        text: [{ type: MessageType.Info, content, language: "ansi" }],
+                        text: [{ type: MessageType.Info, index: -1, content, language: "ansi" }],
                     });
 
                     return;
@@ -348,6 +348,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             context.setResult({
                                 type: "resultSets",
                                 sets: [{
+                                    index,
                                     head: {
                                         requestId,
                                         sql: "",
@@ -365,6 +366,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             context.addResultPage({
                                 type: "resultSets",
                                 sets: [{
+                                    index,
                                     head: {
                                         requestId,
                                         sql: "",
@@ -408,6 +410,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
                                 const text: ITextResultEntry[] = [{
                                     type: MessageType.Info,
+                                    index,
                                     content: JSON.stringify(result.documents, undefined, "\t"),
                                     language: "json",
                                 }];
@@ -415,6 +418,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 result.warnings.forEach((warning) => {
                                     text.push({
                                         type: MessageType.Warning,
+                                        index,
                                         content: `\n${warning.message}`,
                                     });
                                 });
@@ -428,7 +432,13 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 // No data was returned. Use the info field for the status message then.
                                 addResultData({
                                     type: "text",
-                                    executionInfo: { text: result.info },
+                                    text: [{
+                                        type: MessageType.Info,
+                                        index,
+                                        content: result.info,
+                                        language: "ansi",
+                                    }],
+                                    executionInfo: { text: "" },
                                 });
                             }
                         } else if (this.isShellShellColumnsMetaData(result)) {
@@ -483,6 +493,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 rows,
                                 columns,
                                 executionInfo: status,
+                                index,
                             });
 
                             if (index === -1) {
@@ -492,6 +503,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 context.setResult({
                                     type: "resultSets",
                                     sets: [{
+                                        index,
                                         head: {
                                             requestId,
                                             sql: "",
@@ -521,7 +533,13 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             addResultData({
                                 type: "text",
                                 requestId: event.data.requestId,
-                                executionInfo: { text: result.info },
+                                text: [{
+                                    type: MessageType.Info,
+                                    index,
+                                    content: result.info,
+                                    language: "ansi",
+                                }],
+                                executionInfo: { text: "" },
                             });
                         } else if (this.isShellObjectListResult(result)) {
                             let text = "[\n";
@@ -538,6 +556,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 requestId: event.data.requestId,
                                 text: [{
                                     type: MessageType.Info,
+                                    index,
                                     content: text,
                                     language: "xml",
                                 }],
@@ -549,14 +568,26 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 addResultData({
                                     type: "text",
                                     requestId: event.data.requestId,
-                                    executionInfo: { type: MessageType.Error, text },
+                                    text: [{
+                                        type: MessageType.Error,
+                                        index,
+                                        content: text,
+                                        language: "ansi",
+                                    }],
+                                    executionInfo: { type: MessageType.Error, text: "" },
                                 });
                             } else if (result.warning) {
                                 // Errors can be a string or an object with a string.
                                 addResultData({
                                     type: "text",
                                     requestId: event.data.requestId,
-                                    executionInfo: { type: MessageType.Warning, text: result.warning },
+                                    text: [{
+                                        type: MessageType.Info,
+                                        index,
+                                        content: result.warning,
+                                        language: "ansi",
+                                    }],
+                                    executionInfo: { type: MessageType.Warning, text: "" },
                                 });
                             } else {
                                 const content = (result.info ?? result.note ?? result.status)!;
@@ -565,6 +596,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     requestId: event.data.requestId,
                                     text: [{
                                         type: MessageType.Info,
+                                        index,
                                         content,
                                         language: "ansi",
                                     }],
@@ -576,6 +608,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 requestId: event.data.requestId,
                                 text: [{
                                     type: MessageType.Info,
+                                    index,
                                     content: String(result.value),
                                     language: "ansi",
                                 }],
@@ -587,6 +620,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     requestId,
                                     text: [{
                                         type: MessageType.Interactive,
+                                        index,
                                         content: result.password,
                                         language: "ansi",
                                     }],
@@ -637,6 +671,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 requestId: event.data.requestId,
                                 text: [{
                                     type: MessageType.Info,
+                                    index,
                                     content: text,
                                     language: "xml",
                                 }],

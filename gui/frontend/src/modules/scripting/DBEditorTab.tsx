@@ -597,13 +597,14 @@ Execute \\help or \\? for help;`;
                             sql,
                             currentPage,
                             hasMoreRows: false,
-
+                            index,
                         });
 
                         if (index === 0 && isNil(oldRequestId)) {
                             context.setResult({
                                 type: "resultSets",
                                 sets: [{
+                                    index,
                                     head: {
                                         requestId,
                                         sql,
@@ -620,6 +621,7 @@ Execute \\help or \\? for help;`;
                             context.addResultPage({
                                 type: "resultSets",
                                 sets: [{
+                                    index,
                                     head: {
                                         requestId,
                                         oldRequestId,
@@ -650,6 +652,7 @@ Execute \\help or \\? for help;`;
                             columns,
                             hasMoreRows: false,
                             currentPage,
+                            index,
                         });
 
                         this.addTimedResult(context, {
@@ -703,6 +706,7 @@ Execute \\help or \\? for help;`;
                             executionInfo: status,
                             hasMoreRows,
                             currentPage,
+                            index,
                         });
 
                         this.addTimedResult(context, {
@@ -752,6 +756,7 @@ Execute \\help or \\? for help;`;
                         executionInfo: status,
                         hasMoreRows: false,
                         currentPage,
+                        index,
                     });
 
                     void context.addResultData({
@@ -813,6 +818,7 @@ Execute \\help or \\? for help;`;
                             requestId: "",
                             text: [{
                                 type: MessageType.Info,
+                                index: 0,
                                 content: event.message,
                                 language: "ansi",
                             }],
@@ -837,6 +843,7 @@ Execute \\help or \\? for help;`;
                     requestId: "",
                     text: [{
                         type: MessageType.Error,
+                        index: 0,
                         content: event.message,
                         language: "ansi",
                     }],
@@ -967,7 +974,7 @@ Execute \\help or \\? for help;`;
                     context?.setResult({
                         type: "text",
                         requestId: "",
-                        text: [{ type: MessageType.Info, content, language: "ansi" }],
+                        text: [{ type: MessageType.Info, index: -1, content, language: "ansi" }],
                     });
                     runExecution = false;
 
@@ -980,6 +987,7 @@ Execute \\help or \\? for help;`;
                         requestId: "",
                         text: [{
                             type: MessageType.Info,
+                            index: -1,
                             content: "Reconnecting the current DB connection ...\n",
                             language: "ansi",
                         }],
@@ -1049,7 +1057,13 @@ Execute \\help or \\? for help;`;
                 const context = this.runningContexts.get(data.contextId);
                 void context?.addResultData({
                     type: "text",
-                    executionInfo: { text: status },
+                    text: [{
+                        type: MessageType.Info,
+                        index: -1,
+                        content: status,
+                        language: "ansi",
+                    }],
+                    executionInfo: { text: "" },
                 }).then((added) => {
                     if (added) {
                         context?.updateResultDisplay();
@@ -1066,7 +1080,13 @@ Execute \\help or \\? for help;`;
                         if (data.isError) {
                             void context?.addResultData({
                                 type: "text",
-                                executionInfo: { type: MessageType.Error, text: String(data.result) },
+                                text: [{
+                                    type: MessageType.Error,
+                                    index: -1,
+                                    content: String(data.result),
+                                    language: "ansi",
+                                }],
+                                executionInfo: { type: MessageType.Error, text: "" },
                             }).then((added) => {
                                 if (added) {
                                     context?.updateResultDisplay();
@@ -1077,6 +1097,7 @@ Execute \\help or \\? for help;`;
                                 type: "text",
                                 text: [{
                                     type: MessageType.Info,
+                                    index: -1,
                                     content: String(data.result),
                                 }],
                             }).then((added) => {
@@ -1217,6 +1238,7 @@ Execute \\help or \\? for help;`;
                         type: "text",
                         text: [{
                             type: MessageType.Info,
+                            index: -1,
                             content: String(data.value),
                         }],
                     }).then((added) => {

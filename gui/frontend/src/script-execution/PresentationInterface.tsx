@@ -37,6 +37,7 @@ import { Container, ContentAlignment, Label, Orientation } from "../components/u
 import { EditorLanguage } from "../supplement";
 
 import { IPieGraphDataPoint } from "../components/ResultView/graphs/PieGraphImpl";
+import { MessageType } from "../app-logic/Types";
 
 // A flag telling if the result is currently being loaded.
 export enum LoadingState {
@@ -198,6 +199,10 @@ export class PresentationInterface {
                 }
 
                 case "resultSets": {
+                    if (!data.output) {
+                        data.output = [];
+                    }
+
                     pendingPurge = data.sets.length > 0 ? data.sets[0].head.requestId : undefined;
                     element = <ResultTabView
                         ref={this.resultRef}
@@ -349,18 +354,7 @@ export class PresentationInterface {
 
                     if (addNew) {
                         needUpdate = true;
-                        existingSets.push({
-                            head: {
-                                requestId: set.head.requestId,
-                                sql: set.head.sql,
-                            },
-                            data: {
-                                requestId: set.head.requestId,
-                                columns: [],
-                                rows: [],
-                                currentPage: 0,
-                            },
-                        });
+                        existingSets.push(...data.sets);
                     }
                 });
 
@@ -417,49 +411,64 @@ export class PresentationInterface {
 
         switch (data.type) {
             case "text": {
-                if (this.resultData.type !== "resultSetRows") {
-                    if (this.resultData.type !== "text") {
-                        // If there was other result data (no text) before, replace it with the given text.
-                        // Check also the loading state, in case we had pending result set data.
-                        if (data.executionInfo) {
-                            if (this.waitTimer) {
-                                clearTimeout(this.waitTimer);
-                                this.waitTimer = null;
-                            }
-
-                            if (this.loadingState !== LoadingState.Idle) {
-                                this.loadingState = LoadingState.Idle;
-                                this.updateMarginDecorations();
-                            }
-                        }
-
-                        [this.resultData, element] = this.prepareTextEntries(undefined, data);
-                    } else {
-                        [this.resultData, element] = this.prepareTextEntries(this.resultData, data);
+                // Stop any wait animation if this is the last result.
+                if (data.executionInfo) {
+                    if (this.waitTimer) {
+                        clearTimeout(this.waitTimer);
+                        this.waitTimer = null;
                     }
 
-                    break;
+                    if (this.loadingState !== LoadingState.Idle) {
+                        this.loadingState = LoadingState.Idle;
+                        this.updateMarginDecorations();
+                    }
                 }
 
-                // Treat the given data as result rows, if we previously had rows already.
-                // In this case the text serves as execution info.
-                if (data.requestId) {
-                    const rows: IResultSetRows = {
-                        type: "resultSetRows",
-                        requestId: data.requestId,
-                        columns: [],
-                        rows: [],
-                        currentPage: 0,
-                    };
+                if (this.resultData.type === "resultSets") {
+                    // If we have results currently then add the text (which must be an error) to the output list
+                    // and remove the affected tab.
+                    if (data.text) {
+                        this.resultData.output?.push(...data.text);
+                    } else {
+                        this.resultData.output?.push({
+                            type: MessageType.Error,
+                            index: -1,
+                            content: data.executionInfo?.text ?? "<no info>",
+                            language: "ansi",
+                        });
+                    }
 
-                    return this.handleNewRows(rows);
+                    const index = this.resultData.sets.findIndex((candidate) => {
+                        return candidate.head.requestId === data.requestId;
+                    });
+                    if (index > -1) {
+                        this.resultData.sets.splice(index, 1);
+                    }
+
+                    element = <ResultTabView
+                        ref={this.resultRef}
+                        resultSets={this.resultData}
+                        onResultPageChange={this.handleResultPageChange}
+                    />;
+
+                    break;
+                } else if (this.resultData.type !== "text") {
+                    [this.resultData, element] = this.prepareTextEntries(undefined, data);
+                } else {
+                    [this.resultData, element] = this.prepareTextEntries(this.resultData, data);
                 }
 
                 break;
             }
 
             case "resultSetRows": {
-                return this.handleNewRows(data as unknown as IResultSetRows);
+                const result = await this.handleNewRows(data);
+                if (typeof result === "boolean") {
+                    return result;
+                }
+                element = result;
+
+                break;
             }
 
             case "graphData": {
@@ -638,6 +647,7 @@ export class PresentationInterface {
     protected removeRenderTarget(): void {
         this.renderTarget = undefined;
         this.currentHeight = undefined;
+        this.manuallyResized = false;
     }
 
     protected updateRenderTarget(): void {
@@ -660,7 +670,7 @@ export class PresentationInterface {
     private prepareTextEntries(existing: ITextResult | undefined, data: ITextResult): [ITextResult, React.ReactNode] {
         const result = existing ?? { ...data };
 
-        const entries = existing && existing.text ? existing.text : [];
+        const entries = existing?.text ?? [];
         data.text?.forEach((entry) => {
             if (entries.length === 0) {
                 entries.push(entry);
@@ -674,13 +684,6 @@ export class PresentationInterface {
                     entries.push(entry);
                 }
             }
-        });
-
-        const elements: React.ReactElement[] = [];
-        entries.forEach((entry) => {
-            elements.push(
-                <Label language={entry.language} caption={entry.content} type={entry.type} />,
-            );
         });
 
         result.text = entries;
@@ -726,7 +729,7 @@ export class PresentationInterface {
         }
     };
 
-    private handleNewRows = async (data: IResultSetRows): Promise<boolean> => {
+    private handleNewRows = async (data: IResultSetRows): Promise<boolean | React.ReactNode> => {
         if (!this.resultData) {
             return false;
         }
@@ -746,16 +749,33 @@ export class PresentationInterface {
         }
 
         const resultSets = this.resultData.sets;
-        if (resultSets.length === 0) {
-            return false;
+        if (resultSets.length === 0 && data.executionInfo) {
+            this.resultData.output?.push({
+                type: MessageType.Info,
+                index: -1,
+                content: data.executionInfo.text,
+                language: "ansi",
+            });
+
+            return <ResultTabView
+                ref={this.resultRef}
+                resultSets={this.resultData}
+                onResultPageChange={this.handleResultPageChange}
+            />;
+
         }
 
         // Add the data to our internal storage, to support switching tabs for multiple result sets.
-        const resultSet = resultSets.find((candidate) => {
+        const index = resultSets.findIndex((candidate) => {
             return candidate.head.requestId === data.requestId;
         });
 
+        const resultSet = index > - 1 ? resultSets[index] : undefined;
+
         if (resultSet) {
+            const columnCount = data.columns.length;
+            const rowCount = data.rows.length;
+
             if (data.executionInfo) {
                 resultSet.data.executionInfo = data.executionInfo;
                 resultSet.data.hasMoreRows = data.hasMoreRows;
@@ -765,16 +785,34 @@ export class PresentationInterface {
                 // So stop also any wait/load animation.
                 this.loadingState = LoadingState.Idle;
                 this.updateMarginDecorations();
+
+                // Special treatment: if there's no data in the result after the final response, convert it to
+                // simple output.
+                if (resultSet.data.columns.length + columnCount === 0 || resultSet.data.rows.length + rowCount === 0) {
+                    this.resultData.sets.splice(index, 1);
+                    this.resultData.output?.push({
+                        type: data.executionInfo.type ?? MessageType.Info,
+                        index: resultSet.index,
+                        content: data.executionInfo.text,
+                        language: "ansi",
+                    });
+
+                    return <ResultTabView
+                        ref={this.resultRef}
+                        resultSets={this.resultData}
+                        onResultPageChange={this.handleResultPageChange}
+                    />;
+                }
             }
 
-            if (data.columns.length > 0) {
+            if (columnCount > 0) {
                 if (data.columns) {
                     resultSet.data.columns.push(...data.columns);
                 }
                 await this.resultRef.current?.updateColumns(data.requestId, resultSet.data.columns);
             }
 
-            if (data.rows.length > 0) {
+            if (rowCount > 0) {
                 resultSet.data.rows.push(...data.rows);
 
                 if (this.resultRef.current) {

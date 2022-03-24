@@ -33,7 +33,7 @@ import React from "react";
 
 import {
     Button, Component, ComponentPlacement, Container, Divider, Dropdown, IComponentProperties, IComponentState, Icon,
-    IMenuItemProperties, ITabviewPage, Menu, MenuItem, Orientation, TabPosition, Tabview, Toolbar,
+    IMenuItemProperties, ITabviewPage, Label, Menu, MenuItem, Orientation, TabPosition, Tabview, Toolbar,
 } from "../ui";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution";
 import { IColumnInfo, MessageType } from "../../app-logic/Types";
@@ -41,6 +41,7 @@ import { ResultView } from "./ResultView";
 import { ResultStatus } from ".";
 
 export interface IResultTabViewProperties extends IComponentProperties {
+    // One set per tab page.
     resultSets: IResultSets;
 
     onResultPageChange?: (requestId: string, currentPage: number, sql: string) => void;
@@ -70,12 +71,19 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         this.state = {
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
         };
+
+        this.addHandledProperties("output", "resultSets", "onResultPageChange");
     }
 
     public static getDerivedStateFromProps(newProps: IResultTabViewProperties,
         oldState: IResultTabViewState): IResultTabViewState {
 
         const { currentResultSet } = oldState;
+
+        if (!currentResultSet && (newProps.resultSets.output?.length ?? 0) > 0) {
+            return {};
+        }
+
         const found = newProps.resultSets.sets.find((candidate) => {
             return candidate === currentResultSet;
         });
@@ -99,13 +107,60 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
 
         this.viewRefs.clear();
 
-        const pages = resultSets.sets.map((resultSet: IResultSet, index: number): ITabviewPage => {
+        const pages: ITabviewPage[] = [];
+
+        if ((resultSets?.output?.length ?? 0) > 0) {
+            const labels: React.ReactElement[] = [];
+
+            resultSets?.output?.forEach((entry, index) => {
+                // If there is just one output entry and no result sets, do not add the cmdIndex
+                if ((resultSets?.output?.length ?? 0) === 1 && (resultSets?.sets?.length ?? 0) === 0) {
+                    labels.push(
+                        <Label
+                            language={entry.language}
+                            key={`text${index}`}
+                            caption={entry.content}
+                            type={entry.type}
+                        />,
+                    );
+                } else {
+                    labels.push(
+                        <Container orientation={Orientation.LeftToRight}>
+                            {
+                                entry.index > -1 && <Label className="cmdIndex" caption={`#${entry.index + 1}: `} />
+                            }
+                            <Label
+                                language={entry.language}
+                                key={`text${index}`}
+                                caption={entry.content}
+                                type={entry.type}
+                            />
+                        </Container>,
+                    );
+                }
+            });
+
+            pages.push({
+                id: "output",
+                caption: `Output`,
+                content: (
+                    <Container
+                        className="outputHost"
+                        orientation={Orientation.TopDown}
+                    >
+                        {labels}
+                    </Container>
+                ),
+            });
+        }
+
+        resultSets.sets.forEach((resultSet: IResultSet) => {
             const ref = React.createRef<ResultView>();
             this.viewRefs.set(resultSet.head.requestId, ref);
 
-            return {
+            pages.push({
                 id: resultSet.head.requestId,
-                caption: `Result ${index + 1}`,
+                caption: `Result #${resultSet.index + 1}`,
                 content: (
                     <ResultView
                         ref={ref}
@@ -113,7 +168,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                         onEdit={this.handleEdit}
                     />
                 ),
-            };
+            });
         });
 
 
@@ -140,7 +195,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                     className="resultTabview"
                     stretchTabs={false}
                     hideSingleTab={true}
-                    selectedId={currentResultSet ? currentResultSet.head.requestId : undefined}
+                    selectedId={currentResultSet ? currentResultSet.head.requestId : "output"}
                     tabPosition={TabPosition.Top}
                     pages={pages}
 
@@ -296,13 +351,17 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     }
 
     private handleTabSelection = (id: string): void => {
-        const { resultSets } = this.props;
+        if (id === "output") {
+            this.setState({ currentResultSet: undefined });
+        } else {
+            const { resultSets } = this.props;
 
-        const currentResultSet = resultSets.sets.find((candidate) => {
-            return candidate.head.requestId === id;
-        });
+            const currentResultSet = resultSets.sets.find((candidate) => {
+                return candidate.head.requestId === id;
+            });
 
-        this.setState({ currentResultSet });
+            this.setState({ currentResultSet });
+        }
     };
 
     private showActionMenu = (e: React.SyntheticEvent): void => {

@@ -68,7 +68,6 @@
 
 .msg#shellModuleTabview #shellEditorHost .renderTarget .resultText {
     background: none;
-    height: 100%;
 
     user-select: text;
 }

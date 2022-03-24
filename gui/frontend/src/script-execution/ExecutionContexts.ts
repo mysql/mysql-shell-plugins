@@ -294,6 +294,7 @@ export class ExecutionContexts {
         for await (const requestId of requestIds) {
             const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", requestId);
             const set: IResultSet = {
+                index: -1,
                 head: {
                     requestId,
                     sql: "",
@@ -310,6 +311,7 @@ export class ExecutionContexts {
 
             if (this.isDbModuleResultData(values)) {
                 values.forEach((value) => {
+                    set.index = value.index;
                     if (value.sql) {
                         set.head.sql = value.sql;
                     }
