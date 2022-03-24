@@ -7,7 +7,7 @@
         "color": "#2789e1",
         "theme": "dark"
     },
-    "version": "1.0.31",
+    "version": "1.1.1",
     "publisher": "Oracle",
     "license": "SEE LICENSE IN LICENSE.txt",
     "repository": {
@@ -414,6 +414,10 @@
                 "title": "Reset MySQL Shell for VS Code Extension"
             },
             {
+                "command": "msg.fileBugReport",
+                "title": "File Bug Report"
+            },
+            {
                 "command": "msg.restartShell",
                 "title": "Restart the Internal MySQL Shell Process"
             },
@@ -707,6 +711,11 @@
                     "when": "view == msg.connections"
                 },
                 {
+                    "command": "msg.fileBugReport",
+                    "group": "3_msg@1",
+                    "when": "view == msg.connections"
+                },
+                {
                     "command": "msg.mds.configureOciProfiles",
                     "group": "navigation",
                     "when": "view == msg.oci"
@@ -915,36 +924,36 @@
                     "group": "1_msg@1"
                 },
                 {
+                    "command": "msg.mds.createConnectionViaBastionService",
+                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "group": "2_msg@1"
+                },
+                {
                     "command": "msg.mds.startDbSystem",
                     "title": "Start the DB System",
                     "when": "view == msg.oci && viewItem == mdsDbSystem",
-                    "group": "2_msg@1"
+                    "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mds.restartDbSystem",
                     "title": "Restart the DB System",
                     "when": "view == msg.oci && viewItem == mdsDbSystem",
-                    "group": "2_msg@2"
+                    "group": "3_msg@2"
                 },
                 {
                     "command": "msg.mds.stopDbSystem",
                     "when": "view == msg.oci && viewItem == mdsDbSystem",
-                    "group": "2_msg@3"
+                    "group": "3_msg@3"
                 },
                 {
                     "command": "msg.mds.deleteDbSystem",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
-                    "group": "3_msg@1"
-                },
-                {
-                    "command": "msg.mds.createConnectionViaBastionService",
                     "when": "view == msg.oci && viewItem == mdsDbSystem",
                     "group": "4_msg@1"
                 },
                 {
                     "command": "msg.mds.createRouterEndpoint",
                     "when": "view == msg.oci && viewItem == mdsDbSystem",
-                    "group": "4_msg@2"
+                    "group": "5_msg@1"
                 },
                 {
                     "command": "msg.mds.getBastion",
@@ -1054,9 +1063,10 @@
         "vscode-extension-tester": "4.2.3"
     },
     "scripts": {
-        "package": "vsce package --pre-release",
-        "full_packages": "scripts/package_extension.sh",
-        "full_packages_win": "scripts/package_extension.ps1",
+        "build-dev-package": "vsce package",
+        "build-packages": "scripts/package_extension.sh",
+        "build-packages-win": "scripts/package_extension.ps1",
+        "publish-packages": "scripts/publish_packages.sh",
         "lint": "eslint \"./src/**/*.ts\"",
         "vscode:prepublish": "tsc",
         "e2e-tests-setup": "extest get-vscode -s tests/e2e/test-resources && extest get-chromedriver -s tests/e2e/test-resources && extest install-vsix -s tests/e2e/test-resources -f",

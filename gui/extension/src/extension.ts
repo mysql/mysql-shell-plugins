@@ -22,7 +22,8 @@
  */
 
 import {
-    commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace, extensions,
+    commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace, extensions, env,
+    Uri,
 } from "vscode";
 
 import * as child_process from "child_process";
@@ -37,7 +38,7 @@ import { currentConnection } from "../../frontend/src/communication";
 import { ExtensionHost } from "./ExtensionHost";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
-import { platform, homedir } from "os";
+import { platform, homedir, arch } from "os";
 
 export let taskOutputChannel: OutputChannel;
 let outputChannel: OutputChannel;
@@ -365,6 +366,47 @@ export const activate = (context: ExtensionContext): void => {
                     });
             }
         });
+    }));
+
+    context.subscriptions.push(commands.registerCommand("msg.fileBugReport", () => {
+        const currentVersion: string = extensions.getExtension(
+            "Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
+        let platformId;
+        let cpuArch;
+
+        switch(platform()) {
+            case "darwin": {
+                platformId = "6";
+                break;
+            }
+            case "win32": {
+                platformId = "7";
+                break;
+            }
+            default: {
+                // Default to Linux
+                platformId = "5";
+                break;
+            }
+        }
+
+        switch(arch()) {
+            case "arm":
+            case "arm64": {
+                cpuArch = "3";
+                break;
+            }
+            case "x86": {
+                cpuArch = "2";
+                break;
+            }
+            default: {
+                cpuArch = "1";
+                break;
+            }
+        }
+        void env.openExternal(Uri.parse("https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension" +
+            `&version=${currentVersion}&os=${platformId}&cpu_arch=${cpuArch}`));
     }));
 
     // TODO: This is a temporary workaround till we get signed binaries from RE

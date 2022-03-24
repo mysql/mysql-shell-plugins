@@ -1,5 +1,23 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.1.1+8.0.28
+
+### Fixes
+
+- Fixed README.md not showing correct version number
+
+## Changes in 1.1.0+8.0.28
+
+### Additions
+
+- Added File Bug Report dropdown menu item in Database ... menu.
+- Added proper indexing of result set tabs and text output to relate them to statements
+
+### Fixes
+
+- Fixed error on invalid Date/Datetime values stored inside MySQL tables
+- Changed order of MDS DB System popup menu items
+
 ## Changes in 1.0.31+8.0.28
 
 ### Fixes
