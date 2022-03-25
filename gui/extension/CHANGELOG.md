@@ -1,5 +1,11 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.1.2+8.0.28
+
+### Fixes
+
+- Fixed MySQL Shell user settings directory creation on Windows that prevented the Welcome Wizard to start
+
 ## Changes in 1.1.1+8.0.28
 
 ### Fixes

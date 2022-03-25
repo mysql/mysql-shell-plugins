@@ -165,7 +165,7 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
 
     // Ensure the shell user config dir exists
     if (!existsSync(shellUserConfigDir)) {
-        mkdirSync(shellUserConfigDir);
+        mkdirSync(shellUserConfigDir, {recursive: true});
     }
 
     // Spawn shell process
