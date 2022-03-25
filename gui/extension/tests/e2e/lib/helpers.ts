@@ -28,6 +28,9 @@ import {
     until,
     Button,
     Key as key,
+    SideBarView,
+    DefaultTreeSection,
+    DefaultTreeItem,
 } from "vscode-extension-tester";
 
 import { expect } from "chai";
@@ -35,26 +38,52 @@ import { keyboard, Key } from "@nut-tree/nut-js";
 import { ChildProcess, spawn } from "child_process";
 import { join } from "path";
 import { platform, homedir } from "os";
+let treeSection: DefaultTreeSection;
 
-export interface IContextMenu {
-    dbActionsRestartShellProcess: number;
-    dbActionsConnectShellProcess: number;
-    dbActionsRelaunchWizard: number;
-    dbResetWelcomeWizard: number;
-    dbOpenConn: number;
-    dbOpenConnNewTab: number;
-    dbOpenConsole: number;
-    dbEdit: number;
-    dbDuplicate: number;
-    dbDelete: number;
-    dbShowSchemas: number;
-    dbLoadDumpFromDisk: number;
-    dbConfigRest: number;
-    schemaDrop: number;
-    tableShowData: number;
-    tableAddRest: number;
-    tableDrop: number;
-}
+export const moreActionsContextMenu = new Map<string, Number> ([
+    ["Restart the Internal MySQL Shell Process", 1],
+    ["Connect to External MySQL Shell Process", 2],
+    ["Relaunch Welcome Wizard", 3],
+    ["Reset MySQL Shell for VS Code Extension", 4],
+]);
+
+export const connContextMenu = new Map<string, Number> ([
+    ["Connect using SQL Notebook", 1],
+    ["Connect using SQL Notebook in New Tab", 2],
+    ["Open MySQL Shell GUI Console for this Connection", 3],
+    ["Edit MySQL Connection", 5],
+    ["Duplicate this MySQL Connection", 6],
+    ["Delete MySQL Connection", 7],
+    ["Show MySQL System Schemas", 8],
+    ["Configure MySQL REST Service", 10],
+]);
+
+export const schemaContextMenu = new Map<string, Number> ([
+    ["Copy To Clipboard", 3],
+    ["Drop Schema", 4],
+]);
+
+export const restContextMenu = new Map<string, Number> ([
+    ["Add REST Service", 1],
+]);
+
+export const clipBoardContextMenu = new Map<string, Number> ([
+    ["Name", 0],
+    ["Create Statement", 1],
+]);
+
+export const tableContextMenu = new Map<string, Number> ([
+    ["Show Data...", 1],
+    ["Add Table to REST Service", 2],
+    ["Copy To Clipboard", 3],
+    ["Drop Table...", 4],
+]);
+
+export const viewContextMenu = new Map<string, Number> ([
+    ["Show Data...", 1],
+    ["Copy To Clipboard", 2],
+    ["Drop View...", 3],
+]);
 
 export interface IDbConnection {
     caption: string;
@@ -82,6 +111,70 @@ export const getLeftSection = async (driver: WebDriver, name: string): Promise<W
     return ctx!;
 };
 
+export const getTreeElement = async (driver: WebDriver, section: string, el: string): Promise<WebElement> => {
+    const sec = await getLeftSection(driver, section);
+
+    return sec?.findElement(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
+};
+
+export const selectItem = async (taps: Number): Promise<void> => {
+    for (let i = 1; i <= taps; i++) {
+        await keyboard.type(Key.Down);
+    }
+    await keyboard.type(Key.Enter);
+};
+
+export const initTree = async (section: string): Promise<void> => {
+    treeSection = await new SideBarView().getContent().getSection(section) as DefaultTreeSection;
+};
+
+export const selectContextMenuItem = async (driver: WebDriver,
+    section: string, treeItem: string, ctxMenu: string,
+    ctxMenuItem: string): Promise<void> => {
+    const ctxMenuItems = ctxMenuItem.split("->");
+    if (platform() === "win32") {
+        const item = await getTreeElement(driver, section, treeItem);
+        const cstTreeItem = new DefaultTreeItem(item, treeSection);
+        const ctx = await cstTreeItem?.openContextMenu();
+        const ctxItem = await ctx?.getItem(ctxMenuItems[0].trim());
+        const menu = await ctxItem!.select();
+        if (ctxMenuItems.length > 1) {
+            await (await menu?.getItem(ctxMenuItems[1].trim()))!.select();
+        }
+    } else if (platform() === "darwin") {
+        const el = await getTreeElement(driver, section, treeItem);
+        await driver.actions()
+            .mouseMove(el)
+            .click(Button.RIGHT)
+            .perform();
+
+        await driver.sleep(500);
+        switch(ctxMenu) {
+            case "connection":
+                await selectItem(connContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            case "rest":
+                await selectItem(restContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            case "schema":
+                await selectItem(schemaContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            case "table":
+                await selectItem(tableContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            case "view":
+                await selectItem(viewContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            default:
+                break;
+        }
+        if (ctxMenuItems.length > 1) {
+            await keyboard.type(Key.Right);
+            await selectItem(clipBoardContextMenu.get(ctxMenuItems[1].trim()) as Number);
+        }
+    }
+};
+
 export const getLeftSectionButton = async (driver: WebDriver,
     sectionName: string,
     buttonName: string): Promise<WebElement> => {
@@ -104,6 +197,31 @@ export const getLeftSectionButton = async (driver: WebDriver,
 
     return btn!;
 };
+
+export const selectMoreActionsItem = async (driver: WebDriver,
+    section: string, item: string): Promise<void> => {
+
+    if (platform() === "win32") {
+        const contentPart = new SideBarView().getContent();
+        const dbSection = await contentPart.getSection(section);
+        await dbSection.click();
+        const ctx = await dbSection.moreActions();
+        const ctxItems = await ctx?.getItems();
+        for(const ctxItem of ctxItems!) {
+            if (await ctxItem.getLabel() === item) {
+                await ctxItem.click();
+                break;
+            }
+        }
+        await ctx!.close();
+    } else {
+        const moreActionsBtn = await getLeftSectionButton(driver, section, "More Actions...");
+        await moreActionsBtn?.click();
+        await driver.sleep(500);
+        await selectItem(moreActionsContextMenu.get(item) as Number);
+    }
+};
+
 
 export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConnection): Promise<void> => {
     const createConnBtn = await getLeftSectionButton(driver, "DATABASE", "Create New MySQL Connection");
@@ -174,15 +292,8 @@ export const getDB = async (driver: WebDriver, name: string): Promise<WebElement
     return db!;
 };
 
-export const selectItem = async (taps: number): Promise<void> => {
-    for (let i = 1; i <= taps; i++) {
-        await keyboard.type(Key.Down);
-    }
-    await keyboard.type(Key.Enter);
-};
-
 export const startServer = async (driver: WebDriver): Promise<ChildProcess> => {
-    const params = ["--py", "-e", "gui.start.web_server(port=8000)"];
+    const params = ["--py", "-e", "gui.start.web_server(port=8500)"];
     const prc = spawn("mysqlsh", params, {
         env: {
             detached: "true",
@@ -269,12 +380,6 @@ export const setFeedbackRequested = async (driver: WebDriver,
     await driver.switchTo().defaultContent();
 };
 
-export const getTreeElement = async (driver: WebDriver, section: string, el: string): Promise<WebElement> => {
-    const sec = await getLeftSection(driver, section);
-
-    return sec?.findElement(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
-};
-
 export const toggleTreeElement = async (driver: WebDriver, section: string,
     el: string, expanded: boolean): Promise<void> => {
     await driver.wait(async () => {
@@ -327,18 +432,9 @@ export const welcomeMySQLShell = async (): Promise<boolean> => {
     return flag;
 };
 
-export const deleteDBConnection = async (driver: WebDriver, dbName: string,
-    ctx: IContextMenu): Promise <void> => {
-    const el = await getTreeElement(driver, "DATABASE", dbName);
-    expect(el).to.exist;
+export const deleteDBConnection = async (driver: WebDriver, dbName: string): Promise <void> => {
 
-    await driver.actions()
-        .mouseMove(el)
-        .click(Button.RIGHT)
-        .perform();
-
-    await driver.sleep(500);
-    await selectItem(ctx.dbDelete);
+    await selectContextMenuItem(driver, "DATABASE", dbName, "connection", "Delete MySQL Connection");
 
     const editorView = new EditorView();
     await driver.wait(async () => {
@@ -351,12 +447,11 @@ export const deleteDBConnection = async (driver: WebDriver, dbName: string,
     await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
     await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
 
-
+    const item = driver.findElement(By.xpath("//label[contains(text(),'" + dbName + "')]"));
     const dialog = await driver.wait(until.elementLocated(
         By.css(".visible.confirmDialog")), 7000, "confirm dialog was not found");
     await dialog.findElement(By.id("accept")).click();
 
-    const item = driver.findElement(By.xpath("//label[contains(text(),'" + dbName + "')]"));
     await driver.wait(until.stalenessOf(item), 5000, "Database was not deleted");
     await driver.switchTo().defaultContent();
 };

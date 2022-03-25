@@ -2067,19 +2067,19 @@ describe("DB Editor", () => {
 
                 await enterCmd(driver, textArea, "Math.random();");
 
-                const result1 = await getOutput(driver, 1);
+                const result2 = await getOutput(driver, 2);
 
-                expect(result1).toMatch(new RegExp(/(\d+).(\d+)/));
+                expect(result2).toMatch(new RegExp(/(\d+).(\d+)/));
 
                 await enterCmd(driver, textArea, "\\typescript");
 
-                expect( await getOutput(driver, 2) ).toBe("Switched to Typescript mode");
+                expect( await getOutput(driver, 3) ).toBe("Switched to Typescript mode");
 
                 await enterCmd(driver, textArea, "Math.random();");
 
-                const result3 = await getOutput(driver, 3);
+                const result4 = await getOutput(driver, 4);
 
-                expect(result3).toMatch(new RegExp(/(\d+).(\d+)/));
+                expect(result4).toMatch(new RegExp(/(\d+).(\d+)/));
 
                 await textArea.sendKeys(Key.ARROW_UP);
 
@@ -2099,11 +2099,11 @@ describe("DB Editor", () => {
 
                 await pressEnter(driver);
 
-                const x = await getOutput(driver, 2);
+                const otherResult = await getOutput(driver, 3);
 
-                expect(x).toMatch(new RegExp(/(\d+).(\d+)/));
+                expect(otherResult).toMatch(new RegExp(/(\d+).(\d+)/));
 
-                expect( x !== result1).toBe(true);
+                expect( otherResult !== result2).toBe(true);
 
                 await textArea.sendKeys(Key.ARROW_DOWN);
 
@@ -2111,11 +2111,11 @@ describe("DB Editor", () => {
 
                 await pressEnter(driver);
 
-                const z = await getOutput(driver, 3);
+                const otherResult1 = await getOutput(driver, 4);
 
-                expect(z).toMatch(new RegExp(/(\d+).(\d+)/));
+                expect(otherResult1).toMatch(new RegExp(/(\d+).(\d+)/));
 
-                expect( z !== result3).toBe(true);
+                expect( otherResult1 !== result4).toBe(true);
             } catch(e) {
                 testFailed = true;
                 throw e;

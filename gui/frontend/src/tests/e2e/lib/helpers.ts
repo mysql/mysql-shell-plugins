@@ -697,7 +697,8 @@ export const getOpenEditor = async (driver: WebDriver, editor: string): Promise<
 };
 
 export const selectCurrentEditor = async (driver: WebDriver, editorName: string, editorType: string): Promise<void> => {
-    await driver.findElement(By.id("documentSelector")).click();
+    const selector = await driver.findElement(By.id("documentSelector"));
+    await driver.executeScript("arguments[0].click()", selector);
 
     await driver.wait(async () => {
         return (await driver.findElements(By.css("div.visible.dropdownList > div"))).length > 1;
@@ -735,11 +736,16 @@ export const selectCurrentEditor = async (driver: WebDriver, editorName: string,
 };
 
 export const getResultTab = async (driver: WebDriver, tabName: string): Promise<WebElement | undefined> => {
-    await driver.wait(until.elementsLocated(By.css(".tabArea")), 5000, "Tabs were not found in time");
-    const resultViews = await driver.findElements(By.xpath("//div[contains(@id, 'resultView')]"));
-    for (const result of resultViews) {
-        if (await (await result.findElement(By.css("label"))).getText() === tabName) {
-            return result;
+    const tabs = await driver.wait(until.elementsLocated(By.css(".resultHost .tabArea div")),
+        5000, "Tabs were not found in time");
+
+    for (const tab of tabs) {
+        if( await tab.getAttribute("id") !== "selectorItemstepDown" &&
+            await tab.getAttribute("id") !== "selectorItemstepUp") {
+            if (await (await tab.findElement(By.css("label"))).getText() === tabName) {
+
+                return tab;
+            }
         }
     }
 };
