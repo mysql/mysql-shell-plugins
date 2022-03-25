@@ -15,7 +15,7 @@
         "pixi-ease": "3.0.7",
         "pixi-scrollbox": "2.3.1",
         "pixi-viewport": "4.34.4",
-        "pixi.js": "6.2.2",
+        "pixi.js": "6.3.0",
         "preact": "10.6.6",
         "reconnecting-websocket": "4.4.0",
         "set-interval-async": "2.0.3",
