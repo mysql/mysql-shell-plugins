@@ -735,15 +735,19 @@ describe("DB Editor", () => {
             ).toContain("expanded");
 
             const table = await getSchemaObject(driver, "obj", "db_connection");
-            await driver
-                .actions()
-                .contextClick(table)
-                .perform();
 
-            await driver.wait(until.elementLocated(By.css(".noArrow.menu")), 2000, "No context menu was found");
+            await driver.wait(async () => {
+                await driver
+                    .actions()
+                    .contextClick(table)
+                    .perform();
+
+                return (await driver.findElements(By.css(".noArrow.menu"))).length > 0;
+            }, 4000, "Context menu was not opened");
+
             await driver.findElement(By.id("selectRowsMenuItem")).click();
 
-            expect(await getResultStatus(driver, 1)).toContain(
+            expect(await getResultStatus(driver, 1, true)).toContain(
                 "OK, 1 record retrieved",
             );
 
@@ -1202,7 +1206,7 @@ describe("DB Editor", () => {
                 execSelNew = await getToolbarButton(driver,"Execute selection or full block and create a new block");
                 await execSelNew?.click();
 
-                expect(await getResultStatus(driver, 4)).toContain(
+                expect(await getResultStatus(driver, 4, true)).toContain(
                     "OK, 1 record retrieved",
                 );
 
@@ -2001,9 +2005,9 @@ describe("DB Editor", () => {
                     )
                 )!.click();
 
-                const result1 = await getResultTab(driver, "Result 1");
+                const result1 = await getResultTab(driver, "Result #1");
 
-                const result2 = await getResultTab(driver, "Result 2");
+                const result2 = await getResultTab(driver, "Result #2");
 
                 expect(result1).toBeDefined();
 
@@ -2269,7 +2273,7 @@ describe("DB Editor", () => {
 
                 await enterCmd(driver, textArea, `/*!${serverVer} select * from actor;*/`);
 
-                expect(await getResultStatus(driver, 2)).toMatch(
+                expect(await getResultStatus(driver, 2, true)).toMatch(
                     new RegExp(/OK, (\d+) records retrieved/),
                 );
 

@@ -189,32 +189,40 @@ export const getToolbarButton = async (driver: WebDriver, button: string): Promi
     return undefined;
 };
 
-export const getResultStatus = async (driver: WebDriver, blockNbr: number): Promise<string> => {
+export const getResultStatus = async (driver: WebDriver, blockNbr: number, isSelect?: boolean): Promise<string> => {
     let results: WebElement[] | undefined;
+    let obj = "";
+    if (isSelect) {
+        obj = "label";
+    } else {
+        obj = "span";
+    }
     await driver.wait(
         async (driver) => {
-            results = await driver.findElements(By.css(".resultStatus label"));
-            await driver
-                .actions()
-                .move({
-                    x: 21,
-                    y: 90,
-                    origin: await driver.findElement(
-                        By.css("canvas.minimap-decorations-layer"),
-                    ),
-                })
-                .press()
-                .perform();
+            results = await driver.findElements(By.css(".zoneHost"));
+            const about = await results[0].findElement(By.css("span"));
+            //first element is usually the about info
+            if ( (await about.getText()).indexOf("Welcome") !== -1 ) {
+                results.shift();
+            }
+            if(results.length > 0) {
+                if ( (await results[0].findElements(By.css(".message.info"))).length > 0 ) {
+                    //if languange has been changed...
+                    results.shift();
+                }
+            } else {
+                return false;
+            }
 
-            return results[blockNbr - 1] !== undefined;
+            return results[blockNbr-1] !== undefined;
         },
         7000,
         `Result Status is undefined (block number ${blockNbr})`,
     );
 
-    const block = results![blockNbr - 1];
+    const block = await results![blockNbr-1].findElement(By.css(obj));
 
-    return block.getText();
+    return block.getAttribute("innerHTML");
 };
 
 export const getConnectionTab = async (driver: WebDriver, id: string): Promise<WebElement> => {
@@ -583,6 +591,12 @@ export const replacerGetButton = async (el: WebElement, button: string): Promise
 
 export const getSchemaObject = async (driver: WebDriver,
     objType: string, objName: string): Promise<WebElement | undefined> => {
+    const scroll = await driver
+        .findElement(By.id("schemaSectionHost"))
+        .findElement(By.css(".tabulator-tableholder"));
+
+    await driver.executeScript("arguments[0].scrollBy(0,-1000)", scroll);
+
     const sectionHost = await driver.findElement(By.id("schemaSectionHost"));
     let level: number;
     switch (objType) {
@@ -645,12 +659,6 @@ export const getSchemaObject = async (driver: WebDriver,
     };
 
     const item: WebElement | undefined = await findItem(0);
-
-    const scroll = await driver
-        .findElement(By.id("schemaSectionHost"))
-        .findElement(By.css(".tabulator-tableholder"));
-
-    await driver.executeScript("arguments[0].scrollBy(0,-1000)", scroll);
 
     return item;
 };
