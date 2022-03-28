@@ -148,15 +148,19 @@ class DbModuleSession(ModuleSession):
                                                     request_id,
                                                     data)
 
-    def open_connection(self, db_connection_id, password, request_id):
+    def open_connection(self, connection, password, request_id):
         # Closes the existing connections if any
         self.close_connection()
 
         self._current_request_id = request_id
-        db = self.web_session.db
 
-        self._db_type, options = db.get_connection_details(db_connection_id)
-        if not password is None:
+        if isinstance(connection, int):
+            self._db_type, options = self.web_session.db.get_connection_details(connection)
+        elif isinstance(connection, dict):
+            self._db_type = connection['db_type']
+            options = connection['options']
+
+        if password is not None:
             # Override the password
             options['password'] = password
 

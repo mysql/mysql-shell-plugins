@@ -291,6 +291,7 @@ export interface IShellCreateDbSystemKwargs {
 export interface IShellDeleteDbSystemKwargs {
     dbSystemName?: string;
     dbSystemId?: string;
+    awaitCompletion?: boolean;
     ignoreCurrent?: boolean;
     compartmentId?: string;
     config?: IShellDictionary;
@@ -1179,6 +1180,7 @@ export class ProtocolMds extends Protocol {
             kwargsToUse = {
                 db_system_name: kwargs.dbSystemName,
                 db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
                 ignore_current: kwargs.ignoreCurrent,
                 compartment_id: kwargs.compartmentId,
                 config: kwargs.config,

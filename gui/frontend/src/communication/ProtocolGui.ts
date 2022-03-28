@@ -48,6 +48,7 @@ export enum ShellAPIGui {
     GuiDbconnectionsSetCredential = "gui.dbconnections.set_credential",
     GuiDbconnectionsDeleteCredential = "gui.dbconnections.delete_credential",
     GuiDbconnectionsListCredentials = "gui.dbconnections.list_credentials",
+    GuiDbconnectionsTestConnection = "gui.dbconnections.test_connection",
     GuiMdsIsGuiModuleBackend = "gui.mds.is_gui_module_backend",
     GuiMdsGetGuiModuleDisplayInfo = "gui.mds.get_gui_module_display_info",
     GuiModelerIsGuiModuleBackend = "gui.modeler.is_gui_module_backend",
@@ -150,6 +151,12 @@ export interface IShellDbConnection {
     dbType: string;
     caption: string;
     description: string;
+    options: IShellDictionary;
+}
+
+
+export interface IShellDbconnectionsTestConnectionConnection {
+    dbType: string;
     options: IShellDictionary;
 }
 
@@ -583,6 +590,30 @@ export class ProtocolGui extends Protocol {
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbconnectionsListCredentials,
             {
                 args: {},
+            });
+    }
+
+    /**
+     * Opens test connection
+     *
+     * @param connection The connection information
+     * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
+     *
+     * @returns A dict holding the result message.
+     */
+    public static getRequestDbconnectionsTestConnection(connection: IShellDbconnectionsTestConnectionConnection, password?: string): IShellRequest {
+
+        const connectionToUse = {
+            db_type: connection.dbType,
+            options: connection.options,
+        };
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbconnectionsTestConnection,
+            {
+                args: {
+                    connection: connectionToUse,
+                    password,
+                },
             });
     }
 
