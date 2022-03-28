@@ -45,7 +45,7 @@ Object {
                 class="msg label"
                 data-tooltip="inherit"
               >
-                Result #0
+                Result #1
               </label>
             </div>
             <div
@@ -61,7 +61,7 @@ Object {
                 class="msg label"
                 data-tooltip="inherit"
               >
-                Result #0
+                Result #2
               </label>
             </div>
             <div
@@ -136,7 +136,7 @@ Object {
               class="msg label"
               data-tooltip="inherit"
             >
-              Result #0
+              Result #1
             </label>
           </div>
           <div
@@ -152,7 +152,7 @@ Object {
               class="msg label"
               data-tooltip="inherit"
             >
-              Result #0
+              Result #2
             </label>
           </div>
           <div

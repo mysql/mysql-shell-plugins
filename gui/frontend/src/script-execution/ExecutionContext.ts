@@ -99,6 +99,12 @@ export class ExecutionContext implements IExecutionContext {
                         list.push(value.head.requestId);
                     });
 
+                    data.output?.forEach((value) => {
+                        if (value.requestId) {
+                            list.push(value.requestId);
+                        }
+                    });
+
                     result = {
                         type: "requestIds",
                         list,

@@ -151,7 +151,14 @@ export class PresentationInterface {
             }
 
             case "resultSets": {
-                return this.resultData.sets.map((set) => { return set.head.requestId; });
+                const set1 = this.resultData.sets.map((set) => { return set.head.requestId; });
+                const set2 = this.resultData.output?.map((entry) => { return entry.requestId ?? ""; });
+
+                if (set2) {
+                    return [...set1, ...set2];
+                }
+
+                return set1;
             }
 
             default: {
@@ -432,7 +439,7 @@ export class PresentationInterface {
                     } else {
                         this.resultData.output?.push({
                             type: MessageType.Error,
-                            index: -1,
+                            requestId: data.requestId,
                             content: data.executionInfo?.text ?? "<no info>",
                             language: "ansi",
                         });
@@ -752,7 +759,7 @@ export class PresentationInterface {
         if (resultSets.length === 0 && data.executionInfo) {
             this.resultData.output?.push({
                 type: MessageType.Info,
-                index: -1,
+                requestId: data.requestId,
                 content: data.executionInfo.text,
                 language: "ansi",
             });
@@ -793,6 +800,7 @@ export class PresentationInterface {
                     this.resultData.output?.push({
                         type: data.executionInfo.type ?? MessageType.Info,
                         index: resultSet.index,
+                        requestId: resultSet.head.requestId,
                         content: data.executionInfo.text,
                         language: "ansi",
                     });

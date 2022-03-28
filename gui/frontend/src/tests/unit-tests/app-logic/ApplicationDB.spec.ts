@@ -35,7 +35,6 @@ describe("ApplicationDB tests", () => {
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
-            index: -1,
         });
 
         let data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "tabIndex", "1");
@@ -57,17 +56,18 @@ describe("ApplicationDB tests", () => {
         await ApplicationDB.db.put(StoreType.DbEditor, {
             tabId: "2",
             requestId: "456",
+            index: 888,
             rows: [],
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
-            index: -1,
         });
 
         let data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "123");
         expect(data.length).toBe(0);
         data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
         expect(data.length).toBe(1);
+        expect(data[0].index).toBe(888);
 
         await ApplicationDB.removeDataByRequestIds(StoreType.DbEditor, ["0", "1000"]);
         data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
@@ -92,17 +92,16 @@ describe("ApplicationDB tests", () => {
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
-            index: -1,
         });
 
         await ApplicationDB.db.put(StoreType.DbEditor, {
             tabId: "3",
             requestId: "456",
+            index: 99,
             rows: [],
             sql: "",
             currentPage: 1,
             hasMoreRows: false,
-            index: -1,
         });
 
         // Close and reopen with the same DB version. Should keep the data.

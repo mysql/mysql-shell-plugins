@@ -23,6 +23,7 @@
 
 import { ExecutionContext, IExecutionResult, IResultSet, SQLExecutionContext } from ".";
 import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB";
+import { MessageType } from "../app-logic/Types";
 import { IExecutionContextsState, IPosition } from "../components/ui/CodeEditor";
 import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor";
 import { IStatementSpan } from "../parsing/parser-common";
@@ -113,6 +114,7 @@ export class ExecutionContexts {
         this.content.forEach((context: ExecutionContext) => {
             return context.dispose();
         });
+
         this.content.splice(0, this.content.length);
         states.forEach((state: IExecutionContextsState) => {
             const presentation = factory(editor, state.language);
@@ -127,10 +129,26 @@ export class ExecutionContexts {
                         const result: IExecutionResult = {
                             type: "resultSets",
                             sets: [],
+                            output: [],
                         };
 
                         this.loadResultSets(state.result.list).then((resultSets) => {
-                            result.sets = resultSets;
+                            // Remove any result with no columns or rows and add their execution info the output list.
+                            resultSets.forEach((set) => {
+                                if (set.data.columns.length === 0 || set.data.rows.length === 0) {
+                                    result.output?.push({
+                                        type: set.data.executionInfo?.type ?? MessageType.Info,
+                                        index: set.index,
+                                        requestId: set.head.requestId,
+                                        content: set.data.executionInfo?.text ?? "",
+                                        language: "ansi",
+                                    });
+                                }
+                            });
+
+                            result.sets = resultSets.filter((value) => {
+                                return value.data.columns.length > 0 && value.data.rows.length > 0;
+                            });
                             context.setResult(result, state.currentHeight);
                         }).catch(() => {
                             // Ignore load errors.
@@ -294,7 +312,6 @@ export class ExecutionContexts {
         for await (const requestId of requestIds) {
             const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", requestId);
             const set: IResultSet = {
-                index: -1,
                 head: {
                     requestId,
                     sql: "",

@@ -33,7 +33,6 @@ describe("Result view tests", (): void => {
         const component = mount<IResultViewProperties>(
             <ResultView
                 resultSet={{
-                    index: -1,
                     head: {
                         sql: "select 1",
                         requestId: "123",
@@ -56,7 +55,6 @@ describe("Result view tests", (): void => {
         const component = render(
             <ResultView
                 resultSet={{
-                    index: -1,
                     head: {
                         sql: "select 1",
                         requestId: "123",

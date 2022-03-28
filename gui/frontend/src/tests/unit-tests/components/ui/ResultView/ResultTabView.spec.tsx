@@ -34,7 +34,6 @@ describe("Result tabview tests", (): void => {
                 resultSets={{
                     type: "resultSets",
                     sets: [{
-                        index: -1,
                         head: {
                             sql: "select 1",
                             requestId: "123",
@@ -46,7 +45,6 @@ describe("Result tabview tests", (): void => {
                             currentPage: 0,
                         },
                     }, {
-                        index: -1,
                         head: {
                             sql: "select 2",
                             requestId: "456",
@@ -74,7 +72,6 @@ describe("Result tabview tests", (): void => {
                 resultSets={{
                     type: "resultSets",
                     sets: [{
-                        index: -1,
                         head: {
                             sql: "select 1",
                             requestId: "123",
@@ -86,7 +83,6 @@ describe("Result tabview tests", (): void => {
                             currentPage: 0,
                         },
                     }, {
-                        index: -1,
                         head: {
                             sql: "select 2",
                             requestId: "456",

@@ -112,32 +112,23 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         if ((resultSets?.output?.length ?? 0) > 0) {
             const labels: React.ReactElement[] = [];
 
-            resultSets?.output?.forEach((entry, index) => {
-                // If there is just one output entry and no result sets, do not add the cmdIndex
-                if ((resultSets?.output?.length ?? 0) === 1 && (resultSets?.sets?.length ?? 0) === 0) {
-                    labels.push(
+            resultSets?.output?.forEach((entry, index, sets) => {
+                // Show an index number before an entry in the output tab, for easier reference (if given).
+                // However, do not add that if there's only a single output entry and no result set.
+                const addIndexLabel = entry.index !== undefined && (sets.length > 1 || resultSets?.sets.length > 0);
+                labels.push(
+                    <Container orientation={Orientation.LeftToRight}>
+                        {
+                            addIndexLabel && <Label className="cmdIndex" caption={`#${entry.index! + 1}: `} />
+                        }
                         <Label
                             language={entry.language}
-                            key={`text${index}`}
+                            key={`text${entry.index ?? index}`}
                             caption={entry.content}
                             type={entry.type}
-                        />,
-                    );
-                } else {
-                    labels.push(
-                        <Container orientation={Orientation.LeftToRight}>
-                            {
-                                entry.index > -1 && <Label className="cmdIndex" caption={`#${entry.index + 1}: `} />
-                            }
-                            <Label
-                                language={entry.language}
-                                key={`text${index}`}
-                                caption={entry.content}
-                                type={entry.type}
-                            />
-                        </Container>,
-                    );
-                }
+                        />
+                    </Container>,
+                );
             });
 
             pages.push({
@@ -154,13 +145,13 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
             });
         }
 
-        resultSets.sets.forEach((resultSet: IResultSet) => {
+        resultSets.sets.forEach((resultSet: IResultSet, index) => {
             const ref = React.createRef<ResultView>();
             this.viewRefs.set(resultSet.head.requestId, ref);
 
             pages.push({
                 id: resultSet.head.requestId,
-                caption: `Result #${resultSet.index + 1}`,
+                caption: `Result #${(resultSet.index ?? index) + 1}`,
                 content: (
                     <ResultView
                         ref={ref}

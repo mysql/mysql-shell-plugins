@@ -203,7 +203,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     context?.setResult({
                         type: "text",
                         requestId: "",
-                        text: [{ type: MessageType.Info, index: -1, content, language: "ansi" }],
+                        text: [{ type: MessageType.Info, content, language: "ansi" }],
                     });
 
                     return;

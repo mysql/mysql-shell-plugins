@@ -58,7 +58,13 @@ export const mapCompletionKind: Map<LanguageCompletionKind, languages.Completion
 
 export interface ITextResultEntry {
     type: MessageType;
-    index: number;
+
+    // An optional index to map a text result entry to a command that produced it in an editor.
+    index?: number;
+
+    // An option value to denote the request from which this output was generated.
+    requestId?: string;
+
     content: string;
     language?: ResultTextLanguage;
 }
@@ -98,7 +104,9 @@ export interface IResultSetHead {
 }
 
 export interface IResultSet {
-    index: number;
+    // An optional index to map a result set to a query that produced it.
+    index?: number;
+
     head: IResultSetHead;
     data: IResultSetContent;
 }

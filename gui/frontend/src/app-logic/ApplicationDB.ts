@@ -49,8 +49,8 @@ export interface IDbModuleResultData {
     currentPage: number;
     hasMoreRows: boolean;
 
-    // Describes the query from which this entry was produced.
-    index: number;
+    // An optional value to map a result set to the query that produced it.
+    index?: number;
 
     // SQL text exists only for the start response.
     sql?: string;

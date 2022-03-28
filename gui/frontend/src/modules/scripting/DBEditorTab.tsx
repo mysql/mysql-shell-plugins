@@ -974,7 +974,7 @@ Execute \\help or \\? for help;`;
                     context?.setResult({
                         type: "text",
                         requestId: "",
-                        text: [{ type: MessageType.Info, index: -1, content, language: "ansi" }],
+                        text: [{ type: MessageType.Info, content, language: "ansi" }],
                     });
                     runExecution = false;
 
@@ -987,7 +987,6 @@ Execute \\help or \\? for help;`;
                         requestId: "",
                         text: [{
                             type: MessageType.Info,
-                            index: -1,
                             content: "Reconnecting the current DB connection ...\n",
                             language: "ansi",
                         }],
@@ -1059,7 +1058,6 @@ Execute \\help or \\? for help;`;
                     type: "text",
                     text: [{
                         type: MessageType.Info,
-                        index: -1,
                         content: status,
                         language: "ansi",
                     }],
@@ -1082,7 +1080,6 @@ Execute \\help or \\? for help;`;
                                 type: "text",
                                 text: [{
                                     type: MessageType.Error,
-                                    index: -1,
                                     content: String(data.result),
                                     language: "ansi",
                                 }],
@@ -1097,7 +1094,6 @@ Execute \\help or \\? for help;`;
                                 type: "text",
                                 text: [{
                                     type: MessageType.Info,
-                                    index: -1,
                                     content: String(data.result),
                                 }],
                             }).then((added) => {
@@ -1238,7 +1234,6 @@ Execute \\help or \\? for help;`;
                         type: "text",
                         text: [{
                             type: MessageType.Info,
-                            index: -1,
                             content: String(data.value),
                         }],
                     }).then((added) => {
