@@ -60,7 +60,7 @@ export const connContextMenu = new Map<string, Number> ([
 
 export const schemaContextMenu = new Map<string, Number> ([
     ["Copy To Clipboard", 3],
-    ["Drop Schema", 4],
+    ["Drop Schema...", 4],
 ]);
 
 export const restContextMenu = new Map<string, Number> ([
@@ -109,6 +109,13 @@ export const getLeftSection = async (driver: WebDriver, name: string): Promise<W
     expect(ctx).to.exist;
 
     return ctx!;
+};
+
+export const existsTreeElement = async (driver: WebDriver, section: string, el: string): Promise<boolean> => {
+    const sec = await getLeftSection(driver, section);
+    const els = await sec?.findElements(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
+
+    return els.length > 0;
 };
 
 export const getTreeElement = async (driver: WebDriver, section: string, el: string): Promise<WebElement> => {

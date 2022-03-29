@@ -54,6 +54,7 @@ import {
     selectContextMenuItem,
     selectMoreActionsItem,
     initTree,
+    existsTreeElement,
 } from "../lib/helpers";
 
 import { ChildProcess } from "child_process";
@@ -622,56 +623,66 @@ describe("MySQL Shell for VS", () => {
 
         });
 
-        //has bug https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33945767
-        it.skip("Schema Context Menu - Drop Schema", async () => {
-            await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
-                "Open MySQL Shell GUI Console for this Connection");
+        it("Schema Context Menu - Drop Schema", async () => {
 
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
-            await driver.switchTo().frame(0);
-            await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-            await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell Consoles")));
-
-            await setEditorLanguage(driver, "sql");
-            const editor = await driver.findElement(By.id("shellEditorHost"));
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
-            );
-
-            const textArea = await editor.findElement(By.css("textArea"));
-            await enterCmd(driver, textArea, "create schema testSchema;");
-
-            const zoneHost = await driver.findElements(By.css(".zoneHost"));
-            const result = await zoneHost[zoneHost.length - 1].findElement(By.css("div.message.info")).getText();
-            expect(result).to.contain("0 rows in set");
-
-            await driver.switchTo().defaultContent();
+            const random = String(Math.floor(Math.random() * 100));
+            const testSchema = `testSchema${random}`;
 
             const reloadConnsBtn = await getLeftSectionButton(driver, "DATABASE", "Reload the connection list");
-            await reloadConnsBtn?.click();
 
             await toggleTreeElement(driver, "DATABASE", conn.caption, true);
 
-            await selectContextMenuItem(driver, "DATABASE", conn.caption, "schema", "Drop Schema...");
+            if ( !(await existsTreeElement(driver, "DATABASE", testSchema))) {
+
+                await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
+                    "Open MySQL Shell GUI Console for this Connection");
+
+                const editors = await new EditorView().getOpenEditorTitles();
+                expect(editors).to.include.members(["MySQL Shell Consoles"]);
+
+                await driver.switchTo().frame(0);
+                await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+                await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell Consoles")));
+
+                await setEditorLanguage(driver, "sql");
+                const editor = await driver.findElement(By.id("shellEditorHost"));
+
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await editor.findElement(By.css(".current-line")),
+                );
+
+                const textArea = await editor.findElement(By.css("textArea"));
+                await enterCmd(driver, textArea, `create schema ${testSchema};`);
+
+                const zoneHost = await driver.findElements(By.css(".zoneHost"));
+                const result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getText();
+                expect(result).to.contain("0 rows in set");
+
+                await driver.switchTo().defaultContent();
+
+                await reloadConnsBtn?.click();
+
+            }
+
+            await selectContextMenuItem(driver, "DATABASE", testSchema, "schema", "Drop Schema...");
 
             const ntf = await driver.findElement(By.css(".notifications-toasts.visible"));
-            await ntf.findElement(By.xpath("//a[contains(@title, 'Drop testSchema')]")).click();
+            await ntf.findElement(By.xpath(`//a[contains(@title, 'Drop ${testSchema}')]`)).click();
 
             const msg = await driver.findElement(By.css(".notification-list-item-message > span"));
             await driver.wait(until.elementTextIs(msg,
-                "The object testSchema has been dropped successfully."), 3000, "Text was not found");
+                `The object ${testSchema} has been dropped successfully.`), 3000, "Text was not found");
+
+            await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
             const sec = await getLeftSection(driver, "DATABASE");
-            const reloadDb = await sec?.findElement(By.xpath("//a[contains(@title, 'Reload Database Information')]"));
-            await reloadDb?.click();
+            await sec.click();
+            await reloadConnsBtn?.click();
             await driver.wait(async () => {
                 return (await sec?.findElements(By.xpath(
-                    "//div[contains(@aria-label, 'testSchema') and contains(@role, 'treeitem')]")))!.length === 0;
-            }, 50000, "testSchema is still on the list");
+                    `//div[contains(@aria-label, '${testSchema}') and contains(@role, 'treeitem')]`)))!.length === 0;
+            }, 5000, `${testSchema} is still on the list`);
 
         });
 
@@ -773,60 +784,80 @@ describe("MySQL Shell for VS", () => {
 
         });
 
-        it.skip("Table Context Menu - Drop Table", async () => {
-            await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
-                "Open MySQL Shell GUI Console for this Connection");
+        it("Table Context Menu - Drop Table", async () => {
 
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
-            await driver.switchTo().frame(0);
-            await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-            await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell Consoles")));
-
-            await setEditorLanguage(driver, "sql");
-            const editor = await driver.findElement(By.id("shellEditorHost"));
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
-            );
-
-            const textArea = await editor.findElement(By.css("textArea"));
-            await enterCmd(driver, textArea, `use ${conn.schema};`);
-
-            let zoneHost = await driver.findElements(By.css(".zoneHost"));
-            let result = await zoneHost[zoneHost.length - 1].findElement(By.css("div.message.info")).getText();
-            expect(result).to.contain("0 rows in set");
-
-            await enterCmd(driver, textArea, "create table testTable (id int, name VARCHAR(50));");
-            zoneHost = await driver.findElements(By.css(".zoneHost"));
-            result = await zoneHost[zoneHost.length - 1].findElement(By.css("div.message.info")).getText();
-            expect(result).to.contain("OK");
-
-            await driver.switchTo().defaultContent();
+            const random = String(Math.floor(Math.random() * 100));
+            const testTable = `testTable${random}`;
 
             const reloadConnsBtn = await getLeftSectionButton(driver, "DATABASE", "Reload the connection list");
-            await reloadConnsBtn?.click();
 
             await toggleTreeElement(driver, "DATABASE", conn.caption, true);
+            await toggleTreeElement(driver, "DATABASE", conn.schema, true);
+            await toggleTreeElement(driver, "DATABASE", "Tables", true);
 
-            await selectContextMenuItem(driver, "DATABASE", "testTable", "table", "Drop Table...");
+            if ( !(await existsTreeElement(driver, "DATABASE", testTable))) {
+                await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
+                    "Open MySQL Shell GUI Console for this Connection");
+
+                const editors = await new EditorView().getOpenEditorTitles();
+                expect(editors).to.include.members(["MySQL Shell Consoles"]);
+
+                await driver.switchTo().frame(0);
+                await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+                await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell Consoles")));
+
+                await setEditorLanguage(driver, "sql");
+                const editor = await driver.findElement(By.id("shellEditorHost"));
+
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await editor.findElement(By.css(".current-line")),
+                );
+
+                const textArea = await editor.findElement(By.css("textArea"));
+                await enterCmd(driver, textArea, `use ${conn.schema};`);
+
+                let zoneHost = await driver.findElements(By.css(".zoneHost"));
+                let result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
+                expect(result).to.contain(`Default schema set to \`${conn.schema}\`.`);
+
+                const prevZoneHosts = await driver.findElements(By.css(".zoneHost"));
+
+                await enterCmd(driver, textArea, `create table ${testTable} (id int, name VARCHAR(50));`);
+
+                await driver.wait(async () => {
+                    return (await driver.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
+                }, 7000, "New results block was not found");
+
+                zoneHost = await driver.findElements(By.css(".zoneHost"));
+                result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
+                expect(result).to.contain("0 rows in set");
+
+                await driver.switchTo().defaultContent();
+
+                await reloadConnsBtn?.click();
+
+            }
+
+            await selectContextMenuItem(driver, "DATABASE", testTable, "table", "Drop Table...");
 
             const ntf = await driver.findElement(By.css(".notifications-toasts.visible"));
-            await ntf.findElement(By.xpath("//a[contains(@title, 'Drop testTable')]")).click();
+            await ntf.findElement(By.xpath(`//a[contains(@title, 'Drop ${testTable}')]`)).click();
 
             const msg = await driver.findElement(By.css(".notification-list-item-message > span"));
             await driver.wait(until.elementTextIs(msg,
-                "The object testTable has been dropped successfully."), 3000, "Text was not found");
+                `The object ${testTable} has been dropped successfully.`), 3000, "Text was not found");
+
+            await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
             const sec = await getLeftSection(driver, "DATABASE");
-            const reloadDb = await sec?.findElement(By.xpath("//a[contains(@title, 'Reload Database Information')]"));
-            await reloadDb?.click();
+            await sec.click();
+            await reloadConnsBtn?.click();
+
             await driver.wait(async () => {
                 return (await sec?.findElements(By.xpath(
                     "//div[contains(@aria-label, 'testTable') and contains(@role, 'treeitem')]")))!.length === 0;
-            }, 50000, "testTable is still on the list");
+            }, 5000, `${testTable} is still on the list`);
 
         });
 
@@ -943,7 +974,7 @@ describe("MySQL Shell for VS", () => {
 
         });
 
-        it.skip("View Context Menu - Drop View", async () => {
+        it("View Context Menu - Drop View", async () => {
             await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
                 "Open MySQL Shell GUI Console for this Connection");
 
@@ -966,13 +997,23 @@ describe("MySQL Shell for VS", () => {
             await enterCmd(driver, textArea, `use ${conn.schema};`);
 
             let zoneHost = await driver.findElements(By.css(".zoneHost"));
-            let result = await zoneHost[zoneHost.length - 1].findElement(By.css("div.message.info")).getText();
-            expect(result).to.contain("0 rows in set");
+            let result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
+            expect(result).to.contain(`Default schema set to \`${conn.schema}\`.`);
 
-            await enterCmd(driver, textArea, "CREATE VIEW testView as select * from sakila.actor;");
+            const random = String(Math.floor(Math.random() * 100));
+            const testView = `testview${random}`;
+
+            const prevZoneHosts = await driver.findElements(By.css(".zoneHost"));
+
+            await enterCmd(driver, textArea, `CREATE VIEW ${testView} as select * from sakila.actor;`);
+
+            await driver.wait(async () => {
+                return (await driver.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
+            }, 7000, "New results block was not found");
+
             zoneHost = await driver.findElements(By.css(".zoneHost"));
-            result = await zoneHost[zoneHost.length - 1].findElement(By.css("div.message.info")).getText();
-            expect(result).to.contain("OK");
+            result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
+            expect(result).to.contain("0 rows in set");
 
             await driver.switchTo().defaultContent();
 
@@ -980,23 +1021,28 @@ describe("MySQL Shell for VS", () => {
             await reloadConnsBtn?.click();
 
             await toggleTreeElement(driver, "DATABASE", conn.caption, true);
+            await toggleTreeElement(driver, "DATABASE", conn.schema, true);
+            await toggleTreeElement(driver, "DATABASE", "Views", true);
 
-            await selectContextMenuItem(driver, "DATABASE", "testView", "view", "Drop View...");
+            await selectContextMenuItem(driver, "DATABASE", testView, "view", "Drop View...");
 
             const ntf = await driver.findElement(By.css(".notifications-toasts.visible"));
-            await ntf.findElement(By.xpath("//a[contains(@title, 'Drop testTable')]")).click();
+            await ntf.findElement(By.xpath(`//a[contains(@title, 'Drop ${testView}')]`)).click();
 
             const msg = await driver.findElement(By.css(".notification-list-item-message > span"));
             await driver.wait(until.elementTextIs(msg,
-                "The object testView has been dropped successfully."), 3000, "Text was not found");
+                `The object ${testView} has been dropped successfully.`), 3000, "Text was not found");
+
+            await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
             const sec = await getLeftSection(driver, "DATABASE");
-            const reloadDb = await sec?.findElement(By.xpath("//a[contains(@title, 'Reload Database Information')]"));
-            await reloadDb?.click();
+            await sec.click();
+            await reloadConnsBtn?.click();
+
             await driver.wait(async () => {
                 return (await sec?.findElements(By.xpath(
-                    "//div[contains(@aria-label, 'testView') and contains(@role, 'treeitem')]")))!.length === 0;
-            }, 50000, "testView is still on the list");
+                    `//div[contains(@aria-label, '${testView}') and contains(@role, 'treeitem')]`)))!.length === 0;
+            }, 5000, `${testView} is still on the list`);
 
         });
 
