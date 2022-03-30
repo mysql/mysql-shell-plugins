@@ -57,6 +57,7 @@
         "incomming",
         "pydevd",
         "SIGUSR",
-        "dbsession"
+        "dbsession",
+        "backenddb"
     ]
 }

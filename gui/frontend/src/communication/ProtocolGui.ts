@@ -49,6 +49,7 @@ export enum ShellAPIGui {
     GuiDbconnectionsDeleteCredential = "gui.dbconnections.delete_credential",
     GuiDbconnectionsListCredentials = "gui.dbconnections.list_credentials",
     GuiDbconnectionsTestConnection = "gui.dbconnections.test_connection",
+    GuiDbconnectionsMoveConnection = "gui.dbconnections.move_connection",
     GuiMdsIsGuiModuleBackend = "gui.mds.is_gui_module_backend",
     GuiMdsGetGuiModuleDisplayInfo = "gui.mds.get_gui_module_display_info",
     GuiModelerIsGuiModuleBackend = "gui.modeler.is_gui_module_backend",
@@ -613,6 +614,31 @@ export class ProtocolGui extends Protocol {
                 args: {
                     connection: connectionToUse,
                     password,
+                },
+            });
+    }
+
+    /**
+     * updates the connections sort order for the given profile
+     *
+     * @param profileId The id of the profile
+     * @param folderPath The folder path used for grouping and nesting connections
+     * @param connectionIdToMove The id of the connection to move
+     * @param connectionIdOffset The id of the offset connection
+     * @param before Indicates whether connection_id_to_move should be moved before connection_id_offset or after
+     *
+     * @returns string: The connection_id in a result JSON string
+     */
+    public static getRequestDbconnectionsMoveConnection(profileId: number, folderPath: string, connectionIdToMove: number, connectionIdOffset: number, before = false): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbconnectionsMoveConnection,
+            {
+                args: {
+                    profile_id: profileId,
+                    folder_path: folderPath,
+                    connection_id_to_move: connectionIdToMove,
+                    connection_id_offset: connectionIdOffset,
+                    before,
                 },
             });
     }

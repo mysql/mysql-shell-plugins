@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 from gui_plugin.dbconnections import DbConnections
+from gui_plugin.users import UserManagement
 import config
 import pytest
 
@@ -72,23 +73,13 @@ def test_db_types():
     validate_response(results)
     validate_rows(results['db_type'], validate_db_type_row)
 
-
-# def test_list():
-#     results = DbConnections.list_db_connections(1)
-
-#     validate_response(results)
-#     validate_rows(results['rows'], validate_connection_row)
-
-# def test_get_db_connection():
-#     connection_id = 1
-#     connection = DbConnections.get_db_connection(connection_id)
-
-#     assert connection
-#     assert 'rows' in connection
-#     assert len(connection['rows']) > 0
-#     assert len(connection['rows'][0]) > 0
-#     assert connection['rows'][0]['id'] == connection_id
-
+def validate_connections_sort_order(connections, expected):
+    i=0
+    for conn in connections:
+        assert conn['caption'] == expected[i]['caption']
+        assert conn['index'] > 0 and conn['index'] <= len(connections)
+        assert conn['index'] == expected[i]['index']
+        i+=1
 
 class TestDbConnectionsSqlite:
     def test_add_db_connection(self):
@@ -236,3 +227,228 @@ class TestDbConnectionMySQL:
             }, 'tests')
 
         assert str(exp.value) == "Error[MSG-1012]: The connection must contain valid caption."
+
+    def test_sort_connection_mysql(self):
+        default_root_config = config.Config.get_instance().database_connections[0]
+        user_name = "test_sort_user"
+        user = UserManagement.create_user(user_name, "user1", role='User')
+        user_id = user['id']
+        assert user_id > 0
+        profile = {'name': 'New test profile',
+                'description': 'Profile description.', 'options': {}}
+
+        msg = UserManagement.add_profile(user_id, profile)
+        profile_id = int(msg["result"].get("id"))
+        assert profile_id > 0
+
+        result = DbConnections.add_db_connection(profile_id, {
+            "db_type": default_root_config['type'],
+            "caption": "This is a test MySQL database 1",
+            "description": "This is a test MySQL database description 1",
+            "options": {
+                'host': default_root_config['options']['host'],
+                'port': default_root_config['options']['port'],
+                'user': default_root_config['options']['user'],
+                'password': default_root_config['options']['password'],
+                'scheme': default_root_config['options']['scheme']
+            }
+        }, 'sort_tests')
+        conn1_id = result['result']['db_connection_id']
+
+        result = DbConnections.add_db_connection(profile_id, {
+            "db_type": default_root_config['type'],
+            "caption": "This is a test MySQL database 2",
+            "description": "This is a test MySQL database description 2",
+            "options": {
+                'host': default_root_config['options']['host'],
+                'port': default_root_config['options']['port'],
+                'user': default_root_config['options']['user'],
+                'password': default_root_config['options']['password'],
+                'scheme': default_root_config['options']['scheme']
+            }
+        }, 'sort_tests')
+        conn2_id = result['result']['db_connection_id']
+
+        result = DbConnections.add_db_connection(profile_id, {
+            "db_type": default_root_config['type'],
+            "caption": "This is a test MySQL database 3",
+            "description": "This is a test MySQL database description 3",
+            "options": {
+                'host': default_root_config['options']['host'],
+                'port': default_root_config['options']['port'],
+                'user': default_root_config['options']['user'],
+                'password': default_root_config['options']['password'],
+                'scheme': default_root_config['options']['scheme']
+            }
+        }, 'sort_tests')
+        conn3_id = result['result']['db_connection_id']
+
+        result = DbConnections.add_db_connection(profile_id, {
+            "db_type": default_root_config['type'],
+            "caption": "This is a test MySQL database 4",
+            "description": "This is a test MySQL database description 4",
+            "options": {
+                'host': default_root_config['options']['host'],
+                'port': default_root_config['options']['port'],
+                'user': default_root_config['options']['user'],
+                'password': default_root_config['options']['password'],
+                'scheme': default_root_config['options']['scheme']
+            }
+        }, 'sort_tests')
+        conn4_id = result['result']['db_connection_id']
+
+        # Before moving
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 1},
+                     {'caption': "This is a test MySQL database 2", "index": 2},
+                     {'caption': "This is a test MySQL database 3", "index": 3},
+                     {'caption': "This is a test MySQL database 4", "index": 4}])
+
+        # Move 3 before 1
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn3_id, conn1_id, True)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 2},
+                     {'caption': "This is a test MySQL database 2", "index": 3},
+                     {'caption': "This is a test MySQL database 3", "index": 1},
+                     {'caption': "This is a test MySQL database 4", "index": 4}])
+
+        # Move 3 after 1
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn3_id, conn1_id, False)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 1},
+                     {'caption': "This is a test MySQL database 2", "index": 3},
+                     {'caption': "This is a test MySQL database 3", "index": 2},
+                     {'caption': "This is a test MySQL database 4", "index": 4}])
+
+        # Move 4 before 2
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn4_id, conn2_id, True)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 1},
+                     {'caption': "This is a test MySQL database 2", "index": 4},
+                     {'caption': "This is a test MySQL database 3", "index": 2},
+                     {'caption': "This is a test MySQL database 4", "index": 3}])
+
+        # Move 4 after 2
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn4_id, conn2_id, False)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 1},
+                     {'caption': "This is a test MySQL database 2", "index": 3},
+                     {'caption': "This is a test MySQL database 3", "index": 2},
+                     {'caption': "This is a test MySQL database 4", "index": 4}])
+
+        # Move 2 before 3
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn2_id, conn3_id, True)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 1},
+                     {'caption': "This is a test MySQL database 2", "index": 2},
+                     {'caption': "This is a test MySQL database 3", "index": 3},
+                     {'caption': "This is a test MySQL database 4", "index": 4}])
+
+        # Move 2 before 4
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn2_id, conn4_id, True)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 1},
+                     {'caption': "This is a test MySQL database 2", "index": 3},
+                     {'caption': "This is a test MySQL database 3", "index": 2},
+                     {'caption': "This is a test MySQL database 4", "index": 4}])
+
+        # Move 2 after 4
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn2_id, conn4_id, False)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 1},
+                     {'caption': "This is a test MySQL database 2", "index": 4},
+                     {'caption': "This is a test MySQL database 3", "index": 2},
+                     {'caption': "This is a test MySQL database 4", "index": 3}])
+
+        # Move 1 before 4
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn1_id, conn4_id, True)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 2},
+                     {'caption': "This is a test MySQL database 2", "index": 4},
+                     {'caption': "This is a test MySQL database 3", "index": 1},
+                     {'caption': "This is a test MySQL database 4", "index": 3}])
+
+        # Move 1 after 4
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn1_id, conn4_id, False)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 3},
+                     {'caption': "This is a test MySQL database 2", "index": 4},
+                     {'caption': "This is a test MySQL database 3", "index": 1},
+                     {'caption': "This is a test MySQL database 4", "index": 2}])
+
+        # Move 3 before 4
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn3_id, conn4_id, True)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 3},
+                     {'caption': "This is a test MySQL database 2", "index": 4},
+                     {'caption': "This is a test MySQL database 3", "index": 1},
+                     {'caption': "This is a test MySQL database 4", "index": 2}])
+
+        # Move 4 after 3
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn4_id, conn3_id, False)
+        assert status['request_state']['type'] == 'OK'
+        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+
+        db_connections = DbConnections.list_db_connections(profile_id, 'sort_tests')
+        validate_connections_sort_order(db_connections['rows'],
+                    [{'caption': "This is a test MySQL database 1", "index": 3},
+                     {'caption': "This is a test MySQL database 2", "index": 4},
+                     {'caption': "This is a test MySQL database 3", "index": 1},
+                     {'caption': "This is a test MySQL database 4", "index": 2}])
+
+
+        DbConnections.remove_db_connection(profile_id, conn1_id)
+        DbConnections.remove_db_connection(profile_id, conn2_id)
+        DbConnections.remove_db_connection(profile_id, conn3_id)
+        DbConnections.remove_db_connection(profile_id, conn4_id)
+
+        UserManagement.delete_profile(user_id, profile_id)
+
+        groups = UserManagement.list_user_groups(user_id)
+        for group in groups['rows']:
+            group_id = group['id']
+            UserManagement.remove_user_from_group(user_id, group_id)
+            if group_id != 1:
+                UserManagement.remove_user_group(group_id)
+        UserManagement.delete_user(user_name)

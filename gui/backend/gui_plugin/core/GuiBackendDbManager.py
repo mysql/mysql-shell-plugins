@@ -32,7 +32,7 @@ from gui_plugin.core.lib.Version import Version
 import contextlib
 
 
-latest_db_version = Version((0, 0, 14))
+latest_db_version = Version((0, 0, 15))
 default_config = {
     "log_rotation_period": 7
 }

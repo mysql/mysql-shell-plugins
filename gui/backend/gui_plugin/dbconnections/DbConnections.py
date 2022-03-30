@@ -28,6 +28,7 @@ from gui_plugin.core.Db import BackendDatabase, BackendTransaction
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
+from gui_plugin.core.backenddb import dbconnections
 
 
 @plugin_function('gui.dbconnections.addDbConnection', shell=False, web=True)
@@ -89,12 +90,14 @@ def add_db_connection(profile_id, connection, folder_path='',
 
             connection_id = db.get_last_row_id()
 
+            index = dbconnections.get_next_connection_index(db, profile_id, folder_path)
+
             # Insert n:m profile_has_db_connection to associate the connection with
             # a profile
             db.execute('''INSERT INTO profile_has_db_connection(
-                profile_id, db_connection_id, folder_path)
-                VALUES(?, ?, ?)''',
-                       (profile_id, connection_id, folder_path))
+                profile_id, db_connection_id, folder_path, `index`)
+                VALUES(?, ?, ?, ?)''',
+                       (profile_id, connection_id, folder_path, index))
 
         result = Response.fromStatus(db.get_last_status(), {
                                      "result": {"db_connection_id": connection_id}})
@@ -147,8 +150,16 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
                 db.execute("UPDATE db_connection SET options=? WHERE id=?", (json.dumps(
                     connection['options']), connection_id))
             if "folder_path" in connection:
-                db.execute("UPDATE profile_has_db_connection SET folder_path=? WHERE profile_id=? AND db_connection_id=?",
-                           (profile_id, connection_id, connection['folder_path']))
+                index = dbconnections.get_next_connection_index(db, profile_id, folder_path)
+                db.execute("""UPDATE profile_has_db_connection
+                              SET folder_path=?
+                              WHERE profile_id=? AND db_connection_id=?""",
+                          (connection['folder_path'], profile_id, connection_id))
+                db.execute("""UPDATE profile_has_db_connection
+                              SET `index`=?
+                              WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
+                          (index, profile_id, connection['folder_path'], connection_id))
+
 
             result = Response.fromStatus(db.get_last_status(), {
                 "result": {"db_connection_id": connection_id}})
@@ -209,7 +220,7 @@ def list_db_connections(profile_id, folder_path='', web_session=None):
     result = None
     with BackendDatabase(web_session) as db:
         result = db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
-            dc.description, dc.db_type, dc.options
+            dc.description, dc.db_type, dc.options, p_dc.`index`
             FROM profile_has_db_connection p_dc
                 LEFT JOIN db_connection dc ON
                     p_dc.db_connection_id = dc.id
@@ -327,3 +338,48 @@ def test_connection(connection, request_id, password=None, web_session=None):
         return result
 
     new_session.close()
+
+
+@plugin_function('gui.dbconnections.moveConnection', shell=False, web=True)
+def move_connection(profile_id, folder_path, connection_id_to_move, connection_id_offset, before=False, web_session=None):
+    """updates the connections sort order for the given profile
+
+    Args:
+        profile_id (int): The id of the profile
+        folder_path (str): The folder path used for grouping and nesting connections
+        connection_id_to_move (int): The id of the connection to move
+        connection_id_offset (int): The id of the offset connection
+        before (bool): Indicates whether connection_id_to_move should be moved before connection_id_offset or after
+        web_session (object): The webserver session object, optional. Will be
+            passed in my the webserver automatically
+
+
+    Returns:
+        string: The connection_id in a result JSON string
+    """
+
+    with BackendDatabase(web_session) as db:
+        with BackendTransaction(db):
+            index_to_move = dbconnections.get_connection_folder_index(db, profile_id, folder_path, connection_id_to_move)
+            index_offset = dbconnections.get_connection_folder_index(db, profile_id, folder_path, connection_id_offset)
+
+            if index_to_move > index_offset:
+                index = index_offset if before else index_offset + 1
+                db.execute("""UPDATE profile_has_db_connection
+                          SET `index`=`index`+1
+                          WHERE profile_id=? AND folder_path=? AND `index`>=? AND `index`<?""",
+                          (profile_id, folder_path, index, index_to_move))
+            else:
+                index = index_offset - 1 if before else index_offset
+                db.execute("""UPDATE profile_has_db_connection
+                          SET `index`=`index`-1
+                          WHERE profile_id=? AND folder_path=? AND `index`<=? AND `index`>?""",
+                          (profile_id, folder_path, index, index_to_move))
+
+            db.execute("""UPDATE profile_has_db_connection
+                          SET `index`=?
+                          WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
+                          (index, profile_id, folder_path, connection_id_to_move))
+
+            result = Response.ok("Successfully updated db connections sort order.")
+    return result
