@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Fixed an issue that caused queries including columns with the same name to return wrong data by adding a count indicator to the column captions
+- Fixed an issue that caused queries including columns with the same name to return wrong data by adding a count indicator (x) to the column captions
 
 ## Changes in 1.1.2+8.0.28
 
