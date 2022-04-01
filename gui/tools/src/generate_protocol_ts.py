@@ -37,10 +37,11 @@ plugin_imports = {}
 bindings_type_override = {
     "IShellDbConnection": ["IShellDbconnectionsAddDbConnectionConnection", "IShellDbconnectionsUpdateDbConnectionConnection"],
     "IShellQueryOptions": ["IShellSqleditorExecuteOptions"],
-    "IShellApiOptions": ["IShellGetSchemasOptions", "IShellGetSchemaTablesOptions", "IShellGetSchemaTableColumnsOptions"]
+    "IShellApiOptions": ["IShellGetSchemasOptions", "IShellGetSchemaTablesOptions", "IShellGetSchemaTableColumnsOptions"],
+    "IShellConnectionOptions": ["IShellDbconnectionsTestConnectionConnection"]
 }
 
-parameter_name_override = {
+py_parameter_override = {
     "session": {
         "condition": {
             "type": "object"
@@ -63,7 +64,18 @@ parameter_name_override = {
                 "replace": "The string id for the module session object"
             },
         }
-    },
+    }
+}
+
+js_parameter_override = {
+    "connection": {
+        "condition": {
+            "type": "object"
+        },
+        "mapping": {
+            "type": "IShellDbConnection | number",
+        }
+    }
 }
 
 
@@ -151,6 +163,7 @@ arguments_to_ignore = ['request_id', 'web_session']
 method_enums = {
 }
 
+
 class PythonParamToJavascript:
     def __init__(self, param, function_name, plugin_name):
         self.function_name = function_name
@@ -174,10 +187,9 @@ class PythonParamToJavascript:
                     self.description = override["description"]
                 elif isinstance(override["description"], dict):
                     self.description = self.description .replace(override["description"]["search"],
-                        override["description"]["replace"])
+                                                                 override["description"]["replace"])
             if "default" in override:
                 self.python_default_value = override["default"]
-
 
         if self.python_default_value in ("True", "False"):
             self.python_default_value = self.python_default_value.lower()
@@ -192,10 +204,21 @@ class PythonParamToJavascript:
                 f"The dictionary '{self.python_name}' is not documented in {self.function_name}")
 
     def get_override(self, name, type):
-        if name not in parameter_name_override:
+        if name not in py_parameter_override:
             return None
 
-        override = parameter_name_override[name]
+        override = py_parameter_override[name]
+
+        if "condition" in override and not override["condition"]["type"] == type:
+            return None
+
+        return override["mapping"]
+
+    def get_js_override(self, name, type):
+        if name not in js_parameter_override:
+            return None
+
+        override = js_parameter_override[name]
 
         if "condition" in override and not override["condition"]["type"] == type:
             return None
@@ -224,6 +247,11 @@ class PythonParamToJavascript:
     @property
     def javascript_type(self):
         "The type name in javascript"
+        override = self.get_js_override(self.python_name, self.python_type)
+
+        if not override is None and "type" in override:
+            return override["type"]
+
         if self.python_type in ["integer", "float"]:
             return "number"
         if self.python_type in ["dictionary"]:
@@ -283,7 +311,8 @@ class PythonParamToJavascript:
         indent = "        " if self.required else "            "
         inner = ""
         for option in self.options:
-            option = PythonParamToJavascript(option, self.function_name, self.plugin_name)
+            option = PythonParamToJavascript(
+                option, self.function_name, self.plugin_name)
             inner = f"\n{indent}    {option.python_name}: {self.javascript_name}.{option.javascript_name}" if inner == "" else f"{inner},\n{indent}    {option.python_name}: {self.javascript_name}.{option.javascript_name}"
         inner = "{" + inner + f",\n{indent}}}"
 
@@ -312,7 +341,8 @@ class PythonParamToJavascript:
 
     def get_interface_parameter(self, option):
         "Generate the parameter when defining the new javascript interface"
-        param = PythonParamToJavascript(option, self.function_name, self.plugin_name)
+        param = PythonParamToJavascript(
+            option, self.function_name, self.plugin_name)
         separator = ":" if 'required' in option else "?:"
 
         return f"{param.javascript_name}{separator} {param.javascript_type};"
@@ -381,12 +411,15 @@ def add_to_protocol_ts(definition):
         if os.path.exists(protocol_path):
             os.remove(protocol_path)
         plugin_imports[plugin_name] = ["Protocol", "IShellRequest"]
-        binding[plugin_name] = bindings_template.replace("{__PLUGIN__}", plugin_name)
-        binding[plugin_name] = binding[plugin_name].replace("{__COPYRIGHT__}", "Copyright")
+        binding[plugin_name] = bindings_template.replace(
+            "{__PLUGIN__}", plugin_name)
+        binding[plugin_name] = binding[plugin_name].replace(
+            "{__COPYRIGHT__}", "Copyright")
 
         current_year = datetime.datetime.now().year
         years = f"{current_year}" if current_year == beginning_year else f"{beginning_year}, {current_year}"
-        binding[plugin_name] = binding[plugin_name].replace("{__YEARS__}", years)
+        binding[plugin_name] = binding[plugin_name].replace(
+            "{__YEARS__}", years)
 
     # If the template is empty, use the Protocol.ts file as a template
     # by removing the auto generated parts
@@ -509,6 +542,8 @@ def add_to_protocol_ts(definition):
 
     # Save the current Protocol.ts file as it is at this moment
     with open(os.path.join(protocol_path), "w") as f:
-        f.write(binding[plugin_name].replace("{__PLUGIN_IMPORTS__}", ", ".join(plugin_imports[plugin_name])))
+        f.write(binding[plugin_name].replace(
+            "{__PLUGIN_IMPORTS__}", ", ".join(plugin_imports[plugin_name])))
+
 
 registrar.add_registration_callback(add_to_protocol_ts)

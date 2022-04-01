@@ -13,7 +13,7 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId(),
     "command": "gui.db.start_session",
     "args": {
-        "db_connection_id": _this.params["connection_id"],
+        "connection": settings.result["connection_id"],
     }
 }, [
     {

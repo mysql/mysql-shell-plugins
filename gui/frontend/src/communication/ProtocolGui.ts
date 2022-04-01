@@ -155,12 +155,6 @@ export interface IShellDbConnection {
 }
 
 
-export interface IShellDbconnectionsTestConnectionConnection {
-    dbType: string;
-    options: IShellDictionary;
-}
-
-
 export interface IShellQueryOptions {
     rowPacketSize?: number;
 }
@@ -596,22 +590,26 @@ export class ProtocolGui extends Protocol {
     /**
      * Opens test connection
      *
-     * @param connection The connection information
+     * @param connection The id of the db_connection or connection information
      * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
      *
-     * @returns A dict holding the result message.
+     * @returns Not documented
+     *
+     * <b>Allowed options for connection:</b>
+     *
+     *     db_type (str,required): The db type name     options (dict,required):
+     * The options specific for the current database type
+     *
+     * <b>Returns:</b>
+     *
+     *     A dict holding the result message.
      */
-    public static getRequestDbconnectionsTestConnection(connection: IShellDbconnectionsTestConnectionConnection, password?: string): IShellRequest {
-
-        const connectionToUse = {
-            db_type: connection.dbType,
-            options: connection.options,
-        };
+    public static getRequestDbconnectionsTestConnection(connection: IShellDbConnection | number, password?: string): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbconnectionsTestConnection,
             {
                 args: {
-                    connection: connectionToUse,
+                    connection,
                     password,
                 },
             });
@@ -2046,17 +2044,17 @@ export class ProtocolGui extends Protocol {
     /**
      * Starts a DB Session
      *
-     * @param dbConnectionId The id of the db_connection
+     * @param connection The id of the db_connection or connection information
      * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
      *
      * @returns A dict holding the result message
      */
-    public static getRequestDbStartSession(dbConnectionId: number, password?: string): IShellRequest {
+    public static getRequestDbStartSession(connection: IShellDbConnection | number, password?: string): IShellRequest {
 
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbStartSession,
             {
                 args: {
-                    db_connection_id: dbConnectionId,
+                    connection,
                     password,
                 },
             });

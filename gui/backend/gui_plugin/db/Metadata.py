@@ -75,11 +75,11 @@ def get_schema_object_names(module_session, request_id, type, schema_name, filte
     Returns:
         object: The list of names
     """
-    if isinstance(routine_type, str)  and routine_type.strip() == "":
+    if isinstance(routine_type, str) and routine_type.strip() == "":
         routine_type = None
     if routine_type is not None and routine_type not in ['procedure', 'function']:
         raise MSGException(Error.CORE_INVALID_PARAMETER,
-                               "The routine_type could be only 'procedure' or 'function'.")
+                           "The routine_type could be only 'procedure' or 'function'.")
     module_session.get_schema_object_names(request_id=request_id,
                                            type=type,
                                            schema_name=schema_name,
@@ -104,10 +104,10 @@ def get_table_object_names(module_session, request_id, type, schema_name, table_
         object: The list of names
     """
     module_session.get_table_object_names(request_id=request_id,
-                                           type=type,
-                                           schema_name=schema_name,
-                                           table_name=table_name,
-                                           filter=filter)
+                                          type=type,
+                                          schema_name=schema_name,
+                                          table_name=table_name,
+                                          filter=filter)
 
 
 @plugin_function('gui.db.getCatalogObject', shell=False, web=True)
@@ -164,26 +164,27 @@ def get_table_object(module_session, request_id, type, schema_name, table_name, 
         object: The database object
     """
     module_session.get_table_object(request_id=request_id,
-                                     type=type,
-                                     schema_name=schema_name,
-                                     table_name=table_name,
-                                     name=name)
+                                    type=type,
+                                    schema_name=schema_name,
+                                    table_name=table_name,
+                                    name=name)
+
 
 @plugin_function('gui.db.startSession', shell=False, web=True)
-def start_session(request_id, db_connection_id, password=None, web_session=None):
+def start_session(request_id, connection, password=None, web_session=None):
     """Starts a DB Session
-
     Args:
         request_id (str): The request_id of the command
-        db_connection_id (int): The id of the db_connection
+        connection (object): The id of the db_connection or connection information
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
         web_session (object): The web_session object this session will belong to
 
     Returns:
         A dict holding the result message
     """
+
     new_session = DbModuleSession(web_session)
-    new_session.open_connection(db_connection_id, password, request_id)
+    new_session.open_connection(connection, password, request_id)
 
     result = Response.ok("New DB session created successfully.", {
         "module_session_id": new_session.module_session_id,

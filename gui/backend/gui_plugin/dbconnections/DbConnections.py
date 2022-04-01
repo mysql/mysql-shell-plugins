@@ -65,13 +65,13 @@ def add_db_connection(profile_id, connection, folder_path='',
             or not isinstance(connection['caption'], str) \
             or connection['caption'].strip() == "":
         raise MSGException(Error.CORE_INVALID_PARAMETER,
-                               "The connection must contain valid caption.")
+                           "The connection must contain valid caption.")
 
     if not 'db_type' in connection \
             or not isinstance(connection['db_type'], str) \
             or not connection['db_type'].upper() in ["MYSQL", "SQLITE"]:
         raise MSGException(Error.CORE_INVALID_PARAMETER,
-                               "The connection must contain valid database type.")
+                           "The connection must contain valid database type.")
 
     with BackendDatabase(web_session) as db:
         # TODO: Encrypt stored password. The password will be inside "options", but we
@@ -225,8 +225,8 @@ def list_db_connections(profile_id, folder_path='', web_session=None):
                 LEFT JOIN db_connection dc ON
                     p_dc.db_connection_id = dc.id
             WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ?''',
-                         (profile_id, '%' if folder_path == '' else folder_path),
-                         close=(web_session is None))
+                           (profile_id, '%' if folder_path == '' else folder_path),
+                           close=(web_session is None))
 
     return result
 
@@ -246,7 +246,7 @@ def get_db_connection(db_connection_id, web_session=None):
     result = None
     with BackendDatabase(web_session) as db:
         result = db.select('SELECT * FROM db_connection WHERE id = ?',
-                         (db_connection_id,), close=(web_session is None))
+                           (db_connection_id,), close=(web_session is None))
 
     return result
 
@@ -315,7 +315,7 @@ def test_connection(connection, request_id, password=None, web_session=None):
     """Opens test connection
 
     Args:
-        connection (dict): The connection information
+        connection (object): The id of the db_connection or connection information
         request_id (str): ID of the request starting the session.
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
         web_session (object): The web_session object this session will belong to
