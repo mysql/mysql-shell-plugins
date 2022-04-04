@@ -31,11 +31,16 @@ import {
     SideBarView,
     DefaultTreeSection,
     DefaultTreeItem,
+    BottomBarPanel,
+    Workbench,
+    TitleBar,
+    OutputView,
+    TitleBarItem,
 } from "vscode-extension-tester";
 
 import { expect } from "chai";
 import { keyboard, Key } from "@nut-tree/nut-js";
-import { ChildProcess, spawn } from "child_process";
+import { ChildProcess, spawn, execSync } from "child_process";
 import { join } from "path";
 import { platform, homedir } from "os";
 let treeSection: DefaultTreeSection;
@@ -109,13 +114,6 @@ export const getLeftSection = async (driver: WebDriver, name: string): Promise<W
     expect(ctx).to.exist;
 
     return ctx!;
-};
-
-export const existsTreeElement = async (driver: WebDriver, section: string, el: string): Promise<boolean> => {
-    const sec = await getLeftSection(driver, section);
-    const els = await sec?.findElements(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
-
-    return els.length > 0;
 };
 
 export const getTreeElement = async (driver: WebDriver, section: string, el: string): Promise<WebElement> => {
@@ -207,28 +205,12 @@ export const getLeftSectionButton = async (driver: WebDriver,
 
 export const selectMoreActionsItem = async (driver: WebDriver,
     section: string, item: string): Promise<void> => {
-
-    if (platform() === "win32") {
-        const contentPart = new SideBarView().getContent();
-        const dbSection = await contentPart.getSection(section);
-        await dbSection.click();
-        const ctx = await dbSection.moreActions();
-        const ctxItems = await ctx?.getItems();
-        for(const ctxItem of ctxItems!) {
-            if (await ctxItem.getLabel() === item) {
-                await ctxItem.click();
-                break;
-            }
-        }
-        await ctx!.close();
-    } else {
-        const moreActionsBtn = await getLeftSectionButton(driver, section, "More Actions...");
-        await moreActionsBtn?.click();
-        await driver.sleep(500);
-        await selectItem(moreActionsContextMenu.get(item) as Number);
-    }
+        
+    const moreActionsBtn = await getLeftSectionButton(driver, section, "More Actions...");
+    await moreActionsBtn?.click();
+    await driver.sleep(500);
+    await selectItem(moreActionsContextMenu.get(item) as Number);
 };
-
 
 export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConnection): Promise<void> => {
     const createConnBtn = await getLeftSectionButton(driver, "DATABASE", "Create New MySQL Connection");
@@ -578,4 +560,225 @@ export const setEditorLanguage = async (driver: WebDriver, language: string): Pr
         default:
             break;
     }
+};
+
+export const waitForSystemDialog = async (driver: WebDriver, deleteCert?: boolean): Promise<void> => {
+    const cmd = (() => {
+        switch (process.platform) {
+            case "win32": return `tasklist /fi "imagename eq certutil.exe"`;
+            case "darwin":
+                if(deleteCert) {
+                    return `ps -ax | grep delete-certificate`;
+                } else {
+                    return `ps -ax | grep add-trusted-cert`;
+                }
+            default: break;
+        }
+    })();
+
+    const isProcessRunning = (deleteCert?: boolean): boolean => {
+        const result = execSync(String(cmd));
+        const lines = String(result).split("\n");
+        let search = "";
+        if (process.platform === "darwin") {
+            if (deleteCert) {
+                search = "login.keychain-db";
+            } else {
+                search = "rootCA.crt";
+            }
+
+        } else {
+            search = "certutil.exe";
+        }
+        for(const line of lines) {
+            if (line.indexOf(search) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    await driver.wait( () => {
+        return isProcessRunning(deleteCert);
+    }, 10000, "system dialog was not displayed");
+};
+
+export const writePassword = async (driver: WebDriver): Promise<void> => {
+    await driver.sleep(1000);
+    if (platform() === "darwin") {
+        await keyboard.type(String(process.env.PASSWORD));
+        await keyboard.type(Key.Enter);
+    } else {
+        await keyboard.type(Key.Left);
+        await driver.sleep(500);
+        await keyboard.type(Key.Enter);
+    }
+};
+
+export const installCertificate = async (driver: WebDriver): Promise<void> => {
+
+    const editorView = new EditorView();
+    await driver.wait(async () => {
+        const tabs = await editorView.getOpenTabs();
+        for (const tab of tabs) {
+            if (await tab.getTitle() === "Welcome to MySQL Shell") {
+                return true;
+            }
+        }
+    }, 10000, "Welcome to MySQL Shell tab was not opened");
+
+    await driver.switchTo().frame(0);
+    await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+
+    const welcome = await driver.findElement(By.id("welcome"));
+    expect(welcome).to.exist;
+
+    await driver.findElement(By.id("nextBtn")).click();
+    const h3 = await driver.wait(until.elementLocated(By.css("#page2 h3")));
+    expect(await h3.getText()).to.equals("Installation of Certificate.");
+    await driver.findElement(By.id("nextBtn")).click();
+
+    await waitForSystemDialog(driver);
+
+    await writePassword(driver);
+    const installResult = await driver.findElement(By.css("#page4 h3"));
+    await driver.wait(until.elementTextContains(installResult, "Installation Completed"), 5000,
+        "Installation was not completed");
+
+    const reload = await driver.findElement(By.id("nextBtn"));
+    await reload.click();
+    await driver.sleep(2000);
+};
+
+export const waitForShell = async (driver: WebDriver): Promise<void> => {
+    const bottomBar = new BottomBarPanel();
+    const outputView = await bottomBar.openOutputView();
+
+    await driver.wait(async () => {
+        const text = await outputView.getText();
+        if (text.indexOf("Mode: Single user") !== -1) {
+            return true;
+        }
+    }, 15000, "MySQL Shell process was not loaded in time");
+
+    await bottomBar.toggle(false);
+};
+
+const isBottomBarVisible = async (driver: WebDriver): Promise<boolean> => {
+    const bottomBar = await driver.findElement(By.id("workbench\.parts\.panel"));
+    const parentNode = await driver.executeScript("return arguments[0].parentNode", bottomBar);
+    const parentNodeClasses = await (parentNode as WebElement).getAttribute("class");
+    const arrayClass = parentNodeClasses.split(" ");
+    if (arrayClass.includes("visible")) {
+        return true;
+    } else {
+        return false;
+    }
+
+};
+
+export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> => {
+
+    if (platform() === "darwin") {
+        await driver.wait(async () => {
+            try {
+                const bottomBar = new BottomBarPanel();
+                await bottomBar.openOutputView();
+
+                return true;
+            } catch(e) {
+                if(String(e).indexOf("StaleElementReferenceError") !== -1) {
+                    return false;
+                } else {
+                    throw e;
+                }
+            }
+        }, 3000, "bottomBar still stale");
+
+    } else {
+        if (!(await isBottomBarVisible(driver))) {
+            let titleBar: TitleBar;
+            let viewMenu: TitleBarItem | undefined;
+            await driver.wait(async () => {
+                try {
+                    titleBar = new TitleBar();
+                    viewMenu = await titleBar.getItem("View");
+
+                    return true;
+                } catch(e) {
+                    if(String(e).indexOf("StaleElementReferenceError") !== -1) {
+                        return false;
+                    } else {
+                        throw e;
+                    }
+                }
+            }, 3000, "bottomBar still stale");
+
+            const contexMenu = await viewMenu?.select();
+            const outputItem = await contexMenu?.getItem("Output");
+            await outputItem?.click();
+        }
+    }
+
+    await driver.wait(async () => {
+        try {
+            const select = await driver.findElement(By.xpath("//select[contains(@aria-label, 'Output Channels')]"));
+            await select.click();
+            await driver.sleep(500);
+            const options = await select.findElements(By.css("option"));
+
+            for (const option of options) {
+                if (await option.getAttribute("value") === "MySQL Shell for VS Code") {
+                    await option.click();
+
+                    return true;
+                }
+            }
+        } catch(e) {
+            if(String(e).indexOf("StaleElementReferenceError") !== -1) {
+                return false;
+            } else {
+                throw new Error(String(e));
+            }
+        }
+
+    }, 60000, "MySQL Shell for VS Code channel was not found");
+};
+
+export const isCertificateInstalled = async (driver: WebDriver): Promise<boolean> => {
+
+    const bottomBar = new BottomBarPanel();
+    const outputView = new OutputView(bottomBar);
+
+    await driver.wait(async () => {
+        return (await outputView.getText()).indexOf("Certificate is") !== -1;
+    }, 10000, "Could not retrieve the logs to verify certificate installation");
+
+    const text = await outputView.getText();
+    let flag: boolean;
+    if (text.indexOf("Certificate is not installed") !== -1) {
+        flag = false;
+    } else if (text.indexOf("Mode: Single user") !== -1) {
+        flag = true;
+    } else {
+        throw new Error("Could not verify certificate installation");
+    }
+
+    await bottomBar.toggle(false);
+
+    return flag;
+};
+
+export const reloadVSCode = async (driver: WebDriver): Promise<void> => {
+    const workbench = new Workbench();
+    await workbench.executeCommand("workbench.action.reloadWindow");
+    await driver.sleep(2000);
+};
+
+export const existsTreeElement = async (driver: WebDriver, section: string, el: string): Promise<boolean> => {
+    const sec = await getLeftSection(driver, section);
+    const els = await sec?.findElements(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
+
+    return els.length > 0;
 };

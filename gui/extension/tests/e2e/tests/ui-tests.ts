@@ -55,6 +55,13 @@ import {
     selectMoreActionsItem,
     initTree,
     existsTreeElement,
+    writePassword,
+    waitForExtensionChannel,
+    waitForSystemDialog,
+    installCertificate,
+    waitForShell,
+    reloadVSCode,
+    isCertificateInstalled,
 } from "../lib/helpers";
 
 import { ChildProcess } from "child_process";
@@ -89,6 +96,7 @@ describe("MySQL Shell for VS", () => {
 
     before(async () => {
         browser = VSBrowser.instance;
+        await browser.waitForWorkbench();
         driver = browser.driver;
         await driver.manage().timeouts().implicitlyWait(5000);
 
@@ -104,66 +112,18 @@ describe("MySQL Shell for VS", () => {
             }
         }, 10000, "Could not find MySQL Shell for VSCode on Activity Bar");
 
-        const editorView = new EditorView();
-        await driver.wait(async () => {
-            const tabs = await editorView.getOpenTabs();
-            for (const tab of tabs) {
-                if (await tab.getTitle() === "Welcome to MySQL Shell") {
-                    return true;
-                }
-            }
-        }, 10000, "Welcome to MySQL Shell tab was not opened");
+        await waitForExtensionChannel(driver);
+        await reloadVSCode(driver);
+        await waitForExtensionChannel(driver);
 
-        const workbench = new Workbench();
-        await workbench.executeCommand("workbench.action.reloadWindow");
-        await driver.sleep(2000);
-        await driver.wait(async () => {
-            return (await driver.findElements(By.xpath("//h2[contains(@title, 'MySQL Shell for VSCode')]"))).length > 0;
-        }, 5000, "VS Code did not reload in time");
-
-        const bottomBar = new BottomBarPanel();
-        const outputView = await bottomBar.openOutputView();
-
-        await driver.wait(async () => {
-            try {
-                const select = await driver.findElement(By.xpath("//select[contains(@aria-label, 'Output Channels')]"));
-                await select.click();
-                await driver.sleep(500);
-                const options = await select.findElements(By.css("option"));
-
-                for (const option of options) {
-                    if (await option.getAttribute("value") === "MySQL Shell for VS Code") {
-                        await option.click();
-
-                        return true;
-                    }
-                }
-            } catch(e) {
-                if(String(e).indexOf("StaleElementReferenceError") !== -1) {
-                    return false;
-                } else {
-                    throw new Error(String(e));
-                }
-            }
-
-        }, 30000, "MySQL Shell for VS Code channel was not found");
-
-        await driver.wait(async () => {
-            const text = await outputView.getText();
-            if (text.indexOf("Mode: Single user") !== -1) {
-                return true;
-            }
-        }, 15000, "Could not check extension load from output tab");
-
-        await bottomBar.toggle(false);
-
-        //close notification
-        const containers = await driver.findElements(
-            By.css(".notification-list-item-toolbar-container .notifications-list-container"));
-        if (containers.length > 0) {
-            await containers[0].findElement(By.xpath("//a[contains(@title, 'Clear Notification')]")).click();
+        if ( !(await isCertificateInstalled(driver))) {
+            const notifications = await new Workbench().getNotifications();
+            expect(await notifications[0].getMessage()).to.contain("The MySQL Shell for VSCode extension cannot run");
+            await notifications[0].takeAction("Run Welcome Wizard");
+            await installCertificate(driver);
+            await waitForExtensionChannel(driver);
+            await waitForShell(driver);
         }
-
     });
 
     describe("DATABASE toolbar action tests", () => {
@@ -320,6 +280,35 @@ describe("MySQL Shell for VS", () => {
             expect(text).equals("Welcome to MySQL Shell for VSCode.");
             expect(await driver.findElement(By.id("nextBtn"))).to.exist;
             await driver.switchTo().defaultContent();
+        });
+
+        it("Reset MySQL Shell Welcome Wizard and re-install certificate", async () => {
+            await selectMoreActionsItem(driver, "DATABASE", "Reset MySQL Shell for VS Code Extension");
+            let notifications = await new Workbench().getNotifications();
+            expect(await notifications[0].getMessage())
+                .to.contain("This will completely reset the MySQL Shell for VS Code extension by deleting");
+
+            const buttons = await notifications[0].getActions();
+            for(const button of buttons) {
+                const title = button.getTitle();
+                if( title === "Reset VS Code" || title === "Reset Extension" ) {
+                    await notifications[0].takeAction(title);
+                }
+            }
+
+            await waitForSystemDialog(driver, true);
+            await writePassword(driver);
+
+            notifications = await new Workbench().getNotifications();
+            expect(await notifications[0].getMessage())
+                .to.contain("The MySQL Shell for VS Code extension has been reset.");
+
+            await notifications[0].takeAction("Restart VS Code");
+            await driver.sleep(2000);
+            await waitForExtensionChannel(driver);
+            await installCertificate(driver);
+            await waitForExtensionChannel(driver);
+            await waitForShell(driver);
         });
 
     });
@@ -1044,6 +1033,77 @@ describe("MySQL Shell for VS", () => {
                     `//div[contains(@aria-label, '${testView}') and contains(@role, 'treeitem')]`)))!.length === 0;
             }, 5000, `${testView} is still on the list`);
 
+        });
+
+    });
+
+    describe("MYSQL SHELL CONSOLES toolbar action tests", () => {
+
+        before(async () => {
+            if(platform() === "win32") {
+                await initTree("MYSQL SHELL CONSOLES");
+            }
+
+            await toggleSection(driver, "DATABASE", false);
+            await toggleSection(driver, "ORACLE CLOUD INFRASTRUCTURE", false);
+            await toggleSection(driver, "MYSQL SHELL CONSOLES", true);
+            await toggleSection(driver, "MYSQL SHELL TASKS", false);
+        });
+
+        afterEach(async () => {
+            await driver.switchTo().defaultContent();
+            const edView = new EditorView();
+            const editors = await edView.getOpenEditorTitles();
+            for (const editor of editors) {
+                await edView.closeEditor(editor);
+            }
+        });
+
+        it("Add a new MySQL Shell Console", async () => {
+
+            const btn = await getLeftSectionButton(driver, "MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+            await btn.click();
+
+            const editors = await new EditorView().getOpenEditorTitles();
+            expect(editors).to.include.members(["MySQL Shell Consoles"]);
+
+            await driver.switchTo().frame(0);
+            await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+            await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell Consoles")));
+
+            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+            await driver.switchTo().defaultContent();
+
+            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1") as Boolean).to.equals(true);
+
+            await selectContextMenuItem(driver, "MYSQL SHELL CONSOLES", "Session 1",
+                "console", "Close this MySQL Shell Console");
+
+            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1")).to.equals(false);
+        });
+
+        it("Open the MySQL Shell Console Browser", async () => {
+            const btn = await getLeftSectionButton(driver,
+                "MYSQL SHELL CONSOLES", "Open the MySQL Shell Console Browser");
+            await btn.click();
+
+            const editors = await new EditorView().getOpenEditorTitles();
+            expect(editors).to.include.members(["MySQL Shell Consoles"]);
+
+            await driver.switchTo().frame(0);
+            await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+            await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell Consoles")));
+
+            expect(await driver.findElement(By.css("#shellModuleTabview h2")).getText())
+                .to.equals("MySQL Shell - GUI Console");
+
+            const newSession = await driver.findElement(By.id("-1"));
+            await newSession.click();
+
+            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+            await driver.switchTo().defaultContent();
+
+            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1")).to.equals(true);
         });
 
     });
