@@ -26,8 +26,7 @@
 import { CommunicationEvents, IShellRequest, IWebSessionData, Protocol } from ".";
 import { requisitions } from "../supplement/Requisitions";
 import {
-    dispatcher, IDispatchEventContext, ListenerEntry, eventFilterNoRequests, DispatchEvents, EventType,
-    IDispatchDefaultEvent,
+    dispatcher, IDispatchEventContext, ListenerEntry, eventFilterNoRequests, DispatchEvents, EventType, IDispatchEvent,
 } from "../supplement/Dispatch";
 import { convertSnakeToCamelCase, convertToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../utilities/helpers";
 import { IGenericResponse } from "./GeneralEvents";
@@ -198,7 +197,7 @@ export class ClientConnection {
                 // the user (which can also happen when the computer went to sleep).
                 this.reconnectTimer = setTimeout(() => {
                     this.reconnectTimer = null;
-                    void requisitions.execute("showError",  [
+                    void requisitions.execute("showError", [
                         "Browser Connection Error",
                         "The connection was interrupted unexpectedly. An automatic reconnection failed, but the " +
                         "application will continue trying to reconnect.",
@@ -209,19 +208,21 @@ export class ClientConnection {
     };
 
     private onMessage = (event: MessageEvent): void => {
-        // Convert message data string to object and also convert from underscore case to camel case.
+        // Convert message data string to object and also convert from snake case to camel case.
         // However, ignore row data in this process, as it either comes as array (no keys to convert) or comes
         // as object, whose keys are the real column names (which must stay as is).
-        const data = JSON.parse(event.data as string) as object;
-        const serverData = convertSnakeToCamelCase(data, { ignore: ["rows"] }) as IWebSessionData;
+        if (event.data) { // Sanity check. Should never happen.
+            const data = JSON.parse(event.data as string) as object;
+            const serverData = convertSnakeToCamelCase(data, { ignore: ["rows"] }) as IWebSessionData;
 
-        // Note: the context given here by the event factories is replaced by the one specified for a specific
-        //       request in the sendRequest call. Only in error cases the context from here might be used.
-        if (serverData.sessionUuid) {
-            dispatcher.triggerEvent(CommunicationEvents.generateWebSessionEvent(serverData), this.debugging);
-        } else {
-            dispatcher.triggerEvent(CommunicationEvents.generateResponseEvent("serverResponse", serverData),
-                this.debugging);
+            // Note: the context given here by the event factories is replaced by the one specified for a specific
+            //       request in the sendRequest call. Only in error cases the context from here might be used.
+            if (serverData.sessionUuid) {
+                dispatcher.triggerEvent(CommunicationEvents.generateWebSessionEvent(serverData), this.debugging);
+            } else {
+                dispatcher.triggerEvent(CommunicationEvents.generateResponseEvent("serverResponse", serverData),
+                    this.debugging);
+            }
         }
     };
 
@@ -341,9 +342,8 @@ class ClientConnectionSingleton extends ClientConnection {
         return this.lastGeneratedId;
     }
 
-    public log(output: unknown): void {
-        const event = DispatchEvents.baseEvent(EventType.Notification, undefined, "debugger");
-        event.data = output;
+    public log(output: string): void {
+        const event = DispatchEvents.baseEvent(EventType.Notification, { output }, undefined, "debugger");
         dispatcher.triggerEvent(event);
     }
 
@@ -409,7 +409,7 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
             this.lastReceivedResponse = undefined;
             let failed = false;
 
-            this.sendRequest(request, { messageClass: "debuggerValidate" }).then((event: IDispatchDefaultEvent) => {
+            this.sendRequest(request, { messageClass: "debuggerValidate" }).then((event: IDispatchEvent) => {
                 // Ignore any extraneous responses.
                 if (currentIndex < expected.length) {
                     failed = failed ||

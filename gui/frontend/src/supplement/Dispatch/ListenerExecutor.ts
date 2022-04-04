@@ -22,11 +22,11 @@
  */
 
 import { EventType, ListenerEntry } from "./";
-import { IDispatchUnknownEvent } from "./Dispatch";
+import { IDispatchEvent } from "./Dispatch";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ListenerCallback = (event: any) => any;
-export type ListenerEventSource = IDispatchUnknownEvent | Error | undefined;
+export type ListenerEventSource = IDispatchEvent | Error | undefined;
 
 enum CallbackType {
     Then = 1,

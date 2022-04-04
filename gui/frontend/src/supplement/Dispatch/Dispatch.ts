@@ -24,6 +24,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { DispatchEvents } from ".";
+import { IDictionary } from "../../app-logic/Types";
 import { ListenerEntry } from "./ListenerEntry";
 
 /**
@@ -67,34 +68,14 @@ export interface IDispatchEventContext {
  * The 'data' which can be anything that the trigger entity finds useful for the consumer. This is
  * complementary to the event data itself.
  */
-export interface IDispatchEvent<T> {
+export interface IDispatchEvent<T extends IDictionary = { [key: string]: unknown }> {
     id: string;
     eventType: EventType;
     message: string;
 
     context: IDispatchEventContext;
-    data?: T;
+    data: T;
 }
-
-/**
- * The IDispatchUnknownEvent should be used when you don't know the event type that it's being handled.
- * This means the event may or may not have the 'data' defined. Handling unknown events will 'force' the
- * consumer to check for the 'data' property before using it.
- */
-export type IDispatchUnknownEvent = IDispatchEvent<unknown | undefined>;
-
-/**
- * Use the IDispatchDefaultEvent when you know for sure the 'data' property is defined but
- * don't have a better way to describe it (didn't define a class to describe the data or not possible
- * to determine it).
- */
-export type IDispatchDefaultEvent = IDispatchEvent<unknown>;
-
-/**
- * The IDispatchNotification is a simple notification method which can only handle a message. The 'data' property
- * is 'undefined' so it will never be used in a notification.
- */
-export type IDispatchNotification = IDispatchEvent<undefined>;
 
 /**
  * A message dispatcher and listener manager. This dispatches the messages to the
@@ -153,7 +134,7 @@ export class Dispatcher {
      * @param event The event to trigger.
      * @param debugging Trigger the event only if it is a debugger event.
      */
-    public triggerEvent(event: IDispatchUnknownEvent, debugging = false): void {
+    public triggerEvent(event: IDispatchEvent, debugging = false): void {
         // Try to match a context.
         const context = this.messageContext.get(event.id);
         if (context) {
@@ -179,10 +160,7 @@ export class Dispatcher {
 
             toTrigger.unshift(listener);
 
-            if ([EventType.FinalResponse,
-                EventType.ErrorResponse,
-                EventType.Notification].includes(event.eventType)
-            ) {
+            if ([EventType.FinalResponse, EventType.ErrorResponse, EventType.Notification].includes(event.eventType)) {
                 if (!listener.persistent) {
                     this.listeners.splice(index, 1);
                 }

@@ -26,7 +26,7 @@ import {
     currentConnection, ICommErrorEvent, ICommObjectNamesEvent, ICommSimpleResultEvent, ICommStartSessionEvent,
     ProtocolGui, ShellAPIGui, ShellPromptResponseType,
 } from "../../communication";
-import { EventType, IDispatchUnknownEvent, ListenerEntry } from "../Dispatch";
+import { EventType, IDispatchEvent, ListenerEntry } from "../Dispatch";
 import { webSession } from "../WebSession";
 
 export type RoutineType = "function" | "procedure";
@@ -275,7 +275,7 @@ export class ShellInterfaceDb implements IShellInterface {
         return new Promise((resolve) => {
             const request = ProtocolGui.getRequestCoreValidatePath(path);
             currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreValidatePath })
-                .then((event: IDispatchUnknownEvent) => {
+                .then((event: IDispatchEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve(true);
                     }
@@ -297,7 +297,7 @@ export class ShellInterfaceDb implements IShellInterface {
         return new Promise((resolve, reject) => {
             const request = ProtocolGui.getRequestCoreCreateFile(path);
             currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreCreateFile })
-                .then((event: IDispatchUnknownEvent) => {
+                .then((event: IDispatchEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve();
                     }

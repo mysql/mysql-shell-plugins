@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,15 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { IDictionary } from "../../app-logic/Types";
 import { uuid } from "../../utilities/helpers";
-import { EventType, IDispatchEvent, IDispatchNotification } from "./Dispatch";
+import { EventType, IDispatchEvent } from "./Dispatch";
 
 /**
  * Factory for standard events. The events can be used in the Dispatcher
  */
 export class DispatchEvents {
 
-    public static baseEvent<T>(eventType: EventType, id?: string, messageClass?: string): IDispatchEvent<T> {
+    public static baseEvent<T extends IDictionary>(eventType: EventType, data: T, id?: string,
+        messageClass?: string): IDispatchEvent<T> {
         if (!id) {
             id = uuid();
         }
@@ -45,45 +47,43 @@ export class DispatchEvents {
             },
             eventType,
             message: "",
+            data,
         };
 
     }
 
-    public static classEvent<T>(messageClass: string, data?: T): IDispatchEvent<T> {
-        const result = DispatchEvents.baseEvent<T>(EventType.Notification, undefined, messageClass);
-        result.data = data;
+    public static classEvent<T extends IDictionary>(data: T, messageClass?: string): IDispatchEvent<T> {
+        const result = DispatchEvents.baseEvent<T>(EventType.Notification, data, undefined, messageClass);
 
         return result;
     }
 
-    public static okEvent<T>(messageClass?: string, data?: T, id?: string): IDispatchEvent<T> {
-        const result = DispatchEvents.baseEvent<T>(EventType.Notification, id, messageClass);
+    public static okEvent<T extends IDictionary>(data: T, messageClass?: string, id?: string): IDispatchEvent<T> {
+        const result = DispatchEvents.baseEvent<T>(EventType.Notification, data, id, messageClass);
         result.message = "ok";
-        result.data = data;
 
         return result;
     }
 
-    public static errorEvent<T = unknown>(message: string, messageClass?: string,
-        data?: T, id?: string): IDispatchEvent<T> {
-        const result = DispatchEvents.baseEvent<T>(EventType.ErrorResponse, id, messageClass);
+    public static errorEvent<T extends IDictionary = {}>(data: T, message: string, messageClass?: string,
+        id?: string): IDispatchEvent<T> {
+        const result = DispatchEvents.baseEvent<T>(EventType.ErrorResponse, data, id, messageClass);
         result.message = message;
-        result.data = data;
 
         return result;
     }
 
-    public static okErrorEvent<T = unknown>(data: T, errorMessage: string, messageClass?: string,
+    public static okErrorEvent<T extends IDictionary = {}>(data: T, errorMessage: string, messageClass?: string,
         id?: string): IDispatchEvent<T> {
         if (data) {
-            return DispatchEvents.okEvent(messageClass, data, id);
+            return DispatchEvents.okEvent(data, messageClass, id);
         }
 
-        return DispatchEvents.errorEvent(errorMessage, messageClass, data, id);
+        return DispatchEvents.errorEvent(data, errorMessage, messageClass, id);
     }
 
-    public static notification(messageClass: string, message = ""): IDispatchNotification {
-        const result = DispatchEvents.baseEvent<undefined>(EventType.Notification, undefined, messageClass);
+    public static notification(messageClass: string, message = ""): IDispatchEvent {
+        const result = DispatchEvents.baseEvent<{}>(EventType.Notification, {}, undefined, messageClass);
         result.message = message;
 
         return result;

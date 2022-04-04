@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDispatchEvent, IDispatchDefaultEvent, DispatchEvents, EventType } from "../supplement/Dispatch";
+import { IDispatchEvent, DispatchEvents, EventType } from "../supplement/Dispatch";
 import { IShellDictionary, IShellRequest } from ".";
 
 export interface IResponseDictionary {
@@ -225,11 +225,11 @@ export interface IShellModuleDataCategoriesEntry {
     parentCategoryId?: number;
 }
 
-export interface IShellModuleDataCategoriesData {
+export interface IShellModuleDataCategoriesData extends IResponseDictionary {
     result: IShellModuleDataCategoriesEntry[];
 }
 
-export interface IShellModuleAddData {
+export interface IShellModuleAddData extends IResponseDictionary {
     result: number;
 }
 
@@ -239,11 +239,11 @@ export interface IShellModuleDataEntry {
     caption: string;
 }
 
-export interface IShellModuleData {
+export interface IShellModuleData extends IResponseDictionary {
     result: IShellModuleDataEntry[];
 }
 
-export interface IShellModuleDataContentData {
+export interface IShellModuleDataContentData extends IResponseDictionary {
     result: string;
 }
 
@@ -305,7 +305,7 @@ export interface IMrsServiceData {
     comments: string;
 }
 
-export interface IMrsServiceResultData {
+export interface IMrsServiceResultData extends IResponseDictionary {
     result: IMrsServiceData[];
 }
 
@@ -321,7 +321,7 @@ export interface IMrsSchemaData {
     serviceId: number;
 }
 
-export interface IMrsSchemaResultData {
+export interface IMrsSchemaResultData extends IResponseDictionary {
     result: IMrsSchemaData[];
 }
 
@@ -344,7 +344,7 @@ export interface IMrsDbObjectData {
     schemaRequestPath?: string;
 }
 
-export interface IMrsDbObjectResultData {
+export interface IMrsDbObjectResultData extends IResponseDictionary {
     result: IMrsDbObjectData[];
 }
 
@@ -366,11 +366,11 @@ export interface IDBDataTreeIdentifier {
     treeIdentifier: string;
 }
 
-export interface IDBDataTreeIdentifiers {
+export interface IDBDataTreeIdentifiers extends IResponseDictionary {
     result: IDBDataTreeIdentifier[];
 }
 
-export interface IDBDataTreeContent {
+export interface IDBDataTreeContent extends IResponseDictionary {
     result: IDBDataTreeEntry[];
 }
 
@@ -439,7 +439,7 @@ export class CommunicationEvents {
      * @returns A dispatcher event with web session data.
      */
     public static generateWebSessionEvent(data: IWebSessionData): IDispatchEvent<IWebSessionData> {
-        const result = DispatchEvents.okEvent("webSession", data);
+        const result = DispatchEvents.okEvent(data, "webSession");
         result.message = data.requestState.msg;
 
         return result;
@@ -452,7 +452,7 @@ export class CommunicationEvents {
      * @param data The data sent by the server.
      * @returns A dispatcher event with unspecified data.
      */
-    public static generateResponseEvent(messageClass: string, data: IGenericResponse): IDispatchDefaultEvent {
+    public static generateResponseEvent(messageClass: string, data: IGenericResponse): IDispatchEvent {
         let eventType;
         switch (data.requestState.type) {
             case "ERROR": {
@@ -480,8 +480,7 @@ export class CommunicationEvents {
             }
         }
 
-        const result = DispatchEvents.baseEvent(eventType, data.requestId, messageClass);
-        result.data = data;
+        const result = DispatchEvents.baseEvent(eventType, data, data.requestId, messageClass);
         result.message = data.requestState.msg;
 
         return result;
@@ -494,9 +493,8 @@ export class CommunicationEvents {
      * @param data The actual data to be sent to the shell.
      * @returns a default (unspecialized event).
      */
-    public static generateRequestEvent(data: IShellRequest): IDispatchDefaultEvent {
-        const result = DispatchEvents.baseEvent(EventType.Request, data.request_id);
-        result.data = data;
+    public static generateRequestEvent(data: IShellRequest): IDispatchEvent {
+        const result = DispatchEvents.baseEvent(EventType.Request, data, data.request_id);
 
         return result;
     }

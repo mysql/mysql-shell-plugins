@@ -22,7 +22,7 @@
  */
 
 import { Cookies } from "./Storage";
-import { IDispatchDefaultEvent } from "./Dispatch";
+import { IDispatchEvent } from "./Dispatch";
 import { ICommShellProfile } from "../communication";
 import { ShellInterface } from "./ShellInterface";
 import { requisitions } from "./Requisitions";
@@ -183,7 +183,7 @@ export class WebSession {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
             // TODO: log success.
-        }).catch((errorEvent: IDispatchDefaultEvent) => {
+        }).catch((errorEvent: IDispatchEvent) => {
             void requisitions.execute("showError", ["Profile Update Error", String(errorEvent.message)]);
         });
 

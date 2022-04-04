@@ -112,10 +112,12 @@ export class ApplicationDB {
     /* istanbul ignore next */
     private constructor() { /* */ }
 
-    public static cleanUp = (): void => {
+    public static async cleanUp(): Promise<void> {
+        await ApplicationDB.loaded;
+
         ApplicationDB.appDB.close();
         void deleteDB(ApplicationDB.dbName);
-    };
+    }
 
     /**
      * Removes data stored in store, for the given tab id.

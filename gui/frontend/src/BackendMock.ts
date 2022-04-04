@@ -25,7 +25,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { ICommShellProfile, IGenericResponse, IShellDictionary, IShellRequest } from "./communication";
-import { EventType, IDispatchDefaultEvent, ListenerEntry } from "./supplement/Dispatch";
+import { EventType, IDispatchEvent, ListenerEntry } from "./supplement/Dispatch";
 import { requisitions } from "./supplement/Requisitions";
 import { dispatchTestEvent, dispatchSessionStartEvent } from "./tests/unit-tests/test-helpers";
 
@@ -52,9 +52,9 @@ const profile2: ICommShellProfile = {
 // A class to simulate the client/server protocol.
 export class BackendMock {
     public constructor() {
-        ListenerEntry.create({ persistent: true }).then((event: IDispatchDefaultEvent) => {
+        ListenerEntry.create({ persistent: true }).then((event: IDispatchEvent) => {
             this.handleEvent(event);
-        }).catch((_event: IDispatchDefaultEvent) => {
+        }).catch((_event: IDispatchEvent) => {
             //console.log(event);
         });
     }
@@ -85,7 +85,7 @@ export class BackendMock {
      *
      * @param event The event that was triggered.
      */
-    private handleEvent = (event: IDispatchDefaultEvent): void => {
+    private handleEvent = (event: IDispatchEvent): void => {
         switch (event.eventType) {
             case EventType.Request: { // A request sent to the server.
                 const data = event.data as IShellRequest;

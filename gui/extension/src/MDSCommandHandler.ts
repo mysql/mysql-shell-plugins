@@ -30,7 +30,7 @@ import { homedir } from "os";
 import { existsSync } from "fs";
 
 import { ICommErrorEvent, ICommOciBastionEvent, ICommOciSessionResultEvent } from "../../frontend/src/communication";
-import { IDispatchDefaultEvent, EventType } from "../../frontend/src/supplement/Dispatch";
+import { IDispatchEvent, EventType } from "../../frontend/src/supplement/Dispatch";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface";
 import { taskOutputChannel } from "./extension";
 
@@ -134,16 +134,17 @@ export class MDSCommandHandler {
             (item?: OciConfigProfileTreeItem) => {
                 if (item && item.profile.profile) {
                     window.setStatusBarMessage(`Setting current config profile to ${item.profile.profile} ...`, 10000);
-                    this.shellSession.mds.setDefaultConfigProfile(
-                        item.profile.profile).then((event: IDispatchDefaultEvent) => {
-                        if (event.eventType === EventType.FinalResponse) {
-                            void commands.executeCommand("msg.mds.refreshOciProfiles");
-                            window.setStatusBarMessage(`Default config profile set to ${item.profile.profile}.`, 5000);
-                        }
-                    }).catch((errorEvent: ICommErrorEvent): void => {
-                        void window.showErrorMessage(`Error while setting default config profile: ` +
-                        `${errorEvent.message ?? "<unknown>"}`);
-                    });
+                    this.shellSession.mds.setDefaultConfigProfile(item.profile.profile)
+                        .then((event: IDispatchEvent) => {
+                            if (event.eventType === EventType.FinalResponse) {
+                                void commands.executeCommand("msg.mds.refreshOciProfiles");
+                                window.setStatusBarMessage(`Default config profile set to ${item.profile.profile}.`,
+                                    5000);
+                            }
+                        }).catch((errorEvent: ICommErrorEvent): void => {
+                            void window.showErrorMessage(`Error while setting default config profile: ` +
+                                `${errorEvent.message ?? "<unknown>"}`);
+                        });
                 }
             }));
 
@@ -165,14 +166,14 @@ export class MDSCommandHandler {
                         configProfile: item.profile.profile,
                         interactive: false,
                         raiseExceptions: true,
-                    }).then((event: IDispatchDefaultEvent) => {
+                    }).then((event: IDispatchEvent) => {
                         if (event.eventType === EventType.FinalResponse) {
                             void commands.executeCommand("msg.mds.refreshOciProfiles");
                             window.setStatusBarMessage(`Current compartment set to ${item.compartment.name}.`, 5000);
                         }
                     }).catch((errorEvent: ICommErrorEvent): void => {
                         void window.showErrorMessage(`Error while setting current compartment: ` +
-                        `${errorEvent.message ?? "<unknown>"}`);
+                            `${errorEvent.message ?? "<unknown>"}`);
                     });
                 }
             }));
@@ -189,7 +190,7 @@ export class MDSCommandHandler {
                             }
                         }).catch((errorEvent: ICommErrorEvent): void => {
                             void window.showErrorMessage(`Error while fetching the DB System data: ` +
-                        `${errorEvent.message ?? "<unknown>"}`);
+                                `${errorEvent.message ?? "<unknown>"}`);
                         });
                 }
             }));
@@ -296,7 +297,7 @@ export class MDSCommandHandler {
                             }
                         }).catch((errorEvent: ICommErrorEvent): void => {
                             void window.showErrorMessage(`Error while fetching the bastion data: ` +
-                        `${errorEvent.message ?? "<unknown>"}`);
+                                `${errorEvent.message ?? "<unknown>"}`);
                         });
                 }
             }));
@@ -343,14 +344,14 @@ export class MDSCommandHandler {
                         configProfile: item.profile.profile,
                         interactive: false,
                         raiseExceptions: true,
-                    }).then((event: IDispatchDefaultEvent) => {
+                    }).then((event: IDispatchEvent) => {
                         if (event.eventType === EventType.FinalResponse) {
                             void commands.executeCommand("msg.mds.refreshOciProfiles");
                             window.setStatusBarMessage(`Current compartment set to ${item.bastion.name}.`, 5000);
                         }
                     }).catch((errorEvent: ICommErrorEvent): void => {
                         void window.showErrorMessage(`Error while setting current bastion: ` +
-                        `${errorEvent.message ?? "<unknown>"}`);
+                            `${errorEvent.message ?? "<unknown>"}`);
                     });
                 }
             }));
@@ -417,12 +418,12 @@ export class MDSCommandHandler {
                                     if (res?.bastionId) {
                                         const terminal = window.createTerminal(`Terminal ${item.name}`);
                                         const sshHost = `${res.id}@host.bastion.` +
-                                        `${item.profile.region}.oci.oraclecloud.com`;
+                                            `${item.profile.region}.oci.oraclecloud.com`;
                                         const sshTargetIp = res.targetResourceDetails.targetResourcePrivateIpAddress;
                                         if (sshTargetIp) {
                                             const sshTargetPort = res.targetResourceDetails.targetResourcePort;
                                             terminal.sendText(`ssh -o ProxyCommand="ssh -W %h:%p -p 22 ${sshHost}"` +
-                                            ` -p ${sshTargetPort} opc@${sshTargetIp}`);
+                                                ` -p ${sshTargetPort} opc@${sshTargetIp}`);
                                             terminal.sendText("clear");
                                             terminal.show();
                                         }
@@ -437,7 +438,7 @@ export class MDSCommandHandler {
 
                         }).catch((errorEvent: ICommErrorEvent): void => {
                             void window.showErrorMessage(`Error while creating the bastion session: ` +
-                            `${errorEvent.message ?? "<unknown>"}`);
+                                `${errorEvent.message ?? "<unknown>"}`);
                         });
                 }
             }));

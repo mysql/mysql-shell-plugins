@@ -182,7 +182,7 @@ export class App extends React.Component<{}, IAppState> {
             void requisitions.execute("applicationWillFinish", undefined);
 
             currentConnection.disconnect();
-            ApplicationDB.cleanUp();
+            void ApplicationDB.cleanUp();
 
             requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
             requisitions.unregister("editorInfoUpdated", this.editorInfoUpdated);

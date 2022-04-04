@@ -85,7 +85,7 @@ export class ExtensionHost {
 
         this.serverResponse = ListenerEntry.createByClass("serverResponse", { persistent: true });
         this.serverResponse.catch((errorEvent: ICommErrorEvent) => {
-            void window.showErrorMessage("Backend Error: " + (errorEvent.message ?? "Unknown error"));
+            void window.showErrorMessage(`Backend Error: ${errorEvent.data.error}`);
         });
 
         this.webSession = ListenerEntry.createByClass("webSession",
@@ -275,7 +275,7 @@ export class ExtensionHost {
     private onAuthentication(event: ICommAuthenticationEvent): void {
         this.activeProfile = event.data?.activeProfile;
         ShellInterface.modules.listDataCategories().then((list: ICommListDataCategoriesEvent) => {
-            list.data?.result.forEach((row) => {
+            list.data.result.forEach((row) => {
                 this.moduleDataCategories.set(row.name, row);
             });
 

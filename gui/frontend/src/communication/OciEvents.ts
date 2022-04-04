@@ -25,8 +25,9 @@ import { IAuthenticationDetails, IComputeInstance, IGenericResponse } from ".";
 import { IBastionSession, IBastionSummary, IBastion, ICompartment, IMySQLDbSystem, ILoadBalancer } from "./Oci";
 
 import { IDispatchEvent } from "../supplement/Dispatch";
+import { IResponseDictionary } from "./GeneralEvents";
 
-export interface IOciComputeInstanceData {
+export interface IOciComputeInstanceData extends IResponseDictionary {
     result: IComputeInstance[];
 }
 

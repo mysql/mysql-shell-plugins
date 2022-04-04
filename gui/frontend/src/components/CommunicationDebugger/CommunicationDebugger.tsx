@@ -35,7 +35,7 @@ import {
     ITabviewPage, Icon, Codicon, TreeGrid, ITreeGridOptions, ISplitterPaneSizeInfo, Tabulator, SetDataAction,
 } from "../ui";
 
-import { ListenerEntry, IDispatchDefaultEvent, EventType } from "../../supplement/Dispatch";
+import { ListenerEntry, EventType, IDispatchEvent } from "../../supplement/Dispatch";
 import {
     currentConnection, ICommScriptContentEvent, ICommDebuggerScriptsEvent, ProtocolGui,
 } from "../../communication";
@@ -116,9 +116,9 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
 
         CodeEditor.addTypings(typings as string, "debugger");
 
-        ListenerEntry.create({ persistent: true }).then((event: IDispatchDefaultEvent) => {
+        ListenerEntry.create({ persistent: true }).then((event: IDispatchEvent) => {
             this.handleEvent(event);
-        }).catch((event: IDispatchDefaultEvent) => {
+        }).catch((event: IDispatchEvent) => {
             this.printOutput("ws.lastResponse = " +
                 JSON.stringify(convertToSnakeCase(event.data as object), undefined, 4) + ";\n", OutputType.Error);
         });
@@ -500,18 +500,16 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
                     }
                 });
 
-                if (this.scriptTreeRef.current) {
-                    this.scriptTreeRef.current.setColumns([{
-                        title: "",
-                        field: "name",
-                        resizable: false,
-                        hozAlign: "left",
-                        cellDblClick: this.handleScriptTreeDoubleClick,
-                        formatter: this.scriptTreeCellFormatter,
-                    }]);
-
-                    void this.scriptTreeRef.current.setData(scripts, SetDataAction.Set);
-                }
+                void this.scriptTreeRef.current?.setColumns([{
+                    title: "",
+                    field: "name",
+                    resizable: false,
+                    hozAlign: "left",
+                    cellDblClick: this.handleScriptTreeDoubleClick,
+                    formatter: this.scriptTreeCellFormatter,
+                }]).then(() => {
+                    void this.scriptTreeRef.current?.setData(scripts, SetDataAction.Set);
+                });
 
             })
             .catch((event) => {
@@ -692,7 +690,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
      *
      * @param event The event that was triggered.
      */
-    private handleEvent = (event: IDispatchDefaultEvent): void => {
+    private handleEvent = (event: IDispatchEvent): void => {
         const debuggerValidate = event.context.messageClass === "debuggerValidate";
 
         switch (event.eventType) {
@@ -729,8 +727,8 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
                         if (!debuggerValidate) {
                             // Don't print responses while doing a debugger validation run.
                             const converted = convertToSnakeCase(event.data as object);
-                            if (typeof event.data === "string") {
-                                this.printOutput((event.data) + "\n");
+                            if (event.data.output) {
+                                this.printOutput((event.data.output as string) + "\n");
                             } else {
                                 this.printOutput("ws.lastResponse = " +
                                     JSON.stringify(converted, undefined, 4) + ";\n");

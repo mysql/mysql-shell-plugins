@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,13 +22,12 @@
  */
 
 import {
-    dispatcher, IDispatchUnknownEvent, EventType, ListenerExecutor,
-    IListenerThenable, ListenerCallback, ListenerEventSource,
-} from "./";
+    dispatcher, IDispatchEvent, EventType, ListenerExecutor, IListenerThenable, ListenerCallback, ListenerEventSource,
+} from ".";
 
-export type EventFilter = (event: IDispatchUnknownEvent) => boolean;
+export type EventFilter = (event: IDispatchEvent) => boolean;
 
-export const eventFilterNoRequests = (event: IDispatchUnknownEvent): boolean => {
+export const eventFilterNoRequests = (event: IDispatchEvent): boolean => {
     return event.eventType !== EventType.Request;
 };
 
@@ -78,7 +77,7 @@ export class ListenerEntry implements IListenerThenable {
         if (!options.filters) {
             options.filters = [];
         }
-        options.filters.push((event: IDispatchUnknownEvent): boolean => {
+        options.filters.push((event: IDispatchEvent): boolean => {
             return event.id === requestId;
         });
         const listener = ListenerEntry.create(options);
@@ -90,7 +89,7 @@ export class ListenerEntry implements IListenerThenable {
         if (!options.filters) {
             options.filters = [];
         }
-        options.filters.push((event: IDispatchUnknownEvent): boolean => {
+        options.filters.push((event: IDispatchEvent): boolean => {
             return event.context.messageClass === messageClass;
         });
 
@@ -117,7 +116,7 @@ export class ListenerEntry implements IListenerThenable {
                 return results.push(event);
             });
 
-            entry.then((event: IDispatchUnknownEvent) => {
+            entry.then((event: IDispatchEvent) => {
                 return executor.execute(event);
             }).catch((error: Error) => {
                 return executor.execute(error);
@@ -154,7 +153,7 @@ export class ListenerEntry implements IListenerThenable {
      * @param event The event this method will check it the listener should process it or not
      * @returns true if the event is to be processed, false to skip it.
      */
-    public filterEvent(event: IDispatchUnknownEvent): unknown {
+    public filterEvent(event: IDispatchEvent): unknown {
         for (const filter of this.filters) {
             if (!filter(event)) {
                 return false;
