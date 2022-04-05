@@ -20,6 +20,42 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 import subprocess
 import platform
+import os
+
+
+# This structure should define the terminal/arguments required to execute a
+# command in linux assuming a last parameter with a script path will be
+# provided, the following requirements should be met by any terminal added
+# into the list:
+# - New window opened: executing <terminal> [options] <script> should open a
+#   new terminal window
+# - Blocking call: the [options] should ensure the caller terminal/process waits
+#   for the opened terminal to complete
+# - Exit Code Bubbled Up: the exit code of the executed script should be made
+#   available on the caller terminal/process
+linux_terminals = {
+    'gnome-terminal': ['--wait', '--'],
+    'xterm': ['-e'],
+}
+
+
+def get_terminal_command():
+    command = None
+    for terminal, options in linux_terminals.items():
+        exit_code, output = run_system_command(['which', terminal])
+        if exit_code == 0:
+            command = [output] + options
+            break
+
+    if command is None:
+        terminals = []
+        for terminal in linux_terminals:
+            terminals.append(terminal)
+
+        raise Exception(
+            f"Unable to locate supported terminal, tried: {', '.join(terminals)}.")
+
+    return command
 
 
 def run_system_command(command):
@@ -60,3 +96,108 @@ def get_os_name():
 
     # By default returns the platform
     return system
+
+
+def is_wsl2():
+    return "WSL2" in platform.uname().release
+
+
+def in_vs_code():
+    # Shortcut for dev environments
+    if "IN_VS_CODE" in os.environ:
+        return True
+
+    # Otherwise determine it based on this file location
+    vscode_paths = []
+    vscode_paths.append(os.path.join(".vscode", "extensions"))
+    vscode_paths.append(os.path.join(".vscode-server", "extensions"))
+
+    this_file_path = os.path.dirname(__file__)
+
+    for p in vscode_paths:
+        if p in this_file_path:
+            return True
+
+    return False
+
+
+def run_shell_cmd(cmd):
+    """Runs the given shell command
+
+    Args:
+        cmd (list): The shell command to execute with parameters
+
+    Returns:
+       A tuple containing exit code and output, if process succeeded exit code is None
+    """
+
+    stream = popen(cmd)
+    output = stream.read()
+    exit_code = stream.close()
+
+    return (exit_code, output)
+
+
+def popen(cmd, mode="r", buffering=-1):
+    """A custom implementation of popen that redirects STDERR to STDOUT
+
+    Args:
+        cmd (str): The shell command to execute
+        mode (str): The mode as in os.popen
+        buffering (int): The buffering ias in os.popen
+
+    Returns:
+       The output of the process
+    """
+
+    if mode not in ("r", "w"):
+        raise ValueError("invalid mode %r" % mode)
+    if buffering == 0 or buffering is None:
+        raise ValueError("popen() does not support unbuffered streams")
+    import subprocess
+    import io
+    # cSpell:ignore bufsize
+    if mode == "r":
+        proc = subprocess.Popen(cmd,
+                                text=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                bufsize=buffering)
+        return _wrap_close(proc.stdout, proc)
+    else:
+        proc = subprocess.Popen(cmd,
+                                text=True,
+                                stdin=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                bufsize=buffering)
+        return _wrap_close(proc.stdin, proc)
+
+# Helper for popen() -- a proxy for a file whose close waits for the process
+
+
+class _wrap_close:
+    def __init__(self, stream, proc):
+        self._stream = stream
+        self._proc = proc
+
+    def close(self):
+        self._stream.close()
+        returncode = self._proc.wait()
+        if returncode == 0:
+            return None
+        # if name == 'nt':
+        #    return returncode
+        else:
+            return returncode << 8  # Shift left to match old behavior
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def __getattr__(self, name):
+        return getattr(self._stream, name)
+
+    def __iter__(self):
+        return iter(self._stream)

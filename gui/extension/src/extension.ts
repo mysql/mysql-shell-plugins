@@ -179,6 +179,8 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
             LOG_LEVEL: level,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             MYSQLSH_USER_CONFIG_HOME: shellUserConfigDir,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            MYSQLSH_TERM_COLOR_MODE: "nocolor",
         },
     });
 
@@ -250,7 +252,17 @@ const startShellAndConnect = (extensionPath: string, target?: string): void => {
                 if (output.includes("Certificate is not installed.")) {
                     void window.showInformationMessage(
                         "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
-                        "not installed? Do you want to run the Welcome Wizard to install it?",
+                        "not installed. Do you want to run the Welcome Wizard to install it?",
+                        "Run Welcome Wizard", "Cancel")
+                        .then((answer) => {
+                            if (answer !== "Cancel") {
+                                void commands.executeCommand("msg.runWelcomeWizard");
+                            }
+                        });
+                } else if (output.includes("Certificate is not correctly installed.")) {
+                    void window.showInformationMessage(
+                        "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
+                        "incorrectly installed. Do you want to run the Welcome Wizard to fix it?",
                         "Run Welcome Wizard", "Cancel")
                         .then((answer) => {
                             if (answer !== "Cancel") {
@@ -344,14 +356,14 @@ export const activate = (context: ExtensionContext): void => {
                 runMysqlShell(context.extensionPath, parameters,
                     // onStdOutData
                     (data) => {
-                        // Delete the shell user settings folder, only if it is the dedicated one for the extension
-                        const shellUserConfigDir = getShellUserConfigDir(context.extensionPath);
-                        if (shellUserConfigDir.endsWith(extensionShellUserConfigFolderBaseName)) {
-                            rmSync(shellUserConfigDir, { recursive: true, force: true });
-                        }
-
                         const output = String(data);
                         if (output.includes("true")) {
+                            // Delete the shell user settings folder, only if it is the dedicated one for the extension
+                            const shellUserConfigDir = getShellUserConfigDir(context.extensionPath);
+                            if (shellUserConfigDir.endsWith(extensionShellUserConfigFolderBaseName)) {
+                                rmSync(shellUserConfigDir, { recursive: true, force: true });
+                            }
+
                             void window.showWarningMessage(resetRestartMessage, "Restart VS Code", "Cancel")
                                 .then((choice) => {
                                     if (choice === "Restart VS Code") {

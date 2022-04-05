@@ -140,14 +140,18 @@ def web_server(port=None, secure=None, webrootpath=None,
 
             # If the default cert is used, check if it is already installed
             logger.info('\tChecking web server certificate...')
-            if (default_cert_used and
-                    not is_shell_web_certificate_installed(check_keychain=True)):
-                # If not, print error
-                logger.info('\tCertificate is not installed. '
-                            'Use gui.core.installShellWebCertificate() to install one.')
-                return
-            else:
-                logger.info('\tCertificate is installed.')
+            if default_cert_used:
+                try:
+                    if not is_shell_web_certificate_installed(check_keychain=True):
+                        logger.info('\tCertificate is not installed. '
+                                    'Use gui.core.installShellWebCertificate() to install one.')
+                        return
+                except Exception as e:
+                    logger.info('\tCertificate is not correctly installed. '
+                                'Use gui.core.installShellWebCertificate() to fix the installation.')
+                    return
+
+            logger.info('\tCertificate is installed.')
 
         # Replace WSSimpleEcho with your own subclass of HTTPWebSocketHandler
         server = ThreadedHTTPServer(
