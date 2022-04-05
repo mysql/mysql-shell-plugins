@@ -872,10 +872,10 @@ export const setEditorLanguage = async (driver: WebDriver, language: string): Pr
                 expect(result).toBe("Switched to MySQL mode");
                 break;
             case "js":
-                expect(result).toBe("Switched to Javascript mode");
+                expect(result).toBe("Switched to JavaScript mode");
                 break;
             case "ts":
-                expect(result).toBe("Switched to Typescript mode");
+                expect(result).toBe("Switched to TypeScript mode");
                 break;
             default:
                 break;

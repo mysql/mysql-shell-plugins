@@ -1055,7 +1055,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             }
 
             default: {
-                // Javascript and Typescript, which have their own processing.
+                // JavaScript and TypeScript, which have their own processing.
                 break;
             }
         }
@@ -1472,7 +1472,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                         if (!terminalMode) {
                             block.setResult({
                                 type: "text",
-                                executionInfo: { type: MessageType.Info, text: `Switched to Javascript mode` },
+                                executionInfo: { type: MessageType.Info, text: `Switched to JavaScript mode` },
                             });
                         }
                         this.prepareNextExecutionBlock(index, "javascript");
@@ -1484,7 +1484,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                         if (!terminalMode) {
                             block.setResult({
                                 type: "text",
-                                executionInfo: { type: MessageType.Info, text: `Switched to Typescript mode` },
+                                executionInfo: { type: MessageType.Info, text: `Switched to TypeScript mode` },
                             });
                         }
                         this.prepareNextExecutionBlock(index, "typescript");

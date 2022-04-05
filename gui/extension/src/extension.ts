@@ -223,7 +223,7 @@ const startShellAndConnect = (extensionPath: string, target?: string): void => {
             currentConnection.connect(new URL(target)).then(() => {
                 void requisitions.execute("connectedToUrl", url);
             }).catch((reason) => {
-                printChannelOutput(`Could not establish websocket connection: ${String(reason)}`);
+                printChannelOutput(`Could not esablish websocket connection: ${String(reason)}`);
                 void window.showErrorMessage(`Could not connect to MySQL Shell: ${String(reason)}`);
                 void requisitions.execute("connectedToUrl", undefined);
             });

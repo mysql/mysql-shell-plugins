@@ -72,7 +72,7 @@ export class ShellTab extends Component<IShellTabProperties> {
 
 Press %modifier%+Enter to execute the current statement.
 
-Execute \\sql to switch to SQL, \\js to Javascript and \\py to Python mode.
+Execute \\sql to switch to SQL, \\js to JavaScript and \\py to Python mode.
 Execute \\help or \\? for help; \\quit to close the session.`;
 
     private static languageMap = new Map<EditorLanguage, string>([

@@ -452,8 +452,8 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                                 this.setState({ editorLanguage: selectedId as EditorLanguage });
                             }}
                         >
-                            <Dropdown.Item id="javascript" caption="Javascript" />
-                            <Dropdown.Item id="typescript" caption="Typescript" />
+                            <Dropdown.Item id="javascript" caption="JavaScript" />
+                            <Dropdown.Item id="typescript" caption="TypeScript" />
                             <Dropdown.Item id="mysql" caption="MySQL" />
                             <Dropdown.Item id="json" caption="JSON" />
                             <Dropdown.Item id="markdown" caption="Markdown" />

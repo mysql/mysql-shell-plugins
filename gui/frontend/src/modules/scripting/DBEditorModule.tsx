@@ -1385,24 +1385,41 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
         switch (language) {
             case "javascript": {
-                return `The DB Editor's interactive prompt is currently running in Javascript mode.
-Execute "\\sql" to switch to SQL mode.
+                return `The DB Editor's interactive prompt is currently running in JavaScript mode.
+Execute "\\sql" to switch to SQL mode, "\\ts" to switch to TypeScript mode.
 
 GLOBAL FUNCTIONS
-    - Send a value to the output area: \`print(value: any): void\`
-    - Run the given query: \`runSql(sql: string, parameterList: array | undefined, callback: function): void\`
+    - \`print(value: any): void\`
+      Send a value to the output area.
+    - \`runSql(code: string, callback?: (res:IResultSetRow[]) => void), params?: unknown): void\`
+      Run the given query.
+    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
+      Run the given query and process the rows iteratively.
+`;
+            }
 
-Type "\\?" function to get more information about a function, e.g. "\\? runSql".`;
+            case "typescript": {
+                return `The DB Editor's interactive prompt is currently running in TypeScript mode.
+Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
+
+GLOBAL FUNCTIONS
+    - \`print(value: any): void\`
+      Send a value to the output area.
+    - \`runSql(code: string, callback?: (res:IResultSetRow[]) => void), params?: unknown): void\`
+      Run the given query.
+    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
+      Run the given query and process the rows iteratively.
+`;
             }
 
             case "mysql": {
                 return `The DB Editor's interactive prompt is currently running in SQL mode.
-Execute "\\js" to switch to Javascript mode.
+Execute "\\js" to switch to JavaScript mode, "\\ts" to switch to TypeScript mode.
 
-Use ? as placeholders, provide values as a list in a comment.
+Use ? as placeholders, provide values in comments.
 EXAMPLES
     SELECT * FROM user
-    WHERE name = ? -- ("mike")`;
+    WHERE name = ? /*=mike*/`;
             }
 
             default:

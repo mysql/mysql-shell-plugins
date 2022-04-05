@@ -244,7 +244,7 @@ export class RequisitionHub {
             if (this.remoteTarget) {
                 // If a remote target is set it means we are embedded in a native application using
                 // an embedded browser client. Define an own function in this scenario, which the hosts can
-                // call via Javascript.
+                // call via JavaScript.
                 (window as any).onNativeMessage = (message: IEmbeddedMessage): void => {
                     this.handleRemoteMessage(message);
                 };
@@ -415,7 +415,7 @@ export class RequisitionHub {
         if (list) {
             const promises: Array<Promise<boolean>> = [];
             list.forEach((callback) => {
-                // Typescript cannot interpret the generic values type correctly and widens it here to an intersection
+                // TypeScript cannot interpret the generic values type correctly and widens it here to an intersection
                 // type, with the result that it complains that it cannot assign the original union type to this
                 // (wrong) intersection type.
                 // See also https://stackoverflow.com/questions/55933800/typescript-unexpected-intersection.

@@ -1448,7 +1448,7 @@ describe("DB Editor", () => {
                 await driver
                     .findElement(By.id("editorPaneHost"))
                     .findElement(By.css("textarea"))
-                    .sendKeys("console.log('Hello Javascript')");
+                    .sendKeys("console.log('Hello JavaScript')");
 
                 await (
                     await getToolbarButton(driver, "Execute selection or full script")
@@ -1644,7 +1644,7 @@ describe("DB Editor", () => {
                 await driver
                     .findElement(By.id("editorPaneHost"))
                     .findElement(By.css("textarea"))
-                    .sendKeys("console.log('Hello Javascript')");
+                    .sendKeys("console.log('Hello JavaScript')");
 
                 await addScript(driver, "TS");
 
@@ -1671,7 +1671,7 @@ describe("DB Editor", () => {
                         .findElement(By.id("editorPaneHost"))
                         .findElement(By.css("textarea"))
                         .getAttribute("value"),
-                ).toBe("console.log('Hello Javascript')");
+                ).toBe("console.log('Hello JavaScript')");
 
                 await selectCurrentEditor(driver, "Script 2", "typescript");
 

@@ -332,8 +332,8 @@ export const registerSettings = (): void => {
         "choice", "sql", false,
         {
             choices: [
-                ["Javascript", "javascript", "Supported in all code editors"],
-                ["Typescript", "typescript", "Supported only in DB editors"],
+                ["JavaScript", "javascript", "Supported in all code editors"],
+                ["TypeScript", "typescript", "Supported only in DB editors"],
                 ["Python", "python", "Supported only in shell session editors"],
                 ["SQL", "sql", "Supported in all code editors"],
             ],
@@ -403,7 +403,7 @@ export const registerSettings = (): void => {
         false,
         {
             choices: [
-                ["Javascript", "javascript", "Supported in all code editors"],
+                ["JavaScript", "javascript", "Supported in all code editors"],
                 ["Python", "python", "Supported only in shell session editors"],
                 ["SQL", "sql", "Supported in all code editors"],
             ],

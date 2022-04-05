@@ -180,7 +180,7 @@ describe("Application tests", () => {
             text: "Ln 1, Col 33",
         }]);
 
-        statusInfo.language = "Javascript";
+        statusInfo.language = "JavaScript";
         result = await requisitions.execute("editorInfoUpdated", statusInfo);
         expect(result).toBe(true);
         expect(lastItems).toEqual([{
@@ -191,7 +191,7 @@ describe("Application tests", () => {
         {
             id: "editorLanguage",
             visible: true,
-            text: "Javascript",
+            text: "JavaScript",
         }]);
 
         statusInfo.eol = "LF";
@@ -205,7 +205,7 @@ describe("Application tests", () => {
         {
             id: "editorLanguage",
             visible: true,
-            text: "Javascript",
+            text: "JavaScript",
         },
         {
             id: "editorEOL",
@@ -230,7 +230,7 @@ describe("Application tests", () => {
         {
             id: "editorLanguage",
             visible: true,
-            text: "Javascript",
+            text: "JavaScript",
         },
         {
             id: "editorEOL",

@@ -137,7 +137,7 @@ export class DBEditorTab extends Component<IDBEditorTabProperties, IDBEditorTabS
 
 Press %modifier%+Enter to execute the current statement.
 
-Execute \\sql to switch to SQL, \\js to Javascript and \\ts to Typescript mode.
+Execute \\sql to switch to SQL, \\js to JavaScript and \\ts to TypeScript mode.
 Execute \\help or \\? for help;`;
 
     // Currently executing contexts.
