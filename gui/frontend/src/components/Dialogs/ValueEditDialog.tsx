@@ -135,13 +135,15 @@ export interface ICallbackData {
 }
 
 export interface IValueEditDialogProperties extends IComponentProperties {
+    container?: HTMLElement; // A node where to mount the dialog to.
+
     caption: string;
     advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
     advancedActionCaption?: string;
     customFooter?: React.ReactNode;
 
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
-    onClose?: (accepted: boolean, values: IDialogValues, data?: IDictionary, callbackData? : ICallbackData) => void;
+    onClose?: (accepted: boolean, values: IDialogValues, data?: IDictionary, callbackData?: ICallbackData) => void;
     onToggleAdvanced?: (checked: boolean) => void;
     onSelectTab?: (id: string) => void;
 }
@@ -179,7 +181,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             preventConfirm: false,
         };
 
-        this.addHandledProperties("caption", "advancedAction", "advancedActionCaption",
+        this.addHandledProperties("container", "caption", "advancedAction", "advancedActionCaption",
             "customFooter", "onClose", "onValidate", "onToggleAdvanced");
     }
 
@@ -249,7 +251,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
-    public changeAdvActionText = (actionText? :string): void => {
+    public changeAdvActionText = (actionText?: string): void => {
         this.setState({ actionText });
     };
 
@@ -289,7 +291,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     };
 
     public render(): React.ReactNode {
-        const { caption, advancedActionCaption, advancedAction, customFooter } = this.props;
+        const { container, caption, advancedActionCaption, advancedAction, customFooter } = this.props;
         const { heading, actionText, description, validations, activeContexts, values, preventConfirm } = this.state;
 
         // Take over any context that is now required to show up due to validation issues.
@@ -339,6 +341,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         return (
             <Dialog
                 ref={this.dialogRef}
+                container={container}
                 id={values.id}
                 className={className}
                 caption={

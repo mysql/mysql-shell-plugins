@@ -24,7 +24,7 @@
 import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import React from "react";
-import { IDialogSection, IValueEditDialogProperties, ValueEditDialog } from "../../../../components/Dialogs/ValueEditDialog";
+import { IDialogSection, ValueEditDialog } from "../../../../components/Dialogs/ValueEditDialog";
 
 const dialogRef = React.createRef<ValueEditDialog>();
 

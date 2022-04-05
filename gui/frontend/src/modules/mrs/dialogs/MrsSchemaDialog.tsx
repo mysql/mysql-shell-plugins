@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -52,8 +52,7 @@ export class MrsSchemaDialog extends ValueDialogBase {
             undefined, undefined, undefined, { services });
     }
 
-    private dialogValues(
-        request: IDialogRequest, title: string, services: IMrsServiceData[]): IDialogValues {
+    private dialogValues(request: IDialogRequest, title: string, services: IMrsServiceData[]): IDialogValues {
 
         let selectedService = services.find((service) => {
             return request.values?.serviceId === service.id;

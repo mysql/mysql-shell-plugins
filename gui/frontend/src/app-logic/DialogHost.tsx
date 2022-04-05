@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,7 +34,7 @@ import { DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Type
 // A component to host all application wide accessible dialogs.
 export class DialogHost extends Component {
 
-    private runningDialogs = new Map<DialogType, (accepted: boolean) => void>();
+    private runningDialogs = new Set<DialogType>();
     private dialogRefs = new Map<DialogType, React.RefObject<ValueDialogBase>>();
 
     // The value edit dialog is special, as it uses a different approach for editing complex values.
@@ -83,19 +83,22 @@ export class DialogHost extends Component {
     }
 
     private showDialog = (request: IDialogRequest): Promise<boolean> => {
-
         // Check if a dialog of the given type is already active.
         // Only one of each type can be active at any time.
         if (!this.runningDialogs.has(request.type)) {
-            return new Promise((resolve) => {
-                this.runningDialogs.set(request.type, resolve);
-                if (request.type === DialogType.Prompt) {
-                    this.runPromptDialog(request);
-                } else {
-                    const ref = this.dialogRefs.get(request.type);
-                    ref?.current?.show(request, request.title);
+            this.runningDialogs.add(request.type);
+            if (request.type === DialogType.Prompt) {
+                this.runPromptDialog(request);
+
+                return Promise.resolve(true);
+            } else {
+                const ref = this.dialogRefs.get(request.type);
+                if (ref && ref.current) {
+                    ref.current.show(request, request.title);
+
+                    return Promise.resolve(true);
                 }
-            });
+            }
         }
 
         return Promise.resolve(false);
@@ -137,9 +140,7 @@ export class DialogHost extends Component {
     };
 
     private handleDialogClose = (type: DialogType, accepted: boolean, values?: IDictionary): void => {
-        const resolve = this.runningDialogs.get(type);
-        if (resolve) {
-            resolve(accepted);
+        if (this.runningDialogs.has(type)) {
             this.runningDialogs.delete(type);
 
             const response: IDialogResponse = {
@@ -154,10 +155,8 @@ export class DialogHost extends Component {
 
     private handlePromptDialogClose = (accepted: boolean, values: IDialogValues, data?: IDictionary): void => {
         const type = DialogType.Prompt;
-        const resolve = this.runningDialogs.get(type);
-        if (resolve) {
+        if (this.runningDialogs.has(type)) {
 
-            resolve(accepted);
             this.runningDialogs.delete(type);
 
             const promptSection = values.sections.get("prompt");

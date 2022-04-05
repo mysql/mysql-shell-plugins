@@ -21,12 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CommonWrapper, ShallowWrapper } from "enzyme";
-import toJson, { Json, shallowToJson } from "enzyme-to-json";
+import { CommonWrapper, ReactWrapper } from "enzyme";
+import toJson, { Json } from "enzyme-to-json";
 
 import { CommunicationEvents, ICommShellProfile, IGenericResponse, IWebSessionData } from "../../communication";
 import { dispatcher } from "../../supplement/Dispatch";
 import { uuid } from "../../utilities/helpers";
+
+export type JestReactWrapper<P = {}, S = unknown> =
+    ReactWrapper<Readonly<P> & Readonly<{ children?: React.ReactNode }>, Readonly<S>>;
 
 /**
  * Sent to start the communication rolling. This is the first reply from a real server sent to the application
@@ -60,21 +63,90 @@ export const dispatchTestEvent = <T extends IGenericResponse>(context: string, d
 };
 
 /**
+ * Internal function to help filtering arrays in Jest JSON trees.
+ *
+ * @param a The array to filter.
+ *
+ * @returns The filtered array.
+ */
+const mapArray = (a: unknown[]): unknown[] => {
+    const result = a.map((entry) => {
+        if (entry) {
+            if (Array.isArray(entry)) {
+                return mapArray(entry);
+            }
+
+            if (typeof entry === "object") {
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                return mapObject(entry!);
+            }
+        }
+
+        return entry;
+    });
+
+    return result;
+};
+
+/**
+ * Internal function to help filtering objects in Jest JSON trees. Particularly the __source and __self members
+ * are internal React stuff, which we don't need in our snapshots.
+ *
+ * @param o The object to filter.
+ *
+ * @returns The filtered object.
+ */
+const mapObject = (o: object): object => {
+    const result: { [key: string]: unknown } = {};
+
+    for (const key of Object.keys(o)) {
+        if (key === "__self" || key === "__source") {
+            continue;
+        }
+
+        const value = o[key];
+        if (value === null || value === undefined) {
+            result[key] = value;
+        } else if (Array.isArray(value)) {
+            result[key] = mapArray(value);
+        } else if (typeof value === "object") {
+            if (value.$$typeof) {
+                // A component.
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                result[key] = mapJson(value as Json);
+            } else {
+                result[key] = mapObject(value as object);
+            }
+        } else {
+            result[key] = value;
+        }
+    }
+
+    return result;
+};
+
+/**
  * Helper function to clean up Jest snapshot. It removes the __self and __source fields from all components,
  * which are rendered for browser debugging and contain absolute paths and other irrelevant info.
+ * The `toJson` function takes care to call this method for each component in the normal render tree (children),
+ * but does not take care for components passed as properties, which is what we have to do here.
  *
  * @param json The Json structure to fix.
  *
  * @returns The modified Json structure.
  */
-const removeSelfAndSource = (json: Json): Json => {
+const mapJson = (json: Json): Json => {
+    if (!json.props) {
+        return json;
+    }
+
+    const props = mapObject(json.props);
+
     return {
-        ...json,
-        props: {
-            ...json.props,
-            __self: undefined,
-            __source: undefined,
-        },
+        type: json.type,
+        children: json.children,
+        $$typeof: json.$$typeof,
+        props,
     };
 };
 
@@ -85,12 +157,8 @@ const removeSelfAndSource = (json: Json): Json => {
  *
  * @returns The Json snapshot for the tests.
  */
-export const snapshotFromWrapper = <P, S>(wrapper: ShallowWrapper<P, S> | CommonWrapper<P, S>): Json => {
-    if (wrapper instanceof ShallowWrapper) {
-        return shallowToJson(wrapper, { map: removeSelfAndSource, mode: "shallow" });
-    }
-
-    return toJson(wrapper, { map: removeSelfAndSource, mode: "deep" });
+export const snapshotFromWrapper = <P, S>(wrapper: CommonWrapper<P, S>): Json => {
+    return toJson(wrapper, { map: mapJson });
 };
 
 const versionPattern = /^\[(<|<=|>|>=|=)(\d{5})\]/;
@@ -228,4 +296,14 @@ export const checkMinStatementVersion = (statement: string, minimumVersion: numb
  */
 export const fail = (message: string): void => {
     throw new Error(message);
+};
+
+/**
+ * Allows to wait for the next tick in the Node.js event loop.
+ *
+ * @returns A promise which fulfills on the next process tick.
+ */
+export const nextProcessTick = async (): Promise<void> => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    return new Promise(process.nextTick);
 };
