@@ -1,5 +1,13 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.1.4+8.0.28
+
+### Fixes
+
+- Fixed extension icon to indicate the preview status of the release
+- Fixed Welcome Wizard to display unsupported macOS and Windows versions
+- Fixed readme to display how to add a new database connection
+
 ## Changes in 1.1.3+8.0.28
 
 ### Fixes
