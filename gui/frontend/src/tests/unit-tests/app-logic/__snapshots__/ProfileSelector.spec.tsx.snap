@@ -1,0 +1,147 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
+<div>
+  <Button
+    disabled={false}
+    onClick={[Function]}
+  >
+    <button
+      className="msg button"
+      disabled={false}
+      onClick={[Function]}
+      onMouseDown={[Function]}
+      style={
+        Object {
+          "flexDirection": undefined,
+        }
+      }
+    >
+      Open Profile Selector
+    </button>
+  </Button>
+  <ProfileSelector>
+    <ValueEditDialog
+      caption="Add/Edit Profile"
+      id="profileCreating"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          Object {
+            "begin": Array [],
+            "end": Array [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                disabled={false}
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <y>
+            <Icon
+              disabled={false}
+              src={388}
+            />
+            <Label>
+              Add/Edit Profile
+            </Label>
+          </y>
+        }
+        className="msg valueEditDialog"
+        container={Object {}}
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            rowGap={16}
+          />
+        }
+        id="profileCreating"
+        onClose={[Function]}
+      >
+        <Portal
+          container={Object {}}
+          id="profileCreating"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+    </ValueEditDialog>
+    <ConfirmDialog
+      caption="Delete Profile"
+      id="confirmDeleteDialog"
+      onClose={[Function]}
+    >
+      <Dialog
+        actions={
+          Object {
+            "end": Array [],
+          }
+        }
+        caption={
+          <y>
+            <Icon
+              disabled={false}
+              src={275}
+            />
+            <Label>
+              Delete Profile
+            </Label>
+          </y>
+        }
+        className="msg confirmDialog"
+        container={Object {}}
+        content={
+          <Container
+            orientation="column"
+          >
+            
+          </Container>
+        }
+      >
+        <Portal
+          container={Object {}}
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+    </ConfirmDialog>
+    <Menu
+      id="tileActionMenu"
+      onItemClick={[Function]}
+      orientation="column"
+      placement="top-start"
+    >
+      <Popup
+        className="msg menu"
+        id="tileActionMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+        orientation="column"
+        pinned={false}
+        placement="top-start"
+        showArrow={false}
+      >
+        <Portal
+          id="tileActionMenu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+        />
+      </Popup>
+    </Menu>
+  </ProfileSelector>
+</div>
+`;
