@@ -27,7 +27,7 @@ import keyboardKey from "keyboard-key";
 import { mount } from "enzyme";
 
 import { DialogHost } from "./../../../app-logic/DialogHost";
-import { JestReactWrapper, nextProcessTick, snapshotFromWrapper } from "../test-helpers";
+import { JestReactWrapper, nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../test-helpers";
 import { DialogType, IDialogRequest } from "../../../app-logic/Types";
 import { requisitions } from "../../../supplement/Requisitions";
 import { IMrsServiceData } from "../../../communication";
@@ -75,9 +75,7 @@ describe("DialogHost Tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
 
-        const event = new KeyboardEvent("keydown", { keyCode: keyboardKey.Escape });
-        document.body.dispatchEvent(event);
-
+        sendKeyPress(keyboardKey.Escape);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -107,8 +105,7 @@ describe("DialogHost Tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
 
-        const event = new KeyboardEvent("keydown", { keyCode: keyboardKey.Escape });
-        document.body.dispatchEvent(event);
+        sendKeyPress(keyboardKey.Escape);
 
         await nextProcessTick();
 
@@ -148,8 +145,7 @@ describe("DialogHost Tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
 
-        const event = new KeyboardEvent("keydown", { keyCode: keyboardKey.Escape });
-        document.body.dispatchEvent(event);
+        sendKeyPress(keyboardKey.Escape);
 
         await nextProcessTick();
 

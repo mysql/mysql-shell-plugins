@@ -1,0 +1,432 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Param Dialog Tests Render Test 1`] = `
+<ParamDialog
+  caption="Lorem Ipsum"
+>
+  <Dialog
+    actions={
+      Object {
+        "end": Array [
+          <Button
+            caption="OK"
+            disabled={false}
+            id="ok"
+            onClick={[Function]}
+          />,
+          <Button
+            caption="Cancel"
+            disabled={false}
+            id="cancel"
+            onClick={[Function]}
+          />,
+        ],
+      }
+    }
+    caption={
+      <y>
+        <Icon
+          disabled={false}
+          src={255}
+        />
+        <Label>
+          Parameters
+        </Label>
+      </y>
+    }
+    className="msg paramDialog"
+    container={Object {}}
+    content={
+      <Grid
+        columnGap={8}
+        columns={
+          Array [
+            "128px",
+            "auto",
+            "auto",
+          ]
+        }
+      >
+        <GridCell
+          rowSpan={4}
+        >
+          <Icon
+            disabled={false}
+            height={128}
+            src="parameters.svg"
+            width={128}
+          />
+        </GridCell>
+        <GridCell
+          columnSpan={2}
+          crossAlignment="center"
+        >
+          <Label
+            caption="Lorem Ipsum"
+            id="caption"
+          />
+        </GridCell>
+        <GridCell
+          className="left"
+          crossAlignment="center"
+        >
+          Parameter name:
+        </GridCell>
+        <GridCell
+          className="right"
+          crossAlignment="center"
+        >
+          <Input
+            id="name"
+            onChange={[Function]}
+            spellCheck={true}
+            value=""
+          />
+        </GridCell>
+        <GridCell
+          className="left"
+          crossAlignment="center"
+        >
+          Parameter value:
+        </GridCell>
+        <GridCell
+          className="right"
+          crossAlignment="center"
+        >
+          <Input
+            id="value"
+            onChange={[Function]}
+            spellCheck={true}
+            value=""
+          />
+        </GridCell>
+      </Grid>
+    }
+    onClose={[Function]}
+  >
+    <Portal
+      container={Object {}}
+      onClose={[Function]}
+      onOpen={[Function]}
+    />
+  </Dialog>
+</ParamDialog>
+`;
+
+exports[`Param Dialog Tests Show Panel and Escape 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible paramDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-pass-filled"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Parameters
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: 128px auto auto; column-gap: 8px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-row: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg icon"
+            style="mask-image: url(parameters.svg); width: 128px; height: 128px;"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; align-items: center; grid-column: span 2;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label"
+            data-tooltip="expand"
+            id="caption"
+          >
+            Dolor Sit Amet
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell left"
+          style="flex-direction: row; align-items: center;"
+        >
+          Parameter name:
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell right"
+          style="flex-direction: row; align-items: center;"
+        >
+          <input
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg input"
+            id="name"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell left"
+          style="flex-direction: row; align-items: center;"
+        >
+          Parameter value:
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell right"
+          style="flex-direction: row; align-items: center;"
+        >
+          <input
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg input"
+            id="value"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Param Dialog Tests Show Panel and Escape 2`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible paramDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-pass-filled"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Parameters
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: 128px auto auto; column-gap: 8px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-row: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg icon"
+            style="mask-image: url(parameters.svg); width: 128px; height: 128px;"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; align-items: center; grid-column: span 2;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label"
+            data-tooltip="expand"
+            id="caption"
+          >
+            Please enter name/vale pair:
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell left"
+          style="flex-direction: row; align-items: center;"
+        >
+          Parameter name:
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell right"
+          style="flex-direction: row; align-items: center;"
+        >
+          <input
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg input"
+            id="name"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell left"
+          style="flex-direction: row; align-items: center;"
+        >
+          Parameter value:
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell right"
+          style="flex-direction: row; align-items: center;"
+        >
+          <input
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg input"
+            id="value"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

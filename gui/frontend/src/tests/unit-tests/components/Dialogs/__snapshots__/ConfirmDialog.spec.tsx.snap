@@ -1,0 +1,304 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
+<ConfirmDialog
+  caption="Confirm you are a spy!"
+>
+  <Dialog
+    actions={
+      Object {
+        "end": Array [],
+      }
+    }
+    caption={
+      <y>
+        <Icon
+          disabled={false}
+          src={275}
+        />
+        <Label>
+          Confirm you are a spy!
+        </Label>
+      </y>
+    }
+    className="msg confirmDialog"
+    container={Object {}}
+    content={
+      <Container
+        orientation="column"
+      >
+        
+      </Container>
+    }
+  >
+    <Portal
+      container={Object {}}
+      onClose={[Function]}
+      onOpen={[Function]}
+    />
+  </Dialog>
+</ConfirmDialog>
+`;
+
+exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible confirmDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-question"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Confirm you are a spy!
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Time to say goodbye
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Yes, you got me"
+          class="msg button"
+          id="accept"
+        >
+          Yes, you got me
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="No, I'm no spy"
+          class="msg button"
+          id="refuse"
+        >
+          No, I'm no spy
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible confirmDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-question"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Confirm you are a spy!
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar"
+        style="flex-direction: column;"
+      >
+        <label
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg label"
+          data-tooltip="expand"
+          id="dialogMessage"
+        >
+          Answer The Question
+        </label>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Yes, you got me"
+          class="msg button"
+          id="accept"
+        >
+          Yes, you got me
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="No, I'm no spy"
+          class="msg button"
+          id="refuse"
+        >
+          No, I'm no spy
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible confirmDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-question"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Confirm you are a spy!
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar"
+        style="flex-direction: column;"
+      >
+        
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Yes, you got me"
+          class="msg button"
+          id="accept"
+        >
+          Yes, you got me
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="No, I'm no spy"
+          class="msg button"
+          id="refuse"
+        >
+          No, I'm no spy
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

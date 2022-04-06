@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -46,8 +46,14 @@ export class ErrorPanel extends Component<{}, IErrorPanelState> {
             caption: "",
             message: "",
         };
+    }
 
+    public componentDidMount(): void {
         requisitions.register("showError", this.show);
+    }
+
+    public componentWillUnmount(): void {
+        requisitions.unregister("showError", this.show);
     }
 
     public render(): React.ReactNode {
@@ -92,11 +98,11 @@ export class ErrorPanel extends Component<{}, IErrorPanelState> {
         return new Promise((resolve) => {
             if (values.length > 0) {
                 let caption = "Error";
-                let message = values.shift() as string;
+                let message = values[0];
 
-                if (values.length > 0) {
+                if (values.length > 1) {
                     caption = message;
-                    message = values.join("\n");
+                    message = values.slice(1).join("\n");
                 }
 
                 this.setState({ caption, message }, () => {

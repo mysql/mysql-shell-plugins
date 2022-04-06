@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,7 +32,7 @@ import {
 } from "../ui";
 
 export interface IParamDialogProperties extends IComponentProperties {
-    caption: string;
+    caption?: string;
     onClose?: (accepted: boolean, payload?: unknown) => void;
 }
 
@@ -62,6 +62,7 @@ export class ParamDialog extends Component<IParamDialogProperties, IParamDialogS
 
     public render(): React.ReactNode {
         const { caption } = this.props;
+        const { name, value } = this.state;
 
         const className = this.getEffectiveClassNames(["paramDialog"]);
         const dlgCaption = caption ?? "Please enter name/vale pair:";
@@ -84,11 +85,11 @@ export class ParamDialog extends Component<IParamDialogProperties, IParamDialogS
                     </GridCell>
                     <GridCell className="left" crossAlignment={ContentAlignment.Center}>Parameter name:</GridCell>
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
-                        <Input onChange={this.handleNameChange} />
+                        <Input id="name" value={name} onChange={this.handleNameChange} />
                     </GridCell>
                     <GridCell className="left" crossAlignment={ContentAlignment.Center}>Parameter value:</GridCell>
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
-                        <Input onChange={this.handleValueChange} />
+                        <Input id="value" value={value} onChange={this.handleValueChange} />
                     </GridCell>
                 </Grid>
             }
@@ -116,7 +117,7 @@ export class ParamDialog extends Component<IParamDialogProperties, IParamDialogS
     };
 
     private handleValueChange = (e: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
-        this.setState({ name: props.value });
+        this.setState({ value: props.value });
     };
 
     private handleButtonClick = (e: React.SyntheticEvent, props: IButtonProperties): void => {

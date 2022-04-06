@@ -23,6 +23,7 @@
 
 import { CommonWrapper, ReactWrapper } from "enzyme";
 import toJson, { Json } from "enzyme-to-json";
+import keyboardKey from "keyboard-key";
 
 import { CommunicationEvents, ICommShellProfile, IGenericResponse, IWebSessionData } from "../../communication";
 import { dispatcher } from "../../supplement/Dispatch";
@@ -330,4 +331,30 @@ export const fail = (message: string): void => {
 export const nextProcessTick = async (): Promise<void> => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     return new Promise(process.nextTick);
+};
+
+/**
+ * Sends a specific keycode to the given element.
+ *
+ * @param code The key code to send.
+ * @param element The target element to dispatch the keypress for. Default is document.body.
+ */
+export const sendKeyPress = (code: number, element: Element = document.body): void => {
+    const codes = keyboardKey.codes[code];
+    const event = new KeyboardEvent("keydown", { key: Array.isArray(codes) ? codes[0] : codes });
+    element.dispatchEvent(event);
+};
+
+/**
+ * Sets the given value for an input element and triggers its change event.
+ *
+ * @param element The element to receive the value. Must be an HTMLInputElement or the call has no effect.
+ * @param value The value to set.
+ */
+export const changeInputValue = (element: Element, value: string): void => {
+    if (element instanceof HTMLInputElement) {
+        element.value = value;
+        const e = new Event("input", { bubbles: true });
+        element.dispatchEvent(e);
+    }
 };

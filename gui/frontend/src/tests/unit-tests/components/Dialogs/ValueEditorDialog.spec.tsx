@@ -30,7 +30,7 @@ const dialogRef = React.createRef<ValueEditDialog>();
 
 describe("Value Editor Dialog output tests", (): void => {
     it("Action output elements", () => {
-        const component = mount(
+        const component = mount<ValueEditDialog>(
             <ValueEditDialog
                 ref={dialogRef}
                 caption="Enter a name for the new theme"
@@ -48,7 +48,8 @@ describe("Value Editor Dialog output tests", (): void => {
                 },
             },
         };
-        (instance as ValueEditDialog)?.show(
+
+        instance.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
