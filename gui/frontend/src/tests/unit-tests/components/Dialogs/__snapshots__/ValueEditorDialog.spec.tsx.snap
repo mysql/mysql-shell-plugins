@@ -51,7 +51,7 @@ Object {
               __self="[object Object]"
               __source="[object Object]"
               class="msg container fixedScrollbar gridCell"
-              style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-row: span 1; grid-column: span 8;"
+              style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
             >
               <label
                 __self="[object Object]"

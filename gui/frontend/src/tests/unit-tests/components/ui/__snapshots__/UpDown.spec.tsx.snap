@@ -18,7 +18,7 @@ Object {
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           id="content"
-          style="flex-direction: row; grid-row: span 2; grid-column: span 1;"
+          style="flex-direction: row; grid-row: span 2;"
         >
           <div
             __self="[object Object]"
@@ -138,7 +138,7 @@ Object {
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+          style="flex-direction: row;"
         >
           <button
             __self="[object Object]"
@@ -152,7 +152,7 @@ Object {
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+          style="flex-direction: row;"
         >
           <button
             __self="[object Object]"
@@ -177,7 +177,7 @@ Object {
         __source="[object Object]"
         class="msg container fixedScrollbar gridCell"
         id="content"
-        style="flex-direction: row; grid-row: span 2; grid-column: span 1;"
+        style="flex-direction: row; grid-row: span 2;"
       >
         <div
           __self="[object Object]"
@@ -297,7 +297,7 @@ Object {
         __self="[object Object]"
         __source="[object Object]"
         class="msg container fixedScrollbar gridCell"
-        style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+        style="flex-direction: row;"
       >
         <button
           __self="[object Object]"
@@ -311,7 +311,7 @@ Object {
         __self="[object Object]"
         __source="[object Object]"
         class="msg container fixedScrollbar gridCell"
-        style="flex-direction: row; grid-row: span 1; grid-column: span 1;"
+        style="flex-direction: row;"
       >
         <button
           __self="[object Object]"

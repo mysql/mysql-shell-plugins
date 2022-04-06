@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,11 +40,6 @@ interface IGridCellProperties extends IComponentProperties {
 
 // A single row in a grid layout.
 export class GridCell extends Component<IGridCellProperties> {
-
-    public static defaultProps = {
-        columnSpan: 1,
-        rowSpan: 1,
-    };
 
     public constructor(props: IGridCellProperties) {
         super(props);

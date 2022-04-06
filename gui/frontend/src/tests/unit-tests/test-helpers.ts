@@ -66,19 +66,20 @@ export const dispatchTestEvent = <T extends IGenericResponse>(context: string, d
  * Internal function to help filtering arrays in Jest JSON trees.
  *
  * @param a The array to filter.
+ * @param seen A set keeping references to already seen objects, to avoid endless recursion.
  *
  * @returns The filtered array.
  */
-const mapArray = (a: unknown[]): unknown[] => {
+const mapArray = (a: unknown[], seen: Set<object>): unknown[] => {
     const result = a.map((entry) => {
         if (entry) {
             if (Array.isArray(entry)) {
-                return mapArray(entry);
+                return mapArray(entry, seen);
             }
 
             if (typeof entry === "object") {
                 // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                return mapObject(entry!);
+                return mapObject(entry!, seen);
             }
         }
 
@@ -93,10 +94,11 @@ const mapArray = (a: unknown[]): unknown[] => {
  * are internal React stuff, which we don't need in our snapshots.
  *
  * @param o The object to filter.
+ * @param seen A set keeping references to already seen objects, to avoid endless recursion.
  *
  * @returns The filtered object.
  */
-const mapObject = (o: object): object => {
+const mapObject = (o: object, seen: Set<object>): object => {
     const result: { [key: string]: unknown } = {};
 
     for (const key of Object.keys(o)) {
@@ -108,14 +110,19 @@ const mapObject = (o: object): object => {
         if (value === null || value === undefined) {
             result[key] = value;
         } else if (Array.isArray(value)) {
-            result[key] = mapArray(value);
+            result[key] = mapArray(value, seen);
         } else if (typeof value === "object") {
             if (value.$$typeof) {
                 // A component.
                 // eslint-disable-next-line @typescript-eslint/no-use-before-define
                 result[key] = mapJson(value as Json);
             } else {
-                result[key] = mapObject(value as object);
+                if (seen.has(value as object)) {
+                    result[key] = "[[Recursion]]";
+                } else {
+                    seen.add(value as object);
+                    result[key] = mapObject(value as object, seen);
+                }
             }
         } else {
             result[key] = value;
@@ -140,7 +147,8 @@ const mapJson = (json: Json): Json => {
         return json;
     }
 
-    const props = mapObject(json.props);
+    const seen = new Set<object>();
+    const props = mapObject(json.props, seen);
 
     return {
         type: json.type,
