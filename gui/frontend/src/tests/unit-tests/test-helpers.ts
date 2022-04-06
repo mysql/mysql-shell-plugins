@@ -161,6 +161,22 @@ export const snapshotFromWrapper = <P, S>(wrapper: CommonWrapper<P, S>): Json =>
     return toJson(wrapper, { map: mapJson });
 };
 
+/**
+ * Promisified version of a component's setState function.
+ *
+ * @param component The component to set the new state for.
+ * @param state The new state.
+ *
+ * @returns A promise that fulfills when setState has finished.
+ */
+export const stateChange = <P, S>(component: CommonWrapper<P, S>, state: object): Promise<void> => {
+    return new Promise((resolve) => {
+        component.setState(state, () => {
+            resolve();
+        });
+    });
+};
+
 const versionPattern = /^\[(<|<=|>|>=|=)(\d{5})\]/;
 const relationMap = new Map<string, number>([
     ["<", 0], ["<=", 1], ["=", 2], [">=", 3], [">", 4],

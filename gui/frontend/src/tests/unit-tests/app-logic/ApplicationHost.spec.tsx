@@ -23,7 +23,7 @@
 
 /* eslint-disable @typescript-eslint/no-empty-function */
 
-import { mount, shallow } from "enzyme";
+import { mount } from "enzyme";
 import { act } from "preact/test-utils";
 import React from "react";
 
@@ -38,7 +38,8 @@ import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { webSession } from "../../../supplement/WebSession";
 
 import { eventMock } from "../__mocks__/MockEvents";
-import { snapshotFromWrapper } from "../test-helpers";
+import { snapshotFromWrapper, stateChange } from "../test-helpers";
+import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger";
 
 const toggleOptions = (): void => { };
 
@@ -113,7 +114,7 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
@@ -137,7 +138,7 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
@@ -162,7 +163,7 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
@@ -187,7 +188,7 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
@@ -206,19 +207,19 @@ describe("Application host tests", () => {
         component.unmount();
     });
 
-    it("Rendering Debugger Maximized (snapshot)", () => {
+    it("Rendering Debugger Maximized (snapshot)", async () => {
         ModuleRegistry.registerModule(ShellModule);
         ModuleRegistry.registerModule(DBEditorModule);
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
         );
 
-        component.setState({ debuggerVisible: true, debuggerMaximized: true });
+        await stateChange(component, { debuggerVisible: true, debuggerMaximized: true });
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
         expect(component.state()).toEqual({
             activeModule: "gui.shell",
@@ -300,7 +301,7 @@ describe("Application host tests", () => {
         requisitions.unregister("moduleToggle", moduleToggled);
     });
 
-    xit("Debugger State Switches", async () => { // Need to figure out how to wait for rendering after state switch.
+    it("Debugger State Switches", async () => {
         webSession.localUserMode = true;
         appParameters.embedded = false;
 
@@ -309,22 +310,34 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
         );
 
-        component.setState({ debuggerVisible: true, debuggerMaximized: false });
-        component.update();
+        // The debugger is always rendered (to allow receiving messages all the time).
+        const debugComponent = component.find(CommunicationDebugger);
+        expect(debugComponent.length).toBe(1);
 
-        const wrapper = component.find("#debuggerPane .button.rightAlign");
-        expect(wrapper.length).not.toBe(0);
+        let element = debugComponent.getDOMNode();
+        expect(element.parentElement?.classList.contains("stretch")).toBeFalsy();
+
+        await stateChange(component, { debuggerVisible: true, debuggerMaximized: true });
+
+        element = debugComponent.getDOMNode();
+        expect(element.parentElement?.classList.contains("stretch")).toBeTruthy();
+
+        const wrapper = component.find(".activityBarItem#debugger"); // Debugger activity bar item.
+        expect(wrapper.length).toBeGreaterThan(0);
 
         const onClick = (wrapper.at(0).props() as IButtonProperties).onClick;
         await act(() => {
             onClick?.(eventMock, {});
         });
+
+        element = debugComponent.getDOMNode();
+        expect(element.parentElement?.classList.contains("stretch")).toBeFalsy();
 
         component.unmount();
     });
@@ -342,7 +355,7 @@ describe("Application host tests", () => {
         let result = await requisitions.execute("dialogResponse", data);
         expect(result).toBe(false);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,

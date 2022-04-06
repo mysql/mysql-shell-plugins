@@ -140,38 +140,32 @@ export class DialogHost extends Component {
     };
 
     private handleDialogClose = (type: DialogType, accepted: boolean, values?: IDictionary): void => {
-        if (this.runningDialogs.has(type)) {
-            this.runningDialogs.delete(type);
+        this.runningDialogs.delete(type);
 
-            const response: IDialogResponse = {
-                type,
-                accepted,
-                values,
-            };
+        const response: IDialogResponse = {
+            type,
+            accepted,
+            values,
+        };
 
-            void requisitions.execute("dialogResponse", response);
-        }
+        void requisitions.execute("dialogResponse", response);
     };
 
     private handlePromptDialogClose = (accepted: boolean, values: IDialogValues, data?: IDictionary): void => {
-        const type = DialogType.Prompt;
-        if (this.runningDialogs.has(type)) {
+        this.runningDialogs.delete(DialogType.Prompt);
 
-            this.runningDialogs.delete(type);
+        const promptSection = values.sections.get("prompt");
+        if (promptSection) {
+            const response: IDialogResponse = {
+                type: DialogType.Prompt,
+                accepted,
+                values: {
+                    input: promptSection.values.input.value as string,
+                },
+                data,
+            };
 
-            const promptSection = values.sections.get("prompt");
-            if (promptSection) {
-                const response: IDialogResponse = {
-                    type,
-                    accepted,
-                    values: {
-                        input: promptSection.values.input.value as string,
-                    },
-                    data,
-                };
-
-                void requisitions.execute("dialogResponse", response);
-            }
+            void requisitions.execute("dialogResponse", response);
         }
     };
 
