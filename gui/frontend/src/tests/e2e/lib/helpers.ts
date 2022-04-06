@@ -723,7 +723,13 @@ export const selectCurrentEditor = async (driver: WebDriver, editorName: string,
             .getAttribute("src");
         if (name === editorName) {
             if (type.indexOf(editorType) !== -1) {
-                await item.click();
+                await driver.wait(async () => {
+                    await item.click();
+                    const selected = await selector.findElement(By.css("label")).getText();
+
+                    return selected === editorName;
+                }, 5000, `${editorName} with type ${editorType} was not properly selected`);
+
                 await driver.wait(
                     async () => {
                         return (
@@ -737,10 +743,12 @@ export const selectCurrentEditor = async (driver: WebDriver, editorName: string,
                     2000,
                     "Dropdown list is still visible",
                 );
-                break;
+
+                return;
             }
         }
     }
+    throw new Error(`Coult not find ${editorName} with type ${editorType}`);
 };
 
 export const getResultTab = async (driver: WebDriver, tabName: string): Promise<WebElement | undefined> => {

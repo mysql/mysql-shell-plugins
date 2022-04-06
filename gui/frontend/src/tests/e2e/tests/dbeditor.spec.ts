@@ -2077,7 +2077,7 @@ describe("DB Editor", () => {
 
                 await enterCmd(driver, textArea, "\\typescript");
 
-                expect( await getOutput(driver, 3) ).toBe("Switched to Typescript mode");
+                expect( await getOutput(driver, 3) ).toBe("Switched to TypeScript mode");
 
                 await enterCmd(driver, textArea, "Math.random();");
 
