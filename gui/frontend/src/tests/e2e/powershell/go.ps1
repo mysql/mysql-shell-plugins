@@ -56,6 +56,14 @@ try{
         Invoke-Expression "write-host `"$msg`" $option"
         
     }
+
+    $curScreenRel = Get-DisplayResolution
+    writeMsg "Current display resolution: $curScreenRel"
+    writeMsg "Changing display resolution to 1024x768" "-NoNewLine"
+    Set-DisplayResolution -Width 1024 -Height 768 -Force
+    writeMsg "DONE"
+    $upScreenRel = Get-DisplayResolution
+    writeMsg "Current display resolution: $upScreenRel"
     
     if(!$env:SHELLBRANCH){
         Throw "Please define 'SHELLBRANCH' env variable"
