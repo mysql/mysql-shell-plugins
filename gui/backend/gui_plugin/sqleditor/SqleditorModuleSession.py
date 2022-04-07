@@ -62,12 +62,12 @@ class SqleditorModuleSession(DbModuleSession):
     # Overrides the on_connected function at the DBModuleSession to actually
     # trigger the user session connection, on this one no prompts are expected
     # as they were resolved on the service session connection
-    def on_connected(self, connection_options):
+    def on_connected(self, db_session):
         if self._db_user_session is None:
             session_id = "UserSession-" + self._web_session.session_uuid
             self._db_user_session = DbSessionFactory.create(
                 self._db_type, session_id, True,
-                connection_options,
+                db_session.connection_options,
                 self._ping_interval,
                 False,
                 self.on_user_session_connected,
@@ -76,13 +76,12 @@ class SqleditorModuleSession(DbModuleSession):
                 lambda x: self.on_shell_password(x),
                 self.on_session_message)
 
-    def on_user_session_connected(self, auto_reconnected):
+    def on_user_session_connected(self, db_session):
         data = Response.ok("Connection was successfully opened.", {
             "module_session_id": self._module_session_id,
-            "info": self._db_user_session.info(),
-            "default_schema": self._db_user_session.get_default_schema()
+            "info": db_session.info(),
+            "default_schema": db_session.get_default_schema()
         })
-
         self.send_command_response(self._current_request_id, data)
 
     @cancellable

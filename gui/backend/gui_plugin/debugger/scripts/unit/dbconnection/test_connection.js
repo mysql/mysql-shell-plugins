@@ -67,38 +67,52 @@ await ws.sendAndValidate({
     }
 ])
 
-await ws.sendAndValidate({
-    "request": "prompt_reply",
-    "request_id": originalRequestId,
-    "type": "OK",
-    "reply": "",
-    "module_session_id": ws.lastModuleSessionId,
-}, [
-    {
-        'request_state': {
-            'type': 'PENDING',
-            'msg': 'Executing...'
-        },
-        'request_id': originalRequestId,
-        'result': {
-            "prompt": ws.matchRegexp("Save password for.*")
+
+ws.tokens["uri"] = default_mysql_options.user + '@' + default_mysql_options.host + ':' + default_mysql_options.portStr
+
+var next_reply = default_mysql_options.password
+
+if (ws.tokens["hasCredentialManager"]) {
+    await ws.sendAndValidate({
+        "request": "prompt_reply",
+        "request_id": originalRequestId,
+        "type": "OK",
+        "reply": next_reply,
+        "module_session_id": ws.lastModuleSessionId,
+    }, [
+        {
+            "request_state":
+            {
+                "type": "PENDING",
+                "msg": "Executing..."
+            },
+            "request_id": originalRequestId,
+            "result":
+            {
+                "prompt": "Save password for '" + ws.tokens["uri"] + "'? [Y]es/[N]o/Ne[v]er (default No): "
+            }
         }
-    }
-])
+    ])
+
+    next_reply = "N"
+} // endif
 
 await ws.sendAndValidate({
     "request": "prompt_reply",
     "request_id": originalRequestId,
     "type": "OK",
-    "reply": "N",
+    "reply": next_reply,
     "module_session_id": ws.lastModuleSessionId,
 }, [
     {
-        "request_id": ws.lastGeneratedRequestId,
+        "request_id": originalRequestId,
         "request_state": {
             "type": "OK",
             "msg": "Connection was successfully opened."
-        }
+        },
+        "module_session_id": ws.lastModuleSessionId,
+        "info": {},
+        "default_schema": ws.ignore
     }
 ])
 

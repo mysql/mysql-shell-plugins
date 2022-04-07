@@ -136,7 +136,7 @@ class DbMysqlSession(DbSession):
             self.initial_sql_mode = result[2]
 
             if not self._connected_cb is None and notify_success:
-                self._connected_cb(self._connection_options)
+                self._connected_cb(self)
             return True
         except Exception as e:
             if self._failed_cb is None:
@@ -156,7 +156,7 @@ class DbMysqlSession(DbSession):
         self._close_database(False)
 
         if auto_reconnect and self._auto_reconnect:
-            # Automtic reconnection loop only if enabled and required
+            # Automatic reconnection loop only if enabled and required
             for attempts in range(3):
                 try:
                     logger.debug3(f"Reconnecting {self._id}...")

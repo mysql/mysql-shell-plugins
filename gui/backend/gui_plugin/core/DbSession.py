@@ -142,6 +142,10 @@ class DbSession(threading.Thread):
         if not ping_interval is None:
             self._db_pinger = DbPingHandler(self, ping_interval)
 
+    @property
+    def connection_options(self):
+        return self._connection_options
+
     def open(self):
         self._opened = True
         logger.debug3(f"Connecting {self._id}...")
@@ -182,6 +186,8 @@ class DbSession(threading.Thread):
             self._db_pinger.stop()
             self._db_pinger.join()
         self._close_database(True)
+        if self.thread_error != 0:
+            logger.error(f"Thread {self._id} exiting with code {self.thread_error}")
         self._term_complete.set()
 
     def execute_thread(self, sql, params):

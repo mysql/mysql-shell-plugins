@@ -227,11 +227,11 @@ class DbModuleSession(ModuleSession):
 
         return self._prompt_replied, self._prompt_reply
 
-    def on_connected(self, connection_options):
+    def on_connected(self, db_session):
         data = Response.ok("Connection was successfully opened.", {
             "module_session_id": self._module_session_id,
-            "info": self._db_service_session.info(),
-            "default_schema": self._db_service_session.get_default_schema()
+            "info": db_session.info(),
+            "default_schema": db_session.get_default_schema()
         })
 
         self.send_command_response(self._current_request_id, data)
