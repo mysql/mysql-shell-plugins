@@ -56,14 +56,6 @@ try{
         Invoke-Expression "write-host `"$msg`" $option"
         
     }
-
-    $curScreenRel = Get-DisplayResolution
-    writeMsg "Current display resolution: $curScreenRel"
-    writeMsg "Changing display resolution to 1024x768" "-NoNewLine"
-    Set-DisplayResolution -Width 1024 -Height 768 -Force
-    writeMsg "DONE"
-    $upScreenRel = Get-DisplayResolution
-    writeMsg "Current display resolution: $upScreenRel"
     
     if(!$env:SHELLBRANCH){
         Throw "Please define 'SHELLBRANCH' env variable"
@@ -80,6 +72,14 @@ try{
     }
 
     New-Item -ItemType "file" -Path $log
+
+    $curScreenRel = Get-DisplayResolution
+    writeMsg "Current display resolution: $curScreenRel"
+    writeMsg "Changing display resolution to 1024x768" "-NoNewLine"
+    $result = Set-DisplayResolution -Width 1024 -Height 768 -Force
+    writeMsg $result
+    $upScreenRel = Get-DisplayResolution
+    writeMsg "Current display resolution: $upScreenRel"
 
     writeMsg "Setup nodejs registry..." "-NoNewLine"
     Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-tip.oraclecorp.com/api/npm/npmjs-remote" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
