@@ -37,6 +37,10 @@ import {
 
 import { before, after, afterEach } from "mocha";
 
+import addContext from "mochawesome/addContext";
+
+import fs from "fs/promises";
+
 import { expect } from "chai";
 import {
     createDBconnection,
@@ -123,6 +127,22 @@ describe("MySQL Shell for VS", () => {
             await installCertificate(driver);
             await waitForExtensionChannel(driver);
             await waitForShell(driver);
+        }
+    });
+
+    afterEach(async function() {
+        if(this.currentTest?.state === "failed") {
+            const img = await driver.takeScreenshot();
+            const testName = this.currentTest?.title;
+            try {
+                await fs.access("tests/e2e/screenshots");
+            } catch(e) {
+                await fs.mkdir("tests/e2e/screenshots");
+            }
+            const imgPath = `tests/e2e/screenshots/${testName}_screenshot.png`;
+            await fs.writeFile(imgPath, img, "base64");
+
+            addContext(this, { title: "Failure", value: `../${imgPath}` });
         }
     });
 

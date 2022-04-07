@@ -63,6 +63,8 @@ frontend/src/tests/e2e/test-report.html
 
 extension/test-resources
 extension/src/e2e/**/*.js
+extension/mochawesome-report
+extension/tests/e2e/screenshots
 
 
 
