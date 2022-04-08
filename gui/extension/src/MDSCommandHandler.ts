@@ -452,7 +452,7 @@ export class MDSCommandHandler {
      * @param text The text to show, interpreted as JSON.
      */
     private showNewJsonDocument(title: string, text: string) {
-        const setting: Uri = Uri.parse(`untitled:~/${title}`);
+        const setting: Uri = Uri.parse(`untitled:${homedir()}/${title}`);
 
         workspace.openTextDocument(setting).then((doc: TextDocument) => {
             void window.showTextDocument(doc, 1, false).then((editor) => {
