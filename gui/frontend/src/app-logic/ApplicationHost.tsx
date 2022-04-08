@@ -187,23 +187,25 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
             <Container className="applicationHost">
                 {!appParameters.embedded &&
                     <ActivityBar id="mainActivityBar">
-                        {activityBarEntries}
-                        {allowDebugger && <ActivityBarItem
-                            key="debugger"
-                            id="debugger"
-                            active={debuggerVisible && debuggerMaximized}
-                            image={debuggerIcon}
-                            expand={true}
-                            onClick={this.handleActivityItemClick}
-                        />}
-                        <ActivityBarItem
-                            key="settings"
-                            id="settings"
-                            active={settingsVisible}
-                            image={settingIcon}
-                            expand={!allowDebugger}
-                            onClick={this.handleActivityItemClick}
-                        />
+                        <>
+                            {activityBarEntries}
+                            {allowDebugger && <ActivityBarItem
+                                key="debugger"
+                                id="debugger"
+                                active={debuggerVisible && debuggerMaximized}
+                                image={debuggerIcon}
+                                expand={true}
+                                onClick={this.handleActivityItemClick}
+                            />}
+                            <ActivityBarItem
+                                key="settings"
+                                id="settings"
+                                active={settingsVisible}
+                                image={settingIcon}
+                                expand={!allowDebugger}
+                                onClick={this.handleActivityItemClick}
+                            />
+                        </>
                     </ActivityBar>
                 }
 
@@ -273,7 +275,7 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
                     activeModule: props.id || "",
                     debuggerVisible: debuggerVisible && !debuggerMaximized,
                     settingsVisible: false,
-                }, () => { this.updateActiveHost(); } );
+                }, () => { this.updateActiveHost(); });
 
                 if (props.id && activeModule === props.id) {
                     // The same activity item was clicked. We use that as a signal to toggle things in modules

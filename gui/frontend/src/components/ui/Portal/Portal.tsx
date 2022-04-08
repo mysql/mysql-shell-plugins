@@ -101,7 +101,7 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
 
                     {children}
                 </div>, container,
-            )
+            ) as React.ReactNode
         );
     }
 

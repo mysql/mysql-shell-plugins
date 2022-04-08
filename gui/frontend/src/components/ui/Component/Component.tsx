@@ -179,11 +179,8 @@ export interface IComponentState {
 }
 
 // The base of all our components. Provides some common functionality.
-export class Component<
-    P extends IComponentProperties = {},
-    S extends IComponentState = {},
-    SS = unknown
-> extends React.Component<P, S, SS> {
+export class Component<P extends IComponentProperties = {}, S extends IComponentState = {}, SS = unknown>
+    extends React.Component<P, S, SS> {
 
     // Properties that are implicitly handled by this class and should not be forwarded to
     // an HTML element during rendering.

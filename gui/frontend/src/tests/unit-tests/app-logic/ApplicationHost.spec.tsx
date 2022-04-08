@@ -107,7 +107,7 @@ describe("Application host tests", () => {
         component.unmount();
     });
 
-    it("Standard Rendering (snapshot)", () => {
+    it("Standard Rendering", () => {
         // Registration is a global thing, but if this test runs standalone it will need this extra registration.
         ModuleRegistry.registerModule(ShellModule);
         ModuleRegistry.registerModule(DBEditorModule);
@@ -132,7 +132,7 @@ describe("Application host tests", () => {
         component.unmount();
     });
 
-    it("Rendering About (snapshot)", async () => {
+    it("Rendering About", async () => {
         ModuleRegistry.registerModule(ShellModule);
         ModuleRegistry.registerModule(DBEditorModule);
         ModuleRegistry.enableModule(ShellModuleId);
@@ -157,7 +157,7 @@ describe("Application host tests", () => {
         component.unmount();
     });
 
-    it("Rendering Preferences (snapshot)", async () => {
+    it("Rendering Preferences", async () => {
         ModuleRegistry.registerModule(ShellModule);
         ModuleRegistry.registerModule(DBEditorModule);
         ModuleRegistry.enableModule(ShellModuleId);
@@ -182,7 +182,7 @@ describe("Application host tests", () => {
         component.unmount();
     });
 
-    it("Rendering Debugger Normal (snapshot)", () => {
+    it("Rendering Debugger Normal", () => {
         ModuleRegistry.registerModule(ShellModule);
         ModuleRegistry.registerModule(DBEditorModule);
         ModuleRegistry.enableModule(ShellModuleId);
@@ -207,7 +207,7 @@ describe("Application host tests", () => {
         component.unmount();
     });
 
-    it("Rendering Debugger Maximized (snapshot)", async () => {
+    it("Rendering Debugger Maximized", async () => {
         ModuleRegistry.registerModule(ShellModule);
         ModuleRegistry.registerModule(DBEditorModule);
         ModuleRegistry.enableModule(ShellModuleId);

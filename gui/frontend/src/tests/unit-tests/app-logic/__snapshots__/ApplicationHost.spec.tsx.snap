@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Application host tests Rendering About (snapshot) 1`] = `
+exports[`Application host tests Rendering About 1`] = `
 <ApplicationHost
   toggleOptions={[Function]}
 >
@@ -139,7 +139,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                 image="module-shell.svg"
                 key="gui.shell"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem active"
@@ -147,7 +146,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                   disabled={false}
                   id="gui.shell"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -156,7 +154,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                     disabled={false}
                     id="gui.shell"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -197,7 +194,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                 image="module-sql.svg"
                 key="gui.sqleditor"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
@@ -205,7 +201,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                   disabled={false}
                   id="gui.sqleditor"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -214,7 +209,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                     disabled={false}
                     id="gui.sqleditor"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -255,7 +249,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                 image="settings.svg"
                 key="settings"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem expanded"
@@ -263,7 +256,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                   disabled={false}
                   id="settings"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -272,7 +264,6 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
                     disabled={false}
                     id="settings"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -1365,7 +1356,7 @@ exports[`Application host tests Rendering About (snapshot) 1`] = `
 </ApplicationHost>
 `;
 
-exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
+exports[`Application host tests Rendering Debugger Maximized 1`] = `
 <ApplicationHost
   toggleOptions={[Function]}
 >
@@ -1504,7 +1495,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                 image="module-shell.svg"
                 key="gui.shell"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
@@ -1512,7 +1502,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                   disabled={false}
                   id="gui.shell"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -1521,7 +1510,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                     disabled={false}
                     id="gui.shell"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -1562,7 +1550,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                 image="module-sql.svg"
                 key="gui.sqleditor"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
@@ -1570,7 +1557,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                   disabled={false}
                   id="gui.sqleditor"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -1579,7 +1565,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                     disabled={false}
                     id="gui.sqleditor"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -1620,7 +1605,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                 image="settings.svg"
                 key="settings"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem expanded"
@@ -1628,7 +1612,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                   disabled={false}
                   id="settings"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -1637,7 +1620,6 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
                     disabled={false}
                     id="settings"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -2730,7 +2712,7 @@ exports[`Application host tests Rendering Debugger Maximized (snapshot) 1`] = `
 </ApplicationHost>
 `;
 
-exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
+exports[`Application host tests Rendering Debugger Normal 1`] = `
 <ApplicationHost
   toggleOptions={[Function]}
 >
@@ -2869,7 +2851,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                 image="module-shell.svg"
                 key="gui.shell"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem active"
@@ -2877,7 +2858,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                   disabled={false}
                   id="gui.shell"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -2886,7 +2866,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                     disabled={false}
                     id="gui.shell"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -2927,7 +2906,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                 image="module-sql.svg"
                 key="gui.sqleditor"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
@@ -2935,7 +2913,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                   disabled={false}
                   id="gui.sqleditor"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -2944,7 +2921,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                     disabled={false}
                     id="gui.sqleditor"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -2985,7 +2961,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                 image="settings.svg"
                 key="settings"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem expanded"
@@ -2993,7 +2968,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                   disabled={false}
                   id="settings"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -3002,7 +2976,6 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
                     disabled={false}
                     id="settings"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -4095,7 +4068,7 @@ exports[`Application host tests Rendering Debugger Normal (snapshot) 1`] = `
 </ApplicationHost>
 `;
 
-exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
+exports[`Application host tests Rendering Preferences 1`] = `
 <ApplicationHost
   toggleOptions={[Function]}
 >
@@ -4234,7 +4207,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                 image="module-shell.svg"
                 key="gui.shell"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem active"
@@ -4242,7 +4214,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                   disabled={false}
                   id="gui.shell"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -4251,7 +4222,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                     disabled={false}
                     id="gui.shell"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -4292,7 +4262,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                 image="module-sql.svg"
                 key="gui.sqleditor"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
@@ -4300,7 +4269,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                   disabled={false}
                   id="gui.sqleditor"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -4309,7 +4277,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                     disabled={false}
                     id="gui.sqleditor"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -4350,7 +4317,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                 image="settings.svg"
                 key="settings"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem expanded"
@@ -4358,7 +4324,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                   disabled={false}
                   id="settings"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -4367,7 +4332,6 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
                     disabled={false}
                     id="settings"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -5460,7 +5424,7 @@ exports[`Application host tests Rendering Preferences (snapshot) 1`] = `
 </ApplicationHost>
 `;
 
-exports[`Application host tests Standard Rendering (snapshot) 1`] = `
+exports[`Application host tests Standard Rendering 1`] = `
 <ApplicationHost
   toggleOptions={[Function]}
 >
@@ -5599,7 +5563,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                 image="module-shell.svg"
                 key="gui.shell"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem active"
@@ -5607,7 +5570,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                   disabled={false}
                   id="gui.shell"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -5616,7 +5578,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                     disabled={false}
                     id="gui.shell"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -5657,7 +5618,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                 image="module-sql.svg"
                 key="gui.sqleditor"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
@@ -5665,7 +5625,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                   disabled={false}
                   id="gui.sqleditor"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -5674,7 +5633,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                     disabled={false}
                     id="gui.sqleditor"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {
@@ -5715,7 +5673,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                 image="settings.svg"
                 key="settings"
                 onClick={[Function]}
-                onDrop={[Function]}
               >
                 <Container
                   className="msg activityBarItem expanded"
@@ -5723,7 +5680,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                   disabled={false}
                   id="settings"
                   onClick={[Function]}
-                  onDrop={[Function]}
                   orientation="column"
                   role="button"
                 >
@@ -5732,7 +5688,6 @@ exports[`Application host tests Standard Rendering (snapshot) 1`] = `
                     disabled={false}
                     id="settings"
                     onClick={[Function]}
-                    onDrop={[Function]}
                     role="button"
                     style={
                       Object {

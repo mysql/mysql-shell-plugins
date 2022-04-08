@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,10 @@
 
 import React from "react";
 
-import { Container, Message, Label, Orientation } from "../components/ui";
+import { Container, Message, Label, Orientation, IComponentProperties } from "../components/ui";
 import { MessageType } from "./Types";
+
+type IErrorBoundaryProperties = IComponentProperties;
 
 interface IErrorBoundaryState {
     error: string;
@@ -34,7 +36,7 @@ interface IErrorBoundaryState {
 // A component to handle unhandled exceptions in any of the components.
 // Because it catches all errors that aren't handled anywhere else, it's tricky to test.
 // So for now we don't include the error branches in the coverage summary.
-export class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<IErrorBoundaryProperties, IErrorBoundaryState> {
 
     public constructor(props: {}) {
         super(props);
