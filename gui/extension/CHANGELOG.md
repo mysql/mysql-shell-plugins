@@ -1,5 +1,13 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.1.5+8.0.28
+
+### Fixes
+
+- Fixed certificate deployment for WSL2.
+- Fixed inconsistency detection in certificate deployment.
+- Improved the error message when failing to deploy the certificates on linux to provide the user instructions for manual install.
+
 ## Changes in 1.1.4+8.0.28
 
 ### Fixes
