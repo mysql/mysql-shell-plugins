@@ -52,85 +52,20 @@ Example on macOS:
   - Use File > Import Items to load the `rootCA.pem` from the specified folder.
   - Double click the imported certificate and change the “When using this certificate:” dropdown to Always Trust in the Trust section.
 
-If SSL/TLS connections don't work (for whatever reason), disable SSL when starting the backend by using
-
-```bash
-python main.py --nossl
-```
-
-You will also have to disable SSL in the dev server start script in the frontend in such a case.
-
 # Deployment
 In a production scenario a MySQL Shell instance is launched and configured to run the python web server to serve frontend files as described in the [frontend readme](../frontend/readme.md). This instance also runs the library code and the websocket layer for direct command execution.
-
-# Development
-During development the setup is however different, mostly because we need to debug both, backend and frontend code. Therefore we launch the python web server not as part of a MySQL Shell instance but standalone. It will then not talk with a MySQL Shell instance, but with a mock backend. In this scenario the Shell is not used at all and the library functions are directly used (instead via the plugin layer).
-
-To launch the mock MySQL Shell you need to run
-
-```bash
-python main.py
-```
-
-If you're having certificate problems, try
-
-```bash
-python main.py --nossl
-```
-
-If you need to launch it on a different port then the default (port 8000)
-
-```bash
-python main.py --port=3000
-```
-
-## Visual Studio Code
-Like recommended for the frontend code development also for the backend it is probably most effective to use vscode. You can open this `backend/` folder in the IDE (even in parallel to the frontend folder) and launch the python web server from there. To do that create a launch config with this content:
-
-```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Mock server (https)",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [
-            ]
-        },
-        {
-            "name": "Mock server (http)",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--nossl"
-            ]
-        }
-    ]
-}
-
-```
-
-For development select the "Mock Server (http)" configuration and start it. It runs the websocket + web server, which now accepts http requests from the frontend.
-
 
 ## Debugging the tests
 To start the tests, you need to run
 
 ```bash
-./run_tests.sh
+ mysqlsh --py -f run_tests.py
 ```
 
 To allow the tests to wait for a debugger to be attached, the ATTACH_DEBUGGER environment variable needs to be set with 'TESTS' or 'BACKEND'. This enables to debug the tests part or the running backend used in the ser stories.
 
 ```bash
-ATTACH_DEBUGGER=BACKEND ./run_tests.sh
+ATTACH_DEBUGGER=BACKEND  mysqlsh --py -f run_tests.py
 ```
 
 In vscode, you should use the following configurations. These configurations allow to properly debug and set breakpoints.

@@ -193,14 +193,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                             threading.current_thread(
                             ).name = f'wss-{self.session_uuid}'
 
-                            # TODO(anyone): Why querying the "active profile" if it has been just set to the default profile?
-                            active_profile = user_handler.get_profile(
-                                db, self.session_active_profile_id)
-
                             self.send_response_message('OK', 'Session recovered', values={
                                 "session_uuid": self.session_uuid,
                                 "local_user_mode": self.is_local_session,
-                                "active_profile": active_profile})
+                                "active_profile": default_profile})
 
                             # Starts the response processor...
                             self._response_thread.start()
@@ -459,6 +455,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     # get default profile for the user
                     default_profile = gui.users.get_default_profile(
                         row[0], WebSession(self))
+                    logger.debug3(f"  ** profile: {default_profile}")
                     if default_profile["request_state"]["type"] != "OK":
                         msg = default_profile["request_state"]["msg"]
                         raise Exception(f'Could not get the default profile for'

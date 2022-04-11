@@ -210,9 +210,7 @@ def get_profile(db, profile_id):
     if profile_id is None or profile_id <= 0:
         raise MSGException(Error.CORE_INVALID_PARAMETER, "Invalid profile id.")
 
-    # TODO(someone): Not all the fields are to be returned, i.e. active
-    # should not and we should review if user_id is required
-    result = db.select('''SELECT * FROM profile
+    result = db.select('''SELECT id, user_id, name, description, options FROM profile
         WHERE id = ?''', (profile_id,))
 
     if not result:

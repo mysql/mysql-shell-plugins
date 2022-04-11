@@ -23,6 +23,8 @@ import ctypes
 import struct
 import gui_plugin.core.Logger as logger
 
+WEBSOCKET_CLOSED_BY_CLIENT=963
+
 class Error(Exception):
     pass
 
@@ -121,7 +123,8 @@ class FrameReceiver(Frame):
             if len(self.message) > 0:
                 self.error = struct.unpack(">H", self.message.encode()[:2])[0]
                 self.message = self.message[2:]
-                logger.error(f"WebSocket closed by peer: Error[{self.error}]: {self.message}")
+                if self.error != WEBSOCKET_CLOSED_BY_CLIENT:
+                    logger.error(f"WebSocket closed by peer: Error[{self.error}]: {self.message}")
 
 
 class FrameSender(Frame):
