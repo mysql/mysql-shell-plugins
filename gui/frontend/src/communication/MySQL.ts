@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -123,7 +123,7 @@ export interface IMySQLConnectionOptions {
 
     // The list of permissible encryption ciphers for connections that use TLS protocols up through TLSv1.2.
     // Colon-separated string. Example: "HIGH:!SSLv2:!RC4:!aNULL@STRENGTH".
-    "ssl-cipher"?: string;
+    "ssl-ciphersuites"?: string;
 
     // Comma separated list of protocols permitted for secure connections.
     "tls-version"?: string;
@@ -166,9 +166,6 @@ export interface IMySQLConnectionOptions {
     // Enable/disable LOAD DATA LOCAL INFILE.
     "local-infile"?: boolean;
 
-    // SSH host name
-    "ssh-host-name"?: string;
-
     // an SSHURI
     "ssh"?: string;
 
@@ -187,9 +184,6 @@ export interface IMySQLConnectionOptions {
     // the ssh public key file password
     "ssh-public-identity-file"?: string;
 
-    // mds db sytem name
-    "mysql-db-system-name"?: string;
-
     // mds db sytem id
     "mysql-db-system-id"?: string;
 
@@ -198,7 +192,4 @@ export interface IMySQLConnectionOptions {
 
     // mds bastion id
     "bastion-id"?: string;
-
-    // mds bastion name
-    "bastion-name"?: string;
 }

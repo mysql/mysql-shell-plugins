@@ -801,6 +801,13 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         this.liveUpdateFields.dbSystemId = "";
         this.connectionId = details?.id ?? -1;
 
+        // Initializes useMDS/useSSH to have the tabs be shown or hidden based on the saved connection options
+        if (details?.dbType === DBType.MySQL) {
+            const optionsMySQL = details.options as IMySQLConnectionOptions;
+            details.useMDS = optionsMySQL["mysql-db-system-id"] !== undefined;
+            details.useSSH = optionsMySQL.ssh !== undefined;
+        }
+
         if (this.editorRef.current) {
             if (details && details.options["bastion-id"] && details.options["profile-name"]
                 && details.options["mysql-db-system-id"]) {
@@ -840,9 +847,17 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         // Do nothing
                     });
             } else {
+                // Activate the SSH/MDS contexts as needed
+                const initialContexts: string[] = [dbTypeName];
+                if (details?.useSSH) {
+                    initialContexts.push("useSSH");
+                }
+                if (details?.useMDS) {
+                    initialContexts.push("useMDS");
+                }
                 this.editorRef.current.show(
                     this.generateEditorConfig(details),
-                    [dbTypeName],
+                    initialContexts,
                     {},
                     editorHeading,
                     editorDescription,
@@ -857,14 +872,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private loadMdsAdditionalDataAndShowConnectionDlg = ((dbTypeName: string, newConnection: boolean,
         details?: IConnectionDetails): void => {
         const initialContexts: string[] = [dbTypeName];
-
-        if (details && details.dbType === DBType.MySQL) {
-            const options = details.options as IMySQLConnectionOptions;
-            if (options.ssh || options["ssh-host-name"]) {
-                details.useSSH = true;
-                initialContexts.push("useSSH");
-            }
-        }
 
         this.beginValueUpdating("Loading...", "bastionName");
         this.beginValueUpdating("Loading...", "mysqlDbSystemName");
@@ -1060,7 +1067,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         sshKeyFile = mysqlSshSection.sshKeyFile.value;
                     }
                     let sshKeyFilePublic;
-                    if ((details.useSSH || details.useMDS) && mysqlSshSection.sshKeyFile.value !== "") {
+                    if (details.useMDS && mdsAdvancedSection.sshPublicKeyFile.value !== "") {
                         sshKeyFilePublic = mdsAdvancedSection.sshPublicKeyFile.value;
                     }
                     const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
@@ -1170,6 +1177,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             };
             optionsMySQL = details.options as IMySQLConnectionOptions;
             details.useMDS = optionsMySQL["mysql-db-system-id"] !== undefined;
+            details.useSSH = optionsMySQL.ssh !== undefined;
         } else {
             optionsSqlite = {
                 dbFile: "",
@@ -1325,6 +1333,13 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     value: details.useMDS === true,
                     onChange: (value: DialogValueType): void => {
                         const useMDS = value as boolean;
+                        // The MDS tab should be shown/hidden based on the checkbox value
+                        const contexts = {
+                            add: useMDS ? ["useMDS"] : [],
+                            remove: useMDS ? [] : ["useMDS"],
+                        };
+                        this.editorRef.current?.updateActiveContexts(contexts);
+
                         if (useMDS) {
                             this.getProfileNames().then((profiles) => {
                                 this.fillProfileDropdown(profiles);
@@ -1459,7 +1474,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         this.activeOciProfileName = optionsMySQL["profile-name"];
 
         const mdsAdvancedSection: IDialogSection = {
-            contexts: ["MySQL"],
+            contexts: ["MySQL", "useMDS"],
             caption: "MDS",
             groupName: "group1",
             values: {
