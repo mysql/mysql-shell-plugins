@@ -98,7 +98,6 @@ export class Input extends Component<IInputProperties> {
             <ElementType
                 ref={this.inputRef}
                 onChange={this.handleChange}
-                onKeyPress={this.handleKeypress}
                 onKeyDown={this.handleKeyDown}
                 className={className}
                 type={password ? "password" : "text"}
@@ -117,20 +116,19 @@ export class Input extends Component<IInputProperties> {
         onChange?.(e, { ...this.mergedProps, value: element.value });
     };
 
-    private handleKeypress = (e: React.KeyboardEvent): void => {
-        const { multiLine, onConfirm } = this.mergedProps;
-
-        if (!multiLine && keyboardKey.getCode(e) === keyboardKey.Enter) {
-            const element = e.target as HTMLInputElement;
-            onConfirm?.(e, { ...this.mergedProps, value: element.value });
-        }
-    };
-
     private handleKeyDown = (e: React.KeyboardEvent): void => {
-        const { multiLine, onCancel } = this.mergedProps;
+        const { multiLine, onConfirm, onCancel } = this.mergedProps;
 
-        // Special keys are only sent to key down, not key press.
         switch (keyboardKey.getCode(e)) {
+            case keyboardKey.Enter: {
+                if (!multiLine) {
+                    const element = e.target as HTMLInputElement;
+                    onConfirm?.(e, { ...this.mergedProps, value: element.value });
+                }
+
+                break;
+            }
+
             case keyboardKey.A: {
                 if (e.metaKey && this.inputRef.current instanceof HTMLInputElement) {
                     this.inputRef.current.select();

@@ -341,12 +341,16 @@ export const nextProcessTick = async (): Promise<void> => {
  */
 export const sendKeyPress = (code: number, element: Element = document.body): void => {
     const codes = keyboardKey.codes[code];
-    const event = new KeyboardEvent("keydown", { key: Array.isArray(codes) ? codes[0] : codes });
+    let event = new KeyboardEvent("keydown", { key: Array.isArray(codes) ? codes[0] : codes, bubbles: true });
+    element.dispatchEvent(event);
+    event = new KeyboardEvent("keyup", { key: Array.isArray(codes) ? codes[0] : codes, bubbles: true });
     element.dispatchEvent(event);
 };
 
 /**
  * Sets the given value for an input element and triggers its change event.
+ * Note: The approach used here circumvents all React handling, re-rendering and so on. It therefore does not require
+ *       to store the given value anywhere (like it is required for controlled components).
  *
  * @param element The element to receive the value. Must be an HTMLInputElement or the call has no effect.
  * @param value The value to set.
@@ -356,5 +360,16 @@ export const changeInputValue = (element: Element, value: string): void => {
         element.value = value;
         const e = new Event("input", { bubbles: true });
         element.dispatchEvent(e);
+    }
+};
+
+/**
+ * Sends an event to the active element that simulates the onBlur event on it. Sending a blur event, however, doesn't
+ * work. Instead focusout is sent, which has the desired effect.
+ */
+export const sendBlurEvent = (): void => {
+    if (document.activeElement instanceof HTMLInputElement) {
+        const e = new Event("focusout", { bubbles: true });
+        document.activeElement.dispatchEvent(e);
     }
 };

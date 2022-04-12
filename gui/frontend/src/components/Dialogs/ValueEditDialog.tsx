@@ -76,7 +76,8 @@ export interface IDialogValue {
 
     // These members indicate special sources that limit the possible input value.
     choices?: string[]; // Only one of the list of choices is possible.
-    action?: string; // Action name for button
+
+    action?: string;    // Action name for button
     matrix?: DialogValueType[][];
     tags?: string[];    // Any combination of the tags is possible. The value field must be a comma-separated list.
 
@@ -241,12 +242,16 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             const entry = section.values[id];
             if (!isNil(entry)) {
                 entry.value = value;
-                const index = entry.options?.indexOf(DialogValueOption.ShowLoading, 0);
-                if (index !== undefined && index > -1) {
+                const index = entry.options?.indexOf(DialogValueOption.ShowLoading) ?? -1;
+                if (index > -1) {
                     entry.options?.splice(index, 1);
                 }
 
-                this.setState({ values });
+                const { onValidate } = this.props;
+                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                this.setState({ values, validations });
+
+                return;
             }
         });
     };
@@ -264,7 +269,11 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 entry.choices = items;
                 entry.value = active;
 
-                this.setState({ values });
+                const { onValidate } = this.props;
+                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                this.setState({ values, validations });
+
+                return;
             }
         });
     };
@@ -281,7 +290,10 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 } else {
                     entry.options?.push(DialogValueOption.ShowLoading);
                 }
-                this.setState({ values });
+
+                const { onValidate } = this.props;
+                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                this.setState({ values, validations });
             }
         });
     };
@@ -311,16 +323,16 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 customActions.push(
                     <Button
                         caption={actionText ?? advancedActionCaption}
-                        key="advanced-btn"
+                        id="advanced-btn"
                         onClick={this.advancedBtnClick}
                     />);
             } else {
                 customActions.push(
                     <Checkbox
-                        key="show-advanced"
+                        id="show-advanced"
                         caption={advancedActionCaption}
                         checkState={activeContexts.has("advanced") ? CheckState.Checked : CheckState.Unchecked}
-                        onChange={this.advancedSettingsChange}
+                        onChange={this.advancedCheckboxChange}
                     />,
                 );
             }
@@ -480,7 +492,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                                 }
                             });
                             onSelectTab?.(selected);
-                            this.setState({ values });
+                            this.forceUpdate();
                         }}
                     >
                     </Tabview>
@@ -654,8 +666,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                         key={itemIndex}
                         id={item}
                     />;
-                },
-                );
+                });
 
                 result.push(<Dropdown
                     id={entry.key}
@@ -684,12 +695,11 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                         className="verticalCenterContent"
                     >
                         <Checkbox
-                            id={entry.key}
-                            key={entry.key}
+                            // The id field will be set from the template data.
                             dataId="data"
                             className="stretch"
                             checkState={CheckState.Unchecked}
-                            onChange={this.checkboxChange}>
+                            onChange={this.listCheckboxChange.bind(this, entry.key)}>
                         </Checkbox>
                     </Container>
                 );
@@ -769,7 +779,8 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                         backgroundOpacity={0.95}
                         indicatorWidth={40}
                         indicatorHeight={7}
-                        linear={true} />);
+                        linear={true}
+                    />);
                 }
 
                 result.push(
@@ -816,7 +827,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         let accepted = false;
 
         if (props.id === "ok") {
-            if (!this.inputIsValid) {
+            if (!this.inputIsValid()) {
                 return;
             } else {
                 accepted = true;
@@ -865,34 +876,77 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
     };
 
+    /**
+     * Change handler for standalone check box components.
+     *
+     * @param checkState The new check state to be set.
+     * @param props The checkbox' properties.
+     */
     private checkboxChange = (checkState: CheckState, props: ICheckboxProperties): void => {
         const { onValidate } = this.props;
         const { values } = this.state;
 
+        const id = props.id;
+
+        // The id is always assigned (in the edit construction code), so it's impossible to test a missing one.
+        /* istanbul ignore next */
+        if (!id) {
+            return;
+        }
+
         values.sections.forEach((section) => {
-            if (props.id) {
-                const entry = section.values[props.id];
-                if (!isNil(entry)) {
-                    if (isNil(entry.list)) {
-                        entry.value = (checkState === CheckState.Checked) ? true : false;
-                    } else {
-                        const listData = props.data![props.dataId!];
-                        if (listData) {
-                            const found = entry.list?.find((item) => {
-                                return item.data.dataKey === listData.dataKey;
-                            });
+            const entry = section.values[id];
+            if (entry) {
+                entry.value = (checkState === CheckState.Checked) ? true : false;
+                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                this.setState({ values, validations });
 
-                            if (found) {
-                                (found.data as ICheckboxProperties).checkState = checkState;
-                            }
-                        }
+                entry.onChange?.(checkState === CheckState.Checked);
+            }
+        });
+    };
+
+    /**
+     * Change handler for check boxes in a dynamic list.
+     * Testing note: because enzyme does no layout computation, all DOM elements just have a size of 0.
+     *               This is usually no problem, except for tabulator-tables based components (TreeGrid, DynamicList).
+     *               With a height of 0 they don't render their content, which makes it's impossible to test code
+     *               attached to such content. So we have to exclude that from test coverage determination.
+     *
+     * @param valueId The ID of the value list to change.
+     * @param checkState The new check state to be set.
+     * @param props The checkbox' properties.
+     */
+    /* istanbul ignore next */
+    private listCheckboxChange = (valueId: string, checkState: CheckState, props: ICheckboxProperties): void => {
+        const { onValidate } = this.props;
+        const { values } = this.state;
+
+        const id = props.id;
+        const templateData = props.data && props.dataId ? props.data[props.dataId] : undefined;
+
+        if (!id) {
+            return;
+        }
+
+        values.sections.forEach((section) => {
+            const entry = section.values[valueId];
+            if (entry) {
+                if (templateData) {
+                    const found = entry.list?.find((item) => {
+                        return item.data.id === templateData.id;
+                    });
+
+                    if (found) {
+                        (found.data as ICheckboxProperties).checkState = checkState;
                     }
-
-                    const validations = onValidate?.(false, values, this.data) || { messages: {} };
-                    this.setState({ values, validations });
-
-                    entry.onChange?.(checkState === CheckState.Checked);
                 }
+
+
+                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                this.setState({ values, validations });
+
+                entry.onChange?.(checkState === CheckState.Checked);
             }
         });
     };
@@ -953,7 +1007,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
-    private advancedSettingsChange = (checkState: CheckState): void => {
+    private advancedCheckboxChange = (checkState: CheckState): void => {
         const { activeContexts } = this.state;
         const { onToggleAdvanced } = this.props;
 
@@ -1019,7 +1073,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         const { onValidate } = this.props;
         const { values } = this.state;
 
-        const validations = onValidate ? onValidate(true, values, this.data) : { messages: {} };
+        const validations = onValidate?.(true, values, this.data) ?? { messages: {} };
         this.setState({ validations });
 
         return Object.keys(validations.messages).length === 0;

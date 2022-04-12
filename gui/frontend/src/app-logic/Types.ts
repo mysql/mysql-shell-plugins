@@ -203,11 +203,11 @@ export interface IStatusbarInfo {
  * using native OS methods.
  */
 export interface IServicePasswordRequest {
-    requestId: string; // The id of the request that asked for the password.
-    caption: string;   // The password dialog title.
+    requestId: string;    // The id of the request that asked for the password.
+    caption?: string;     // The password dialog title.
     description?: string; // A normal description of what is requested.
-    service?: string;  // A human readable string describing the service.
-    user?: string;     // The user name for which to get the password.
+    service?: string;     // A human readable string describing the service.
+    user?: string;        // The user name for which to get the password.
 
-    payload?: unknown; // Any other data the caller wants to pass over.
+    payload?: unknown;    // Any other data the caller wants to pass over.
 }

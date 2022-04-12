@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Value Dialog Base Tests Render Test 1`] = `
+<ValueDialogBase
+  onClose={[Function]}
+/>
+`;

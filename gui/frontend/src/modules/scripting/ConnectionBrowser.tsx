@@ -1429,12 +1429,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     span: 3,
 
                 },
-                sslMode: {
+                sqlMode: {
                     caption: "SQL Mode",
                     value: optionsMySQL["sql-mode"],
                     list: Object.keys(MySQLSqlMode).map((k) => {
                         const result: ICheckboxProperties = {
-                            dataKey: k.toString(),
+                            id: k.toString(),
                             caption: MySQLSqlMode[k],
                             checkState: CheckState.Unchecked,
                         };
@@ -1841,7 +1841,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
     private testConnection = (values: IDialogValues, buttonProps: IButtonProperties): void => {
         const { connections } = this.props;
-        switch(buttonProps?.caption) {
+        switch (buttonProps?.caption) {
             case "Abort":
                 this.hideProgress();
                 this.editorRef.current?.changeAdvActionText("Test connection");
@@ -1856,7 +1856,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     // First create connection, then open and test.
                     // At the end open confirm dialog with question: keep or delete connection.
                     this.testNotExisting = true;
-                    const result = this.validateConnectionValues(true, values, { creteNew : true });
+                    const result = this.validateConnectionValues(true, values, { creteNew: true });
                     if (Object.keys(result.messages).length > 0) {
                         let problems = "";
                         Object.keys(result.messages).forEach((name: string) => {
@@ -1867,7 +1867,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         this.hideProgress();
                         this.editorRef.current?.changeAdvActionText("Test connection");
                     } else {
-                        this.handleOptionsDialogClose(true, values, { createNew : true },
+                        this.handleOptionsDialogClose(true, values, { createNew: true },
                             { onAddConnection: this.saveAndTestConnection } as ICallbackData);
                     }
                 }
@@ -1965,7 +1965,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     }
                     case EventType.FinalResponse: {
                         this.setProgressMessage("Test connection successfully.");
-                        if(this.testNotExisting) {
+                        if (this.testNotExisting) {
                             this.confirmKeepConnection(connection);
                         } else {
                             this.successConnectionInfo(connection);

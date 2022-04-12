@@ -47,7 +47,14 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
         this.state = {
             password: "",
         };
+    }
+
+    public componentDidMount(): void {
         requisitions.register("requestPassword", this.requestPassword);
+    }
+
+    public componentWillUnmount(): void {
+        requisitions.unregister("requestPassword", this.requestPassword);
     }
 
     public render(): React.ReactNode {
@@ -103,6 +110,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
                         <Input
                             autoFocus
                             password
+                            value=""
                             onChange={this.handlePasswordChange}
                             onConfirm={this.handlePasswordConfirm}
                         />
@@ -138,7 +146,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
 
     private requestPassword = (values: IServicePasswordRequest): Promise<boolean> => {
         return new Promise((resolve) => {
-            this.setState({ request: values }, () => {
+            this.setState({ request: values, password: "" }, () => {
                 this.dialogRef.current?.open();
                 resolve(true);
             });

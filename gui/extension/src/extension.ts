@@ -165,7 +165,7 @@ export const runMysqlShell = (extensionPath: string, parameters: string[],
 
     // Ensure the shell user config dir exists
     if (!existsSync(shellUserConfigDir)) {
-        mkdirSync(shellUserConfigDir, {recursive: true});
+        mkdirSync(shellUserConfigDir, { recursive: true });
     }
 
     // Spawn shell process
@@ -225,7 +225,7 @@ const startShellAndConnect = (extensionPath: string, target?: string): void => {
             currentConnection.connect(new URL(target)).then(() => {
                 void requisitions.execute("connectedToUrl", url);
             }).catch((reason) => {
-                printChannelOutput(`Could not esablish websocket connection: ${String(reason)}`);
+                printChannelOutput(`Could not establish websocket connection: ${String(reason)}`);
                 void window.showErrorMessage(`Could not connect to MySQL Shell: ${String(reason)}`);
                 void requisitions.execute("connectedToUrl", undefined);
             });
@@ -386,7 +386,7 @@ export const activate = (context: ExtensionContext): void => {
         let platformId;
         let cpuArch;
 
-        switch(platform()) {
+        switch (platform()) {
             case "darwin": {
                 platformId = "6";
                 break;
@@ -402,7 +402,7 @@ export const activate = (context: ExtensionContext): void => {
             }
         }
 
-        switch(arch()) {
+        switch (arch()) {
             case "arm":
             case "arm64": {
                 cpuArch = "3";

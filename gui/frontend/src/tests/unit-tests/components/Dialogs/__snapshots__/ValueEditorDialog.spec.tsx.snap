@@ -1,80 +1,325 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Value Editor Dialog output tests Value Editor Dialog (Snapshot) 1 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
   >
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="msg portal"
-      id="testDialog"
+      class="title verticalCenterContent"
     >
       <div
         __self="[object Object]"
         __source="[object Object]"
-        class="msg dialog visible valueEditDialog"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Select Value
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="header"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar"
+        style="flex-direction: column;"
+      >
+        <label
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg label"
+          data-tooltip="expand"
+          id="dialogHeading"
+        >
+          Lorem Ipsum Dolor Sit Amet
+        </label>
+        <label
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg label"
+          data-tooltip="expand"
+          id="dialogDescription"
+        >
+          Show this dialog to show a dialog
+        </label>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="title verticalCenterContent"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon codicon codicon-terminal"
-          />
           <label
             __self="[object Object]"
             __source="[object Object]"
-            class="msg label"
+            class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Enter a name for the new theme
+            input
           </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
         </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      >
+        <label
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg label"
+          data-tooltip="expand"
+        >
+          Custom Footer
+        </label>
+      </div>
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Select Value
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="content fixedScrollbar"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
         >
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg grid"
-            style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column;"
           >
             <div
               __self="[object Object]"
               __source="[object Object]"
-              class="msg container fixedScrollbar gridCell"
-              style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+              class="msg container fixedScrollbar selector horizontal tabArea stretched"
+              style="flex-direction: row;"
             >
-              <label
-                __self="[object Object]"
-                __source="[object Object]"
-                class="msg label valueTitle"
-                data-tooltip="expand"
-              >
-                input
-              </label>
               <div
                 __self="[object Object]"
                 __source="[object Object]"
-                class="msg container fixedScrollbar inputWithProgress"
-                style="flex-direction: row;"
+                class="msg container fixedScrollbar selectorItem stepDown"
+                id="selectorItemstepDown"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem normal"
+                id="page0"
+                style="flex-direction: row; justify-content: center; align-items: center;"
               >
-                <input
+                <label
                   __self="[object Object]"
                   __source="[object Object]"
-                  class="msg input valueEditor"
-                  id="input"
-                  spellcheck="true"
-                  type="text"
-                />
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  My First Section
+                </label>
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem selected normal"
+                id="page1"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                <label
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  My Second Section
+                </label>
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem normal"
+                id="page2"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                <label
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  My Third Section
+                </label>
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem stepUp"
+                id="selectorItemstepUp"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg grid"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                >
+                  <label
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    output
+                  </label>
+                  <div
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      __self="[object Object]"
+                      __source="[object Object]"
+                      class="msg input valueEditor"
+                      id="input"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -82,95 +327,1763 @@ Object {
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="footer verticalCenterContent unselectable"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
-          <div
+          <label
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container fixedScrollbar leftItems"
-            style="flex-direction: row;"
-          />
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg container fixedScrollbar rightItems"
-            style="flex-direction: row-reverse;"
+            class="msg label valueTitle"
+            data-tooltip="expand"
           >
-            <button
+            something else
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
               __self="[object Object]"
               __source="[object Object]"
-              caption="OK"
-              class="msg button"
-              id="ok"
-            >
-              OK
-            </button>
-            <button
-              __self="[object Object]"
-              __source="[object Object]"
-              caption="Cancel"
-              class="msg button"
-              id="cancel"
-            >
-              Cancel
-            </button>
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
           </div>
         </div>
       </div>
     </div>
-    <div />
-  </body>,
-  "container": <div />,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      >
+        <label
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg label"
+          data-tooltip="expand"
+        >
+          Custom Footer
+        </label>
+      </div>
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Select Value
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column;"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar selector horizontal tabArea stretched"
+              style="flex-direction: row;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem stepDown"
+                id="selectorItemstepDown"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem normal"
+                id="page0"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                <label
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  My First Section
+                </label>
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem selected normal"
+                id="page1"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                <label
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  My Second Section
+                </label>
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem normal"
+                id="page2"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                <label
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  My Third Section
+                </label>
+              </div>
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg container fixedScrollbar selectorItem stepUp"
+                id="selectorItemstepUp"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg grid"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                >
+                  <label
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    output
+                  </label>
+                  <div
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      __self="[object Object]"
+                      __source="[object Object]"
+                      class="msg input valueEditor"
+                      id="input"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            something else
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      >
+        <label
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg label"
+          data-tooltip="expand"
+        >
+          Custom Footer
+        </label>
+      </div>
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Value Edit Dialog Tests Grouped Values 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Select Value
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="output"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Print Help
+          </label>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label description"
+            data-tooltip="expand"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Helpers
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="note"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="debug"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
+<ValueEditDialog
+  caption="Enter a name for the new theme"
+>
+  <Dialog
+    actions={
+      Object {
+        "begin": Array [],
+        "end": Array [
+          <Button
+            caption="OK"
+            disabled={false}
+            id="ok"
+            onClick={[Function]}
+          />,
+          <Button
+            caption="Cancel"
+            disabled={false}
+            id="cancel"
+            onClick={[Function]}
+          />,
+        ],
+      }
+    }
+    caption={
+      <y>
+        <Icon
+          disabled={false}
+          src={388}
+        />
+        <Label>
+          Enter a name for the new theme
+        </Label>
+      </y>
+    }
+    className="msg valueEditDialog"
+    container={Object {}}
+    content={
+      <Grid
+        columnGap={16}
+        columns={8}
+        rowGap={16}
+      />
+    }
+    id=""
+    onClose={[Function]}
+  >
+    <Portal
+      container={Object {}}
+      id=""
+      onClose={[Function]}
+      onOpen={[Function]}
+    />
+  </Dialog>
+</ValueEditDialog>
+`;
+
+exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Enter a name for the new theme
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            input
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Value Edit Dialog Tests Update Contexts 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Select Value
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            input
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Value Edit Dialog Tests Update Contexts 2`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Select Value
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            input
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Full Section
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            A caption for the section
+          </label>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label description"
+            data-tooltip="expand"
+          >
+            A caption for the section
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg checkbox unchecked valueEditor"
+            id="yesNo"
+            tabindex="0"
+          >
+            <span
+              __self="[object Object]"
+              __source="[object Object]"
+              class="checkMark"
+            />
+            Activate this
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Pick File
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar fileSelector valueEditor"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input"
+              spellcheck="true"
+              type="text"
+            />
+            <button
+              __self="[object Object]"
+              __source="[object Object]"
+              caption="..."
+              class="msg button"
+            >
+              ...
+            </button>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Select One
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="selectOne"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              One
+            </label>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Do it!
+          </label>
+          <button
+            __self="[object Object]"
+            __source="[object Object]"
+            caption="Do it!"
+            class="msg button valueEditor"
+            id="clickMe"
+          >
+            Do it!
+          </button>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg treeGrid dynamicList"
+            id="listMe"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar"
+            id="matrixContainer"
+            style="flex-direction: row;"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg treeGrid verticalGrid"
+              id="valueGrid"
+            />
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar"
+              id="matrixActions"
+              style="flex-direction: row;"
+            >
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                data-tooltip="Add new property entry"
+                id="buttonAddEntry"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(add.svg);"
+                />
+              </button>
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                data-tooltip="Remove selected entries"
+                id="buttonRemoveEntry"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(remove.svg);"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg grid upDown valueEditor"
+            id="upDown"
+            step="1"
+            style="grid-template-columns: auto 16px;"
+            value="12345"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar gridCell"
+              id="content"
+              style="flex-direction: row; grid-row: span 2;"
+            >
+              <input
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg input"
+                spellcheck="true"
+                style="text-align: end;"
+                type="text"
+              />
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar gridCell"
+              style="flex-direction: row;"
+            >
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                id="up"
+                tabindex="-1"
+              />
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar gridCell"
+              style="flex-direction: row;"
+            >
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                id="down"
+                tabindex="-1"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Give Me Text
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Wait For Me
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="loadingInput"
+              spellcheck="true"
+              type="text"
+            />
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar progressIndicatorHost"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="linearBackground"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="linear animated"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
+<div
+  __self="[object Object]"
+  __source="[object Object]"
+  class="msg portal"
+  id="testDialog"
+>
+  <div
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="title verticalCenterContent"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Select Value
+      </label>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="content fixedScrollbar"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg grid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            input
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Full Section
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            A caption for the section
+          </label>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label description"
+            data-tooltip="expand"
+          >
+            A caption for the section
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg checkbox unchecked valueEditor"
+            id="yesNo"
+            tabindex="0"
+          >
+            <span
+              __self="[object Object]"
+              __source="[object Object]"
+              class="checkMark"
+            />
+            Activate this
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Pick File
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar fileSelector valueEditor"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input"
+              spellcheck="true"
+              type="text"
+            />
+            <button
+              __self="[object Object]"
+              __source="[object Object]"
+              caption="..."
+              class="msg button"
+            >
+              ...
+            </button>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Select One
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="selectOne"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              One
+            </label>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Do it!
+          </label>
+          <button
+            __self="[object Object]"
+            __source="[object Object]"
+            caption="Do it!"
+            class="msg button valueEditor"
+            id="clickMe"
+          >
+            Do it!
+          </button>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg treeGrid dynamicList"
+            id="listMe"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar"
+            id="matrixContainer"
+            style="flex-direction: row;"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg treeGrid verticalGrid"
+              id="valueGrid"
+            />
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar"
+              id="matrixActions"
+              style="flex-direction: row;"
+            >
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                data-tooltip="Add new property entry"
+                id="buttonAddEntry"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(add.svg);"
+                />
+              </button>
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                data-tooltip="Remove selected entries"
+                id="buttonRemoveEntry"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(remove.svg);"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg grid upDown valueEditor"
+            id="upDown"
+            step="1"
+            style="grid-template-columns: auto 16px;"
+            value="12345"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar gridCell"
+              id="content"
+              style="flex-direction: row; grid-row: span 2;"
+            >
+              <input
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg input"
+                spellcheck="true"
+                style="text-align: end;"
+                type="text"
+              />
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar gridCell"
+              style="flex-direction: row;"
+            >
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                id="up"
+                tabindex="-1"
+              />
+            </div>
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar gridCell"
+              style="flex-direction: row;"
+            >
+              <button
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg button"
+                id="down"
+                tabindex="-1"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Give Me Text
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="input"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Wait For Me
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="loadingInput"
+              spellcheck="true"
+              type="text"
+            />
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar progressIndicatorHost"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95;"
+            >
+              <div
+                __self="[object Object]"
+                __source="[object Object]"
+                class="linearBackground"
+              >
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="linear animated"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      __self="[object Object]"
+      __source="[object Object]"
+      class="footer verticalCenterContent unselectable"
+    >
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="OK"
+          class="msg button"
+          id="ok"
+        >
+          OK
+        </button>
+        <button
+          __self="[object Object]"
+          __source="[object Object]"
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `;

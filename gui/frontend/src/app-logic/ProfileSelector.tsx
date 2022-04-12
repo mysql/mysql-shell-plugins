@@ -349,11 +349,11 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 const list = sectionValues.profileActivateDeactivate?.list;
                 list?.forEach((item) => {
                     const data = item.data as ICheckboxProperties;
-                    if (String(this.defaultProfile.id) === data.dataKey && data.checkState === CheckState.Checked) {
+                    if (String(this.defaultProfile.id) === data.id && data.checkState === CheckState.Checked) {
                         result.messages.profileActivateDeactivate = "Default profile cannot be deleted";
                     }
 
-                    if (String(webSession.currentProfileId) === data.dataKey
+                    if (String(webSession.currentProfileId) === data.id
                         && data.checkState === CheckState.Checked) {
                         result.messages.profileActivateDeactivate = "Active profile cannot be deleted";
                     }
@@ -413,15 +413,14 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                     }
 
                     case "delete": {
-                        const list =
-                            sectionValues.profileActivateDeactivate?.list;
+                        const list = sectionValues.profileActivateDeactivate?.list;
                         this.deleteList = [];
                         list?.forEach((item) => {
                             const data = item.data as ICheckboxProperties;
                             if (data.checkState === 1) {
                                 const profile = this.activeProfiles.find(
                                     (profile: ICommShellProfile) => {
-                                        return String(profile.id) === data.dataKey;
+                                        return String(profile.id) === data.id;
                                     },
                                 );
                                 if (profile) {
@@ -627,7 +626,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                     caption: "Select profile from the list to activate or deactivate",
                     list: this.activeProfiles.map((item) => {
                         const result: ICheckboxProperties = {
-                            dataKey: item.id.toString(),
+                            id: item.id.toString(),
                             caption: item.name,
                             checkState: CheckState.Unchecked,
                         };

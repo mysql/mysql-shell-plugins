@@ -144,7 +144,6 @@ export interface IComponentProperties {
     // has got a data ID. Multiple elements can use the same data ID.
     dataId?: string;
     data?: { [key: string]: IComponentProperties };
-    dataKey?: string;
 
     // Clicks can be triggered by both mouse and keyboard events, hence we use a common ancestor as event type.
     onClick?: (e: React.SyntheticEvent, props: Readonly<IComponentProperties>) => void;
