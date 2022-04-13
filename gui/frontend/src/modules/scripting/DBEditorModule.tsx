@@ -914,15 +914,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * Handles closing of a single tab (via its close button).
      *
      * @param e The mouse event.
-     *
-     * @returns A promise that resolve after the tab was removed.
      */
-    private handleCloseTab = async (e: React.SyntheticEvent): Promise<boolean> => {
+    private handleCloseTab = (e: React.SyntheticEvent): void => {
         e.stopPropagation();
 
         const id = (e.currentTarget as HTMLElement).id;
 
-        return this.removeTab(id);
+        void this.removeTab(id);
     };
 
     private async removeTab(id: string): Promise<boolean> {

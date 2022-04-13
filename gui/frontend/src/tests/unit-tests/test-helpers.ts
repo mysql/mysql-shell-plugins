@@ -324,13 +324,27 @@ export const fail = (message: string): void => {
 };
 
 /**
- * Allows to wait for the next tick in the Node.js event loop.
+ * Allows to wait for the next tick in a Node.js event phase (of which the run loop is made of).
+ * See also: https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#process-nexttick
  *
  * @returns A promise which fulfills on the next process tick.
  */
 export const nextProcessTick = async (): Promise<void> => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     return new Promise(process.nextTick);
+};
+
+/**
+ * Allows to wait for the next Node.js run loop, after all I/O tasks, micro tasks and tick callbacks were processed.
+ *
+ * @returns A promise which fulfills when setImmediate callbacks are executed (which are the last tasks in a run loop).
+ */
+export const nextRunLoop = async (): Promise<void> => {
+    return new Promise((resolve) => {
+        setImmediate(() => {
+            resolve();
+        });
+    });
 };
 
 /**

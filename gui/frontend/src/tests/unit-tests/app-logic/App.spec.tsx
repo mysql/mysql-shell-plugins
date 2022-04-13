@@ -26,7 +26,7 @@ import React from "react";
 
 import { App } from "../../../app-logic/App";
 import { IStatusbarInfo } from "../../../app-logic/Types";
-import { BackendMock } from "../../../BackendMock";
+import { BackendMock } from "../BackendMock";
 import { currentConnection } from "../../../communication";
 import { IEditorStatusInfo } from "../../../modules/scripting";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";

@@ -58,7 +58,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
     }
 
     public render(): React.ReactNode {
-        const { request } = this.state;
+        const { request, password } = this.state;
 
         if (!request) {
             return null;
@@ -109,8 +109,8 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
                         <Input
                             autoFocus
-                            password
-                            value=""
+                            password={true}
+                            value={password}
                             onChange={this.handlePasswordChange}
                             onConfirm={this.handlePasswordConfirm}
                         />

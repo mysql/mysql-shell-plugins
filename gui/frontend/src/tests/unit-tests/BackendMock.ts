@@ -24,10 +24,10 @@
 // We are sending backend events, so we have to use snake case here.
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { ICommShellProfile, IGenericResponse, IShellDictionary, IShellRequest } from "./communication";
-import { EventType, IDispatchEvent, ListenerEntry } from "./supplement/Dispatch";
-import { requisitions } from "./supplement/Requisitions";
-import { dispatchTestEvent, dispatchSessionStartEvent } from "./tests/unit-tests/test-helpers";
+import { ICommShellProfile, IGenericResponse, IShellDictionary, IShellRequest } from "../../communication";
+import { EventType, IDispatchEvent, ListenerEntry } from "../../supplement/Dispatch";
+import { requisitions } from "../../supplement/Requisitions";
+import { dispatchTestEvent, dispatchSessionStartEvent } from "./test-helpers";
 
 const defaultProfile: ICommShellProfile = {
     id: 1,
@@ -93,17 +93,35 @@ export class BackendMock {
                 /* istanbul ignore next */
                 switch (data.request) {
                     case "authenticate": {
-                        // Before sending a valid auth event, send two that are errors, to cover those cases too.
-                        dispatchTestEvent("authenticate", this.createResponse("ERROR",
-                            "User unknown"));
-                        dispatchTestEvent("authenticate", this.createResponse("OK",
-                            "User LocalAdministrator was successfully authenticated"));
+                        let username = "";
+                        if (data.username && typeof data.username === "string") {
+                            username = data.username;
+                        }
 
-                        const data = {
+                        if (username !== "LocalAdministrator" && username !== "mike") {
+                            dispatchTestEvent("authenticate", this.createResponse("ERROR", "User unknown"));
+
+                            return;
+                        }
+
+                        let password = "";
+                        if (data.password && typeof data.password === "string") {
+                            password = data.password;
+                        }
+
+                        if (username === "mike" && password !== "swordfish") {
+                            dispatchTestEvent("authenticate", this.createResponse("ERROR", "Wrong password"));
+
+                            return;
+                        }
+
+                        const loginData = {
                             activeProfile: defaultProfile,
                         };
+
                         dispatchTestEvent("authenticate", this.createResponse("OK",
-                            "User LocalAdministrator was successfully authenticated", undefined, data));
+                            `User ${username} was successfully authenticated`, undefined, loginData));
+
                         break;
                     }
 

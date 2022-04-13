@@ -133,9 +133,7 @@ export class ListenerExecutor implements IListenerThenable {
             callbackResult.addExecutor(nextExecutor);
         } else {
             // Otherwise just continue with the next callback in the chain.
-            setImmediate(() => {
-                return nextExecutor.execute(callbackResult as ListenerEventSource);
-            });
+            return nextExecutor.execute(callbackResult as ListenerEventSource);
         }
 
         // We're all done. Try to finish the listener sequence, if not persistent.
@@ -200,9 +198,8 @@ export class ListenerExecutor implements IListenerThenable {
             return capsule.callback(source);
         } catch (error) {
             capsule.errorContext.message = String(error);
-            setImmediate(() => {
-                return this.execute(capsule.errorContext);
-            });
+
+            return this.execute(capsule.errorContext);
         }
     }
 

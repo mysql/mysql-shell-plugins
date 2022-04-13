@@ -585,7 +585,8 @@ createIndex:
   type? For this reason we accept the TYPE syntax only if a name is supplied.
 */
 indexNameAndType:
-    indexName (USING_SYMBOL indexType)?
+    indexName
+    | indexName? USING_SYMBOL indexType
     | indexName TYPE_SYMBOL indexType
 ;
 
@@ -3128,7 +3129,8 @@ udfExpr:
 ;
 
 userVariable:
-    AT_SIGN_SYMBOL textOrIdentifier | AT_TEXT_SUFFIX
+    AT_SIGN_SYMBOL textOrIdentifier
+    | AT_TEXT_SUFFIX
 ;
 
 inExpressionUserVariableAssignment:

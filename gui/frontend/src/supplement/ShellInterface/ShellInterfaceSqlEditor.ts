@@ -82,7 +82,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public closeSqlEditorSession(): Promise<void> {
+    public closeSession(): Promise<void> {
         return new Promise((resolve, reject) => {
             const id = this.moduleSessionId;
             if (!id) {

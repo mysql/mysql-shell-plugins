@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,31 +36,31 @@ import { ShellInterface } from "../../supplement/ShellInterface";
 import { MessageType } from "../../app-logic/Types";
 
 interface ILoginPageState extends React.ComponentState {
+    userName: string;
+    password: string;
     errorMessage: string;
 }
 
 // Implements the main login page for the application.
 export class LoginPage extends Component<{}, ILoginPageState> {
-    private info = {
-        userName: "",
-        password: "",
-    };
-
     public constructor(props: {}) {
         super(props);
 
         this.state = {
+            userName: "",
+            password: "",
             errorMessage: "",
         };
     }
 
     public render(): React.ReactNode {
-        const { errorMessage } = this.state;
+        const { userName, password, errorMessage } = this.state;
 
-        const linkMap = new Map<string, string>();
-        linkMap.set("Learn More >", "http://localhost:3001/#");
-        linkMap.set("Browse Tutorial >", "http://localhost:3001/#");
-        linkMap.set("Read Docs >", "http://localhost:3001/#");
+        const linkMap = new Map<string, string>([
+            ["Learn More >", "http://localhost:3001/#"],
+            ["Browse Tutorial >", "http://localhost:3001/#"],
+            ["Read Docs >", "http://localhost:3001/#"],
+        ]);
 
         const links = [];
         for (const url of linkMap) {
@@ -102,9 +102,9 @@ export class LoginPage extends Component<{}, ILoginPageState> {
                             id="loginUsername"
                             placeholder="Username"
                             spellCheck={false}
+                            value={userName}
                             onChange={this.handleInput}
                             onConfirm={this.login}
-                        // autoFocus={this.state.error.length === 0}
                         />
                     </GridCell>
                     <GridCell />
@@ -113,9 +113,9 @@ export class LoginPage extends Component<{}, ILoginPageState> {
                             password={true}
                             id="loginPassword"
                             placeholder="Password"
+                            value={password}
                             onChange={this.handleInput}
                             onConfirm={this.login}
-                        // autoFocus={this.state.error.length > 0}
                         />
                     </GridCell>
                     <GridCell orientation={Orientation.TopDown} mainAlignment={ContentAlignment.Center}>
@@ -139,18 +139,20 @@ export class LoginPage extends Component<{}, ILoginPageState> {
     }
 
     private login = (): void => {
-        ShellInterface.users.authenticate(this.info.userName, this.info.password).then(() => {
+        const { userName, password } = this.state;
+
+        ShellInterface.users.authenticate(userName, password).then(() => {
             this.setState({ errorMessage: "" });
         }).catch((event: ICommErrorEvent) => {
-            this.setState({ errorMessage: event.message ?? "Unknown error" });
+            this.setState({ errorMessage: event.message });
         });
     };
 
     private handleInput = (_: React.ChangeEvent, props: IInputChangeProperties): void => {
         if (props.id === "loginUsername") {
-            this.info.userName = props.value;
-        } else if (props.id === "loginPassword") {
-            this.info.password = props.value;
+            this.setState({ userName: props.value });
+        } else {
+            this.setState({ password: props.value });
         }
     };
 }

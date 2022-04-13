@@ -38,7 +38,7 @@ import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { webSession } from "../../../supplement/WebSession";
 
 import { eventMock } from "../__mocks__/MockEvents";
-import { snapshotFromWrapper, stateChange } from "../test-helpers";
+import { nextRunLoop, snapshotFromWrapper, stateChange } from "../test-helpers";
 import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger";
 
 const toggleOptions = (): void => { };
@@ -360,12 +360,15 @@ describe("Application host tests", () => {
                 toggleOptions={toggleOptions}
             />,
         );
+        await nextRunLoop();
 
         result = await requisitions.execute("dialogResponse", data);
         expect(result).toBe(true);
+        await nextRunLoop();
 
         result = await requisitions.execute("showModule", DBEditorModuleId);
         expect(result).toBe(true);
+        await nextRunLoop();
 
         component.unmount();
     });
