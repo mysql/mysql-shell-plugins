@@ -483,7 +483,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           <label
             __self="[object Object]"
             __source="[object Object]"
-            class="msg checkbox unchecked valueEditor"
+            class="msg checkbox checked valueEditor"
             id="enabled"
             tabindex="0"
           >

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -101,7 +101,7 @@ export class MrsServiceDialog extends ValueDialogBase {
 
         mainSection.values.makeDefault = {
             caption: "Default",
-            value: request.values?.isDefault as boolean ?? false,
+            value: request.values?.isDefault as boolean || request.values?.isDefault !== undefined,
             span: 4,
             options: [
                 DialogValueOption.Grouped,
@@ -110,7 +110,7 @@ export class MrsServiceDialog extends ValueDialogBase {
 
         mainSection.values.enabled = {
             caption: "Enabled",
-            value: request.values?.enabled === 1 ?? false,
+            value: request.values?.enabled === 1 || request.values?.enabled === undefined,
             span: 4,
             options: [
                 DialogValueOption.Grouped,

@@ -43,10 +43,12 @@ import { webSession } from "../../frontend/src/supplement/WebSession";
 import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
 
 export let taskOutputChannel: OutputChannel;
+export let statusBarItem: StatusBarItem;
 let outputChannel: OutputChannel;
-let statusBarItem: StatusBarItem;
 
 let host: ExtensionHost;
+
+let startupCompleted = false;
 
 /**
  * When the extension is deployed with an embedded MySQL Shell, a custom shell user config dir is used, as defined in
@@ -83,27 +85,35 @@ export const printChannelOutput = (content: string, reveal = false): void => {
  * @param output The process output.
  */
 const handleShellOutput = (output: string): void => {
-    // If the web certificate is not installed, ask the user if he wants to run the wizard
-    if (output.includes("Certificate is not installed.")) {
-        void window.showInformationMessage(
-            "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
-            "not installed. Do you want to run the Welcome Wizard to install it?",
-            "Run Welcome Wizard", "Cancel")
-            .then((answer) => {
-                if (answer !== "Cancel") {
-                    void commands.executeCommand("msg.runWelcomeWizard");
-                }
-            });
-    } else if (output.includes("Certificate is not correctly installed.")) {
-        void window.showInformationMessage(
-            "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
-            "incorrectly installed. Do you want to run the Welcome Wizard to fix it?",
-            "Run Welcome Wizard", "Cancel")
-            .then((answer) => {
-                if (answer !== "Cancel") {
-                    void commands.executeCommand("msg.runWelcomeWizard");
-                }
-            });
+    if (!startupCompleted || output.includes("Sending session response...")) {
+        // Set startupCompleted to indicate the extension has completed its startup
+        startupCompleted = true;
+    }
+
+    if (!startupCompleted) {
+        if (output.includes("Certificate is not installed.")) {
+            // If the web certificate is not installed, ask the user if he wants to run the wizard
+            void window.showInformationMessage(
+                "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
+                "not installed. Do you want to run the Welcome Wizard to install it?",
+                "Run Welcome Wizard", "Cancel")
+                .then((answer) => {
+                    if (answer !== "Cancel") {
+                        void commands.executeCommand("msg.runWelcomeWizard");
+                    }
+                });
+        } else if (output.includes("Certificate is not correctly installed.")) {
+            // If the web certificate is not installed correctly, ask the user if he wants to run the wizard to fix it
+            void window.showInformationMessage(
+                "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
+                "incorrectly installed. Do you want to run the Welcome Wizard to fix it?",
+                "Run Welcome Wizard", "Cancel")
+                .then((answer) => {
+                    if (answer !== "Cancel") {
+                        void commands.executeCommand("msg.runWelcomeWizard");
+                    }
+                });
+        }
     }
 
     printChannelOutput(output);
@@ -138,7 +148,7 @@ export const activate = (context: ExtensionContext): void => {
             if (choice === "Restart MySQL Shell") {
                 host.closeAllTabs();
                 currentConnection.disconnect();
-                shellLauncher.exitProcess();
+                void shellLauncher.exitProcess();
                 webSession.clearSessionData();
 
                 shellLauncher.startShellAndConnect(context.extensionPath, true);
@@ -156,7 +166,7 @@ export const activate = (context: ExtensionContext): void => {
         }).then((value) => {
             host.closeAllTabs();
             currentConnection.disconnect();
-            shellLauncher.exitProcess();
+            void shellLauncher.exitProcess();
             webSession.clearSessionData();
 
             const configuration = workspace.getConfiguration(`msg.debugLog`);
@@ -251,20 +261,32 @@ export const activate = (context: ExtensionContext): void => {
             `&version=${currentVersion}&os=${platformId}&cpu_arch=${cpuArch}`));
     }));
 
-    // TODO: This is a temporary workaround till we get signed binaries from RE
-    if (platform() === "darwin") {
-        const shellDir = join(context.extensionPath, "shell");
-        if (existsSync(shellDir)) {
-            // cSpell:ignore xattr
-            void child_process.execSync(`xattr -rc ${shellDir}`);
+    context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", (): Boolean => {
+        return startupCompleted;
+    }));
+
+    // Handle version specific topics
+    const currentVersion = extensions.getExtension(
+        "Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
+
+    // Check if this is the initial run of the MySQL Shell extension after an update
+    const lastRunVersion = context.globalState.get("MySQLShellLastRunVersion");
+    if (!lastRunVersion || lastRunVersion === "" || lastRunVersion !== currentVersion) {
+        void context.globalState.update("MySQLShellLastRunVersion", currentVersion);
+
+        // Reset extended attributes on macOS
+        if (platform() === "darwin") {
+            const shellDir = join(context.extensionPath, "shell");
+            if (existsSync(shellDir)) {
+                // cSpell:ignore xattr
+                void child_process.execSync(`xattr -rc ${shellDir}`);
+            }
         }
     }
 
     // Check if this is the initial run of the MySQL Shell extension after installation
     const initialRun = context.globalState.get("MySQLShellInitialRun");
     if (!initialRun || initialRun === "") {
-        const currentVersion = extensions.getExtension(
-            "Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
         void context.globalState.update("MySQLShellInitialRun", currentVersion);
 
         void commands.executeCommand("msg.runWelcomeWizard");
@@ -284,7 +306,7 @@ export const activate = (context: ExtensionContext): void => {
 export const deactivate = (): void => {
     requisitions.unregister();
     currentConnection.disconnect();
-    shellLauncher.exitProcess();
+    void shellLauncher.exitProcess();
 };
 
 let statusBarTimer: ReturnType<typeof setTimeout>;
