@@ -1,10 +1,17 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.1.8+8.0.28
+
+### Fixes
+
+- Fixed broken password dialog
+
 ## Changes in 1.1.7+8.0.28
 
 ### Fixes
 
 - Fixed Admin API Sandbox operation errors not being shown.
+
 ## Changes in 1.1.6+8.0.28
 
 ### Fixes
