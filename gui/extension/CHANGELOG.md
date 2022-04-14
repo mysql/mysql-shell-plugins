@@ -1,10 +1,14 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.1.6+8.0.28
+## Changes in 1.1.7+8.0.28
 
 ### Fixes
 
 - Fixed Admin API Sandbox operation errors not being shown.
+## Changes in 1.1.6+8.0.28
+
+### Fixes
+
 - Removed invalid connection options that caused connections through SSH Tunnel to always show an error.
 - Fixed Connection Editor to properly hide/show the SSH Tunnel Tab based on the stored connection options.
 - Fixed Connection Editor to properly hide/show the MDS Tab based on the stored connection options.
