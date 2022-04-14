@@ -230,8 +230,8 @@ export class MRSCommandHandler {
             values: {
                 serviceName: service?.urlContextRoot ?? "/mrs",
                 protocols: service?.urlProtocol ?? "HTTPS,HTTP",
-                isDefault: isNil(service?.isDefault) ? true : service?.isDefault !== 0,
-                enabled: service?.enabled === 1 ?? true,
+                isDefault: !service || service.isDefault === 1,
+                enabled: !service || service.enabled === 1,
                 comments: service?.comments ?? "",
             },
         };
@@ -322,8 +322,8 @@ export class MRSCommandHandler {
                     serviceId: schema?.serviceId,
                     name: schema?.name ?? schemaName,
                     requestPath: schema?.requestPath ?? `/${schemaName ?? ""}`,
-                    requiresAuth: schema?.requiresAuth === 1 ?? false,
-                    enabled: schema?.enabled === 1 ?? true,
+                    requiresAuth: schema?.requiresAuth === 1 || schema?.requiresAuth !== undefined,
+                    enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
                 },

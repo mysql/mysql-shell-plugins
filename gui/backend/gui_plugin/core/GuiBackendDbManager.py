@@ -285,11 +285,7 @@ class BackendSqliteDbManager(BackendDbManager):
             m = re.match(
                 r'\d+\.\d+\.\d+_mysqlsh_gui_backend_log\.sqlite3', f)
             if m:
-                g = m.groups()
-                version = Version(g[0])
-
-                if CURRENT_DB_VERSION == version:
-                    backup_files.append(f)
+                backup_files.append(f)
 
         while len(backup_files) > self._config['log_rotation_period']:
             file_to_remove = sorted(backup_files)[0]

@@ -520,6 +520,7 @@ def list_compartments(**kwargs):
 
         import oci.identity
         import oci.util
+        import oci.pagination
 
         # If no compartment_id is given, return full subtree of the tenancy
         if compartment_id is None:
@@ -532,10 +533,12 @@ def list_compartments(**kwargs):
         identity = core.get_oci_identity_client(config=config)
 
         # List the compartments
-        data = identity.list_compartments(
-            compartment_id=compartment_id,
-            access_level="ANY",
-            compartment_id_in_subtree=full_subtree).data
+        data = oci.pagination.list_call_get_all_results(
+                identity.list_compartments,
+                compartment_id=compartment_id,
+                access_level="ANY",
+                compartment_id_in_subtree=full_subtree,
+                limit=1000).data
 
         current_compartment_id = configuration.get_current_compartment_id(
             profile_name=config_profile)

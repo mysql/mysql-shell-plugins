@@ -236,7 +236,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             return
 
         # send the session uuid back to the browser
-        logger.info("Sending response...")
+        logger.info("Sending session response...")
         self.send_response_message('OK', 'A new session has been created',
                                    values={"session_uuid": self.session_uuid,
                                            "local_user_mode": self.is_local_session})

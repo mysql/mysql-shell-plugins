@@ -104,7 +104,9 @@
         "ujis",
         "uuidv",
         "webrootpath",
-        "zstd"
+        "zstd",
+        "mochawesome",
+        "nocolor"
     ],
     "ignorePaths": [
         "./.eslintrc.json"
