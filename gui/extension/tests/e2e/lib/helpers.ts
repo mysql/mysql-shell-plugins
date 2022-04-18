@@ -90,6 +90,33 @@ export const viewContextMenu = new Map<string, Number> ([
     ["Drop View...", 3],
 ]);
 
+export const ociProfileContextMenu = new Map<string, Number> ([
+    ["View Config Profile Information", 1],
+    ["Set as New Default Config Profile", 2],
+]);
+
+export const ociCompartmentContextMenu = new Map<string, Number> ([
+    ["View Compartment Information", 1],
+    ["Set as Current Compartment", 2],
+]);
+
+export const ociDBSystemContextMenu = new Map<string, Number> ([
+    ["View DB System Information", 1],
+    ["Create Connection with Bastion Service", 2],
+    ["Start the DB System", 3],
+    ["Restart the DB System", 4],
+    ["Stop the DB System", 5],
+    ["Delete the DB System", 6],
+    ["Create MySQL Router Endpoint on new Compute Instace", 7],
+]);
+
+export const ociBastionContextMenu = new Map<string, Number> ([
+    ["Get Bastion Information", 1],
+    ["Set as Current Bastion", 2],
+    ["Delete Bastion", 3],
+    ["Refresh When Bastion Reaches Active State", 4],
+]);
+
 export interface IDbConnection {
     caption: string;
     description: string;
@@ -116,10 +143,49 @@ export const getLeftSection = async (driver: WebDriver, name: string): Promise<W
     return ctx!;
 };
 
+export const waitForLoading = async (driver: WebDriver, sectionName: string, timeout: number): Promise<void> => {
+    // eslint-disable-next-line no-useless-escape
+    const leftSideBar = await driver.findElement(By.id("workbench\.view\.extension\.msg-view"));
+    const sections = await leftSideBar.findElements(By.css(".split-view-view.visible"));
+    let ctx: WebElement | undefined;
+    for (const section of sections) {
+        if (await section.findElement(By.css("h3.title") ).getText() === sectionName) {
+            ctx = section;
+            break;
+        }
+    }
+
+    const progress = await ctx!.findElements(By.css(".monaco-progress-container.active.infinite"));
+    if (progress.length > 0) {
+        await driver.wait(async () => {
+            return (await progress[0].getAttribute("class")).split(" ").includes("done");
+        }, timeout, "Loading bar is still active");
+    }
+};
+
 export const getTreeElement = async (driver: WebDriver, section: string, el: string): Promise<WebElement> => {
     const sec = await getLeftSection(driver, section);
 
     return sec?.findElement(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
+};
+
+export const isDefaultItem = async (driver: WebDriver, itemType: string,
+    itemName: string): Promise<boolean | undefined> => {
+    const root = await getTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", itemName);
+    const el = await root.findElement(By.css(".custom-view-tree-node-item > div"));
+    const backImage = await el.getCssValue("background-image");
+
+    switch(itemType) {
+        case "profile":
+            return backImage.indexOf("ociProfileCurrent") !== -1;
+        case "compartment":
+            return backImage.indexOf("folderCurrent") !== -1;
+        case "bastion":
+            return backImage.indexOf("ociBastionCurrent") !== -1;
+        default:
+            break;
+    }
+
 };
 
 export const selectItem = async (taps: Number): Promise<void> => {
@@ -170,6 +236,18 @@ export const selectContextMenuItem = async (driver: WebDriver,
             case "view":
                 await selectItem(viewContextMenu.get(ctxMenuItems[0].trim()) as Number);
                 break;
+            case "ociCompartment":
+                await selectItem(ociCompartmentContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            case "ociProfile":
+                await selectItem(ociProfileContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            case "ociDBSystem":
+                await selectItem(ociDBSystemContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
+            case "ociBastion":
+                await selectItem(ociBastionContextMenu.get(ctxMenuItems[0].trim()) as Number);
+                break;
             default:
                 break;
         }
@@ -177,6 +255,18 @@ export const selectContextMenuItem = async (driver: WebDriver,
             await keyboard.type(Key.Right);
             await selectItem(clipBoardContextMenu.get(ctxMenuItems[1].trim()) as Number);
         }
+    }
+};
+
+export const isJson = (text: string):boolean => {
+    try {
+        JSON.parse(text);
+
+        return true;
+    } catch (e) {
+        console.error(e);
+
+        return false;
     }
 };
 
@@ -198,14 +288,14 @@ export const getLeftSectionButton = async (driver: WebDriver,
     }
 
     await section.click();
-    await driver.wait(until.elementIsVisible(btn!), 2000, "Create new connection is not visible");
+    await driver.wait(until.elementIsVisible(btn!), 2000, `${buttonName} is not visible`);
 
     return btn!;
 };
 
 export const selectMoreActionsItem = async (driver: WebDriver,
     section: string, item: string): Promise<void> => {
-        
+
     const moreActionsBtn = await getLeftSectionButton(driver, section, "More Actions...");
     await moreActionsBtn?.click();
     await driver.sleep(500);
@@ -386,6 +476,32 @@ export const toggleTreeElement = async (driver: WebDriver, section: string,
     }, 3000, `${section} > ${el} was not toggled`);
 };
 
+export const hasTreeChildren = async (driver: WebDriver, section: string,
+    parent: string, checkChild?: string): Promise<boolean> => {
+    const parentNode = await getTreeElement(driver, section, parent);
+    const parentNodeId = await parentNode.getAttribute("id");
+    const parentNodeLevel = await parentNode.getAttribute("aria-level");
+    const parentIds = parentNodeId.match(/list_id_(\d+)_(\d+)/);
+    const childId = `list_id_${parentIds![1]}_${Number(parentIds![2])+1}`;
+    const childLevel = Number(parentNodeLevel) + 1;
+
+    const childs = await driver.findElements(By.xpath(`//div[@id='${childId}' and @aria-level='${childLevel}']`));
+
+    if (checkChild) {
+        for(const child of childs) {
+            const name = await child.getAttribute("aria-label");
+            if (name.indexOf(checkChild) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
+    } else {
+        return childs.length > 0;
+    }
+
+};
+
 export const toggleSection = async (driver: WebDriver, section: string, open: boolean): Promise<void> => {
     await driver.wait(async () => {
         const btn = await driver.findElement(By.xpath("//div[contains(@aria-label, '" + section + " Section')]/div"));
@@ -485,19 +601,24 @@ export const pressEnter = async (driver: WebDriver): Promise<void> => {
     }
 };
 
-export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: string): Promise<void> => {
+export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: string,
+    timeout?: number): Promise<void> => {
     cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
     const prevBlocks = await driver.findElements(By.css(".zoneHost"));
     await textArea.sendKeys(cmd);
     await textArea.sendKeys(key.ENTER);
     await pressEnter(driver);
 
+    if (!timeout) {
+        timeout = 3000;
+    }
+
     if (cmd !== "\\q") {
         await driver.wait(async () => {
             const blocks = await driver.findElements(By.css(".zoneHost"));
 
             return blocks.length > prevBlocks.length;
-        }, 3000, "Command '" + cmd + "' did not triggered a new results block");
+        }, timeout, "Command '" + cmd + "' did not triggered a new results block");
     }
 };
 
@@ -567,7 +688,7 @@ export const waitForSystemDialog = async (driver: WebDriver, deleteCert?: boolea
         switch (process.platform) {
             case "win32": return `tasklist /fi "imagename eq certutil.exe"`;
             case "darwin":
-                if(deleteCert) {
+                if (deleteCert) {
                     return `ps -ax | grep delete-certificate`;
                 } else {
                     return `ps -ax | grep add-trusted-cert`;
@@ -688,7 +809,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
 
                 return true;
             } catch(e) {
-                if(String(e).indexOf("StaleElementReferenceError") !== -1) {
+                if (String(e).indexOf("StaleElementReferenceError") !== -1) {
                     return false;
                 } else {
                     throw e;
@@ -707,7 +828,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
 
                     return true;
                 } catch(e) {
-                    if(String(e).indexOf("StaleElementReferenceError") !== -1) {
+                    if (String(e).indexOf("StaleElementReferenceError") !== -1) {
                         return false;
                     } else {
                         throw e;
@@ -736,7 +857,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
                 }
             }
         } catch(e) {
-            if(String(e).indexOf("StaleElementReferenceError") !== -1) {
+            if (String(e).indexOf("StaleElementReferenceError") !== -1) {
                 return false;
             } else {
                 throw new Error(String(e));
@@ -752,8 +873,13 @@ export const isCertificateInstalled = async (driver: WebDriver): Promise<boolean
     const outputView = new OutputView(bottomBar);
 
     await driver.wait(async () => {
-        return (await outputView.getText()).indexOf("Certificate is") !== -1;
-    }, 10000, "Could not retrieve the logs to verify certificate installation");
+        try {
+            return (await outputView.getText()).indexOf("Certificate is") !== -1;
+        } catch(e) {
+            return false;
+        }
+
+    }, 20000, "Could not retrieve the logs to verify certificate installation");
 
     const text = await outputView.getText();
     let flag: boolean;
@@ -762,6 +888,7 @@ export const isCertificateInstalled = async (driver: WebDriver): Promise<boolean
     } else if (text.indexOf("Mode: Single user") !== -1) {
         flag = true;
     } else {
+        console.error(text);
         throw new Error("Could not verify certificate installation");
     }
 
