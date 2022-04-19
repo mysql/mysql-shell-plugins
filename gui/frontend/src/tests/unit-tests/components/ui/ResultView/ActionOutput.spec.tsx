@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,62 +23,47 @@
 
 import { mount } from "enzyme";
 import React from "react";
+
 import { ActionOutput } from "../../../../../components/ResultView/ActionOutput";
 import { MessageType } from "../../../../../app-logic/Types";
-import { ResultStatus } from "../../../../../components/ResultView";
-import { render } from "@testing-library/preact";
+import { nextRunLoop, snapshotFromWrapper } from "../../../test-helpers";
 
-describe("Action output tests", (): void => {
-    it("Action output elements", () => {
+describe("Action Output Tests", (): void => {
+    it("Standard Rendering", () => {
+        const component = mount(
+            <ActionOutput
+                text=""
+            />,
+        );
+
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
+    });
+
+    it("Action Full Rendering", async () => {
         const component = mount(
             <ActionOutput
                 id="actionOutput1"
-                className="actionOutput"
                 text="Lorem ipsum dolor sit amet"
-            />,
-        );
-
-        expect(component).toBeTruthy();
-        expect(component.find("label")).toHaveLength(1);
-        expect(component.find(ResultStatus)).toHaveLength(0);
-    });
-
-    it("Action output (Snapshot) 1", () => {
-        const component = render(
-            <ActionOutput
-                id="actionOutput1"
-                className="actionOutput"
-                text="Lorem ipsum dolor sit amet"
-            />,
-        );
-        expect(component).toMatchSnapshot();
-    });
-
-    it("Action output (Snapshot) 2", () => {
-        const component = render(
-            <ActionOutput
-                id="actionOutput1"
-                className="actionOutput"
-                text="Lorem ipsum `dolor` sit amet"
-                language={"markdown"}
-            />,
-        );
-        expect(component).toMatchSnapshot();
-    });
-
-    it("Action output (Snapshot) 3", () => {
-        const component = render(
-            <ActionOutput
-                id="actionOutput1"
-                className="actionOutput"
-                text="Lorem ipsum dolor sit amet"
+                language="ansi"
                 executionInfo={{
-                    type: MessageType.Info,
-                    text: "Info Message",
+                    type: MessageType.Error,
+                    text: "An error occurred",
                 }}
             />,
         );
-        expect(component).toMatchSnapshot();
+
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.setProps({ language: "json", text: "{ key: 'value' }", executionInfo: undefined });
+        await nextRunLoop();
+
+        const output = component.getDOMNode().getElementsByClassName("msg");
+        expect(output).toHaveLength(1);
+        expect(output).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

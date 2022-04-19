@@ -81,44 +81,38 @@ export interface IPieGraphImplProps extends IComponentProperties {
     innerRadius?: number;
     outerRadius?: number;
 
-    width: number;
-    height: number;
+    width?: number;
+    height?: number;
 
     centerX?: number;
     centerY?: number;
 
-    pointData: IPieGraphDataPoint[];
+    pointData?: IPieGraphDataPoint[];
 }
 
 // This is the actual component to render a Pie graph.
 export class PieGraphImpl extends Component<IPieGraphImplProps> {
 
-    public static defaultProps = {
-        innerRadius: 0,
-        outerRadius: 200,
-        width: 200,
-        height: 200,
-        centerX: 100,
-        centerY: 100,
-    };
-
     private svgRef = React.createRef<SVGSVGElement>();
 
-    private pieGenerator = d3.pie<IPieGraphDataPoint>().value((d) => { return d.value; }).sort(null);
+    private pieGenerator = d3.pie<IPieGraphDataPoint>().value((point) => {
+        return point.value;
+    }).sort(null);
+
     private colors: d3.ScaleOrdinal<string, string>;
     private format: (n: number) => string;
 
     public constructor(props: IPieGraphImplProps) {
         super(props);
 
-        this.addHandledProperties("innerRadius", "outerRadius", "width", "height", "centerX", "centerY");
+        this.addHandledProperties("innerRadius", "outerRadius", "width", "height", "centerX", "centerY", "pointData");
 
         this.colors = d3.scaleOrdinal(d3.schemeCategory10);
         this.format = d3.format(".2f");
     }
 
     public componentDidMount(): void {
-        const { width, height } = this.props;
+        const { width = 100, height = 100 } = this.props;
 
         const svg = d3.select(this.svgRef.current).append("g");
 
@@ -152,28 +146,71 @@ export class PieGraphImpl extends Component<IPieGraphImplProps> {
     }
 
     private change = (): void => {
-        const { pointData: data, innerRadius, outerRadius, centerX, centerY } = this.props;
+        /* istanbul ignore next */
+        if (!this.svgRef.current) {
+            return;
+        }
 
-        const pieData = this.pieGenerator(data || []);
+        // Note: this is all user supplied data from the scripting interface, so do proper sanity checks.
+        let {
+            pointData: data = [],
+            innerRadius = 0,
+            outerRadius = 200,
+            centerX = 100,
+            centerY = 100,
+        } = this.props;
 
-        const svg = d3.select(this.svgRef.current);
+        if (data.length > 100) {
+            data = data.slice(0, 100);
+        }
+
+        if (isNaN(innerRadius) || !isFinite(innerRadius) || innerRadius < 0) {
+            innerRadius = 0;
+        }
+
+        if (isNaN(outerRadius) || !isFinite(outerRadius) || outerRadius < 0) {
+            outerRadius = 0;
+        }
+
+        if (innerRadius > outerRadius) {
+            const temp = innerRadius;
+            innerRadius = outerRadius;
+            outerRadius = temp;
+        }
+
+        if (isNaN(centerX) || !isFinite(centerX)) {
+            centerX = 100;
+        }
+
+        if (isNaN(centerY) || !isFinite(centerY)) {
+            centerY = 100;
+        }
+
+        const pieData = this.pieGenerator(data);
+
+        const svg = d3.select<SVGSVGElement, IPieGraphDataPoint>(this.svgRef.current);
         svg.select(":first-child")
-            .attr("transform", `translate(${centerX || 0},${centerY || 0})`);
+            .attr("transform", `translate(${centerX},${centerY})`);
 
-        const key = (d: any): string => { return d.data.label as string; };
+        const key = (node: d3.PieArcDatum<IPieGraphDataPoint>): string => {
+            return node.data.label as string;
+        };
 
         const sliceArcGenerator = d3
             .arc<d3.PieArcDatum<IPieGraphDataPoint>>()
-            .innerRadius(innerRadius!)
-            .outerRadius(outerRadius!);
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius);
 
         const textArcGenerator = d3
             .arc<d3.PieArcDatum<IPieGraphDataPoint>>()
-            .innerRadius(outerRadius! * 0.75)
-            .outerRadius(outerRadius! * 1.5);
+            .innerRadius(outerRadius * 0.75)
+            .outerRadius(outerRadius * 1.5);
 
         // Pie slices.
-        const slice = svg.select(".slices").selectAll("path.slice").data(pieData, key);
+        const slice = svg.select(".slices")
+            .selectAll<SVGGeometryElement, d3.PieArcDatum<IPieGraphDataPoint>>("path.slice")
+            .data(pieData, key);
+
         slice.enter()
             .insert("path")
             .style("fill", (datum, index) => {
@@ -190,8 +227,8 @@ export class PieGraphImpl extends Component<IPieGraphImplProps> {
                 return sliceArcGenerator(datum);
             });
 
-        slice
-            .transition().duration(1000)
+        /* istanbul ignore next */
+        slice.transition().duration(1000)
             .attrTween("d", (datum, index, group): any => {
                 const element: any = group[index];
                 const interpolate = d3.interpolate(element.previous, datum);
@@ -203,12 +240,13 @@ export class PieGraphImpl extends Component<IPieGraphImplProps> {
         slice.exit().remove();
 
         // Text labels.
-        const textOffset = outerRadius! + 30;
+        const textOffset = outerRadius + 30;
         const midAngle = (d: d3.PieArcDatum<IPieGraphDataPoint>): number => {
             return d.startAngle + (d.endAngle - d.startAngle) / 2;
         };
 
-        const text = svg.select(".labels").selectAll("text")
+        const text = svg.select(".labels")
+            .selectAll<SVGGeometryElement, d3.PieArcDatum<IPieGraphDataPoint>>("text")
             .data(pieData, key);
 
         text.enter()
@@ -231,6 +269,8 @@ export class PieGraphImpl extends Component<IPieGraphImplProps> {
                 return midAngle(datum) < Math.PI ? "start" : "end";
             });
 
+        // Testing note: animations cannot be played with mock DOM.
+        /* istanbul ignore next */
         text.transition().duration(1000)
             .attrTween("transform", (datum, index, group) => {
                 const element: any = group[index];
@@ -260,7 +300,8 @@ export class PieGraphImpl extends Component<IPieGraphImplProps> {
         text.exit().remove();
 
         // Slice to text poly lines.
-        const polyline = svg.select(".lines").selectAll("polyline")
+        const polyline = svg.select(".lines")
+            .selectAll<SVGGeometryElement, d3.PieArcDatum<IPieGraphDataPoint>>("polyline")
             .data(pieData, key);
 
         polyline.enter()
@@ -275,6 +316,7 @@ export class PieGraphImpl extends Component<IPieGraphImplProps> {
                 return [sliceArcGenerator.centroid(datum), pos, [x, pos[1]]].toString();
             });
 
+        /* istanbul ignore next */
         polyline.transition().duration(1000)
             .attrTween("points", (datum, index, group) => {
                 const element: any = group[index];

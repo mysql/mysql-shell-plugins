@@ -1,316 +1,155 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Action output tests Action output (Snapshot) 1 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+exports[`Action Output Tests Action Full Rendering 1`] = `
+<ActionOutput
+  executionInfo={
+    Object {
+      "text": "An error occurred",
+      "type": 0,
+    }
+  }
+  id="actionOutput1"
+  language="ansi"
+  text="Lorem ipsum dolor sit amet"
+>
+  <Container
+    className="msg resultText"
+    orientation="column"
   >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar resultText actionOutput"
-        style="flex-direction: column;"
+    <div
+      className="msg container fixedScrollbar resultText"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Label
+        caption="Lorem ipsum dolor sit amet"
+        data-lang="ansi"
+        data-tooltip=""
+        innerRef={
+          Object {
+            "current": Object {},
+          }
+        }
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
+          className="msg label"
+          data-lang="ansi"
           data-tooltip=""
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           Lorem ipsum dolor sit amet
         </label>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar resultText actionOutput"
-      style="flex-direction: column;"
-    >
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label"
-        data-tooltip=""
+      </Label>
+      <ResultStatus
+        executionInfo={
+          Object {
+            "text": "An error occurred",
+            "type": 0,
+          }
+        }
       >
-        Lorem ipsum dolor sit amet
-      </label>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
-`;
-
-exports[`Action output tests Action output (Snapshot) 2 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
-  >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar resultText actionOutput"
-        style="flex-direction: column;"
-      >
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label Auto"
-          data-lang="markdown"
-          data-tooltip=""
-        >
-          Lorem ipsum \`dolor\` sit amet
-        </label>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar resultText actionOutput"
-      style="flex-direction: column;"
-    >
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label Auto"
-        data-lang="markdown"
-        data-tooltip=""
-      >
-        Lorem ipsum \`dolor\` sit amet
-      </label>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
-`;
-
-exports[`Action output tests Action output (Snapshot) 3 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
-  >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar resultText actionOutput"
-        style="flex-direction: column;"
-      >
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip=""
-        >
-          Lorem ipsum dolor sit amet
-        </label>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar resultStatus containsMessage"
-          style="flex-direction: row;"
+        <Container
+          className="msg resultStatus containsMessage"
+          orientation="row"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg message info"
+            className="msg container fixedScrollbar resultStatus containsMessage"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
           >
-            Info Message
+            <Message
+              type={0}
+            >
+              <div
+                className="msg message error"
+              >
+                An error occurred
+              </div>
+            </Message>
           </div>
-        </div>
-      </div>
+        </Container>
+      </ResultStatus>
     </div>
-  </body>,
-  "container": <div>
+  </Container>
+</ActionOutput>
+`;
+
+exports[`Action Output Tests Action Full Rendering 2`] = `
+HTMLCollection [
+  <label
+    __self="[object Object]"
+    __source="[object Object]"
+    class="msg label Auto"
+    data-lang="json"
+    data-tooltip=""
+  >
+    <span>
+      <span
+        class="mtk1"
+      >
+        { key: 'value' }
+      </span>
+    </span>
+    <br />
+  </label>,
+]
+`;
+
+exports[`Action Output Tests Standard Rendering 1`] = `
+<ActionOutput
+  text=""
+>
+  <Container
+    className="msg resultText"
+    orientation="column"
+  >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar resultText actionOutput"
-      style="flex-direction: column;"
+      className="msg container fixedScrollbar resultText"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
     >
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label"
+      <Label
+        caption=""
         data-tooltip=""
+        innerRef={
+          Object {
+            "current": Object {},
+          }
+        }
       >
-        Lorem ipsum dolor sit amet
-      </label>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar resultStatus containsMessage"
-        style="flex-direction: row;"
-      >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg message info"
-        >
-          Info Message
-        </div>
-      </div>
+        <label
+          className="msg label"
+          data-tooltip=""
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
+        />
+      </Label>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </Container>
+</ActionOutput>
 `;

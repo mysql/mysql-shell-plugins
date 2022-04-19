@@ -61,7 +61,7 @@ export class ResultStatus extends Component<IResultStatusProperties> {
                 {...this.unhandledProperties}
             >
                 {text}
-                {!executionInfo.type && children}
+                {isNil(executionInfo.type) && children}
             </Container>
         );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -49,23 +49,11 @@ export class ActionOutput extends Component<IActionOutputProperties> {
     }
 
     public componentDidMount(): void {
-        const { language } = this.props;
-
-        if (language && language !== "ansi" && this.labelRef?.current) {
-            void Monaco.colorizeElement(this.labelRef.current as HTMLElement, {
-                theme: CodeEditor.currentThemeId,
-            });
-        }
+        this.colorize();
     }
 
     public componentDidUpdate(): void {
-        const { language } = this.props;
-
-        if (language && this.labelRef?.current) {
-            void Monaco.colorizeElement(this.labelRef?.current as HTMLElement, {
-                theme: CodeEditor.currentThemeId,
-            });
-        }
+        this.colorize();
     }
 
     public render(): React.ReactNode {
@@ -83,10 +71,27 @@ export class ActionOutput extends Component<IActionOutputProperties> {
                     caption={text}
                     data-tooltip=""
                 />
-                { executionInfo && <ResultStatus executionInfo={executionInfo} /> }
+                {executionInfo && <ResultStatus executionInfo={executionInfo} />}
 
             </Container>
         );
     }
 
+    /**
+     * Uses Monaco to convert text into colorized tokens, depending on the language property.
+     */
+    private colorize(): void {
+        /* istanbul ignore next */
+        if (!this.labelRef?.current) {
+            return;
+        }
+
+        const { language } = this.props;
+
+        if (language && language !== "ansi") {
+            void Monaco.colorizeElement(this.labelRef?.current, {
+                theme: CodeEditor.currentThemeId,
+            });
+        }
+    }
 }

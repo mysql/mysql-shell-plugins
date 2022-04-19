@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,35 +21,57 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
-import { shallow } from "enzyme";
+import { mount } from "enzyme";
 import React from "react";
-import { IPieGraphImplProps, PieGraphImpl } from "../../../../../../components/ResultView";
 
-describe("Result text tests", (): void => {
+import { PieGraphImpl } from "../../../../../../components/ResultView";
+import { PieGraphProxy } from "../../../../../../modules/scripting/PieGraph";
+import { snapshotFromWrapper } from "../../../../test-helpers";
 
-    it("Result text elements", () => {
-        const component = shallow<IPieGraphImplProps>(
-            <PieGraphImpl
-                width={100}
-                height={100}
-                pointData={[]}
-            />,
+describe("Pie Graph Impl Tests", (): void => {
+
+    it("Standard Rendering (no data)", () => {
+        const component = mount(
+            <PieGraphImpl />,
         );
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
 
-        const props = component.props();
-        expect(props.className).toEqual("msg pieChart");
+        component.unmount();
     });
 
-    it("Result text (Snapshot) 1", () => {
-        const component = render(
+    it("Rendering (invalid data)", () => {
+        const datum = { value: 3.7 };
+        const data = new Array(150).fill(datum);
+        const component = mount(
+            <PieGraphImpl
+                width={-100}
+                height={100 / 0}
+                centerX={100 / 0}
+                centerY={"abc" as unknown as number}
+                innerRadius={200}
+                outerRadius={-200}
+                pointData={data}
+            />,
+        );
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
+    });
+
+    it("Render With Data", () => {
+        const component = mount(
             <PieGraphImpl
                 width={100}
                 height={100}
-                pointData={[]}
+                innerRadius={100 / 0}
+                pointData={[{ value: 1, color: "#123" }, { value: 2 }]}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.setProps({ width: 200, pointData: PieGraphProxy.demoData.budget });
+
+        component.unmount();
     });
 
 });

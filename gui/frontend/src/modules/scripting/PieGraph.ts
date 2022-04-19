@@ -78,7 +78,7 @@ export class PieGraphProxy {
             { label: "Constructions/Improvements/Repair", value: 4.5, color: "#65a1d7" },
             { label: "Furniture and Appliances", value: 4.1, color: "#84b0dd" },
             { label: "Motor Vehicles/Tires/Parts", value: 3.7, color: "#9cbee0" },
-        ],
+        ] as IPieGraphDataPoint[],
         spending: [
             { label: "Federal Contracts & Grants", value: 19, color: "#5588b7" },
             { label: "State Support", value: 27, color: "#ba5b55" },
@@ -87,7 +87,7 @@ export class PieGraphProxy {
             { label: "Other C&Gs", value: 11, color: "#51a7be" },
             { label: "Private Gifts", value: 8, color: "#e4964e" },
             { label: "Other", value: 6, color: "#a2b9d9" },
-        ],
+        ] as IPieGraphDataPoint[],
     };
 
     protected contextId: string | undefined;

@@ -230,12 +230,12 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                                     imageOnly={true}
                                     disabled={!dirty}
                                     data-tooltip="Revert Changes"
-                                    onClick={this.rollbackChanges}
                                 >
                                     <Icon src={rollbackIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Divider id="editSeparator" vertical={true} />
                                 <Button
+                                    id="maximizeResultSetButton"
                                     imageOnly={true}
                                     data-tooltip="Maximize Result Set View"
                                 >
@@ -254,7 +254,9 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                                 </Dropdown>
                                 <Divider vertical={true} />
                                 <Button
+                                    id="showActionMenu"
                                     imageOnly={true}
+                                    data-tooltip="Show Action Menu"
                                     onClick={this.showActionMenu}
                                 >
                                     <Icon src={menuIcon} data-tooltip="inherit" />
@@ -294,6 +296,8 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      */
     public async updateColumns(requestId: string, columns: IColumnInfo[]): Promise<void> {
         const viewRef = this.viewRefs.get(requestId);
+
+        /* istanbul ignore next */
         if (viewRef && viewRef.current) {
             await viewRef.current.updateColumns(columns);
         }
@@ -310,6 +314,8 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     public async addData(newData: IResultSetRows): Promise<void> {
         const needPurge = this.purgePending.delete(newData.requestId);
         const viewRef = this.viewRefs.get(newData.requestId);
+
+        /* istanbul ignore next */
         if (viewRef && viewRef.current) {
             await viewRef.current.addData(newData, needPurge);
         }
@@ -329,6 +335,8 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      */
     public reassignData(oldRequestId: string, newRequestId: string): void {
         const viewRef = this.viewRefs.get(oldRequestId);
+
+        /* istanbul ignore next */
         if (viewRef && viewRef.current) {
             this.viewRefs.delete(oldRequestId);
             this.viewRefs.set(newRequestId, viewRef);
@@ -375,9 +383,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                 break;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
 
         return true;
@@ -386,6 +392,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     private previousPage = (): void => {
         const { currentResultSet } = this.state;
 
+        // Testing note: currentResultSet is always set when we come here (otherwise the toolbar isn't rendered).
         if (currentResultSet) {
             if (currentResultSet.data.currentPage > 0) {
                 const { onResultPageChange } = this.props;
@@ -400,6 +407,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     private nextPage = (): void => {
         const { currentResultSet } = this.state;
 
+        // Testing note: currentResultSet is always set when we come here (otherwise the toolbar isn't rendered).
         if (currentResultSet) {
             if (currentResultSet.data.hasMoreRows) {
                 const { onResultPageChange } = this.props;
@@ -411,10 +419,9 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         }
     };
 
-    private rollbackChanges = (): void => {
-        // nothing for now
-    };
-
+    // Editing is not supported yet, so we cannot test it.
+    // TODO: enable coverage collection here, once editing is available.
+    /* istanbul ignore next  */
     private handleEdit = (resultSet: IResultSet): void => {
         this.edited.add(resultSet.head.requestId);
     };

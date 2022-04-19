@@ -1,108 +1,501 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Result text tests Result text (Snapshot) 1 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
-  >
-    <div>
-      <svg
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg pieChart"
-      >
-        <g
-          height="100"
-          transform="translate(100,100)"
-          width="100"
-        >
-          <g
-            class="slices"
-          />
-          <g
-            class="labels"
-          />
-          <g
-            class="lines"
-          />
-        </g>
-      </svg>
-    </div>
-  </body>,
-  "container": <div>
-    <svg
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg pieChart"
-    >
-      <g
-        height="100"
-        transform="translate(100,100)"
-        width="100"
-      >
-        <g
-          class="slices"
-        />
-        <g
-          class="labels"
-        />
-        <g
-          class="lines"
-        />
-      </g>
-    </svg>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+exports[`Pie Graph Impl Tests Render With Data 1`] = `
+<PieGraphImpl
+  height={100}
+  innerRadius={Infinity}
+  pointData={
+    Array [
+      Object {
+        "color": "#123",
+        "value": 1,
+      },
+      Object {
+        "value": 2,
+      },
+    ]
+  }
+  width={100}
+>
+  <svg
+    className="msg pieChart"
+  />
+</PieGraphImpl>
+`;
+
+exports[`Pie Graph Impl Tests Rendering (invalid data) 1`] = `
+<PieGraphImpl
+  centerX={Infinity}
+  centerY="abc"
+  height={Infinity}
+  innerRadius={200}
+  outerRadius={-200}
+  pointData={
+    Array [
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+      Object {
+        "value": 3.7,
+      },
+    ]
+  }
+  width={-100}
+>
+  <svg
+    className="msg pieChart"
+  />
+</PieGraphImpl>
+`;
+
+exports[`Pie Graph Impl Tests Standard Rendering (no data) 1`] = `
+<PieGraphImpl>
+  <svg
+    className="msg pieChart"
+  />
+</PieGraphImpl>
 `;

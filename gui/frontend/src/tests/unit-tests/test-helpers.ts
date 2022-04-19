@@ -64,6 +64,48 @@ export const dispatchTestEvent = <T extends IGenericResponse>(context: string, d
 };
 
 /**
+ * Converts a single value, by either forwarding it to specialized functions or just returning the value itself.
+ *
+ * @param v The value to map.
+ * @param seen A set to determine if a specific value has been process already (only for arrays and objects).
+ *
+ * @returns The mapped or the original value (depending on its type and content).
+ */
+const mapValue = (v: unknown, seen: Set<object>): unknown => {
+    if (v) {
+        if (Array.isArray(v)) {
+            if (seen.has(v)) {
+                return "[[Recursion]]";
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            return mapArray(v, seen);
+        }
+
+        if (v instanceof Set) {
+            if (seen.has(v)) {
+                return "[[Recursion]]";
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            return mapSet(v, seen);
+        }
+
+        if (typeof v === "object") {
+            // The two non-null assertions should not be necessary, but Babel complains if they are not there.
+            if (seen.has(v!)) {
+                return "[[Recursion]]";
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            return mapObject(v!, seen);
+        }
+    }
+
+    return v;
+};
+
+/**
  * Internal function to help filtering arrays in Jest JSON trees.
  *
  * @param a The array to filter.
@@ -73,18 +115,16 @@ export const dispatchTestEvent = <T extends IGenericResponse>(context: string, d
  */
 const mapArray = (a: unknown[], seen: Set<object>): unknown[] => {
     const result = a.map((entry) => {
-        if (entry) {
-            if (Array.isArray(entry)) {
-                return mapArray(entry, seen);
-            }
+        return mapValue(entry, seen);
+    });
 
-            if (typeof entry === "object") {
-                // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                return mapObject(entry!, seen);
-            }
-        }
+    return result;
+};
 
-        return entry;
+const mapSet = (s: Set<unknown>, seen: Set<object>): Set<unknown> => {
+    const result = new Set();
+    s.forEach((value) => {
+        result.add(mapValue(value, seen));
     });
 
     return result;
@@ -103,31 +143,11 @@ const mapObject = (o: object, seen: Set<object>): object => {
     const result: { [key: string]: unknown } = {};
 
     for (const key of Object.keys(o)) {
-        if (key === "__self" || key === "__source") {
+        if (key.startsWith("__")) {
             continue;
         }
 
-        const value = o[key];
-        if (value === null || value === undefined) {
-            result[key] = value;
-        } else if (Array.isArray(value)) {
-            result[key] = mapArray(value, seen);
-        } else if (typeof value === "object") {
-            if (value.$$typeof) {
-                // A component.
-                // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                result[key] = mapJson(value as Json);
-            } else {
-                if (seen.has(value as object)) {
-                    result[key] = "[[Recursion]]";
-                } else {
-                    seen.add(value as object);
-                    result[key] = mapObject(value as object, seen);
-                }
-            }
-        } else {
-            result[key] = value;
-        }
+        result[key] = mapValue(o[key], seen);
     }
 
     return result;
@@ -151,7 +171,7 @@ const mapJson = (json: Json): Json => {
     const seen = new Set<object>();
     const props = mapObject(json.props, seen);
 
-    return {
+    return { // Do not copy internal fields.
         type: json.type,
         children: json.children,
         $$typeof: json.$$typeof,

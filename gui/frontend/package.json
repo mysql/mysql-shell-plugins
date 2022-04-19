@@ -82,6 +82,7 @@
         "build-win-with-maps": "call scripts/production-build.cmd true",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "update-snapshots": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --watchAll=false -u",
+        "test": "npm run unit-tests --",
         "unit-tests": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --coverage --watchAll=false",
         "e2e-tests-update": "webdriver-manager update --out_dir ../../src/tests/e2e/selenium",
         "e2e-tests-start": "webdriver-manager start --out_dir ../../src/tests/e2e/selenium",
@@ -117,10 +118,10 @@
         ],
         "coverageThreshold": {
             "global": {
-                "statements": 27,
-                "branch": 19,
-                "functions": 30,
-                "lines": 27
+                "statements": 28,
+                "branch": 20,
+                "functions": 32,
+                "lines": 28
             }
         },
         "transformIgnorePatterns": [
