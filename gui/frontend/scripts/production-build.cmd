@@ -27,7 +27,6 @@ call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/python/generated src
 
 echo "Fixing node module(s)..."
 call powershell.exe -command "(Get-Content node_modules/react-scripts/lib/react-app.d.ts).Replace('/// <reference types=\"react-dom\" />', '') | Set-Content node_modules/react-scripts/lib/react-app.d.ts"
-call powershell.exe -command "(Get-Content node_modules/enzyme-adapter-preact-pure/build-cjs/src/Adapter.d.ts).Replace('VNode<any>', 'ReactElement') | Set-Content node_modules/enzyme-adapter-preact-pure/build-cjs/src/Adapter.d.ts"
 
 SET NODE_OPTIONS=--max-old-space-size=8192
 SET GENERATE_SOURCEMAP=%1

@@ -40,7 +40,7 @@
         "acorn": "8.6.0",
         "antlr4ts-cli": "0.5.0-alpha.4",
         "enzyme": "3.11.0",
-        "enzyme-adapter-preact-pure": "3.4.0",
+        "enzyme-adapter-preact-pure": "4.0.1",
         "enzyme-to-json": "3.6.2",
         "eslint": "7.32.0",
         "eslint-config-preact": "1.2.0",
