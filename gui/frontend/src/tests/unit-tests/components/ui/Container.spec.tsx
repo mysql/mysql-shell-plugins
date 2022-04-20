@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,13 +24,14 @@
 import connection from "../../../../assets/images/connections.svg";
 
 import React from "react";
-import { Container, Orientation, Icon, Button } from "../../../../components/ui/index";
-import { render } from "@testing-library/preact";
+import { Container, Orientation, Icon, Button } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
+import { mount } from "enzyme";
 
 describe("Container component tests", (): void => {
 
     it("Test Container output (snapshot)", () => {
-        const component = render(
+        const component = mount<Container>(
             <Container className="demoContainer">
                 <Container
                     orientation={Orientation.TopDown}
@@ -55,7 +56,7 @@ describe("Container component tests", (): void => {
                 </Container>
             </Container>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

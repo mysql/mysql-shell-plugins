@@ -21,16 +21,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import React from "react";
 
-import { IResultViewProperties, ResultView } from "../../../../../components/ResultView";
+import { ResultView } from "../../../../../components/ResultView";
+import { snapshotFromWrapper } from "../../../test-helpers";
 
-describe("Result view tests", (): void => {
+describe("Result View Tests", (): void => {
 
-    it("Result view elements", () => {
-        const component = mount<IResultViewProperties>(
+    it("Default Rendering", () => {
+        const component = mount<ResultView>(
             <ResultView
                 resultSet={{
                     head: {
@@ -47,28 +47,7 @@ describe("Result view tests", (): void => {
             />,
         );
 
-        const props = component.props();
-        expect(props.resultSet.head.sql).toEqual("select 1");
-    });
-
-    it("Result view (Snapshot) 1", () => {
-        const component = render(
-            <ResultView
-                resultSet={{
-                    head: {
-                        sql: "select 1",
-                        requestId: "123",
-                    },
-                    data: {
-                        requestId: "123",
-                        columns: [],
-                        rows: [],
-                        currentPage: 0,
-                    },
-                }}
-            />,
-        );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

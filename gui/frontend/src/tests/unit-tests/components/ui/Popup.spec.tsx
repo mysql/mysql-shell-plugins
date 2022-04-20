@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import React from "react";
 
-import { IPopupProperties, Popup } from "../../../../components/ui/index";
+import { IPopupProperties, Popup } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 const popupRef = React.createRef<Popup>();
 
@@ -64,7 +64,7 @@ describe("Popup component tests", (): void => {
     });
 
     it("Test Popup output (Snapshot)", () => {
-        const component = render(
+        const component = mount<Popup>(
             <Popup
                 showArrow={false}
                 pinned={false}
@@ -74,6 +74,6 @@ describe("Popup component tests", (): void => {
                 Test content
             </Popup>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

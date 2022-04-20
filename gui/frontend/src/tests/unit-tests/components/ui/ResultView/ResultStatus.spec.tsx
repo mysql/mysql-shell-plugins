@@ -21,17 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
-import { shallow } from "enzyme";
+import { mount } from "enzyme";
 import React from "react";
 
 import { MessageType } from "../../../../../app-logic/Types";
-import { ResultStatus, IResultStatusProperties } from "../../../../../components/ResultView";
+import { ResultStatus } from "../../../../../components/ResultView";
+import { snapshotFromWrapper } from "../../../test-helpers";
 
-describe("Result status tests", (): void => {
+describe("Result Status Tests", (): void => {
 
-    it("Result status elements", () => {
-        const component = shallow<IResultStatusProperties>(
+    it("Default Rendering", () => {
+        const component = mount<ResultStatus>(
             <ResultStatus
                 executionInfo={{
                     type: MessageType.Info,
@@ -39,20 +39,7 @@ describe("Result status tests", (): void => {
                 }}
             />,
         );
-        const props = component.props();
-        expect(props.className).toEqual("msg resultStatus containsMessage");
-    });
-
-    it("Result status (Snapshot) 1", () => {
-        const component = render(
-            <ResultStatus
-                executionInfo={{
-                    type: MessageType.Info,
-                    text: "Lorem ipsum",
-                }}
-            />,
-        );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

@@ -1,610 +1,976 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`List component test Test Dynamic container list output (snapshot) 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
-  >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg treeGrid dynamicList"
-        id="list3"
+<DynamicList
+  elements={
+    Array [
+      Object {
+        "cl": "(0) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item0",
+      },
+      Object {
+        "cl": "(1) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item1",
+      },
+      Object {
+        "cl": "(2) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item2",
+      },
+      Object {
+        "cl": "(3) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item3",
+      },
+      Object {
+        "cl": "(4) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item4",
+      },
+      Object {
+        "cl": "(5) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item5",
+      },
+      Object {
+        "cl": "(6) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item6",
+      },
+      Object {
+        "cl": "(7) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item7",
+      },
+      Object {
+        "cl": "(8) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item8",
+      },
+      Object {
+        "cl": "(9) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item9",
+      },
+      Object {
+        "cl": "(10) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item10",
+      },
+      Object {
+        "cl": "(11) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item11",
+      },
+      Object {
+        "cl": "(12) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item12",
+      },
+      Object {
+        "cl": "(13) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item13",
+      },
+      Object {
+        "cl": "(14) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item14",
+      },
+      Object {
+        "cl": "(15) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item15",
+      },
+      Object {
+        "cl": "(16) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item16",
+      },
+      Object {
+        "cl": "(17) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item17",
+      },
+      Object {
+        "cl": "(18) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item18",
+      },
+      Object {
+        "cl": "(19) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+        "iconImage": "blob.svg",
+        "iconImage2": "add.svg",
+        "id": "item19",
+      },
+    ]
+  }
+  height={300}
+  id="list3"
+  rowHeight={100}
+  template={
+    <Container
+      className="verticalCenterContent"
+      orientation="row"
+    >
+      <Image
+        dataId="iconImage"
+        disabled={false}
       />
-    </div>
-  </body>,
-  "container": <div>
+      <Label
+        dataId="cl"
+      />
+      <Container
+        id="innerComplexContainer"
+        orientation="column"
+      >
+        <Icon
+          dataId="iconImage2"
+          disabled={false}
+        />
+        <Icon
+          dataId="iconImage2"
+          disabled={false}
+        />
+      </Container>
+    </Container>
+  }
+>
+  <TreeGrid
+    className="msg dynamicList"
+    columns={
+      Array [
+        Object {
+          "field": "id",
+          "formatter": [Function],
+          "title": "",
+        },
+      ]
+    }
+    height={300}
+    id="list3"
+    options={
+      Object {
+        "alternatingRowBackgrounds": false,
+        "horizontalGridLines": false,
+        "layout": "fitColumns",
+        "selectionType": 1,
+        "showHeader": false,
+        "verticalGridLines": false,
+      }
+    }
+    tableData={
+      Array [
+        Object {
+          "cl": "(0) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item0",
+        },
+        Object {
+          "cl": "(1) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item1",
+        },
+        Object {
+          "cl": "(2) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item2",
+        },
+        Object {
+          "cl": "(3) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item3",
+        },
+        Object {
+          "cl": "(4) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item4",
+        },
+        Object {
+          "cl": "(5) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item5",
+        },
+        Object {
+          "cl": "(6) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item6",
+        },
+        Object {
+          "cl": "(7) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item7",
+        },
+        Object {
+          "cl": "(8) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item8",
+        },
+        Object {
+          "cl": "(9) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item9",
+        },
+        Object {
+          "cl": "(10) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item10",
+        },
+        Object {
+          "cl": "(11) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item11",
+        },
+        Object {
+          "cl": "(12) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item12",
+        },
+        Object {
+          "cl": "(13) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item13",
+        },
+        Object {
+          "cl": "(14) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item14",
+        },
+        Object {
+          "cl": "(15) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item15",
+        },
+        Object {
+          "cl": "(16) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item16",
+        },
+        Object {
+          "cl": "(17) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item17",
+        },
+        Object {
+          "cl": "(18) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item18",
+        },
+        Object {
+          "cl": "(19) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
+          "iconImage": "blob.svg",
+          "iconImage2": "add.svg",
+          "id": "item19",
+        },
+      ]
+    }
+  >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg treeGrid dynamicList"
+      className="msg treeGrid dynamicList"
       id="list3"
     />
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </TreeGrid>
+</DynamicList>
 `;
 
 exports[`List component test Test Static container list output (snapshot) 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
-  >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar list"
-        style="flex-direction: column; align-items: flex-start;"
-      >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar verticalCenterContent"
-          data="[object Object]"
-          id="list0"
-          style="flex-direction: row;"
-        >
-          <img
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg image"
-            data="[object Object]"
-            id="img"
-            src="blob.svg"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel1"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel2"
-            style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-          />
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar verticalCenterContent"
-          data="[object Object]"
-          id="list1"
-          style="flex-direction: row;"
-        >
-          <img
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg image"
-            data="[object Object]"
-            id="img"
-            src="blob.svg"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel1"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel2"
-            style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-          />
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar verticalCenterContent"
-          data="[object Object]"
-          id="list2"
-          style="flex-direction: row;"
-        >
-          <img
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg image"
-            data="[object Object]"
-            id="img"
-            src="blob.svg"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel1"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel2"
-            style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-          />
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar verticalCenterContent"
-          data="[object Object]"
-          id="list3"
-          style="flex-direction: row;"
-        >
-          <img
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg image"
-            data="[object Object]"
-            id="img"
-            src="blob.svg"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel1"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="containerLabel2"
-            style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-          />
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar list"
-      style="flex-direction: column; align-items: flex-start;"
+<List
+  as={[Function]}
+  crossAlignment="flex-start"
+  elements={
+    Array [
+      Object {
+        "cl": "Entry 1",
+      },
+      Object {
+        "cl": "Entry 2",
+      },
+      Object {
+        "cl": "Entry 3",
+      },
+      Object {
+        "cl": "Entry 4",
+      },
+    ]
+  }
+  orientation="column"
+  template={
+    <Container
+      className="verticalCenterContent"
+      id="listContainer"
+      orientation="row"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar verticalCenterContent"
-        data="[object Object]"
+      <Image
+        disabled={false}
+        id="img"
+        src="blob.svg"
+      />
+      <Label
+        dataId="cl"
+        id="containerLabel1"
+      />
+      <Label
+        dataId="cl"
+        id="containerLabel2"
+        style={
+          Object {
+            "color": "yellowgreen",
+            "fontWeight": "800",
+            "marginLeft": "12px",
+          }
+        }
+      />
+    </Container>
+  }
+>
+  <Container
+    className="msg list"
+    crossAlignment="flex-start"
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar list"
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Container
+        className="verticalCenterContent"
+        data={
+          Object {
+            "cl": "Entry 1",
+          }
+        }
         id="list0"
-        style="flex-direction: row;"
+        key="list0"
+        orientation="row"
       >
-        <img
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg image"
-          data="[object Object]"
-          id="img"
-          src="blob.svg"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel1"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel2"
-          style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-        />
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar verticalCenterContent"
-        data="[object Object]"
+        <div
+          className="msg container fixedScrollbar verticalCenterContent"
+          data={
+            Object {
+              "cl": "Entry 1",
+            }
+          }
+          id="list0"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Image
+            data={
+              Object {
+                "cl": "Entry 1",
+              }
+            }
+            disabled={false}
+            id="img"
+            src="blob.svg"
+          >
+            <img
+              className="msg image"
+              data={
+                Object {
+                  "cl": "Entry 1",
+                }
+              }
+              id="img"
+              src="blob.svg"
+            />
+          </Image>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 1",
+              }
+            }
+            dataId="cl"
+            id="containerLabel1"
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 1",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel1"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            />
+          </Label>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 1",
+              }
+            }
+            dataId="cl"
+            id="containerLabel2"
+            style={
+              Object {
+                "color": "yellowgreen",
+                "fontWeight": "800",
+                "marginLeft": "12px",
+              }
+            }
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 1",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel2"
+              style={
+                Object {
+                  "color": "yellowgreen",
+                  "fontWeight": "800",
+                  "marginLeft": "12px",
+                }
+              }
+            />
+          </Label>
+        </div>
+      </Container>
+      <Container
+        className="verticalCenterContent"
+        data={
+          Object {
+            "cl": "Entry 2",
+          }
+        }
         id="list1"
-        style="flex-direction: row;"
+        key="list1"
+        orientation="row"
       >
-        <img
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg image"
-          data="[object Object]"
-          id="img"
-          src="blob.svg"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel1"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel2"
-          style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-        />
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar verticalCenterContent"
-        data="[object Object]"
+        <div
+          className="msg container fixedScrollbar verticalCenterContent"
+          data={
+            Object {
+              "cl": "Entry 2",
+            }
+          }
+          id="list1"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Image
+            data={
+              Object {
+                "cl": "Entry 2",
+              }
+            }
+            disabled={false}
+            id="img"
+            src="blob.svg"
+          >
+            <img
+              className="msg image"
+              data={
+                Object {
+                  "cl": "Entry 2",
+                }
+              }
+              id="img"
+              src="blob.svg"
+            />
+          </Image>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 2",
+              }
+            }
+            dataId="cl"
+            id="containerLabel1"
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 2",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel1"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            />
+          </Label>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 2",
+              }
+            }
+            dataId="cl"
+            id="containerLabel2"
+            style={
+              Object {
+                "color": "yellowgreen",
+                "fontWeight": "800",
+                "marginLeft": "12px",
+              }
+            }
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 2",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel2"
+              style={
+                Object {
+                  "color": "yellowgreen",
+                  "fontWeight": "800",
+                  "marginLeft": "12px",
+                }
+              }
+            />
+          </Label>
+        </div>
+      </Container>
+      <Container
+        className="verticalCenterContent"
+        data={
+          Object {
+            "cl": "Entry 3",
+          }
+        }
         id="list2"
-        style="flex-direction: row;"
+        key="list2"
+        orientation="row"
       >
-        <img
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg image"
-          data="[object Object]"
-          id="img"
-          src="blob.svg"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel1"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel2"
-          style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-        />
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar verticalCenterContent"
-        data="[object Object]"
+        <div
+          className="msg container fixedScrollbar verticalCenterContent"
+          data={
+            Object {
+              "cl": "Entry 3",
+            }
+          }
+          id="list2"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Image
+            data={
+              Object {
+                "cl": "Entry 3",
+              }
+            }
+            disabled={false}
+            id="img"
+            src="blob.svg"
+          >
+            <img
+              className="msg image"
+              data={
+                Object {
+                  "cl": "Entry 3",
+                }
+              }
+              id="img"
+              src="blob.svg"
+            />
+          </Image>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 3",
+              }
+            }
+            dataId="cl"
+            id="containerLabel1"
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 3",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel1"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            />
+          </Label>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 3",
+              }
+            }
+            dataId="cl"
+            id="containerLabel2"
+            style={
+              Object {
+                "color": "yellowgreen",
+                "fontWeight": "800",
+                "marginLeft": "12px",
+              }
+            }
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 3",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel2"
+              style={
+                Object {
+                  "color": "yellowgreen",
+                  "fontWeight": "800",
+                  "marginLeft": "12px",
+                }
+              }
+            />
+          </Label>
+        </div>
+      </Container>
+      <Container
+        className="verticalCenterContent"
+        data={
+          Object {
+            "cl": "Entry 4",
+          }
+        }
         id="list3"
-        style="flex-direction: row;"
+        key="list3"
+        orientation="row"
       >
-        <img
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg image"
-          data="[object Object]"
-          id="img"
-          src="blob.svg"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel1"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
-          data-tooltip="expand"
-          id="containerLabel2"
-          style="font-weight: 800; color: yellowgreen; margin-left: 12px;"
-        />
-      </div>
+        <div
+          className="msg container fixedScrollbar verticalCenterContent"
+          data={
+            Object {
+              "cl": "Entry 4",
+            }
+          }
+          id="list3"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Image
+            data={
+              Object {
+                "cl": "Entry 4",
+              }
+            }
+            disabled={false}
+            id="img"
+            src="blob.svg"
+          >
+            <img
+              className="msg image"
+              data={
+                Object {
+                  "cl": "Entry 4",
+                }
+              }
+              id="img"
+              src="blob.svg"
+            />
+          </Image>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 4",
+              }
+            }
+            dataId="cl"
+            id="containerLabel1"
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 4",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel1"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            />
+          </Label>
+          <Label
+            data={
+              Object {
+                "cl": "Entry 4",
+              }
+            }
+            dataId="cl"
+            id="containerLabel2"
+            style={
+              Object {
+                "color": "yellowgreen",
+                "fontWeight": "800",
+                "marginLeft": "12px",
+              }
+            }
+          >
+            <label
+              className="msg label"
+              data={
+                Object {
+                  "cl": "Entry 4",
+                }
+              }
+              data-tooltip="expand"
+              id="containerLabel2"
+              style={
+                Object {
+                  "color": "yellowgreen",
+                  "fontWeight": "800",
+                  "marginLeft": "12px",
+                }
+              }
+            />
+          </Label>
+        </div>
+      </Container>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </Container>
+</List>
 `;
 
 exports[`List component test Test Static unordered list output (snapshot) 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+<List
+  elements={
+    Array [
+      Object {
+        "l": "Entry 1",
+      },
+      Object {
+        "l": "Entry 2",
+      },
+      Object {
+        "l": "Entry 3",
+      },
+      Object {
+        "l": "Entry 4",
+      },
+    ]
+  }
+  template={
+    <Label
+      dataId="l"
+    />
+  }
+>
+  <ul
+    className="msg list"
   >
-    <div>
-      <ul
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg list"
-      >
-        <li
-          __self="[object Object]"
-          __source="[object Object]"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="list0"
-          />
-        </li>
-        <li
-          __self="[object Object]"
-          __source="[object Object]"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="list1"
-          />
-        </li>
-        <li
-          __self="[object Object]"
-          __source="[object Object]"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="list2"
-          />
-        </li>
-        <li
-          __self="[object Object]"
-          __source="[object Object]"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data="[object Object]"
-            data-tooltip="expand"
-            id="list3"
-          />
-        </li>
-      </ul>
-    </div>
-  </body>,
-  "container": <div>
-    <ul
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg list"
+    <li
+      key="list0"
     >
-      <li
-        __self="[object Object]"
-        __source="[object Object]"
+      <Label
+        data={
+          Object {
+            "l": "Entry 1",
+          }
+        }
+        dataId="l"
+        id="list0"
+        key="list0"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
+          className="msg label"
+          data={
+            Object {
+              "l": "Entry 1",
+            }
+          }
           data-tooltip="expand"
           id="list0"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         />
-      </li>
-      <li
-        __self="[object Object]"
-        __source="[object Object]"
+      </Label>
+    </li>
+    <li
+      key="list1"
+    >
+      <Label
+        data={
+          Object {
+            "l": "Entry 2",
+          }
+        }
+        dataId="l"
+        id="list1"
+        key="list1"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
+          className="msg label"
+          data={
+            Object {
+              "l": "Entry 2",
+            }
+          }
           data-tooltip="expand"
           id="list1"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         />
-      </li>
-      <li
-        __self="[object Object]"
-        __source="[object Object]"
+      </Label>
+    </li>
+    <li
+      key="list2"
+    >
+      <Label
+        data={
+          Object {
+            "l": "Entry 3",
+          }
+        }
+        dataId="l"
+        id="list2"
+        key="list2"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
+          className="msg label"
+          data={
+            Object {
+              "l": "Entry 3",
+            }
+          }
           data-tooltip="expand"
           id="list2"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         />
-      </li>
-      <li
-        __self="[object Object]"
-        __source="[object Object]"
+      </Label>
+    </li>
+    <li
+      key="list3"
+    >
+      <Label
+        data={
+          Object {
+            "l": "Entry 4",
+          }
+        }
+        dataId="l"
+        id="list3"
+        key="list3"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data="[object Object]"
+          className="msg label"
+          data={
+            Object {
+              "l": "Entry 4",
+            }
+          }
           data-tooltip="expand"
           id="list3"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         />
-      </li>
-    </ul>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+      </Label>
+    </li>
+  </ul>
+</List>
 `;

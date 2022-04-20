@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,14 @@
 
 import image from "../../../../assets/images/close.svg";
 
-import { mount, shallow } from "enzyme";
 import React from "react";
+import { mount, shallow } from "enzyme";
+import { act } from "preact/test-utils";
 
 import { Button, Image, Container, Orientation, ComponentSize, IButtonProperties } from "../../../../components/ui";
 import { requisitions } from "../../../../supplement/Requisitions";
-import { act } from "preact/test-utils";
-import { render } from "@testing-library/preact";
 import { eventMock } from "../../__mocks__/MockEvents";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 let clicked = false;
 
@@ -135,7 +135,7 @@ describe("Button component tests", (): void => {
     });
 
     it("Test checkbox output (Snapshot)", () => {
-        const component = render(
+        const component = mount(
             <div>
                 <Container>
                     <Button id="button1" caption="Normal Button" />
@@ -163,6 +163,6 @@ describe("Button component tests", (): void => {
                 </Container>
             </div>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

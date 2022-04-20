@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,12 @@
  */
 
 import React from "react";
-import { shallow } from "enzyme";
+import { mount, shallow } from "enzyme";
+import { act } from "@testing-library/preact";
 
 import { Checkbox, CheckState, ICheckboxProperties } from "../../../../components/ui";
-import { act, render } from "@testing-library/preact";
 import { eventMock } from "../../__mocks__/MockEvents";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Checkbox component tests", (): void => {
     it("Test checkbox click", async () => {
@@ -48,14 +49,14 @@ describe("Checkbox component tests", (): void => {
         const instance = checkbox.instance();
         const spyOnChange = jest.spyOn(instance.props as ICheckboxProperties, "onChange");
         const click = (checkbox.props() as ICheckboxProperties).onClick;
-        await act(() =>  {
-            click?.(eventMock , {id: "1"});
+        await act(() => {
+            click?.(eventMock, { id: "1" });
         });
         expect(spyOnChange).toBeCalled();
     });
 
     it("Test checkbox output (Snapshot)", () => {
-        const component = render(
+        const component = mount(
             <div>
                 <Checkbox id="cb1" name="cb">
                     Unchecked checkbox
@@ -80,6 +81,6 @@ describe("Checkbox component tests", (): void => {
                 </Checkbox>
             </div>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

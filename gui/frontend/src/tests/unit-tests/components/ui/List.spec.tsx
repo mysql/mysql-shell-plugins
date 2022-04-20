@@ -23,15 +23,16 @@
 
 import image from "../../../../assets/images/blob.svg";
 import dummy from "../../../../assets/images/add.svg";
+
 import React from "react";
+import { mount } from "enzyme";
 
 import {
     Label, List, Image, Container, Orientation, ContentAlignment, Icon, DynamicList,
-} from "../../../../components/ui/index";
-import { render } from "@testing-library/preact";
+} from "../../../../components/ui";
 import { IDictionary } from "../../../../app-logic/Types";
 
-import { loremIpsum } from "../../test-helpers";
+import { loremIpsum, snapshotFromWrapper } from "../../test-helpers";
 
 describe("List component test", (): void => {
     const simpleListEntry = <Label dataId="l" />;
@@ -69,7 +70,7 @@ describe("List component test", (): void => {
     );
 
     const dynamicItems: IDictionary[] = [];
-    for (let i = 0; i < 30000; ++i) {
+    for (let i = 0; i < 20; ++i) {
         dynamicItems.push({
             id: `item${i}`,
             iconImage: image,
@@ -79,7 +80,7 @@ describe("List component test", (): void => {
     }
 
     it("Test Static unordered list output (snapshot)", () => {
-        const component = render(
+        const component = mount<List>(
             <List
                 template={simpleListEntry}
                 elements={[
@@ -90,11 +91,11 @@ describe("List component test", (): void => {
                 ]}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
     it("Test Static container list output (snapshot)", () => {
-        const component = render(
+        const component = mount<List>(
             <List
                 as={Container}
                 {...{
@@ -110,11 +111,11 @@ describe("List component test", (): void => {
                 ]}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
     it("Test Dynamic container list output (snapshot)", () => {
-        const component = render(
+        const component = mount<DynamicList>(
             <DynamicList
                 id="list3"
                 height={300}
@@ -123,6 +124,6 @@ describe("List component test", (): void => {
                 elements={dynamicItems}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

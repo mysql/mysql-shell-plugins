@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,11 @@
 
 import React from "react";
 
-import { Image } from "../../../../components/ui/index";
+import { Image } from "../../../../components/ui";
 import image from "../../../../assets/images/close.svg";
 import { mount } from "enzyme";
-import { render } from "@testing-library/preact";
+
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Image component tests", (): void => {
 
@@ -42,11 +43,11 @@ describe("Image component tests", (): void => {
     });
 
 
-    it("Test Image output (Snapshot)", () => {
-        const component = render(
+    it("Test Image output", () => {
+        const component = mount<Image>(
             <Image src={image} style={{ height: "64px" }} />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
-import { shallow } from "enzyme";
+import { mount, shallow } from "enzyme";
 import React from "react";
 
-import { Dropdown } from "../../../../components/ui/index";
+import { Dropdown } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Dropdown render testing", (): void => {
 
@@ -46,7 +46,7 @@ describe("Dropdown render testing", (): void => {
     });
 
     it("Test Dropdown output (snapshot)", () => {
-        const component = render(
+        const component = mount<Dropdown>(
             <Dropdown initialSelection="tesla" optional={false} style={{ maxWidth: "300px" }}>
                 <Dropdown.Item id="tesla" caption="Tesla" />
                 <Dropdown.Item id="volvo" caption="Volvo" />
@@ -54,6 +54,6 @@ describe("Dropdown render testing", (): void => {
                 <Dropdown.Item id="renault" caption="Renault" />
             </Dropdown>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

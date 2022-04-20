@@ -1,198 +1,178 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Grid component test Test Grid output (snapshot) 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+<Grid
+  columnGap={8}
+  columns={
+    Array [
+      220,
+      40,
+    ]
+  }
+  id="loginDialogControls"
+>
+  <div
+    className="msg grid"
+    id="loginDialogControls"
+    style={
+      Object {
+        "columnGap": "8px",
+        "gridTemplateColumns": "220px 40px",
+        "rowGap": undefined,
+      }
+    }
   >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg grid"
-        id="loginDialogControls"
-        style="grid-template-columns: 220px 40px; column-gap: 8px;"
+    <GridCell>
+      <Container
+        className="msg gridCell"
+        orientation="row"
+        style={Object {}}
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row;"
+          className="msg container fixedScrollbar gridCell"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
         >
-          <input
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg input"
+          <Input
             id="loginUsername"
             placeholder="Username"
-            spellcheck="true"
-            type="text"
-          />
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg gridCell"
-          style="grid-row: span 2; grid-column: span 2;"
-        />
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row;"
-        >
-          <input
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg input"
-            id="loginPassword"
-            placeholder="Password"
-            spellcheck="true"
-            type="password"
-          />
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row;"
-        >
-          <button
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg button round"
-            id="loginButton"
+            spellCheck={true}
           >
-            <div
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg icon"
-              style="mask-image: url(chevron-right.svg);"
+            <input
+              className="msg input"
+              id="loginUsername"
+              onKeyDown={[Function]}
+              oninput={[Function]}
+              placeholder="Username"
+              spellCheck={true}
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+              type="text"
             />
-          </button>
+          </Input>
         </div>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg grid"
-      id="loginDialogControls"
-      style="grid-template-columns: 220px 40px; column-gap: 8px;"
+      </Container>
+    </GridCell>
+    <GridCell
+      as="div"
+      columnSpan={2}
+      rowSpan={2}
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar gridCell"
-        style="flex-direction: row;"
-      >
-        <input
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg input"
-          id="loginUsername"
-          placeholder="Username"
-          spellcheck="true"
-          type="text"
-        />
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg gridCell"
-        style="grid-row: span 2; grid-column: span 2;"
+        className="msg gridCell"
+        style={
+          Object {
+            "gridColumn": "span 2",
+            "gridRow": "span 2",
+          }
+        }
       />
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar gridCell"
-        style="flex-direction: row;"
+    </GridCell>
+    <GridCell>
+      <Container
+        className="msg gridCell"
+        orientation="row"
+        style={Object {}}
       >
-        <input
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg input"
-          id="loginPassword"
-          placeholder="Password"
-          spellcheck="true"
-          type="password"
-        />
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar gridCell"
-        style="flex-direction: row;"
-      >
-        <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button round"
-          id="loginButton"
+        <div
+          className="msg container fixedScrollbar gridCell"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
         >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            style="mask-image: url(chevron-right.svg);"
-          />
-        </button>
-      </div>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+          <Input
+            id="loginPassword"
+            password={true}
+            placeholder="Password"
+            spellCheck={true}
+          >
+            <input
+              className="msg input"
+              id="loginPassword"
+              onKeyDown={[Function]}
+              oninput={[Function]}
+              placeholder="Password"
+              spellCheck={true}
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+              type="password"
+            />
+          </Input>
+        </div>
+      </Container>
+    </GridCell>
+    <GridCell>
+      <Container
+        className="msg gridCell"
+        orientation="row"
+        style={Object {}}
+      >
+        <div
+          className="msg container fixedScrollbar gridCell"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Button
+            disabled={false}
+            id="loginButton"
+            round={true}
+          >
+            <button
+              className="msg button round"
+              disabled={false}
+              id="loginButton"
+              onMouseDown={[Function]}
+              style={
+                Object {
+                  "flexDirection": undefined,
+                }
+              }
+            >
+              <Icon
+                disabled={false}
+                src="chevron-right.svg"
+              >
+                <div
+                  className="msg icon"
+                  style={
+                    Object {
+                      "WebkitMaskImage": "url(chevron-right.svg)",
+                      "backgroundColor": undefined,
+                      "height": undefined,
+                      "maskImage": "url(chevron-right.svg)",
+                      "width": undefined,
+                    }
+                  }
+                />
+              </Icon>
+            </button>
+          </Button>
+        </div>
+      </Container>
+    </GridCell>
+  </div>
+</Grid>
 `;

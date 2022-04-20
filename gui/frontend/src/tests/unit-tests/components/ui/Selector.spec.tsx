@@ -26,9 +26,9 @@ import connection from "../../../../assets/images/connections.svg";
 import React from "react";
 import { mount, shallow } from "enzyme";
 
-import { Label, Orientation, Selector } from "../../../../components/ui/index";
+import { Label, Orientation, Selector } from "../../../../components/ui";
 import { act } from "preact/test-utils";
-import { render } from "@testing-library/preact";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Selector component tests", (): void => {
 
@@ -69,7 +69,7 @@ describe("Selector component tests", (): void => {
         const instance = component.instance();
         const spyOnChange = jest.spyOn(instance.props, "onSelect");
 
-        await act(() =>  {
+        await act(() => {
             instance.props.onSelect?.("5");
         });
         expect(spyOnChange).toBeCalled();
@@ -113,7 +113,7 @@ describe("Selector component tests", (): void => {
     });
 
     it("Test Selector output (snapshot)", () => {
-        const component = render(
+        const component = mount<Selector>(
             <Selector
                 id="selector1"
                 orientation={Orientation.TopDown}
@@ -121,7 +121,7 @@ describe("Selector component tests", (): void => {
                 items={itemArray}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

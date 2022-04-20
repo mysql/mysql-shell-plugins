@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
-import { shallow } from "enzyme";
+import { mount, shallow } from "enzyme";
 import React from "react";
 
-import { Label, ComponentSize, TextAlignment, ILabelProperties } from "../../../../components/ui/index";
+import { Label, ComponentSize, TextAlignment, ILabelProperties } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Label component test", (): void => {
 
@@ -44,11 +44,11 @@ describe("Label component test", (): void => {
     });
 
 
-    it("Test Label output (Snapshot)", () => {
-        const component = render(
+    it("Test Label output", () => {
+        const component = mount<Label>(
             <Label as="h1">H1 Label</Label>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
     it("Label with ansi formatting", () => {
@@ -63,14 +63,14 @@ describe("Label component test", (): void => {
         expect(props.className).toEqual("msg resultText");
     });
 
-    it("Label with ansi formatting (Snapshot) 1", () => {
-        const component = render(
+    it("Label with ansi formatting", () => {
+        const component = mount<Label>(
             <Label
                 language="ansi"
                 caption="Lorem ipsum dolor sit amet"
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

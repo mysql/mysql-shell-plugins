@@ -23,13 +23,15 @@
 
 import chevronRight from "../../../../assets/images/chevron-right.svg";
 import React from "react";
-import { Grid, GridCell, Input, Button, Icon } from "../../../../components/ui/index";
-import { render } from "@testing-library/preact";
+import { mount } from "enzyme";
+
+import { Grid, GridCell, Input, Button, Icon } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Grid component test", (): void => {
 
     it("Test Grid output (snapshot)", () => {
-        const component = render(
+        const component = mount<Grid>(
             <Grid id="loginDialogControls" columns={[220, 40]} columnGap={8}>
                 <GridCell>
                     <Input
@@ -56,6 +58,6 @@ describe("Grid component test", (): void => {
                 </GridCell>
             </Grid>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

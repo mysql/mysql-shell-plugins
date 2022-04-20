@@ -24,11 +24,11 @@
 import imageImage from "../../../../assets/images/connections.svg";
 
 import React from "react";
-import { render } from "@testing-library/preact";
 import { act } from "preact/test-utils";
 import { mount } from "enzyme";
 
 import { Accordion, Codicon, IAccordionProperties } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Accordion component tests", (): void => {
 
@@ -123,7 +123,7 @@ describe("Accordion component tests", (): void => {
     });
 
     it("Test accordion output (Snapshot)", () => {
-        const component = render(
+        const component = mount<Accordion>(
             <Accordion
                 id="sidebar1"
                 style={{
@@ -166,6 +166,6 @@ describe("Accordion component tests", (): void => {
                 ]}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

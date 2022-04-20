@@ -1,604 +1,527 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+<Breadcrumb
+  className="dropShadow"
+  id="breadcrumb1"
+  path={
+    Array [
+      "root",
+      "folder",
+      "subfolder",
+    ]
+  }
+  separator="❯"
+>
+  <Container
+    className="msg breadcrumb verticalCenterContent dropShadow"
+    id="breadcrumb1"
+    orientation="row"
   >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar breadcrumb verticalCenterContent dropShadow"
-        id="breadcrumb1"
-        style="flex-direction: row;"
+    <div
+      className="msg container fixedScrollbar breadcrumb verticalCenterContent dropShadow"
+      id="breadcrumb1"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Button
+        className="breadcrumbItem"
+        disabled={false}
+        id="root"
+        onClick={[Function]}
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button breadcrumbItem"
+          className="msg button breadcrumbItem"
+          disabled={false}
           id="root"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           root
         </button>
+      </Button>
+      <Label
+        caption="❯"
+        className="separator"
+      >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label separator"
+          className="msg label separator"
           data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           ❯
         </label>
+      </Label>
+      <Button
+        className="breadcrumbItem"
+        disabled={false}
+        id="folder"
+        onClick={[Function]}
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button breadcrumbItem"
+          className="msg button breadcrumbItem"
+          disabled={false}
           id="folder"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           folder
         </button>
+      </Button>
+      <Label
+        caption="❯"
+        className="separator"
+      >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label separator"
+          className="msg label separator"
           data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           ❯
         </label>
+      </Label>
+      <Button
+        className="breadcrumbItem"
+        disabled={false}
+        id="subfolder"
+        onClick={[Function]}
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button breadcrumbItem"
+          className="msg button breadcrumbItem"
+          disabled={false}
           id="subfolder"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           subfolder
         </button>
+      </Button>
+      <Label
+        caption="❯"
+        className="separator"
+      >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label separator"
+          className="msg label separator"
           data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           ❯
         </label>
+      </Label>
+      <Button
+        caption="..."
+        className="picker"
+        disabled={false}
+        key="picker"
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="..."
-          class="msg button picker"
+          className="msg button picker"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           ...
         </button>
-      </div>
+      </Button>
     </div>
-  </body>,
-  "container": <div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar breadcrumb verticalCenterContent dropShadow"
-      id="breadcrumb1"
-      style="flex-direction: row;"
-    >
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button breadcrumbItem"
-        id="root"
-      >
-        root
-      </button>
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label separator"
-        data-tooltip="expand"
-      >
-        ❯
-      </label>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button breadcrumbItem"
-        id="folder"
-      >
-        folder
-      </button>
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label separator"
-        data-tooltip="expand"
-      >
-        ❯
-      </label>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button breadcrumbItem"
-        id="subfolder"
-      >
-        subfolder
-      </button>
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label separator"
-        data-tooltip="expand"
-      >
-        ❯
-      </label>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        caption="..."
-        class="msg button picker"
-      >
-        ...
-      </button>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </Container>
+</Breadcrumb>
 `;
 
 exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+<Breadcrumb
+  id="breadcrumb2"
+  path={
+    Array [
+      "root",
+      "folder",
+      "subfolder",
+      "subfolder2",
+    ]
+  }
+  separator="☞"
+>
+  <Container
+    className="msg breadcrumb verticalCenterContent"
+    id="breadcrumb2"
+    orientation="row"
   >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar breadcrumb verticalCenterContent"
-        id="breadcrumb2"
-        style="flex-direction: row;"
+    <div
+      className="msg container fixedScrollbar breadcrumb verticalCenterContent"
+      id="breadcrumb2"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Button
+        className="breadcrumbItem"
+        disabled={false}
+        id="root"
+        onClick={[Function]}
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button breadcrumbItem"
+          className="msg button breadcrumbItem"
+          disabled={false}
           id="root"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           root
         </button>
+      </Button>
+      <Label
+        caption="☞"
+        className="separator"
+      >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label separator"
+          className="msg label separator"
           data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           ☞
         </label>
+      </Label>
+      <Button
+        className="breadcrumbItem"
+        disabled={false}
+        id="folder"
+        onClick={[Function]}
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button breadcrumbItem"
+          className="msg button breadcrumbItem"
+          disabled={false}
           id="folder"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           folder
         </button>
+      </Button>
+      <Label
+        caption="☞"
+        className="separator"
+      >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label separator"
+          className="msg label separator"
           data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           ☞
         </label>
+      </Label>
+      <Button
+        className="breadcrumbItem"
+        disabled={false}
+        id="subfolder"
+        onClick={[Function]}
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button breadcrumbItem"
+          className="msg button breadcrumbItem"
+          disabled={false}
           id="subfolder"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           subfolder
         </button>
+      </Button>
+      <Label
+        caption="☞"
+        className="separator"
+      >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label separator"
+          className="msg label separator"
           data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           ☞
         </label>
+      </Label>
+      <Button
+        className="breadcrumbItem"
+        disabled={false}
+        id="subfolder2"
+        onClick={[Function]}
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button breadcrumbItem"
+          className="msg button breadcrumbItem"
+          disabled={false}
           id="subfolder2"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           subfolder2
         </button>
+      </Button>
+      <Label
+        caption="☞"
+        className="separator"
+      >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label separator"
+          className="msg label separator"
           data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
         >
           ☞
         </label>
+      </Label>
+      <Button
+        caption="..."
+        className="picker"
+        disabled={false}
+        key="picker"
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="..."
-          class="msg button picker"
+          className="msg button picker"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           ...
         </button>
-      </div>
+      </Button>
     </div>
-  </body>,
-  "container": <div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar breadcrumb verticalCenterContent"
-      id="breadcrumb2"
-      style="flex-direction: row;"
-    >
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button breadcrumbItem"
-        id="root"
-      >
-        root
-      </button>
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label separator"
-        data-tooltip="expand"
-      >
-        ☞
-      </label>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button breadcrumbItem"
-        id="folder"
-      >
-        folder
-      </button>
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label separator"
-        data-tooltip="expand"
-      >
-        ☞
-      </label>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button breadcrumbItem"
-        id="subfolder"
-      >
-        subfolder
-      </button>
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label separator"
-        data-tooltip="expand"
-      >
-        ☞
-      </label>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button breadcrumbItem"
-        id="subfolder2"
-      >
-        subfolder2
-      </button>
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label separator"
-        data-tooltip="expand"
-      >
-        ☞
-      </label>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        caption="..."
-        class="msg button picker"
-      >
-        ...
-      </button>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </Container>
+</Breadcrumb>
 `;
 
 exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+<Breadcrumb
+  id="breadcrumb3"
+  path={
+    Array [
+      "",
+    ]
+  }
+  separator="❯"
+>
+  <Container
+    className="msg breadcrumb verticalCenterContent"
+    id="breadcrumb3"
+    orientation="row"
   >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar breadcrumb verticalCenterContent"
-        id="breadcrumb3"
-        style="flex-direction: row;"
+    <div
+      className="msg container fixedScrollbar breadcrumb verticalCenterContent"
+      id="breadcrumb3"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Button
+        disabled={false}
+        style={
+          Object {
+            "backgroundColor": "white",
+            "color": "white",
+          }
+        }
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button"
-          style="background-color: white; color: white;"
+          className="msg button"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "backgroundColor": "white",
+              "color": "white",
+              "flexDirection": undefined,
+            }
+          }
         >
           <span
-            __source="[object Object]"
-            style="color: rgb(0, 117, 143);"
+            style={
+              Object {
+                "color": "#00758f",
+              }
+            }
           >
             My
           </span>
           <span
-            __source="[object Object]"
-            style="color: rgb(242, 145, 17);"
+            style={
+              Object {
+                "color": "#f29111",
+              }
+            }
           >
             SQL
           </span>
         </button>
+      </Button>
+      <Button
+        disabled={false}
+        style={
+          Object {
+            "backgroundColor": "#505050",
+          }
+        }
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button"
-          style="background-color: rgb(80, 80, 80);"
+          className="msg button"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "backgroundColor": "#505050",
+              "flexDirection": undefined,
+            }
+          }
         >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="expand"
-          >
-            localhost:3307
-          </label>
+          <Label>
+            <label
+              className="msg label"
+              data-tooltip="expand"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            >
+              localhost:3307
+            </label>
+          </Label>
         </button>
+      </Button>
+      <Button
+        caption="mysql"
+        disabled={false}
+        style={
+          Object {
+            "backgroundColor": "gray",
+          }
+        }
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="mysql"
-          class="msg button"
-          style="background-color: gray;"
+          className="msg button"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "backgroundColor": "gray",
+              "flexDirection": undefined,
+            }
+          }
         >
           mysql
         </button>
+      </Button>
+      <Button
+        caption="SQL"
+        disabled={false}
+        style={
+          Object {
+            "backgroundColor": "darkorange",
+            "color": "white",
+          }
+        }
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="SQL"
-          class="msg button"
-          style="background-color: darkorange; color: white;"
+          className="msg button"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "backgroundColor": "darkorange",
+              "color": "white",
+              "flexDirection": undefined,
+            }
+          }
         >
           SQL
         </button>
-      </div>
+      </Button>
     </div>
-  </body>,
-  "container": <div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar breadcrumb verticalCenterContent"
-      id="breadcrumb3"
-      style="flex-direction: row;"
-    >
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button"
-        style="background-color: white; color: white;"
-      >
-        <span
-          __source="[object Object]"
-          style="color: rgb(0, 117, 143);"
-        >
-          My
-        </span>
-        <span
-          __source="[object Object]"
-          style="color: rgb(242, 145, 17);"
-        >
-          SQL
-        </span>
-      </button>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg button"
-        style="background-color: rgb(80, 80, 80);"
-      >
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="expand"
-        >
-          localhost:3307
-        </label>
-      </button>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        caption="mysql"
-        class="msg button"
-        style="background-color: gray;"
-      >
-        mysql
-      </button>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        caption="SQL"
-        class="msg button"
-        style="background-color: darkorange; color: white;"
-      >
-        SQL
-      </button>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </Container>
+</Breadcrumb>
 `;

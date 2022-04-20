@@ -1,570 +1,916 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Selector component tests Test Selector output (snapshot) 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+<Selector
+  activeItemId=""
+  entryOrientation="column"
+  id="selector1"
+  items={
+    Array [
+      Object {
+        "caption": "1",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "2",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "3",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "4",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "5",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "6",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "7",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "8",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "9",
+        "icon": "connections.svg",
+      },
+      Object {
+        "caption": "10",
+        "icon": "connections.svg",
+      },
+    ]
+  }
+  orientation="column"
+  smoothScroll={true}
+  wrapNavigation={true}
+>
+  <Container
+    className="msg selector vertical smoothScroll"
+    id="selector1"
+    innerRef={
+      Object {
+        "current": Object {
+          "l": Object {
+            "dragenterfalse": [Function],
+            "dragleavefalse": [Function],
+            "dragoverfalse": [Function],
+            "dragstartfalse": [Function],
+            "dropfalse": [Function],
+          },
+        },
+      }
+    }
+    onDragEnter={[Function]}
+    onDragLeave={[Function]}
+    onDragOver={[Function]}
+    onDragStart={[Function]}
+    onDrop={[Function]}
+    onResize={[Function]}
+    orientation="column"
   >
-    <div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selector vertical smoothScroll"
-        id="selector1"
-        style="flex-direction: column;"
-      >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem stepDown"
-          id="selector1ItemstepDown"
-          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-        />
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item0"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            1
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item1"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            2
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item2"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            3
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item3"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            4
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item4"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            5
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item5"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            6
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item6"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            7
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item7"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            8
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item8"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            9
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem normal"
-          id="selector1Item9"
-          style="flex-direction: column; justify-content: center; align-items: center;"
-        >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg icon"
-            data-tooltip="inherit"
-            style="mask-image: url(connections.svg);"
-          />
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label"
-            data-tooltip="inherit"
-          >
-            10
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar selectorItem stepUp"
-          id="selector1ItemstepUp"
-          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-        />
-      </div>
-    </div>
-  </body>,
-  "container": <div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
-      class="msg container fixedScrollbar selector vertical smoothScroll"
+      className="msg container fixedScrollbar selector vertical smoothScroll"
       id="selector1"
-      style="flex-direction: column;"
+      onDragEnter={[Function]}
+      onDragLeave={[Function]}
+      onDragOver={[Function]}
+      onDragStart={[Function]}
+      onDrop={[Function]}
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem stepDown"
+      <SelectorItem
+        disabled={false}
         id="selector1ItemstepDown"
-        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-      />
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+        innerRef={
+          Object {
+            "current": Object {
+              "l": Object {
+                "clickfalse": [Function],
+              },
+            },
+          }
+        }
+        onClick={[Function]}
+        orientation="row"
+        type="stepDown"
+      >
+        <Container
+          className="msg selectorItem stepDown"
+          crossAlignment="center"
+          id="selector1ItemstepDown"
+          innerRef={
+            Object {
+              "current": Object {
+                "l": Object {
+                  "clickfalse": [Function],
+                },
+              },
+            }
+          }
+          mainAlignment="center"
+          onClick={[Function]}
+          orientation="row"
+        >
+          <div
+            className="msg container fixedScrollbar selectorItem stepDown"
+            id="selector1ItemstepDown"
+            onClick={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          />
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="1"
+        disabled={false}
         id="selector1Item0"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item0"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item0"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          1
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item0"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                1
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="2"
+        disabled={false}
         id="selector1Item1"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item1"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item1"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          2
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item1"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                2
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="3"
+        disabled={false}
         id="selector1Item2"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item2"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item2"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          3
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item2"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                3
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="4"
+        disabled={false}
         id="selector1Item3"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item3"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item3"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          4
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item3"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                4
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="5"
+        disabled={false}
         id="selector1Item4"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item4"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item4"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          5
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item4"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                5
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="6"
+        disabled={false}
         id="selector1Item5"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item5"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item5"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          6
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item5"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                6
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="7"
+        disabled={false}
         id="selector1Item6"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item6"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item6"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          7
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item6"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                7
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="8"
+        disabled={false}
         id="selector1Item7"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item7"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item7"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          8
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item7"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                8
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="9"
+        disabled={false}
         id="selector1Item8"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item8"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item8"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          9
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem normal"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item8"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                9
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        caption="10"
+        disabled={false}
         id="selector1Item9"
-        style="flex-direction: column; justify-content: center; align-items: center;"
+        image="connections.svg"
+        key="selector1Item9"
+        onClick={[Function]}
+        onDrop={[Function]}
+        orientation="column"
+        selected={false}
+        type="normal"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url(connections.svg);"
-        />
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="inherit"
+        <Container
+          className="msg selectorItem normal"
+          crossAlignment="center"
+          id="selector1Item9"
+          mainAlignment="center"
+          onClick={[Function]}
+          onDrop={[Function]}
+          orientation="column"
         >
-          10
-        </label>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar selectorItem stepUp"
+          <div
+            className="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item9"
+            onClick={[Function]}
+            onDrop={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="connections.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(connections.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(connections.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+            <Label
+              data-tooltip="inherit"
+            >
+              <label
+                className="msg label"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                10
+              </label>
+            </Label>
+          </div>
+        </Container>
+      </SelectorItem>
+      <SelectorItem
+        disabled={false}
         id="selector1ItemstepUp"
-        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-      />
+        innerRef={
+          Object {
+            "current": Object {
+              "l": Object {
+                "clickfalse": [Function],
+              },
+            },
+          }
+        }
+        onClick={[Function]}
+        orientation="row"
+        type="stepUp"
+      >
+        <Container
+          className="msg selectorItem stepUp"
+          crossAlignment="center"
+          id="selector1ItemstepUp"
+          innerRef={
+            Object {
+              "current": Object {
+                "l": Object {
+                  "clickfalse": [Function],
+                },
+              },
+            }
+          }
+          mainAlignment="center"
+          onClick={[Function]}
+          orientation="row"
+        >
+          <div
+            className="msg container fixedScrollbar selectorItem stepUp"
+            id="selector1ItemstepUp"
+            onClick={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": "center",
+              }
+            }
+          />
+        </Container>
+      </SelectorItem>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </Container>
+</Selector>
 `;

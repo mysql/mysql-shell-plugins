@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import React from "react";
 
 import { MessageType } from "../../../../app-logic/Types";
-import { Message } from "../../../../components/ui/index";
+import { Message } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Message render testing", (): void => {
     it("Test Message elements", () => {
@@ -42,12 +42,12 @@ describe("Message render testing", (): void => {
 
 
     it("Test Message output (snapshot)", () => {
-        const component = render(
+        const component = mount<Message>(
             <Message type={MessageType.Warning}>
                 Warning: Don't touch, it's hot
             </Message>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { act, render } from "@testing-library/preact";
+import { act } from "@testing-library/preact";
 import { mount, shallow } from "enzyme";
 import React from "react";
 
 import { IUpDownProperties, IUpDownState, TextAlignment, UpDown } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 import { eventMock } from "../../__mocks__/MockEvents";
 
 describe("UpDown render testing", (): void => {
@@ -42,7 +43,7 @@ describe("UpDown render testing", (): void => {
         const upButton = component.find("#up");
         expect(upButton).toBeTruthy();
         let onClick = (upButton.first().props() as IUpDownProperties).onClick;
-        await act(() =>  {
+        await act(() => {
             onClick?.(eventMock, { id: "up" });
         });
         //upButton.simulate("click", { e: {} }, { props: { id: "up" } });
@@ -53,7 +54,7 @@ describe("UpDown render testing", (): void => {
         const downButton = component.find("#down");
         expect(downButton).toBeTruthy();
         onClick = (downButton.first().props() as IUpDownProperties).onClick;
-        await act(() =>  {
+        await act(() => {
             onClick?.(eventMock, { id: "up" });
         });
         expect(spyOnChange).toBeCalled();
@@ -68,7 +69,7 @@ describe("UpDown render testing", (): void => {
         const upButton = component.find("#up");
         expect(upButton).toBeTruthy();
         let onClick = (upButton.first().props() as IUpDownProperties).onClick;
-        await act(() =>  {
+        await act(() => {
             onClick?.(eventMock, { id: "up" });
         });
         // XXX: don't access internal members!
@@ -77,15 +78,15 @@ describe("UpDown render testing", (): void => {
         const downButton = component.find("#down");
         expect(downButton).toBeTruthy();
         onClick = (downButton.first().props() as IUpDownProperties).onClick;
-        await act(() =>  {
+        await act(() => {
             onClick?.(eventMock, { id: "down" });
         });
         expect(component.state().currentValue).toBe(10);
-        await act(() =>  {
+        await act(() => {
             onClick?.(eventMock, { id: "down" });
         });
         expect(component.state().currentValue).toBe(9);
-        await act(() =>  {
+        await act(() => {
             onClick?.(eventMock, { id: "down" });
         });
         expect(component.state().currentValue).toBe(9);
@@ -104,7 +105,7 @@ describe("UpDown render testing", (): void => {
     });
 
     it("Test UpDown output (Snapshot)", () => {
-        const component = render(
+        const component = mount<UpDown>(
             <UpDown
                 textAlignment={TextAlignment.Center}
                 items={[
@@ -123,7 +124,7 @@ describe("UpDown render testing", (): void => {
                 ]}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 
 });

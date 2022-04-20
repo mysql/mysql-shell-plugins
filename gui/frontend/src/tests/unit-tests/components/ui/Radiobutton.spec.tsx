@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import { act } from "preact/test-utils";
 import React from "react";
 
-import { Radiobutton, CheckState, IRadiobuttonProperties } from "../../../../components/ui/index";
+import { Radiobutton, CheckState, IRadiobuttonProperties } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 import { eventMock } from "../../__mocks__/MockEvents";
 
 describe("Radiobutton component tests", (): void => {
@@ -44,14 +44,14 @@ describe("Radiobutton component tests", (): void => {
         const spyOnClick = jest.spyOn(instance.props as IRadiobuttonProperties, "onClick");
         expect(spyOnClick).not.toBeCalled();
         const click = (component.props() as IRadiobuttonProperties).onClick;
-        await act(() =>  {
-            click?.(eventMock, {id: "1"});
+        await act(() => {
+            click?.(eventMock, { id: "1" });
         });
         expect(spyOnClick).toBeCalled();
     });
 
     it("Test Radiobutton output (snapshot)", () => {
-        const component = render(
+        const component = mount<Radiobutton>(
             <Radiobutton
                 id="rb4"
                 name="rbx"
@@ -61,6 +61,6 @@ describe("Radiobutton component tests", (): void => {
                 Disabled radio button
             </Radiobutton>,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });

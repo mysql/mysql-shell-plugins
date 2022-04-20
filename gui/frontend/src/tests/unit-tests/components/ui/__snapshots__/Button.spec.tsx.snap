@@ -1,266 +1,206 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body
-    theme="dark"
+<div>
+  <Container
+    orientation="row"
   >
-    <div>
-      <div
-        __source="[object Object]"
-      >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar"
-          style="flex-direction: row;"
-        >
-          <button
-            __self="[object Object]"
-            __source="[object Object]"
-            caption="Normal Button"
-            class="msg button"
-            id="button1"
-          >
-            Normal Button
-          </button>
-          <button
-            __self="[object Object]"
-            __source="[object Object]"
-            caption="Disabled Button"
-            class="msg button"
-            disabled=""
-            id="button2"
-          >
-            Disabled Button
-          </button>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar"
-          style="flex-direction: row;"
-        >
-          <button
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg button"
-            id="button3"
-            style="flex-direction: column;"
-          >
-            Button
-            <h2
-              __source="[object Object]"
-            >
-              with content
-            </h2>
-          </button>
-          <button
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg button"
-            id="button4"
-          >
-            <img
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg image"
-              src="close.svg"
-            />
-            Image Button
-          </button>
-        </div>
-        <button
-          __self="[object Object]"
-          __source="[object Object]"
-          caption="Large Button"
-          class="msg button big"
-          id="button5"
-        >
-          Large Button
-        </button>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar"
-          style="flex-direction: row;"
-        >
-          <button
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg button round"
-          >
-            M
-          </button>
-          <button
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg button round"
-          >
-            <img
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg image"
-              src="close.svg"
-            />
-          </button>
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
     <div
-      __source="[object Object]"
+      className="msg container fixedScrollbar"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar"
-        style="flex-direction: row;"
+      <Button
+        caption="Normal Button"
+        disabled={false}
+        id="button1"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Normal Button"
-          class="msg button"
+          className="msg button"
+          disabled={false}
           id="button1"
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           Normal Button
         </button>
+      </Button>
+      <Button
+        caption="Disabled Button"
+        disabled={true}
+        id="button2"
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Disabled Button"
-          class="msg button"
-          disabled=""
+          className="msg button"
+          disabled={true}
           id="button2"
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           Disabled Button
         </button>
-      </div>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar"
-        style="flex-direction: row;"
+      </Button>
+    </div>
+  </Container>
+  <Container
+    orientation="row"
+  >
+    <div
+      className="msg container fixedScrollbar"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Button
+        disabled={false}
+        id="button3"
+        orientation="column"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button"
+          className="msg button"
+          disabled={false}
           id="button3"
-          style="flex-direction: column;"
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": "column",
+            }
+          }
         >
           Button
-          <h2
-            __source="[object Object]"
-          >
+          <h2>
             with content
           </h2>
         </button>
+      </Button>
+      <Button
+        disabled={false}
+        id="button4"
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button"
+          className="msg button"
+          disabled={false}
           id="button4"
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
-          <img
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg image"
+          <Image
+            disabled={false}
             src="close.svg"
-          />
+          >
+            <img
+              className="msg image"
+              src="close.svg"
+            />
+          </Image>
           Image Button
         </button>
-      </div>
-      <button
-        __self="[object Object]"
-        __source="[object Object]"
-        caption="Large Button"
-        class="msg button big"
-        id="button5"
-      >
-        Large Button
-      </button>
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar"
-        style="flex-direction: row;"
+      </Button>
+    </div>
+  </Container>
+  <Button
+    caption="Large Button"
+    disabled={false}
+    id="button5"
+    size="big"
+  >
+    <button
+      caption="Large Button"
+      className="msg button big"
+      disabled={false}
+      id="button5"
+      onMouseDown={[Function]}
+      style={
+        Object {
+          "flexDirection": undefined,
+        }
+      }
+    >
+      Large Button
+    </button>
+  </Button>
+  <Container
+    orientation="row"
+  >
+    <div
+      className="msg container fixedScrollbar"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Button
+        disabled={false}
+        round={true}
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button round"
+          className="msg button round"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
           M
         </button>
+      </Button>
+      <Button
+        disabled={false}
+        round={true}
+      >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg button round"
+          className="msg button round"
+          disabled={false}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
         >
-          <img
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg image"
+          <Image
+            disabled={false}
             src="close.svg"
-          />
+          >
+            <img
+              className="msg image"
+              src="close.svg"
+            />
+          </Image>
         </button>
-      </div>
+      </Button>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </Container>
+</div>
 `;
