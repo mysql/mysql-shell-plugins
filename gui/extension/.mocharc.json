@@ -1,5 +1,5 @@
 {
-    "timeout": 80000,
+    "timeout": 120000,
     "reporter": "mochawesome",
     "reporterOptions": {
     "reportFilename": "test-report"
