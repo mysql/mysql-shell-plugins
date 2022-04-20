@@ -62,6 +62,7 @@ export class Divider extends Component<IDividerProperties> {
 
         const newStyle = {
             ...style, ...{
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 "--thickness": `${(thickness ?? 4)}px`,
             },
         };

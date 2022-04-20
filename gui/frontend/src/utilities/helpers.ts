@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as _ from "lodash";
+import _ from "lodash";
 
 import * as crypto from "crypto";
 import { IDictionary } from "../app-logic/Types";
@@ -33,6 +33,8 @@ const getRandomValues = (buffer: Uint8Array): Uint8Array => {
         }
     }
 
+    // In tests we have a global window object from the test environment, so we cannot test this crypto part.
+    // istanbul ignore next
     if (crypto.randomBytes) {
         const bytes = crypto.randomBytes(buffer.length);
         buffer.set(bytes);
@@ -52,13 +54,15 @@ const getRandomValues = (buffer: Uint8Array): Uint8Array => {
  */
 export const loadTextFile = (name: string, async: boolean, callback: (response: string) => void): void => {
     const request = new XMLHttpRequest();
-    request.overrideMimeType("text/plain");
     request.open("GET", name, async);
     request.onreadystatechange = (): void => {
         if (request.readyState === 4 && request.status === 200) {
             callback(request.responseText);
         }
     };
+
+    request.responseType = "text";
+    request.setRequestHeader("Accept", "text/plain");
     request.send(null);
 };
 
@@ -74,6 +78,7 @@ export const selectFile = (contentType: string, multiple: boolean): Promise<File
     return new Promise((resolve): void => {
         const input = document.createElement("input");
         input.type = "file";
+        input.id = "fileSelect";
         input.multiple = multiple;
         input.accept = contentType;
         document.body.appendChild(input);
@@ -83,13 +88,14 @@ export const selectFile = (contentType: string, multiple: boolean): Promise<File
             if (multiple) {
                 resolve(files);
             } else {
-                resolve(files ? files[0] : null);
+                resolve(files && files.length > 0 ? files[0] : null);
             }
+
+            document.body.removeChild(input);
         };
 
         input.click();
 
-        document.body.removeChild(input);
     });
 };
 
@@ -99,6 +105,8 @@ export const selectFile = (contentType: string, multiple: boolean): Promise<File
  * @param text The content of the file.
  * @param fileName The name of the target file (should not contain a path).
  */
+// Testing note: this method relies on behavior which requires a real browser, so we cannot test this in a fake DOM.
+// istanbul ignore next
 export const saveTextAsFile = (text: string, fileName: string): void => {
     const blob = new Blob([text], { type: "text/plain" });
     const downloadLink = document.createElement("a");
@@ -136,7 +144,7 @@ export const saveTextAsFile = (text: string, fileName: string): void => {
  *
  * @returns The given value, trimmed to the min and max bounds.
  */
-export const clampValue = (value: number, min: number | undefined, max: number | undefined): number => {
+export const clampValue = (value: number, min?: number | undefined, max?: number | undefined): number => {
     if (!_.isNil(min) && value < min) {
         return min;
     }
@@ -256,7 +264,7 @@ export const convertToSnakeCase = (o: object, options?: IConversionOptions): obj
  */
 export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions): object => {
     return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
-        return key.replace(/_([a-z])/gi, (full, match: string) => {
+        return key.replace(/_([a-z0-9])/gi, (full, match: string) => {
             return match.toUpperCase();
         });
     });
@@ -370,13 +378,15 @@ const extractMarker = (value: unknown): IComparisonMarker | undefined => {
             };
         }
 
-        default: { // list
+        case "list": {
             return {
                 type: "list",
                 parameters: v.parameters as { list: unknown[]; full: boolean },
             };
 
         }
+
+        default:
     }
 };
 
@@ -394,103 +404,101 @@ const extractMarker = (value: unknown): IComparisonMarker | undefined => {
  * @returns True if both values are equal, otherwise false.
  */
 export const deepEqual = (a: unknown, b: unknown): boolean => {
-    try {
-        if (a === b) { // Same object?
-            return true;
-        }
+    if (a === b) { // Same object?
+        return true;
+    }
 
-        // Cannot be both undefined at this point because of the first test.
-        if (a === undefined || b === undefined) {
-            return false;
-        }
-
-        const typeOfA = typeof a;
-        const typeOfB = typeof b;
-
-        // First check for markers that modify the comparison process.
-        const markerA = extractMarker(a);
-        const markerB = extractMarker(b);
-        if (markerA || markerB) {
-            if (markerA && markerB) {
-                // Both are markers, which cannot work.
-                return false;
-            }
-
-            const value = markerA ? b : a;
-            const marker = markerA ?? markerB;
-            switch (marker?.type) {
-                case "ignore": {
-                    return true;
-                }
-
-                case "regex": {
-                    const pattern = new RegExp(marker.parameters);
-
-                    return typeof value === "string" && pattern.exec(value) !== null;
-                }
-
-                case "list": {
-                    if (!Array.isArray(value)) {
-                        return false;
-                    }
-
-                    const list = marker.parameters.list;
-                    const full = marker.parameters.full;
-                    if (full && value.length !== list.length) {
-                        return false;
-                    }
-
-                    for (let i = 0; i < list.length; ++i) {
-                        if (!deepEqual(value[i], list[i])) {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }
-
-                default: {
-                    return false;
-                }
-            }
-        }
-
-        if ((typeOfA === "object") && (typeOfB === "object")) {
-            const objA = a as { [key: string]: unknown };
-            const objB = b as { [key: string]: unknown };
-            if (Object.keys(objA).length !== Object.keys(objB).length) {
-                return false;
-            }
-
-            for (const key in objA) {
-                if (!(key in objB) || !deepEqual(objA[key], objB[key])) {
-                    return false;
-                }
-            }
-
-            return true;
-        } else if ((typeof a == "object") || (typeof b == "object")) {
-            // Only one value is an object.
-            return false;
-        } else {
-            return Object.is(a, b);
-        }
-    } catch (e) {
+    // Cannot be both undefined at this point because of the first test.
+    if (a === undefined || b === undefined) {
         return false;
+    }
+
+    const typeOfA = typeof a;
+    const typeOfB = typeof b;
+
+    // First check for markers that modify the comparison process.
+    const markerA = extractMarker(a);
+    const markerB = extractMarker(b);
+    if (markerA || markerB) {
+        if (markerA && markerB) {
+            // Both are markers, which cannot work.
+            return false;
+        }
+
+        const value = markerA ? b : a;
+        const marker = markerA ?? markerB;
+        switch (marker?.type) {
+            case "ignore": {
+                return true;
+            }
+
+            case "regex": {
+                const pattern = new RegExp(marker.parameters);
+
+                return typeof value === "string" && pattern.exec(value) !== null;
+            }
+
+            case "list": {
+                if (!Array.isArray(value)) {
+                    return false;
+                }
+
+                const list = marker.parameters.list;
+                const full = marker.parameters.full;
+                if (full && value.length !== list.length) {
+                    return false;
+                }
+
+                for (let i = 0; i < list.length; ++i) {
+                    if (!deepEqual(value[i], list[i])) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            // istanbul ignore next
+            default: {
+                // This branch can never be taken, because of our marker check above.
+                return false;
+            }
+        }
+    }
+
+    if ((typeOfA === "object") && (typeOfB === "object")) {
+        const objA = a as { [key: string]: unknown };
+        const objB = b as { [key: string]: unknown };
+        if (Object.keys(objA).length !== Object.keys(objB).length) {
+            return false;
+        }
+
+        for (const key in objA) {
+            if (!(key in objB) || !deepEqual(objA[key], objB[key])) {
+                return false;
+            }
+        }
+
+        return true;
+    } else if ((typeof a == "object") || (typeof b == "object")) {
+        // Only one value is an object.
+        return false;
+    } else {
+        return Object.is(a, b);
     }
 };
 
 /**
  * A safer variant of `eval`, using a function object instead of the `eval` function.
- * Enforces also strict mode.
+ * Enforces strict mode and does not allow to define new objects.
  *
  * @param code The code to evaluate.
  *
  * @returns The value returned by the function tail-call.
  */
-export const strictEval = (code: string): Function => {
+export const strictEval = (code: string): unknown => {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func, @typescript-eslint/no-unsafe-return
-    return Function("\"use strict\";return (" + code + ")")();
+    return Function("'use strict';return (" + code + ")")();
 };
 
 declare module "lodash" {
@@ -501,39 +509,34 @@ declare module "lodash" {
     }
 }
 
-/**
- * Functionality to set up on application start.
- */
-setImmediate((): void => {
-    // Add lodash mixins to recursively map object keys.
-    _.mixin({
-        deepMapKeys: (o: object, ignoreList: string[], fn: (value: unknown, key: string) => string): object => {
-            const result: IDictionary = {};
+// Add lodash mixins to recursively map object keys.
+_.mixin({
+    deepMapKeys: (o: object, ignoreList: string[], fn: (value: unknown, key: string) => string): object => {
+        const result: IDictionary = {};
 
-            _.forOwn(o, (v: unknown, k: string) => {
-                if (!ignoreList.includes(k)) {
-                    if (_.isPlainObject(v)) {
-                        v = _.deepMapKeys(v as object, ignoreList, fn);
-                    } else if (_.isArray(v)) {
-                        v = _.deepMapArray(v, ignoreList, fn);
-                    }
-                }
-                result[fn(v, k)] = v;
-            });
-
-            return result;
-        },
-
-        deepMapArray: (a: unknown[], ignoreList: string[], fn: (value: unknown, key: string) => unknown): unknown[] => {
-            return a.map((v) => {
+        _.forOwn(o, (v: unknown, k: string) => {
+            if (!ignoreList.includes(k)) {
                 if (_.isPlainObject(v)) {
-                    return _.deepMapKeys(v as object, ignoreList, fn);
+                    v = _.deepMapKeys(v as object, ignoreList, fn);
                 } else if (_.isArray(v)) {
-                    return _.deepMapArray(v as unknown[], ignoreList, fn);
+                    v = _.deepMapArray(v, ignoreList, fn);
                 }
+            }
+            result[fn(v, k)] = v;
+        });
 
-                return v;
-            });
-        },
-    });
+        return result;
+    },
+
+    deepMapArray: (a: unknown[], ignoreList: string[], fn: (value: unknown, key: string) => unknown): unknown[] => {
+        return a.map((v) => {
+            if (_.isPlainObject(v)) {
+                return _.deepMapKeys(v as object, ignoreList, fn);
+            } else if (_.isArray(v)) {
+                return _.deepMapArray(v as unknown[], ignoreList, fn);
+            }
+
+            return v;
+        });
+    },
 });

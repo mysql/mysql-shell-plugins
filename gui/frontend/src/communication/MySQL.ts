@@ -21,9 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// Have to disable the spell checker as we list a number of values here that cannot be changed to conform to our
-// spell checking rules.
+// Have to disable the spell checker and naming convention rule as we list a number of values here that cannot be
+// changed to conform to our rules.
+
 /* spell-checker: disable */
+/* eslint-disable @typescript-eslint/naming-convention */
 
 export enum MySQLConnectionScheme {
     MySQL = "mysql",
@@ -43,7 +45,7 @@ export enum MySQLAuthMethod {
     FromCapabilities = "FROM_CAPABILITIES",
     Fallback = "FALLBACK",
     MySQL41 = "MYSQL41",
-    Plain ="PLAIN",
+    Plain = "PLAIN",
     SHA256 = "SHA256_MEMORY",
 }
 

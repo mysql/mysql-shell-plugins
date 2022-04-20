@@ -85,7 +85,9 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
         ]);
 
         const style: IDictionary = {
+            /* eslint-disable @typescript-eslint/naming-convention */
             "--background-opacity": options.backgroundOpacity,
+            /* eslint-enable @typescript-eslint/naming-convention */
         };
 
         return (

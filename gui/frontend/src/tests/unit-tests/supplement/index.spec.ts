@@ -91,9 +91,11 @@ describe("General Supplement Tests", (): void => {
         expect(converted.length).toBe(3);
 
         expect(converted).toEqual([
+            /* eslint-disable @typescript-eslint/naming-convention */
             { "col1": "lorem", "col2": "ipsum", "∰": "dolor", "👊🖐": "sit" },
             { "col1": "a", "col2": "b", "∰": "c", "👊🖐": "d" },
             { "col1": 1, "col2": 2, "∰": 3, "👊🖐": 4 },
+            /* eslint-enable @typescript-eslint/naming-convention */
         ]);
 
         const converted2 = convertRows(columns, converted);

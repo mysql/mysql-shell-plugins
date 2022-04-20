@@ -79,13 +79,17 @@ export class ProgressIndicator extends Component<IProgressIndicatorProperties> {
             </svg>;
         }
 
-        const indicatorStyle = {...{
-            "opacity": backgroundOpacity,
-            "--position": position ?? 0,
-            "--width": width,
-            "--height": height,
-            "--strokeWidth": strokeWidth,
-        }, ...style};
+        const indicatorStyle = {
+            ...{
+                /* eslint-disable @typescript-eslint/naming-convention */
+                "opacity": backgroundOpacity,
+                "--position": position ?? 0,
+                "--width": width,
+                "--height": height,
+                "--strokeWidth": strokeWidth,
+                /* eslint-enable @typescript-eslint/naming-convention */
+            }, ...style,
+        };
 
         return (
             <Container

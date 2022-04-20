@@ -150,7 +150,7 @@ export class FileSelector extends Component<IFileSelectorProperties> {
         return Promise.resolve(true);
     };
 
-    private handleButtonClick = async (): Promise<void> => {
+    private handleButtonClick = (): void => {
         const {
             path, title, openLabel, canSelectFiles = true, canSelectFolders, filters, multiSelection = false, onChange,
         } = this.mergedProps;
@@ -178,13 +178,17 @@ export class FileSelector extends Component<IFileSelectorProperties> {
                 });
             }
 
-            let result = await selectFile(contentType, multiSelection);
-            if (result) {
-                if (!Array.isArray(result)) {
-                    result = [result];
+            void selectFile(contentType, multiSelection).then((result: File | File[] | null) => {
+                if (result) {
+                    if (!Array.isArray(result)) {
+                        result = [result];
+                    }
+
+                    onChange?.(result.map((value) => { return value.name; }), this.mergedProps);
+                } else {
+                    onChange?.([], this.mergedProps);
                 }
-                onChange?.(result.map((value) => { return value.name; }), this.mergedProps);
-            }
+            });
         }
     };
 

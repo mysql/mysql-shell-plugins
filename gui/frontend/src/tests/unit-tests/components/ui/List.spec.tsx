@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,8 @@ import {
 } from "../../../../components/ui/index";
 import { render } from "@testing-library/preact";
 import { IDictionary } from "../../../../app-logic/Types";
+
+import { loremIpsum } from "../../test-helpers";
 
 describe("List component test", (): void => {
     const simpleListEntry = <Label dataId="l" />;
@@ -65,10 +67,6 @@ describe("List component test", (): void => {
             </Container>
         </Container>
     );
-
-    const loremIpsum =
-        "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
-        "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
 
     const dynamicItems: IDictionary[] = [];
     for (let i = 0; i < 30000; ++i) {

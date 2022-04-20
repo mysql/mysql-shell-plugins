@@ -553,6 +553,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         useMDS: true,
                         useSSH: false,
                         options: {
+                            /* eslint-disable @typescript-eslint/naming-convention */
                             "compartment-id": options.compartmentId,
                             "mysql-db-system-id": options.id,
                             "profile-name": options.profileName ?? "DEFAULT",
@@ -560,6 +561,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                             // "bastion-id": (options.freeformTags as IDictionary)?.bastionId ?? undefined,
                             host,
                             "scheme": MySQLConnectionScheme.MySQL,
+                            /* eslint-enable @typescript-eslint/naming-convention */
                         },
                     };
                     this.createEditConnection(dbType, true, connectionDetails);
@@ -1080,6 +1082,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         });
                     }
                     details.options = {
+                        /* eslint-disable @typescript-eslint/naming-convention */
                         "scheme": mysqlDetailsSection.scheme.value as string,
                         "host": mysqlDetailsSection.hostName.value as string,
                         "port": mysqlDetailsSection.port.value,
@@ -1104,6 +1107,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         "profile-name": details.useMDS ? mdsAdvancedSection.profileName.value : undefined,
                         "bastion-id": details.useMDS ? mdsAdvancedSection.bastionId.value : undefined,
                         "mysql-db-system-id": details.useMDS ? mdsAdvancedSection.mysqlDbSystemId.value : undefined,
+                        /* eslint-enabled @typescript-eslint/naming-convention */
                     } as IMySQLConnectionOptions;
                 }
 
@@ -1163,7 +1167,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         if (isSqlite) {
             optionsSqlite = details.options as ISqliteConnectionOptions;
             if (!optionsSqlite.dbName || optionsSqlite.dbName.trim() === "") {
-                optionsSqlite.dbName = path.basename(optionsSqlite.dbFile, ".sqlite3");
+                if (optionsSqlite.dbFile.endsWith(".sqlite3")) {
+                    optionsSqlite.dbName = path.basename(optionsSqlite.dbFile, ".sqlite3");
+                } else {
+                    optionsSqlite.dbName = path.basename(optionsSqlite.dbFile, ".sqlite");
+                }
             }
 
             optionsMySQL = {
@@ -1240,7 +1248,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     caption: "Database Path:",
                     value: optionsSqlite.dbFile,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    filters: { "SQLite 3": ["sqlite3"] },
+                    filters: { "SQLite 3": ["sqlite3", "sqlite"] },
                     placeholder: "<Enter the DB file location>",
                     span: 8,
                     options: [DialogValueOption.Resource],

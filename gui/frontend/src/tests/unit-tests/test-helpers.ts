@@ -29,6 +29,9 @@ import { CommunicationEvents, ICommShellProfile, IGenericResponse, IWebSessionDa
 import { dispatcher } from "../../supplement/Dispatch";
 import { uuid } from "../../utilities/helpers";
 
+export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
+    "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
+
 export type JestReactWrapper<P = {}, S = unknown> =
     ReactWrapper<Readonly<P> & Readonly<{ children?: React.ReactNode }>, Readonly<S>>;
 

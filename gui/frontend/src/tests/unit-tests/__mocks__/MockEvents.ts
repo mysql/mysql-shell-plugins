@@ -48,7 +48,7 @@ export class MockEvent implements Event {
     public bubbles = false;
     public cancelBubble = false;
     public cancelable = true;
-    public readonly composed = false;
+    public readonly composed: boolean = false;
     public defaultPrevented = false;
     public readonly eventPhase = -1;
     public readonly isTrusted = true;
@@ -56,11 +56,17 @@ export class MockEvent implements Event {
     public readonly srcElement: EventTarget | null;
     public readonly target: EventTarget | null;
     public readonly timeStamp: DOMHighResTimeStamp = 0;
-    public type = "genericMock";
+    public type: string;
 
     public currentTarget: MockEventTarget | null;
 
-    public constructor() {
+    public constructor(type: string, eventInitDict?: EventInit) {
+        this.type = type;
+
+        this.bubbles = eventInitDict?.bubbles ?? false;
+        this.cancelable = eventInitDict?.cancelable ?? false;
+        this.composed = eventInitDict?.composed ?? false;
+
         this.currentTarget = new MockEventTarget();
         this.target = this.currentTarget;
     }
@@ -76,4 +82,4 @@ export class MockEvent implements Event {
     public stopPropagation(): void { /**/ }
 }
 
-export const eventMock = createSyntheticEvent(new MockEvent());
+export const eventMock = createSyntheticEvent(new MockEvent("genericMock"));

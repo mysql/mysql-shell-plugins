@@ -394,7 +394,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         this.loadScripts();
     };
 
-    private handleScriptTreeDoubleClick = async (e: Event, cell: Tabulator.CellComponent): Promise<void> => {
+    private handleScriptTreeDoubleClick = (e: Event, cell: Tabulator.CellComponent): void => {
         const scriptEntry = cell.getData() as IScriptTreeEntry;
         if (!scriptEntry.fullPath) {
             // Double click on a folder -> ignore.
@@ -409,8 +409,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         });
 
         if (!tab) {
-            try {
-                const script = await this.loadScript(scriptEntry.fullPath);
+            this.loadScript(scriptEntry.fullPath).then((script) => {
                 const state = this.createEditorState(script);
 
                 scriptTabs.push({
@@ -429,9 +428,9 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
                 });
 
                 this.setState({ activeInputTab: name, scriptTabs });
-            } catch (e) {
+            }).catch((e) => {
                 void requisitions.execute("showError", ["Internal Error", String(e)]);
-            }
+            });
         } else {
             this.setState({ activeInputTab: name });
         }
@@ -609,7 +608,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         }
     };
 
-    private executeScript = async (e: React.SyntheticEvent, props: IComponentProperties): Promise<void> => {
+    private executeScript = (e: React.SyntheticEvent, props: IComponentProperties): void => {
         const models = Monaco.getModels();
         const model = models.find((candidate) => { return candidate.id === props.id; });
 
@@ -619,23 +618,25 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             (window as any).ws = currentConnection;
 
             const code = model.getValue();
-            await this.loadReferencedScripts(code, new Set<string>());
+            void this.loadReferencedScripts(code, new Set<string>()).then(() => {
+                this.printOutput(code + "\n", OutputType.Command);
 
-            this.printOutput(code + "\n", OutputType.Command);
-
-            try {
-                // eslint-disable-next-line @typescript-eslint/await-thenable
-                await strictEval("(async () => {" + code + "})()");
-            } catch (error) {
-                if ((error as IDictionary).message) {
-                    this.printOutput(`/* ERROR: ${(error as IDictionary).message as string} */\n`, OutputType.Error);
-                } else {
-                    this.printOutput(`/* ERROR: ${JSON.stringify(e, undefined, 4)} */\n`, OutputType.Error);
+                try {
+                    // TODO: investigate if we really need an async wrapper around the code.
+                    strictEval("(async () => {" + code + "})()");
+                } catch (error) {
+                    if ((error as IDictionary).message) {
+                        this.printOutput(`/* ERROR: ${(error as IDictionary).message as string} */\n`,
+                            OutputType.Error);
+                    } else {
+                        this.printOutput(`/* ERROR: ${JSON.stringify(e, undefined, 4)} */\n`, OutputType.Error);
+                    }
+                } finally {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (window as any).ws = undefined;
                 }
-            } finally {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (window as any).ws = undefined;
-            }
+            });
+
         }
     };
 

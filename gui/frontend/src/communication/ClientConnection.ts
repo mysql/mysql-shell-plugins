@@ -412,13 +412,12 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
             this.sendRequest(request, { messageClass: "debuggerValidate" }).then((event: IDispatchEvent) => {
                 // Ignore any extraneous responses.
                 if (currentIndex < expected.length) {
-                    failed = failed ||
-                        !this.validateResponse(convertToSnakeCase(event.data as object) as IGenericResponse,
-                            expected[currentIndex], currentIndex++);
-
                     this.lastReceivedResponse = convertToSnakeCase(event.data as object) as IGenericResponse;
-                    if ((event.data as IDictionary).moduleSessionId) {
-                        this.lastReceivedModuleSessionId = (event.data as IDictionary).moduleSessionId as string;
+                    failed = failed ||
+                        !this.validateResponse(this.lastReceivedResponse, expected[currentIndex], currentIndex++);
+
+                    if (event.data.moduleSessionId) {
+                        this.lastReceivedModuleSessionId = event.data.moduleSessionId as string;
                     }
                 }
             }).catch((event) => {
@@ -460,7 +459,6 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
         }
 
         try {
-            // eslint-disable-next-line @typescript-eslint/await-thenable
             await strictEval("(async () => {" + code + "})()");
         } catch (e) {
             throw new Error(String(e) + " (" + path + ")");

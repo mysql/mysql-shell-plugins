@@ -92,6 +92,8 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
             components.push(1); // Make sure we have an alpha value.
         }
 
+        /* eslint-disable @typescript-eslint/naming-convention */
+
         // All color settings are done using CSS variables.
         const saturationStyle: IDictionary = {
             "--start-color": Color.hsl([components[0], 0, components[2]]).hsl().toString(),
@@ -106,6 +108,8 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
             "--start-color": Color.hsl([components[0], components[1], components[2], 0]).hsl().toString(),
             "--end-color": Color.hsl([components[0], components[1], components[2], 1]).hsl().toString(),
         };
+
+        /* eslint-enable @typescript-eslint/naming-convention */
 
         return (
             <Popup

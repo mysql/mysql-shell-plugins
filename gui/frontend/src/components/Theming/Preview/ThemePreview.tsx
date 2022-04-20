@@ -54,6 +54,8 @@ import { DBType } from "../../../supplement/ShellInterface";
 import { EditorLanguage } from "../../../supplement";
 import { IDictionary } from "../../../app-logic/Types";
 
+import { loremIpsum } from "../../../tests/unit-tests/test-helpers";
+
 interface IThemePreviewState extends IComponentState {
     editorLanguage: EditorLanguage;
     codeExamples: IDictionary;
@@ -155,8 +157,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                             <Label className="rotated">Description</Label>
                         </div>
                         <Label className="description">
-                            Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore
-                            et dolore magna aliqua.
+                            {loremIpsum}
                         </Label>
                     </GridCell>
                     <GridCell>
@@ -235,8 +236,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                             <Label className="rotated">Separator</Label>
                         </div>
                         <Container orientation={Orientation.TopDown}>
-                            <Label id="separated">Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod
-                                tempor incidunt ut labore et dolore magna aliqua.</Label>
+                            <Label id="separated">{loremIpsum}</Label>
                         </Container>
                     </GridCell>
                     <GridCell>
@@ -358,10 +358,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                             borderStyle: "solid",
                         }}
                         caption="SIDEBAR TITLE"
-                        footer={
-                            "Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt " +
-                            "ut labore et dolore magna aliqua."
-                        }
+                        footer={loremIpsum}
                         singleExpand={true}
 
                         sections={[
@@ -410,8 +407,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                             {
                                 caption: "Tab 1",
                                 id: "page1",
-                                content: <Label>Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod
-                                    tempor incidunt ut labore et dolore magna aliqua.</Label>,
+                                content: <Label>{loremIpsum}</Label>,
                                 icon: gearIcon,
                                 auxillary: <Button id="page1" className="closeButton" round={true}>
                                     <Icon src={closeIcon} />
@@ -513,9 +509,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                             useSSH: false,
                             useMDS: false,
                             caption: "First Tile",
-                            description:
-                                "Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt " +
-                                "ut labore ...",
+                            description: loremIpsum,
                             options: {
                                 scheme: MySQLConnectionScheme.MySQL,
                                 user: "root",
@@ -523,9 +517,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                             },
                         }}
                         caption="First Tile"
-                        description={
-                            "Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt " +
-                            "ut labore ..."}
+                        description={loremIpsum}
                         type={BrowserTileType.Open}
                         icon={gearIcon}
                     />

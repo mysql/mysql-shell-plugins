@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -115,6 +115,7 @@ export const language: ILanguage = {
             { include: "@pythonCore" },
         ],
 
+        /* eslint-disable @typescript-eslint/naming-convention */
         sqlCore: [
             { include: "@commentsSql" },
             { include: "@whitespaceSql" },
@@ -152,6 +153,7 @@ export const language: ILanguage = {
                 },
             ],
         ],
+        /* eslint-enable @typescript-eslint/naming-convention */
 
         // MySQL imported rules.
         whitespaceSql: mysql.tokenizer.whitespace,
