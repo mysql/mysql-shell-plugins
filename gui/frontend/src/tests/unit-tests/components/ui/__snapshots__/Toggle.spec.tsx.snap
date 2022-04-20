@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Toggle testing Render test 1`] = `
+<Toggle
+  borderWidth={123}
+  caption="My toggle"
+  checkState={1}
+  checkedColor={
+    Object {
+      "color": Array [
+        1,
+        1,
+        1,
+      ],
+      "model": "rgb",
+      "valpha": 1,
+    }
+  }
+  color={
+    Object {
+      "color": Array [
+        12,
+        12,
+        12,
+      ],
+      "model": "rgb",
+      "valpha": 1,
+    }
+  }
+  disabled={false}
+  name="toggle1"
+  round={true}
+  value={12}
+>
+  <input
+    className="msg toggle round"
+    disabled={false}
+    name="toggle1"
+    onChange={[Function]}
+    readOnly={true}
+    type="checkbox"
+    value={12}
+  />
+  <label
+    className="msg toggle round"
+  >
+    My toggle
+  </label>
+</Toggle>
+`;

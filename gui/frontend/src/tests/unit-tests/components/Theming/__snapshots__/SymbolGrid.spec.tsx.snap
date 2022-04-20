@@ -1,0 +1,1411 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SymbolGrid testing Render test 1`] = `
+<SymbolGrid>
+  <Grid
+    columnGap={10}
+    columns={5}
+    id="symbols"
+    rowGap={10}
+  >
+    <div
+      className="msg grid"
+      id="symbols"
+      style={
+        Object {
+          "columnGap": "10px",
+          "gridTemplateColumns": "repeat(5, 1fr)",
+          "rowGap": "10px",
+        }
+      }
+    >
+      <GridCell
+        className="symbol"
+        key="symbol0"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-array"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                array
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol1"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-boolean"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                boolean
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol2"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-class"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                class
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol3"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-color"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                color
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol4"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-constant"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                constant
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol5"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-constructor"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                constructor
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol6"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-enum"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                enum
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol7"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-enum-member"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                enum-member
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol8"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-event"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                event
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol9"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-field"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                field
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol10"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-file"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                file
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol11"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-folder"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                folder
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol12"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-function"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                function
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol13"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-interface"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                interface
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol14"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-key"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                key
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol15"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-keyword"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                keyword
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol16"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-method"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                method
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol17"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-module"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                module
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol18"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-namespace"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                namespace
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol19"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-null"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                null
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol20"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-number"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                number
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol21"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-object"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                object
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol22"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-operator"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                operator
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol23"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-package"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                package
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol24"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-property"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                property
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol25"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-reference"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                reference
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol26"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-snippet"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                snippet
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol27"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-string"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                string
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol28"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-struct"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                struct
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol29"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-text"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                text
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol30"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-type-parameter"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                parameter
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol31"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-unit"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                unit
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+      <GridCell
+        className="symbol"
+        key="symbol32"
+        orientation="row"
+      >
+        <Container
+          className="msg gridCell symbol"
+          orientation="row"
+          style={Object {}}
+        >
+          <div
+            className="msg container fixedScrollbar gridCell symbol"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <span
+              className="codicon codicon-symbol-variable"
+            />
+            <Label
+              as="span"
+            >
+              <span
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                variable
+              </span>
+            </Label>
+          </div>
+        </Container>
+      </GridCell>
+    </div>
+  </Grid>
+</SymbolGrid>
+`;

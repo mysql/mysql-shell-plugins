@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ScopeSelector testing Render test 1`] = `
+<ScopeSelector
+  customScopes={Array []}
+  defaultScopes={Array []}
+>
+  <Popup
+    className="scopeSelector"
+    orientation="column"
+    pinned={false}
+    placement="right"
+    showArrow={true}
+  >
+    <Portal
+      onClose={[Function]}
+      onOpen={[Function]}
+    />
+  </Popup>
+</ScopeSelector>
+`;

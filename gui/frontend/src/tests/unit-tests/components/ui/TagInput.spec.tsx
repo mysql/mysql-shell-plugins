@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,38 +21,39 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import React from "react";
+import { ITagInputProperties, Orientation, TagInput } from "../../../../components/ui";
+import { snapshotFromWrapper } from "../../test-helpers";
 
-import { Calendar } from "../../../../components/ui/index";
 
-describe("Calendar render testing", (): void => {
+describe("TagInput testing", () => {
 
-    it("Calendar view test properties", () => {
-        const currentDate = new Date();
+    it("TagInput test properties", () => {
         const component = mount(
-            <Calendar
-                initialDate={currentDate}
+            <TagInput
+                tags={[ { id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
+                removable={false}
+                orientation={Orientation.BottomUp}
             />,
         );
         expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.initialDate).toEqual(currentDate);
+        const props = component.props() as ITagInputProperties;
+        expect(props.tags).toEqual([{ id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]);
+        expect(props.removable).toEqual(false);
+        expect(props.orientation).toEqual(Orientation.BottomUp);
     });
 
-    it("Test Calendar (Snapshot)", () => {
-        const component = render(
-            <Calendar
-                onChange={(data: Date): void => {
-                    const label = document.getElementById("dateValue");
-                    if (label) {
-                        label.innerText = data.toDateString();
-                    }
-                }}
+    it("Render test", () => {
+        const component = mount(
+            <TagInput
+                tags={[ { id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
+                removable={false}
+                orientation={Orientation.BottomUp}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect (snapshotFromWrapper(component)).toMatchSnapshot();
+        component.unmount();
     });
 
 });

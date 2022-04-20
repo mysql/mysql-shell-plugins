@@ -1,0 +1,134 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TablePreview testing Render test 1`] = `
+<TablePreview>
+  <TreeGrid
+    columns={
+      Array [
+        Object {
+          "editor": false,
+          "field": "id",
+          "headerSort": false,
+          "title": "id",
+        },
+        Object {
+          "editor": false,
+          "field": "name",
+          "headerSort": true,
+          "title": "name",
+        },
+        Object {
+          "editor": true,
+          "field": "role",
+          "headerSort": true,
+          "title": "role",
+        },
+        Object {
+          "editor": "number",
+          "field": "reports",
+          "headerSort": true,
+          "title": "reports",
+        },
+      ]
+    }
+    height={300}
+    options={
+      Object {
+        "alternatingRowBackgrounds": false,
+        "childKey": "children",
+        "horizontalGridLines": true,
+        "layout": "fitColumns",
+        "selectionType": 3,
+        "treeColumn": "name",
+        "verticalGridLines": true,
+      }
+    }
+    tableData={
+      Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                Object {
+                  "id": "4",
+                  "name": "Grace Mostel",
+                  "reports": "0",
+                  "role": "Database Administrator",
+                },
+                Object {
+                  "id": "5",
+                  "name": "Matthew Johannson",
+                  "reports": "0",
+                  "role": "Backend Developer",
+                },
+                Object {
+                  "id": "6",
+                  "name": "Zero Cage",
+                  "reports": "0",
+                  "role": "Frontend Developer",
+                },
+                Object {
+                  "id": "7",
+                  "name": "Karl Berry",
+                  "reports": "0",
+                  "role": "DevOps",
+                },
+              ],
+              "id": "2",
+              "name": "Joe Swank",
+              "reports": "4",
+              "role": "Director Development",
+            },
+            Object {
+              "children": Array [
+                Object {
+                  "id": "8",
+                  "name": "Penelope Guiness",
+                  "reports": "0",
+                  "role": "Region North East",
+                },
+                Object {
+                  "id": "9",
+                  "name": "Nick Wahlberg",
+                  "reports": "0",
+                  "role": "Region South East",
+                },
+                Object {
+                  "id": "10",
+                  "name": "Ed Chase",
+                  "reports": "0",
+                  "role": "North East",
+                },
+                Object {
+                  "id": "11",
+                  "name": "Bette Nicholson",
+                  "reports": "0",
+                  "role": "North West",
+                },
+              ],
+              "id": "3",
+              "name": "Christian Gable",
+              "reports": "4",
+              "role": "Director Sales",
+            },
+          ],
+          "id": "1",
+          "name": "Jennifer Davis",
+          "reports": "2",
+          "role": "CEO",
+        },
+        Object {
+          "id": "12",
+          "name": "Elvis Marx",
+          "reports": "0",
+          "role": "Head of HR",
+        },
+      ]
+    }
+  >
+    <div
+      className="msg treeGrid horizontalGrid verticalGrid"
+    />
+  </TreeGrid>
+</TablePreview>
+`;

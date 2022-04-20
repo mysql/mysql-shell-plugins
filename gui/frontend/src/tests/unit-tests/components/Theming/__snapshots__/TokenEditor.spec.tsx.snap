@@ -1,0 +1,609 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Token editor testing Render test 1`] = `
+<TokenEditor
+  id="tokenEditor1"
+  onChange={[Function]}
+  onDuplicate={[Function]}
+  onRemove={[Function]}
+  onScopeListClick={[Function]}
+  token={
+    Object {
+      "name": "token1",
+      "scope": "local",
+      "settings": Object {},
+    }
+  }
+>
+  <Container
+    className="syntaxStyleEntry"
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar syntaxStyleEntry"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Button
+        className="styleEntryDeleteButton"
+        data-tooltip="Delete this syntax entry"
+        disabled={false}
+        id="tokenEditor1"
+        onClick={[Function]}
+        round={true}
+      >
+        <button
+          className="msg button round styleEntryDeleteButton"
+          data-tooltip="Delete this syntax entry"
+          disabled={false}
+          id="tokenEditor1"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
+        >
+          <Icon
+            data-tooltip="inherit"
+            disabled={false}
+            src="close2.svg"
+          >
+            <div
+              className="msg icon"
+              data-tooltip="inherit"
+              style={
+                Object {
+                  "WebkitMaskImage": "url(close2.svg)",
+                  "backgroundColor": undefined,
+                  "height": undefined,
+                  "maskImage": "url(close2.svg)",
+                  "width": undefined,
+                }
+              }
+            />
+          </Icon>
+        </button>
+      </Button>
+      <Button
+        className="styleEntryCloneButton"
+        data-tooltip="Clone this syntax entry"
+        disabled={false}
+        id="tokenEditor1"
+        onClick={[Function]}
+        round={true}
+      >
+        <button
+          className="msg button round styleEntryCloneButton"
+          data-tooltip="Clone this syntax entry"
+          disabled={false}
+          id="tokenEditor1"
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          style={
+            Object {
+              "flexDirection": undefined,
+            }
+          }
+        >
+          <Icon
+            data-tooltip="inherit"
+            disabled={false}
+            src="clone.svg"
+          >
+            <div
+              className="msg icon"
+              data-tooltip="inherit"
+              style={
+                Object {
+                  "WebkitMaskImage": "url(clone.svg)",
+                  "backgroundColor": undefined,
+                  "height": undefined,
+                  "maskImage": "url(clone.svg)",
+                  "width": undefined,
+                }
+              }
+            />
+          </Icon>
+        </button>
+      </Button>
+      <Grid
+        columnGap={16}
+        columns={2}
+        rowGap={4}
+      >
+        <div
+          className="msg grid"
+          style={
+            Object {
+              "columnGap": "16px",
+              "gridTemplateColumns": "repeat(2, 1fr)",
+              "rowGap": "4px",
+            }
+          }
+        >
+          <GridCell>
+            <Container
+              className="msg gridCell"
+              orientation="row"
+              style={Object {}}
+            >
+              <div
+                className="msg container fixedScrollbar gridCell"
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "row",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
+                  }
+                }
+              >
+                <Label
+                  caption="Name:"
+                >
+                  <label
+                    className="msg label"
+                    data-tooltip="expand"
+                    style={
+                      Object {
+                        "textAlign": undefined,
+                      }
+                    }
+                  >
+                    Name:
+                  </label>
+                </Label>
+              </div>
+            </Container>
+          </GridCell>
+          <GridCell>
+            <Container
+              className="msg gridCell"
+              orientation="row"
+              style={Object {}}
+            >
+              <div
+                className="msg container fixedScrollbar gridCell"
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "row",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
+                  }
+                }
+              >
+                <Input
+                  id="tokenEditor1"
+                  onChange={[Function]}
+                  placeholder="<no name assigned>"
+                  spellCheck={true}
+                  value="token1"
+                >
+                  <input
+                    className="msg input"
+                    id="tokenEditor1"
+                    onKeyDown={[Function]}
+                    oninput={[Function]}
+                    placeholder="<no name assigned>"
+                    spellCheck={true}
+                    style={
+                      Object {
+                        "textAlign": undefined,
+                      }
+                    }
+                    type="text"
+                    value="token1"
+                  />
+                </Input>
+              </div>
+            </Container>
+          </GridCell>
+          <GridCell
+            columnSpan={2}
+          >
+            <Container
+              className="msg gridCell"
+              orientation="row"
+              style={
+                Object {
+                  "gridColumn": "span 2",
+                }
+              }
+            >
+              <div
+                className="msg container fixedScrollbar gridCell"
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "row",
+                    "flexWrap": undefined,
+                    "gridColumn": "span 2",
+                    "justifyContent": undefined,
+                  }
+                }
+              >
+                <TagInput
+                  className="scopeList"
+                  data-tooltip="Click here to add more tags"
+                  id="tokenEditor1"
+                  onAdd={[Function]}
+                  onClick={[Function]}
+                  onRemove={[Function]}
+                  orientation="row"
+                  removable={true}
+                  style={
+                    Object {
+                      "flex": "1 1 auto",
+                    }
+                  }
+                  tags={
+                    Array [
+                      Object {
+                        "caption": "local",
+                        "id": "local",
+                      },
+                    ]
+                  }
+                >
+                  <Container
+                    className="msg tagInput scopeList"
+                    data-tooltip="Click here to add more tags"
+                    id="tokenEditor1"
+                    onClick={[Function]}
+                    onDragEnter={[Function]}
+                    onDragLeave={[Function]}
+                    onDragOver={[Function]}
+                    onDragStart={[Function]}
+                    onDrop={[Function]}
+                    orientation="row"
+                    style={
+                      Object {
+                        "flex": "1 1 auto",
+                      }
+                    }
+                    wrap="wrap"
+                  >
+                    <div
+                      className="msg container fixedScrollbar tagInput scopeList"
+                      data-tooltip="Click here to add more tags"
+                      id="tokenEditor1"
+                      onClick={[Function]}
+                      onDragEnter={[Function]}
+                      onDragLeave={[Function]}
+                      onDragOver={[Function]}
+                      onDragStart={[Function]}
+                      onDrop={[Function]}
+                      style={
+                        Object {
+                          "alignItems": undefined,
+                          "flex": "1 1 auto",
+                          "flexDirection": "row",
+                          "flexWrap": "wrap",
+                          "justifyContent": undefined,
+                        }
+                      }
+                    >
+                      <Label
+                        className="tag"
+                        draggable={true}
+                        key="local"
+                      >
+                        <label
+                          className="msg label tag"
+                          data-tooltip="expand"
+                          draggable={true}
+                          style={
+                            Object {
+                              "textAlign": undefined,
+                            }
+                          }
+                        >
+                          local
+                          <Button
+                            disabled={false}
+                            id="local"
+                            onClick={[Function]}
+                          >
+                            <button
+                              className="msg button"
+                              disabled={false}
+                              id="local"
+                              onClick={[Function]}
+                              onMouseDown={[Function]}
+                              style={
+                                Object {
+                                  "flexDirection": undefined,
+                                }
+                              }
+                            >
+                              <Icon
+                                as="span"
+                                disabled={false}
+                                src="close.svg"
+                              >
+                                <span
+                                  className="msg icon"
+                                  style={
+                                    Object {
+                                      "WebkitMaskImage": "url(close.svg)",
+                                      "backgroundColor": undefined,
+                                      "height": undefined,
+                                      "maskImage": "url(close.svg)",
+                                      "width": undefined,
+                                    }
+                                  }
+                                />
+                              </Icon>
+                            </button>
+                          </Button>
+                        </label>
+                      </Label>
+                    </div>
+                  </Container>
+                </TagInput>
+              </div>
+            </Container>
+          </GridCell>
+          <GridCell
+            orientation="column"
+            style={
+              Object {
+                "overflow": "visible",
+              }
+            }
+          >
+            <Container
+              className="msg gridCell"
+              orientation="column"
+              style={
+                Object {
+                  "overflow": "visible",
+                }
+              }
+            >
+              <div
+                className="msg container fixedScrollbar gridCell"
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "column",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
+                    "overflow": "visible",
+                  }
+                }
+              >
+                <Container
+                  className="syntaxColor"
+                  orientation="row"
+                >
+                  <div
+                    className="msg container fixedScrollbar syntaxColor"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "row",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Label
+                      caption="Foreground"
+                      style={
+                        Object {
+                          "flexGrow": 1,
+                        }
+                      }
+                    >
+                      <label
+                        className="msg label"
+                        data-tooltip="expand"
+                        style={
+                          Object {
+                            "flexGrow": 1,
+                          }
+                        }
+                      >
+                        Foreground
+                      </label>
+                    </Label>
+                    <ColorField
+                      id="foreground"
+                      onChange={[Function]}
+                    >
+                      <div
+                        className="msg colorField  invalid"
+                        draggable={true}
+                        id="foreground"
+                        onClick={[Function]}
+                        onDragEnter={[Function]}
+                        onDragLeave={[Function]}
+                        onDragOver={[Function]}
+                        onDragStart={[Function]}
+                        onDrop={[Function]}
+                        onKeyDown={[Function]}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <Image
+                          className="inner"
+                          disabled={false}
+                          src="empty-hatch.svg"
+                        >
+                          <img
+                            className="msg image inner"
+                            src="empty-hatch.svg"
+                          />
+                        </Image>
+                      </div>
+                    </ColorField>
+                  </div>
+                </Container>
+                <Container
+                  className="syntaxColor"
+                  orientation="row"
+                >
+                  <div
+                    className="msg container fixedScrollbar syntaxColor"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "row",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Label
+                      caption="Background"
+                      style={
+                        Object {
+                          "flexGrow": 1,
+                        }
+                      }
+                    >
+                      <label
+                        className="msg label"
+                        data-tooltip="expand"
+                        style={
+                          Object {
+                            "flexGrow": 1,
+                          }
+                        }
+                      >
+                        Background
+                      </label>
+                    </Label>
+                    <ColorField
+                      id="background"
+                      onChange={[Function]}
+                    >
+                      <div
+                        className="msg colorField  invalid"
+                        draggable={true}
+                        id="background"
+                        onClick={[Function]}
+                        onDragEnter={[Function]}
+                        onDragLeave={[Function]}
+                        onDragOver={[Function]}
+                        onDragStart={[Function]}
+                        onDrop={[Function]}
+                        onKeyDown={[Function]}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <Image
+                          className="inner"
+                          disabled={false}
+                          src="empty-hatch.svg"
+                        >
+                          <img
+                            className="msg image inner"
+                            src="empty-hatch.svg"
+                          />
+                        </Image>
+                      </div>
+                    </ColorField>
+                  </div>
+                </Container>
+              </div>
+            </Container>
+          </GridCell>
+          <GridCell
+            orientation="column"
+          >
+            <Container
+              className="msg gridCell"
+              orientation="column"
+              style={Object {}}
+            >
+              <div
+                className="msg container fixedScrollbar gridCell"
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "column",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
+                  }
+                }
+              >
+                <Checkbox
+                  caption="bold"
+                  checkState={0}
+                  disabled={false}
+                  id="bold"
+                  onChange={[Function]}
+                >
+                  <label
+                    className="msg checkbox unchecked"
+                    id="bold"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    tabIndex={0}
+                  >
+                    <span
+                      className="checkMark"
+                    />
+                    bold
+                  </label>
+                </Checkbox>
+                <Checkbox
+                  caption="italic"
+                  checkState={0}
+                  disabled={false}
+                  id="italic"
+                  onChange={[Function]}
+                >
+                  <label
+                    className="msg checkbox unchecked"
+                    id="italic"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    tabIndex={0}
+                  >
+                    <span
+                      className="checkMark"
+                    />
+                    italic
+                  </label>
+                </Checkbox>
+                <Checkbox
+                  caption="underline"
+                  checkState={0}
+                  disabled={false}
+                  id="underline"
+                  onChange={[Function]}
+                >
+                  <label
+                    className="msg checkbox unchecked"
+                    id="underline"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    tabIndex={0}
+                  >
+                    <span
+                      className="checkMark"
+                    />
+                    underline
+                  </label>
+                </Checkbox>
+              </div>
+            </Container>
+          </GridCell>
+        </div>
+      </Grid>
+    </div>
+  </Container>
+</TokenEditor>
+`;

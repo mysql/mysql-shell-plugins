@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,38 +21,36 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import React from "react";
+import { ScopeSelector } from "../../../../components/Theming/ScopeSelector";
+import { snapshotFromWrapper } from "../../test-helpers";
 
-import { Calendar } from "../../../../components/ui/index";
+describe("ScopeSelector testing", () => {
+    const scopeSelectorRef = React.createRef<ScopeSelector>();
 
-describe("Calendar render testing", (): void => {
-
-    it("Calendar view test properties", () => {
-        const currentDate = new Date();
+    test("Test ScopeSelector properties", () => {
         const component = mount(
-            <Calendar
-                initialDate={currentDate}
+            <ScopeSelector
+                ref={scopeSelectorRef}
+                defaultScopes={[]} customScopes={[]}
             />,
         );
         expect(component).toBeTruthy();
         const props = component.props();
-        expect(props.initialDate).toEqual(currentDate);
+        expect(props.defaultScopes).toEqual([]);
+        expect(props.customScopes).toEqual([]);
     });
 
-    it("Test Calendar (Snapshot)", () => {
-        const component = render(
-            <Calendar
-                onChange={(data: Date): void => {
-                    const label = document.getElementById("dateValue");
-                    if (label) {
-                        label.innerText = data.toDateString();
-                    }
-                }}
+    test("Render test", () => {
+        const component = mount(
+            <ScopeSelector
+                ref={scopeSelectorRef}
+                defaultScopes={[]} customScopes={[]}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect (snapshotFromWrapper(component)).toMatchSnapshot();
+        component.unmount();
     });
 
 });

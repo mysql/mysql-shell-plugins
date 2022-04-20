@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,38 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
-import { mount } from "enzyme";
-import React from "react";
+import { ThemeColor } from "../../../../components/Theming/ThemeColor";
 
-import { Calendar } from "../../../../components/ui/index";
+describe("TablePreview testing", () => {
 
-describe("Calendar render testing", (): void => {
-
-    it("Calendar view test properties", () => {
-        const currentDate = new Date();
-        const component = mount(
-            <Calendar
-                initialDate={currentDate}
-            />,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.initialDate).toEqual(currentDate);
-    });
-
-    it("Test Calendar (Snapshot)", () => {
-        const component = render(
-            <Calendar
-                onChange={(data: Date): void => {
-                    const label = document.getElementById("dateValue");
-                    if (label) {
-                        label.innerText = data.toDateString();
-                    }
-                }}
-            />,
-        );
-        expect(component).toMatchSnapshot();
+    it("ThemeColor test ", () => {
+        const tc =  new ThemeColor("red");
+        expect(tc.variableName).toEqual("--red");
     });
 
 });

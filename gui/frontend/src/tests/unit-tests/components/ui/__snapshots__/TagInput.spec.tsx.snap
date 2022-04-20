@@ -1,0 +1,85 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TagInput testing Render test 1`] = `
+<TagInput
+  orientation="column-reverse"
+  removable={false}
+  tags={
+    Array [
+      Object {
+        "caption": "tag 1",
+        "id": "1",
+      },
+      Object {
+        "caption": "tag 2",
+        "id": "2",
+      },
+    ]
+  }
+>
+  <Container
+    className="msg tagInput"
+    onDragEnter={[Function]}
+    onDragLeave={[Function]}
+    onDragOver={[Function]}
+    onDragStart={[Function]}
+    onDrop={[Function]}
+    orientation="column-reverse"
+    wrap="wrap"
+  >
+    <div
+      className="msg container fixedScrollbar tagInput"
+      onDragEnter={[Function]}
+      onDragLeave={[Function]}
+      onDragOver={[Function]}
+      onDragStart={[Function]}
+      onDrop={[Function]}
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column-reverse",
+          "flexWrap": "wrap",
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Label
+        className="tag"
+        draggable={true}
+        key="1"
+      >
+        <label
+          className="msg label tag"
+          data-tooltip="expand"
+          draggable={true}
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
+        >
+          tag 1
+        </label>
+      </Label>
+      <Label
+        className="tag"
+        draggable={true}
+        key="2"
+      >
+        <label
+          className="msg label tag"
+          data-tooltip="expand"
+          draggable={true}
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
+        >
+          tag 2
+        </label>
+      </Label>
+    </div>
+  </Container>
+</TagInput>
+`;

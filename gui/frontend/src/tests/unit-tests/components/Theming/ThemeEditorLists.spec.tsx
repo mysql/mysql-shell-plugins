@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,38 +21,36 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
 import { mount } from "enzyme";
 import React from "react";
+import { IThemeEditorListsProperties, ThemeEditorLists } from "../../../../components/Theming/ThemeEditorLists";
+import { snapshotFromWrapper } from "../../test-helpers";
 
-import { Calendar } from "../../../../components/ui/index";
 
-describe("Calendar render testing", (): void => {
+describe("Theme editor lists testing", () => {
 
-    it("Calendar view test properties", () => {
-        const currentDate = new Date();
+    it("Theme editor lists properties test", () => {
         const component = mount(
-            <Calendar
-                initialDate={currentDate}
+            <ThemeEditorLists
+                showUnusedColors={true}
+                onThemeChange={jest.fn}
             />,
         );
         expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.initialDate).toEqual(currentDate);
+        const props = component.props() as IThemeEditorListsProperties;
+        expect(props.showUnusedColors).toEqual(true);
+        component.unmount();
     });
 
-    it("Test Calendar (Snapshot)", () => {
-        const component = render(
-            <Calendar
-                onChange={(data: Date): void => {
-                    const label = document.getElementById("dateValue");
-                    if (label) {
-                        label.innerText = data.toDateString();
-                    }
-                }}
+    it("Render test", () => {
+        const component = mount(
+            <ThemeEditorLists
+                showUnusedColors={true}
+                onThemeChange={jest.fn}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect (snapshotFromWrapper(component)).toMatchSnapshot();
+        component.unmount();
     });
 
 });

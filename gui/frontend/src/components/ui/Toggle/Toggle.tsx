@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ import { isNil } from "lodash";
 import { Component, IComponentProperties, CheckState, MouseEventType } from "..";
 import { convertPropValue } from "../../../utilities/string-helpers";
 
-interface IToggleProperties extends IComponentProperties {
+export interface IToggleProperties extends IComponentProperties {
     checkState?: CheckState;
     disabled?: boolean;
     round?: boolean;
