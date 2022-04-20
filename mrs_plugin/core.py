@@ -277,7 +277,6 @@ def ensure_rds_metadata_schema(session=None, auto_create_and_update=False,
     Returns:
         True if the metadata schema has been changed
     """
-
     session = get_current_session(session)
 
     # Check if the MRS metadata schema already exists
@@ -389,8 +388,8 @@ def update_rds_metadata_schema(session, current_db_version_str,
     if interactive:
         print("Updating MRS metadata schema...")
 
-    script_dir_path = mysqlsh.plugin_manager.general.get_plugins_dir(
-        'mrs_plugin', 'db_schema')
+    script_dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+        'db_schema')
 
     version_to_update = current_db_version_str
 
@@ -459,6 +458,8 @@ def create_rds_metadata_schema(session=None, interactive=True):
     """
 
     import mysqlsh
+    import os
+    import re
 
     shell = mysqlsh.globals.shell
     session = get_current_session(session)
@@ -466,9 +467,25 @@ def create_rds_metadata_schema(session=None, interactive=True):
     if interactive:
         print("Creating MRS metadata schema...")
 
-    sql_file_path = mysqlsh.plugin_manager.general.get_plugins_dir(
-        'mrs_plugin', 'db_schema',
-        f'mrs_metadata_schema.sql')
+    latest_version_val = [0, 0, 0]
+
+    script_dir = sql_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db_schema')
+
+    # find the latest version of the database file available
+    for f in os.listdir(script_dir):
+        m = re.match(
+            r'mrs_metadata_schema_(\d+)\.(\d+)\.(\d+)\.sql', f)
+        if m:
+            g = [int(group) for group in m.groups()]
+            if g > latest_version_val or latest_version_val == [0, 0, 0]:
+                latest_version_val = g
+
+    if latest_version_val == [0, 0, 0]:
+        return
+
+    sql_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+    'db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
+
 
     with open(sql_file_path) as f:
         sql_script = f.read()
