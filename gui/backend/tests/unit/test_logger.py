@@ -51,3 +51,14 @@ def test_log_level():
 
     level = Logger.get_log_level()
     assert level == current_level
+
+
+def test_filter_sensitivity_data():
+    message = '{"request": "authenticate", "username": "admin1", "password": "admin1"}'
+    output = Logger.BackendLogger.get_instance()._filter(message)
+    assert output == '{"request": "authenticate", "username": "admin1", "password": "****"}'
+
+    message = '{"request": "execute", "command": "gui.dbconnections.add_db_connection", "args": {"profile_id": 1, "connection": {"db_type": "MySQL", "caption": "This is a test database", "description": "This is a test database description", "options": {"host": "localhost", "port":3306, "user": "root", "password": "password", "scheme": "mysql", "schema": "information_schema"}}, "folder_path": ""}}'
+
+    output = Logger.BackendLogger.get_instance()._filter(message)
+    assert output == '{"request": "execute", "command": "gui.dbconnections.add_db_connection", "args": {"profile_id": 1, "connection": {"db_type": "MySQL", "caption": "This is a test database", "description": "This is a test database description", "options": {"host": "localhost", "port": 3306, "user": "root", "password": "****", "scheme": "mysql", "schema": "information_schema"}}, "folder_path": ""}}'

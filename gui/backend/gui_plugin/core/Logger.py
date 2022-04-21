@@ -24,6 +24,7 @@ from contextlib import contextmanager
 import traceback
 import sys
 import os
+import json
 from enum import IntEnum
 from gui_plugin.core.Error import MSGException
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
@@ -35,6 +36,8 @@ _files_count = 0
 _process_count = 0
 _thread_count = 0
 
+SENSITIVE_KEYWORDS = ["password"]
+SENSITIVE_DATA_REPLACEMENT = "****"
 
 class LogLevel(IntEnum):
     NONE = 1
@@ -67,8 +70,9 @@ class BackendLogger:
             self.set_log_level(
                 LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
 
-    def message_logger(self, log_type, message, tags=[], context={}):
+    def message_logger(self, log_type, message, tags=[], sensitive=False, prefix=""):
         now = datetime.datetime.now()
+        message = prefix + str(self._filter(message) if sensitive else message)
 
         if 'session' in tags:
             BackendDbLogger.log(event_type=log_type.name, message=message)
@@ -88,32 +92,51 @@ class BackendLogger:
     def get_log_level(self):
         return BackendLogger.__log_level
 
+    def _filter(self, message):
+        try:
+            json_message = json.loads(message)
+            return json.dumps(self._filter_object(json_message))
+        except Exception:
+            return message
 
-def debug(message, tags=[]):
+    def _filter_object(self, json_message):
+        for keyword in SENSITIVE_KEYWORDS:
+            if keyword in json_message:
+                json_message[keyword] = SENSITIVE_DATA_REPLACEMENT
+        for key, value in json_message.items():
+            if isinstance(value, dict):
+                json_message[key] = self._filter_object(value)
+        return json_message
+
+
+def debug(message, tags=[], sensitive=False, prefix=""):
     # TODO: tweak these tags according the environment settings
     tags = tags + ['stdout']
-    BackendLogger.get_instance().message_logger(LogLevel.DEBUG, message, tags)
+    BackendLogger.get_instance().message_logger(
+        LogLevel.DEBUG, message, tags, sensitive, prefix)
 
 
-def info(message, tags=[], context={}):
+def info(message, tags=[], sensitive=False, prefix=""):
     # TODO: tweak these tags according the environment settings
     if 'session' not in tags:
         tags = tags + ['stdout', 'shell']
     BackendLogger.get_instance().message_logger(
-        LogLevel.INFO, message, tags, context)
+        LogLevel.INFO, message, tags, sensitive, prefix)
 
 
-def warning(message, tags=[]):
+def warning(message, tags=[], sensitive=False, prefix=""):
     # TODO: tweak these tags according the environment settings
     tags = tags + ['stdout', 'shell']
-    BackendLogger.get_instance().message_logger(LogLevel.WARNING, message, tags)
+    BackendLogger.get_instance().message_logger(
+        LogLevel.WARNING, message, tags, sensitive, prefix)
 
 
-def error(message, tags=[]):
+def error(message, tags=[], sensitive=False, prefix=""):
     # TODO: tweak these tags according the environment settings
     tags = tags + ['stdout', 'shell']
     # convert to string in case we're logging an exception
-    BackendLogger.get_instance().message_logger(LogLevel.ERROR, str(message), tags)
+    BackendLogger.get_instance().message_logger(
+        LogLevel.ERROR, str(message), tags, sensitive, prefix)
 
 
 def exception(e, msg=None, tags=[]):
@@ -131,20 +154,22 @@ def exception(e, msg=None, tags=[]):
         error(f"Exception information:\n{exception_info}")
 
 
-def debug2(message, tags=[]):
-    tags = tags + ['stdout']
-    BackendLogger.get_instance().message_logger(LogLevel.DEBUG2, message, tags)
-
-
-def debug3(message, tags=[]):
-    tags = tags + ['stdout']
-    BackendLogger.get_instance().message_logger(LogLevel.DEBUG3, message, tags)
-
-
-def internal_error(message, tags=[]):
+def debug2(message, tags=[], sensitive=False, prefix=""):
     tags = tags + ['stdout']
     BackendLogger.get_instance().message_logger(
-        LogLevel.INTERNAL_ERROR, message, tags)
+        LogLevel.DEBUG2, message, tags, sensitive, prefix)
+
+
+def debug3(message, tags=[], sensitive=False, prefix=""):
+    tags = tags + ['stdout']
+    BackendLogger.get_instance().message_logger(
+        LogLevel.DEBUG3, message, tags, sensitive, prefix)
+
+
+def internal_error(message, tags=[], sensitive=False, prefix=""):
+    tags = tags + ['stdout']
+    BackendLogger.get_instance().message_logger(
+        LogLevel.INTERNAL_ERROR, message, tags, sensitive, prefix)
 
 
 def track_print(type):

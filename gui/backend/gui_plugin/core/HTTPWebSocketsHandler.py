@@ -55,7 +55,7 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
                 if message is not None:
                     packet = WebSocket.Packet(message)
                     packet.send(self.request)
-                    logger.debug3(f"-> {packet.message}")
+                    logger.debug2(message=packet.message, sensitive=True, prefix="-> ")
             except Exception as e:
                 logger.error(f"Exception sending a message. {e}")
 

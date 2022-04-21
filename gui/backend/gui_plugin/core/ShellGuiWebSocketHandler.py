@@ -113,7 +113,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             message = self.packets[self.session_uuid].message
             del self.packets[self.session_uuid]
 
-            logger.debug3(f"<- {message}")
+            logger.debug2(message=message, sensitive=True, prefix="<- ")
             try:
                 json_message = None
                 try:
@@ -455,7 +455,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     # get default profile for the user
                     default_profile = gui.users.get_default_profile(
                         row[0], WebSession(self))
-                    logger.debug3(f"  ** profile: {default_profile}")
                     if default_profile["request_state"]["type"] != "OK":
                         msg = default_profile["request_state"]["msg"]
                         raise Exception(f'Could not get the default profile for'
