@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Grid component test Test Grid output (snapshot) 1`] = `
+exports[`Grid component test Standard Rendering 1`] = `
 <Grid
   columnGap={8}
   columns={

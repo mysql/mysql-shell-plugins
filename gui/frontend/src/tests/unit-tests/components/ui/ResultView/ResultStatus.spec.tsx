@@ -39,7 +39,10 @@ describe("Result Status Tests", (): void => {
                 }}
             />,
         );
+
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

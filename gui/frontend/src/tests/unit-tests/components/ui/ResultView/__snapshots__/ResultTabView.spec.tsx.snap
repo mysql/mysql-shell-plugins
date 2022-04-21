@@ -946,48 +946,10 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                 >
                   <Container
                     className="msg resultView"
-                    onEdit={[Function]}
                     orientation="column"
-                    resultSet={
-                      Object {
-                        "data": Object {
-                          "columns": Array [],
-                          "currentPage": 0,
-                          "executionInfo": Object {
-                            "text": "All fine",
-                            "type": 4,
-                          },
-                          "requestId": "123",
-                          "rows": Array [],
-                        },
-                        "head": Object {
-                          "requestId": "123",
-                          "sql": "select 1",
-                        },
-                      }
-                    }
                   >
                     <div
                       className="msg container fixedScrollbar resultView"
-                      onEdit={[Function]}
-                      resultSet={
-                        Object {
-                          "data": Object {
-                            "columns": Array [],
-                            "currentPage": 0,
-                            "executionInfo": Object {
-                              "text": "All fine",
-                              "type": 4,
-                            },
-                            "requestId": "123",
-                            "rows": Array [],
-                          },
-                          "head": Object {
-                            "requestId": "123",
-                            "sql": "select 1",
-                          },
-                        }
-                      }
                       style={
                         Object {
                           "alignItems": undefined,
@@ -998,14 +960,14 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                       }
                     >
                       <Menu
-                        id="schemaContextMenu"
+                        id="cellContextMenu"
                         onItemClick={[Function]}
                         orientation="column"
                         placement="bottom-start"
                       >
                         <Popup
                           className="msg menu"
-                          id="schemaContextMenu"
+                          id="cellContextMenu"
                           onClose={[Function]}
                           onKeyDown={[Function]}
                           onOpen={[Function]}
@@ -1015,7 +977,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           showArrow={false}
                         >
                           <Portal
-                            id="schemaContextMenu"
+                            id="cellContextMenu"
                             onClose={[Function]}
                             onKeyDown={[Function]}
                             onOpen={[Function]}

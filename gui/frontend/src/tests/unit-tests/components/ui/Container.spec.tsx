@@ -57,6 +57,8 @@ describe("Container component tests", (): void => {
             </Container>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

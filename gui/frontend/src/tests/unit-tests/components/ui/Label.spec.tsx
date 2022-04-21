@@ -25,7 +25,7 @@ import { mount, shallow } from "enzyme";
 import React from "react";
 
 import { Label, ComponentSize, TextAlignment, ILabelProperties } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { loremIpsum, snapshotFromWrapper } from "../../test-helpers";
 
 describe("Label component test", (): void => {
 
@@ -49,12 +49,14 @@ describe("Label component test", (): void => {
             <Label as="h1">H1 Label</Label>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
     it("Label with ansi formatting", () => {
         const component = shallow<ILabelProperties>(
             <Label
-                caption="Lorem ipsum dolor sit amet"
+                caption={loremIpsum}
                 language="ansi"
             />,
         );
@@ -67,10 +69,12 @@ describe("Label component test", (): void => {
         const component = mount<Label>(
             <Label
                 language="ansi"
-                caption="Lorem ipsum dolor sit amet"
+                caption={loremIpsum}
             />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

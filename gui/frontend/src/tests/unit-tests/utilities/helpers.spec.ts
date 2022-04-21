@@ -527,7 +527,7 @@ describe("Utilities Tests", (): void => {
             symbol: Symbol("list"),
             parameters: {
                 list: ["a", "b", "c"],
-                full: true,
+                full: false,
             },
         };
 
@@ -559,7 +559,9 @@ describe("Utilities Tests", (): void => {
         expect(deepEqual([[[["a", "b", "c"]]]], [[[listMarker]]])).toBeTruthy();
         expect(deepEqual([[[listMarker]]], [[[["1", "b", "c"]]]])).toBeFalsy();
         expect(deepEqual([[[["a", "b"]]]], [[[listMarker]]])).toBeFalsy(); // Full list.
+        expect(deepEqual([[[["a", "b", "c", "d"]]]], [[[listMarker]]])).toBeFalsy(); // Full list.
         expect(deepEqual([[[["a", "b"]]]], [[[listMarker2]]])).toBeFalsy(); // Partial list.
+        expect(deepEqual([[[["a", "b", "c", "d"]]]], [[[listMarker2]]])).toBeTruthy(); // Partial list.
 
         expect(deepEqual([[[{ var: 2 }]]], [[[listMarker]]])).toBeFalsy(); // Not a list.
 

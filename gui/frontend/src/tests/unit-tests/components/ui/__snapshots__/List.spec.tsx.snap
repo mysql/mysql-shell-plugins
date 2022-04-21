@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`List component test Test Dynamic container list output (snapshot) 1`] = `
+exports[`List component test Test Dynamic container list output 1`] = `
 <DynamicList
   elements={
     Array [
@@ -313,7 +313,7 @@ exports[`List component test Test Dynamic container list output (snapshot) 1`] =
 </DynamicList>
 `;
 
-exports[`List component test Test Static container list output (snapshot) 1`] = `
+exports[`List component test Test Static container list output 1`] = `
 <List
   as={[Function]}
   crossAlignment="flex-start"
@@ -824,7 +824,7 @@ exports[`List component test Test Static container list output (snapshot) 1`] = 
 </List>
 `;
 
-exports[`List component test Test Static unordered list output (snapshot) 1`] = `
+exports[`List component test Test Static unordered list output 1`] = `
 <List
   elements={
     Array [

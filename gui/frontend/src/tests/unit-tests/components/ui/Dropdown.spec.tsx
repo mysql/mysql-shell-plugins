@@ -29,6 +29,20 @@ import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Dropdown render testing", (): void => {
 
+    it("Standard Rendering", () => {
+        const component = mount<Dropdown>(
+            <Dropdown initialSelection="tesla" optional={false} style={{ maxWidth: "300px" }}>
+                <Dropdown.Item id="tesla" caption="Tesla" />
+                <Dropdown.Item id="volvo" caption="Volvo" />
+                <Dropdown.Item id="bmw" caption="BMW" />
+                <Dropdown.Item id="renault" caption="Renault" />
+            </Dropdown>,
+        );
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
+    });
+
     it("Test Dropdown onSelect callback test", () => {
         const component = shallow<Dropdown>(
             <Dropdown initialSelection="tesla" optional={false} onSelect={jest.fn()} style={{ maxWidth: "300px" }}>
@@ -45,15 +59,4 @@ describe("Dropdown render testing", (): void => {
         expect(spyOnChange).toBeCalled();
     });
 
-    it("Test Dropdown output (snapshot)", () => {
-        const component = mount<Dropdown>(
-            <Dropdown initialSelection="tesla" optional={false} style={{ maxWidth: "300px" }}>
-                <Dropdown.Item id="tesla" caption="Tesla" />
-                <Dropdown.Item id="volvo" caption="Volvo" />
-                <Dropdown.Item id="bmw" caption="BMW" />
-                <Dropdown.Item id="renault" caption="Renault" />
-            </Dropdown>,
-        );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
-    });
 });

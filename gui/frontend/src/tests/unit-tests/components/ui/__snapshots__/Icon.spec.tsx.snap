@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Icon component tests Test icon output 1`] = `
+exports[`Icon component tests Standard Rendering 1`] = `
 <Icon
   disabled={false}
   src="close.svg"

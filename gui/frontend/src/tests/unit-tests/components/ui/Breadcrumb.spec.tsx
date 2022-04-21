@@ -51,6 +51,8 @@ describe("Breadcrumb render testing", (): void => {
             onClick?.(eventMock, {});
         });
         expect(spyOnChange).toBeCalled();
+
+        component.unmount();
     });
 
     it("Test Breadcrumb (Snapshot) 1", () => {
@@ -61,7 +63,10 @@ describe("Breadcrumb render testing", (): void => {
                 className="dropShadow"
             />,
         );
+
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
     it("Test Breadcrumb (Snapshot) 2", () => {
@@ -72,7 +77,10 @@ describe("Breadcrumb render testing", (): void => {
                 separator="☞"
             />,
         );
+
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
     it("Test Breadcrumb (Snapshot) 3", () => {
@@ -95,7 +103,10 @@ describe("Breadcrumb render testing", (): void => {
                 ></Button>
             </Breadcrumb>,
         );
+
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

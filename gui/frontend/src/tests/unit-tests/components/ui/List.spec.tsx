@@ -79,7 +79,7 @@ describe("List component test", (): void => {
         });
     }
 
-    it("Test Static unordered list output (snapshot)", () => {
+    it("Test Static unordered list output", () => {
         const component = mount<List>(
             <List
                 template={simpleListEntry}
@@ -92,9 +92,11 @@ describe("List component test", (): void => {
             />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
-    it("Test Static container list output (snapshot)", () => {
+    it("Test Static container list output", () => {
         const component = mount<List>(
             <List
                 as={Container}
@@ -112,9 +114,11 @@ describe("List component test", (): void => {
             />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
-    it("Test Dynamic container list output (snapshot)", () => {
+    it("Test Dynamic container list output", () => {
         const component = mount<DynamicList>(
             <DynamicList
                 id="list3"
@@ -125,5 +129,7 @@ describe("List component test", (): void => {
             />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Dropdown render testing Test Dropdown output (snapshot) 1`] = `
+exports[`Dropdown render testing Standard Rendering 1`] = `
 <Dropdown
   initialSelection="tesla"
   multiSelect={false}

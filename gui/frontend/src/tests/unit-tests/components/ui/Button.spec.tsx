@@ -121,17 +121,7 @@ describe("Button component tests", (): void => {
         });
         expect(innerRef.current).not.toEqual(document.activeElement);
 
-        // component = mount(
-        //     <Button innerRef={innerRef} onClick={buttonClick} focusOnClick>
-        //         Test button
-        //     </Button>,
-        // );
-
-        // onMouseDown = (component.props() as IButtonProperties).onMouseDown;
-        // act(() =>  {
-        //     onMouseDown?.(event, {id: "1"});
-        // });
-        // expect(innerRef.current).toEqual(document.activeElement);
+        component.unmount();
     });
 
     it("Test checkbox output (Snapshot)", () => {
@@ -164,5 +154,7 @@ describe("Button component tests", (): void => {
             </div>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

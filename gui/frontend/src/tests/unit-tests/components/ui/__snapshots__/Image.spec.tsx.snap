@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Image component tests Test Image output 1`] = `
+exports[`Image component tests Standard Rendering 1`] = `
 <Image
   disabled={false}
   src="close.svg"

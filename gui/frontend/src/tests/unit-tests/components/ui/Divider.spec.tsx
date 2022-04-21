@@ -34,5 +34,7 @@ describe("Divider render testing", (): void => {
             <Divider vertical={true} />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

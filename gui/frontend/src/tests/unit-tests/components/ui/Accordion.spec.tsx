@@ -120,6 +120,8 @@ describe("Accordion component tests", (): void => {
             onClick?.(event as React.SyntheticEvent, { id: "2" });
         });
         expect(spyAction).toBeCalled();
+
+        component.unmount();
     });
 
     it("Test accordion output (Snapshot)", () => {
@@ -167,5 +169,7 @@ describe("Accordion component tests", (): void => {
             />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

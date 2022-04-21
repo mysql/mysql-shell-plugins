@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Group component tests Test group output 1`] = `
+exports[`Group component tests Standard Rendering 1`] = `
 <Group
   caption="Group with Title"
   id="group2"

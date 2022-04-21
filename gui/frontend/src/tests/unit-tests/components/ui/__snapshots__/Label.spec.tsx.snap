@@ -2,7 +2,7 @@
 
 exports[`Label component test Label with ansi formatting 1`] = `
 <Label
-  caption="Lorem ipsum dolor sit amet"
+  caption="Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua."
   language="ansi"
 >
   <Container
@@ -27,7 +27,7 @@ exports[`Label component test Label with ansi formatting 1`] = `
       >
         <code>
           <span>
-            Lorem ipsum dolor sit amet
+            Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.
           </span>
         </code>
       </Ansi>

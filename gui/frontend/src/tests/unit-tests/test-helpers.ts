@@ -410,3 +410,43 @@ export const sendBlurEvent = (): void => {
         document.activeElement.dispatchEvent(e);
     }
 };
+
+/**
+ * Simulates a right click (including context menu event) on the given element.
+ *
+ * @param element
+ */
+export const sendRightClick = (element: Element): void => {
+    const ev1 = new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        button: 2,
+        buttons: 2,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(ev1);
+
+    const ev2 = new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        button: 2,
+        buttons: 0,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(ev2);
+
+    const ev3 = new MouseEvent("contextmenu", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        button: 2,
+        buttons: 0,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(ev3);
+};

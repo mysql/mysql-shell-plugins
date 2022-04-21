@@ -39,6 +39,8 @@ describe("Calendar render testing", (): void => {
         expect(component).toBeTruthy();
         const props = component.props();
         expect(props.initialDate).toEqual(currentDate);
+
+        component.unmount();
     });
 
     it("Test Calendar (Snapshot)", () => {
@@ -53,6 +55,8 @@ describe("Calendar render testing", (): void => {
             />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

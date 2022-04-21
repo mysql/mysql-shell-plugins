@@ -48,6 +48,8 @@ describe("Radiobutton component tests", (): void => {
             click?.(eventMock, { id: "1" });
         });
         expect(spyOnClick).toBeCalled();
+
+        component.unmount();
     });
 
     it("Test Radiobutton output (snapshot)", () => {
@@ -61,6 +63,9 @@ describe("Radiobutton component tests", (): void => {
                 Disabled radio button
             </Radiobutton>,
         );
+
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

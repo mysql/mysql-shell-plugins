@@ -30,7 +30,7 @@ import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Grid component test", (): void => {
 
-    it("Test Grid output (snapshot)", () => {
+    it("Standard Rendering", () => {
         const component = mount<Grid>(
             <Grid id="loginDialogControls" columns={[220, 40]} columnGap={8}>
                 <GridCell>
@@ -59,5 +59,7 @@ describe("Grid component test", (): void => {
             </Grid>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

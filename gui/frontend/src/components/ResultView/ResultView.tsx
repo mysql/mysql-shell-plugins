@@ -30,14 +30,13 @@ import React from "react";
 import { render } from "preact";
 
 import {
-    Component, Container, Orientation, IComponentProperties, SelectionType, Icon,
-    IInputChangeProperties, UpDown, Checkbox, CheckState, Input, Menu, MenuItem,
-    ComponentPlacement, IMenuItemProperties, TextAlignment,
+    Component, Container, Orientation, IComponentProperties, SelectionType, Icon, Checkbox, CheckState, Menu, MenuItem,
+    ComponentPlacement, IMenuItemProperties,
 } from "../ui";
 import { ITreeGridOptions, SetDataAction, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { IResultSet, IResultSetRows } from "../../script-execution";
 import { convertCamelToTitleCase } from "../../utilities/helpers";
-import { DBDataType, IColumnInfo, IDictionary, MessageType } from "../../app-logic/Types";
+import { DBDataType, IColumnInfo, MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
 
 export interface IResultViewProperties extends IComponentProperties {
@@ -58,15 +57,13 @@ export class ResultView extends Component<IResultViewProperties> {
     private cellContextMenuRef = React.createRef<Menu>();
     private currentCell?: Tabulator.CellComponent;
 
-    private currentPage = 0;
-
     public constructor(props: IResultViewProperties) {
         super(props);
 
         this.state = {
         };
 
-        this.addHandledProperties("tableData");
+        this.addHandledProperties("resultSet", "onEdit");
     }
 
     public componentDidUpdate(): void {
@@ -110,7 +107,7 @@ export class ResultView extends Component<IResultViewProperties> {
                 }
 
                 <Menu
-                    id="schemaContextMenu"
+                    id="cellContextMenu"
                     ref={this.cellContextMenuRef}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleCellContextMenuItemClick}
@@ -219,6 +216,7 @@ export class ResultView extends Component<IResultViewProperties> {
     }
 
     public updateColumns(columns: IColumnInfo[]): Promise<void> {
+        // istanbul ignore next
         if (this.gridRef.current) {
             return this.gridRef.current.setColumns(this.generateColumnDefinitions(columns));
         }
@@ -239,8 +237,7 @@ export class ResultView extends Component<IResultViewProperties> {
      * @returns A promise to wait for, before another call is made to add further data.
      */
     public async addData(newData: IResultSetRows, replace: boolean): Promise<void> {
-        this.currentPage = newData.currentPage;
-
+        // istanbul ignore next
         if (this.gridRef.current) {
             if (replace) {
                 await this.gridRef.current.setData(newData.rows, SetDataAction.Replace);
@@ -256,6 +253,15 @@ export class ResultView extends Component<IResultViewProperties> {
         }
     }
 
+    /**
+     * This method exists solely to test certain internal paths in this component. Never use that outside of testing.
+     *
+     * @param cell The cell to set as current.
+     */
+    public setFakeCell(cell: Tabulator.CellComponent): void {
+        this.currentCell = cell;
+    }
+
     private generateColumnDefinitions = (columns: IColumnInfo[]): Tabulator.ColumnDefinition[] => {
         // Map column info from the backend to column definitions for Tabulator.
         return columns.map((info): Tabulator.ColumnDefinition => {
@@ -263,8 +269,9 @@ export class ResultView extends Component<IResultViewProperties> {
             let formatterParams = {};
             let minWidth = 50;
 
-            let editor: Tabulator.Editor | undefined;
-            let editorParams: Tabulator.EditorParams | undefined;
+            // TODO: Enable editing related functionality again.
+            // let editor: Tabulator.Editor | undefined;
+            // let editorParams: Tabulator.EditorParams | undefined;
 
             switch (info.dataType.type) {
                 case DBDataType.TinyInt:
@@ -273,8 +280,8 @@ export class ResultView extends Component<IResultViewProperties> {
                 case DBDataType.Int:
                 case DBDataType.Bigint: {
                     formatter = "plaintext";
-                    editor = this.editorHost;
-                    editorParams = (): { info: IColumnInfo } => { return { info }; };
+                    //editor = this.editorHost;
+                    //editorParams = (): { info: IColumnInfo } => { return { info }; };
 
                     break;
                 }
@@ -295,8 +302,8 @@ export class ResultView extends Component<IResultViewProperties> {
                 case DBDataType.Enum:
                 case DBDataType.Set: {
                     formatter = this.stringFormatter;
-                    editor = this.editorHost;
-                    editorParams = (): { info: IColumnInfo } => { return { info }; };
+                    //editor = this.editorHost;
+                    //editorParams = (): { info: IColumnInfo } => { return { info }; };
                     minWidth = 150;
 
                     break;
@@ -325,7 +332,7 @@ export class ResultView extends Component<IResultViewProperties> {
                 case DBDataType.DateTime_f: {
                     //formatter = "datetime";
                     formatter = "plaintext";
-                    editor = true;
+                    //editor = true;
 
                     break;
                 }
@@ -334,9 +341,10 @@ export class ResultView extends Component<IResultViewProperties> {
                 case DBDataType.Time_f: {
                     formatter = "datetime";
                     formatterParams = {
+                        // TODO: make this locale dependent.
                         outputFormat: "HH:mm:ss",
                     };
-                    editor = true;
+                    //editor = true;
 
                     break;
                 }
@@ -346,7 +354,7 @@ export class ResultView extends Component<IResultViewProperties> {
                     formatterParams = {
                         outputFormat: "YYYY",
                     };
-                    editor = true;
+                    //editor = true;
 
                     break;
                 }
@@ -354,21 +362,21 @@ export class ResultView extends Component<IResultViewProperties> {
 
                 case DBDataType.Boolean: {
                     formatter = this.booleanFormatter;
-                    editor = this.editorHost;
-                    editorParams = (): { info: IColumnInfo } => { return { info }; };
+                    //editor = this.editorHost;
+                    //editorParams = (): { info: IColumnInfo } => { return { info }; };
 
                     break;
                 }
 
                 default: {
                     formatter = "textarea";
-                    editor = this.editorHost;
-                    editorParams = (): { info: IColumnInfo; verticalNavigation: string } => {
+                    //editor = this.editorHost;
+                    /*editorParams = (): { info: IColumnInfo; verticalNavigation: string } => {
                         return {
                             info,
                             verticalNavigation: "editor",
                         };
-                    };
+                    };*/
 
                     break;
                 }
@@ -381,38 +389,40 @@ export class ResultView extends Component<IResultViewProperties> {
                 field: info.name,
                 formatter,
                 formatterParams,
-                editor,
-                editorParams,
+                //editor,
+                //editorParams,
                 width,
                 minWidth,
                 resizable: true,
-                editable: this.checkEditable,
+                //editable: this.checkEditable,
 
-                cellEditing: this.cellEditing,
-                cellEdited: this.cellEdited,
+                //cellEditing: this.cellEditing,
+                //cellEdited: this.cellEdited,
             };
         });
     };
 
     /**
      * Triggered when the user starts editing a cell value.
-     *
      */
+    /*
     private cellEditing = (): void => {
         if (this.currentCell) {
             this.currentCell.getElement().classList.remove("manualFocus");
             this.currentCell = undefined;
         }
     };
+    */
 
     /**
      * Triggered when the user successfully edited a cell value.
-     *
      */
+    /*
     private cellEdited = (): void => {
         const { resultSet, onEdit } = this.mergedProps;
         onEdit?.(resultSet);
     };
+    */
 
     private handleColumnResized = (column: Tabulator.ColumnComponent): void => {
         const field = column.getDefinition().field;
@@ -424,11 +434,13 @@ export class ResultView extends Component<IResultViewProperties> {
     };
 
     private handleCellMenuItemDisabled = (props: IMenuItemProperties): boolean => {
+        // istanbul ignore next
         if (!this.currentCell || !this.gridRef.current) {
             return true;
         }
 
-        const selectCount = this.gridRef.current?.getSelectedRows().length ?? 0;
+        // istanbul ignore next
+        const selectCount = this.gridRef.current.getSelectedRows().length ?? 0;
 
         switch (props.id!) {
             case "openValueMenuItem": {
@@ -505,6 +517,8 @@ export class ResultView extends Component<IResultViewProperties> {
         }
     };
 
+    // We cannot test this method as it depends on Tabulator content (which is not rendered in tests).
+    // istanbul ignore next
     private handleCellContext = (e: Event, cell: Tabulator.CellComponent): void => {
         if (this.currentCell) {
             this.currentCell.getElement().classList.remove("manualFocus");
@@ -623,24 +637,21 @@ export class ResultView extends Component<IResultViewProperties> {
                     break;
                 }
 
-                default: {
-
-                    break;
-                }
+                default:
             }
         }
 
         return true;
     };
 
-    private copyRows = (withNames: boolean, unquoted: boolean, separatorChar = " "): void => {
+    private copyRows = (withNames: boolean, unquoted: boolean, separator = ", "): void => {
+        // istanbul ignore next
         let rows = this.gridRef.current?.getSelectedRows() ?? [];
         if (rows.length === 0 && this.currentCell) {
             rows = [this.currentCell.getRow()];
         }
 
         const quoteChar = unquoted ? "" : "'";
-        const separator = "," + separatorChar;
         let content = "";
 
         if (withNames && rows.length > 0) {
@@ -649,7 +660,7 @@ export class ResultView extends Component<IResultViewProperties> {
                 content += cell.getColumn().getDefinition().title + separator;
             });
             if (content.endsWith(separator)) {
-                content = content.substring(0, content.length - 2);
+                content = content.substring(0, content.length - separator.length);
             }
             content += "\n";
 
@@ -661,7 +672,7 @@ export class ResultView extends Component<IResultViewProperties> {
             });
 
             if (content.endsWith(separator)) {
-                content = content.substring(0, content.length - 2);
+                content = content.substring(0, content.length - separator.length);
             }
 
             content += "\n";
@@ -671,8 +682,9 @@ export class ResultView extends Component<IResultViewProperties> {
 
     };
 
+    /*
     private checkEditable = (_cell: Tabulator.CellComponent): boolean => {
-        /*const { status } = this.state;
+        const { status } = this.state;
 
         if (isNil(status) || !cell.getRow().isSelected()) {
             // No editing while loading the result or the row is not selected (allowing so the row to select,
@@ -687,10 +699,8 @@ export class ResultView extends Component<IResultViewProperties> {
             return params.info.dataType.type !== DBDataType.Blob;
         }
 
-        return true;*/
-
-        return false;
-    };
+        return true;
+    };*/
 
     /**
      * Main entry point for editing operations in the result view. It takes a column's data type and renders one of
@@ -705,6 +715,7 @@ export class ResultView extends Component<IResultViewProperties> {
      *
      * @returns The new editor HTML element.
      */
+    /*
     private editorHost = (cell: Tabulator.CellComponent, onRendered: Tabulator.EmptyCallback,
         success: Tabulator.ValueBooleanCallback, cancel: Tabulator.ValueVoidCallback,
         editorParams: Tabulator.EditorParams): HTMLElement | false => {
@@ -732,7 +743,7 @@ export class ResultView extends Component<IResultViewProperties> {
         });
 
         return host;
-    };
+    };*/
 
     /**
      * Renders one of our UI elements as a cell editor, if there's no built-in editor already or we need different
@@ -746,8 +757,7 @@ export class ResultView extends Component<IResultViewProperties> {
      * @param cancel A callback to be called when the user cancelled the editor operation.
      * @param editorParams Additional parameters to configure the editor.
      */
-    // Note: I have to disable the follow linter rule, because changing editorParams to anything else but any
-    //       produces a very odd TS error -> investigate later.
+    /*
     private renderCustomEditor = (cell: Tabulator.CellComponent, host: HTMLDivElement, value: unknown,
         success: Tabulator.ValueBooleanCallback, cancel: Tabulator.ValueVoidCallback, editorParams: unknown): void => {
 
@@ -871,16 +881,16 @@ export class ResultView extends Component<IResultViewProperties> {
                 break;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
 
         if (element) {
             render(element, host);
         }
-    };
+    };*/
 
+    // Also here: cannot test if it is not rendered.
+    // istanbul ignore next
     private stringFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
         let element;
         if (cell.getValue() === null) {
@@ -896,6 +906,7 @@ export class ResultView extends Component<IResultViewProperties> {
         }
     };
 
+    // istanbul ignore next
     private binaryFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
         let element;
         if (cell.getValue() === null) {
@@ -921,6 +932,7 @@ export class ResultView extends Component<IResultViewProperties> {
         }
     };
 
+    // istanbul ignore next
     private blobFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
         const source = cell.getValue() === null ? nullIcon : blobIcon;
         const icon = <Icon src={source} width={30} height={11} />;
@@ -933,6 +945,7 @@ export class ResultView extends Component<IResultViewProperties> {
         return host;
     };
 
+    // istanbul ignore next
     private booleanFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
         const host = document.createElement("div");
         let element;

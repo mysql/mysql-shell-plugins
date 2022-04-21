@@ -29,18 +29,13 @@ import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("CodeEditor component tests", (): void => {
 
-    it("CodeEditor default instantiation", () => {
-        const component = mount(
-            <CodeEditor />,
-        );
-        expect(component).toBeTruthy();
-    });
-
-    it("Test CodeEditor output (Snapshot)", () => {
+    it("Standard Rendering", () => {
         const component = mount<CodeEditor>(
             <CodeEditor />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

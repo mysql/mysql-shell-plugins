@@ -38,6 +38,8 @@ describe("Message render testing", (): void => {
         expect(component).toBeTruthy();
         const props = component.props();
         expect(props.type).toEqual(MessageType.Error);
+
+        component.unmount();
     });
 
 
@@ -47,7 +49,10 @@ describe("Message render testing", (): void => {
                 Warning: Don't touch, it's hot
             </Message>,
         );
+
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

@@ -82,5 +82,7 @@ describe("Checkbox component tests", (): void => {
             </div>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

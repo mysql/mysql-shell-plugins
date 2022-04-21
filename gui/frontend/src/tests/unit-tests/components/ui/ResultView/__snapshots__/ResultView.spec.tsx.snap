@@ -1,6 +1,913 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Result View Tests Default Rendering 1`] = `
+exports[`Result View Tests Render with Columns 1`] = `
+<ResultView
+  resultSet={
+    Object {
+      "data": Object {
+        "columns": Array [
+          Object {
+            "dataType": Object {
+              "type": 5,
+            },
+            "name": "col1",
+          },
+          Object {
+            "dataType": Object {
+              "type": 0,
+            },
+            "name": "col2",
+          },
+          Object {
+            "dataType": Object {
+              "type": 1,
+            },
+            "name": "col3",
+          },
+          Object {
+            "dataType": Object {
+              "type": 2,
+            },
+            "name": "col4",
+          },
+          Object {
+            "dataType": Object {
+              "type": 3,
+            },
+            "name": "col5",
+          },
+          Object {
+            "dataType": Object {
+              "type": 4,
+            },
+            "name": "col6",
+          },
+          Object {
+            "dataType": Object {
+              "type": 5,
+            },
+            "name": "col7",
+          },
+          Object {
+            "dataType": Object {
+              "type": 6,
+            },
+            "name": "col8",
+          },
+          Object {
+            "dataType": Object {
+              "type": 7,
+            },
+            "name": "col9",
+          },
+          Object {
+            "dataType": Object {
+              "type": 8,
+            },
+            "name": "col10",
+          },
+          Object {
+            "dataType": Object {
+              "type": 9,
+            },
+            "name": "col11",
+          },
+          Object {
+            "dataType": Object {
+              "type": 10,
+            },
+            "name": "col12",
+          },
+          Object {
+            "dataType": Object {
+              "type": 11,
+            },
+            "name": "col13",
+          },
+          Object {
+            "dataType": Object {
+              "type": 12,
+            },
+            "name": "col14",
+          },
+          Object {
+            "dataType": Object {
+              "type": 13,
+            },
+            "name": "col15",
+          },
+          Object {
+            "dataType": Object {
+              "type": 14,
+            },
+            "name": "col16",
+          },
+          Object {
+            "dataType": Object {
+              "type": 15,
+            },
+            "name": "col17",
+          },
+          Object {
+            "dataType": Object {
+              "type": 16,
+            },
+            "name": "col18",
+          },
+          Object {
+            "dataType": Object {
+              "type": 17,
+            },
+            "name": "col19",
+          },
+          Object {
+            "dataType": Object {
+              "type": 18,
+            },
+            "name": "col20",
+          },
+          Object {
+            "dataType": Object {
+              "type": 19,
+            },
+            "name": "col21",
+          },
+          Object {
+            "dataType": Object {
+              "type": 20,
+            },
+            "name": "col22",
+          },
+          Object {
+            "dataType": Object {
+              "type": 21,
+            },
+            "name": "col23",
+          },
+          Object {
+            "dataType": Object {
+              "type": 22,
+            },
+            "name": "col24",
+          },
+          Object {
+            "dataType": Object {
+              "type": 23,
+            },
+            "name": "col25",
+          },
+          Object {
+            "dataType": Object {
+              "type": 24,
+            },
+            "name": "col26",
+          },
+          Object {
+            "dataType": Object {
+              "type": 25,
+            },
+            "name": "col27",
+          },
+          Object {
+            "dataType": Object {
+              "type": 26,
+            },
+            "name": "col28",
+          },
+          Object {
+            "dataType": Object {
+              "type": 27,
+            },
+            "name": "col29",
+          },
+          Object {
+            "dataType": Object {
+              "type": 28,
+            },
+            "name": "col30",
+          },
+          Object {
+            "dataType": Object {
+              "type": 29,
+            },
+            "name": "col31",
+          },
+          Object {
+            "dataType": Object {
+              "type": 30,
+            },
+            "name": "col32",
+          },
+          Object {
+            "dataType": Object {
+              "type": 31,
+            },
+            "name": "col33",
+          },
+          Object {
+            "dataType": Object {
+              "type": 32,
+            },
+            "name": "col34",
+          },
+          Object {
+            "dataType": Object {
+              "type": 33,
+            },
+            "name": "col35",
+          },
+          Object {
+            "dataType": Object {
+              "type": 34,
+            },
+            "name": "col36",
+          },
+          Object {
+            "dataType": Object {
+              "type": 35,
+            },
+            "name": "col37",
+          },
+          Object {
+            "dataType": Object {
+              "type": 36,
+            },
+            "name": "col38",
+          },
+          Object {
+            "dataType": Object {
+              "type": 37,
+            },
+            "name": "col39",
+          },
+          Object {
+            "dataType": Object {
+              "type": 38,
+            },
+            "name": "col40",
+          },
+          Object {
+            "dataType": Object {
+              "type": 39,
+            },
+            "name": "col41",
+          },
+          Object {
+            "dataType": Object {
+              "type": 40,
+            },
+            "name": "col42",
+          },
+          Object {
+            "dataType": Object {
+              "type": 41,
+            },
+            "name": "col43",
+          },
+          Object {
+            "dataType": Object {
+              "type": 42,
+            },
+            "name": "col44",
+          },
+          Object {
+            "dataType": Object {
+              "type": 43,
+            },
+            "name": "col45",
+          },
+          Object {
+            "dataType": Object {
+              "type": 44,
+            },
+            "name": "col46",
+          },
+          Object {
+            "dataType": Object {
+              "type": 45,
+            },
+            "name": "col47",
+          },
+          Object {
+            "dataType": Object {
+              "type": 46,
+            },
+            "name": "col48",
+          },
+          Object {
+            "dataType": Object {
+              "type": 47,
+            },
+            "name": "col49",
+          },
+        ],
+        "currentPage": 0,
+        "executionInfo": Object {
+          "text": "Endless Possibilities",
+          "type": 2,
+        },
+        "requestId": "123",
+        "rows": Array [],
+      },
+      "head": Object {
+        "requestId": "123",
+        "sql": "select 1",
+      },
+    }
+  }
+>
+  <Container
+    className="msg resultView"
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar resultView"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <TreeGrid
+        columns={
+          Array [
+            Object {
+              "field": "col1",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col1",
+              "width": undefined,
+            },
+            Object {
+              "field": "col2",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col2",
+              "width": undefined,
+            },
+            Object {
+              "field": "col3",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col3",
+              "width": undefined,
+            },
+            Object {
+              "field": "col4",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col4",
+              "width": undefined,
+            },
+            Object {
+              "field": "col5",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col5",
+              "width": undefined,
+            },
+            Object {
+              "field": "col6",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col6",
+              "width": undefined,
+            },
+            Object {
+              "field": "col7",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col7",
+              "width": undefined,
+            },
+            Object {
+              "field": "col8",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col8",
+              "width": undefined,
+            },
+            Object {
+              "field": "col9",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col9",
+              "width": undefined,
+            },
+            Object {
+              "field": "col10",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col10",
+              "width": undefined,
+            },
+            Object {
+              "field": "col11",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col11",
+              "width": undefined,
+            },
+            Object {
+              "field": "col12",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col12",
+              "width": undefined,
+            },
+            Object {
+              "field": "col13",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col13",
+              "width": undefined,
+            },
+            Object {
+              "field": "col14",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col14",
+              "width": undefined,
+            },
+            Object {
+              "field": "col15",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col15",
+              "width": undefined,
+            },
+            Object {
+              "field": "col16",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col16",
+              "width": undefined,
+            },
+            Object {
+              "field": "col17",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col17",
+              "width": undefined,
+            },
+            Object {
+              "field": "col18",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col18",
+              "width": undefined,
+            },
+            Object {
+              "field": "col19",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col19",
+              "width": undefined,
+            },
+            Object {
+              "field": "col20",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col20",
+              "width": undefined,
+            },
+            Object {
+              "field": "col21",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col21",
+              "width": undefined,
+            },
+            Object {
+              "field": "col22",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col22",
+              "width": undefined,
+            },
+            Object {
+              "field": "col23",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col23",
+              "width": undefined,
+            },
+            Object {
+              "field": "col24",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col24",
+              "width": undefined,
+            },
+            Object {
+              "field": "col25",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col25",
+              "width": undefined,
+            },
+            Object {
+              "field": "col26",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col26",
+              "width": undefined,
+            },
+            Object {
+              "field": "col27",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col27",
+              "width": undefined,
+            },
+            Object {
+              "field": "col28",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col28",
+              "width": undefined,
+            },
+            Object {
+              "field": "col29",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col29",
+              "width": undefined,
+            },
+            Object {
+              "field": "col30",
+              "formatter": "plaintext",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col30",
+              "width": undefined,
+            },
+            Object {
+              "field": "col31",
+              "formatter": "datetime",
+              "formatterParams": Object {
+                "outputFormat": "HH:mm:ss",
+              },
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col31",
+              "width": undefined,
+            },
+            Object {
+              "field": "col32",
+              "formatter": "datetime",
+              "formatterParams": Object {
+                "outputFormat": "HH:mm:ss",
+              },
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col32",
+              "width": undefined,
+            },
+            Object {
+              "field": "col33",
+              "formatter": "datetime",
+              "formatterParams": Object {
+                "outputFormat": "YYYY",
+              },
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col33",
+              "width": undefined,
+            },
+            Object {
+              "field": "col34",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col34",
+              "width": undefined,
+            },
+            Object {
+              "field": "col35",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col35",
+              "width": undefined,
+            },
+            Object {
+              "field": "col36",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col36",
+              "width": undefined,
+            },
+            Object {
+              "field": "col37",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col37",
+              "width": undefined,
+            },
+            Object {
+              "field": "col38",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col38",
+              "width": undefined,
+            },
+            Object {
+              "field": "col39",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col39",
+              "width": undefined,
+            },
+            Object {
+              "field": "col40",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col40",
+              "width": undefined,
+            },
+            Object {
+              "field": "col41",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col41",
+              "width": undefined,
+            },
+            Object {
+              "field": "col42",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col42",
+              "width": undefined,
+            },
+            Object {
+              "field": "col43",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col43",
+              "width": undefined,
+            },
+            Object {
+              "field": "col44",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col44",
+              "width": undefined,
+            },
+            Object {
+              "field": "col45",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col45",
+              "width": undefined,
+            },
+            Object {
+              "field": "col46",
+              "formatter": "textarea",
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col46",
+              "width": undefined,
+            },
+            Object {
+              "field": "col47",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 50,
+              "resizable": true,
+              "title": "col47",
+              "width": undefined,
+            },
+            Object {
+              "field": "col48",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col48",
+              "width": undefined,
+            },
+            Object {
+              "field": "col49",
+              "formatter": [Function],
+              "formatterParams": Object {},
+              "minWidth": 150,
+              "resizable": true,
+              "title": "col49",
+              "width": undefined,
+            },
+          ]
+        }
+        onCellContext={[Function]}
+        onColumnResized={[Function]}
+        options={
+          Object {
+            "alternatingRowBackgrounds": false,
+            "horizontalGridLines": true,
+            "layout": "fitColumns",
+            "resizableRows": true,
+            "selectionType": 3,
+            "verticalGridLines": true,
+          }
+        }
+        style={
+          Object {
+            "fontSize": "10pt",
+          }
+        }
+        tableData={Array []}
+      >
+        <div
+          className="msg treeGrid horizontalGrid verticalGrid"
+          style={
+            Object {
+              "fontSize": "10pt",
+            }
+          }
+        />
+      </TreeGrid>
+      <Menu
+        id="cellContextMenu"
+        onItemClick={[Function]}
+        orientation="column"
+        placement="bottom-start"
+      >
+        <Popup
+          className="msg menu"
+          id="cellContextMenu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="bottom-start"
+          showArrow={false}
+        >
+          <Portal
+            id="cellContextMenu"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </div>
+  </Container>
+</ResultView>
+`;
+
+exports[`Result View Tests Render with Error/Response 1`] = `
+<ResultView
+  resultSet={
+    Object {
+      "data": Object {
+        "columns": Array [],
+        "currentPage": 0,
+        "executionInfo": Object {
+          "text": "Error",
+          "type": 0,
+        },
+        "requestId": "123",
+        "rows": Array [],
+      },
+      "head": Object {
+        "requestId": "123",
+        "sql": "select 1",
+      },
+    }
+  }
+>
+  <Container
+    className="msg resultView"
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar resultView"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Menu
+        id="cellContextMenu"
+        onItemClick={[Function]}
+        orientation="column"
+        placement="bottom-start"
+      >
+        <Popup
+          className="msg menu"
+          id="cellContextMenu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="bottom-start"
+          showArrow={false}
+        >
+          <Portal
+            id="cellContextMenu"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </div>
+  </Container>
+</ResultView>
+`;
+
+exports[`Result View Tests Standard Rendering 1`] = `
 <ResultView
   resultSet={
     Object {
@@ -20,37 +927,9 @@ exports[`Result View Tests Default Rendering 1`] = `
   <Container
     className="msg resultView"
     orientation="column"
-    resultSet={
-      Object {
-        "data": Object {
-          "columns": Array [],
-          "currentPage": 0,
-          "requestId": "123",
-          "rows": Array [],
-        },
-        "head": Object {
-          "requestId": "123",
-          "sql": "select 1",
-        },
-      }
-    }
   >
     <div
       className="msg container fixedScrollbar resultView"
-      resultSet={
-        Object {
-          "data": Object {
-            "columns": Array [],
-            "currentPage": 0,
-            "requestId": "123",
-            "rows": Array [],
-          },
-          "head": Object {
-            "requestId": "123",
-            "sql": "select 1",
-          },
-        }
-      }
       style={
         Object {
           "alignItems": undefined,
@@ -91,14 +970,14 @@ exports[`Result View Tests Default Rendering 1`] = `
         />
       </TreeGrid>
       <Menu
-        id="schemaContextMenu"
+        id="cellContextMenu"
         onItemClick={[Function]}
         orientation="column"
         placement="bottom-start"
       >
         <Popup
           className="msg menu"
-          id="schemaContextMenu"
+          id="cellContextMenu"
           onClose={[Function]}
           onKeyDown={[Function]}
           onOpen={[Function]}
@@ -108,7 +987,7 @@ exports[`Result View Tests Default Rendering 1`] = `
           showArrow={false}
         >
           <Portal
-            id="schemaContextMenu"
+            id="cellContextMenu"
             onClose={[Function]}
             onKeyDown={[Function]}
             onOpen={[Function]}

@@ -155,6 +155,8 @@ describe("Menu component tests", (): void => {
             </Menu>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
     it("Test MenuBar output (snapshot)", () => {
@@ -213,5 +215,7 @@ describe("Menu component tests", (): void => {
             </MenuBar>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

@@ -38,11 +38,13 @@ describe("Group component tests", (): void => {
         expect(props.caption).toBe("Name of the group");
     });
 
-    it("Test group output", () => {
+    it("Standard Rendering", () => {
         const component = mount<Group>(
             <Group id="group2" caption="Group with Title"></Group>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

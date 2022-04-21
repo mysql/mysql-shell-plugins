@@ -25,13 +25,13 @@ import { mount } from "enzyme";
 import React from "react";
 
 import { IPopupProperties, Popup } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { nextRunLoop, snapshotFromWrapper } from "../../test-helpers";
 
 const popupRef = React.createRef<Popup>();
 
 describe("Popup component tests", (): void => {
 
-    it("Test Popup callbacks", (done) => {
+    it("Test Popup callbacks", async () => {
         const popup = mount(
             <Popup
                 showArrow={false}
@@ -52,15 +52,12 @@ describe("Popup component tests", (): void => {
 
         // The open and close calls call their associated callbacks asynchronously (in multiple steps), so we have
         // delay the spy check a bit.
-        setTimeout(() => {
-            expect(spyOnOpen).toBeCalled();
-            setTimeout(() => {
-                popupRef.current?.close();
-                expect(spyOnCancel).toBeCalled();
+        await nextRunLoop();
+        expect(spyOnOpen).toBeCalled();
+        popupRef.current?.close();
+        expect(spyOnCancel).toBeCalled();
 
-                done();
-            }, 500);
-        }, 500);
+        popup.unmount();
     });
 
     it("Test Popup output (Snapshot)", () => {
@@ -75,5 +72,7 @@ describe("Popup component tests", (): void => {
             </Popup>,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 });

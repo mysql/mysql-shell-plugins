@@ -43,11 +43,13 @@ describe("Image component tests", (): void => {
     });
 
 
-    it("Test Image output", () => {
+    it("Standard Rendering", () => {
         const component = mount<Image>(
             <Image src={image} style={{ height: "64px" }} />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });

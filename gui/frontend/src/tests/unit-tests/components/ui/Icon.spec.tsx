@@ -42,11 +42,13 @@ describe("Icon component tests", (): void => {
         expect(props.id).toBe("icon1");
     });
 
-    it("Test icon output", () => {
+    it("Standard Rendering", () => {
         const component = mount<Icon>(
             <Icon src={closeButton} />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
 
 });
