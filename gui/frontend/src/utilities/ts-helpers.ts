@@ -21,43 +21,35 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-export class Cookies {
-    public set(name: string, value?: string): void {
-        let cookie = "";
-        cookie = `${name}=${value ?? ""}`;
+import ts from "typescript";
+import { IRange } from "monaco-editor";
+import { ITextRange } from "../supplement";
 
-        document.cookie = cookie;
-    }
+/**
+ * Type guard for the TextSpan interface.
+ *
+ * @param value The value to check.
+ *
+ * @returns True, if the value implements a TextSpan.
+ */
+export const isTextSpan = (value: unknown): value is ts.TextSpan => {
+    return (value as ts.TextSpan).start !== undefined && (value as ts.TextSpan).length !== undefined;
+};
 
-    public get(name: string): string | null {
-        // istanbul ignore next
-        if (!document.cookie) {
-            return null;
-        }
+export const textRangeToEditorRange = (value: ITextRange): IRange => {
+    return {
+        startLineNumber: value.startLine,
+        startColumn: value.startColumn,
+        endLineNumber: value.endLine,
+        endColumn: value.endColumn,
+    };
+};
 
-        const cookie = document.cookie.split(";").find((item) => {
-            return item.split("=")[0].trim() === name;
-        });
-
-        if (cookie) {
-            const parts = cookie.split("=");
-            if (parts.length === 1) {
-                return parts[0];
-            }
-
-            return cookie.split("=")[1].trim();
-        }
-
-        return null;
-    }
-
-    public remove(name: string): void {
-        document.cookie = name + "=; Max-Age=0;";
-    }
-
-    public clear(): void {
-        for (const cookie of document.cookie.split(";")) {
-            this.remove(cookie.split("=")[0].trim());
-        }
-    }
-}
+export const editorRangeToTextRange = (value: IRange): ITextRange => {
+    return {
+        startLine: value.startLineNumber,
+        startColumn: value.startColumn,
+        endLine: value.endLineNumber,
+        endColumn: value.endColumn,
+    };
+};

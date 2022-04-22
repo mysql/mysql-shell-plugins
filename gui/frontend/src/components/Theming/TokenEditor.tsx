@@ -32,7 +32,6 @@ import {
     Input, TagInput, Checkbox, ICheckboxProperties, IInputChangeProperties, ColorField, IColorFieldProperties,
 } from "../ui";
 import { ITokenEntry } from "./ThemeManager";
-import { colorToHex } from "../../utilities/graphics";
 
 export interface ITokenEditorProperties extends IComponentProperties {
     token: ITokenEntry;
@@ -241,7 +240,7 @@ export class TokenEditor extends Component<ITokenEditorProperties> {
         const { onChange, token } = this.props;
 
         const foreground = props.id === "foreground";
-        const colorString = colorToHex(color);
+        const colorString = color?.hexa();
         if (foreground) {
             token.settings.foreground = colorString;
         } else {

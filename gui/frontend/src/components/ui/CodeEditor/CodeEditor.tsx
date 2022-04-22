@@ -25,6 +25,7 @@ import "./CodeEditor.css";
 
 import { SymbolTable } from "antlr4-c3";
 import React from "react";
+import Color from "color";
 
 import {
     ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextsState, KeyCode, KeyMod,
@@ -37,8 +38,7 @@ import { PresentationInterface } from "../../../script-execution/PresentationInt
 import { EditorLanguage, ITextRange } from "../../../supplement";
 import { requisitions } from "../../../supplement/Requisitions";
 import { settings } from "../../../supplement/Settings/Settings";
-import { colorToHex } from "../../../utilities/graphics";
-import { editorRangeToTextRange } from "../../../utilities/tshelpers";
+import { editorRangeToTextRange } from "../../../utilities/ts-helpers";
 
 import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager";
 
@@ -231,7 +231,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         // Convert all color values to CSS hex form.
         const entries: { [key: string]: string } = {};
         for (const [key, value] of Object.entries(values.colors || {})) {
-            entries[key] = colorToHex(value) || "";
+            entries[key] = (new Color(value)).hexa();
         }
 
         const tokenRules: Monaco.ITokenThemeRule[] = [];
@@ -241,8 +241,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             scopes.forEach((scope: string): void => {
                 tokenRules.push({
                     token: scope,
-                    foreground: colorToHex(value.settings.foreground),
-                    background: colorToHex(value.settings.background),
+                    foreground: (new Color(value.settings.foreground)).hexa(),
+                    background: (new Color(value.settings.background)).hexa(),
                     fontStyle: value.settings.fontStyle,
                 });
             });

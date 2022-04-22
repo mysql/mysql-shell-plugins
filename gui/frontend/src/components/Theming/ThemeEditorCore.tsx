@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,7 +38,6 @@ import Color from "color";
 import { selectFile, saveTextAsFile } from "../../utilities/helpers";
 import { settings } from "../../supplement/Settings/Settings";
 import { ThemeEditorLists } from "./ThemeEditorLists";
-import { colorToHex } from "../../utilities/graphics";
 import { requisitions } from "../../supplement/Requisitions";
 
 export interface IThemeEditorCoreProperties extends IComponentProperties {
@@ -258,7 +257,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
 
     private handleColorPadChange = (color: Color | undefined, props: IColorFieldProperties): void => {
         const index = props.id ? parseInt(props.id, 10) : 0;
-        this.colorPadColors[index] = colorToHex(color) || "";
+        this.colorPadColors[index] = color?.hexa() ?? "";
 
         settings.set("theming.colorPadColors", this.colorPadColors);
         settings.saveSettings();

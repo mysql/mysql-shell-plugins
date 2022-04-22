@@ -24,7 +24,7 @@
 import { IPosition } from "monaco-editor";
 
 import { IExecutionContextsState, IRange, Monaco, Position } from "../components/ui/CodeEditor";
-import { isTextSpan } from "../utilities/tshelpers";
+import { isTextSpan } from "../utilities/ts-helpers";
 import { CodeEditorLanguageServices } from "./ScriptingLanguageServices";
 import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common";
 import { LoadingState, PresentationInterface } from "./PresentationInterface";

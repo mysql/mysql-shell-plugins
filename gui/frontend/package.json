@@ -7,7 +7,7 @@
         "antlr4-c3": "2.2.1",
         "antlr4ts": "0.5.0-alpha.4",
         "classnames": "2.3.1",
-        "color": "3.2.1",
+        "color": "4.2.3",
         "d3": "7.3.0",
         "idb": "6.1.5",
         "keyboard-key": "1.1.0",
@@ -118,10 +118,10 @@
         ],
         "coverageThreshold": {
             "global": {
-                "statements": 31,
-                "branch": 22,
-                "functions": 35,
-                "lines": 31
+                "statements": 33,
+                "branch": 24,
+                "functions": 36,
+                "lines": 33
             }
         },
         "transformIgnorePatterns": [

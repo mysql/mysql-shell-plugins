@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,8 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import Color from "color";
-
 /**
  * Checks if a point is within a given rectangle.
  *
@@ -31,14 +29,13 @@ import Color from "color";
  *
  * @returns True if the point is within the the rectangle bounds, false otherwise.
  */
-export const pointInRect = (p: DOMPoint | undefined, r: DOMRect | undefined): boolean => {
+export const pointInRect = (p?: DOMPoint, r?: DOMRect): boolean => {
     if (!p || !r) {
         return false;
     }
 
     return (
-        r.x <= p.x && p.x <= (r.x + r.width)
-        && r.y <= p.y && p.y <= (r.y + r.height)
+        p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom
     );
 };
 
@@ -58,47 +55,15 @@ export const rectsAreEqual = (left: DOMRect, right: DOMRect): boolean => {
  * Creates a new rect with change bounds and location, depending on the inflation values.
  *
  * @param r The rectangle to change.
- * @param top The top delta to apply.
- * @param right The right delta to apply.
- * @param bottom The bottom delta to apply.
- * @param left The left delta to apply.
+ * @param dTop The top delta to apply.
+ * @param dRight The right delta to apply.
+ * @param dBottom The bottom delta to apply.
+ * @param dLeft The left delta to apply.
  *
  * @returns Undefined, if the given rect was undefined or the changed rectangle.
  */
-export const inflateRect = (r: DOMRect | undefined,
-    top: number, right: number, bottom: number, left: number): DOMRect | undefined => {
-    if (!r) {
-        return undefined;
-    }
+export const inflateRect = (r: DOMRect, dLeft: number, dTop: number, dRight: number,
+    dBottom: number): DOMRect | undefined => {
 
-    return new DOMRect(r.x - left, r.y - top, r.width + right + left, r.height + top + bottom);
-};
-
-/**
- * Converts a color string or a color to a hex string.
- *
- * @param color The value to convert.
- *
- * @returns A hex string of the given color, including the alpha value.
- */
-export const colorToHex = (color: string | Color | undefined): string | undefined => {
-    if (!color) {
-        return;
-    }
-
-    if (typeof color === "string") {
-        color = new Color(color);
-    }
-
-    // Hex color values have no alpha component, so we have to add that explicitly.
-    if (color.alpha() < 1) {
-        let alpha = Math.round((color.alpha() * 255)).toString(16);
-        if (alpha.length < 2) {
-            alpha = "0" + alpha;
-        }
-
-        return color.hex() + alpha;
-    } else {
-        return color.hex();
-    }
+    return new DOMRect(r.x - dLeft, r.y - dTop, r.width + dRight + dLeft, r.height + dTop + dBottom);
 };

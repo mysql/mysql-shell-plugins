@@ -37,7 +37,6 @@ import {
 } from "..";
 import { Grid } from "../Grid/Grid";
 import { GridCell } from "../Grid/GridCell";
-import { colorToHex } from "../../../utilities/graphics";
 import { IDictionary } from "../../../app-logic/Types";
 
 // The color callback passes a color to a listener, which can return an adjusted value to be set in the popup.
@@ -225,7 +224,7 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
                     <Label id="hexTitle" caption="CSS Color:" />
                     <Input
                         id="hexValueInput"
-                        value={haveUserValue ? cssColorString : colorToHex(currentColor)}
+                        value={haveUserValue ? cssColorString : currentColor.hexa()}
                         data-tooltip={"You can enter CSS color strings here in any valid format " +
                             "(names, RGB, HSL etc.)."}
                         onChange={this.handleCSSColorInput}

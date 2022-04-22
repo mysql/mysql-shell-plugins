@@ -79,28 +79,30 @@ Object.defineProperty(global.self, "crypto", {
 
 Object.defineProperty(global.self, "DOMPoint", {
     writable: true,
-    value: jest.fn().mockImplementation(() => {
+    value: jest.fn().mockImplementation((x?: number, y?: number, z?: number, w?: number) => {
         return {
-            x: 1,
-            y: 1,
-            z: 1,
-            w: 1,
-        };
+            x: x ?? 0,
+            y: y ?? 0,
+            z: z ?? 0,
+            w: w ?? 0,
+            matrixTransform: jest.fn(),
+            toJSON: jest.fn(),
+        } as DOMPoint;
     }),
 });
 
 Object.defineProperty(global.self, "DOMRect", {
     writable: true,
-    value: jest.fn().mockImplementation(() => {
+    value: jest.fn().mockImplementation((x?: number, y?: number, width?: number, height?: number) => {
         return {
-            x: 1,
-            y: 1,
-            width: 1,
-            height: 1,
-            top: 1,
-            right: 1,
-            bottom: 1,
-            left: 1,
-        };
+            x: x ?? 0,
+            y: y ?? 0,
+            width: width ?? 0,
+            height: height ?? 0,
+            top: y ?? 0,
+            right: (x ?? 0) + (width ?? 0),
+            bottom: (y ?? 0) + (height ?? 0),
+            left: x ?? 0,
+        } as DOMRect;
     }),
 });

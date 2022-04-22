@@ -30,7 +30,6 @@ import defaultLight from "./assets/default-light-color-theme.json";
 import Color from "color";
 
 import { settings } from "../../supplement/Settings/Settings";
-import { colorToHex } from "../../utilities/graphics";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { IDictionary } from "../../app-logic/Types";
 
@@ -175,7 +174,8 @@ export class ThemeManager {
             this.iterateColorDescription(colorDescriptions, (key: string, value: string): void => {
                 if (key === "name" && !value.startsWith("#")) {
                     const variable = this.themeValueNameToCssVariable(value);
-                    colors[value] = colorToHex(styleNode.getPropertyValue(variable).trim()) || "";
+                    const color = new Color(styleNode.getPropertyValue(variable).trim());
+                    colors[value] = color.hexa();
                 }
             });
 

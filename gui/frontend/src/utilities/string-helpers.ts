@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,7 +43,7 @@ const quotePairs = new Map([
  * @returns The quoted string.
  */
 export const quote = (text: string, quoteChar = "`"): string => {
-    const second = quotePairs.get(quoteChar);
+    const second = quotePairs.get(quoteChar) ?? quoteChar;
 
     if (text.length > 2) {
         const first = text[0];
@@ -53,27 +53,28 @@ export const quote = (text: string, quoteChar = "`"): string => {
         }
     }
 
-    return `${quoteChar}${text}${second ?? ""}`;
+    return `${quoteChar}${text}${second}`;
 };
 
 /**
- * Removes any single, double or backtick quotes from the input.
+ * Removes single quote characters from the given text.
  *
  * @param text The input to clean up.
  * @param quotes Possible quote chars to consider. For mirrored delimiters use the opening one (e.g. "(").
+ *               By default single, double or backtick quotes are removed.
  *
  * @returns The input without outer whitespaces and quotes.
  */
 export const unquote = (text: string, quotes = "\"'`"): string => {
     let result = text.trim();
-    if (result.length > 2) {
+    if (result.length > 1) {
         const first = result[0];
         const last = result[result.length - 1];
 
         if (quotes.includes(first)) {
             const second = quotePairs.get(first);
             if (second === last) {
-                result = result.substr(1, result.length - 2);
+                result = result.substring(1, result.length - 1);
             }
         }
     }
@@ -90,7 +91,7 @@ export const unquote = (text: string, quotes = "\"'`"): string => {
  *
  * @returns A CSS value.
  */
-export const convertPropValue = (value: number | string | undefined, numericUnit = "px"): string | undefined => {
+export const convertPropValue = (value?: number | string | undefined, numericUnit = "px"): string | undefined => {
     if (isNil(value)) {
         return;
     }
@@ -103,41 +104,46 @@ export const convertPropValue = (value: number | string | undefined, numericUnit
 };
 
 /**
- * Converts the name of an identifier to string. This allows to translate a property name directly into a CSS
- * class name.
+ * Checks if a given string consists only of whitespace characters (space, tab, line breaks).
  *
- * @param obj An object that has as only member the name to convert.
- * @returns The (member) name as a string.
+ * @param str The string to check.
+ *
+ * @returns True if the string only contains whitespaces, otherwise false.
  */
-export const identifierToString = (obj: {}): string => { return Object.keys(obj)[0]; };
-
-export const isWhitespaceOnly = (str: string): boolean => { return /^\s*$/.test(str); };
+export const isWhitespaceOnly = (str: string): boolean => {
+    return /^\s+$/.test(str);
+};
 
 /**
- * Formats the passed time into a string with the most compact format.
+ * Converts the given time to a string expression, in the most compact and readable format.
  *
  * @param time The time in seconds to format.
  *
  * @returns The formatted time.
  */
 export const formatTime = (time?: number): string => {
-    if (!time) {
+    if (time === undefined || time === null || isNaN(time) || !isFinite(time) || time < 0) {
         return "unknown time";
     }
 
     if (time < 10) {
-        // Less than 10 secs: use xx.yy format with seconds.milliseconds or milliseconds.microseconds.
-        const seconds = Math.floor(time);
-        if (seconds > 0) {
-            const ms = seconds % 1000;
+        if (time < 1) {
+            if (time === 0) {
+                return "0s";
+            }
 
-            return `${seconds}.${ms}s`;
-        } else {
             return `${Math.floor(time * 1e6) / 1000}ms`;
-
         }
+
+        const seconds = Math.floor(time);
+        if (time - seconds > 0) {
+            return `${time}s`;
+        }
+
+        return `${seconds}s`;
     } else {
         // More than 10 secs: format as "d HH:MM:SS".
+        // TODO: consider locales.
         const days = Math.floor(time / 86400);
         const hours = Math.floor(time / 3600) % 24;
         const minutes = Math.floor(time / 60) % 60;
