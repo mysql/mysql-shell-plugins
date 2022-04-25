@@ -150,7 +150,7 @@ class BackendSqliteDbManager(BackendDbManager):
         installed_version = Version()
         if installed_db_file is not None:
             installed_version = self.get_db_version(path.join(self.db_dir, installed_db_file))
-        logger.debug2(f"Installed database version: {installed_version}")
+            logger.debug2(f"Installed database version: {installed_version}")
 
         # if no earlier version is found, return with False
         if installed_version == (0, 0, 0):
@@ -278,12 +278,11 @@ class BackendSqliteDbManager(BackendDbManager):
             chdir(self.current_dir)
 
     def backup_logs(self, db):
-
         # check files, remove oldest if count > 6
         backup_files = []
         for f in listdir(self.db_dir):
             m = re.match(
-                r'\d+\.\d+\.\d+_mysqlsh_gui_backend_log\.sqlite3', f)
+                r'mysqlsh_gui_backend_log_\d+\.\d+\.\d+\.sqlite3', f)
             if m:
                 backup_files.append(f)
 
@@ -296,7 +295,7 @@ class BackendSqliteDbManager(BackendDbManager):
             # create new backup file
             # attach it to db as backup
             new_filename = path.join(self.db_dir,
-                                     f"{date.today().strftime('%Y.%m.%d')}_mysqlsh_gui_backend_log.sqlite3")
+                                     f"mysqlsh_gui_backend_log_{date.today().strftime('%Y.%m.%d')}.sqlite3")
             db.execute(
                 f"ATTACH DATABASE '{new_filename}' as 'backup';")
 

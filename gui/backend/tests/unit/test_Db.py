@@ -259,3 +259,48 @@ def normalize_sql_file(file):
                 for l in indexes:
                     f.write(l)
             f.write(line)
+
+
+def test_backup_logs():
+    current_dir = os.getcwd()
+    current_create_script = os.path.join(
+        current_dir, 'gui_plugin', 'core', 'db_schema', f'mysqlsh_gui_backend.sqlite.sql')
+    assert os.path.exists(current_create_script)
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        os.chdir(tmpdirname)
+        conn = sqlite3.connect(os.path.join(tmpdirname, "mysqlsh_gui_backend.sqlite3"))
+        cur = conn.cursor()
+        with open(current_create_script, 'r') as sql_file:
+            sql_create = sql_file.read()
+
+        try:
+            cur.executescript(sql_create)
+        except Exception as e:
+            pytest.fail(str(e))
+        conn.close()
+
+        assert os.path.exists(os.path.join(tmpdirname, "mysqlsh_gui_backend_log.sqlite3"))
+        connection_options = {"db_dir": tmpdirname,
+                             "database_name": "main",
+                             "db_file": os.path.join(tmpdirname, f'mysqlsh_gui_backend.sqlite3'),
+                             "attach": [
+                                    {
+                                        "database_name": "gui_log",
+                                        "db_file": os.path.join(tmpdirname, f'mysqlsh_gui_backend_log.sqlite3')
+                                    }]}
+        db_manager = BackendSqliteDbManager(log_rotation=False,
+                                            web_session=None,
+                                            connection_options=connection_options)
+
+        db = db_manager.open_database()
+        try:
+            db_manager.backup_logs(db)
+        finally:
+            db.close()
+
+        backup_file = os.path.join(tmpdirname,
+                                     f"mysqlsh_gui_backend_log_{datetime.date.today().strftime('%Y.%m.%d')}.sqlite3")
+
+        os.chdir(current_dir)
+        assert os.path.exists(backup_file)
