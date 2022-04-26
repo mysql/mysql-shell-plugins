@@ -83,7 +83,7 @@
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "update-snapshots": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --watchAll=false -u",
         "test": "npm run unit-tests --",
-        "unit-tests": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --coverage --watchAll=false",
+        "unit-tests": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --setupFilesAfterEnv \"./src/tests/setupUnitTests.ts\" --coverage --watchAll=false",
         "e2e-tests-update": "webdriver-manager update --out_dir ../../src/tests/e2e/selenium",
         "e2e-tests-start": "webdriver-manager start --out_dir ../../src/tests/e2e/selenium",
         "e2e-tests-run": "react-scripts test --detectOpenHandles --testMatch [ \"**/tests/e2e/**/*.spec.ts?(x)\" ] --setupFilesAfterEnv \"./src/tests/e2e/setupTests.ts\" --testResultsProcessor \"./node_modules/jest-html-reporter\" --maxWorkers=2 --watchAll=false --useStderr --verbose",
@@ -119,8 +119,8 @@
         "coverageThreshold": {
             "global": {
                 "statements": 33,
-                "branch": 24,
-                "functions": 36,
+                "branch": 25,
+                "functions": 37,
                 "lines": 33
             }
         },

@@ -21,17 +21,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { appParameters } from "../Requisitions";
+
 export class Cookies {
     public set(name: string, value?: string): void {
         let cookie = "";
         cookie = `${name}=${value ?? ""}`;
 
-        document.cookie = cookie;
+        // In a VS Code webview there's no document and testing if document is assigned creates an error.
+        // istanbul ignore else
+        if (!appParameters.inExtension) {
+            document.cookie = cookie;
+        }
     }
 
     public get(name: string): string | null {
-        // istanbul ignore next
-        if (!document.cookie) {
+        // istanbul ignore if
+        if (appParameters.inExtension || !document.cookie) {
             return null;
         }
 
@@ -45,19 +51,25 @@ export class Cookies {
                 return parts[0];
             }
 
-            return cookie.split("=")[1].trim();
+            return parts[1].trim();
         }
 
         return null;
     }
 
     public remove(name: string): void {
-        document.cookie = name + "=; Max-Age=0;";
+        // istanbul ignore else
+        if (!appParameters.inExtension) {
+            document.cookie = name + "=; Max-Age=0;";
+        }
     }
 
     public clear(): void {
-        for (const cookie of document.cookie.split(";")) {
-            this.remove(cookie.split("=")[0].trim());
+        // istanbul ignore else
+        if (!appParameters.inExtension) {
+            for (const cookie of document.cookie.split(";")) {
+                this.remove(cookie.split("=")[0].trim());
+            }
         }
     }
 }

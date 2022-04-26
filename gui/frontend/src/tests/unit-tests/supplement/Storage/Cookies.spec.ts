@@ -26,6 +26,8 @@ import { Cookies } from "../../../../supplement/Storage";
 describe("Cookies Tests", () => {
     const cookies = new Cookies();
     it("Manipulations", () => {
+        cookies.clear();
+
         cookies.set("abc");
         expect(cookies.get("abc")).toBe("");
 

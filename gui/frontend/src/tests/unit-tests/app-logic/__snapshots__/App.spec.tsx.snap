@@ -1,0 +1,640 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Application tests Application readiness 1`] = `
+<App>
+  <ErrorBoundary>
+    <LoginPage>
+      <Container
+        id="loginDialog"
+        orientation="column"
+      >
+        <div
+          className="msg container fixedScrollbar"
+          id="loginDialog"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "column",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Icon
+            disabled={false}
+            id="loginDialogSakilaLogo"
+            src="module-shell.svg"
+          >
+            <div
+              className="msg icon"
+              id="loginDialogSakilaLogo"
+              style={
+                Object {
+                  "WebkitMaskImage": "url(module-shell.svg)",
+                  "backgroundColor": undefined,
+                  "height": undefined,
+                  "maskImage": "url(module-shell.svg)",
+                  "width": undefined,
+                }
+              }
+            />
+          </Icon>
+          <Container
+            id="heading"
+            orientation="column"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="heading"
+              style={
+                Object {
+                  "alignItems": undefined,
+                  "flexDirection": "column",
+                  "flexWrap": undefined,
+                  "justifyContent": undefined,
+                }
+              }
+            >
+              <Label
+                as="h2"
+                id="headingLabel"
+              >
+                <h2
+                  className="msg label"
+                  data-tooltip="expand"
+                  id="headingLabel"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  MySQL Shell
+                </h2>
+              </Label>
+              <Label
+                id="headingSubLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  id="headingSubLabel"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Welcome to the MySQL Shell GUI.
+                  <br />
+                  Please provide your MySQL Shell GUI credentials to log into the shell interface.
+                </label>
+              </Label>
+            </div>
+          </Container>
+          <Container
+            id="loginDialogLinks"
+            mainAlignment="center"
+            orientation="row"
+            wrap="wrap"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="loginDialogLinks"
+              style={
+                Object {
+                  "alignItems": undefined,
+                  "flexDirection": "row",
+                  "flexWrap": "wrap",
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <a
+                href="http://localhost:3001/#"
+                key="Learn More >"
+              >
+                Learn More &gt;
+              </a>
+              <a
+                href="http://localhost:3001/#"
+                key="Browse Tutorial >"
+              >
+                Browse Tutorial &gt;
+              </a>
+              <a
+                href="http://localhost:3001/#"
+                key="Read Docs >"
+              >
+                Read Docs &gt;
+              </a>
+            </div>
+          </Container>
+          <Grid
+            columnGap={8}
+            columns={
+              Array [
+                220,
+                40,
+              ]
+            }
+            id="loginDialogControls"
+          >
+            <div
+              className="msg grid"
+              id="loginDialogControls"
+              style={
+                Object {
+                  "columnGap": "8px",
+                  "gridTemplateColumns": "220px 40px",
+                  "rowGap": undefined,
+                }
+              }
+            >
+              <GridCell
+                orientation="column"
+              >
+                <Container
+                  className="msg gridCell"
+                  orientation="column"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "column",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Input
+                      id="loginUsername"
+                      onChange={[Function]}
+                      onConfirm={[Function]}
+                      placeholder="Username"
+                      spellCheck={false}
+                      value=""
+                    >
+                      <input
+                        className="msg input"
+                        id="loginUsername"
+                        onKeyDown={[Function]}
+                        oninput={[Function]}
+                        placeholder="Username"
+                        spellCheck={false}
+                        style={
+                          Object {
+                            "textAlign": undefined,
+                          }
+                        }
+                        type="text"
+                        value=""
+                      />
+                    </Input>
+                  </div>
+                </Container>
+              </GridCell>
+              <GridCell>
+                <Container
+                  className="msg gridCell"
+                  orientation="row"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "row",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  />
+                </Container>
+              </GridCell>
+              <GridCell
+                orientation="column"
+              >
+                <Container
+                  className="msg gridCell"
+                  orientation="column"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "column",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Input
+                      id="loginPassword"
+                      onChange={[Function]}
+                      onConfirm={[Function]}
+                      password={true}
+                      placeholder="Password"
+                      spellCheck={true}
+                      value=""
+                    >
+                      <input
+                        className="msg input"
+                        id="loginPassword"
+                        onKeyDown={[Function]}
+                        oninput={[Function]}
+                        placeholder="Password"
+                        spellCheck={true}
+                        style={
+                          Object {
+                            "textAlign": undefined,
+                          }
+                        }
+                        type="password"
+                        value=""
+                      />
+                    </Input>
+                  </div>
+                </Container>
+              </GridCell>
+              <GridCell
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Container
+                  className="msg gridCell"
+                  mainAlignment="center"
+                  orientation="column"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "column",
+                        "flexWrap": undefined,
+                        "justifyContent": "center",
+                      }
+                    }
+                  >
+                    <Button
+                      disabled={false}
+                      id="loginButton"
+                      onClick={[Function]}
+                      round={true}
+                    >
+                      <button
+                        className="msg button round"
+                        disabled={false}
+                        id="loginButton"
+                        onClick={[Function]}
+                        onMouseDown={[Function]}
+                        style={
+                          Object {
+                            "flexDirection": undefined,
+                          }
+                        }
+                      >
+                        <Icon
+                          disabled={false}
+                          src="chevron-right.svg"
+                        >
+                          <div
+                            className="msg icon"
+                            style={
+                              Object {
+                                "WebkitMaskImage": "url(chevron-right.svg)",
+                                "backgroundColor": undefined,
+                                "height": undefined,
+                                "maskImage": "url(chevron-right.svg)",
+                                "width": undefined,
+                              }
+                            }
+                          />
+                        </Icon>
+                      </button>
+                    </Button>
+                  </div>
+                </Container>
+              </GridCell>
+            </div>
+          </Grid>
+          <Label
+            id="loginDialogSubtext"
+          >
+            <label
+              className="msg label"
+              data-tooltip="expand"
+              id="loginDialogSubtext"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            >
+              If you do not have an MySQL Shell GUI account yet, please
+              <br />
+              ask your administrator to have one created for you.
+            </label>
+          </Label>
+          <div
+            className="copyright"
+          />
+        </div>
+      </Container>
+    </LoginPage>
+    <ErrorPanel>
+      <Dialog
+        actions={
+          Object {
+            "end": Array [
+              <Button
+                caption="Close"
+                disabled={false}
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <y>
+            <Icon
+              disabled={false}
+              src={123}
+            />
+            <Label>
+              
+            </Label>
+          </y>
+        }
+        className="msg errorPanel"
+        container={Object {}}
+        content={
+          <Container
+            orientation="column"
+          >
+            
+          </Container>
+        }
+      >
+        <Portal
+          container={Object {}}
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+    </ErrorPanel>
+    <TooltipProvider
+      showDelay={500}
+    />
+    <Statusbar
+      items={
+        Array [
+          Object {
+            "id": "profileTitle",
+            "text": "Profile:",
+            "type": 0,
+            "visible": false,
+          },
+          Object {
+            "choices": Array [],
+            "commandId": "openPopupMenu",
+            "id": "profileChoice",
+            "tooltip": "Change profile",
+            "type": 1,
+            "visible": false,
+          },
+          Object {
+            "id": "details",
+            "rightAlign": true,
+            "standout": false,
+            "type": 0,
+          },
+          Object {
+            "id": "editorLanguage",
+            "rightAlign": true,
+            "type": 0,
+            "visible": false,
+          },
+          Object {
+            "id": "editorEOL",
+            "rightAlign": true,
+            "type": 0,
+            "visible": false,
+          },
+          Object {
+            "id": "editorIndent",
+            "rightAlign": true,
+            "type": 0,
+            "visible": false,
+          },
+          Object {
+            "commandId": "scripting:editor.action.gotoLine",
+            "id": "editorPosition",
+            "rightAlign": true,
+            "type": 1,
+            "visible": false,
+          },
+        ]
+      }
+    >
+      <Container
+        className="msg statusbar verticalCenterContent"
+        orientation="row"
+      >
+        <div
+          className="msg container fixedScrollbar statusbar verticalCenterContent"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Container
+            className="leftItems"
+            crossAlignment="stretch"
+            orientation="row"
+          >
+            <div
+              className="msg container fixedScrollbar leftItems"
+              style={
+                Object {
+                  "alignItems": "stretch",
+                  "flexDirection": "row",
+                  "flexWrap": undefined,
+                  "justifyContent": undefined,
+                }
+              }
+            />
+          </Container>
+          <Container
+            className="rightItems"
+            crossAlignment="stretch"
+            orientation="row-reverse"
+          >
+            <div
+              className="msg container fixedScrollbar rightItems"
+              style={
+                Object {
+                  "alignItems": "stretch",
+                  "flexDirection": "row-reverse",
+                  "flexWrap": undefined,
+                  "justifyContent": undefined,
+                }
+              }
+            />
+          </Container>
+        </div>
+      </Container>
+    </Statusbar>
+    <ProfileSelector>
+      <ValueEditDialog
+        caption="Add/Edit Profile"
+        id="profileCreating"
+        onClose={[Function]}
+        onValidate={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "begin": Array [],
+              "end": Array [
+                <Button
+                  caption="OK"
+                  disabled={false}
+                  id="ok"
+                  onClick={[Function]}
+                />,
+                <Button
+                  caption="Cancel"
+                  disabled={false}
+                  id="cancel"
+                  onClick={[Function]}
+                />,
+              ],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={388}
+              />
+              <Label>
+                Add/Edit Profile
+              </Label>
+            </y>
+          }
+          className="msg valueEditDialog"
+          container={Object {}}
+          content={
+            <Grid
+              columnGap={16}
+              columns={8}
+              rowGap={16}
+            />
+          }
+          id="profileCreating"
+          onClose={[Function]}
+        >
+          <Portal
+            container={Object {}}
+            id="profileCreating"
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ValueEditDialog>
+      <ConfirmDialog
+        caption="Delete Profile"
+        id="confirmDeleteDialog"
+        onClose={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "end": Array [],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={275}
+              />
+              <Label>
+                Delete Profile
+              </Label>
+            </y>
+          }
+          className="msg confirmDialog"
+          container={Object {}}
+          content={
+            <Container
+              orientation="column"
+            >
+              
+            </Container>
+          }
+        >
+          <Portal
+            container={Object {}}
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ConfirmDialog>
+      <Menu
+        id="tileActionMenu"
+        onItemClick={[Function]}
+        orientation="column"
+        placement="top-start"
+      >
+        <Popup
+          className="msg menu"
+          id="tileActionMenu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="top-start"
+          showArrow={false}
+        >
+          <Portal
+            id="tileActionMenu"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ProfileSelector>
+    <ColorPopup>
+      <Popup
+        className="msg colorPopup"
+        onOpen={[Function]}
+        orientation="column"
+        pinned={false}
+        placement="bottom"
+        showArrow={true}
+      >
+        <Portal
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Popup>
+    </ColorPopup>
+  </ErrorBoundary>
+</App>
+`;

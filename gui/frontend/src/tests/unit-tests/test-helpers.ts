@@ -23,11 +23,19 @@
 
 import { CommonWrapper, ReactWrapper } from "enzyme";
 import toJson, { Json } from "enzyme-to-json";
+import { existsSync, mkdirSync, rmSync, symlinkSync } from "fs";
 import keyboardKey from "keyboard-key";
+import path from "path";
 
-import { CommunicationEvents, ICommShellProfile, IGenericResponse, IWebSessionData } from "../../communication";
-import { dispatcher } from "../../supplement/Dispatch";
-import { uuid } from "../../utilities/helpers";
+import {
+    CommunicationEvents, ICommAuthenticationEvent, ICommErrorEvent, ICommWebSessionEvent,
+    IGenericResponse, IShellDictionary,
+} from "../../communication";
+import { dispatcher, eventFilterNoRequests, ListenerEntry } from "../../supplement/Dispatch";
+import { appParameters, requisitions } from "../../supplement/Requisitions";
+import { ShellInterface } from "../../supplement/ShellInterface";
+import { webSession } from "../../supplement/WebSession";
+import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -35,35 +43,38 @@ export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit
 export type JestReactWrapper<P = {}, S = unknown> =
     ReactWrapper<Readonly<P> & Readonly<{ children?: React.ReactNode }>, Readonly<S>>;
 
-/**
- * Sent to start the communication rolling. This is the first reply from a real server sent to the application
- * on establishing the websocket connection.
- *
- * @param localUserMode A flag indicating if we start in single or multi user mode.
- * @param activeProfile The profile set as active on session start.
- */
-export const dispatchSessionStartEvent = (localUserMode: boolean, activeProfile: ICommShellProfile): void => {
-    const serverData: IWebSessionData = {
-        requestState: {
-            type: "OK",
-            msg: "A new session has been created",
-        },
-        sessionUuid: uuid(),
-        localUserMode,
-        activeProfile,
-    };
+const createResponse = (type: string, msg: string, requestId?: string,
+    data?: IShellDictionary): IGenericResponse => {
 
-    dispatcher.triggerEvent(CommunicationEvents.generateWebSessionEvent(serverData), false);
+    return {
+        requestId,
+        requestState: { type, msg },
+        ...data,
+    };
 };
 
 /**
- * Simulates an OK event for the application.
+ * Simulates an event for the dispatcher.
  *
- * @param context The context to use. This describes what an event handler is described to.
+ * @param context The context to use. This describes what an event handler is subscribed to.
  * @param data The data to send with the event.
  */
 export const dispatchTestEvent = <T extends IGenericResponse>(context: string, data: T): void => {
     dispatcher.triggerEvent(CommunicationEvents.generateResponseEvent(context, data), false);
+};
+
+export const dispatchErrorResponse = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+        const callback = (_values: string[]): Promise<boolean> => {
+            requisitions.unregister("showError", callback);
+            resolve(true);
+
+            return Promise.resolve(true);
+        };
+
+        requisitions.register("showError", callback);
+        dispatchTestEvent("serverResponse", createResponse("ERROR", "Something went wrong.", "1234"));
+    });
 };
 
 /**
@@ -414,7 +425,7 @@ export const sendBlurEvent = (): void => {
 /**
  * Simulates a right click (including context menu event) on the given element.
  *
- * @param element
+ * @param element The element for which to simulate the right click event.
  */
 export const sendRightClick = (element: Element): void => {
     const ev1 = new MouseEvent("mousedown", {
@@ -449,4 +460,104 @@ export const sendRightClick = (element: Element): void => {
         clientY: element.getBoundingClientRect().y,
     });
     element.dispatchEvent(ev3);
+};
+
+/**
+ * Helper method to launch a MySQL Shell for a test suite and wait for it until it's fully up.
+ *
+ * @param showOutput If true then the shell output will be printed to the console (inline). Errors are always displayed.
+ * @param handleEvents If this parameter is true, the function also subscribes to serverResponse and webSession events
+ *                     to trigger authentication and waits until a profile is loaded. If false, the caller has to take
+ *                     care of that.
+ * @param logLevel The log level to use. Only relevant if showOutput is true.
+ *
+ * @returns A promise resolving to the created shell launcher. Use this to shut down the shell process when done.
+ */
+export const setupShellForTests = (showOutput: boolean, handleEvents = true,
+    logLevel?: LogLevel): Promise<MySQLShellLauncher> => {
+    return new Promise((resolve, reject) => {
+        try {
+            // Clean up a left-over user dir, if there's one.
+            if (existsSync("shell-test")) {
+                rmSync("shell-test", { recursive: true, force: true });
+            }
+
+            // Now create that folder again and add links to the shell plugins.
+            mkdirSync("shell-test/plugins", { recursive: true });
+            symlinkSync(path.resolve("../../../../backend/gui_plugin"), "shell-test/plugins/gui_plugin");
+            symlinkSync(path.resolve("../../../../../mrs_plugin"), "shell-test/plugins/mrs_plugin");
+            symlinkSync(path.resolve("../../../../../mds_plugin"), "shell-test/plugins/mds_plugin");
+
+            // And create a web root link in the gui_plugin, if not yet done.
+            if (!existsSync("shell-test/plugins/gui_plugin/core/webroot")) {
+                symlinkSync(path.resolve("../../../build"), "shell-test/plugins/gui_plugin/core/webroot");
+            }
+
+            appParameters.set("shellUserConfigDir", path.resolve("shell-test"));
+        } catch (error) {
+            reject(error);
+
+            return;
+        }
+
+        const shellLauncher = new MySQLShellLauncher(
+            (text) => {
+                if (showOutput) {
+                    console.log(text);
+                }
+            },
+            (error) => {
+                console.error(`\nError while setting up MySQL Shell connection: ${error.message}\n`);
+            },
+            () => { // Called on exit of the shell process.
+                // rmSync("shell-test", { recursive: true, force: true });
+            },
+        );
+
+        if (handleEvents) {
+            const serverResponseListener = ListenerEntry.createByClass("serverResponse", { persistent: true });
+            serverResponseListener.catch((errorEvent: ICommErrorEvent) => {
+                console.error(errorEvent.message);
+            });
+
+            const webSessionListener = ListenerEntry.createByClass("webSession",
+                { filters: [eventFilterNoRequests], persistent: true });
+
+            webSessionListener.then((event: ICommWebSessionEvent) => {
+                if (event.data?.sessionUuid) {
+                    webSession.sessionId = event.data.sessionUuid;
+                    webSession.localUserMode = event.data.localUserMode;
+                }
+
+                if (webSession.userName === "") {
+                    if (event.data?.localUserMode) {
+                        ShellInterface.users.authenticate("LocalAdministrator", "")
+                            .then((_authEvent: ICommAuthenticationEvent) => {
+                                if (showOutput) {
+                                    console.log("Shell connection established and user authenticated");
+                                }
+                            });
+                    }
+                } else if (event.data) {
+                    webSession.loadProfile(event.data.activeProfile);
+                }
+            });
+
+            const loaded = (): Promise<boolean> => {
+                requisitions.unregister("profileLoaded", loaded);
+                resolve(shellLauncher);
+
+                return Promise.resolve(true);
+            };
+
+            requisitions.register("profileLoaded", loaded);
+        }
+
+        shellLauncher.startShellAndConnect(".", false, logLevel);
+
+        if (!handleEvents) {
+            // If events are handled then the promise is resolved when a profile is loaded.
+            resolve(shellLauncher);
+        }
+    });
 };

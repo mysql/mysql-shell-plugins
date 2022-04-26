@@ -22,10 +22,15 @@
  */
 
 
-import { ExtensionContext, Uri, commands, window, ViewColumn } from "vscode";
+import { ExtensionContext, Uri, commands, window, ViewColumn, workspace } from "vscode";
+
 import { join } from "path";
-import { printChannelOutput, runMysqlShell } from "../extension";
 import { platform, release } from "os";
+
+import { printChannelOutput } from "../extension";
+import {
+    IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
+} from "../../../frontend/src/utilities/MySQLShellLauncher";
 
 /**
  * Build CSS content for the webview
@@ -223,7 +228,7 @@ const getRequirementsErrorWebviewContent = (requirementsError: string, rootPath:
                 <p>The requirements of the MySQL Shell for VS Code extension could not be met.</p>
                 <p id="requirementsError" class="pError">${requirementsError}</p>
                 <p>You can safely remove the extension from VS Code.<br>
-                    Please feel free to file a 
+                    Please feel free to file a
                     <a href="https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension">bug report</a>.</p>
             </div>
         </div>
@@ -263,7 +268,7 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     <a href="#">Browse Tutorial &gt;</a>
                     <a href="#">Read Docs &gt;</a>
                 </div>
-                <p>Please click [Next >] to complete the installation of the 
+                <p>Please click [Next >] to complete the installation of the
                     MySQL Shell for VS Code extension.</p>
             </div>
             <div id="page2" class="page inactivePage">
@@ -276,7 +281,7 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     In the next step a security dialog will be show, asking if
                     the certificate should be installed.<br>
                     <br>
-                    Please click [Next >] to start the installation of the 
+                    Please click [Next >] to start the installation of the
                     MySQL Shell certificate.</p>
             </div>
             <div id="page3" class="page inactivePage">
@@ -421,19 +426,25 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
             (message) => {
                 switch (message.command) {
                     case "installCert": {
+                        const configuration = workspace.getConfiguration(`msg.debugLog`);
+                        const logLevel = configuration.get<LogLevel>("level", "INFO");
+
                         // Run the shell command to install the cert
-                        const parameters = [
-                            "--", "gui", "core", "install-shell-web-certificate",
-                            "--replace_existing=true",
-                        ];
-                        runMysqlShell(context.extensionPath, parameters,
-                            // onStdOutData
-                            (data) => {
+                        const config: IShellLaunchConfiguration = {
+                            rootPath: context.extensionPath,
+                            parameters: [
+                                "--", "gui", "core", "install-shell-web-certificate",
+                                "--replace_existing=true",
+                            ],
+                            logLevel,
+                            onStdOutData: (output: string) => {
                                 // Pass the result to the webview
-                                const output = String(data);
                                 printChannelOutput(output);
                                 void panel.webview.postMessage({ command: "installCertResult", output });
-                            });
+                            },
+                        };
+
+                        MySQLShellLauncher.runMysqlShell(config);
 
                         return;
                     }

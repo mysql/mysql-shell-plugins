@@ -24,7 +24,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { CommunicationEvents, IShellRequest, IWebSessionData, Protocol } from ".";
-import { requisitions } from "../supplement/Requisitions";
+import { appParameters, requisitions } from "../supplement/Requisitions";
 import {
     dispatcher, IDispatchEventContext, ListenerEntry, eventFilterNoRequests, DispatchEvents, EventType, IDispatchEvent,
 } from "../supplement/Dispatch";
@@ -59,7 +59,6 @@ export class ClientConnection {
      * @returns True if the connection is established.
      */
     public get isConnected(): boolean {
-        /* istanbul ignore next */
         if (this.socket) {
             return this.connectionEstablished && this.socket.readyState === this.socket.OPEN;
         }
@@ -95,13 +94,13 @@ export class ClientConnection {
                 url.pathname = "ws1.ws";
 
                 /* istanbul ignore next */
-                if (process.env.NODE_ENV === "development") {
+                if (appParameters.inDevelopment) {
                     url.port = "8000";
                 }
 
                 const options: Options = {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    WebSocket: process.env.NODE_ENV !== "test" && global.WebSocket ? global.WebSocket : ws,
+                    WebSocket: global.WebSocket ? global.WebSocket : ws,
                     debug: false,
                     startClosed: true,
                 };

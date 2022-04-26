@@ -33,6 +33,7 @@ import { isNil } from "lodash";
 
 import { IComponentProperties, Component, SelectionType } from "..";
 import { waitFor } from "../../../utilities/helpers";
+import { appParameters } from "../../../supplement/Requisitions";
 
 export { Tabulator } from "tabulator-tables";
 
@@ -386,7 +387,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         }
 
         const result: Tabulator.Options = {
-            debugInvalidOptions: process.env.NODE_ENV === "development",
+            debugInvalidOptions: appParameters.inDevelopment,
 
             columns,
             data: tableData,

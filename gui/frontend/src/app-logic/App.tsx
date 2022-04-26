@@ -134,31 +134,35 @@ export class App extends React.Component<{}, IAppState> {
         ListenerEntry.createByClass("authenticate", { filters: [eventFilterNoRequests], persistent: true })
             .then((event: ICommAuthenticationEvent) => {
                 this.defaultProfile = event.data?.activeProfile;
+                // istanbul ignore else
                 if (this.defaultProfile) {
                     void this.enableModules(this.defaultProfile.userId).then(() => {
                         this.setState({ loginInProgress: false });
                     });
                 }
             })
-            .catch(() => {
+            .catch( /* istanbul ignore next */() => {
                 this.setState({ loginInProgress: true });
             });
 
         ListenerEntry.createByClass("webSession", { filters: [eventFilterNoRequests], persistent: true }).then(
             (event: ICommWebSessionEvent) => {
+                // istanbul ignore else
                 if (event.data) {
                     webSession.sessionId = event.data.sessionUuid;
-                    webSession.localUserMode = event.data?.localUserMode ?? false;
+                    webSession.localUserMode = event.data.localUserMode ?? false;
                 }
 
                 // TODO: remove the check for the recover message and instead handle the session user name via
                 //       session storage. Requires individual solutions for both, standalone and embedded use.
+                // Session recovery is not supported in tests, so remove the else branch from test coverage.
+                // istanbul ignore else
                 if (webSession.userName === "" && event.message !== "Session recovered") {
                     if (webSession.localUserMode) {
                         ShellInterface.users.authenticate("LocalAdministrator", "");
                     }
                 } else {
-                    this.defaultProfile = event.data?.activeProfile;
+                    this.defaultProfile = event.data.activeProfile;
                     if (this.defaultProfile) {
                         webSession.loadProfile(this.defaultProfile);
                         void this.enableModules(this.defaultProfile.userId).then(() => {
@@ -192,7 +196,7 @@ export class App extends React.Component<{}, IAppState> {
 
     public componentDidMount(): void {
         /* istanbul ignore next */
-        if (process.env.NODE_ENV !== "test") {
+        if (!appParameters.testsRunning) {
             void currentConnection.connect(new URL(window.location.href));
         }
 
@@ -320,6 +324,7 @@ export class App extends React.Component<{}, IAppState> {
     private enableModules(userId: number): Promise<boolean> {
         return new Promise((resolve) => {
             ShellInterface.users.getGuiModuleList(userId).then((event: ICommModuleListEvent) => {
+                // istanbul ignore else
                 if (event.eventType === EventType.FinalResponse) {
                     // Register the known modules first.
                     ModuleRegistry.registerModule(ShellModule);
@@ -334,7 +339,7 @@ export class App extends React.Component<{}, IAppState> {
 
                     resolve(true);
                 }
-            }).catch((errorEvent: ICommErrorEvent) => {
+            }).catch( /* istanbul ignore next */(errorEvent: ICommErrorEvent) => {
                 void requisitions.execute("showError", [
                     "Backend Error",
                     `Cannot retrieve the module list: \n${errorEvent.message ?? ""}`,
