@@ -24,17 +24,26 @@
 import React from "react";
 import { mount } from "enzyme";
 
-import { changeInputValue, nextRunLoop, sendKeyPress, snapshotFromWrapper, stateChange } from "../../test-helpers";
+import {
+    changeInputValue, nextRunLoop, sendKeyPress, setupShellForTests, snapshotFromWrapper, stateChange,
+} from "../../test-helpers";
 import { LoginPage } from "../../../../components/Login/LoginPage";
 import keyboardKey from "keyboard-key";
-import { BackendMock } from "../../BackendMock";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
+import { currentConnection } from "../../../../communication";
+import { ShellInterface } from "../../../../supplement/ShellInterface";
+import { EventType, IDispatchEvent, ListenerEntry } from "../../../../supplement/Dispatch";
 
 describe("Login Page Tests", (): void => {
-    let backend;
+    let launcher: MySQLShellLauncher;
 
-    beforeAll(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        backend = new BackendMock();
+    beforeAll(async () => {
+        launcher = await setupShellForTests(false, true, "DEBUG2");
+        expect(currentConnection.isConnected).toBe(true);
+    });
+
+    afterAll(async () => {
+        await launcher.exitProcess();
     });
 
     it("Render Test", () => {
@@ -69,6 +78,27 @@ describe("Login Page Tests", (): void => {
             <LoginPage />,
         );
 
+        const authenticateMock = jest.spyOn(ShellInterface.users, "authenticate")
+            .mockImplementation((username: string, password: string) => {
+                if (username === "mike") {
+                    if (password === "swordfish") {
+                        const event: IDispatchEvent = {
+                            id: "1234",
+                            eventType: EventType.FinalResponse,
+                            message: "Authentication successful",
+                            context: { messageClass: "test" },
+                            data: {},
+                        };
+
+                        return ListenerEntry.resolve(event);
+                    }
+
+                    return ListenerEntry.resolve(new Error("Wrong password"));
+                }
+
+                return ListenerEntry.resolve(new Error("User unknown"));
+            });
+
         expect(component.state()).toStrictEqual({ errorMessage: "", userName: "", password: "" });
 
         const edits = component.getDOMNode().getElementsByClassName("input");
@@ -100,5 +130,6 @@ describe("Login Page Tests", (): void => {
 
         component.unmount();
 
+        authenticateMock.mockRestore();
     });
 });

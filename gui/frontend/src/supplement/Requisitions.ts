@@ -41,7 +41,17 @@ import { IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 export const appParameters: AppParameters = new Map<string, string>();
 
 class AppParameters extends Map<string, string> {
+    // Indicates if the app runs under control of a wrapper app (a web client control embedded in a desktop app).
     public embedded?: boolean;
+
+    // Indicates if the app runs in the VS Code extension.
+    public inExtension?: boolean;
+
+    // Set when debugging of the web app (not the extension) is ongoing.
+    public inDevelopment?: boolean;
+
+    // Indicates if unit tests are running.
+    public testsRunning?: boolean;
 }
 
 /**
@@ -61,6 +71,14 @@ const parseAppParameters = (): void => {
                 }
             }
         });
+    }
+
+    if (process.env.NODE_ENV === "test") {
+        appParameters.testsRunning = true;
+    } else if (process.env.NODE_ENV === "development") {
+        appParameters.inDevelopment = true;
+    } else if (process.env.VSCODE_PID) {
+        appParameters.inExtension = true;
     }
 };
 

@@ -55,7 +55,6 @@ export class ShellInterfaceUser implements IShellInterface {
         });
 
         return listener;
-
     }
 
     /**

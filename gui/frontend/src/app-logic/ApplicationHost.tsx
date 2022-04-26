@@ -167,7 +167,7 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
                             resizable: debuggerVisible && !debuggerMaximized,
                             stretch: !debuggerVisible,
                         },
-                        {
+                        allowDebugger && {
                             id: "debuggerPane",
                             content: <CommunicationDebugger
                                 toggleDisplayMode={this.toggleDebuggerDisplayMode}

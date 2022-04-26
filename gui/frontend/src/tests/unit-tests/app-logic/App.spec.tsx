@@ -26,62 +26,66 @@ import React from "react";
 
 import { App } from "../../../app-logic/App";
 import { IStatusbarInfo } from "../../../app-logic/Types";
-import { BackendMock } from "../BackendMock";
 import { currentConnection } from "../../../communication";
 import { IEditorStatusInfo } from "../../../modules/scripting";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { waitFor } from "../../../utilities/helpers";
+import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
+import { dispatchErrorResponse, setupShellForTests, snapshotFromWrapper } from "../test-helpers";
 import { eventMock } from "../__mocks__/MockEvents";
 
-let didStartCallback: () => Promise<boolean>;
-
 describe("Application tests", () => {
-    let component: ReturnType<typeof mount>;
-    let backend: BackendMock;
+    let app: ReturnType<typeof mount>;
+    let launcher: MySQLShellLauncher;
 
-    beforeAll((done) => {
-        backend = new BackendMock();
+    const started = (): Promise<void> => {
+        return new Promise((resolve) => {
+            const loaded = (): Promise<boolean> => {
+                requisitions.unregister("applicationDidStart", loaded);
+                resolve();
 
-        didStartCallback = () => {
-            done();
+                return Promise.resolve(true);
+            };
 
-            return Promise.resolve(true);
-        };
+            requisitions.register("applicationDidStart", loaded);
+        });
+    };
 
-        requisitions.register("applicationDidStart", didStartCallback);
-
+    beforeAll(async () => {
+        // No automatic login takes place here, like in other tests. The app will trigger the login.
+        launcher = await setupShellForTests(false, false);
         expect(currentConnection.isConnected).toBe(false);
 
-        component = mount(
+        app = mount(
             <App />,
         );
-
-        expect(component.state("loginInProgress")).toEqual(true);
-
-        expect(component.text()).toEqual("MySQL ShellWelcome to the MySQL Shell GUI.Please provide your MySQL Shell " +
-            "GUI credentials to log into the shell interface.Learn More >Browse Tutorial >Read Docs >If you do not " +
-            "have an MySQL Shell GUI account yet, pleaseask your administrator to have one created for you.");
-
-        backend.startProtocol(); // Single user only, atm.
+        await started();
     });
 
-    afterAll(() => {
-        appParameters.embedded = false;
-
-        requisitions.unregister("applicationDidStart", didStartCallback);
-
+    afterAll(async () => {
         const event = new Event("beforeunload");
         expect(window.dispatchEvent(event)).toBe(true);
 
-        // Try disconnecting. We don't have a connection in the tests, however.
         currentConnection.disconnect();
         expect(currentConnection.isConnected).toBe(false);
+
+        app.unmount();
+
+        await launcher.exitProcess();
     });
 
-    it("Application login", async () => {
-        expect(component.state("loginInProgress")).toEqual(false);
+    it("Application readiness", () => {
+        // Note: at this point the app should be fully up and debugging the code seems to show that the
+        //       application host is rendered. Yet the snapshot still shows the login page.
+        //       What's even more confusing is that we come here, because the application host sent a message
+        //       that it was mounted. Need to investigate later.
+        expect(app.state("loginInProgress")).toEqual(false);
 
-        await backend.sendErrorResponse();
+        expect(snapshotFromWrapper(app)).toMatchSnapshot();
+    });
+
+    it("Fake error event", async () => {
+        await dispatchErrorResponse();
     });
 
     it("Handling status bar click events", async () => {
@@ -280,5 +284,4 @@ describe("Application tests", () => {
 
         window.removeEventListener("message", listener);
     });
-
 });

@@ -43,7 +43,7 @@ import { ShellConsolesTreeDataProvider } from "./tree-providers/ShellTreeProvide
 import { ScriptsTreeDataProvider } from "./tree-providers/ScriptsTreeProvider";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider";
-import { taskOutputChannel } from "./extension";
+import { printChannelOutput, taskOutputChannel } from "./extension";
 import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
 
 import { DbEditorCommandHandler } from "./DbEditorCommandHandler";
@@ -75,22 +75,22 @@ export class ExtensionHost {
     private moduleDataCategories = new Map<string, IShellModuleDataCategoriesEntry>();
 
     // Listeners.
-    private serverResponse: ListenerEntry;
-    private webSession: ListenerEntry;
+    private serverResponseListener: ListenerEntry;
+    private sessionListener: ListenerEntry;
 
     public constructor(private context: ExtensionContext) {
         this.setupEnvironment();
 
         requisitions.register("settingsChanged", this.updateVscodeSettings);
 
-        this.serverResponse = ListenerEntry.createByClass("serverResponse", { persistent: true });
-        this.serverResponse.catch((errorEvent: ICommErrorEvent) => {
+        this.serverResponseListener = ListenerEntry.createByClass("serverResponse", { persistent: true });
+        this.serverResponseListener.catch((errorEvent: ICommErrorEvent) => {
             void window.showErrorMessage(`Backend Error: ${errorEvent.data.error}`);
         });
 
-        this.webSession = ListenerEntry.createByClass("webSession",
+        this.sessionListener = ListenerEntry.createByClass("webSession",
             { filters: [eventFilterNoRequests], persistent: true });
-        this.webSession.then((event: ICommWebSessionEvent) => {
+        this.sessionListener.then((event: ICommWebSessionEvent) => {
             if (event.data?.sessionUuid) {
                 webSession.sessionId = event.data.sessionUuid;
                 webSession.localUserMode = event.data.localUserMode;
@@ -107,6 +107,8 @@ export class ExtensionHost {
                 webSession.loadProfile(event.data.activeProfile);
                 this.activeProfile = event.data.activeProfile;
             }
+        }).catch((event) => {
+            printChannelOutput("Internal error: " + String(event.stack), true);
         });
     }
 

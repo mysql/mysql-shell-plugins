@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,29 +21,30 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { window, ProgressLocation } from "vscode";
-import { waitFor } from "../../frontend/src/utilities/helpers";
+import { ShellInterface } from "../../../../supplement/ShellInterface";
 
-/**
- * Shows a message that auto closes after a certain timeout. Since there's no API for this functionality the
- * progress output is used instead, which auto closes at 100%.
- * This means the function cannot (and should not) be used for warnings or errors. These types of message require
- * the user to really take note.
- *
- * @param message The message to show.
- * @param timeout The time in milliseconds after which the message should close (default 3secs).
- */
-export const showMessageWithTimeout = (message: string, timeout = 3000): void => {
-    void window.withProgress(
-        {
-            location: ProgressLocation.Notification,
-            title: message,
-            cancellable: false,
-        },
+describe("ShellInterface Tests", () => {
+    it("Base Tests", () => {
+        // All available interfaces from the ShellInterface interface are singletons.
+        const core = ShellInterface.core;
+        expect(core).toBeDefined();
 
-        async (progress): Promise<void> => {
-            await waitFor(timeout, () => { return false; });
-            progress.report({ increment: 100 });
-        },
-    );
-};
+        expect(ShellInterface.core).toEqual(core);
+
+        const users = ShellInterface.users;
+        expect(users).toBeDefined();
+
+        expect(ShellInterface.users).toEqual(users);
+
+        const modules = ShellInterface.modules;
+        expect(modules).toBeDefined();
+
+        expect(ShellInterface.modules).toEqual(modules);
+
+        const dbConnections = ShellInterface.dbConnections;
+        expect(dbConnections).toBeDefined();
+
+        expect(ShellInterface.dbConnections).toEqual(dbConnections);
+
+    });
+});

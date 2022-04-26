@@ -29,18 +29,6 @@ import "jest-canvas-mock";
 
 Enzyme.configure({ adapter: new Adapter() });
 
-let originalDir = "";
-
-beforeAll(() => {
-    // Keep the current dir to restore it on exit.
-    originalDir = process.cwd();
-    process.chdir("./src/tests/unit-tests");
-});
-
-afterAll(() => {
-    process.chdir(originalDir);
-});
-
 Object.defineProperty(window, "matchMedia", {
     writable: true,
     value: jest.fn().mockImplementation((query: unknown) => {
@@ -105,4 +93,16 @@ Object.defineProperty(global.self, "DOMRect", {
             left: x ?? 0,
         } as DOMRect;
     }),
+});
+
+let originalDir: string;
+
+beforeAll(() => {
+    // Keep the current dir to restore it on exit.
+    originalDir = process.cwd();
+    process.chdir("./src/tests/unit-tests");
+});
+
+afterAll(() => {
+    process.chdir(originalDir);
 });

@@ -72,6 +72,7 @@
         "vsix"
     ],
     "ignoreWords": [
+        "Divs",
         "Xexact",
         "all",
         "armscii",
@@ -80,7 +81,6 @@
         "camelcase",
         "certfile",
         "dbconnections",
-        "Divs",
         "eucjpms",
         "geostd",
         "immediates",
@@ -90,6 +90,7 @@
         "macce",
         "multiselect",
         "mysqlsh",
+        "nocolor",
         "nopager",
         "nowarnings",
         "ocimds",
