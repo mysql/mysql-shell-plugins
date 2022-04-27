@@ -3535,26 +3535,26 @@ fieldDefinition:
 columnAttribute:
     NOT_SYMBOL? nullLiteral
     | {this.serverVersion >= 80014}? NOT_SYMBOL SECONDARY_SYMBOL
-    | DEFAULT_SYMBOL (
+    | value = DEFAULT_SYMBOL (
         {this.serverVersion < 80024}? signedLiteral
         | {this.serverVersion >= 80024}? nowOrSignedLiteral
         | NOW_SYMBOL timeFunctionParameters?
         | {this.serverVersion >= 80013}? exprWithParentheses
     )
-    | ON_SYMBOL UPDATE_SYMBOL NOW_SYMBOL timeFunctionParameters?
-    | AUTO_INCREMENT_SYMBOL
-    | SERIAL_SYMBOL DEFAULT_SYMBOL VALUE_SYMBOL
-    | PRIMARY_SYMBOL? KEY_SYMBOL
-    | UNIQUE_SYMBOL KEY_SYMBOL?
-    | COMMENT_SYMBOL textLiteral
+    | value = ON_SYMBOL UPDATE_SYMBOL NOW_SYMBOL timeFunctionParameters?
+    | value = AUTO_INCREMENT_SYMBOL
+    | value = SERIAL_SYMBOL DEFAULT_SYMBOL VALUE_SYMBOL
+    | PRIMARY_SYMBOL? value = KEY_SYMBOL
+    | value = UNIQUE_SYMBOL KEY_SYMBOL?
+    | value = COMMENT_SYMBOL textLiteral
     | collate
-    | COLUMN_FORMAT_SYMBOL columnFormat
-    | STORAGE_SYMBOL storageMedia
-    | SRID_SYMBOL real_ulonglong_number
+    | value = COLUMN_FORMAT_SYMBOL columnFormat
+    | value = STORAGE_SYMBOL storageMedia
+    | value = SRID_SYMBOL real_ulonglong_number
     | {this.serverVersion >= 80017}? constraintName? checkConstraint
     | {this.serverVersion >= 80017}? constraintEnforcement
-    | {this.serverVersion >= 80024}? ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
-    | {this.serverVersion >= 80024}? SECONDARY_ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
+    | {this.serverVersion >= 80024}? value = ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
+    | {this.serverVersion >= 80024}? value = SECONDARY_ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
     | {this.serverVersion >= 80024}? visibility
 ;
 
@@ -3602,6 +3602,7 @@ references:
 deleteOption:
     (RESTRICT_SYMBOL | CASCADE_SYMBOL)
     | SET_SYMBOL nullLiteral
+    | SET_SYMBOL DEFAULT_SYMBOL
     | NO_SYMBOL ACTION_SYMBOL
 ;
 
@@ -3790,28 +3791,28 @@ createTableOptionsSpaceSeparated:
 ;
 
 createTableOption: // In the order as they appear in the server grammar.
-    ENGINE_SYMBOL EQUAL_OPERATOR? engineRef
-    | {this.serverVersion >= 80014}? SECONDARY_ENGINE_SYMBOL equal? (
+    option = ENGINE_SYMBOL EQUAL_OPERATOR? engineRef
+    | {this.serverVersion >= 80014}? option = SECONDARY_ENGINE_SYMBOL equal? (
         NULL_SYMBOL
         | textOrIdentifier
     )
-    | MAX_ROWS_SYMBOL EQUAL_OPERATOR? ulonglong_number
-    | MIN_ROWS_SYMBOL EQUAL_OPERATOR? ulonglong_number
-    | AVG_ROW_LENGTH_SYMBOL EQUAL_OPERATOR? ulonglong_number
-    | PASSWORD_SYMBOL EQUAL_OPERATOR? textStringLiteral
-    | COMMENT_SYMBOL EQUAL_OPERATOR? textStringLiteral
-    | COMPRESSION_SYMBOL EQUAL_OPERATOR? textString
-    | ENCRYPTION_SYMBOL EQUAL_OPERATOR? textString
-    | AUTO_INCREMENT_SYMBOL EQUAL_OPERATOR? ulonglong_number
-    | PACK_KEYS_SYMBOL EQUAL_OPERATOR? ternaryOption
-    | (
+    | option = MAX_ROWS_SYMBOL EQUAL_OPERATOR? ulonglong_number
+    | option = MIN_ROWS_SYMBOL EQUAL_OPERATOR? ulonglong_number
+    | option = AVG_ROW_LENGTH_SYMBOL EQUAL_OPERATOR? ulonglong_number
+    | option = PASSWORD_SYMBOL EQUAL_OPERATOR? textStringLiteral
+    | option = COMMENT_SYMBOL EQUAL_OPERATOR? textStringLiteral
+    | option = COMPRESSION_SYMBOL EQUAL_OPERATOR? textString
+    | option = ENCRYPTION_SYMBOL EQUAL_OPERATOR? textString
+    | option = AUTO_INCREMENT_SYMBOL EQUAL_OPERATOR? ulonglong_number
+    | option = PACK_KEYS_SYMBOL EQUAL_OPERATOR? ternaryOption
+    | option = (
         STATS_AUTO_RECALC_SYMBOL
         | STATS_PERSISTENT_SYMBOL
         | STATS_SAMPLE_PAGES_SYMBOL
     ) EQUAL_OPERATOR? ternaryOption
-    | (CHECKSUM_SYMBOL | TABLE_CHECKSUM_SYMBOL) EQUAL_OPERATOR? ulong_number
-    | DELAY_KEY_WRITE_SYMBOL EQUAL_OPERATOR? ulong_number
-    | ROW_FORMAT_SYMBOL EQUAL_OPERATOR? format = (
+    | option = (CHECKSUM_SYMBOL | TABLE_CHECKSUM_SYMBOL) EQUAL_OPERATOR? ulong_number
+    | option = DELAY_KEY_WRITE_SYMBOL EQUAL_OPERATOR? ulong_number
+    | option = ROW_FORMAT_SYMBOL EQUAL_OPERATOR? format = (
         DEFAULT_SYMBOL
         | DYNAMIC_SYMBOL
         | FIXED_SYMBOL
@@ -3819,23 +3820,23 @@ createTableOption: // In the order as they appear in the server grammar.
         | REDUNDANT_SYMBOL
         | COMPACT_SYMBOL
     )
-    | UNION_SYMBOL EQUAL_OPERATOR? OPEN_PAR_SYMBOL tableRefList CLOSE_PAR_SYMBOL
+    | option = UNION_SYMBOL EQUAL_OPERATOR? OPEN_PAR_SYMBOL tableRefList CLOSE_PAR_SYMBOL
     | defaultCharset
     | defaultCollation
-    | INSERT_METHOD_SYMBOL EQUAL_OPERATOR? method = (
+    | option = INSERT_METHOD_SYMBOL EQUAL_OPERATOR? method = (
         NO_SYMBOL
         | FIRST_SYMBOL
         | LAST_SYMBOL
     )
-    | DATA_SYMBOL DIRECTORY_SYMBOL EQUAL_OPERATOR? textString
-    | INDEX_SYMBOL DIRECTORY_SYMBOL EQUAL_OPERATOR? textString
-    | TABLESPACE_SYMBOL EQUAL_OPERATOR? identifier
-    | STORAGE_SYMBOL (DISK_SYMBOL | MEMORY_SYMBOL)
-    | CONNECTION_SYMBOL EQUAL_OPERATOR? textString
-    | KEY_BLOCK_SIZE_SYMBOL EQUAL_OPERATOR? ulonglong_number
-    | {this.serverVersion >= 80024}? START_SYMBOL TRANSACTION_SYMBOL
-    | {this.serverVersion >= 80024}? ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
-    | {this.serverVersion >= 80024}? SECONDARY_ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
+    | option = DATA_SYMBOL DIRECTORY_SYMBOL EQUAL_OPERATOR? textString
+    | option = INDEX_SYMBOL DIRECTORY_SYMBOL EQUAL_OPERATOR? textString
+    | option = TABLESPACE_SYMBOL EQUAL_OPERATOR? identifier
+    | option = STORAGE_SYMBOL (DISK_SYMBOL | MEMORY_SYMBOL)
+    | option = CONNECTION_SYMBOL EQUAL_OPERATOR? textString
+    | option = KEY_BLOCK_SIZE_SYMBOL EQUAL_OPERATOR? ulonglong_number
+    | {this.serverVersion >= 80024}? option = START_SYMBOL TRANSACTION_SYMBOL
+    | {this.serverVersion >= 80024}? option = ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
+    | {this.serverVersion >= 80024}? option = SECONDARY_ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
     | {this.serverVersion >= 80024}? tsOptionAutoextendSize
 ;
 
