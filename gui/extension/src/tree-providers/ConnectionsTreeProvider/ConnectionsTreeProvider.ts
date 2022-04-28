@@ -117,6 +117,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         }
 
         if (element instanceof AdminTreeItem) {
+            const performanceDashboardCommand = {
+                title: "Show Performance Dashboard",
+                command: "msg.showPerformanceDashboard",
+                arguments: [element.entry],
+            };
+
             return [
                 new AdminSectionTreeItem(
                     "Server Status", "", element.entry, false, "adminServerStatus.svg",
@@ -131,11 +137,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 new AdminSectionTreeItem("Server Configuration", "", element.entry, false, "window.svg"),
                 new AdminSectionTreeItem("Status and System Variables", "", element.entry, false, "window.svg"),
                 new AdminSectionTreeItem("Performance Dashboard", "", element.entry, false,
-                    "adminPerformanceDashboard.svg", {
-                        title: "Show Performance Dashboard",
-                        command: "msg.showPerformanceDashboard",
-                        arguments: [element.entry],
-                    }),
+                    "adminPerformanceDashboard.svg", performanceDashboardCommand),
                 new AdminSectionTreeItem("Performance Reports", "", element.entry, false, "window.svg"),
             ];
         }
@@ -331,7 +333,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                     // Before opening the connection check the DB file, if this is an sqlite connection.
                     if (entry.backend && entry.details.dbType === DBType.Sqlite) {
                         const options = entry.details.options as ISqliteConnectionOptions;
-                        entry.backend.validatePath(options.dbFile).then(() => {
+                        ShellInterface.core.validatePath(options.dbFile).then(() => {
                             this.openNewConnection(entry).then((items) => {
                                 resolve(items);
                             }).catch((reason) => {
@@ -340,7 +342,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                         }).catch(() => {
                             // If the path is not ok then we might have to create the DB file first.
                             if (entry.backend) {
-                                entry.backend.createDatabaseFile(options.dbFile).then(() => {
+                                ShellInterface.core.createDatabaseFile(options.dbFile).then(() => {
                                     this.openNewConnection(entry).then((items) => {
                                         resolve(items);
                                     }).catch((reason) => {

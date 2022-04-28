@@ -43,6 +43,13 @@ export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit
 export type JestReactWrapper<P = {}, S = unknown> =
     ReactWrapper<Readonly<P> & Readonly<{ children?: React.ReactNode }>, Readonly<S>>;
 
+export interface ITestDbCredentials {
+    userName: string;
+    port: number;
+    host: string;
+    password?: string;
+}
+
 const createResponse = (type: string, msg: string, requestId?: string,
     data?: IShellDictionary): IGenericResponse => {
 
@@ -465,6 +472,7 @@ export const sendRightClick = (element: Element): void => {
 /**
  * Helper method to launch a MySQL Shell for a test suite and wait for it until it's fully up.
  *
+ * @param testId A unique ID to identify a test suite, which is used to customize the user data dir name.
  * @param showOutput If true then the shell output will be printed to the console (inline). Errors are always displayed.
  * @param handleEvents If this parameter is true, the function also subscribes to serverResponse and webSession events
  *                     to trigger authentication and waits until a profile is loaded. If false, the caller has to take
@@ -473,27 +481,29 @@ export const sendRightClick = (element: Element): void => {
  *
  * @returns A promise resolving to the created shell launcher. Use this to shut down the shell process when done.
  */
-export const setupShellForTests = (showOutput: boolean, handleEvents = true,
+export const setupShellForTests = (testId: string, showOutput: boolean, handleEvents = true,
     logLevel?: LogLevel): Promise<MySQLShellLauncher> => {
+    const targetDir = testId + "-shell-test";
+
     return new Promise((resolve, reject) => {
         try {
             // Clean up a left-over user dir, if there's one.
-            if (existsSync("shell-test")) {
-                rmSync("shell-test", { recursive: true, force: true });
+            if (existsSync(targetDir)) {
+                rmSync(targetDir, { recursive: true, force: true });
             }
 
             // Now create that folder again and add links to the shell plugins.
-            mkdirSync("shell-test/plugins", { recursive: true });
-            symlinkSync(path.resolve("../../../../backend/gui_plugin"), "shell-test/plugins/gui_plugin");
-            symlinkSync(path.resolve("../../../../../mrs_plugin"), "shell-test/plugins/mrs_plugin");
-            symlinkSync(path.resolve("../../../../../mds_plugin"), "shell-test/plugins/mds_plugin");
+            mkdirSync(targetDir + "/plugins", { recursive: true });
+            symlinkSync(path.resolve("../../../../backend/gui_plugin"), targetDir + "/plugins/gui_plugin");
+            symlinkSync(path.resolve("../../../../../mrs_plugin"), targetDir + "/plugins/mrs_plugin");
+            symlinkSync(path.resolve("../../../../../mds_plugin"), targetDir + "/plugins/mds_plugin");
 
             // And create a web root link in the gui_plugin, if not yet done.
-            if (!existsSync("shell-test/plugins/gui_plugin/core/webroot")) {
-                symlinkSync(path.resolve("../../../build"), "shell-test/plugins/gui_plugin/core/webroot");
+            if (!existsSync(targetDir + "/plugins/gui_plugin/core/webroot")) {
+                symlinkSync(path.resolve("../../../build"), targetDir + "/plugins/gui_plugin/core/webroot");
             }
 
-            appParameters.set("shellUserConfigDir", path.resolve("shell-test"));
+            appParameters.set("shellUserConfigDir", path.resolve(targetDir));
         } catch (error) {
             reject(error);
 
@@ -510,7 +520,7 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
                 console.error(`\nError while setting up MySQL Shell connection: ${error.message}\n`);
             },
             () => { // Called on exit of the shell process.
-                // rmSync("shell-test", { recursive: true, force: true });
+                rmSync(targetDir, { recursive: true, force: true });
             },
         );
 
@@ -561,3 +571,18 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
         }
     });
 };
+
+/**
+ * @returns a set of DB credentials for tests.
+ */
+export const getDbCredentials = (): ITestDbCredentials => {
+    return {
+        // cspell:ignore DBUSERNAME DBPASSWORD DBHOST DBPORT
+        userName: process.env.DBUSERNAME ?? "root",
+        password: process.env.DBPASSWORD ?? "",
+        host: process.env.DBHOST ?? "localhost",
+        port: process.env.DBPORT ? parseInt(process.env.DBPORT, 10) : 3306,
+    };
+};
+
+export const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

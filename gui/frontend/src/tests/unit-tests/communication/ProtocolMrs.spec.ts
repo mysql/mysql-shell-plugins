@@ -24,23 +24,23 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { IShellRequest, ProtocolMrs, ShellAPIMrs } from "../../../communication";
+import { uuidPattern } from "../test-helpers";
 
-const testStandardFields = (result: IShellRequest, command: unknown, args: unknown): void => {
-    expect(result.request_id).toEqual("98888888-9888-4888-0888-988888888888");
-    expect(result.request).toEqual("execute");
-    expect(result.args).toEqual(args);
-    expect(result.command).toEqual(command);
-};
+describe("ProtocolMrs Tests", (): void => {
+    const testStandardFields = (result: IShellRequest, command: unknown, args: unknown): void => {
+        expect(result.request_id).toMatch(uuidPattern);
+        expect(result.request).toEqual("execute");
+        expect(result.args).toEqual(args);
+        expect(result.command).toEqual(command);
+    };
 
-const testStandardFieldsWithKwArgs = (result: IShellRequest, command: unknown, kwargs: unknown): void => {
-    expect(result.request_id).toEqual("98888888-9888-4888-0888-988888888888");
-    expect(result.request).toEqual("execute");
-    expect(result.args).toEqual({});
-    expect(result.kwargs).toEqual(kwargs);
-    expect(result.command).toEqual(command);
-};
-
-describe("ProtocolMds tests", (): void => {
+    const testStandardFieldsWithKwArgs = (result: IShellRequest, command: unknown, kwargs: unknown): void => {
+        expect(result.request_id).toMatch(uuidPattern);
+        expect(result.request).toEqual("execute");
+        expect(result.args).toEqual({});
+        expect(result.kwargs).toEqual(kwargs);
+        expect(result.command).toEqual(command);
+    };
 
     it("Test functions with undefined input", () => {
         let result = ProtocolMrs.getRequestAddService();

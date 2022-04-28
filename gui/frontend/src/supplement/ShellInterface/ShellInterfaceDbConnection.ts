@@ -24,7 +24,7 @@
 import { ProtocolGui, currentConnection, IShellDbConnection, IShellDictionary } from "../../communication";
 import { ListenerEntry } from "../Dispatch";
 import { IConnectionDetails, IShellInterface } from ".";
-import { convertToSnakeCase } from "../../utilities/helpers";
+import { convertCamelToSnakeCase } from "../../utilities/helpers";
 
 // Interface for connection management.
 export class ShellInterfaceDbConnection implements IShellInterface {
@@ -45,12 +45,12 @@ export class ShellInterfaceDbConnection implements IShellInterface {
             dbType: connection.dbType,
             caption: connection.caption,
             description: connection.description,
-            options: convertToSnakeCase(connection.options) as IShellDictionary,
+            options: convertCamelToSnakeCase(connection.options) as IShellDictionary,
         };
 
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsAddDbConnection(profileId,
-            conn, folderPath),
-        { messageClass: "addDbConnection" });
+        return currentConnection.sendRequest(
+            ProtocolGui.getRequestDbconnectionsAddDbConnection(profileId, conn, folderPath),
+            { messageClass: "addDbConnection" });
     }
 
     /**
@@ -66,12 +66,12 @@ export class ShellInterfaceDbConnection implements IShellInterface {
             dbType: connection.dbType,
             caption: connection.caption,
             description: connection.description,
-            options: convertToSnakeCase(connection.options) as IShellDictionary,
+            options: convertCamelToSnakeCase(connection.options) as IShellDictionary,
         };
 
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsUpdateDbConnection(profileId,
-            connection.id, conn),
-        { messageClass: "updateDbConnection" });
+        return currentConnection.sendRequest(
+            ProtocolGui.getRequestDbconnectionsUpdateDbConnection(profileId, connection.id, conn),
+            { messageClass: "updateDbConnection" });
     }
 
     /**
@@ -83,9 +83,9 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      * @returns A listener for the response.
      */
     public removeDbConnection(profileId: number, connectionId: number): ListenerEntry {
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsRemoveDbConnection(profileId,
-            connectionId),
-        { messageClass: "removeDbConnection" });
+        return currentConnection.sendRequest(
+            ProtocolGui.getRequestDbconnectionsRemoveDbConnection(profileId, connectionId),
+            { messageClass: "removeDbConnection" });
     }
 
     /**
@@ -97,9 +97,9 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      * @returns A listener for the response.
      */
     public listDbConnections(profileId: number, folderPath: string): ListenerEntry {
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsListDbConnections(profileId,
-            folderPath),
-        { messageClass: "listDbConnections" });
+        return currentConnection.sendRequest(
+            ProtocolGui.getRequestDbconnectionsListDbConnections(profileId, folderPath),
+            { messageClass: "listDbConnections" });
     }
 
     /**

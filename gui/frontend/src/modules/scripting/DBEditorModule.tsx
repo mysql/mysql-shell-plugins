@@ -608,14 +608,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         // Before opening the connection check the DB file, if this is an sqlite connection.
                         if (connection.dbType === DBType.Sqlite) {
                             const options = connection.options as ISqliteConnectionOptions;
-                            backend.validatePath(options.dbFile).then(() => {
+                            ShellInterface.core.validatePath(options.dbFile).then(() => {
                                 void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
                                     .then((success) => {
                                         handleOutcome(success);
                                     });
                             }).catch(() => {
                                 // If the path is not ok then we might have to create the DB file first.
-                                backend.createDatabaseFile(options.dbFile).then(() => {
+                                ShellInterface.core.createDatabaseFile(options.dbFile).then(() => {
                                     void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
                                         .then(() => {
                                             resolve(true);

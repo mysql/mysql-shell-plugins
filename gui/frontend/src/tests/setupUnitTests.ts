@@ -55,16 +55,6 @@ Object.defineProperty(window, "location", {
     },
 });
 
-Object.defineProperty(global.self, "crypto", {
-    value: {
-        getRandomValues: (arr: Uint8Array): Uint8Array => {
-            arr[0] = 8;
-
-            return arr;
-        },
-    },
-});
-
 Object.defineProperty(global.self, "DOMPoint", {
     writable: true,
     value: jest.fn().mockImplementation((x?: number, y?: number, z?: number, w?: number) => {

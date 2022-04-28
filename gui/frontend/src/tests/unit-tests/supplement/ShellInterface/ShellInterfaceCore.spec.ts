@@ -21,28 +21,30 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { platform, arch } from "os";
+import { existsSync, mkdirSync, rmSync } from "fs";
+import { platform, arch, homedir } from "os";
 
-import { ShellInterface } from "../../../../supplement/ShellInterface";
+import { ShellInterface, ShellInterfaceCore } from "../../../../supplement/ShellInterface";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { setupShellForTests } from "../../test-helpers";
 
 describe("ShellInterfaceCore Tests", () => {
     let launcher: MySQLShellLauncher;
+    let core: ShellInterfaceCore;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG3");
+        launcher = await setupShellForTests("ShellInterfaceCore", false, true, "DEBUG3");
+
+        // All available interfaces from the ShellInterface interface are singletons.
+        core = ShellInterface.core;
+        expect(core).toBeDefined();
     });
 
     afterAll(async () => {
         await launcher.exitProcess();
     });
 
-    it("Backend Informations", async () => {
-        // All available interfaces from the ShellInterface interface are singletons.
-        const core = ShellInterface.core;
-        expect(core).toBeDefined();
-
+    it("Backend information", async () => {
         const info = await core.backendInformation;
 
         switch (platform()) {
@@ -95,4 +97,51 @@ describe("ShellInterfaceCore Tests", () => {
         expect(info.minor).toBe(0);
     });
 
+    it("Log levels", async () => {
+        let level = await core.getLogLevel();
+        expect(level).toBe("DEBUG3"); // What we set when launching the shell.
+
+        await core.setLogLevel("INFO");
+        level = await core.getLogLevel();
+        expect(level).toBe("INFO");
+    });
+
+    it("DB types", async () => {
+        const types = await core.getDbTypes();
+        expect(types).toStrictEqual(["Sqlite", "MySQL"]);
+    });
+
+    it("Validate path", async () => {
+        let result = await core.validatePath("::");
+        expect(result).toBeFalsy();
+
+        result = await core.validatePath(""); // Resolves to the user's home dir.
+        expect(result).toBeTruthy();
+
+        // Absolute paths are valid anywhere.
+        result = await core.validatePath(__dirname);
+        expect(result).toBeTruthy();
+
+        result = await core.validatePath(__dirname + "/non-existing");
+        expect(result).toBeFalsy();
+    });
+
+    it("Create DB file", async () => {
+        // Relative paths use the user's home dir as basis.
+        await expect(core.createDatabaseFile("non-existing/test.sqlite3")).rejects
+            .toBe("No permissions to access the directory.");
+        expect(existsSync("non-existing/test.sqlite3")).toBeFalsy();
+
+        const home = homedir();
+        if (existsSync(home + "/local-test")) {
+            // Maybe the folder is left over from a previous run.
+            rmSync(home + "/local-test", { force: true, recursive: true });
+        }
+        mkdirSync(home + "/local-test");
+        await core.createDatabaseFile("local-test/test.sqlite3");
+        expect(existsSync("local-test/test.sqlite3")).toBeFalsy();
+        expect(existsSync(home + "/local-test/test.sqlite3")).toBeTruthy();
+
+        rmSync(home + "/local-test", { force: true, recursive: true });
+    });
 });
