@@ -24,15 +24,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { ProtocolGui, ShellAPIGui, ShellPromptResponseType, IShellRequest } from "../../../communication";
+import { uuidPattern } from "../test-helpers";
 
 const moduleSessionId = "Lorem Ipsum Dolor Sit Amet";
 
 describe("ProtocolGui file tests", (): void => {
-
     const testStandardFields = (result: IShellRequest, command: unknown, args: unknown): void => {
-        // Note: in setupTests.ts a function is defined for crypt.getRandomValues(), which is used to generate
-        //       uuids. This way we can generate the same UUID all the time.
-        expect(result.request_id).toEqual("98888888-9888-4888-0888-988888888888");
+        expect(result.request_id).toMatch(uuidPattern);
         expect(result.request).toEqual("execute");
         expect(result.args).toEqual(args);
         expect(result.command).toEqual(command);
@@ -43,9 +41,7 @@ describe("ProtocolGui file tests", (): void => {
     };
 
     const testStandardFieldsWithKwArgs = (result: IShellRequest, command: unknown, kwargs: unknown): void => {
-        // Note: in setupTests.ts a function is defined for crypt.getRandomValues(), which is used to generate
-        //       uuids. This way we can generate the same UUID all the time.
-        expect(result.request_id).toEqual("98888888-9888-4888-0888-988888888888");
+        expect(result.request_id).toMatch(uuidPattern);
         expect(result.request).toEqual("execute");
         expect(result.args).toEqual({});
         expect(result.kwargs).toEqual(kwargs);

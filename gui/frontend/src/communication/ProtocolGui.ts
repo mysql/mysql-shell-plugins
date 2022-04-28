@@ -22,6 +22,7 @@
  */
 
 import { Protocol, IShellRequest, IShellDictionary } from ".";
+import { convertCamelToSnakeCase } from "../utilities/helpers";
 
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -2054,7 +2055,7 @@ export class ProtocolGui extends Protocol {
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbStartSession,
             {
                 args: {
-                    connection,
+                    connection: typeof connection === "number" ? connection : convertCamelToSnakeCase(connection),
                     password,
                 },
             });

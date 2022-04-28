@@ -46,7 +46,7 @@ describe("Communication events tests", () => {
 
         const event = CommunicationEvents.generateWebSessionEvent(data);
         expect(event).toStrictEqual<IDispatchEvent<IWebSessionData>>({
-            id: "98888888-9888-4888-0888-988888888888",
+            id: expect.any(String),
             data,
             context: {
                 messageClass: "webSession",
@@ -148,8 +148,8 @@ describe("Communication events tests", () => {
         };
 
         const event = CommunicationEvents.generateRequestEvent(request);
-        expect(event).toStrictEqual({
-            id: "98888888-9888-4888-0888-988888888888",
+        expect(event).toStrictEqual<IDispatchEvent<IShellRequest>>({
+            id: expect.any(String),
             eventType: EventType.Request,
             data: request,
             message: "",

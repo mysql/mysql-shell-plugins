@@ -1930,11 +1930,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 // Before opening the connection check the DB file, if this is an sqlite connection.
                 if (details.dbType === DBType.Sqlite) {
                     const options = details.options as ISqliteConnectionOptions;
-                    backend.validatePath(options.dbFile).then(() => {
+                    ShellInterface.core.validatePath(options.dbFile).then(() => {
                         void this.testOpenConnection(backend, details);
                     }).catch(() => {
                         // If the path is not ok then we might have to create the DB file first.
-                        backend.createDatabaseFile(options.dbFile).then(() => {
+                        ShellInterface.core.createDatabaseFile(options.dbFile).then(() => {
                             void this.testOpenConnection(backend, details);
                         }).catch((errorEvent: ICommErrorEvent) => {
                             void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);

@@ -41,7 +41,7 @@ import {
 } from "../../communication";
 import { ICodeEditorOptions, Monaco } from "../ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
-import { convertToSnakeCase, sleep, strictEval } from "../../utilities/helpers";
+import { convertCamelToSnakeCase, sleep, strictEval } from "../../utilities/helpers";
 import { requisitions } from "../../supplement/Requisitions";
 import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor";
 import { IDictionary } from "../../app-logic/Types";
@@ -120,7 +120,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             this.handleEvent(event);
         }).catch((event: IDispatchEvent) => {
             this.printOutput("ws.lastResponse = " +
-                JSON.stringify(convertToSnakeCase(event.data as object), undefined, 4) + ";\n", OutputType.Error);
+                JSON.stringify(convertCamelToSnakeCase(event.data as object), undefined, 4) + ";\n", OutputType.Error);
         });
 
         // In order to keep all text in the editor, even if the debugger is updated, we use 2 editor models.
@@ -697,7 +697,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         switch (event.eventType) {
             case EventType.Request: {
                 // A request sent to the server.
-                const converted = convertToSnakeCase(event.data as object);
+                const converted = convertCamelToSnakeCase(event.data as object);
                 this.printOutput("ws.send(" + JSON.stringify(converted, undefined, 4) + ");\n", OutputType.Command);
 
                 break;
@@ -727,7 +727,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
 
                         if (!debuggerValidate) {
                             // Don't print responses while doing a debugger validation run.
-                            const converted = convertToSnakeCase(event.data as object);
+                            const converted = convertCamelToSnakeCase(event.data as object);
                             if (event.data.output) {
                                 this.printOutput((event.data.output as string) + "\n");
                             } else {

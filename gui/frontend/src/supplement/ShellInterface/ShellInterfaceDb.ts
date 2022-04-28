@@ -23,10 +23,10 @@
 
 import { IShellInterface } from ".";
 import {
-    currentConnection, ICommErrorEvent, ICommObjectNamesEvent, ICommSimpleResultEvent, ICommStartSessionEvent,
-    ProtocolGui, ShellAPIGui, ShellPromptResponseType,
+    currentConnection, ICommErrorEvent, ICommObjectNamesEvent, ICommStartSessionEvent, IShellDbConnection,
+    ProtocolGui, ShellAPIGui,
 } from "../../communication";
-import { EventType, IDispatchEvent, ListenerEntry } from "../Dispatch";
+import { EventType } from "../Dispatch";
 import { webSession } from "../WebSession";
 
 export type RoutineType = "function" | "procedure";
@@ -38,31 +38,33 @@ export class ShellInterfaceDb implements IShellInterface {
     protected moduleSessionLookupId = "";
 
     public get id(): string {
-        return "sqlEditor";
+        return "dbSession";
     }
 
     /**
      * Starts a simple DB session for certain DB object related work.
      *
      * @param id A unique ID to identify this session.
-     * @param connectionId The SQL
+     * @param connection Either the ID of a stored DB editor connection or a set of credentials for an ad hoc
+     *                   connection.
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public startSession(id: string, connectionId: number): Promise<void> {
+    public startSession(id: string, connection: number | IShellDbConnection): Promise<void> {
         this.moduleSessionLookupId = this.id + "." + id;
 
         return new Promise((resolve, reject) => {
-            const request = ProtocolGui.getRequestDbStartSession(connectionId);
+            const request = ProtocolGui.getRequestDbStartSession(connection);
             const listener = currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbStartSession });
             listener.then((event: ICommStartSessionEvent) => {
-                if (event.data) {
+                // istanbul ignore else
+                if (event.eventType === EventType.FinalResponse) {
                     const id = event.data.moduleSessionId;
                     webSession.setModuleSessionId(this.moduleSessionLookupId, id);
 
                     resolve();
                 }
-            }).catch((event: ICommErrorEvent) => {
+            }).catch(/* istanbul ignore next */(event: ICommErrorEvent) => {
                 reject(event.message);
             });
 
@@ -77,6 +79,7 @@ export class ShellInterfaceDb implements IShellInterface {
     public closeSession(): Promise<void> {
         return new Promise((resolve, reject) => {
             const id = this.moduleSessionId;
+
             if (!id) {
                 resolve();
             } else {
@@ -84,7 +87,7 @@ export class ShellInterfaceDb implements IShellInterface {
                 currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbCloseSession }).then(() => {
                     webSession.setModuleSessionId(this.moduleSessionLookupId);
                     resolve();
-                }).catch((event: ICommErrorEvent) => {
+                }).catch(/* istanbul ignore next */(event: ICommErrorEvent) => {
                     reject(event.message);
                 });
             }
@@ -102,6 +105,7 @@ export class ShellInterfaceDb implements IShellInterface {
     public getCatalogObjects(type: string, filter?: string): Promise<string[]> {
         return new Promise((resolve, reject) => {
             const id = this.moduleSessionId;
+
             if (!id) {
                 resolve([]);
             } else {
@@ -116,7 +120,7 @@ export class ShellInterfaceDb implements IShellInterface {
                         if (event.eventType === EventType.FinalResponse) {
                             resolve(names);
                         }
-                    }).catch((event: ICommErrorEvent) => {
+                    }).catch(/* istanbul ignore next */(event: ICommErrorEvent) => {
                         reject(event.message);
                     });
             }
@@ -194,171 +198,6 @@ export class ShellInterfaceDb implements IShellInterface {
         });
     }
 
-    /**
-     * Sets the auto commit mode for the current connection.
-     * Note: this mode can implicitly be changed by executing certain SQL code (begin, set autocommit, rollback, etc.).
-     *
-     * @param value A flag indicating if the mode should be enabled or disabled.
-     *
-     * @returns A promise which resolves when the operation was concluded.
-     */
-    public setAutoCommit(value: boolean): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                return resolve();
-            }
-
-            const request = ProtocolGui.getRequestSqleditorSetAutoCommit(id, value);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetAutoCommit })
-                .then((event: ICommSimpleResultEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve();
-                    }
-                })
-                .catch((event) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    /**
-     * Returns the current auto commit mode, if supported.
-     *
-     * @returns A promise which resolves when the operation was concluded.
-     */
-    public getAutoCommit(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                return resolve(false);
-            }
-
-            const request = ProtocolGui.getRequestSqleditorGetAutoCommit(id);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetAutoCommit })
-                .then((event: ICommSimpleResultEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve((event.data?.result as number) !== 0);
-                    }
-                })
-                .catch((event) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    /**
-     * Checks if the given path is valid and points to an existing file.
-     *
-     * @param path The path to check.
-     *
-     * @returns A promise which resolves when the operation was concluded.
-     */
-    public validatePath(path: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            const request = ProtocolGui.getRequestCoreValidatePath(path);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreValidatePath })
-                .then((event: IDispatchEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve(true);
-                    }
-                }).catch(() => {
-                    // Intentionally not using `reject` here, as we expect an error if the given path is wrong.
-                    resolve(false);
-                });
-        });
-    }
-
-    /**
-     * Creates the database file for an sqlite3 connection. The file must not exist yet.
-     *
-     * @param path The path to the file to create.
-     *
-     * @returns A promise which resolves when the operation was concluded.
-     */
-    public createDatabaseFile(path: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const request = ProtocolGui.getRequestCoreCreateFile(path);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreCreateFile })
-                .then((event: IDispatchEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve();
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    /**
-     * Returns the current default schema, if supported.
-     *
-     * @returns A promise which resolves when the operation was concluded.
-     */
-    public getCurrentSchema(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                return resolve("");
-            }
-
-            const request = ProtocolGui.getRequestSqleditorGetCurrentSchema(id);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetCurrentSchema })
-                .then((event: ICommSimpleResultEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve(event.data ? event.data.result as string : "");
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    /**
-     * Sets the current default schema, if supported.
-     *
-     * @param schema The schema to set as the default.
-     *
-     * @returns A promise which resolves when the operation was concluded.
-     */
-    public setCurrentSchema(schema: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                return resolve();
-            }
-
-            const request = ProtocolGui.getRequestSqleditorSetCurrentSchema(id, schema);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetCurrentSchema })
-                .then((event: ICommSimpleResultEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve();
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    /**
-     * Sends a reply from the user back to the backend (e.g. passwords, choices etc.).
-     *
-     * @param requestId The same request ID that was used to request input from the user.
-     * @param type Indicates if the user accepted the request or cancelled it.
-     * @param reply The reply from the user.
-     *
-     * @returns A listener for the response.
-     */
-    public sendReply(requestId: string, type: ShellPromptResponseType, reply: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
-        }
-
-        const request = ProtocolGui.getRequestPromptReply(requestId, type, reply, id);
-
-        return currentConnection.sendRequest(request, { messageClass: "sendReply" });
-    }
     protected get moduleSessionId(): string | undefined {
         return webSession.moduleSessionId(this.moduleSessionLookupId);
     }

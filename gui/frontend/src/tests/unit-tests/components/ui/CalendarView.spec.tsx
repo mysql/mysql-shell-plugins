@@ -30,7 +30,7 @@ import { snapshotFromWrapper } from "../../test-helpers";
 describe("CalendarView testing", () => {
 
     it("Calendar view test properties", () => {
-        const currentDate = new Date("2022-05-01");
+        const currentDate = new Date("2022-05-02");
         const component = mount(
             <CalendarView
                 date={currentDate}
@@ -44,7 +44,7 @@ describe("CalendarView testing", () => {
     });
 
     it("Render test", () => {
-        const currentDate = new Date("2022-05-01");
+        const currentDate = new Date("2022-05-02");
         const component = mount(
             <CalendarView
                 date={currentDate}

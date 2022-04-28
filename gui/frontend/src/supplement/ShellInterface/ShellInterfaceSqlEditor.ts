@@ -21,9 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ListenerEntry } from "../Dispatch";
+import { EventType, ListenerEntry } from "../Dispatch";
 import {
-    ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui,
+    ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ICommSimpleResultEvent,
+    ShellPromptResponseType,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
@@ -192,4 +193,126 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
         return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorKillQuery });
     }
 
+    /**
+     * Sets the auto commit mode for the current connection.
+     * Note: this mode can implicitly be changed by executing certain SQL code (begin, set autocommit, rollback, etc.).
+     *
+     * @param value A flag indicating if the mode should be enabled or disabled.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public setAutoCommit(value: boolean): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const id = this.moduleSessionId;
+            if (!id) {
+                return resolve();
+            }
+
+            const request = ProtocolGui.getRequestSqleditorSetAutoCommit(id, value);
+            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetAutoCommit })
+                .then((event: ICommSimpleResultEvent) => {
+                    if (event.eventType === EventType.FinalResponse) {
+                        resolve();
+                    }
+                })
+                .catch((event) => {
+                    reject(event.message);
+                });
+        });
+    }
+
+    /**
+     * Returns the current auto commit mode, if supported.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public getAutoCommit(): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const id = this.moduleSessionId;
+            if (!id) {
+                return resolve(false);
+            }
+
+            const request = ProtocolGui.getRequestSqleditorGetAutoCommit(id);
+            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetAutoCommit })
+                .then((event: ICommSimpleResultEvent) => {
+                    if (event.eventType === EventType.FinalResponse) {
+                        resolve((event.data?.result as number) !== 0);
+                    }
+                })
+                .catch((event) => {
+                    reject(event.message);
+                });
+        });
+    }
+
+    /**
+     * Returns the current default schema, if supported.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public getCurrentSchema(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const id = this.moduleSessionId;
+            if (!id) {
+                return resolve("");
+            }
+
+            const request = ProtocolGui.getRequestSqleditorGetCurrentSchema(id);
+            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetCurrentSchema })
+                .then((event: ICommSimpleResultEvent) => {
+                    if (event.eventType === EventType.FinalResponse) {
+                        resolve(event.data ? event.data.result as string : "");
+                    }
+                }).catch((event: ICommErrorEvent) => {
+                    reject(event.message);
+                });
+        });
+    }
+
+    /**
+     * Sets the current default schema, if supported.
+     *
+     * @param schema The schema to set as the default.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public setCurrentSchema(schema: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const id = this.moduleSessionId;
+            if (!id) {
+                return resolve();
+            }
+
+            const request = ProtocolGui.getRequestSqleditorSetCurrentSchema(id, schema);
+            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetCurrentSchema })
+                .then((event: ICommSimpleResultEvent) => {
+                    if (event.eventType === EventType.FinalResponse) {
+                        resolve();
+                    }
+                }).catch((event: ICommErrorEvent) => {
+                    reject(event.message);
+                });
+        });
+    }
+
+    /**
+     * Sends a reply from the user back to the backend (e.g. passwords, choices etc.).
+     *
+     * @param requestId The same request ID that was used to request input from the user.
+     * @param type Indicates if the user accepted the request or cancelled it.
+     * @param reply The reply from the user.
+     *
+     * @returns A listener for the response.
+     */
+    public sendReply(requestId: string, type: ShellPromptResponseType, reply: string): ListenerEntry {
+        const id = this.moduleSessionId;
+        if (!id) {
+            return ListenerEntry.resolve();
+        }
+
+        const request = ProtocolGui.getRequestPromptReply(requestId, type, reply, id);
+
+        return currentConnection.sendRequest(request, { messageClass: "sendReply" });
+    }
 }

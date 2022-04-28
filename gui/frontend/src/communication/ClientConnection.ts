@@ -28,7 +28,7 @@ import { appParameters, requisitions } from "../supplement/Requisitions";
 import {
     dispatcher, IDispatchEventContext, ListenerEntry, eventFilterNoRequests, DispatchEvents, EventType, IDispatchEvent,
 } from "../supplement/Dispatch";
-import { convertSnakeToCamelCase, convertToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../utilities/helpers";
+import { convertSnakeToCamelCase, convertCamelToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../utilities/helpers";
 import { IGenericResponse } from "./GeneralEvents";
 
 import ReconnectingWebSocket, { ErrorEvent, Options } from "reconnecting-websocket";
@@ -292,7 +292,7 @@ class ClientConnectionSingleton extends ClientConnection {
             const setLastResponse = (event: IDictionary): void => {
                 clearTimeout(timer);
                 if (!timedOut) { // Ignore results from timed-out responses.
-                    this.lastReceivedResponse = convertToSnakeCase(event.data as object) as IGenericResponse;
+                    this.lastReceivedResponse = convertCamelToSnakeCase(event.data as object) as IGenericResponse;
                     if ((event.data as IDictionary).moduleSessionId) {
                         this.lastReceivedModuleSessionId = (event.data as IDictionary).moduleSessionId as string;
                     }
@@ -411,7 +411,7 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
             this.sendRequest(request, { messageClass: "debuggerValidate" }).then((event: IDispatchEvent) => {
                 // Ignore any extraneous responses.
                 if (currentIndex < expected.length) {
-                    this.lastReceivedResponse = convertToSnakeCase(event.data as object) as IGenericResponse;
+                    this.lastReceivedResponse = convertCamelToSnakeCase(event.data as object) as IGenericResponse;
                     failed = failed ||
                         !this.validateResponse(this.lastReceivedResponse, expected[currentIndex], currentIndex++);
 
@@ -420,7 +420,7 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
                     }
                 }
             }).catch((event) => {
-                this.lastReceivedResponse = convertToSnakeCase(event.data as object) as IGenericResponse;
+                this.lastReceivedResponse = convertCamelToSnakeCase(event.data as object) as IGenericResponse;
                 failed = true;
 
                 // No error printout here. The debugger has a global event listener doing that.

@@ -244,7 +244,7 @@ export interface IConversionOptions {
  *
  * @returns A new object with the converted keys.
  */
-export const convertToSnakeCase = (o: object, options?: IConversionOptions): object => {
+export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
     return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
         const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
             return `${match1}_${match2.toLowerCase()}`;

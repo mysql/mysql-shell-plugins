@@ -24,24 +24,23 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { IShellRequest, ProtocolMds, ShellAPIMds } from "../../../communication";
-
-const testStandardFields = (result: IShellRequest, command: unknown, args: unknown): void => {
-    expect(result.request_id).toEqual("98888888-9888-4888-0888-988888888888");
-    expect(result.request).toEqual("execute");
-    expect(result.args).toEqual(args);
-    expect(result.command).toEqual(command);
-};
-
-const testStandardFieldsWithKwArgs = (result: IShellRequest, command: unknown, kwargs: unknown): void => {
-    expect(result.request_id).toEqual("98888888-9888-4888-0888-988888888888");
-    expect(result.request).toEqual("execute");
-    expect(result.args).toEqual({});
-    expect(result.kwargs).toEqual(kwargs);
-    expect(result.command).toEqual(command);
-};
-
+import { uuidPattern } from "../test-helpers";
 
 describe("ProtocolMds tests", (): void => {
+    const testStandardFields = (result: IShellRequest, command: unknown, args: unknown): void => {
+        expect(result.request_id).toMatch(uuidPattern);
+        expect(result.request).toEqual("execute");
+        expect(result.args).toEqual(args);
+        expect(result.command).toEqual(command);
+    };
+
+    const testStandardFieldsWithKwArgs = (result: IShellRequest, command: unknown, kwargs: unknown): void => {
+        expect(result.request_id).toMatch(uuidPattern);
+        expect(result.request).toEqual("execute");
+        expect(result.args).toEqual({});
+        expect(result.kwargs).toEqual(kwargs);
+        expect(result.command).toEqual(command);
+    };
 
     it("Test Oci profiles requests", () => {
         let result = ProtocolMds.getRequestGetRegions();
@@ -49,25 +48,34 @@ describe("ProtocolMds tests", (): void => {
 
         result = ProtocolMds.getRequestListConfigProfiles();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListConfigProfiles, undefined);
-        result = ProtocolMds.getRequestListConfigProfiles({ configFilePath: "/home/test", interactive: false,
-            raiseExceptions: false, returnFormatted: true });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListConfigProfiles, { config_file_path: "/home/test",
-            interactive: false,  raise_exceptions: false, return_formatted: true});
+        result = ProtocolMds.getRequestListConfigProfiles({
+            configFilePath: "/home/test", interactive: false,
+            raiseExceptions: false, returnFormatted: true,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListConfigProfiles, {
+            config_file_path: "/home/test",
+            interactive: false, raise_exceptions: false, return_formatted: true,
+        });
 
 
         result = ProtocolMds.getRequestSetDefaultConfigProfile();
-        testStandardFields(result, ShellAPIMds.MdsSetDefaultConfigProfile, { profile_name: undefined,
-            config_file_location: "~/.oci/config", cli_rc_file_location: "~/.oci/oci_cli_rc" });
-        result = ProtocolMds.getRequestSetDefaultConfigProfile("default1",  "~/.oci/config", "~/.oci/oci_cli_rc");
-        testStandardFields(result, ShellAPIMds.MdsSetDefaultConfigProfile, { profile_name: "default1",
-            config_file_location: "~/.oci/config", cli_rc_file_location: "~/.oci/oci_cli_rc" });
+        testStandardFields(result, ShellAPIMds.MdsSetDefaultConfigProfile, {
+            profile_name: undefined,
+            config_file_location: "~/.oci/config", cli_rc_file_location: "~/.oci/oci_cli_rc",
+        });
+        result = ProtocolMds.getRequestSetDefaultConfigProfile("default1", "~/.oci/config", "~/.oci/oci_cli_rc");
+        testStandardFields(result, ShellAPIMds.MdsSetDefaultConfigProfile, {
+            profile_name: "default1",
+            config_file_location: "~/.oci/config", cli_rc_file_location: "~/.oci/oci_cli_rc",
+        });
 
         result = ProtocolMds.getRequestGetDefaultConfigProfile();
         testStandardFields(result, ShellAPIMds.MdsGetDefaultConfigProfile,
             { cli_rc_file_location: "~/.oci/oci_cli_rc" });
         result = ProtocolMds.getRequestGetDefaultConfigProfile("~/.oci/oci_cli_rc");
         testStandardFields(result, ShellAPIMds.MdsGetDefaultConfigProfile, {
-            cli_rc_file_location: "~/.oci/oci_cli_rc" });
+            cli_rc_file_location: "~/.oci/oci_cli_rc",
+        });
     });
 
     it("Test compartment requests", () => {
@@ -77,244 +85,333 @@ describe("ProtocolMds tests", (): void => {
 
         result = ProtocolMds.getRequestSetCurrentCompartment();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentCompartment, undefined);
-        result = ProtocolMds.getRequestSetCurrentCompartment({ compartmentPath: "/path",
+        result = ProtocolMds.getRequestSetCurrentCompartment({
+            compartmentPath: "/path",
             compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
             profileName: "default1", cliRcFilePath: "~/.oci/oci_cli_rc",
-            interactive: false, raiseExceptions: false});
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentCompartment, { compartment_path: "/path",
+            interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentCompartment, {
+            compartment_path: "/path",
             compartment_id: "compartmentId1", config: {}, config_profile: "defaultConfigProfile",
             profile_name: "default1", cli_rc_file_path: "~/.oci/oci_cli_rc", interactive: false,
-            raise_exceptions: false});
+            raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestGetCurrentCompartmentId();
         testStandardFields(result, ShellAPIMds.MdsGetCurrentCompartmentId,
-            {   compartment_id: undefined, config: undefined, config_profile: undefined,
-                cli_rc_file_path: "~/.oci/oci_cli_rc" });
+            {
+                compartment_id: undefined, config: undefined, config_profile: undefined,
+                cli_rc_file_path: "~/.oci/oci_cli_rc",
+            });
         result = ProtocolMds.getRequestGetCurrentCompartmentId("compartmentId1", {}, "default1", "~/.oci/oci_cli_rc");
-        testStandardFields(result, ShellAPIMds.MdsGetCurrentCompartmentId, { compartment_id: "compartmentId1",
-            config: {}, profile_name: "default1", cli_rc_file_path: "~/.oci/oci_cli_rc" });
+        testStandardFields(result, ShellAPIMds.MdsGetCurrentCompartmentId, {
+            compartment_id: "compartmentId1",
+            config: {}, profile_name: "default1", cli_rc_file_path: "~/.oci/oci_cli_rc",
+        });
 
 
         result = ProtocolMds.getRequestListCompartments();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListCompartments, undefined);
-        result = ProtocolMds.getRequestListCompartments({ compartmentId: "compartmentId1", includeTenancy: true,
+        result = ProtocolMds.getRequestListCompartments({
+            compartmentId: "compartmentId1", includeTenancy: true,
             config: {}, configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false,
-            returnFormatted: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListCompartments, { compartment_id: "compartmentId1",
+            returnFormatted: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListCompartments, {
+            compartment_id: "compartmentId1",
             include_tenancy: true, config: {}, config_profile: "defaultConfigProfile", interactive: false,
-            raise_exceptions: false, return_formatted: false });
+            raise_exceptions: false, return_formatted: false,
+        });
 
         result = ProtocolMds.getRequestGetCompartment();
-        testStandardFields(result, ShellAPIMds.MdsGetCompartment, { compartment_path: undefined});
-        result = ProtocolMds.getRequestGetCompartment("/home", {parentCompartmentId: "id1", config: {} });
-        testStandardFields(result, ShellAPIMds.MdsGetCompartment, { compartment_path: "/home"});
+        testStandardFields(result, ShellAPIMds.MdsGetCompartment, { compartment_path: undefined });
+        result = ProtocolMds.getRequestGetCompartment("/home", { parentCompartmentId: "id1", config: {} });
+        testStandardFields(result, ShellAPIMds.MdsGetCompartment, { compartment_path: "/home" });
     });
 
     it("Test domain requests", () => {
         let result = ProtocolMds.getRequestGetAvailabilityDomain();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetAvailabilityDomain, undefined);
-        result = ProtocolMds.getRequestGetAvailabilityDomain({ availabilityDomain: "oracle",
+        result = ProtocolMds.getRequestGetAvailabilityDomain({
+            availabilityDomain: "oracle",
             randomSelection: false, compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
-            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: true });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetAvailabilityDomain, { availability_domain: "oracle",
+            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: true,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetAvailabilityDomain, {
+            availability_domain: "oracle",
             random_selection: false, compartment_id: "compartmentId1", config: {},
             config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false,
-            return_formatted: false, return_python_object: true });
+            return_formatted: false, return_python_object: true,
+        });
     });
 
     it("Test DbSystem and compute instance requests", () => {
         let result = ProtocolMds.getRequestListComputeInstances();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListComputeInstances, undefined);
-        result = ProtocolMds.getRequestListComputeInstances({ compartmentId: "compartmentId1",
+        result = ProtocolMds.getRequestListComputeInstances({
+            compartmentId: "compartmentId1",
             config: {}, configProfile: "defaultConfigProfile", interactive: false,
-            raiseExceptions: false, returnFormatted: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListComputeInstances, { compartment_id: "compartmentId1",
+            raiseExceptions: false, returnFormatted: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListComputeInstances, {
+            compartment_id: "compartmentId1",
             config: {}, config_profile: "defaultConfigProfile", interactive: false,
-            raise_exceptions: false, return_formatted: false });
+            raise_exceptions: false, return_formatted: false,
+        });
 
         result = ProtocolMds.getRequestGetComputeInstance();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetComputeInstance, undefined);
-        result = ProtocolMds.getRequestGetComputeInstance({ instanceName: "myInstance", instanceId: "myInstanceId1",
+        result = ProtocolMds.getRequestGetComputeInstance({
+            instanceName: "myInstance", instanceId: "myInstanceId1",
             ignoreCurrent: false, compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
-            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetComputeInstance, { instance_name: "myInstance",
+            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetComputeInstance, {
+            instance_name: "myInstance",
             instance_id: "myInstanceId1", ignore_current: false, compartment_id: "compartmentId1",
             config: {}, config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false,
-            return_formatted: false, return_python_object: false} );
+            return_formatted: false, return_python_object: false,
+        });
 
         result = ProtocolMds.getRequestListComputeShapes();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListComputeShapes, undefined);
-        result = ProtocolMds.getRequestListComputeShapes({ limitShapesTo: [], availabilityDomain: "oracle",
+        result = ProtocolMds.getRequestListComputeShapes({
+            limitShapesTo: [], availabilityDomain: "oracle",
             compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
-            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListComputeShapes, { limit_shapes_to: [],
-            availability_domain: "oracle",  compartment_id: "compartmentId1", config: {},
+            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListComputeShapes, {
+            limit_shapes_to: [],
+            availability_domain: "oracle", compartment_id: "compartmentId1", config: {},
             config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false,
-            return_formatted: false, return_python_object: false });
+            return_formatted: false, return_python_object: false,
+        });
 
         result = ProtocolMds.getRequestDeleteComputeInstance();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteComputeInstance, undefined);
-        result = ProtocolMds.getRequestDeleteComputeInstance({ instanceName: "myInstance", instanceId: "myInstanceId1",
+        result = ProtocolMds.getRequestDeleteComputeInstance({
+            instanceName: "myInstance", instanceId: "myInstanceId1",
             awaitDeletion: false, compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
-            ignoreCurrent: false, interactive: false, raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteComputeInstance, { instance_name: "myInstance",
+            ignoreCurrent: false, interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteComputeInstance, {
+            instance_name: "myInstance",
             instance_id: "myInstanceId1", await_deletion: false, compartment_id: "compartmentId1",
             config: {}, config_profile: "defaultConfigProfile", ignore_current: false, interactive: false,
-            raise_exceptions: false });
+            raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestUtilCreateMdsEndpoint();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUtilCreateMdsEndpoint, undefined);
-        result = ProtocolMds.getRequestUtilCreateMdsEndpoint({ instanceName: "myInstance", dbSystemName: "db1",
+        result = ProtocolMds.getRequestUtilCreateMdsEndpoint({
+            instanceName: "myInstance", dbSystemName: "db1",
             dbSystemId: "dbSysId1", privateKeyFilePath: "~/.oci/oci_priv", compartmentId: "compartmentId1", config: {},
             configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false,
-            returnFormatted: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUtilCreateMdsEndpoint, { instance_name: "myInstance",
+            returnFormatted: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUtilCreateMdsEndpoint, {
+            instance_name: "myInstance",
             db_system_name: "db1", db_system_id: "dbSysId1", private_key_file_path: "~/.oci/oci_priv",
             compartment_id: "compartmentId1", config: {}, config_profile: "defaultConfigProfile", interactive: false,
-            raise_exceptions: false, return_formatted: false });
+            raise_exceptions: false, return_formatted: false,
+        });
 
         result = ProtocolMds.getRequestGetDbSystemConfiguration();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystemConfiguration, undefined);
-        result = ProtocolMds.getRequestGetDbSystemConfiguration({ configName: "myConfig", configurationId: "id1",
+        result = ProtocolMds.getRequestGetDbSystemConfiguration({
+            configName: "myConfig", configurationId: "id1",
             shape: "shape", availabilityDomain: "oracle", compartmentId: "compartmentId1", config: {},
             configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false, returnFormatted: false,
-            returnPythonObject: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystemConfiguration, { config_name: "myConfig",
+            returnPythonObject: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystemConfiguration, {
+            config_name: "myConfig",
             configuration_id: "id1", shape: "shape", availability_domain: "oracle", compartment_id: "compartmentId1",
             config: {}, config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false,
-            return_formatted: false, return_python_object: false });
+            return_formatted: false, return_python_object: false,
+        });
 
         result = ProtocolMds.getRequestListDbSystems();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListDbSystems, undefined);
-        result = ProtocolMds.getRequestListDbSystems({ compartmentId: "compartmentId1",
+        result = ProtocolMds.getRequestListDbSystems({
+            compartmentId: "compartmentId1",
             config: {}, configProfile: "defaultConfigProfile", interactive: false,
-            raiseExceptions: false, returnFormatted: false, returnPythonObject: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListDbSystems, { compartment_id: "compartmentId1",
+            raiseExceptions: false, returnFormatted: false, returnPythonObject: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListDbSystems, {
+            compartment_id: "compartmentId1",
             config: {}, config_profile: "defaultConfigProfile", interactive: false,
-            raise_exceptions: false, return_formatted: false, return_python_object: false });
+            raise_exceptions: false, return_formatted: false, return_python_object: false,
+        });
 
         result = ProtocolMds.getRequestGetDbSystem();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystem, undefined);
-        result = ProtocolMds.getRequestGetDbSystem({ dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
+        result = ProtocolMds.getRequestGetDbSystem({
+            dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
             ignoreCurrent: false, compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
-            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystem, { db_system_name: "myDbSystem",
+            interactive: false, raiseExceptions: false, returnFormatted: false, returnPythonObject: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystem, {
+            db_system_name: "myDbSystem",
             db_system_id: "myDbSystemId", ignore_current: false, compartment_id: "compartmentId1", config: {},
             config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false,
-            return_formatted: false, return_python_object: false });
+            return_formatted: false, return_python_object: false,
+        });
 
         result = ProtocolMds.getRequestGetDbSystemId();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystemId, undefined);
-        result = ProtocolMds.getRequestGetDbSystemId({ dbSystemName: "myDbSystem", ignoreCurrent: false,
+        result = ProtocolMds.getRequestGetDbSystemId({
+            dbSystemName: "myDbSystem", ignoreCurrent: false,
             compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
-            interactive: false, raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystemId, { db_system_name: "myDbSystem",
+            interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetDbSystemId, {
+            db_system_name: "myDbSystem",
             ignore_current: false, compartment_id: "compartmentId1", config: {},
-            config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false });
+            config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestUpdateDbSystem();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUpdateDbSystem, undefined);
-        result = ProtocolMds.getRequestUpdateDbSystem({ dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
+        result = ProtocolMds.getRequestUpdateDbSystem({
+            dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
             ignoreCurrent: false, newName: "myNewName", newDescription: "desc", newFreeformTags: "fts",
             compartmentId: "compartmentId1", config: {}, configProfile: "defaultConfigProfile",
-            interactive: false, raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUpdateDbSystem, { db_system_name: "myDbSystem",
+            interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUpdateDbSystem, {
+            db_system_name: "myDbSystem",
             db_system_id: "myDbSystemId", ignore_current: false, new_name: "myNewName",
             new_description: "desc", new_freeform_tags: "fts", compartment_id: "compartmentId1", config: {},
-            config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false });
+            config_profile: "defaultConfigProfile", interactive: false, raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestCreateDbSystem();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateDbSystem, undefined);
-        result = ProtocolMds.getRequestCreateDbSystem({ dbSystemName: "myDbSystem",
+        result = ProtocolMds.getRequestCreateDbSystem({
+            dbSystemName: "myDbSystem",
             description: "desc", availabilityDomain: "oracle", shape: "shape", subnetId: "netId",
             configurationId: "confId", dataStorageSizeInGbs: 5, mysqlVersion: "1.0.0",
             adminUsername: "root", adminPassword: "pass1", privateKeyFilePath: "~/.oci/oci_priv", parUrl: "/home",
             performCleanupAfterImport: false, sourceMysqlUri: "localhost", sourceMysqlPassword: "pass2",
             sourceLocalDumpDir: "/home", sourceBucket: "bucket1", hostImageId: "imageId1", definedTags: {},
-            freeformTags: {}, compartmentId: "compartmentId1", config: {}, interactive: false, returnObject: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateDbSystem, { db_system_name: "myDbSystem",
+            freeformTags: {}, compartmentId: "compartmentId1", config: {}, interactive: false, returnObject: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateDbSystem, {
+            db_system_name: "myDbSystem",
             description: "desc", availability_domain: "oracle", shape: "shape", subnet_id: "netId",
             configuration_id: "confId", data_storage_size_in_gbs: 5, mysql_version: "1.0.0",
             admin_username: "root", admin_password: "pass1", private_key_file_path: "~/.oci/oci_priv", par_url: "/home",
             perform_cleanup_after_import: false, source_mysql_uri: "localhost", source_mysql_password: "pass2",
             source_local_dump_dir: "/home", source_bucket: "bucket1", host_image_id: "imageId1", defined_tags: {},
             freeform_tags: {}, compartment_id: "compartmentId1", config: {}, interactive: false,
-            return_object: false });
+            return_object: false,
+        });
 
         result = ProtocolMds.getRequestDeleteDbSystem();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteDbSystem, undefined);
-        result = ProtocolMds.getRequestDeleteDbSystem({ dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
+        result = ProtocolMds.getRequestDeleteDbSystem({
+            dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
             awaitCompletion: false, ignoreCurrent: false, compartmentId: "compartmentId1", config: {},
-            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteDbSystem, { db_system_name: "myDbSystem",
+            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteDbSystem, {
+            db_system_name: "myDbSystem",
             db_system_id: "myDbSystemId", await_completion: false, ignore_current: false,
             compartment_id: "compartmentId1", config: {}, config_profile: "defaultConfigProfile",
-            interactive: false, raise_exceptions: false });
+            interactive: false, raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestStopDbSystem();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStopDbSystem, undefined);
-        result = ProtocolMds.getRequestStopDbSystem({ dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
+        result = ProtocolMds.getRequestStopDbSystem({
+            dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
             awaitCompletion: false, ignoreCurrent: false, compartmentId: "compartmentId1", config: {},
-            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStopDbSystem, { db_system_name: "myDbSystem",
+            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStopDbSystem, {
+            db_system_name: "myDbSystem",
             db_system_id: "myDbSystemId", await_completion: false, ignore_current: false,
             compartment_id: "compartmentId1", config: {}, config_profile: "defaultConfigProfile",
-            interactive: false, raise_exceptions: false });
+            interactive: false, raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestStartDbSystem();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStartDbSystem, undefined);
-        result = ProtocolMds.getRequestStartDbSystem({ dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
+        result = ProtocolMds.getRequestStartDbSystem({
+            dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
             awaitCompletion: false, ignoreCurrent: false, compartmentId: "compartmentId1", config: {},
-            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStartDbSystem, { db_system_name: "myDbSystem",
+            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStartDbSystem, {
+            db_system_name: "myDbSystem",
             db_system_id: "myDbSystemId", await_completion: false, ignore_current: false,
             compartment_id: "compartmentId1", config: {}, config_profile: "defaultConfigProfile",
-            interactive: false, raise_exceptions: false });
+            interactive: false, raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestRestartDbSystem();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsRestartDbSystem, undefined);
-        result = ProtocolMds.getRequestRestartDbSystem({ dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
+        result = ProtocolMds.getRequestRestartDbSystem({
+            dbSystemName: "myDbSystem", dbSystemId: "myDbSystemId",
             awaitCompletion: false, ignoreCurrent: false, compartmentId: "compartmentId1", config: {},
-            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsRestartDbSystem, { db_system_name: "myDbSystem",
+            configProfile: "defaultConfigProfile", interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsRestartDbSystem, {
+            db_system_name: "myDbSystem",
             db_system_id: "myDbSystemId", await_completion: false, ignore_current: false,
             compartment_id: "compartmentId1", config: {}, config_profile: "defaultConfigProfile",
-            interactive: false, raise_exceptions: false });
+            interactive: false, raise_exceptions: false,
+        });
 
         result = ProtocolMds.getRequestListLoadBalancers();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListLoadBalancers, undefined);
-        result = ProtocolMds.getRequestListLoadBalancers({ compartmentId: "compartmentId1", config: {},
-            configProfile: "defaultConfigProfile", interactive: false, returnType: "number", raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListLoadBalancers, { compartment_id: "compartmentId1",
+        result = ProtocolMds.getRequestListLoadBalancers({
+            compartmentId: "compartmentId1", config: {},
+            configProfile: "defaultConfigProfile", interactive: false, returnType: "number", raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListLoadBalancers, {
+            compartment_id: "compartmentId1",
             config: {}, config_profile: "defaultConfigProfile",
-            interactive: false, return_type: "number", raise_exceptions: false });
+            interactive: false, return_type: "number", raise_exceptions: false,
+        });
     });
 
     it("Test bastion requests", () => {
-        let result =  ProtocolMds.getRequestListBastions({ compartmentId: "compartmentId1",
-            validForDbSystemId: "validForDbSystemId1", config:{}, configProfile: "default1",
-            interactive: false, returnType: "number", raiseExceptions: false });
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastions, { compartment_id: "compartmentId1",
+        let result = ProtocolMds.getRequestListBastions({
+            compartmentId: "compartmentId1",
+            validForDbSystemId: "validForDbSystemId1", config: {}, configProfile: "default1",
+            interactive: false, returnType: "number", raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastions, {
+            compartment_id: "compartmentId1",
             valid_for_db_system_id: "validForDbSystemId1", config: {}, config_profile: "default1",
-            interactive: false, return_type: "number", raise_exceptions: false });
-        result =  ProtocolMds.getRequestListBastions();
+            interactive: false, return_type: "number", raise_exceptions: false,
+        });
+        result = ProtocolMds.getRequestListBastions();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastions, undefined);
 
-        result = ProtocolMds.getRequestGetBastion({ bastionName: "myBastion", bastionId: "myBastionId1",
+        result = ProtocolMds.getRequestGetBastion({
+            bastionName: "myBastion", bastionId: "myBastionId1",
             awaitState: "pending", ignoreCurrent: false, fallbackToAnyInCompartment: false,
             compartmentId: "compartmentId1", config: {}, configProfile: "default1", interactive: true,
             returnType: "boolean", raiseExceptions: false,
         });
 
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastion, { bastion_name: "myBastion",
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastion, {
+            bastion_name: "myBastion",
             bastion_id: "myBastionId1", await_state: "pending", ignore_current: false,
             fallback_to_any_in_compartment: false, compartment_id: "compartmentId1", config: {},
-            config_profile: "default1", interactive: true, return_type: "boolean", raise_exceptions: false});
+            config_profile: "default1", interactive: true, return_type: "boolean", raise_exceptions: false,
+        });
 
-        result = ProtocolMds.getRequestCreateBastion({ bastionName: "myBastion", dbSystemId: "dbSystemMySqlId1",
+        result = ProtocolMds.getRequestCreateBastion({
+            bastionName: "myBastion", dbSystemId: "dbSystemMySqlId1",
             clientCidr: "/home", maxSessionTtlInSeconds: 1000, targetSubnetId: "subnetId1", awaitActiveState: false,
             compartmentId: "compartmentId1", config: {}, configProfile: "default1", ignoreCurrent: false,
-            interactive: false, returnType: "any", raiseExceptions: false });
+            interactive: false, returnType: "any", raiseExceptions: false,
+        });
 
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastion,
             {
@@ -324,38 +421,52 @@ describe("ProtocolMds tests", (): void => {
                 ignore_current: false, interactive: false, return_type: "any", raise_exceptions: false,
             });
 
-        result = ProtocolMds.getRequestDeleteBastion({ bastionName: "myBastion", bastionId: "bastionId1",
-            awaitDeletion: false,  compartmentId: "compartmentId1", config: {}, configProfile: "default1",
-            ignoreCurrent: false, interactive: false, raiseExceptions: false });
+        result = ProtocolMds.getRequestDeleteBastion({
+            bastionName: "myBastion", bastionId: "bastionId1",
+            awaitDeletion: false, compartmentId: "compartmentId1", config: {}, configProfile: "default1",
+            ignoreCurrent: false, interactive: false, raiseExceptions: false,
+        });
 
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastion, { bastion_name: "myBastion",
-            bastion_id: "bastionId1", await_deletion: false,  compartment_id: "compartmentId1", config: {},
-            config_profile: "default1", ignore_current: false, interactive: false, raise_exceptions: false });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastion, {
+            bastion_name: "myBastion",
+            bastion_id: "bastionId1", await_deletion: false, compartment_id: "compartmentId1", config: {},
+            config_profile: "default1", ignore_current: false, interactive: false, raise_exceptions: false,
+        });
 
-        result = ProtocolMds.getRequestListBastionSessions({ bastionId: "bastionId1",  ignoreCurrent: false,
+        result = ProtocolMds.getRequestListBastionSessions({
+            bastionId: "bastionId1", ignoreCurrent: false,
             compartmentId: "compartmentId1", config: {}, configProfile: "default1", interactive: false,
-            returnType: "any", raiseExceptions: false });
+            returnType: "any", raiseExceptions: false,
+        });
 
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions, { bastion_id: "bastionId1",
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions, {
+            bastion_id: "bastionId1",
             ignore_current: false, compartment_id: "compartmentId1", config: {}, config_profile: "default1",
-            interactive: false, return_type: "any", raise_exceptions: false });
+            interactive: false, return_type: "any", raise_exceptions: false,
+        });
 
 
-        result = ProtocolMds.getRequestGetBastionSession({ sessionName: "session1", sessionId: "sessionId1",
+        result = ProtocolMds.getRequestGetBastionSession({
+            sessionName: "session1", sessionId: "sessionId1",
             bastionId: "bastionId1", compartmentId: "compartmentId1", config: {}, configProfile: "default1",
-            ignoreCurrent: false, interactive: false, returnType: "any", raiseExceptions: false });
+            ignoreCurrent: false, interactive: false, returnType: "any", raiseExceptions: false,
+        });
 
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastionSession, { session_name: "session1",
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastionSession, {
+            session_name: "session1",
             session_id: "sessionId1", bastion_id: "bastionId1", compartment_id: "compartmentId1", config: {},
             config_profile: "default1", ignore_current: false, interactive: false, return_type: "any",
-            raise_exceptions: false });
+            raise_exceptions: false,
+        });
 
-        result = ProtocolMds.getRequestCreateBastionSession({ bastionName: "myBastion", bastionId: "bastionId1",
+        result = ProtocolMds.getRequestCreateBastionSession({
+            bastionName: "myBastion", bastionId: "bastionId1",
             fallbackToAnyInCompartment: false, sessionType: "interactive", sessionName: "session1",
             targetId: "target12", targetIp: "192.168.1.1", targetPort: "334", targetUser: "root",
             ttlInSeconds: 20, publicKeyFile: "key.pub", publicKeyContent: "xxxx", awaitCreation: false,
             compartmentId: "compartmentId1", config: {}, configProfile: "default1",
-            ignoreCurrent: false, interactive: false, returnType: "any", raiseExceptions: false});
+            ignoreCurrent: false, interactive: false, returnType: "any", raiseExceptions: false,
+        });
 
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastionSession, {
             bastion_name: "myBastion", bastion_id: "bastionId1",
@@ -363,9 +474,10 @@ describe("ProtocolMds tests", (): void => {
             target_id: "target12", target_ip: "192.168.1.1", target_port: "334", target_user: "root",
             ttl_in_seconds: 20, public_key_file: "key.pub", public_key_content: "xxxx", await_creation: false,
             compartment_id: "compartmentId1", config: {}, config_profile: "default1",
-            ignore_current: false, interactive: false, return_type: "any", raise_exceptions: false });
+            ignore_current: false, interactive: false, return_type: "any", raise_exceptions: false,
+        });
 
-        result = ProtocolMds.getRequestDeleteBastionSession( {
+        result = ProtocolMds.getRequestDeleteBastionSession({
             sessionName: "my session", sessionId: "mySessionId2", bastionName: "Bastion 1",
             bastionId: "myBastion1", compartmentId: "compartmentId", config: {},
             configProfile: "default1", ignoreCurrent: false, interactive: false, raiseExceptions: false,
@@ -377,14 +489,18 @@ describe("ProtocolMds tests", (): void => {
                 config_profile: "default1", ignore_current: false, interactive: false, raise_exceptions: false,
             });
 
-        result = ProtocolMds.getRequestSetCurrentBastion({ bastionName: "Bastion 1", bastionId: "myBastion1",
+        result = ProtocolMds.getRequestSetCurrentBastion({
+            bastionName: "Bastion 1", bastionId: "myBastion1",
             compartmentId: "compartmentId", config: {}, configProfile: "default1", profileName: "default",
-            cliRcFilePath: "~/.oci/oci_cli_rc", raiseExceptions: false, interactive: false });
+            cliRcFilePath: "~/.oci/oci_cli_rc", raiseExceptions: false, interactive: false,
+        });
 
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentBastion, { bastion_name: "Bastion 1",
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentBastion, {
+            bastion_name: "Bastion 1",
             bastion_id: "myBastion1", compartment_id: "compartmentId", config: {}, config_profile: "default1",
             profile_name: "default", cli_rc_file_path: "~/.oci/oci_cli_rc", raise_exceptions: false,
-            interactive: false });
+            interactive: false,
+        });
 
         result = ProtocolMds.getRequestGetBastion();
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastion, undefined);
@@ -396,7 +512,7 @@ describe("ProtocolMds tests", (): void => {
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastion, undefined);
 
         result = ProtocolMds.getRequestListBastionSessions();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions,undefined);
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions, undefined);
 
 
         result = ProtocolMds.getRequestGetBastionSession();

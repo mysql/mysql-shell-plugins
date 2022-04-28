@@ -38,7 +38,7 @@ describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG2");
+        launcher = await setupShellForTests("LoginPage", false, true, "DEBUG2");
         expect(currentConnection.isConnected).toBe(true);
     });
 

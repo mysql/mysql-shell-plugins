@@ -25,10 +25,10 @@ import { IShellFeedbackRequest } from "../../../communication";
 import { PromptUtils } from "../../../modules/common/PromptUtils";
 import { ShellInterfaceShellSession } from "../../../supplement/ShellInterface";
 import {
-    binarySearch, clampValue, convertToSnakeCase, flattenObject, loadTextFile, selectFile, sleep, strictEval, uuid,
+    binarySearch, clampValue, convertCamelToSnakeCase, flattenObject, loadTextFile, selectFile, sleep, strictEval, uuid,
     waitFor, convertSnakeToCamelCase, convertCamelToTitleCase, convertTitleToCamelCase, stripAnsiCode, deepEqual,
 } from "../../../utilities/helpers";
-import { loremIpsum, nextProcessTick } from "../test-helpers";
+import { loremIpsum, nextProcessTick, uuidPattern } from "../test-helpers";
 
 describe("Utilities Tests", (): void => {
     it("flattenObject", (): void => {
@@ -188,8 +188,7 @@ describe("Utilities Tests", (): void => {
         expect(() => { strictEval("nonExistingVariable + 1"); })
             .toThrowError("nonExistingVariable is not defined");
 
-        // For tests the uuid() function uses a modified version of random array values, to return a known value.
-        expect(uuid()).toBe("98888888-9888-4888-0888-988888888888");
+        expect(uuid()).toMatch(uuidPattern);
 
         expect(clampValue(0)).toBe(0);
         expect(clampValue(NaN)).toBe(NaN);
@@ -249,16 +248,16 @@ describe("Utilities Tests", (): void => {
     });
 
     it("Convert Cases", () => {
-        let result = convertToSnakeCase({});
+        let result = convertCamelToSnakeCase({});
         expect(result).toStrictEqual({});
 
-        result = convertToSnakeCase({}, {});
+        result = convertCamelToSnakeCase({}, {});
         expect(result).toStrictEqual({});
 
-        result = convertToSnakeCase({}, { ignore: [] });
+        result = convertCamelToSnakeCase({}, { ignore: [] });
         expect(result).toStrictEqual({});
 
-        result = convertToSnakeCase({}, { ignore: ["xxx", "yyy"] });
+        result = convertCamelToSnakeCase({}, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual({});
 
         /* eslint-disable @typescript-eslint/naming-convention */
@@ -399,7 +398,7 @@ describe("Utilities Tests", (): void => {
             ],
         };
 
-        result = convertToSnakeCase(source, { ignore: ["xxx", "yyy"] });
+        result = convertCamelToSnakeCase(source, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual(snakeCaseTarget);
 
         const camelCaseTarget = {
