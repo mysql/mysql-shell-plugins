@@ -21,169 +21,272 @@
 
 import pytest
 from ... schemas import *
+import mysqlsh
+from .helpers import SchemaCT
+
+DEFAULT_SERVICE_ID = 1
+
 
 @pytest.mark.usefixtures("init_mrs")
-def test_add_schema(init_mrs):
-    args = {
-        "schema_name": "PhoneBook",
-        "service_id": 1,
-        "requires_auth": False,
-        "enabled": True,
-        "session": init_mrs,
-        "interactive": False
-    }
-    result = add_schema(**args)
-    assert result is not None
-    assert isinstance(result, int)
-
-    args['schema_name'] = "test_schema_123"
-    with pytest.raises(ValueError) as exc_info:
-        add_schema(**args)
-    assert str(exc_info.value) == "The given schema_name 'test_schema_123' does not exists."
-
-    args['schema_name'] = "PhoneBook"
-    args['request_path'] = "test_schema_3"
-    with pytest.raises(Exception) as exc_info:
-        add_schema(**args)
-    assert str(exc_info.value) == "The request_path has to start with '/'."
+def test_add_schema(init_mrs, table_contents):
+    schemas_table = table_contents("db_schema")
+    # args = {
+    #     "schema_name": "PhoneBook",
+    #     "service_id": 1,
+    #     "requires_auth": False,
+    #     "request_path": "/PhoneBook",
+    #     "items_per_page": 25,
+    #     "comments": "This is a schema comment",
+    #     "enabled": True,
+    #     "session": init_mrs
+    # }
+    with SchemaCT(DEFAULT_SERVICE_ID, "PhoneBook", "/PhoneBook") as schema_id:
+        # result = add_schema(**args)
+        # assert result is not None
+        # assert isinstance(result, int)
+        # assert result == schema_id
+        assert schemas_table.count == schemas_table.snapshot.count + 1
+    assert schemas_table.same_as_snapshot
 
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_schemas(init_mrs):
-    schemas = get_schemas()
-    assert schemas is not None
-    assert isinstance(schemas, str)
+    # args = {
+    #     "schema_name": "PhoneBook",
+    #     "service_id": 1,
+    #     "requires_auth": False,
+    #     "request_path": "/PhoneBook",
+    #     "items_per_page": 25,
+    #     "comments": "This is a schema comment",
+    #     "enabled": True,
+    #     "session": init_mrs
+    # }
+    with SchemaCT(DEFAULT_SERVICE_ID, "PhoneBook", "/PhoneBook", comments="This is a schema comment") as schema_id:
+        schemas = get_schemas(DEFAULT_SERVICE_ID)
+        assert schemas is not None
+        assert isinstance(schemas, list)
 
-    args = {
-        "service_id": 1,
-        "include_enable_state": True,
-        "session": init_mrs,
-        "interactive": False,
-        "raise_exceptions": True,
-        "return_formatted": False
-    }
-    schemas = get_schemas(**args)
-    assert schemas is not None
-    assert schemas ==  [
-        {'id': 2,
-         'name': 'PhoneBook',
-         'service_id': 1,
-         'request_path': '/PhoneBook',
-         'requires_auth': 0,
-         'enabled': 1,
-         'options': None,
-         'items_per_page': 25,
-         'comments': '',
-         'host_ctx': 'localhost/test'},
+        assert schemas == [{
+            'comments': 'test schema',
+            'enabled': 1,
+            'host_ctx': 'localhost/test',
+            'id': 1,
+            'items_per_page': 20,
+            'name': 'PhoneBook',
+            'options': None,
+            'request_path': '/PhoneBook',
+            'requires_auth': 0,
+            'service_id': 1,
+            'url_host_id': 1
+        },{
+            'comments': 'This is a schema comment',
+            'enabled': 1,
+            'host_ctx': 'localhost/test',
+            'id': schema_id,
+            'items_per_page': 25,
+            'name': 'PhoneBook',
+            'request_path': '/PhoneBook',
+            'options': None,
+            'requires_auth': 0,
+            'service_id': 1,
+            'url_host_id': 1
+        }]
 
-        {'id': 1,
-         'name': 'PhoneBook',
-         'service_id': 1,
-         'request_path': '/test_schema',
-         'requires_auth': 0,
-         'enabled': 1,
-         'options': None,
-         'items_per_page': 20,
-         'comments': 'test schema',
-         'host_ctx': 'localhost/test'}
-    ]
+        args = {
+            "include_enable_state": True,
+            "session": init_mrs,
+        }
+        schemas = get_schemas(DEFAULT_SERVICE_ID, **args)
+        assert schemas is not None
+        assert schemas ==  [{
+            'id': 1,
+            'name': 'PhoneBook',
+            'service_id': 1,
+            'request_path': '/PhoneBook',
+            'requires_auth': 0,
+            'enabled': 1,
+            'options': None,
+            'items_per_page': 20,
+            'comments': 'test schema',
+            'host_ctx': 'localhost/test',
+            'url_host_id': 1
+        }, {
+            'id': schema_id,
+            'name': 'PhoneBook',
+            'service_id': 1,
+            'request_path': '/PhoneBook',
+            'requires_auth': 0,
+            'enabled': 1,
+            'options': None,
+            'items_per_page': 25,
+            'comments': 'This is a schema comment',
+            'host_ctx': 'localhost/test',
+            'url_host_id': 1
+        }]
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_schema(init_mrs):
     args = {
         "request_path": "/PhoneBook",
         "schema_name": "PhoneBook",
-        "schema_id": 2,
+        "schema_id": 1,
         "service_id": 1,
         "auto_select_single": True,
         "session": init_mrs,
-        "interactive": False,
-        "raise_exceptions": True,
-        "return_formatted": False,
-        "return_python_object": False
     }
     result = get_schema(**args)
     assert result is not None
     assert result == {
-                        'id': 2,
-                        'name': 'PhoneBook',
-                        'service_id': 1,
-                        'request_path': '/PhoneBook',
-                        'requires_auth': 0,
-                        'enabled': 1,
-                        'options': None,
-                        'items_per_page': 25,
-                        'comments': '',
-                        'host_ctx': 'localhost/test'
-                    }
-
-    args['return_formatted'] = True
-    result = get_schema(**args)
-    assert result is not None
-    assert isinstance(result, str)
-
-    args['request_path'] = "PhoneBook"
-    with pytest.raises(Exception) as exc_info:
-        get_schema(**args)
-    assert str(exc_info.value) == "The request_path has to start with '/'."
+        'comments': 'test schema',
+        'enabled': 1,
+        'host_ctx': 'localhost/test',
+        'id': 1,
+        'items_per_page': 20,
+        'name': 'PhoneBook',
+        'request_path': '/PhoneBook',
+        'requires_auth': 0,
+        'service_id': 1,
+        'options': None,
+        'url_host_id': 1
+    }
 
 @pytest.mark.usefixtures("init_mrs")
-def test_change_schema(init_mrs):
+def test_change_schema(init_mrs, table_contents):
+    schema_table = table_contents("db_schema")
+    DEFAULT_SERVICE_ID = 1
     args = {
         "schema_name": "PhoneBook",
-        "service_id": 1,
         "session": init_mrs,
-        "interactive": False,
-        "raise_exceptions": True
     }
 
-    result = disable_schema(**args)
-    assert result is not None
-    assert result == "The schemas have been disabled."
+    with SchemaCT(DEFAULT_SERVICE_ID, "PhoneBook", "/test_schema2") as schema_id:
+        schema_table.count == schema_table.snapshot.count + 1
+        assert schema_table.get("id", schema_id) == {
+            'comments': '',
+            'enabled': 1,
+            'id': schema_id,
+            'items_per_page': 25,
+            'name': 'PhoneBook',
+            'request_path': '/test_schema2',
+            'requires_auth': 0,
+            'service_id': 1,
+            'options': None
+        }
 
-    result = enable_schema(**args)
-    assert result is not None
-    assert result == "The schemas have been enabled."
+        result = disable_schema(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been disabled."
+        assert schema_table.get("id", schema_id)["enabled"] == False
 
-    args['schema_id'] = 2
-    args['value'] = "PhoneBook2"
-    result = set_name(**args)
-    assert result is not None
-    assert result == "The schema has been updated."
+        kwargs = {
+            "schema_id": schema_id,
+            "session": init_mrs
+        }
+        schema = get_schema(**kwargs)
+        assert schema.get("enabled") == 0
 
-    args['value'] = "/test_schema_4"
-    result = set_request_path(**args)
-    assert result is not None
-    assert result == "The schema has been updated."
+        result = enable_schema(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been enabled."
+        assert schema_table.get("id", schema_id)["enabled"] == True
 
-    args['value'] = True
-    result = set_require_auth(**args)
-    assert result is not None
-    assert result == "The schema has been updated."
+        schema = get_schema(**kwargs)
+        assert schema.get("enabled") == 1
 
-    args['value'] = 20
-    result = set_items_per_page(**args)
-    assert result is not None
-    assert result == "The schema has been updated."
+        args['value'] = "PhoneBook2"
+        result = set_name(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been updated."
+        assert schema_table.get("id", schema_id)["name"] == "PhoneBook2"
 
-    args['value'] = "New comment"
-    result = set_comments(**args)
-    assert result is not None
-    assert result == "The schema has been updated."
+        schema = get_schema(**kwargs)
+        assert schema.get("name") == "PhoneBook2"
 
-    args['value'] = {
-        "schema_name": "PhoneBook",
-        "requires_auth": False,
-        "enabled": True,
-        "request_path": "/PhoneBook",
-        "items_per_page": 25,
-        "comments": "Test comment 6"
-    }
-    result = update_schema(**args)
-    assert result is not None
-    assert result == "The schema has been updated."
+        args['schema_name'] = "PhoneBook2"
+        args['value'] = "PhoneBook"
+        result = set_name(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been updated."
+        assert schema_table.get("id", schema_id)["name"] == "PhoneBook"
 
-    del args['value']
-    result = delete_schema(**args)
-    assert result is not None
-    assert result == "The schema has been deleted."
+        schema = get_schema(**kwargs)
+        assert schema.get("name") == "PhoneBook"
+        args['schema_name'] = "PhoneBook"
+
+        args['value'] = "/test_schema_4"
+        result = set_request_path(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been updated."
+        schema = get_schema(**kwargs)
+        assert schema.get("name") == "PhoneBook"
+        assert schema.get("request_path") == args['value']
+        assert schema_table.get("id", schema_id)["request_path"] == "/test_schema_4"
+
+        args['value'] = True
+        result = set_require_auth(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been updated."
+        schema = get_schema(**kwargs)
+        assert schema.get("name") == "PhoneBook"
+        assert schema.get("requires_auth") == args['value']
+        assert schema_table.get("id", schema_id)["requires_auth"] == True
+
+        args['value'] = 30
+        result = set_items_per_page(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been updated."
+        schema = get_schema(**kwargs)
+        assert schema.get("name") == "PhoneBook"
+        assert schema.get("items_per_page") == args['value']
+        assert schema_table.get("id", schema_id)["items_per_page"] == 30
+
+
+        args['value'] = "New comment"
+        result = set_comments(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been updated."
+        assert schema_table.get("id", schema_id)["comments"] == "New comment"
+
+        args['value'] = {
+            "name": "PhoneBook3",
+            "requires_auth": False,
+            "enabled": True,
+            "request_path": "/PhoneBook3",
+            "items_per_page": 25,
+            "comments": "Test comment 6"
+        }
+
+        result = update_schema(schema_id=schema_id, **args)
+        assert result is not None
+        assert result == "The schema has been updated."
+        assert schema_table.get("id", schema_id) == {
+            'comments': args['value']["comments"],
+            'enabled': int(args['value']["enabled"]),
+            'id': schema_id,
+            'items_per_page': args['value']["items_per_page"],
+            'name': args['value']["name"],
+            'request_path': args['value']["request_path"],
+            'requires_auth': int(args['value']["requires_auth"]),
+            'options': None,
+            'service_id': 1
+        }
+
+        schema = get_schema(**kwargs)
+        assert schema.get("name") == args['value']["name"]
+        assert schema.get("requires_auth") == args['value']["requires_auth"]
+        assert schema.get("enabled") == args['value']["enabled"]
+        assert schema.get("items_per_page") == args['value']["items_per_page"]
+        assert schema.get("comments") == args['value']["comments"]
+
+        args['value'] = {
+            "namexxx": "PhoneBook3",
+            "requires_auth": False,
+            "enabled": True,
+            "request_path": "/PhoneBook3",
+            "items_per_page": 25,
+            "comments": "Test comment 6"
+        }
+        with pytest.raises(Exception) as exc_info:
+            update_schema(schema_id=schema_id, **args)
+        assert str(exc_info.value) == "Attempting to change an invalid schema value."
+

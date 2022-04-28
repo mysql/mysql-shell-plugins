@@ -23,7 +23,19 @@
 
 /* eslint-disable max-len */
 
+import { IShellDictionary } from "./Protocol";
+
 export enum ShellAPIMrs {
+    /** Returns basic information about this plugin. */
+    MrsInfo = "mrs.info",
+    /** Returns the version number of the plugin */
+    MrsVersion = "mrs.version",
+    /** Lists the schemas that are currently offered via MRS */
+    MrsLs = "mrs.ls",
+    /** Initializes and configures the MySQL REST Data Service */
+    MrsConfigure = "mrs.configure",
+    /** Checks the MRS service status and prints its */
+    MrsStatus = "mrs.status",
     /** Adds a new MRS service */
     MrsAddService = "mrs.add.service",
     /** Gets a specific MRS service */
@@ -74,23 +86,17 @@ export enum ShellAPIMrs {
     MrsSetSchemaComments = "mrs.set.schema.comments",
     /** Updates the given schema */
     MrsUpdateSchema = "mrs.update.schema",
-    /** Adds content to the given MRS service */
-    MrsAddContentSet = "mrs.add.content_set",
-    /** Returns all content sets for the given MRS service */
-    MrsListContentSets = "mrs.list.content_sets",
-    /** Gets a specific MRS content_set */
-    MrsGetContentSet = "mrs.get.content_set",
-    /** Enables a content set of the given service */
-    MrsEnableContentSet = "mrs.enable.content_set",
-    /** Enables a content_set of the given service */
-    MrsDisableContentSet = "mrs.disable.content_set",
-    /** Enables a content_set of the given service */
-    MrsDeleteContentSet = "mrs.delete.content_set",
+    /** Adds an auth_app to the given MRS service */
+    MrsGetAuthenticationVendors = "mrs.get.authentication_vendors",
+    /** Adds an auth_app to the given MRS service */
+    MrsAddAuthenticationApp = "mrs.add.authentication_app",
+    /** Returns all authentication apps for the given MRS service */
+    MrsListAuthenticationApps = "mrs.list.authentication_apps",
     /** Add a db_object to the given MRS service schema */
     MrsAddDbObject = "mrs.add.db_object",
     /** Gets a specific MRS db_object */
     MrsGetDbObject = "mrs.get.db_object",
-    /** Gets the list of possible row ownership fields for the given db_object */
+    /** Gets the list of available row ownership fields for the given db_object */
     MrsGetDbObjectRowOwnershipFields = "mrs.get.db_object_row_ownership_fields",
     /** Gets the list of available row ownership fields for the given db_object */
     MrsGetDbObjectFields = "mrs.get.db_object_fields",
@@ -110,35 +116,37 @@ export enum ShellAPIMrs {
     MrsDeleteDbObject = "mrs.delete.db_object",
     /** Update a db_object */
     MrsUpdateDbObject = "mrs.update.db_object",
-    /** Returns all db_objects for the given schema */
-    MrsListContentFiles = "mrs.list.content_files",
-    /** Adds an auth_app to the given MRS service */
-    MrsGetAuthenticationVendors = "mrs.get.authentication_vendors",
-    /** Adds an auth_app to the given MRS service */
-    MrsAddAuthenticationApp = "mrs.add.authentication_app",
-    /** Returns all authentication apps for the given MRS service */
-    MrsListAuthenticationApps = "mrs.list.authentication_apps",
-    /** Returns basic information about this plugin. */
-    MrsInfo = "mrs.info",
-    /** Returns the version number of the plugin */
-    MrsVersion = "mrs.version",
-    /** Lists the schemas that are currently offered via MRS */
-    MrsLs = "mrs.ls",
-    /** Initializes and configures the MySQL REST Data Service */
-    MrsConfigure = "mrs.configure",
-    /** Checks the MRS service status and prints its */
-    MrsStatus = "mrs.status"
+    /** Adds content to the given MRS service */
+    MrsAddContentSet = "mrs.add.content_set",
+    /** Returns all content sets for the given MRS service */
+    MrsListContentSets = "mrs.list.content_sets",
+    /** Gets a specific MRS content_set */
+    MrsGetContentSet = "mrs.get.content_set",
+    /** Enables a content set of the given service */
+    MrsEnableContentSet = "mrs.enable.content_set",
+    /** Enables a content_set of the given service */
+    MrsDisableContentSet = "mrs.disable.content_set",
+    /** Delete a content_set of the given service */
+    MrsDeleteContentSet = "mrs.delete.content_set",
+    /** Returns all files for the given content set */
+    MrsListContentFiles = "mrs.list.content_files"
 }
 
 export interface IShellMrsAddServiceKwargs {
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
+    /** Whether the new service should be enabled */
+    enabled: boolean | null;
     /** The protocols supported by this service */
-    urlProtocol?: unknown[];
+    urlProtocol: unknown[] | null;
     /** Whether the new service should be the new default */
-    isDefault?: boolean;
+    isDefault: boolean | null;
     /** Comments about the service */
-    comments?: string;
+    comments: string | null;
     /** Options for the service */
-    options?: string;
+    options?: IShellDictionary;
     /** The authentication path */
     authPath?: string;
     /** The redirection URL called after authentication */
@@ -148,150 +156,112 @@ export interface IShellMrsAddServiceKwargs {
     /** The custom page content to use of the authentication completed page */
     authCompletedPageContent?: string;
     /** The list of auth_apps in JSON format */
-    authApps?: string;
+    authApps?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsGetServiceKwargs {
+    /** The id of the service */
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
     /** Whether to return the default service */
-    getDefault?: boolean;
+    getDefault: boolean | null;
     /** If there is a single service only, use that */
-    autoSelectSingle?: boolean;
+    autoSelectSingle: boolean | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to true, a list object is returned */
-    returnFormatted?: boolean;
 }
 
 export interface IShellMrsListServicesKwargs {
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to true, a list object is returned */
-    returnFormatted?: boolean;
 }
 
 export interface IShellMrsEnableServiceKwargs {
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsDisableServiceKwargs {
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsDeleteServiceKwargs {
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetServiceDefaultKwargs {
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetServiceContextPathKwargs {
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
-    /** The context_path */
-    value?: string;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
+    /** The context_path */
+    value: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetServiceProtocolKwargs {
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
-    /** The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS' */
-    value?: string;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
+    /** The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS' */
+    value: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetServiceCommentsKwargs {
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
-    /** The comments */
-    value?: string;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
+    /** The comments */
+    value: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetServiceOptionsKwargs {
@@ -311,21 +281,21 @@ export interface IShellMrsSetServiceOptionsKwargs {
     raiseExceptions?: boolean;
 }
 
-export interface IShellMrsUpdateServiceKwargs {
-    /** The id of the service */
-    serviceId?: number;
+export interface IShellMrsUpdateServiceKwargsValue {
     /** The context root for this service */
     urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
     /** The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS' */
     urlProtocol?: unknown[];
+    /** The host name for this service */
+    urlHostName?: string;
     /** Whether the service should be enabled */
     enabled?: boolean;
+    /** Whether the new service should be the new default */
+    isDefault?: boolean;
     /** Comments about the service */
     comments?: string;
     /** Options of the service */
-    options?: string;
+    options?: IShellDictionary;
     /** The authentication path */
     authPath?: string;
     /** The redirection URL called after authentication */
@@ -335,13 +305,20 @@ export interface IShellMrsUpdateServiceKwargs {
     /** The custom page content to use of the authentication completed page */
     authCompletedPageContent?: string;
     /** The list of auth_apps in JSON format */
-    authApps?: string;
+    authApps?: unknown[];
+}
+
+export interface IShellMrsUpdateServiceKwargs {
+    /** The id of the service */
+    serviceId: number | null;
+    /** The context root for this service */
+    urlContextRoot: string | null;
+    /** The host name for this service */
+    urlHostName: string | null;
+    /** The values as dict #TODO: check why dicts cannot be passed */
+    value: IShellMrsUpdateServiceKwargsValue | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsGetServiceRequestPathAvailabilityKwargs {
@@ -351,19 +328,13 @@ export interface IShellMrsGetServiceRequestPathAvailabilityKwargs {
     requestPath?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsAddSchemaKwargs {
     /** The name of the schema to add */
-    schemaName?: string;
-    /** The id of the service the schema should be added to */
-    serviceId?: number;
+    schemaName: string | null;
     /** The request_path */
-    requestPath?: string;
+    requestPath: string | null;
     /** Whether authentication is required to access the schema */
     requiresAuth?: boolean;
     /** The enabled state */
@@ -373,188 +344,134 @@ export interface IShellMrsAddSchemaKwargs {
     /** Comments for the schema */
     comments?: string;
     /** The options for the schema */
-    options?: string;
+    options?: IShellDictionary;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsGetSchemaKwargs {
-    /** The request_path of the schema */
-    requestPath?: string;
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the schema */
-    schemaId?: number;
     /** The id of the service */
-    serviceId?: number;
+    serviceId: number | null;
+    /** The request_path of the schema */
+    requestPath: string | null;
+    /** The name of the schema */
+    schemaName: string | null;
+    /** The id of the schema */
+    schemaId: number | null;
     /** If there is a single service only, use that */
-    autoSelectSingle?: boolean;
+    autoSelectSingle: boolean | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If true a human readable string is returned */
-    returnFormatted?: boolean;
-    /** Used for internal plugin calls */
-    returnPythonObject?: boolean;
 }
 
 export interface IShellMrsListSchemasKwargs {
-    /** The id of the service to list the schemas from */
-    serviceId?: number;
     /** Only include schemas with the given enabled state */
     includeEnableState?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to true, a list object is returned */
-    returnFormatted?: boolean;
 }
 
 export interface IShellMrsEnableSchemaKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsDisableSchemaKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsDeleteSchemaKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetSchemaNameKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The value */
-    value?: string;
+    value: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetSchemaRequestPathKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The value */
-    value?: string;
+    value: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetSchemaRequiresAuthKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The value */
-    value?: boolean;
+    value: boolean | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetSchemaItemsPerPageKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The value */
-    value?: number;
+    value: number | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
 export interface IShellMrsSetSchemaCommentsKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
     /** The id of the schema */
-    schemaId?: number;
+    schemaId: number | null;
+    /** The id of the service */
+    serviceId: number | null;
+    /** The name of the schema */
+    schemaName: string | null;
     /** The value */
-    value?: string;
+    value: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
-export interface IShellMrsUpdateSchemaKwargs {
+export interface IShellMrsUpdateSchemaKwargsValue {
     /** The name of the schema */
     schemaName?: string;
-    /** The id of the service */
-    serviceId?: number;
-    /** The id of the schema */
-    schemaId?: number;
     /** The request_path */
     requestPath?: string;
     /** Whether authentication is required to access the schema */
@@ -566,106 +483,66 @@ export interface IShellMrsUpdateSchemaKwargs {
     /** Comments for the schema */
     comments?: string;
     /** The options for the schema */
-    options?: string;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
+    options?: IShellDictionary;
 }
 
-export interface IShellMrsAddContentSetKwargs {
-    /** The path to the content directory */
-    contentDir?: string;
-    /** The id of the service the schema should be added to */
+export interface IShellMrsUpdateSchemaKwargs {
+    /** The id of the schema */
+    schemaId?: number;
+    /** The id of the service */
     serviceId?: number;
-    /** The request_path */
-    requestPath?: string;
-    /** Whether authentication is required to access the content */
-    requiresAuth?: boolean;
-    /** Comments about the content */
-    comments?: string;
-    /** Whether to enable the content set after all files are uploaded */
-    enabled?: boolean;
-    /** The options as JSON string */
-    options?: string;
-    /** Whether to replace a content set that uses the same request_path */
-    replaceExisting?: boolean;
+    /** The name of the schema */
+    schemaName?: string;
+    /** The values as dict #TODO: check why dicts cannot be passed */
+    value: IShellMrsUpdateSchemaKwargsValue | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
 }
 
-export interface IShellMrsListContentSetsKwargs {
+export interface IShellMrsGetAuthenticationVendorsKwargs {
+    /** Whether to return just the enabled vendors (default) or all */
+    enabled?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsAddAuthenticationAppKwargs {
+    /** The auth_vendor_id */
+    authVendorId: string | null;
+    /** A description of the app */
+    description: string | null;
+    /** url of the app */
+    url?: string;
+    /** url direct auth of the app */
+    urlDirectAuth?: string;
+    /** access_token of the app */
+    accessToken?: string;
+    /** app_id of the app */
+    appId?: string;
+    /** Limit access to registered users */
+    limitToRegisteredUsers?: boolean;
+    /** Limit access to registered users */
+    useBuiltInAuthorization?: boolean;
+    /** List of registered users, separated by , */
+    registeredUsers?: string;
+    /** The default role to be assigned to new users */
+    defaultAuthRoleId?: number;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsListAuthenticationAppsKwargs {
     /** Only include items with the given enabled state */
     includeEnableState?: boolean;
-    /** The request_path of the content_set */
-    requestPath?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to false, a list object is returned */
-    returnFormatted?: boolean;
-}
-
-export interface IShellMrsGetContentSetKwargs {
-    /** The id of the content_set */
-    contentSetId?: number;
-    /** The id of the service */
-    serviceId?: number;
-    /** If there is a single service only, use that */
-    autoSelectSingle?: boolean;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-}
-
-export interface IShellMrsEnableContentSetKwargs {
-    /** The id of the service */
-    serviceId?: number;
-    /** The id of the content_set */
-    contentSetId?: number;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-}
-
-export interface IShellMrsDisableContentSetKwargs {
-    /** The id of the service */
-    serviceId?: number;
-    /** The id of the content_set */
-    contentSetId?: number;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-}
-
-export interface IShellMrsDeleteContentSetKwargs {
-    /** The id of the service */
-    serviceId?: number;
-    /** The id of the content_set */
-    contentSetId?: number;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsAddDbObjectKwargs {
     /** The name of the schema object add */
-    dbObjectName?: string;
+    dbObjectName: string | null;
     /** Either TABLE, VIEW or PROCEDURE */
-    dbObjectType?: string;
+    dbObjectType: string | null;
     /** The id of the schema the object should be added to */
     schemaId?: number;
     /** The name of the schema */
@@ -673,19 +550,19 @@ export interface IShellMrsAddDbObjectKwargs {
     /** If the schema should be added as well if it does not exist yet */
     autoAddSchema?: boolean;
     /** The request_path */
-    requestPath?: string;
+    requestPath: string | null;
     /** Whether the db object is enabled */
     enabled?: boolean;
     /** The allowed CRUD operations for the object */
-    crudOperations?: unknown[];
+    crudOperations: unknown[] | null;
     /** The format to use for the CRUD operation */
-    crudOperationFormat?: string;
+    crudOperationFormat: string | null;
     /** Whether authentication is required to access the schema */
-    requiresAuth?: boolean;
+    requiresAuth: boolean | null;
     /** The number of items returned per page */
     itemsPerPage?: number;
     /** Enable row ownership enforcement */
-    rowUserOwnershipEnforced?: boolean;
+    rowUserOwnershipEnforced: boolean | null;
     /** The column for row ownership enforcement */
     rowUserOwnershipColumn?: string;
     /** Comments for the schema */
@@ -693,34 +570,28 @@ export interface IShellMrsAddDbObjectKwargs {
     /** The media_type of the db object */
     mediaType?: string;
     /** Whether to automatically detect the media type */
-    autoDetectMediaType?: boolean;
+    autoDetectMediaType: boolean | null;
     /** The stored procedure that implements the authentication check for this db object */
     authStoredProcedure?: string;
     /** The options of this db object */
-    options?: string;
+    options?: IShellDictionary;
     /** The parameter definition in JSON format */
-    parameters?: string;
+    parameters?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If true a human readable string is returned */
-    returnFormatted?: boolean;
-    /** Used for internal plugin calls */
-    returnPythonObject?: boolean;
 }
 
 export interface IShellMrsGetDbObjectKwargs {
-    /** The id of the db_object */
-    dbObjectId?: number;
     /** The id of the schema */
     schemaId?: number;
+    /** The name of the schema */
+    schemaName?: number;
+    /** The request_path of the schema */
+    requestPath?: string;
+    /** The name of the schema */
+    dbObjectName?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsGetDbObjectRowOwnershipFieldsKwargs {
@@ -730,27 +601,23 @@ export interface IShellMrsGetDbObjectRowOwnershipFieldsKwargs {
     schemaId?: number;
     /** The name of the schema */
     schemaName?: string;
+    /** The request_path of the schema */
+    requestPath?: string;
+    /** The name of the db_object */
+    dbObjectName?: string;
     /** The type of the db_object (TABLE, VIEW, PROCEDURE) */
     dbObjectType?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsGetDbObjectFieldsKwargs {
-    /** The id of the db_object */
-    dbObjectId?: number;
-    /** The id of the schema */
-    schemaId?: number;
     /** The name of the schema */
     schemaName?: string;
     /** The type of the db_object (TABLE, VIEW, PROCEDURE) */
     dbObjectType?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsListDbObjectsKwargs {
@@ -760,12 +627,6 @@ export interface IShellMrsListDbObjectsKwargs {
     includeEnableState?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to true, a list object is returned */
-    returnFormatted?: boolean;
 }
 
 export interface IShellMrsGetDbObjectParametersKwargs {
@@ -777,60 +638,40 @@ export interface IShellMrsGetDbObjectParametersKwargs {
     schemaName?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsSetDbObjectRequestPathKwargs {
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsSetDbObjectCrudOperationsKwargs {
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsEnableDbObjectKwargs {
     /** The id of the db_object */
-    dbObjectId?: number;
+    dbObjectId: number | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsDisableDbObjectKwargs {
     /** The id of the db_object */
-    dbObjectId?: number;
+    dbObjectId: number | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
 export interface IShellMrsDeleteDbObjectKwargs {
     /** The id of the db_object */
-    dbObjectId?: number;
+    dbObjectId: number | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
 }
 
-export interface IShellMrsUpdateDbObjectKwargs {
-    /** The id of the db object */
-    dbObjectId?: number;
-    /** The name of the schema object add */
-    dbObjectName?: string;
-    /** The id of the schema the object should be added to */
-    schemaId?: number;
-    /** The request_path */
-    requestPath?: string;
+export interface IShellMrsUpdateDbObjectKwargsValue {
     /** The new name to apply to the database object */
     name?: string;
     /** If the DB Object is enabled or not */
@@ -856,114 +697,109 @@ export interface IShellMrsUpdateDbObjectKwargs {
     /** The stored procedure that implements the authentication check for this db object */
     authStoredProcedure?: string;
     /** The options of this db object */
-    options?: string;
+    options?: IShellDictionary;
     /** The db objects parameters as JSON string */
-    parameters?: string;
+    parameters?: unknown[];
+}
+
+export interface IShellMrsUpdateDbObjectKwargs {
+    /** The id of the db object */
+    dbObjectId?: number;
+    /** The name of the schema object add */
+    dbObjectName?: string;
+    /** The id of the schema the object should be added to */
+    schemaId?: number;
+    /** The request_path */
+    requestPath?: string;
+    /** The values to update */
+    value: IShellMrsUpdateDbObjectKwargsValue | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If true a human readable string is returned */
-    returnFormatted?: boolean;
-    /** Used for internal plugin calls */
-    returnPythonObject?: boolean;
+}
+
+export interface IShellMrsAddContentSetKwargs {
+    /** The request_path */
+    requestPath: string | null;
+    /** Whether authentication is required to access the content */
+    requiresAuth: boolean | null;
+    /** Comments about the content */
+    comments?: string;
+    /** Whether to enable the content set after all files are uploaded */
+    enabled?: boolean;
+    /** The options as JSON string */
+    options?: IShellDictionary;
+    /** Whether to replace a content set that uses the same request_path */
+    replaceExisting?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsListContentSetsKwargs {
+    /** Only include items with the given enabled state */
+    includeEnableState?: boolean;
+    /** The request_path of the content_set */
+    requestPath?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetContentSetKwargs {
+    /** The id of the content_set */
+    contentSetId?: number;
+    /** The id of the service */
+    serviceId?: number;
+    /** The request_path of the content_set */
+    requestPath?: string;
+    /** If there is a single service only, use that */
+    autoSelectSingle?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsEnableContentSetKwargs {
+    /** The id of the service */
+    serviceId?: number;
+    /** The id of the content_set */
+    contentSetId?: number;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDisableContentSetKwargs {
+    /** The id of the service */
+    serviceId?: number;
+    /** The id of the content_set */
+    contentSetId?: number;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDeleteContentSetKwargs {
+    /** The id of the content_set */
+    contentSetId?: number;
+    /** The id of the service */
+    serviceId?: number;
+    /** The request_path of the content_set */
+    requestPath?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
 }
 
 export interface IShellMrsListContentFilesKwargs {
-    /** The id of the content_set to list the items from */
-    contentSetId?: number;
     /** Only include db_objects with the given enabled state */
     includeEnableState?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to true, a list object is returned */
-    returnFormatted?: boolean;
-}
-
-export interface IShellMrsGetAuthenticationVendorsKwargs {
-    /** Whether to return just the enabled vendors (default) or all */
-    enabled?: boolean;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-}
-
-export interface IShellMrsAddAuthenticationAppKwargs {
-    /** The app_name */
-    appName?: string;
-    /** The id of the service the schema should be added to */
-    serviceId?: number;
-    /** The auth_vendor_id */
-    authVendorId?: string;
-    /** A description of the app */
-    description?: string;
-    /** url of the app */
-    url?: string;
-    /** url direct auth of the app */
-    urlDirectAuth?: string;
-    /** access_token of the app */
-    accessToken?: string;
-    /** app_id of the app */
-    appId?: string;
-    /** Limit access to registered users */
-    limitToRegisteredUsers?: boolean;
-    /** Limit access to registered users */
-    useBuiltInAuthorization?: boolean;
-    /** List of registered users, separated by , */
-    registeredUsers?: string;
-    /** The default role to be assigned to new users */
-    defaultAuthRoleId?: number;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-}
-
-export interface IShellMrsListAuthenticationAppsKwargs {
-    /** Only include items with the given enabled state */
-    includeEnableState?: boolean;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to true, a list object is returned */
-    returnFormatted?: boolean;
-}
-
-export interface IShellMrsConfigureKwargs {
-    /** Whether MRS should be enabled or disabled */
-    enableMrs?: boolean;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-}
-
-export interface IShellMrsStatusKwargs {
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** Indicates whether to execute in interactive mode */
-    interactive?: boolean;
-    /** If set to true exceptions are raised */
-    raiseExceptions?: boolean;
-    /** If set to true, a list object is returned */
-    returnFormatted?: boolean;
 }
 
 export interface IProtocolMrsParameters {
-    [ShellAPIMrs.MrsAddService]: { args: { urlContextRoot?: string; urlHostName?: string; enabled?: boolean }; kwargs?: IShellMrsAddServiceKwargs };
-    [ShellAPIMrs.MrsGetService]: { args: { urlContextRoot?: string; urlHostName?: string; serviceId?: number }; kwargs?: IShellMrsGetServiceKwargs };
+    [ShellAPIMrs.MrsInfo]: {};
+    [ShellAPIMrs.MrsVersion]: {};
+    [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string }; };
+    [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean }; };
+    [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string }; };
+    [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs };
+    [ShellAPIMrs.MrsGetService]: { kwargs?: IShellMrsGetServiceKwargs };
     [ShellAPIMrs.MrsListServices]: { kwargs?: IShellMrsListServicesKwargs };
     [ShellAPIMrs.MrsEnableService]: { kwargs?: IShellMrsEnableServiceKwargs };
     [ShellAPIMrs.MrsDisableService]: { kwargs?: IShellMrsDisableServiceKwargs };
@@ -975,9 +811,9 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsSetServiceOptions]: { kwargs?: IShellMrsSetServiceOptionsKwargs };
     [ShellAPIMrs.MrsUpdateService]: { kwargs?: IShellMrsUpdateServiceKwargs };
     [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { kwargs?: IShellMrsGetServiceRequestPathAvailabilityKwargs };
-    [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs };
+    [ShellAPIMrs.MrsAddSchema]: { args: { serviceId: number }; kwargs?: IShellMrsAddSchemaKwargs };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs };
-    [ShellAPIMrs.MrsListSchemas]: { kwargs?: IShellMrsListSchemasKwargs };
+    [ShellAPIMrs.MrsListSchemas]: { args: { serviceId?: number }; kwargs?: IShellMrsListSchemasKwargs };
     [ShellAPIMrs.MrsEnableSchema]: { kwargs?: IShellMrsEnableSchemaKwargs };
     [ShellAPIMrs.MrsDisableSchema]: { kwargs?: IShellMrsDisableSchemaKwargs };
     [ShellAPIMrs.MrsDeleteSchema]: { kwargs?: IShellMrsDeleteSchemaKwargs };
@@ -987,16 +823,13 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsSetSchemaItemsPerPage]: { kwargs?: IShellMrsSetSchemaItemsPerPageKwargs };
     [ShellAPIMrs.MrsSetSchemaComments]: { kwargs?: IShellMrsSetSchemaCommentsKwargs };
     [ShellAPIMrs.MrsUpdateSchema]: { kwargs?: IShellMrsUpdateSchemaKwargs };
-    [ShellAPIMrs.MrsAddContentSet]: { kwargs?: IShellMrsAddContentSetKwargs };
-    [ShellAPIMrs.MrsListContentSets]: { args: { serviceId?: number }; kwargs?: IShellMrsListContentSetsKwargs };
-    [ShellAPIMrs.MrsGetContentSet]: { args: { requestPath?: string }; kwargs?: IShellMrsGetContentSetKwargs };
-    [ShellAPIMrs.MrsEnableContentSet]: { kwargs?: IShellMrsEnableContentSetKwargs };
-    [ShellAPIMrs.MrsDisableContentSet]: { kwargs?: IShellMrsDisableContentSetKwargs };
-    [ShellAPIMrs.MrsDeleteContentSet]: { kwargs?: IShellMrsDeleteContentSetKwargs };
+    [ShellAPIMrs.MrsGetAuthenticationVendors]: { kwargs?: IShellMrsGetAuthenticationVendorsKwargs };
+    [ShellAPIMrs.MrsAddAuthenticationApp]: { args: { appName?: string; serviceId?: number }; kwargs?: IShellMrsAddAuthenticationAppKwargs };
+    [ShellAPIMrs.MrsListAuthenticationApps]: { args: { serviceId?: number }; kwargs?: IShellMrsListAuthenticationAppsKwargs };
     [ShellAPIMrs.MrsAddDbObject]: { kwargs?: IShellMrsAddDbObjectKwargs };
-    [ShellAPIMrs.MrsGetDbObject]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectKwargs };
-    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectRowOwnershipFieldsKwargs };
-    [ShellAPIMrs.MrsGetDbObjectFields]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectFieldsKwargs };
+    [ShellAPIMrs.MrsGetDbObject]: { args: { dbObjectId?: number }; kwargs?: IShellMrsGetDbObjectKwargs };
+    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { kwargs?: IShellMrsGetDbObjectRowOwnershipFieldsKwargs };
+    [ShellAPIMrs.MrsGetDbObjectFields]: { args: { dbObjectId?: number; schemaId?: number; requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectFieldsKwargs };
     [ShellAPIMrs.MrsListDbObjects]: { kwargs?: IShellMrsListDbObjectsKwargs };
     [ShellAPIMrs.MrsGetDbObjectParameters]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectParametersKwargs };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: { args: { dbObjectId?: number; requestPath?: string }; kwargs?: IShellMrsSetDbObjectRequestPathKwargs };
@@ -1005,15 +838,13 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsDisableDbObject]: { args: { dbObjectName?: string; schemaId?: number }; kwargs?: IShellMrsDisableDbObjectKwargs };
     [ShellAPIMrs.MrsDeleteDbObject]: { args: { dbObjectName?: string; schemaId?: number }; kwargs?: IShellMrsDeleteDbObjectKwargs };
     [ShellAPIMrs.MrsUpdateDbObject]: { kwargs?: IShellMrsUpdateDbObjectKwargs };
-    [ShellAPIMrs.MrsListContentFiles]: { kwargs?: IShellMrsListContentFilesKwargs };
-    [ShellAPIMrs.MrsGetAuthenticationVendors]: { kwargs?: IShellMrsGetAuthenticationVendorsKwargs };
-    [ShellAPIMrs.MrsAddAuthenticationApp]: { kwargs?: IShellMrsAddAuthenticationAppKwargs };
-    [ShellAPIMrs.MrsListAuthenticationApps]: { args: { serviceId?: number }; kwargs?: IShellMrsListAuthenticationAppsKwargs };
-    [ShellAPIMrs.MrsInfo]: {};
-    [ShellAPIMrs.MrsVersion]: {};
-    [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string }; };
-    [ShellAPIMrs.MrsConfigure]: { kwargs?: IShellMrsConfigureKwargs };
-    [ShellAPIMrs.MrsStatus]: { kwargs?: IShellMrsStatusKwargs };
+    [ShellAPIMrs.MrsAddContentSet]: { args: { serviceId?: number; contentDir?: string }; kwargs?: IShellMrsAddContentSetKwargs };
+    [ShellAPIMrs.MrsListContentSets]: { args: { serviceId?: number }; kwargs?: IShellMrsListContentSetsKwargs };
+    [ShellAPIMrs.MrsGetContentSet]: { kwargs?: IShellMrsGetContentSetKwargs };
+    [ShellAPIMrs.MrsEnableContentSet]: { kwargs?: IShellMrsEnableContentSetKwargs };
+    [ShellAPIMrs.MrsDisableContentSet]: { kwargs?: IShellMrsDisableContentSetKwargs };
+    [ShellAPIMrs.MrsDeleteContentSet]: { kwargs?: IShellMrsDeleteContentSetKwargs };
+    [ShellAPIMrs.MrsListContentFiles]: { args: { contentSetId: number }; kwargs?: IShellMrsListContentFilesKwargs };
 
 }
 
@@ -1050,7 +881,7 @@ export interface IMrsDbObjectData {
     mediaType?: string;
     autoDetectMediaType: number;
     authStoredProcedure?: string;
-    options?: string;
+    options?: IShellDictionary;
     parameters?: IMrsDbObjectParameterData[];
 }
 
@@ -1062,7 +893,7 @@ export interface IMrsContentSetData {
     requestPath: string;
     requiresAuth: number;
     serviceId: number;
-    options: string;
+    options: IShellDictionary;
 }
 
 export interface IMrsContentFileData {
@@ -1092,7 +923,7 @@ export interface IMrsServiceData {
     urlHostName: string;
     urlProtocol: string;
     comments: string;
-    options: string;
+    options: IShellDictionary;
     authPath: string;
     authCompletedUrl: string;
     authCompletedUrlValidation: string;
@@ -1135,7 +966,7 @@ export interface IMrsSchemaData {
     requestPath: string;
     requiresAuth: number;
     serviceId: number;
-    options?: string;
+    options?: IShellDictionary;
 }
 
 export interface IMrsStatusData {

@@ -22,24 +22,50 @@
 """Sub-Module for core functions"""
 
 # cSpell:ignore mysqlsh, mrs
+import traceback
+from mrs_plugin.lib import services, content_sets, general, schemas
+import mysqlsh
+import os
+import re
+import json
+from enum import IntEnum
+import threading
+import base64
 
-from mysqlsh.plugin_manager import plugin_function
-from mrs_plugin import general, services as mrs_services
-from mrs_plugin import schemas as mrs_schemas
-from mrs_plugin import content_sets as mrs_content_sets
+_metadata_schema_updated = False
+
+class LogLevel(IntEnum):
+    NONE = 1
+    INTERNAL_ERROR = 2
+    ERROR = 3
+    WARNING = 4
+    INFO = 5
+    DEBUG = 6
+    DEBUG2 = 7
+    DEBUG3 = 8
+
+def script_path(*suffixes):
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), *suffixes)
+
+def print_exception(exc_type, exc_value, exc_traceback):
+    # Exception handler for the MrsDbSession context manager, which should
+    # be used only in interactive mode.
+    # Returns True to signal the exception was dealt with
+    exc_str = "".join([s.replace("\\n", "\n") for s in traceback.format_exception(exc_type, exc_value, exc_traceback)])
+    print(exc_str)
+    return True
 
 
-def analyze_service_path(path=None, session=None):
-    """Analyzes the given path
+def validate_service_path(session, path):
+    """Ensures the given path is valid in any of the registered services.
 
     Args:
-        path (str): The path to use.
         session (object): The database session to use.
+        path (str): The path to validate.
 
     Returns:
         service, schema, content_set as dict.
     """
-
     if not path:
         return None, None, None
 
@@ -48,32 +74,30 @@ def analyze_service_path(path=None, session=None):
     content_set = None
 
     # Match path against services and schemas
-    services = mrs_services.get_services(session=session, interactive=False)
-    for item in services:
+    all_services = services.get_services(session)
+    for item in all_services:
         host_ctx = item.get("host_ctx")
         if host_ctx == path[:len(host_ctx)]:
             service = item
             if len(path) > len(host_ctx):
                 sub_path = path[len(host_ctx):]
 
-                schemas = mrs_schemas.get_schemas(
-                    service_id=service.get("id"), session=session,
-                    interactive=False, return_formatted=False)
+                db_schemas = schemas.get_schemas(
+                    service_id=service.get("id"), session=session)
 
-                if schemas:
-                    for item in schemas:
+                if db_schemas:
+                    for item in db_schemas:
                         request_path = item.get("request_path")
                         if request_path == sub_path[:len(request_path)]:
                             schema = item
                         break
 
                 if not schema:
-                    content_sets = mrs_content_sets.get_content_sets(
-                        service_id=service.get("id"), session=session,
-                        interactive=False)
+                    content_sets_local = content_sets.get_content_sets(
+                        service_id=service.get("id"), session=session)
 
-                    if content_sets:
-                        for item in content_sets:
+                    if content_sets_local:
+                        for item in content_sets_local:
                             request_path = item.get("request_path")
                             if request_path == sub_path[:len(request_path)]:
                                 content_set = item
@@ -151,91 +175,25 @@ def set_current_objects(service_id=None, service=None, schema_id=None,
         mrs_config['current_content_set_id'] = None
 
 
-def get_current_service(session=None):
-    """Returns the current service
-
-    This only applies to interactive sessions in the shell where the
-    id of the current service is stored in the global config
-
-    Args:
-        session (object): The database session to use.
-
-    Returns:
-        The current or default service or None if no default is set
-    """
-
-    # Get current_service_id from the global mrs_config
-    mrs_config = get_current_config()
-    current_service_id = mrs_config.get('current_service_id')
-
-    current_service = None
-    if current_service_id:
-        current_service = mrs_services.get_service(
-            service_id=current_service_id,
-            session=session, interactive=False)
-
-    return current_service
-
-
-def get_current_content_set(session=None):
-    """Returns the current content_set
-
-    This only applies to interactive sessions in the shell where the
-    id of the current content_set is stored in the global config
-
-    Args:
-        session (object): The database session to use.
-
-    Returns:
-        The current content_set or None if no current content_set was set
-    """
-
-    # Get current_service_id from the global mrs_config
-    mrs_config = get_current_config()
-    current_content_set_id = mrs_config.get('current_content_set_id')
-
-    current_content_set = None
-    if current_content_set_id:
-        current_content_set = mrs_content_sets.get_content_set(
-            content_set_id=current_content_set_id,
-            session=session, interactive=False)
-
-    return current_content_set
-
-
-def get_current_schema(session=None):
-    """Returns the current schema
-
-    Args:
-        session (object): The database session to use.
-        interactive (bool): Indicates whether to execute in interactive mode
-
-    Returns:
-        The current or default service or None if no default is set
-    """
-
-    # Get current_service_id from the global mrs_config
-    mrs_config = get_current_config()
-    current_schema_id = mrs_config.get('current_schema_id')
-
-    current_schema = None
-    if current_schema_id:
-        current_schema = mrs_schemas.get_schema(
-            schema_id=current_schema_id, session=session,
-            interactive=False, return_formatted=False)
-
-    return current_schema
-
-
 def get_interactive_default():
     """Returns the default of the interactive mode
 
     Returns:
         The current database session
     """
-    import mysqlsh
+    if mysqlsh.globals.shell.options.useWizards:
+        ct = threading.current_thread()
+        if ct.__class__.__name__ == '_MainThread':
+            return True
+    return False
 
-    return mysqlsh.globals.shell.options.useWizards
+
+def get_interactive_result():
+    """
+    To be used in plugin functions that may return pretty formatted result when
+    called in an interactive Shell session
+    """
+    return get_interactive_default()
 
 
 def get_current_session(session=None):
@@ -247,23 +205,23 @@ def get_current_session(session=None):
     Returns:
         The current database session
     """
-    import mysqlsh
-
-    shell = mysqlsh.globals.shell
+    if session is not None:
+        return session
 
     # Check if the user provided a session or there is an active global session
+    session = mysqlsh.globals.shell.get_session()
     if session is None:
-        session = shell.get_session()
-        if session is None:
-            raise Exception(
-                "MySQL session not specified. Please either pass a session "
-                "object when calling the function or open a database "
-                "connection in the MySQL Shell first.")
+        raise Exception(
+            "MySQL session not specified. Please either pass a session "
+            "object when calling the function or open a database "
+            "connection in the MySQL Shell first.")
 
     return session
 
+def get_metadata_schema_updated():
+    return _metadata_schema_updated
 
-def ensure_rds_metadata_schema(session=None, auto_create_and_update=False,
+def ensure_mrs_metadata_schema(session=None, auto_create_and_update=False,
                                interactive=True):
     """Creates or updates the MRS metadata schema
 
@@ -278,73 +236,51 @@ def ensure_rds_metadata_schema(session=None, auto_create_and_update=False,
     Returns:
         True if the metadata schema has been changed
     """
+    _metadata_schema_updated = False
     session = get_current_session(session)
 
     # Check if the MRS metadata schema already exists
-    res = session.run_sql("""
-        SELECT COUNT(*) AS schema_exists FROM INFORMATION_SCHEMA.SCHEMATA
-        WHERE SCHEMA_NAME = 'mysql_rest_service_metadata'
-        """)
-    row = res.fetch_one()
-    if not row or (row and row.get_field("schema_exists") == 0):
+    row = select(table="INFORMATION_SCHEMA.SCHEMATA", cols="COUNT(*) AS schema_exists",
+        where="SCHEMA_NAME = 'mysql_rest_service_metadata'"
+    ).exec(session).first
+
+    if row["schema_exists"] == 0:
         if auto_create_and_update:
             create_rds_metadata_schema(session, interactive)
+            _metadata_schema_updated = True
             return True
-        else:
-            raise Exception("The MRS metadata schema has not yet been "
-                            "created. Please run mrs.configure() first.")
-    else:
-        # If it exists, check the version number
-        res = session.run_sql("""
-            SELECT major, minor, patch,
-                CONCAT(major, '.', minor, '.', patch) AS version
-            FROM `mysql_rest_service_metadata`.schema_version
-            """)
-        row = res.fetch_one()
-        if not row:
+        raise Exception("The MRS metadata schema has not yet been "
+                        "created. Please run mrs.configure() first.")
+
+    # If it exists, check the version number
+    row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
+    ).exec(session).first
+
+    if not row:
+        raise Exception(
+            "Unable to fetch MRS metadata database schema version.")
+
+    db_version_str = row["version"]
+    if db_version_str != general.DB_VERSION_STR:
+        db_version_num = (100000 * row["major"] +
+                            1000 * row["minor"] +
+                            row["patch"])
+
+        if db_version_num > general.DB_VERSION_NUM:
             raise Exception(
-                "Unable to fetch MRS metadata database schema version.")
-
-        db_version_str = row.get_field("version")
-        if db_version_str != general.DB_VERSION_STR:
-            db_version_num = (100000 * row.get_field("major") +
-                              1000 * row.get_field("minor") +
-                              row.get_field("patch"))
-
-            if db_version_num > general.DB_VERSION_NUM:
-                raise Exception(
-                    "Unsupported MRS metadata database schema "
-                    f"version {db_version_str}. "
-                    "Please update your MRS Shell Plugin.")
+                "Unsupported MRS metadata database schema "
+                f"version {db_version_str}. "
+                "Please update your MRS Shell Plugin.")
+        else:
+            if auto_create_and_update:
+                update_rds_metadata_schema(session, db_version_str)
+                return True
             else:
-                if auto_create_and_update:
-                    update_rds_metadata_schema(session, db_version_str)
-                    return True
-                else:
-                    raise Exception(
-                        "The MRS metadata schema needs to be updated. "
-                        "Please run mrs.configure() first.")
+                raise Exception(
+                    "The MRS metadata schema needs to be updated. "
+                    "Please run mrs.configure() first.")
 
     return False
-
-
-def get_current_session_with_rds_metadata(
-        session=None, auto_create_and_update=False, interactive=True):
-    """Returns the current database session and ensures MRS metadata schema
-    is-up to-date
-
-    If a session is provided, it will be returned instead of the current one.
-    If there is no active session, then an exception will be raised.
-
-    Returns:
-        The current database session
-    """
-
-    session = get_current_session(session)
-
-    ensure_rds_metadata_schema(session, auto_create_and_update, interactive)
-
-    return session
 
 
 def split_sql_script(sql_script):
@@ -356,8 +292,6 @@ def split_sql_script(sql_script):
     Returns:
         A list of commands as strings
     """
-
-    import re
 
     # Remove comments and split by command
     sql_script = re.sub(r".*--.*\n?", "", sql_script)
@@ -400,16 +334,10 @@ def update_rds_metadata_schema(session, current_db_version_str,
     Returns:
         None
     """
-
-    import mysqlsh
-    import os
-    import re
-
     if interactive:
         print("Updating MRS metadata schema...")
 
-    script_dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   'db_schema')
+    script_dir_path = script_path('db_schema')
 
     version_to_update = current_db_version_str
 
@@ -476,11 +404,6 @@ def create_rds_metadata_schema(session=None, interactive=True):
     Returns:
         None
     """
-
-    import mysqlsh
-    import os
-    import re
-
     shell = mysqlsh.globals.shell
     session = get_current_session(session)
 
@@ -489,8 +412,7 @@ def create_rds_metadata_schema(session=None, interactive=True):
 
     latest_version_val = [0, 0, 0]
 
-    script_dir = sql_file_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 'db_schema')
+    script_dir = sql_file_path = script_path('db_schema')
 
     # find the latest version of the database file available
     for f in os.listdir(script_dir):
@@ -504,8 +426,8 @@ def create_rds_metadata_schema(session=None, interactive=True):
     if latest_version_val == [0, 0, 0]:
         return
 
-    sql_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                 'db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
+    sql_file_path = script_path('db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
+
 
     with open(sql_file_path) as f:
         sql_script = f.read()
@@ -553,8 +475,6 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
         True or None when the user cancelled the selection
     """
 
-    import mysqlsh
-
     # If a given_value was provided, check this first instead of prompting the
     # user
     if given_value:
@@ -562,7 +482,7 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
         selected_item = None
         for item in item_list:
             if item_name_property is not None:
-                if type(item) == dict:
+                if isinstance(item, dict):
                     item_name = item.get(item_name_property)
                 else:
                     item_name = getattr(item, item_name_property)
@@ -579,7 +499,7 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
         i = 1
         for item in item_list:
             if item_name_property:
-                if type(item) == dict:
+                if isinstance(item, dict):
                     item_caption = item.get(item_name_property)
                 else:
                     item_caption = getattr(item, item_name_property)
@@ -623,7 +543,7 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
                     selected_item = None
                     for item in item_list:
                         if item_name_property is not None:
-                            if type(item) == dict:
+                            if isinstance(item, dict):
                                 item_name = item.get(item_name_property)
                             else:
                                 item_name = getattr(item, item_name_property)
@@ -663,7 +583,7 @@ def prompt_for_comments():
     return prompt("Comments: ").strip()
 
 
-def get_sql_result_as_dict_list(res):
+def get_sql_result_as_dict_list(res, fetch_all=True):
     """Returns the result set as a list of dicts
 
     Args:
@@ -672,9 +592,9 @@ def get_sql_result_as_dict_list(res):
     Returns:
         A list of dicts
     """
-
     if not res:
         return []
+
 
     cols = res.get_columns()
     rows = res.fetch_all()
@@ -688,8 +608,13 @@ def get_sql_result_as_dict_list(res):
             col_type = str(col.get_type())
             if col_type == "<Type.SET>":
                 item[col_name] = field_val.split(",") if field_val else []
+            elif col_type == "<Type.JSON>":
+                item[col_name] = json.loads(field_val) if field_val else None
+            elif isinstance(field_val, bytes):
+                item[col_name] = str(base64.b64decode(field_val), 'utf-8')
             else:
                 item[col_name] = field_val
+
         dict_list.append(item)
 
     return dict_list
@@ -706,8 +631,6 @@ def get_current_config(mrs_config=None):
     Returns:
         The active config dict
     """
-    import mysqlsh
-
     if mrs_config is None:
         # Check if global object 'mrs_config' has already been registered
         if 'mrs_config' in dir(mysqlsh.globals):
@@ -734,8 +657,6 @@ def prompt(message, options=None):
     Returns:
         A string value containing the input from the user.
     """
-    import mysqlsh
-
     return mysqlsh.globals.shell.prompt(message, options)
 
 
@@ -752,13 +673,14 @@ def check_request_path(request_path=None, **kwargs):
     Returns:
         None
     """
-
     session = kwargs.get("session")
 
     if not request_path:
         raise Exception("No request_path specified.")
 
-    session = get_current_session(session)
+    if not request_path.startswith("/"):
+        raise ValueError(
+                f"The request_path '{request_path}' has to start with '/'.")
 
     # Check if the request_path already exists for another db_object of that
     # schema
@@ -766,43 +688,224 @@ def check_request_path(request_path=None, **kwargs):
         SELECT CONCAT(h.name,
             se.url_context_root) as full_request_path
         FROM `mysql_rest_service_metadata`.service se
-			LEFT JOIN `mysql_rest_service_metadata`.url_host h
-				ON se.url_host_id = h.id
+            LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                ON se.url_host_id = h.id
         WHERE CONCAT(h.name, se.url_context_root) = ?
         UNION
         SELECT CONCAT(h.name, se.url_context_root,
             sc.request_path) as full_request_path
         FROM `mysql_rest_service_metadata`.db_schema sc
-			LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
+            LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                 ON se.id = sc.service_id
-			LEFT JOIN `mysql_rest_service_metadata`.url_host h
-				ON se.url_host_id = h.id
+            LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                ON se.url_host_id = h.id
         WHERE CONCAT(h.name, se.url_context_root,
                 sc.request_path) = ?
         UNION
         SELECT CONCAT(h.name, se.url_context_root,
             sc.request_path, o.request_path) as full_request_path
         FROM `mysql_rest_service_metadata`.db_object o
-			LEFT OUTER JOIN `mysql_rest_service_metadata`.db_schema sc
+            LEFT OUTER JOIN `mysql_rest_service_metadata`.db_schema sc
                 ON sc.id = o.db_schema_id
             LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                 ON se.id = sc.service_id
-			 LEFT JOIN `mysql_rest_service_metadata`.url_host h
-				ON se.url_host_id = h.id
+            LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                ON se.url_host_id = h.id
         WHERE CONCAT(h.name, se.url_context_root,
                 sc.request_path, o.request_path) = ?
         UNION
         SELECT CONCAT(h.name, se.url_context_root,
             co.request_path) as full_request_path
         FROM `mysql_rest_service_metadata`.content_set co
-			LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
+            LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                 ON se.id = co.service_id
-			LEFT JOIN `mysql_rest_service_metadata`.url_host h
-				ON se.url_host_id = h.id
+            LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                ON se.url_host_id = h.id
         WHERE CONCAT(h.name, se.url_context_root,
                 co.request_path) = ?
         """, [request_path, request_path, request_path, request_path])
+
     row = res.fetch_one()
+
     if row and row.get_field("full_request_path") != "":
         raise Exception(f"The request_path {request_path} is already "
-                        "in use.")
+                    "in use.")
+
+
+def convert_json(value):
+    try:
+        value_str = json.dumps(value)
+    except:
+        value_str = str(value)
+        value_str = value_str.replace("{'", '{"')
+        value_str = value_str.replace("'}'", '"}')
+        value_str = value_str.replace("', '", '", "')
+        value_str = value_str.replace("': '", '": "')
+        value_str = value_str.replace("': [", '": [')
+        value_str = value_str.replace("], '", '], "')
+        value_str = value_str.replace("': ", '": ')
+        value_str = value_str.replace(", '", ', "')
+    return json.loads(value_str)
+
+
+def _generate_where(where):
+    if where:
+       if isinstance(where, list):
+         return " WHERE " + " AND ".join(where)
+       else:
+         return " WHERE " + where
+    return ""
+
+
+def _generate_table(table):
+    if '.' in table:
+        return table
+    return f"`mysql_rest_service_metadata`.`{table}`"
+
+
+class MrsDbExec:
+    def __init__(self, sql: str, params=[]) -> None:
+        self._sql = sql
+        self._result = None
+        self._params = params
+
+    def _convert_data_to_db(self, var):
+        if isinstance(var, list):
+            return ",".join(var)
+        if isinstance(var, dict):
+            return json.dumps(dict(var))
+        return var
+
+    @property
+    def dump(self) -> "MrsDbExec":
+        print(f"sql: {self._sql}\nparams: {self._params}")
+        return self
+
+    def exec(self, session, params=[]) -> "MrsDbExec":
+        self._params = self._params + params
+        try:
+            # convert lists and dicts to store in the database
+            self._params = [self._convert_data_to_db(param) for param in self._params]
+
+            self._result = session.run_sql(self._sql, self._params)
+        except Exception as e:
+            mysqlsh.globals.shell.log(LogLevel.WARNING.name, f"[{e}\nsql: {self._sql}\nparams: {self._params}")
+            raise
+        return self
+    def __str__(self):
+        return self._sql
+    @property
+    def items(self):
+        return get_sql_result_as_dict_list(self._result)
+    @property
+    def first(self):
+        result = get_sql_result_as_dict_list(self._result)
+        if not result:
+            return None
+        return result[0]
+    @property
+    def success(self):
+        return self._result.get_affected_items_count() > 0
+    @property
+    def id(self):
+        return self._result.auto_increment_value
+    @property
+    def affected_count(self):
+        return self._result.get_affected_items_count()
+
+
+def select(table: str, cols=['*'], where=[], order=None) -> MrsDbExec:
+    if not isinstance(cols, str):
+        cols = ','.join(cols)
+    if order is not None and not isinstance(order, str):
+        order = ','.join(order)
+    sql = f"""
+        SELECT {cols}
+        FROM {_generate_table(table)}
+        {_generate_where(where)}"""
+    if order:
+        sql = f"{sql} ORDER BY {order}"
+
+    return MrsDbExec(sql)
+
+def update(table: str, sets, where=[]) -> MrsDbExec:
+    params = []
+    if isinstance(sets, list):
+        sets = ','.join(sets)
+    elif isinstance(sets, dict):
+        params = [value for value in sets.values()]
+        sets = ",".join([f"{key}=?" for key in sets.keys()])
+
+    sql = f"""
+        UPDATE {_generate_table(table)}
+        SET {sets}
+        {_generate_where(where)}"""
+
+    return MrsDbExec(sql, params)
+
+def delete(table: str, where=[]) -> MrsDbExec:
+    sql = f"""
+        DELETE FROM {_generate_table(table)}
+        {_generate_where(where)}"""
+
+    return MrsDbExec(sql)
+
+def insert(table, values={}):
+    params = []
+    place_holders = []
+    cols = []
+    if isinstance(values, list):
+        cols = ",".join(values)
+        place_holders = ','.join(["?" for val in values])
+    elif isinstance(values, dict):
+        cols = ','.join([str(col) for col in values.keys()])
+        place_holders = ','.join(["?" for val in values.values()])
+        params = [val for val in values.values()]
+
+    sql = f"""
+        INSERT INTO {_generate_table(table)}
+        ({cols})
+        VALUES
+        ({place_holders})
+    """
+    return MrsDbExec(sql, params)
+
+
+class MrsDbSession:
+    def __init__(self, **kwargs) -> None:
+        self._session = get_current_session(kwargs.get("session"))
+        self._exception_handler = kwargs.get("exception_handler")
+
+        ensure_mrs_metadata_schema(self._session, True)
+
+
+    def __enter__(self):
+        return self._session
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if exc_type is None:
+            return
+
+        if get_interactive_default() and self._exception_handler:
+            return self._exception_handler(exc_type, exc_value, exc_traceback)
+        return False
+
+    @property
+    def session(self):
+        return self._session
+
+class MrsDbTransaction:
+    def __init__(self, session) -> None:
+        self._session = session
+
+    def __enter__(self) -> "MrsDbTransaction":
+        self._session.start_transaction()
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback) -> bool:
+        if exc_type is None:
+            self._session.commit()
+            return
+
+        self._session.rollback()
+        return False

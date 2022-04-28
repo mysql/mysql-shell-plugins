@@ -167,8 +167,12 @@ describe("DialogHost Tests", () => {
             urlHostName: "",
             urlProtocol: "HTTP,HTTPS",
             comments: "",
-            options: "{\"header\": {\"Access-Control-Allow-Origin\": \"*\", "
-                + "\"Access-Control-Allow-Methods\": \"GET, POST, PUT, DELETE, OPTIONS\"}}",
+            options: {
+                header: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                },
+            },
             authPath: "",
             authCompletedUrl: "",
             authCompletedUrlValidation: "",
@@ -185,7 +189,7 @@ describe("DialogHost Tests", () => {
             requestPath: "/mrs_notes",
             requiresAuth: 1,
             serviceId: 1,
-            options: "",
+            options: {},
         }];
 
         const rowOwnershipFields = [

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -41,31 +41,31 @@ class mrs():
 
     This global object is used to manage the MySQL REST Data Service (MRS).
 
-    The MRS can be used to offer MySQL schema objects via the REST interface 
+    The MRS can be used to offer MySQL schema objects via the REST interface
     from MySQL Routers in an InnoDB Cluster.
     """
 
     def __init__(self):
         """Constructor that will import all relevant sub-modules
 
-        The constructor is called by the @plugin decorator to 
+        The constructor is called by the @plugin decorator to
         automatically register all decorated functions in the sub-modules
         """
         # Import all sub-modules to register the decorated functions there
-        from mrs_plugin import general, core, services, schemas
+        from mrs_plugin import general, services, schemas, auth_apps
         from mrs_plugin import db_objects, content_sets, content_files
 
     class enable():
         """Used to enable MRS services, schemas and schema objects.
 
-        A collection of functions to enable MRS services, schemas and 
+        A collection of functions to enable MRS services, schemas and
         schema objects.
         """
 
     class disable():
         """Used to disable MRS services, schemas and schema objects.
 
-        A collection of functions to disable MRS services, schemas and 
+        A collection of functions to disable MRS services, schemas and
         schema objects.
         """
 

@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { IShellDictionary } from "../../frontend/src/communication";
 import { commands, ExtensionContext, Uri, window } from "vscode";
 import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
 import {
@@ -281,8 +282,8 @@ export class MRSCommandHandler {
     private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
         item: ConnectionsTreeBaseItem, objectType: string): Promise<IMrsDbObjectData> => {
 
-        const params = await backend.mrs.getDbObjectFields(undefined, item.name, undefined, undefined, item.schema,
-            objectType, false);
+        const params = await backend.mrs.getDbObjectFields(undefined, item.name,
+            undefined, undefined, item.schema, objectType);
 
         // Add entry for <new> item
         params.push({
@@ -359,8 +360,8 @@ export class MRSCommandHandler {
                     + "REST Service. Do you want to add the schema now?",
                     "Yes", "No");
                 if (answer === "Yes") {
-                    dbObject.dbSchemaId = await backend.mrs.addSchema(item.schema, `/${item.schema}`,
-                        true, service.id);
+                    dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
+                        item.schema, `/${item.schema}`, true, undefined, undefined, undefined);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);
@@ -427,6 +428,15 @@ export class MRSCommandHandler {
             }
         }
 
+        let defaultOptions = {};
+        if (!service) {
+            defaultOptions = {
+                header: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                },
+            };
+        }
         const request = {
             id: "mrsServiceDialog",
             type: DialogType.MrsService,
@@ -443,9 +453,7 @@ export class MRSCommandHandler {
                 isDefault: !service || service.isDefault === 1,
                 enabled: !service || service.enabled === 1,
                 comments: service?.comments ?? "",
-                options: service?.options
-                    ?? `{"header": {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": `
-                    + `"GET, POST, PUT, DELETE, OPTIONS"}}`,
+                options: JSON.stringify(service?.options ?? defaultOptions),
                 authPath: service?.authPath ?? "/authentication",
                 authCompletedUrlValidation: service?.authCompletedUrlValidation ?? "",
                 authCompletedUrl: service?.authCompletedUrl ?? "",
@@ -484,10 +492,13 @@ export class MRSCommandHandler {
                 })?.id ?? 0;
             }
 
+
             if (!service) {
                 try {
-                    await backend.mrs.addService(urlContextRoot, protocols, hostName, isDefault, comments, enabled,
-                        options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
+                    await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
+                        isDefault, comments, enabled,
+                        JSON.parse(options ?? "{}") as IShellDictionary,
+                        authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                         authApps);
 
                     void commands.executeCommand("msg.refreshConnections");
@@ -498,9 +509,22 @@ export class MRSCommandHandler {
             } else {
                 // Send update request.
                 try {
-                    await backend.mrs.updateService(service.id, urlContextRoot, hostName, protocols, enabled, comments,
-                        options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
-                        authApps);
+                    await backend.mrs.updateService(service.id, service.urlContextRoot,
+                        service.urlHostName, {
+                            urlContextRoot,
+                            urlProtocol: protocols,
+                            urlHostName: hostName,
+                            enabled,
+                            isDefault,
+                            comments,
+                            options: JSON.parse(options ?? "{}") as IShellDictionary,
+                            authPath,
+                            authCompletedUrl,
+                            authCompletedUrlValidation,
+                            authCompletedPageContent,
+                            authApps,
+                        },
+                    );
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout("The MRS service has been successfully updated.", 5000);
@@ -541,7 +565,7 @@ export class MRSCommandHandler {
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
-                    options: schema?.options ?? "",
+                    options: JSON.stringify(schema?.options ?? {}),
                 },
             };
 
@@ -564,8 +588,8 @@ export class MRSCommandHandler {
                 if (!schema) {
                     try {
                         await backend.mrs.addSchema(
-                            name, requestPath, requiresAuth, serviceId,
-                            itemsPerPage, comments, options);
+                            serviceId, name, requestPath, requiresAuth,
+                            itemsPerPage, comments, JSON.parse(options ?? "{}") as IShellDictionary);
 
                         void commands.executeCommand("msg.refreshConnections");
                         showMessageWithTimeout(
@@ -577,7 +601,8 @@ export class MRSCommandHandler {
                 } else {
                     try {
                         await backend.mrs.updateSchema(schema.id, name, requestPath,
-                            requiresAuth, enabled, itemsPerPage, comments, options);
+                            requiresAuth, enabled, itemsPerPage, comments,
+                            JSON.parse(options ?? "{}") as IShellDictionary);
 
                         void commands.executeCommand("msg.refreshConnections");
                         showMessageWithTimeout(
@@ -659,7 +684,7 @@ export class MRSCommandHandler {
                 crudOperationFormat: dbObject.crudOperationFormat,
                 autoDetectMediaType: dbObject.autoDetectMediaType === 1,
                 mediaType: dbObject.mediaType,
-                options: dbObject.options,
+                options: JSON.stringify(dbObject?.options ?? {}),
                 authStoredProcedure: dbObject.authStoredProcedure,
                 parameters: dbObject.parameters ?? [parameterNewItem],
             },
@@ -684,8 +709,8 @@ export class MRSCommandHandler {
         const crudOperationFormat = response.data.crudOperationFormat as string ?? "FEED";
         const mediaType = response.data.mediaType as string;
         const autoDetectMediaType = response.data.autoDetectMediaType as boolean;
-        const authStoredProcedure = response.data.mediaType as string;
-        const options = response.data.mediaType as string;
+        const authStoredProcedure = response.data.authStoredProcedure as string;
+        const options = response.data.options as string;
 
         // Remove entry for <new> item
         const parameters = (response.data.parameters as IMrsDbObjectParameterData[]).filter(
@@ -702,7 +727,9 @@ export class MRSCommandHandler {
                     rowUserOwnershipEnforced, autoDetectMediaType,
                     rowUserOwnershipColumn,
                     schemaId, undefined, itemsPerPage, comments,
-                    mediaType, authStoredProcedure, options, parameters);
+                    mediaType, "",
+                    JSON.parse(options ?? "{}") as IShellDictionary,
+                    parameters);
 
                 void commands.executeCommand("msg.refreshConnections");
                 showMessageWithTimeout(
@@ -730,8 +757,8 @@ export class MRSCommandHandler {
                     authStoredProcedure,
                     crudOperations,
                     crudOperationFormat,
-                    options,
-                    JSON.stringify(parameters));
+                    JSON.parse(options ?? "{}") as IShellDictionary,
+                    parameters);
 
                 void commands.executeCommand("msg.refreshConnections");
                 showMessageWithTimeout(
@@ -794,7 +821,7 @@ export class MRSCommandHandler {
                     requiresAuth: contentSet?.requiresAuth === 1,
                     enabled: !contentSet || contentSet.enabled === 1,
                     comments: contentSet?.comments ?? "",
-                    options: contentSet?.options ?? "",
+                    options: JSON.stringify(contentSet?.options ?? {}),
                 },
             };
 
@@ -851,7 +878,7 @@ export class MRSCommandHandler {
                             const contentSet = await backend.mrs.addContentSet(
                                 directory, requestPath,
                                 requiresAuth, serviceId, comments,
-                                options, enabled, true, (message) => {
+                                JSON.parse(options ?? "{}") as IShellDictionary, enabled, true, (message) => {
                                     statusbarItem.text = "$(loading~spin) " + message;
                                 });
 

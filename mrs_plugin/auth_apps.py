@@ -24,48 +24,7 @@
 # cSpell:ignore mysqlsh, mrs
 
 from mysqlsh.plugin_manager import plugin_function
-from mrs_plugin import core, core, services as mrs_services
-
-# Content_set operations
-AUTH_APP_DISABLE = 1
-AUTH_APP_ENABLE = 2
-AUTH_APP_DELETE = 3
-
-
-def format_auth_app_listing(auth_apps, print_header=False):
-    """Formats the listing of auth_apps
-
-    Args:
-        auth_apps (list): A list of auth_apps as dicts
-        print_header (bool): If set to true, a header is printed
-
-
-    Returns:
-        The formatted list of services
-    """
-
-    if len(auth_apps) == 0:
-        return "No items available."
-
-    if print_header:
-        output = (f"{'ID':>3} {'NAME':26} {'DESCRIPTION':36} {'AUTH VENDOR':16} "
-                  f"{'ENABLED':8}\n")
-    else:
-        output = ""
-
-    i = 0
-    for item in auth_apps:
-        i += 1
-        description = item['description'] if item['description'] is not None else ""
-        output += (f"{item['id']:>3} {item['name'][:25]:26} "
-                   f"{description[:35]:36} "
-                   f"{item['auth_vendor'][:15]:16} "
-                   f"{'Yes' if item['enabled'] else '-':8} ")
-        if i < len(auth_apps):
-            output += "\n"
-
-    return output
-
+import mrs_plugin.lib as lib
 
 @plugin_function('mrs.get.authenticationVendors', shell=True, cli=True, web=True)
 def get_auth_vendors(**kwargs):
@@ -77,7 +36,6 @@ def get_auth_vendors(**kwargs):
     Keyword Args:
         enabled (bool): Whether to return just the enabled vendors (default) or all
         session (object): The database session to use
-        raise_exceptions (bool): If set to true exceptions are raised
 
     Returns:
         The list of vendor objects
@@ -85,37 +43,22 @@ def get_auth_vendors(**kwargs):
 
     enabled = kwargs.get("enabled", True)
 
-    session = kwargs.get("session")
-    interactive = kwargs.get("interactive", core.get_interactive_default())
-    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
-
-    try:
-        session = core.get_current_session_with_rds_metadata(session)
-        res = session.run_sql("""
-                SELECT id, name, validation_url, enabled, comments
-                FROM `mysql_rest_service_metadata`.`auth_vendor`
-                WHERE enabled = ?
-                """, [enabled])
-
-        return core.get_sql_result_as_dict_list(res)
-    except Exception as e:
-        if raise_exceptions:
-            raise
-        print(f"Error: {str(e)}")
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        return lib.core.select(table="auth_vendor", where="enabled=?").exec(session, [enabled]).items
 
 
 @plugin_function('mrs.add.authenticationApp', shell=True, cli=True, web=True)
-def add_auth_app(**kwargs):
+def add_auth_app(app_name=None, service_id=None, **kwargs):
     """Adds an auth_app to the given MRS service
 
     Args:
+        app_name (str): The app_name
+        service_id (int): The id of the service the schema should be added to
         **kwargs: Additional options
 
     Keyword Args:
-        app_name (str): The app_name
-        service_id (int): The id of the service the schema should be added to
-        auth_vendor_id (str): The auth_vendor_id
-        description (str): A description of the app
+        auth_vendor_id (str,required): The auth_vendor_id
+        description (str,required): A description of the app
         url (str): url of the app
         url_direct_auth (str): url direct auth of the app
         access_token (str): access_token of the app
@@ -125,16 +68,10 @@ def add_auth_app(**kwargs):
         registered_users (str): List of registered users, separated by ,
         default_auth_role_id (int): The default role to be assigned to new users
         session (object): The database session to use
-        interactive (bool): Indicates whether to execute in interactive mode
-        raise_exceptions (bool): If set to true exceptions are raised
 
     Returns:
-        None in interactive mode, a dict with content_set_id and
-            number_of_files_uploaded
+        A dict with content_set_id and number_of_files_uploaded
     """
-
-    app_name = kwargs.get("app_name")
-    service_id = kwargs.get("service_id")
     auth_vendor_id = kwargs.get("auth_vendor_id")
     description = kwargs.get("description")
     url = kwargs.get("url")
@@ -145,34 +82,32 @@ def add_auth_app(**kwargs):
     limit_to_reg_users = kwargs.get("limit_to_registered_users")
     registered_users = kwargs.get("registered_users")
     default_auth_role_id = kwargs.get("default_auth_role_id")
+    interactive = lib.core.get_interactive_default()
+    return_formatted = lib.core.get_interactive_result()
 
-    session = kwargs.get("session")
-    interactive = kwargs.get("interactive", core.get_interactive_default())
-    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
-
-    try:
-        # Make sure the MRS metadata schema exists and has the right version
-        session = core.get_current_session_with_rds_metadata(session)
-
-        service = mrs_services.get_service(
-            service_id=service_id, auto_select_single=True,
-            session=session, interactive=interactive,
-            return_formatted=False)
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        service = lib.services.get_service(
+            service_id=service_id, session=session)
 
         # Get auth_vendor_id
         if not auth_vendor_id and interactive:
-            app_vendors = get_auth_vendors(
-                session=session, raise_exceptions=raise_exceptions)
+            app_vendors = lib.core.select(table="auth_vendor",
+                cols=["id", "name"],
+                where="enabled=1"
+            ).exec(session).items
+
             if len(app_vendors) == 0:
                 raise ValueError("No authentication vendors enabled.")
 
-            app_vendor = core.prompt_for_list_item(
+            app_vendor = lib.core.prompt_for_list_item(
                 item_list=app_vendors, prompt_caption=(
                     "Please select an authentication vendor: "),
                 item_name_property="name",
                 print_list=True)
+
             if not app_vendor:
                 raise ValueError("Operation cancelled.")
+
             auth_vendor_id = app_vendor['id']
 
         if not auth_vendor_id:
@@ -180,13 +115,13 @@ def add_auth_app(**kwargs):
 
         # Get app_name
         if not app_name and interactive:
-            if auth_vendor_id == 1:
-                app_name = core.prompt(
+            if auth_vendor_id == lib.auth_apps.MYSQL_AUTHENTICATION:
+                app_name = lib.core.prompt(
                     "Please enter the name of the authentication app "
                     "[MySQL Account Access]: ",
                     {'defaultValue': 'MySQL Account Access'})
             else:
-                app_name = core.prompt(
+                app_name = lib.core.prompt(
                     "Please enter the name of the authentication app: ")
             if not app_name:
                 raise ValueError("Operation cancelled.")
@@ -195,25 +130,25 @@ def add_auth_app(**kwargs):
 
         # Get description
         if not description and interactive:
-            if auth_vendor_id == 1:
-                description = core.prompt(
+            if auth_vendor_id == lib.auth_apps.MYSQL_AUTHENTICATION:
+                description = lib.core.prompt(
                     "Please enter a description for the authentication app "
                     "[Authentication via MySQL accounts]",
                     {'defaultValue':
                      'Authentication via MySQL accounts'})
             else:
-                description = core.prompt(
+                description = lib.core.prompt(
                     "Please enter a description for the authentication app: ")
 
         # Get limit_to_registered_users
         if not limit_to_reg_users and interactive:
-            limit_to_reg_users = core.prompt(
+            limit_to_reg_users = lib.core.prompt(
                 "Limit authentication to registered users? [y/N]: ",
                 {'defaultValue': 'n'}).strip().lower() == 'y'
 
         # Get registered_users, convert to list
         if limit_to_reg_users and not registered_users and interactive:
-            registered_users = core.prompt(
+            registered_users = lib.core.prompt(
                 "Please enter a list of registered user names, separated "
                 "by comma (,): ")
 
@@ -222,55 +157,40 @@ def add_auth_app(**kwargs):
             registered_users = [reg_user.strip()
                                 for reg_user in registered_users]
 
-        # Create the auth_app
-        res = session.run_sql("""
-            INSERT INTO `mysql_rest_service_metadata`.`auth_app`(
-                auth_vendor_id, service_id, name, description, url,
+        with lib.core.MrsDbTransaction(session):
+            # Create the auth_app
+            auth_app_id = lib.core.insert(table="auth_app", values=[
+                "auth_vendor_id", "service_id", "name", "description", "url",
+                "url_direct_auth", "access_token", "app_id", "enabled",
+                "use_built_in_authorization", "limit_to_registered_users",
+                "default_auth_role_id"
+            ]).exec(session, [
+                auth_vendor_id,
+                service.get("id"),
+                app_name,
+                description,
+                url,
                 url_direct_auth,
-                access_token, app_id, enabled, 
-                use_built_in_authorization, limit_to_registered_users,
-                default_auth_role_id)
-            VALUES(?, ?, ?, ?, ?,
-                    ?,
-                    ?, ?, ?, 
-                    ?, ?,
-                    ?)
-            """, [
-            auth_vendor_id,
-            service.get("id"),
-            app_name,
-            description,
-            url,
-            url_direct_auth,
-            access_token,
-            app_id,
-            1,
-            use_built_in_authorization if use_built_in_authorization else 1,
-            limit_to_reg_users if limit_to_reg_users else 0,
-            default_auth_role_id
-        ])
-        auth_app_id = res.auto_increment_value
+                access_token,
+                app_id,
+                1,
+	            use_built_in_authorization if use_built_in_authorization else 1,
+                limit_to_reg_users if limit_to_reg_users else 0,
+                default_auth_role_id
+            ]).id
 
-        # Create the registered_users if specified
-        if registered_users and len(registered_users) > 0:
-            for reg_user in registered_users:
-                res = session.run_sql("""
-                    INSERT INTO `mysql_rest_service_metadata`.`auth_user`(
-                        auth_app_id, name)
-                    VALUES(?, ?)
-                    """, [auth_app_id, reg_user])
+            # Create the registered_users if specified
+            if registered_users and len(registered_users) > 0:
+                for reg_user in registered_users:
+                    lib.core.insert(table="auth_user", values=[ "auth_app_id", "name"]
+                    ).exec(session, [auth_app_id, reg_user])
 
-        if interactive:
-            return "\n" + "Authentication app added successfully."
+        if return_formatted:
+            return f"\nAuthentication app with the id {auth_app_id} was added successfully."
         else:
             return {
                 "auth_app_id": auth_app_id
             }
-
-    except Exception as e:
-        if raise_exceptions:
-            raise
-        print(f"Error: {str(e)}")
 
 
 @plugin_function('mrs.list.authenticationApps', shell=True, cli=True, web=True)
@@ -285,9 +205,6 @@ def get_auth_apps(service_id=None, **kwargs):
         include_enable_state (bool): Only include items with the given
             enabled state
         session (object): The database session to use.
-        interactive (bool): Indicates whether to execute in interactive mode
-        raise_exceptions (bool): If set to true exceptions are raised
-        return_formatted (bool): If set to true, a list object is returned
 
     Returns:
         Either a string listing the content sets when interactive is set or list
@@ -295,20 +212,12 @@ def get_auth_apps(service_id=None, **kwargs):
     """
 
     include_enable_state = kwargs.get("include_enable_state")
-    session = kwargs.get("session")
-    interactive = kwargs.get("interactive", core.get_interactive_default())
-    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
-    return_formatted = kwargs.get("return_formatted", interactive)
+    return_formatted = lib.core.get_interactive_result()
 
-    try:
-        # Make sure the MRS metadata schema exists and has the right version
-        session = core.get_current_session_with_rds_metadata(session)
-
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         # Check the given service_id or get the default if none was given
-        service = mrs_services.get_service(
-            service_id=service_id, auto_select_single=True,
-            session=session, interactive=interactive,
-            return_formatted=False)
+        service = lib.services.get_service(
+            service_id=service_id, session=session)
 
         sql = """
             SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
@@ -326,17 +235,11 @@ def get_auth_apps(service_id=None, **kwargs):
 
         sql += "ORDER BY a.name"
 
-        res = session.run_sql(sql, [service.get("id")])
-
-        auth_apps = core.get_sql_result_as_dict_list(res)
+        auth_apps = lib.core.MrsDbExec(sql).exec(session, [service.get("id")]).items
 
         if return_formatted:
-            return format_auth_app_listing(
+            return lib.auth_apps.format_auth_app_listing(
                 auth_apps=auth_apps, print_header=True)
         else:
             return auth_apps
 
-    except Exception as e:
-        if raise_exceptions:
-            raise
-        print(f"Error: {str(e)}")

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,16 +19,11 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pytest
-from ... content_files import *
-
-@pytest.mark.usefixtures("init_mrs")
-def test_get_content_files(init_mrs):
-    args = {
-        "include_enable_state": False,
-        "session": init_mrs,
-    }
-
-    files = get_content_files(1, **args)
-    assert files is not None
-
+from mrs_plugin.lib import auth_apps
+from mrs_plugin.lib import core
+from mrs_plugin.lib import services
+from mrs_plugin.lib import schemas
+from mrs_plugin.lib import db_objects
+from mrs_plugin.lib import content_files
+from mrs_plugin.lib import content_sets
+from mrs_plugin.lib import general

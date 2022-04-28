@@ -18,17 +18,3 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-
-import pytest
-from ... content_files import *
-
-@pytest.mark.usefixtures("init_mrs")
-def test_get_content_files(init_mrs):
-    args = {
-        "include_enable_state": False,
-        "session": init_mrs,
-    }
-
-    files = get_content_files(1, **args)
-    assert files is not None
-

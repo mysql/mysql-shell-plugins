@@ -22,8 +22,10 @@
 import pytest
 import tempfile
 import os
+
 import mysqlsh
 
+from mrs_plugin import lib
 
 def create_test_db(session):
     session.run_sql("DROP SCHEMA IF EXISTS `PhoneBook`;")
@@ -52,35 +54,34 @@ def create_test_db(session):
     session.run_sql("""CREATE OR REPLACE VIEW `ContactsWithEmail` AS
                         SELECT * FROM `Contacts`
                         WHERE `email` is not NULL;""")
+    session.run_sql("""CREATE OR REPLACE VIEW `ContactBasicInfo` AS
+                        SELECT f_name, l_name, number FROM `Contacts`
+                        WHERE `email` is not NULL;""")
 
 
 @pytest.fixture(scope="session")
 def init_mrs():
     shell = mysqlsh.globals.shell
-    session = shell.connect("root:@localhost:3306")
+    shell.options.set("useWizards", False)
+    session: mysqlsh.globals.session = shell.connect("root:@localhost:3306")
     assert session is not None
 
     session.run_sql("DROP DATABASE IF EXISTS mysql_rest_service_metadata;")
     create_test_db(session)
 
-    config = {
-        "enable_mrs": True,
-        "session": session,
-        "interactive": False
-    }
     from .. general import configure
-    configure(**config)
+    configure(session=session)
 
     service = {
         "url_protocol": ["HTTP"],
         "is_default": True,
         "comments": "Test service",
-        "session": session,
-        "interactive": False,
-        "raise_exceptions": False
+        "session": session
     }
     from .. services import add_service
-    result = add_service("/test", "localhost", True, **service)
+    result = add_service(url_context_root="/test", url_host_name="localhost", enabled=True, **service)
+
+    assert result is not None, f"Unable to add the /test service: {result}"
 
     assert result is not None
     assert isinstance(result, dict)
@@ -94,6 +95,7 @@ def init_mrs():
         'comments': 'Test service',
         'options': None,
         'host_ctx': 'localhost/test',
+        'url_host_id': 1,
         'auth_path': '/authentication',
         'auth_completed_url': None,
         'auth_completed_url_validation': None,
@@ -103,14 +105,12 @@ def init_mrs():
     schema = {
         "schema_name": "PhoneBook",
         "service_id": 1,
-        "request_path": "/test_schema",
+        "request_path": "/PhoneBook",
         "requires_auth": False,
         "enabled": True,
         "items_per_page" : 20,
         "comments": "test schema",
-        "session": session,
-        "interactive": False
-
+        "session": session
     }
     from .. schemas import add_schema
     add_schema(**schema)
@@ -123,9 +123,7 @@ def init_mrs():
         "request_path": "/test_content_set",
         "requires_auth": False,
         "comments": "Content Set",
-        "session": session,
-        "interactive": False,
-        "raise_exceptions": False
+        "session": session
     }
     from .. content_sets import add_content_set
     add_content_set(content_dir=tmpdir_path, service_id=1, **content_set)
@@ -143,11 +141,14 @@ def init_mrs():
         "items_per_page": 10,
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
+        "row_ownership_parameter": "",
         "comments": "Test table",
         "session": session,
-        "interactive": False,
-        "raise_exceptions": False,
-        "return_formatted": False
+        "media_type": None,
+        "auto_detect_media_type": True,
+        "auth_stored_procedure": '0',
+        "options": None,
+        "parameters": None
     }
     from .. db_objects import add_db_object
     id = add_db_object(**db_object)
@@ -157,3 +158,116 @@ def init_mrs():
 
     tmp_dir.cleanup()
     session.close()
+
+
+
+class TableContents(object):
+    class TableSnapshot(object):
+        def __init__(self, snapshot):
+            self._data = snapshot
+
+        def __getitem__(self, key):
+            return self._data[key]
+
+        def __len__(self):
+            return len(self._data)
+
+        def __str__(self) -> str:
+            return str(self._data)
+
+        def __eq__(self, value) -> bool:
+            if isinstance(value, dict):
+                value = [value]
+            return self._data == value
+
+        @property
+        def count(self):
+            return len(self._data)
+
+        @property
+        def items(self):
+            return self._data
+
+        def get(self, column_name, value):
+            for item in self._data:
+                if item.get(column_name) == value:
+                    return item
+            return None
+
+        def exists(self, column_name, value):
+            return self.get(column_name, value) is not None
+
+    def __init__(self, session, table_name):
+        self._session = session
+        self._table_name = table_name
+        self._snapshot = None
+        self._diff = set()
+
+    @property
+    def items(self):
+        return lib.core.select(table=self._table_name).exec(self._session).items
+
+    @property
+    def count(self):
+        return lib.core.select(table=self._table_name, cols="COUNT(*) as CNT").exec(self._session).first["CNT"]
+
+    def get(self, column_name, value):
+        return lib.core.select(table=self._table_name,
+            where=[f"{column_name}=?"]
+        ).exec(self._session, [value]).first
+
+    def filter(self, where=None):
+        return lib.core.select(table=self._table_name,
+            where=where
+        ).exec(self._session).items
+
+    def exists(self, column_name, value):
+        return self.get(column_name, value) is not None
+
+    def take_snapshot(self):
+        self._snapshot = TableContents.TableSnapshot(lib.core.select(table=self._table_name).exec(self._session).items)
+
+    @property
+    def snapshot(self):
+        return self._snapshot
+
+    @property
+    def same_as_snapshot(self):
+        current = lib.core.select(table=self._table_name).exec(self._session).items
+        if len(current) != len(self._snapshot):
+            return False
+
+        for index in range(0, len(self._snapshot)):
+            if self._snapshot[index] != current[index]:
+                return False
+
+        return True
+
+    def assert_same(self):
+        current = lib.core.select(table=self._table_name).exec(self._session).items
+        if len(current) != len(self._snapshot):
+            return False
+
+        for index in range(0, len(self._snapshot)):
+            assert self._snapshot[index] == current[index]
+
+    @property
+    def diff_text(self):
+        current = lib.core.select(table=self._table_name).exec(self._session).items
+        if len(self._snapshot._data) != len(current):
+            return f"\nCurrent:\n  {current}\nExpected:\n  {self._snapshot._data}"
+
+        for index in range(0, len(current)):
+            if current[index] != self._snapshot._data[index]:
+                return f"\nCurrent:\n  {current[index]}\nExpected:\n  {self._snapshot._data[index]}"
+        return ""
+
+@pytest.fixture(scope="session")
+@pytest.mark.usefixtures("init_mrs")
+def table_contents(init_mrs) -> TableContents:
+    def create_table_content_object(table_name, take_snapshot=True):
+        tc = TableContents(init_mrs, table_name)
+        if take_snapshot:
+            tc.take_snapshot()
+        return tc
+    yield create_table_content_object
