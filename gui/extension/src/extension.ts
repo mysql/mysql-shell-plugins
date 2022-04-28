@@ -41,6 +41,7 @@ import { currentConnection } from "../../frontend/src/communication";
 import { ExtensionHost } from "./ExtensionHost";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
+import { waitFor } from "../../frontend/src/utilities/helpers";
 
 export let taskOutputChannel: OutputChannel;
 export let statusBarItem: StatusBarItem;
@@ -261,7 +262,9 @@ export const activate = (context: ExtensionContext): void => {
             `&version=${currentVersion}&os=${platformId}&cpu_arch=${cpuArch}`));
     }));
 
-    context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", (): Boolean => {
+    context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", async (): Promise<Boolean> => {
+        await waitFor(3000, () => { return startupCompleted; } );
+
         return startupCompleted;
     }));
 
@@ -286,7 +289,7 @@ export const activate = (context: ExtensionContext): void => {
 
     // Check if this is the initial run of the MySQL Shell extension after installation
     const initialRun = context.globalState.get("MySQLShellInitialRun");
-    if (!initialRun || initialRun === "") {
+    if ((!initialRun || initialRun === "") && !process.env.extensionTestsRunning) {
         void context.globalState.update("MySQLShellInitialRun", currentVersion);
 
         void commands.executeCommand("msg.runWelcomeWizard");
