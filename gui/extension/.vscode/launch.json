@@ -39,17 +39,19 @@
                 "MSG_TESTING": "E2E"
             }
         },
-		{
-			"name": "Run Extension Tests",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/output/extension/src/test/suite/index"
-			],
-			"outFiles": ["${workspaceFolder}/output/extension/src/test/**/*.js"],
-			"preLaunchTask": "tsc: watch"
-		}
+        {
+            "name": "Run Extension Tests",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--extensionTestsPath=${workspaceFolder}/output/extension/src/test/suite/index"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/output/extension/src/test/**/*.js"
+            ],
+            "preLaunchTask": "tsc: watch"
+        }
     ]
 }

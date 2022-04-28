@@ -51,14 +51,6 @@ let host: ExtensionHost;
 
 let startupCompleted = false;
 
-/**
- * When the extension is deployed with an embedded MySQL Shell, a custom shell user config dir is used, as defined in
- * the extensionShellUserConfigFolderBaseName constant. If this constant should be changed at some point in the future,
- * it is important to note that the corresponding constant EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME in the
- * ShellModuleSession.py file of the gui_plugin needs to be adjusted as well.
- */
-const extensionShellUserConfigFolderBaseName = "mysqlsh-gui";
-
 // Dialog Messages
 const restartMessage = "This will close all MySQL Shell tabs and restart the underlying process. " +
     "After that a new connection will automatically be established.";
@@ -145,11 +137,11 @@ export const activate = (context: ExtensionContext): void => {
     setupInitialWelcomeWebview(context);
 
     context.subscriptions.push(commands.registerCommand("msg.restartShell", () => {
-        void window.showWarningMessage(restartMessage, "Restart MySQL Shell", "Cancel").then((choice) => {
+        void window.showWarningMessage(restartMessage, "Restart MySQL Shell", "Cancel").then(async (choice) => {
             if (choice === "Restart MySQL Shell") {
                 host.closeAllTabs();
                 currentConnection.disconnect();
-                void shellLauncher.exitProcess();
+                await shellLauncher.exitProcess();
                 webSession.clearSessionData();
 
                 shellLauncher.startShellAndConnect(context.extensionPath, true);
@@ -164,10 +156,10 @@ export const activate = (context: ExtensionContext): void => {
             value: externalUrl,
             prompt: "Enter the address of a MySQL Shell instance to connect to. Leave the field empty to start and " +
                 "connect to a local MySQL Shell",
-        }).then((value) => {
+        }).then(async (value) => {
             host.closeAllTabs();
             currentConnection.disconnect();
-            void shellLauncher.exitProcess();
+            await shellLauncher.exitProcess();
             webSession.clearSessionData();
 
             const configuration = workspace.getConfiguration(`msg.debugLog`);
@@ -196,7 +188,8 @@ export const activate = (context: ExtensionContext): void => {
                         if (output.includes("true")) {
                             // Delete the shell user settings folder, only if it is the dedicated one for the extension.
                             const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(context.extensionPath);
-                            if (shellUserConfigDir.endsWith(extensionShellUserConfigFolderBaseName)) {
+                            if (shellUserConfigDir
+                                .endsWith(MySQLShellLauncher.extensionShellUserConfigFolderBaseName)) {
                                 rmSync(shellUserConfigDir, { recursive: true, force: true });
                             }
 

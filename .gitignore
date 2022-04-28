@@ -6,4 +6,3 @@
 **/node_modules
 **/__pycache__
 **/.DS_Store
-gui/extension/tests/e2e/test-resources
