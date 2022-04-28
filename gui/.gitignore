@@ -21,11 +21,6 @@ backend/plugin-test-coverage.xml
 backend/plugin-tests.xml
 htmlcov
 
-# testing
-frontend/coverage
-frontend/coveragee2e
-frontend/e2e/selenium
-
 # production
 frontend/build
 frontend/src/oci-typings
@@ -56,15 +51,19 @@ frontend/src/tests/e2e/selenium
 extension/shell
 extension/packaging
 
-# e2e
+# e2e testing
 frontend/src/tests/e2e/screenshots
 frontend/src/tests/e2e/attachScreenshots.js
 frontend/src/tests/e2e/test-report.html
 
-extension/test-resources
 extension/src/e2e/**/*.js
 extension/mochawesome-report
 extension/tests/e2e/screenshots
+extension/tests/e2e/test-resources
+
+# frontend testing
+frontend/coverage
+frontend/src/tests/unit-tests/shell-test
 
 
 

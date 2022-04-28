@@ -80,7 +80,7 @@ export class MySQLShellLauncher {
      * EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME in the ShellModuleSession.py file of the gui_plugin needs to be
      * adjusted as well.
      */
-    private static readonly extensionShellUserConfigFolderBaseName = "mysqlsh-gui";
+    public static readonly extensionShellUserConfigFolderBaseName = "mysqlsh-gui";
 
     private shellProcess: child_process.ChildProcess | undefined;
     private launchDetails: IShellLaunchDetails = { port: 0, singleUserToken: "" };
