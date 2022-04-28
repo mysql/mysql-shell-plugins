@@ -31,7 +31,7 @@ export interface IMrsDbObjectData {
     mediaType?: string;
     autoDetectMediaType: number;
     authStoredProcedure?: string;
-    options?: string;
+    options?: IShellDictionary;
     parameters?: IMrsDbObjectParameterData[];
 }
 
@@ -43,7 +43,7 @@ export interface IMrsContentSetData {
     requestPath: string;
     requiresAuth: number;
     serviceId: number;
-    options: string;
+    options: IShellDictionary;
 }
 
 export interface IMrsContentFileData {
@@ -73,7 +73,7 @@ export interface IMrsServiceData {
     urlHostName: string;
     urlProtocol: string;
     comments: string;
-    options: string;
+    options: IShellDictionary;
     authPath: string;
     authCompletedUrl: string;
     authCompletedUrlValidation: string;
@@ -116,7 +116,7 @@ export interface IMrsSchemaData {
     requestPath: string;
     requiresAuth: number;
     serviceId: number;
-    options?: string;
+    options?: IShellDictionary;
 }
 
 export interface IMrsStatusData {

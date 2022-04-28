@@ -145,9 +145,19 @@ describe("ShellInterfaceMrs Tests", (): void => {
             }]);
 
             await mrs.addService("/mrs2", ["HTTPS"], "", false,
-                "", false, "", "", "", "", "");
+                "", false, {}, "", "", "", "", []);
 
-            await mrs.updateService(1, "/mrs2", "", ["HTTPS"], false, "", "", "", "", "", "", []);
+            await mrs.updateService(1, "/mrs2", "", {
+                urlProtocol: ["HTTPS"],
+                enabled: false,
+                comments: "",
+                options: {},
+                authPath: "",
+                authCompletedUrl: "",
+                authCompletedUrlValidation: "",
+                authCompletedPageContent: "",
+                parameters: [],
+            });
 
             await mrs.deleteService(1);
 
@@ -179,8 +189,8 @@ describe("ShellInterfaceMrs Tests", (): void => {
                 serviceId: 2,
             }]);
 
-            await mrs.addSchema("sakila", "/sakila", true, 1, 25, "", "");
-            await mrs.updateSchema(1, "sakila", "/sakila", true, true, 25, "", "");
+            await mrs.addSchema(1, "sakila", "/sakila", true, 25, "", {});
+            await mrs.updateSchema(1, "sakila", "/sakila", true, true, 25, "", {});
             await mrs.deleteSchema(1, 1);
 
             MessageScheduler.get.disconnect();

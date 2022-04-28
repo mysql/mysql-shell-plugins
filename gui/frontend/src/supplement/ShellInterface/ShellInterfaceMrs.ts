@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler, ShellAPIMrs } from "../../communication";
+import { MessageScheduler, ShellAPIMrs, IShellDictionary } from "../../communication";
 import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
     IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectParameterData,
@@ -33,13 +33,12 @@ export class ShellInterfaceMrs {
     // The key under which the module session is stored in the WebSession instance.
     public moduleSessionLookupId = "";
 
-    public async configure(enableMrs?: boolean, interactive?: boolean): Promise<void> {
+    public async configure(enableMrs?: boolean): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsConfigure,
             parameters: {
-                kwargs: {
+                args: {
                     moduleSessionId: this.moduleSessionId,
-                    interactive,
                     enableMrs,
                 },
             },
@@ -50,7 +49,7 @@ export class ShellInterfaceMrs {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsStatus,
             parameters: {
-                kwargs: {
+                args: {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -59,16 +58,12 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async listServices(interactive?: boolean, raiseExceptions?: boolean,
-        returnFormatted?: boolean): Promise<IMrsServiceData[]> {
+    public async listServices(): Promise<IMrsServiceData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListServices,
             parameters: {
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
-                    interactive,
-                    raiseExceptions,
-                    returnFormatted,
                 },
             },
         });
@@ -76,20 +71,18 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async addService(urlContextRoot: string, urlProtocol: string[], urlHostName: string, isDefault?: boolean,
-        comments?: string, enabled?: boolean, options?: string,
-        authPath?: string, authCompletedUrl?: string,
-        authCompletedUrlValidation?: string, authCompletedPageContent?: string,
-        authApps?: IMrsAuthAppData[]): Promise<void> {
+    public async addService(urlContextRoot: string, urlProtocol: string[], urlHostName: string, isDefault: boolean,
+        comments: string, enabled: boolean, options: IShellDictionary,
+        authPath: string, authCompletedUrl: string,
+        authCompletedUrlValidation: string, authCompletedPageContent: string,
+        authApps: IMrsAuthAppData[]): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddService,
             parameters: {
-                args: {
+                kwargs: {
                     urlContextRoot,
                     urlHostName,
                     enabled,
-                },
-                kwargs: {
                     moduleSessionId: this.moduleSessionId,
                     urlProtocol,
                     isDefault,
@@ -99,46 +92,37 @@ export class ShellInterfaceMrs {
                     authCompletedUrl,
                     authCompletedUrlValidation,
                     authCompletedPageContent,
-                    authApps: JSON.stringify(authApps),
+                    authApps,
                 },
             },
         });
     }
 
     public async updateService(serviceId: number, urlContextRoot: string, urlHostName: string,
-        urlProtocol: string[], enabled: boolean, comments: string, options: string,
-        authPath: string, authCompletedUrl: string, authCompletedUrlValidation: string,
-        authCompletedPageContent: string,
-        authApps: IMrsAuthAppData[]): Promise<void> {
+        value: IShellDictionary): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateService,
             parameters: {
                 kwargs: {
-                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
                     urlContextRoot,
                     urlHostName,
-                    enabled,
-                    serviceId,
-                    urlProtocol,
-                    comments,
-                    options,
-                    authPath,
-                    authCompletedUrl,
-                    authCompletedUrlValidation,
-                    authCompletedPageContent,
-                    authApps: JSON.stringify(authApps),
+                    value,
+                    moduleSessionId: this.moduleSessionId,
                 },
             },
         });
     }
 
-    public async deleteService(serviceId?: number): Promise<void> {
+    public async deleteService(serviceId: number | null): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDeleteService,
             parameters: {
                 kwargs: {
-                    moduleSessionId: this.moduleSessionId,
                     serviceId,
+                    urlContextRoot: null,
+                    urlHostName: null,
+                    moduleSessionId: this.moduleSessionId,
                 },
             },
         });
@@ -149,8 +133,10 @@ export class ShellInterfaceMrs {
             requestType: ShellAPIMrs.MrsSetServiceDefault,
             parameters: {
                 kwargs: {
-                    moduleSessionId: this.moduleSessionId,
                     serviceId,
+                    urlContextRoot: null,
+                    urlHostName: null,
+                    moduleSessionId: this.moduleSessionId,
                 },
             },
         });
@@ -189,9 +175,11 @@ export class ShellInterfaceMrs {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListSchemas,
             parameters: {
+                args: {
+                    serviceId,
+                },
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
-                    serviceId,
                 },
             },
         });
@@ -206,22 +194,27 @@ export class ShellInterfaceMrs {
                 kwargs: {
                     schemaId,
                     serviceId,
+                    schemaName: null,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
         });
     }
 
-    public async addSchema(schemaName: string, requestPath: string, requiresAuth: boolean, serviceId?: number,
-        itemsPerPage?: number, comments?: string, options?: string): Promise<number> {
+    public async addSchema(serviceId: number, schemaName: string, requestPath: string, requiresAuth: boolean,
+        itemsPerPage?: number, comments?: string,
+        options?: IShellDictionary): Promise<number> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddSchema,
             parameters: {
+                args: {
+                    serviceId,
+                },
                 kwargs: {
                     schemaName,
                     requestPath,
                     requiresAuth,
-                    serviceId,
+                    enabled: true,
                     itemsPerPage,
                     comments,
                     options,
@@ -235,7 +228,7 @@ export class ShellInterfaceMrs {
 
     public async updateSchema(schemaId: number, schemaName: string, requestPath: string,
         requiresAuth: boolean, enabled: boolean, itemsPerPage: number, comments: string,
-        options: string): Promise<void> {
+        options: IShellDictionary): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateSchema,
             parameters: {
@@ -243,12 +236,14 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                     schemaId,
                     schemaName,
-                    requestPath,
-                    requiresAuth,
-                    enabled,
-                    itemsPerPage,
-                    comments,
-                    options,
+                    value: {
+                        requestPath,
+                        requiresAuth,
+                        enabled,
+                        itemsPerPage,
+                        comments,
+                        options,
+                    },
                 },
             },
         });
@@ -261,7 +256,7 @@ export class ShellInterfaceMrs {
         rowUserOwnershipColumn?: string,
         schemaId?: number, schemaName?: string, itemsPerPage?: number,
         comments?: string, mediaType?: string,
-        authStoredProcedure?: string, options?: string,
+        authStoredProcedure?: string, options?: IShellDictionary,
         parameters?: IMrsDbObjectParameterData[]): Promise<number> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddDbObject,
@@ -286,7 +281,7 @@ export class ShellInterfaceMrs {
                     autoDetectMediaType,
                     authStoredProcedure,
                     options,
-                    parameters: JSON.stringify(parameters),
+                    parameters,
                 },
             },
         });
@@ -298,25 +293,29 @@ export class ShellInterfaceMrs {
         rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean, name: string, requestPath: string,
         enabled: boolean, rowUserOwnershipColumn: string, schemaId: number, itemsPerPage: number, comments: string,
         mediaType: string, authStoredProcedure: string, crudOperations: string[], crudOperationFormat: string,
-        options: string, parameters: string): Promise<void> {
+        options: IShellDictionary, parameters: IMrsDbObjectParameterData[]): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateDbObject,
             parameters: {
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
                     dbObjectId,
+                    schemaId,
                     dbObjectName,
-                    requiresAuth,
-                    rowUserOwnershipEnforced,
-                    autoDetectMediaType,
-                    name, requestPath, enabled,
-                    rowUserOwnershipColumn,
-                    schemaId, itemsPerPage, comments,
-                    mediaType, authStoredProcedure,
-                    crudOperations,
-                    crudOperationFormat,
-                    options,
-                    parameters,
+                    requestPath,
+                    value: {
+                        requiresAuth,
+                        rowUserOwnershipEnforced,
+                        autoDetectMediaType,
+                        name, enabled,
+                        rowUserOwnershipColumn,
+                        itemsPerPage, comments,
+                        mediaType, authStoredProcedure,
+                        crudOperations,
+                        crudOperationFormat,
+                        options,
+                        parameters,
+                    },
                 },
             },
         });
@@ -337,22 +336,19 @@ export class ShellInterfaceMrs {
     }
 
     public async getDbObjectRowOwnershipFields(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: number, schemaId?: number, schemaName?: string, dbObjectType?: string,
-        interactive?: boolean): Promise<string[]> {
+        dbObjectId?: number, schemaId?: number, schemaName?: string,
+        dbObjectType?: string): Promise<string[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetDbObjectRowOwnershipFields,
             parameters: {
-                args: {
+                kwargs: {
+                    dbObjectId,
                     requestPath,
                     dbObjectName,
-                },
-                kwargs: {
                     moduleSessionId: this.moduleSessionId,
-                    dbObjectId,
                     schemaId,
                     schemaName,
                     dbObjectType,
-                    interactive,
                 },
             },
         });
@@ -362,7 +358,7 @@ export class ShellInterfaceMrs {
 
     public async getDbObjectParameters(requestPath?: string, dbObjectName?: string,
         dbObjectId?: number, schemaId?: number, schemaName?: string,
-        interactive?: boolean): Promise<IMrsDbObjectParameterData[]> {
+    ): Promise<IMrsDbObjectParameterData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetDbObjectParameters,
             parameters: {
@@ -375,7 +371,6 @@ export class ShellInterfaceMrs {
                     dbObjectId,
                     schemaId,
                     schemaName,
-                    interactive,
                 },
             },
         });
@@ -384,22 +379,21 @@ export class ShellInterfaceMrs {
     }
 
     public async getDbObjectFields(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: number, schemaId?: number, schemaName?: string, dbObjectType?: string,
-        interactive?: boolean): Promise<IMrsDbObjectParameterData[]> {
+        dbObjectId?: number, schemaId?: number, schemaName?: string,
+        dbObjectType?: string): Promise<IMrsDbObjectParameterData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetDbObjectFields,
             parameters: {
                 args: {
+                    dbObjectId,
+                    schemaId,
                     requestPath,
                     dbObjectName,
                 },
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
-                    dbObjectId,
-                    schemaId,
                     schemaName,
                     dbObjectType,
-                    interactive,
                 },
             },
         });
@@ -407,7 +401,7 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async deleteDbObject(dbObjectId?: number): Promise<void> {
+    public async deleteDbObject(dbObjectId: number): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDeleteDbObject,
             parameters: {
@@ -422,17 +416,19 @@ export class ShellInterfaceMrs {
 
     public async addContentSet(contentDir: string, requestPath: string,
         requiresAuth: boolean, serviceId?: number, comments?: string,
-        options?: string, enabled?: boolean, replaceExisting?: boolean,
+        options?: IShellDictionary, enabled?: boolean, replaceExisting?: boolean,
         progress?: (message: string) => void): Promise<IMrsAddContentSetData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddContentSet,
             parameters: {
+                args: {
+                    serviceId,
+                    contentDir,
+                },
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
-                    contentDir,
                     requestPath,
                     requiresAuth,
-                    serviceId,
                     comments,
                     options,
                     enabled,
@@ -485,9 +481,11 @@ export class ShellInterfaceMrs {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListContentFiles,
             parameters: {
+                args: {
+                    contentSetId,
+                },
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
-                    contentSetId,
                     includeEnableState,
                 },
             },

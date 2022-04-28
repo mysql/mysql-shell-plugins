@@ -80,7 +80,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     type: "choice",
                     caption: "MRS Service Path",
                     value: selectedService?.hostCtx,
-                    choices: [selectedService?.hostCtx ?? ""],
+                    choices: services.map((service) => { return service.hostCtx; }),
                     horizontalSpan: 4,
                 },
                 schema: {
