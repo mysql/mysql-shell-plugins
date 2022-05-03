@@ -499,11 +499,11 @@
             },
             {
                 "command": "msg.mrs.addService",
-                "title": "Add REST Service"
+                "title": "Add REST Service..."
             },
             {
                 "command": "msg.mrs.editService",
-                "title": "Edit REST Service"
+                "title": "Edit REST Service..."
             },
             {
                 "command": "msg.mrs.setDefaultService",
@@ -511,11 +511,11 @@
             },
             {
                 "command": "msg.mrs.deleteService",
-                "title": "Delete REST Service"
+                "title": "Delete REST Service..."
             },
             {
                 "command": "msg.mrs.deleteSchema",
-                "title": "Delete REST Schema"
+                "title": "Delete REST Schema..."
             },
             {
                 "command": "msg.mrs.addSchema",
@@ -523,7 +523,7 @@
             },
             {
                 "command": "msg.mrs.editSchema",
-                "title": "Edit REST Schema"
+                "title": "Edit REST Schema..."
             },
             {
                 "command": "msg.mrs.addTable",
@@ -804,12 +804,12 @@
                 },
                 {
                     "command": "msg.dumpSchemaToDisk",
-                    "when": "view == msg.connections && viewItem == schemaItemMySQL",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.dumpSchemaToDiskForMds",
-                    "when": "view == msg.connections && viewItem == schemaItemMySQL",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
                     "group": "1_msg@2"
                 },
                 {
@@ -819,12 +819,12 @@
                 },
                 {
                     "command": "msg.mrs.addSchema",
-                    "when": "view == msg.connections && viewItem == schemaItemMySQL",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
                     "group": "3_msg@1"
                 },
                 {
                     "command": "msg.dropSchema",
-                    "when": "view == msg.connections && viewItem =~ /^schemaItem.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schemaItem.*/ && !showsModalDialog",
                     "group": "9_msg@2"
                 },
                 {

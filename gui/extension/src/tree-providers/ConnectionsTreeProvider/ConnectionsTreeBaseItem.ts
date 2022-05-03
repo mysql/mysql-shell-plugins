@@ -27,7 +27,7 @@ import { Command, TreeItem, TreeItemCollapsibleState, env, window, commands } fr
 
 import { ICommResultSetEvent } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
-import { showMessageWithTimeout } from "../../utilities";
+import { showMessageWithTimeout, showModalDialog } from "../../utilities";
 
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
@@ -72,9 +72,10 @@ export class ConnectionsTreeBaseItem extends TreeItem {
     }
 
     public dropItem(): void {
-        void window.showInformationMessage(`Do you want to drop the ${this.dbType} ${this.name}?`, `Drop ${this.name}`,
-            "Cancel").then((answer) => {
-            if (answer !== "Cancel") {
+        const message = `Do you want to drop the ${this.dbType} ${this.name}?`;
+        const okText = `Drop ${this.name}`;
+        void showModalDialog(message, okText, "This operation cannot be reverted!").then((accepted) => {
+            if (accepted) {
                 const query = `drop ${this.dbType} ${this.qualifiedName}`;
                 this.entry.backend?.execute(query).then((event: ICommResultSetEvent) => {
                     switch (event.eventType) {
