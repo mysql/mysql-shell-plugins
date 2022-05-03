@@ -21,8 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { window, ProgressLocation } from "vscode";
+import { window, ProgressLocation, MessageOptions, commands, ProviderResult } from "vscode";
 import { waitFor } from "../../frontend/src/utilities/helpers";
+
+/**
+ * Dynamically switches a vscode context on or off. Such a context is used to enable/disable vscode commands,
+ * menus, views and others.
+ *
+ * @param key The name of the context value to switch.
+ * @param enable True or false to enabled/disable.
+ *
+ * @returns The result returned from the command execution.
+ */
+export const switchVsCodeContext = (key: string, enable: boolean): ProviderResult<unknown> => {
+    return commands.executeCommand("setContext", key, enable);
+};
 
 /**
  * Shows a message that auto closes after a certain timeout. Since there's no API for this functionality the
@@ -46,4 +59,27 @@ export const showMessageWithTimeout = (message: string, timeout = 3000): void =>
             progress.report({ increment: 100 });
         },
     );
+};
+
+/**
+ * Shows a modal dialog to let the user do a decision.
+ *
+ * @param message The message to show on which the user has to decide.
+ * @param okText The text to show on the OK button. If not given "OK" is used instead.
+ * @param detail An optional description text.
+ *
+ * @returns A promise that resolves to true if the user clicked the accept button, otherwise (cancel button click or
+ *          escape key press) to false.
+ */
+export const showModalDialog = (message: string, okText = "OK", detail?: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+        switchVsCodeContext("showsModalDialog", true);
+        const options: MessageOptions = { detail, modal: true };
+
+        void window.showInformationMessage(message, options, okText).then((answer) => {
+            switchVsCodeContext("showsModalDialog", false);
+            resolve(answer === okText);
+        });
+
+    });
 };
