@@ -59,7 +59,6 @@
         "editorPrompt.primary.py": "#3776AB",
         "editorPrompt.secondary.py": "#3776AB",
         "editorPrompt.result": "#E8E8E8",
-
         "activityBar.activeBackground": "#2C2C30",
         "activityBar.activeBorder": "#FFFFFF",
         "activityBar.activeFocusBorder": "#3D3D42",
@@ -940,6 +939,12 @@
             "scope": "markup.punctuation.quote",
             "settings": {
                 "foreground": "#608b4e"
+            }
+        },
+        {
+            "scope": "markup.other",
+            "settings": {
+                "foreground": "#d4d4d4"
             }
         },
         {

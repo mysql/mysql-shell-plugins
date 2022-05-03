@@ -28,7 +28,9 @@ import { appParameters, requisitions } from "../supplement/Requisitions";
 import {
     dispatcher, IDispatchEventContext, ListenerEntry, eventFilterNoRequests, DispatchEvents, EventType, IDispatchEvent,
 } from "../supplement/Dispatch";
-import { convertSnakeToCamelCase, convertCamelToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../utilities/helpers";
+import {
+    convertSnakeToCamelCase, convertCamelToSnakeCase, deepEqual, sleep, strictEval, uuid,
+} from "../utilities/helpers";
 import { IGenericResponse } from "./GeneralEvents";
 
 import ReconnectingWebSocket, { ErrorEvent, Options } from "reconnecting-websocket";

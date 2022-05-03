@@ -25,7 +25,7 @@ import React from "react";
 import { isNil } from "lodash";
 
 import {
-    ICommAuthenticationEvent, ICommListProfilesEvent, ICommProfileEvent, ICommShellProfile, ICommWebSessionEvent,
+    ICommAuthenticationEvent, ICommListProfilesEvent, ICommProfileEvent, ICommShellProfile,
 } from "../communication";
 import {
     CheckState, ComponentPlacement, Container, ICheckboxProperties, IComponentState, ILabelProperties,
@@ -65,20 +65,9 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
         ListenerEntry.createByClass("authenticate", { filters: [eventFilterNoRequests], persistent: true })
             .then((event: ICommAuthenticationEvent) => {
-                if (event.data) {
-                    this.defaultProfile = event.data.activeProfile;
-                    this.initProfileList(event.data.activeProfile);
-                }
-            }).catch(() => { /* Handled elsewhere */ });
-
-        ListenerEntry.createByClass("webSession", { filters: [eventFilterNoRequests] }).then(
-            (event: ICommWebSessionEvent) => {
-                if (webSession.userName !== "" && event.data) {
-                    this.defaultProfile = event.data.activeProfile;
-                    this.initProfileList(event.data.activeProfile);
-                }
-            },
-        );
+                this.defaultProfile = event.data.activeProfile;
+                this.initProfileList(event.data.activeProfile);
+            }).catch(/* istanbul ignore next*/() => { /* Handled elsewhere */ });
 
         this.state = { menuItems: [] };
     }
@@ -194,7 +183,8 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
     private getProfileList = (userId: number): void => {
         ShellInterface.users.listProfiles(userId).then((event: ICommListProfilesEvent) => {
-            if (!event.data?.rows) {
+            // istanbul ignore if
+            if (!event.data.rows) {
                 return;
             }
 
@@ -220,6 +210,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 if (value.id === webSession.currentProfileId) {
                     icon = currentIcon;
                 }
+
                 if (value.id === this.defaultProfile.id) {
                     icon = defaultIcon;
                 }
@@ -244,7 +235,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 this.generateEditorConfig(),
                 ["add"],
                 {},
-                "Here you can add new profile for this application",
+                "Add a New Profile",
                 undefined,
                 { saveProfile: true, section: "add" },
             );
@@ -257,7 +248,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 this.generateEditorConfig(),
                 ["edit"],
                 {},
-                "Here you can edit name of existing for this application",
+                "Edit this Profile",
                 undefined,
                 { saveProfile: true, section: "edit" },
             );
@@ -270,7 +261,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 this.generateEditorConfig(),
                 ["delete"],
                 {},
-                "Here you can activate/deactivate profiles for this application",
+                "Delete Profile",
                 undefined,
                 { saveProfile: true, section: "delete" },
             );

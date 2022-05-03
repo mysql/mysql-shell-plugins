@@ -26,8 +26,9 @@ import { mount } from "enzyme";
 import React from "react";
 import { ProfileSelector } from "../../../app-logic/ProfileSelector";
 import { Button } from "../../../components/ui";
+import { requisitions } from "../../../supplement/Requisitions";
 
-import { snapshotFromWrapper } from "../test-helpers";
+import { setupShellForTests, snapshotFromWrapper } from "../test-helpers";
 import { eventMock } from "../__mocks__/MockEvents";
 
 let clicked = false;
@@ -37,7 +38,7 @@ const buttonClick = (): void => {
 
 describe("ProfileSelector test", () => {
 
-    beforeEach( () => {
+    beforeEach(() => {
         clicked = false;
     });
 
@@ -72,6 +73,8 @@ describe("ProfileSelector test", () => {
 
         menuItem = component.find("#delete");
         expect(menuItem).toBeTruthy();
+
+        component.unmount();
     });
 
     it("Standard Rendering (snapshot)", async () => {
@@ -96,8 +99,37 @@ describe("ProfileSelector test", () => {
         });
 
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
         component.unmount();
     });
 
+    const started = (): Promise<void> => {
+        return new Promise((resolve) => {
+            const loaded = (): Promise<boolean> => {
+                requisitions.unregister("updateStatusbar", loaded);
+                resolve();
 
+                return Promise.resolve(true);
+            };
+
+            requisitions.register("updateStatusbar", loaded);
+        });
+    };
+
+    it("Update on connect", async () => {
+        const launchPromise = setupShellForTests("ProfileSelector", false, true, "DEBUG3");
+
+        const component = mount<ProfileSelector>(
+            <ProfileSelector />,
+        );
+        const initSpy = jest.spyOn(component.instance(), "initProfileList");
+
+        const launcher = await launchPromise;
+        await started();
+
+        expect(initSpy).toBeCalled();
+
+        await launcher.exitProcess();
+        component.unmount();
+    });
 });
