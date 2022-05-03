@@ -695,7 +695,7 @@ describe("DB Editor", () => {
             let sqliteFile = "";
             const dbFiles = await fsPromises.readdir(join(homedir(), port.toString(), "plugin_data", "gui_plugin"));
             for(const file of dbFiles) {
-                if(/mysqlsh_gui_backend_(\d+).(\d+).(\d+).sqlite3$/.test(file)) {
+                if ( file === "mysqlsh_gui_backend.sqlite3") {
                     sqliteFile = file;
                     break;
                 }
