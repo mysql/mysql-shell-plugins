@@ -44,20 +44,30 @@ import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplemen
 import { requisitions } from "../../supplement/Requisitions";
 import { EventType } from "../../supplement/Dispatch";
 import { settings } from "../../supplement/Settings/Settings";
-import { DBType, ShellInterfaceShellSession } from "../../supplement/ShellInterface";
+import { DBType, ShellInterfaceDb, ShellInterfaceShellSession } from "../../supplement/ShellInterface";
 import { flattenObject, stripAnsiCode } from "../../utilities/helpers";
 import { ShellConsole } from "./ShellConsole";
 import { ShellPrompt } from "./ShellPrompt";
 import { unquote } from "../../utilities/string-helpers";
+import { MySQLConnectionScheme } from "../../communication/MySQL";
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
+
+    // Assigned when a DB connection (a global session in MySQL Shell terms) was established.
+    dbSession?: ShellInterfaceDb;
+    schemaList?: string[];
+
     state: IEditorPersistentState;
 
     // Informations about the connected backend (where supported).
     serverVersion: number;
     serverEdition: string;
     sqlMode: string;
+
+    // For DB session handling.
+    lastUserName?: string;
+    lastPassword?: string;
 }
 
 export interface IShellTabProperties extends IComponentProperties {
@@ -98,6 +108,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     public componentWillUnmount(): void {
+        this.closeDbSession("");
+
         requisitions.unregister("acceptPassword", this.acceptPassword);
         requisitions.unregister("cancelPassword", this.cancelPassword);
         requisitions.unregister("dialogResponse", this.handleDialogResponse);
@@ -590,6 +602,12 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     executionInfo: { type: MessageType.Warning, text: "" },
                                 });
                             } else {
+                                // See if a new session is going to be established. That's our sign to
+                                // remove a previously stored password.
+                                if (result.info && result.info.startsWith("Creating a session to")) {
+                                    this.closeDbSession(result.info);
+                                }
+
                                 const content = (result.info ?? result.note ?? result.status)!;
                                 addResultData({
                                     type: "text",
@@ -693,16 +711,32 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     }
 
                     case EventType.FinalResponse: {
-                        // Need to cast to any, as some of the result types do not have a prompt descriptor.
                         if (result && this.hasPromptDescriptor(result)) {
+                            // Check if a new connection was opened.
+                            let newConnection = !savedState.promptDescriptor;
+                            if (!newConnection) {
+                                const existing = savedState.promptDescriptor;
+                                newConnection = (existing?.host !== result.promptDescriptor?.host)
+                                    || (existing?.port !== result.promptDescriptor?.port);
+                            }
                             savedState.promptDescriptor = result.promptDescriptor;
-                            void requisitions.execute("updateShellPrompt", result);
-                        }
 
-                        // Note: we don't send a final result display update call from here. Currently the shell
-                        //       sends all relevant data in data responses. The final response doesn't really add
-                        //       anything, so we do such updates in the data responses instead (and get live resizes).
-                        resolve();
+                            if (newConnection) {
+                                void this.openDbSession().then(() => {
+                                    void requisitions.execute("updateShellPrompt", result);
+
+                                    resolve();
+                                });
+                            } else {
+                                resolve();
+                            }
+                        } else {
+
+                            // Note: we don't send a final result display update call from here. Currently the shell
+                            //       sends all relevant data in data responses. The final response doesn't really add
+                            //       anything, so we do updates in the data responses instead (and get live resizes).
+                            resolve();
+                        }
 
                         break;
                     }
@@ -720,6 +754,66 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
         });
     }
+
+    /**
+     * Closes the current DB session (if one is open), because a new session is currently being opened.
+     *
+     * @param startText The text sent back for the new session. We use that to get the new user name from it.
+     */
+    private closeDbSession = (startText: string): void => {
+        const { savedState } = this.props;
+
+        if (savedState.dbSession) {
+            void savedState.dbSession.closeSession().then(() => {
+                savedState.dbSession = undefined;
+            });
+        }
+        savedState.lastPassword = undefined;
+        savedState.lastUserName = undefined;
+        savedState.schemaList = undefined;
+
+        // The user is enclosed in quotes.
+        const match = startText.match(/^[^']+('.+')/);
+        const user = match?.[1];
+        if (user) {
+            const parts = unquote(user).split("@");
+
+            // istanbul ignore else
+            if (parts.length > 0) {
+                savedState.lastUserName = parts[0];
+            }
+        }
+    };
+
+    /**
+     * Opens a new DB session for the current shell global session (MySQL connection).
+     */
+    private openDbSession = async (): Promise<void> => {
+        const { savedState } = this.props;
+
+        try {
+            if (savedState.dbSession) {
+                await savedState.dbSession.closeSession();
+            }
+
+            savedState.dbSession = new ShellInterfaceDb();
+            await savedState.dbSession.startSession("shellTab", {
+                dbType: DBType.MySQL,
+                caption: "Shell Tab DB Session",
+                description: "",
+                options: {
+                    scheme: MySQLConnectionScheme.MySQL,
+                    user: savedState.lastUserName,
+                    password: savedState.lastPassword,
+                    host: savedState.promptDescriptor?.host,
+                    port: savedState.promptDescriptor?.port,
+
+                },
+            });
+        } catch (reason) {
+            void requisitions.execute("showError", ["Shell DB Session Error", reason as string]);
+        }
+    };
 
     private handleDialogResponse = (response: IDialogResponse): Promise<boolean> => {
         return new Promise((resolve) => {
@@ -745,7 +839,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             const { savedState } = this.props;
 
             savedState.backend.sendReply(data.request.requestId, ShellPromptResponseType.Ok, data.password)
-                .then(() => { resolve(true); })
+                .then(() => {
+                    savedState.lastPassword = data.password;
+                    resolve(true);
+                })
                 .catch(() => { resolve(false); });
         });
     };
@@ -763,8 +860,20 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
     private listSchemas = (): Promise<string[]> => {
         return new Promise((resolve) => {
-            // TODO: get the schema list from the backend.
-            resolve(["mysql", "sakila"]);
+            const { savedState } = this.props;
+
+            if (!savedState.dbSession) {
+                resolve([]);
+            } else {
+                if (!savedState.schemaList) {
+                    void savedState.dbSession.getCatalogObjects("Schema").then((schemas) => {
+                        savedState.schemaList = schemas;
+                        resolve(schemas);
+                    });
+                } else {
+                    resolve(savedState.schemaList);
+                }
+            }
         });
     };
 

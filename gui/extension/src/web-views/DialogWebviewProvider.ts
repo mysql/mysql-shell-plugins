@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -69,6 +69,8 @@ export class DialogWebviewManager {
     private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
         if (response.data) {
             const view = response.data.view as WebviewProvider;
+            view.close();
+
             const resolve = this.pendingDialogRequests.get(view);
             if (resolve) {
                 this.pendingDialogRequests.delete(view);
