@@ -27,6 +27,7 @@ import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLOneFieldTask, MySQLOneFieldListTask
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLBaseObjectTask, MySQLTableObjectTask
 from gui_plugin.core.lib.OciUtils import BastionHandler
+from gui_plugin.core import Filtering
 import base64
 import gui_plugin.core.Logger as logger
 import sys
@@ -79,6 +80,11 @@ class DbMysqlSession(DbSession):
         return self._prompt_cb(text)
 
     def on_shell_password(self, text):
+        logger.add_filter({
+            "type": "key",
+            "key": "reply",
+            "expire": Filtering.FilterExpire.OnUse
+        })
         return self._pwd_prompt_cb(text)
 
     def on_shell_print(self, text):

@@ -30,6 +30,7 @@ from gui_plugin.core.Error import MSGException
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
+from gui_plugin.core import Filtering
 
 _db_files_count = 0
 _files_count = 0
@@ -54,6 +55,7 @@ class LogLevel(IntEnum):
 class BackendLogger:
     __instance = None
     __log_level = None
+    __log_filters = []
 
     @staticmethod
     def get_instance() -> 'BackendLogger':
@@ -69,6 +71,11 @@ class BackendLogger:
             BackendLogger.__instance = self
             self.set_log_level(
                 LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
+            self.add_filter({
+                "type": "key",
+                "key": "password",
+                "expire": Filtering.FilterExpire.Never
+            })
 
     def message_logger(self, log_type, message, tags=[], sensitive=False, prefix=""):
         now = datetime.datetime.now()
@@ -86,28 +93,28 @@ class BackendLogger:
                 print(
                     f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}")
 
+    def add_filter(self, options):
+        if "type" in options:
+            if options["type"] == "key":
+                self.__log_filters.append(Filtering.KeyFilter(options["key"],
+                                            options["expire"]))
+            elif options["type"] == "substring":
+                self.__log_filters.append(Filtering.SubstringFilter(options["start"],
+                                            options["end"], options["expire"]))
+
     def set_log_level(self, log_level: LogLevel):
         BackendLogger.__log_level = log_level
 
     def get_log_level(self):
         return BackendLogger.__log_level
 
-    def _filter(self, message):
-        try:
-            json_message = json.loads(message)
-            return json.dumps(self._filter_object(json_message))
-        except Exception:
-            return message
+    def _filter(self, data):
+        for filter in self.__log_filters:
+            if not filter.expired():
+                data = filter.apply(data)
 
-    def _filter_object(self, json_message):
-        for keyword in SENSITIVE_KEYWORDS:
-            if keyword in json_message:
-                json_message[keyword] = SENSITIVE_DATA_REPLACEMENT
-        for key, value in json_message.items():
-            if isinstance(value, dict):
-                json_message[key] = self._filter_object(value)
-        return json_message
-
+        self.__log_filters = [filter for filter in self.__log_filters if not filter.expired()]
+        return data
 
 def debug(message, tags=[], sensitive=False, prefix=""):
     # TODO: tweak these tags according the environment settings
@@ -171,6 +178,8 @@ def internal_error(message, tags=[], sensitive=False, prefix=""):
     BackendLogger.get_instance().message_logger(
         LogLevel.INTERNAL_ERROR, message, tags, sensitive, prefix)
 
+def add_filter(options):
+    BackendLogger.get_instance().add_filter(options)
 
 def track_print(type):
     pass

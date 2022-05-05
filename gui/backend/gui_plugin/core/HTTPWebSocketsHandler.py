@@ -197,4 +197,4 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
         return self._single_instance_token == self.server.single_instance_token
 
     def log_message(self, format, *args):
-        logger.debug(format % args)
+        logger.debug(format % args, sensitive=self.is_local_session)

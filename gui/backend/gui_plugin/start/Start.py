@@ -26,6 +26,7 @@ from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in
 from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
 from gui_plugin.core.ThreadedHTTPServer import ThreadedHTTPServer
 from gui_plugin.core.Certificates import is_shell_web_certificate_installed
+from gui_plugin.core.lib import SystemUtils
 import mysqlsh
 import ssl
 import os
@@ -42,6 +43,7 @@ import tempfile
 import shutil
 import signal
 import gui_plugin.core.Logger as logger
+from gui_plugin.core import Filtering
 
 
 @plugin_function('gui.start.webServer', cli=True)
@@ -188,6 +190,13 @@ def web_server(port=None, secure=None, webrootpath=None,
             logger.info(
                 f"\tMode: {f'Single user' if server.single_instance_token is not None else 'Multi-user'}")
 
+            if server.single_instance_token:
+                logger.add_filter({
+                    "type": "substring",
+                    "start": "token=",
+                    "end": " HTTP",
+                    "expire": Filtering.FilterExpire.OnUse if SystemUtils.in_vs_code() else Filtering.FilterExpire.Never
+                })
             # Start web server
             server.serve_forever()
             # TODO(anyone): Using the 'session' tag here causes database locks
