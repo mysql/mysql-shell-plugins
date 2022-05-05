@@ -1,0 +1,113 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Shell prompt tests ShellPrompt output test 1`] = `
+<ShellPrompt
+  getSchemas={[MockFunction]}
+  values={
+    Object {
+      "promptDescriptor": Object {
+        "host": "localhost",
+        "isProduction": true,
+        "mode": "readonly",
+        "port": 3366,
+        "schema": "myDb",
+        "session": "classic",
+        "socket": "socket1",
+        "ssl": "yes",
+      },
+    }
+  }
+>
+  <Breadcrumb
+    className="msg shellPrompt"
+    path={
+      Array [
+        "",
+      ]
+    }
+    separator="❯"
+  >
+    <Container
+      className="msg breadcrumb verticalCenterContent shellPrompt"
+      orientation="row"
+    >
+      <div
+        className="msg container fixedScrollbar breadcrumb verticalCenterContent shellPrompt"
+        style={
+          Object {
+            "alignItems": undefined,
+            "flexDirection": "row",
+            "flexWrap": undefined,
+            "justifyContent": undefined,
+          }
+        }
+      >
+        <Label
+          caption=" localhost:3366"
+          className="shellPromptItem"
+          data-tooltip="Connection to server localhost at port 3366, using the classic protocol"
+          id="server"
+          key="server"
+        >
+          <label
+            className="msg label shellPromptItem"
+            data-tooltip="Connection to server localhost at port 3366, using the classic protocol"
+            id="server"
+            style={
+              Object {
+                "textAlign": undefined,
+              }
+            }
+          >
+             localhost:3366
+          </label>
+        </Label>
+        <Label
+          caption=" myDb"
+          className="shellPromptItem"
+          id="schema"
+          key="schema"
+          onClick={[Function]}
+        >
+          <label
+            className="msg label shellPromptItem"
+            data-tooltip="expand"
+            id="schema"
+            onClick={[Function]}
+            style={
+              Object {
+                "textAlign": undefined,
+              }
+            }
+          >
+             myDb
+          </label>
+        </Label>
+      </div>
+    </Container>
+  </Breadcrumb>
+  <Menu
+    className="shellPromptSchemaMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="right-start"
+  >
+    <Popup
+      className="msg menu shellPromptSchemaMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="right-start"
+      showArrow={false}
+    >
+      <Portal
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+</ShellPrompt>
+`;

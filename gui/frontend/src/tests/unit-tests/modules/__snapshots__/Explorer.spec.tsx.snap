@@ -1,0 +1,1214 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Explorer tests Explorer instantiation 1`] = `
+<Explorer
+  backend={
+    Object {
+      "mds": Object {},
+      "moduleSessionLookupId": "",
+      "mrs": Object {
+        "moduleSessionLookupId": "",
+      },
+    }
+  }
+  dbType="MySQL"
+  editors={Array []}
+  markedSchema=""
+  schemaTree={Array []}
+  scripts={Array []}
+  selectedEntry=""
+>
+  <Accordion
+    caption="Explorer"
+    className="msg scriptingExplorer"
+    onSectionAction={[Function]}
+    onSectionExpand={[Function]}
+    onSectionResize={[Function]}
+    sections={
+      Array [
+        Object {
+          "actions": Array [
+            Object {
+              "icon": 241,
+              "id": "addConsole",
+              "tooltip": "Add new console",
+            },
+          ],
+          "caption": "OPEN EDITORS",
+          "content": Array [],
+          "dimmed": false,
+          "expanded": undefined,
+          "id": "editorSection",
+          "initialSize": undefined,
+          "maxSize": 150,
+          "minSize": 56,
+          "stretch": false,
+        },
+        Object {
+          "caption": "SCHEMAS",
+          "content": <AccordionItem
+            caption="<no schemas>"
+          />,
+          "expanded": undefined,
+          "id": "schemaSection",
+          "initialSize": undefined,
+          "minSize": 100,
+          "resizable": true,
+          "stretch": true,
+        },
+        Object {
+          "actions": Array [
+            Object {
+              "icon": 138,
+              "id": "addFolder",
+            },
+            Object {
+              "choices": Array [
+                Object {
+                  "caption": "Add TS Script",
+                  "icon": "typescript.svg",
+                  "id": "addTSScript",
+                },
+                Object {
+                  "caption": "Add JS Script",
+                  "icon": "javascript.svg",
+                  "id": "addJSScript",
+                },
+                Object {
+                  "caption": "Add SQL Script",
+                  "icon": "mysql.svg",
+                  "id": "addSQLScript",
+                },
+              ],
+              "icon": 198,
+              "id": "addScript",
+              "tooltip": "Add new Script",
+            },
+          ],
+          "caption": "SCRIPTS",
+          "content": <AccordionItem
+            caption="<no scripts>"
+          />,
+          "dimmed": false,
+          "expanded": undefined,
+          "id": "scriptSection",
+          "initialSize": undefined,
+          "minSize": 100,
+          "stretch": true,
+        },
+      ]
+    }
+  >
+    <Container
+      className="msg accordion scriptingExplorer"
+      mainAlignment="flex-start"
+      orientation="column"
+    >
+      <div
+        className="msg container fixedScrollbar accordion scriptingExplorer"
+        style={
+          Object {
+            "alignItems": undefined,
+            "flexDirection": "column",
+            "flexWrap": undefined,
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <Label
+          className="title"
+        >
+          <label
+            className="msg label title"
+            data-tooltip="expand"
+            style={
+              Object {
+                "textAlign": undefined,
+              }
+            }
+          >
+            Explorer
+          </label>
+        </Label>
+        <SplitContainer
+          className="accordionContent"
+          onPaneResized={[Function]}
+          orientation="column"
+          panes={
+            Array [
+              Object {
+                "content": <AccordionSection
+                  actions={
+                    Array [
+                      Object {
+                        "icon": 241,
+                        "id": "addConsole",
+                        "tooltip": "Add new console",
+                      },
+                    ]
+                  }
+                  caption="OPEN EDITORS"
+                  dimmed={false}
+                  expanded={true}
+                  id="editorSection"
+                  onAction={[Function]}
+                  onToggleExpandState={[Function]}
+                />,
+                "expanded": true,
+                "id": "editorSection",
+                "initialSize": undefined,
+                "maxSize": 150,
+                "maxSizeBackup": 150,
+                "minSize": 56,
+                "minSizeBackup": 56,
+                "resizable": false,
+                "resizableBackup": false,
+                "snap": true,
+                "stretch": false,
+              },
+              Object {
+                "content": <AccordionSection
+                  caption="SCHEMAS"
+                  dimmed={false}
+                  expanded={true}
+                  id="schemaSection"
+                  onAction={[Function]}
+                  onToggleExpandState={[Function]}
+                >
+                  <AccordionItem
+                    caption="<no schemas>"
+                  />
+                </AccordionSection>,
+                "expanded": true,
+                "id": "schemaSection",
+                "initialSize": undefined,
+                "maxSize": undefined,
+                "maxSizeBackup": undefined,
+                "minSize": 100,
+                "minSizeBackup": 100,
+                "resizable": true,
+                "resizableBackup": true,
+                "snap": true,
+                "stretch": true,
+              },
+              Object {
+                "content": <AccordionSection
+                  actions={
+                    Array [
+                      Object {
+                        "icon": 138,
+                        "id": "addFolder",
+                      },
+                      Object {
+                        "choices": Array [
+                          Object {
+                            "caption": "Add TS Script",
+                            "icon": "typescript.svg",
+                            "id": "addTSScript",
+                          },
+                          Object {
+                            "caption": "Add JS Script",
+                            "icon": "javascript.svg",
+                            "id": "addJSScript",
+                          },
+                          Object {
+                            "caption": "Add SQL Script",
+                            "icon": "mysql.svg",
+                            "id": "addSQLScript",
+                          },
+                        ],
+                        "icon": 198,
+                        "id": "addScript",
+                        "tooltip": "Add new Script",
+                      },
+                    ]
+                  }
+                  caption="SCRIPTS"
+                  dimmed={false}
+                  expanded={true}
+                  id="scriptSection"
+                  onAction={[Function]}
+                  onToggleExpandState={[Function]}
+                >
+                  <AccordionItem
+                    caption="<no scripts>"
+                  />
+                </AccordionSection>,
+                "expanded": true,
+                "id": "scriptSection",
+                "initialSize": undefined,
+                "maxSize": undefined,
+                "maxSizeBackup": undefined,
+                "minSize": 100,
+                "minSizeBackup": 100,
+                "resizable": false,
+                "resizableBackup": false,
+                "snap": true,
+                "stretch": true,
+              },
+            ]
+          }
+          splitterSize={4}
+        >
+          <div
+            className="msg splitContainer accordionContent"
+          >
+            <div
+              className="sashContainer"
+            >
+              <Divider
+                className="sash disabled"
+                id="editorSectionSash"
+                key="editorSectionSash"
+                thickness={4}
+                vertical={false}
+              >
+                <div
+                  className="msg divider horizontal sash disabled"
+                  id="editorSectionSash"
+                  onMouseEnter={[Function]}
+                  onMouseLeave={[Function]}
+                  style={
+                    Object {
+                      "--thickness": "4px",
+                    }
+                  }
+                />
+              </Divider>
+              <Divider
+                className="sash"
+                id="schemaSectionSash"
+                key="schemaSectionSash"
+                thickness={4}
+                vertical={false}
+              >
+                <div
+                  className="msg divider horizontal sash"
+                  id="schemaSectionSash"
+                  onMouseEnter={[Function]}
+                  onMouseLeave={[Function]}
+                  style={
+                    Object {
+                      "--thickness": "4px",
+                    }
+                  }
+                />
+              </Divider>
+            </div>
+            <div
+              className="splitContentContainer"
+            >
+              <Container
+                className="splitHost"
+                id="editorSectionHost"
+                key="editorSectionHost"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <div
+                  className="msg container fixedScrollbar splitHost"
+                  id="editorSectionHost"
+                  style={
+                    Object {
+                      "alignItems": undefined,
+                      "flexDirection": "column",
+                      "flexWrap": undefined,
+                      "justifyContent": "stretch",
+                    }
+                  }
+                >
+                  <AccordionSection
+                    actions={
+                      Array [
+                        Object {
+                          "icon": 241,
+                          "id": "addConsole",
+                          "tooltip": "Add new console",
+                        },
+                      ]
+                    }
+                    caption="OPEN EDITORS"
+                    dimmed={false}
+                    expanded={true}
+                    id="editorSection"
+                    onAction={[Function]}
+                    onToggleExpandState={[Function]}
+                  >
+                    <Container
+                      className="msg section expanded"
+                      innerRef={
+                        Object {
+                          "current": Object {},
+                        }
+                      }
+                      orientation="column"
+                    >
+                      <div
+                        className="msg container fixedScrollbar section expanded"
+                        style={
+                          Object {
+                            "alignItems": undefined,
+                            "flexDirection": "column",
+                            "flexWrap": undefined,
+                            "justifyContent": undefined,
+                          }
+                        }
+                      >
+                        <Container
+                          className="title"
+                          crossAlignment="center"
+                          onClick={[Function]}
+                          onKeyPress={[Function]}
+                          orientation="row"
+                          tabIndex={0}
+                        >
+                          <div
+                            className="msg container fixedScrollbar title"
+                            onClick={[Function]}
+                            onKeyPress={[Function]}
+                            style={
+                              Object {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "flexWrap": undefined,
+                                "justifyContent": undefined,
+                              }
+                            }
+                            tabIndex={0}
+                          >
+                            <Label
+                              caption="OPEN EDITORS"
+                            >
+                              <label
+                                className="msg label"
+                                data-tooltip="expand"
+                                style={
+                                  Object {
+                                    "textAlign": undefined,
+                                  }
+                                }
+                              >
+                                OPEN EDITORS
+                              </label>
+                            </Label>
+                            <Container
+                              className="actions"
+                              crossAlignment="center"
+                              mainAlignment="flex-end"
+                              orientation="row"
+                            >
+                              <div
+                                className="msg container fixedScrollbar actions"
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "flexWrap": undefined,
+                                    "justifyContent": "flex-end",
+                                  }
+                                }
+                              >
+                                <Icon
+                                  data-tooltip="Add new console"
+                                  disabled={false}
+                                  id="addConsole"
+                                  key="addConsole"
+                                  onClick={[Function]}
+                                  onKeyPress={[Function]}
+                                  src={241}
+                                  tabIndex={0}
+                                >
+                                  <div
+                                    className="msg icon codicon codicon-new-file"
+                                    data-tooltip="Add new console"
+                                    id="addConsole"
+                                    onClick={[Function]}
+                                    onKeyPress={[Function]}
+                                    tabIndex={0}
+                                  />
+                                </Icon>
+                              </div>
+                            </Container>
+                          </div>
+                        </Container>
+                        <Container
+                          className="content"
+                          orientation="column"
+                          tabIndex={0}
+                        >
+                          <div
+                            className="msg container fixedScrollbar content"
+                            style={
+                              Object {
+                                "alignItems": undefined,
+                                "flexDirection": "column",
+                                "flexWrap": undefined,
+                                "justifyContent": undefined,
+                              }
+                            }
+                            tabIndex={0}
+                          />
+                        </Container>
+                      </div>
+                    </Container>
+                  </AccordionSection>
+                </div>
+              </Container>
+              <Container
+                className="splitHost stretch"
+                id="schemaSectionHost"
+                key="schemaSectionHost"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <div
+                  className="msg container fixedScrollbar splitHost stretch"
+                  id="schemaSectionHost"
+                  style={
+                    Object {
+                      "alignItems": undefined,
+                      "flexDirection": "column",
+                      "flexWrap": undefined,
+                      "justifyContent": "stretch",
+                    }
+                  }
+                >
+                  <AccordionSection
+                    caption="SCHEMAS"
+                    dimmed={false}
+                    expanded={true}
+                    id="schemaSection"
+                    onAction={[Function]}
+                    onToggleExpandState={[Function]}
+                  >
+                    <Container
+                      className="msg section expanded"
+                      innerRef={
+                        Object {
+                          "current": Object {},
+                        }
+                      }
+                      orientation="column"
+                    >
+                      <div
+                        className="msg container fixedScrollbar section expanded"
+                        style={
+                          Object {
+                            "alignItems": undefined,
+                            "flexDirection": "column",
+                            "flexWrap": undefined,
+                            "justifyContent": undefined,
+                          }
+                        }
+                      >
+                        <Container
+                          className="title"
+                          crossAlignment="center"
+                          onClick={[Function]}
+                          onKeyPress={[Function]}
+                          orientation="row"
+                          tabIndex={0}
+                        >
+                          <div
+                            className="msg container fixedScrollbar title"
+                            onClick={[Function]}
+                            onKeyPress={[Function]}
+                            style={
+                              Object {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "flexWrap": undefined,
+                                "justifyContent": undefined,
+                              }
+                            }
+                            tabIndex={0}
+                          >
+                            <Label
+                              caption="SCHEMAS"
+                            >
+                              <label
+                                className="msg label"
+                                data-tooltip="expand"
+                                style={
+                                  Object {
+                                    "textAlign": undefined,
+                                  }
+                                }
+                              >
+                                SCHEMAS
+                              </label>
+                            </Label>
+                            <Container
+                              className="actions"
+                              crossAlignment="center"
+                              mainAlignment="flex-end"
+                              orientation="row"
+                            >
+                              <div
+                                className="msg container fixedScrollbar actions"
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "flexWrap": undefined,
+                                    "justifyContent": "flex-end",
+                                  }
+                                }
+                              />
+                            </Container>
+                          </div>
+                        </Container>
+                        <Container
+                          className="content"
+                          orientation="column"
+                          tabIndex={0}
+                        >
+                          <div
+                            className="msg container fixedScrollbar content"
+                            style={
+                              Object {
+                                "alignItems": undefined,
+                                "flexDirection": "column",
+                                "flexWrap": undefined,
+                                "justifyContent": undefined,
+                              }
+                            }
+                            tabIndex={0}
+                          >
+                            <AccordionItem
+                              caption="<no schemas>"
+                            >
+                              <Container
+                                className="msg accordionItem"
+                                crossAlignment="center"
+                                orientation="row"
+                                tabIndex={0}
+                              >
+                                <div
+                                  className="msg container fixedScrollbar accordionItem"
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                      "flexWrap": undefined,
+                                      "justifyContent": undefined,
+                                    }
+                                  }
+                                  tabIndex={0}
+                                >
+                                  <Label
+                                    as="span"
+                                  >
+                                    <span
+                                      className="msg label"
+                                      data-tooltip="expand"
+                                      style={
+                                        Object {
+                                          "textAlign": undefined,
+                                        }
+                                      }
+                                    >
+                                      &lt;no schemas&gt;
+                                    </span>
+                                  </Label>
+                                </div>
+                              </Container>
+                            </AccordionItem>
+                          </div>
+                        </Container>
+                      </div>
+                    </Container>
+                  </AccordionSection>
+                </div>
+              </Container>
+              <Container
+                className="splitHost stretch"
+                id="scriptSectionHost"
+                key="scriptSectionHost"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <div
+                  className="msg container fixedScrollbar splitHost stretch"
+                  id="scriptSectionHost"
+                  style={
+                    Object {
+                      "alignItems": undefined,
+                      "flexDirection": "column",
+                      "flexWrap": undefined,
+                      "justifyContent": "stretch",
+                    }
+                  }
+                >
+                  <AccordionSection
+                    actions={
+                      Array [
+                        Object {
+                          "icon": 138,
+                          "id": "addFolder",
+                        },
+                        Object {
+                          "choices": Array [
+                            Object {
+                              "caption": "Add TS Script",
+                              "icon": "typescript.svg",
+                              "id": "addTSScript",
+                            },
+                            Object {
+                              "caption": "Add JS Script",
+                              "icon": "javascript.svg",
+                              "id": "addJSScript",
+                            },
+                            Object {
+                              "caption": "Add SQL Script",
+                              "icon": "mysql.svg",
+                              "id": "addSQLScript",
+                            },
+                          ],
+                          "icon": 198,
+                          "id": "addScript",
+                          "tooltip": "Add new Script",
+                        },
+                      ]
+                    }
+                    caption="SCRIPTS"
+                    dimmed={false}
+                    expanded={true}
+                    id="scriptSection"
+                    onAction={[Function]}
+                    onToggleExpandState={[Function]}
+                  >
+                    <Container
+                      className="msg section expanded"
+                      innerRef={
+                        Object {
+                          "current": Object {},
+                        }
+                      }
+                      orientation="column"
+                    >
+                      <div
+                        className="msg container fixedScrollbar section expanded"
+                        style={
+                          Object {
+                            "alignItems": undefined,
+                            "flexDirection": "column",
+                            "flexWrap": undefined,
+                            "justifyContent": undefined,
+                          }
+                        }
+                      >
+                        <Container
+                          className="title"
+                          crossAlignment="center"
+                          onClick={[Function]}
+                          onKeyPress={[Function]}
+                          orientation="row"
+                          tabIndex={0}
+                        >
+                          <div
+                            className="msg container fixedScrollbar title"
+                            onClick={[Function]}
+                            onKeyPress={[Function]}
+                            style={
+                              Object {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "flexWrap": undefined,
+                                "justifyContent": undefined,
+                              }
+                            }
+                            tabIndex={0}
+                          >
+                            <Label
+                              caption="SCRIPTS"
+                            >
+                              <label
+                                className="msg label"
+                                data-tooltip="expand"
+                                style={
+                                  Object {
+                                    "textAlign": undefined,
+                                  }
+                                }
+                              >
+                                SCRIPTS
+                              </label>
+                            </Label>
+                            <Container
+                              className="actions"
+                              crossAlignment="center"
+                              mainAlignment="flex-end"
+                              orientation="row"
+                            >
+                              <div
+                                className="msg container fixedScrollbar actions"
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "flexWrap": undefined,
+                                    "justifyContent": "flex-end",
+                                  }
+                                }
+                              >
+                                <Icon
+                                  disabled={false}
+                                  id="addFolder"
+                                  key="addFolder"
+                                  onClick={[Function]}
+                                  onKeyPress={[Function]}
+                                  src={138}
+                                  tabIndex={0}
+                                >
+                                  <div
+                                    className="msg icon codicon codicon-file-directory-create"
+                                    id="addFolder"
+                                    onClick={[Function]}
+                                    onKeyPress={[Function]}
+                                    tabIndex={0}
+                                  />
+                                </Icon>
+                                <MenuItem
+                                  icon={198}
+                                  id="addScript"
+                                  key="addScript"
+                                  onSubMenuClose={[Function]}
+                                  onSubMenuOpen={[Function]}
+                                  subMenuPlacement="right-start"
+                                  subMenuShowOnClick={true}
+                                >
+                                  <Container
+                                    className="msg menuItem submenu"
+                                    id="addScript"
+                                    innerRef={
+                                      Object {
+                                        "current": Object {
+                                          "l": Object {
+                                            "clickfalse": [Function],
+                                            "mouseenterfalse": [Function],
+                                            "mouseleavefalse": [Function],
+                                          },
+                                        },
+                                      }
+                                    }
+                                    onClick={[Function]}
+                                    onMouseEnter={[Function]}
+                                    onMouseLeave={[Function]}
+                                    orientation="row"
+                                  >
+                                    <div
+                                      className="msg container fixedScrollbar menuItem submenu"
+                                      id="addScript"
+                                      onClick={[Function]}
+                                      onMouseEnter={[Function]}
+                                      onMouseLeave={[Function]}
+                                      style={
+                                        Object {
+                                          "alignItems": undefined,
+                                          "flexDirection": "row",
+                                          "flexWrap": undefined,
+                                          "justifyContent": undefined,
+                                        }
+                                      }
+                                    >
+                                      <Icon
+                                        disabled={false}
+                                        src={198}
+                                      >
+                                        <div
+                                          className="msg icon codicon codicon-kebab-vertical"
+                                        />
+                                      </Icon>
+                                      <Label>
+                                        <label
+                                          className="msg label"
+                                          data-tooltip="expand"
+                                          style={
+                                            Object {
+                                              "textAlign": undefined,
+                                            }
+                                          }
+                                        />
+                                      </Label>
+                                    </div>
+                                  </Container>
+                                  <Menu
+                                    id="addScript"
+                                    onClose={[Function]}
+                                    onItemClick={[Function]}
+                                    onMenuBack={[Function]}
+                                    onOpen={[Function]}
+                                    orientation="column"
+                                    placement="right-start"
+                                  >
+                                    <Popup
+                                      className="msg menu"
+                                      id="addScript"
+                                      onClose={[Function]}
+                                      onKeyDown={[Function]}
+                                      onOpen={[Function]}
+                                      orientation="column"
+                                      pinned={false}
+                                      placement="right-start"
+                                      showArrow={false}
+                                    >
+                                      <Portal
+                                        id="addScript"
+                                        onClose={[Function]}
+                                        onKeyDown={[Function]}
+                                        onOpen={[Function]}
+                                      />
+                                    </Popup>
+                                  </Menu>
+                                </MenuItem>
+                              </div>
+                            </Container>
+                          </div>
+                        </Container>
+                        <Container
+                          className="content"
+                          orientation="column"
+                          tabIndex={0}
+                        >
+                          <div
+                            className="msg container fixedScrollbar content"
+                            style={
+                              Object {
+                                "alignItems": undefined,
+                                "flexDirection": "column",
+                                "flexWrap": undefined,
+                                "justifyContent": undefined,
+                              }
+                            }
+                            tabIndex={0}
+                          >
+                            <AccordionItem
+                              caption="<no scripts>"
+                            >
+                              <Container
+                                className="msg accordionItem"
+                                crossAlignment="center"
+                                orientation="row"
+                                tabIndex={0}
+                              >
+                                <div
+                                  className="msg container fixedScrollbar accordionItem"
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                      "flexWrap": undefined,
+                                      "justifyContent": undefined,
+                                    }
+                                  }
+                                  tabIndex={0}
+                                >
+                                  <Label
+                                    as="span"
+                                  >
+                                    <span
+                                      className="msg label"
+                                      data-tooltip="expand"
+                                      style={
+                                        Object {
+                                          "textAlign": undefined,
+                                        }
+                                      }
+                                    >
+                                      &lt;no scripts&gt;
+                                    </span>
+                                  </Label>
+                                </div>
+                              </Container>
+                            </AccordionItem>
+                          </div>
+                        </Container>
+                      </div>
+                    </Container>
+                  </AccordionSection>
+                </div>
+              </Container>
+            </div>
+          </div>
+        </SplitContainer>
+      </div>
+    </Container>
+  </Accordion>
+  <Menu
+    id="schemaContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="schemaContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="schemaContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="tableContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="tableContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="tableContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="columnContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="columnContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="columnContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="viewContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="viewContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="viewContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="eventContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="eventContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="eventContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="routineContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="routineContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="routineContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="indexContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="indexContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="indexContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="triggerContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="triggerContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="triggerContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="fkContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="fkContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="fkContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="folderContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="folderContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="folderContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+  <Menu
+    id="scriptContextMenu"
+    onItemClick={[Function]}
+    orientation="column"
+    placement="bottom-start"
+  >
+    <Popup
+      className="msg menu"
+      id="scriptContextMenu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="bottom-start"
+      showArrow={false}
+    >
+      <Portal
+        id="scriptContextMenu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
+</Explorer>
+`;
