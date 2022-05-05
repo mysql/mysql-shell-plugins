@@ -1,0 +1,822 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Shell module tests Test ShellModule instantiation 1`] = `
+<ShellModule
+  innerRef={
+    Object {
+      "current": Object {},
+    }
+  }
+>
+  <Container
+    className="msg moduleHost"
+    id="shellModuleHost"
+    innerRef={
+      Object {
+        "current": Object {},
+      }
+    }
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar moduleHost"
+      id="shellModuleHost"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Tabview
+        canReorderTabs={true}
+        hideSingleTab={false}
+        id="shellModuleTabview"
+        onSelectTab={[Function]}
+        pages={
+          Array [
+            Object {
+              "caption": "GUI Console",
+              "content": <SessionBrowser
+                openSessions={Array []}
+              />,
+              "icon": "module-shell.svg",
+              "id": "sessions",
+            },
+          ]
+        }
+        selectedId="sessions"
+        showTabs={true}
+        stretchTabs={false}
+        tabPosition="top"
+      >
+        <Container
+          className="msg tabview top"
+          id="shellModuleTabview"
+          orientation="column"
+          style={
+            Object {
+              "--content-separator-width": "0px",
+              "--tabItem-border-width": "0px",
+            }
+          }
+        >
+          <div
+            className="msg container fixedScrollbar tabview top"
+            id="shellModuleTabview"
+            style={
+              Object {
+                "--content-separator-width": "0px",
+                "--tabItem-border-width": "0px",
+                "alignItems": undefined,
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <Selector
+              activeItemId="sessions"
+              className="tabArea"
+              entryOrientation="row"
+              items={
+                Array [
+                  Object {
+                    "auxillary": undefined,
+                    "canReorder": true,
+                    "caption": "GUI Console",
+                    "icon": "module-shell.svg",
+                    "id": "sessions",
+                    "tooltip": undefined,
+                  },
+                ]
+              }
+              onDrop={[Function]}
+              onSelect={[Function]}
+              orientation="row"
+              smoothScroll={false}
+              wrapNavigation={false}
+            >
+              <Container
+                className="msg selector horizontal tabArea"
+                innerRef={
+                  Object {
+                    "current": Object {
+                      "l": Object {
+                        "dragenterfalse": [Function],
+                        "dragleavefalse": [Function],
+                        "dragoverfalse": [Function],
+                        "dragstartfalse": [Function],
+                        "dropfalse": [Function],
+                      },
+                    },
+                  }
+                }
+                onDragEnter={[Function]}
+                onDragLeave={[Function]}
+                onDragOver={[Function]}
+                onDragStart={[Function]}
+                onDrop={[Function]}
+                onResize={[Function]}
+                orientation="row"
+              >
+                <div
+                  className="msg container fixedScrollbar selector horizontal tabArea"
+                  onDragEnter={[Function]}
+                  onDragLeave={[Function]}
+                  onDragOver={[Function]}
+                  onDragStart={[Function]}
+                  onDrop={[Function]}
+                  style={
+                    Object {
+                      "alignItems": undefined,
+                      "flexDirection": "row",
+                      "flexWrap": undefined,
+                      "justifyContent": undefined,
+                    }
+                  }
+                >
+                  <SelectorItem
+                    disabled={false}
+                    id="selectorItemstepDown"
+                    innerRef={
+                      Object {
+                        "current": Object {
+                          "l": Object {
+                            "clickfalse": [Function],
+                          },
+                        },
+                      }
+                    }
+                    onClick={[Function]}
+                    orientation="row"
+                    type="stepDown"
+                  >
+                    <Container
+                      className="msg selectorItem stepDown"
+                      crossAlignment="center"
+                      id="selectorItemstepDown"
+                      innerRef={
+                        Object {
+                          "current": Object {
+                            "l": Object {
+                              "clickfalse": [Function],
+                            },
+                          },
+                        }
+                      }
+                      mainAlignment="center"
+                      onClick={[Function]}
+                      orientation="row"
+                    >
+                      <div
+                        className="msg container fixedScrollbar selectorItem stepDown"
+                        id="selectorItemstepDown"
+                        onClick={[Function]}
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "flexWrap": undefined,
+                            "justifyContent": "center",
+                          }
+                        }
+                      />
+                    </Container>
+                  </SelectorItem>
+                  <SelectorItem
+                    caption="GUI Console"
+                    disabled={false}
+                    draggable={true}
+                    id="sessions"
+                    image="module-shell.svg"
+                    innerRef={
+                      Object {
+                        "current": Object {
+                          "l": Object {
+                            "clickfalse": [Function],
+                            "dragenterfalse": [Function],
+                            "dragleavefalse": [Function],
+                            "dragoverfalse": [Function],
+                            "dragstartfalse": [Function],
+                            "dropfalse": [Function],
+                          },
+                        },
+                      }
+                    }
+                    key="sessions"
+                    onClick={[Function]}
+                    onDrop={[Function]}
+                    orientation="row"
+                    selected={true}
+                    type="normal"
+                  >
+                    <Container
+                      className="msg selectorItem selected normal"
+                      crossAlignment="center"
+                      draggable={true}
+                      id="sessions"
+                      innerRef={
+                        Object {
+                          "current": Object {
+                            "l": Object {
+                              "clickfalse": [Function],
+                              "dragenterfalse": [Function],
+                              "dragleavefalse": [Function],
+                              "dragoverfalse": [Function],
+                              "dragstartfalse": [Function],
+                              "dropfalse": [Function],
+                            },
+                          },
+                        }
+                      }
+                      mainAlignment="center"
+                      onClick={[Function]}
+                      onDragEnter={[Function]}
+                      onDragLeave={[Function]}
+                      onDragOver={[Function]}
+                      onDragStart={[Function]}
+                      onDrop={[Function]}
+                      orientation="row"
+                    >
+                      <div
+                        className="msg container fixedScrollbar selectorItem selected normal"
+                        draggable={true}
+                        id="sessions"
+                        onClick={[Function]}
+                        onDragEnter={[Function]}
+                        onDragLeave={[Function]}
+                        onDragOver={[Function]}
+                        onDragStart={[Function]}
+                        onDrop={[Function]}
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "flexWrap": undefined,
+                            "justifyContent": "center",
+                          }
+                        }
+                      >
+                        <Icon
+                          data-tooltip="inherit"
+                          disabled={false}
+                          src="module-shell.svg"
+                        >
+                          <div
+                            className="msg icon"
+                            data-tooltip="inherit"
+                            style={
+                              Object {
+                                "WebkitMaskImage": "url(module-shell.svg)",
+                                "backgroundColor": undefined,
+                                "height": undefined,
+                                "maskImage": "url(module-shell.svg)",
+                                "width": undefined,
+                              }
+                            }
+                          />
+                        </Icon>
+                        <Label
+                          data-tooltip="inherit"
+                        >
+                          <label
+                            className="msg label"
+                            data-tooltip="inherit"
+                            style={
+                              Object {
+                                "textAlign": undefined,
+                              }
+                            }
+                          >
+                            GUI Console
+                          </label>
+                        </Label>
+                      </div>
+                    </Container>
+                  </SelectorItem>
+                  <SelectorItem
+                    disabled={false}
+                    id="selectorItemstepUp"
+                    innerRef={
+                      Object {
+                        "current": Object {
+                          "l": Object {
+                            "clickfalse": [Function],
+                          },
+                        },
+                      }
+                    }
+                    onClick={[Function]}
+                    orientation="row"
+                    type="stepUp"
+                  >
+                    <Container
+                      className="msg selectorItem stepUp"
+                      crossAlignment="center"
+                      id="selectorItemstepUp"
+                      innerRef={
+                        Object {
+                          "current": Object {
+                            "l": Object {
+                              "clickfalse": [Function],
+                            },
+                          },
+                        }
+                      }
+                      mainAlignment="center"
+                      onClick={[Function]}
+                      orientation="row"
+                    >
+                      <div
+                        className="msg container fixedScrollbar selectorItem stepUp"
+                        id="selectorItemstepUp"
+                        onClick={[Function]}
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "flexWrap": undefined,
+                            "justifyContent": "center",
+                          }
+                        }
+                      />
+                    </Container>
+                  </SelectorItem>
+                </div>
+              </Container>
+            </Selector>
+            <Container
+              className="content"
+              innerRef={
+                Object {
+                  "current": Object {
+                    "l": Object {
+                      "dragenterfalse": [Function],
+                      "dragleavefalse": [Function],
+                      "dragoverfalse": [Function],
+                      "dropfalse": [Function],
+                    },
+                  },
+                }
+              }
+              onDragEnter={[Function]}
+              onDragLeave={[Function]}
+              onDragOver={[Function]}
+              onDrop={[Function]}
+              orientation="column"
+            >
+              <div
+                className="msg container fixedScrollbar content"
+                onDragEnter={[Function]}
+                onDragLeave={[Function]}
+                onDragOver={[Function]}
+                onDrop={[Function]}
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "column",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
+                  }
+                }
+              >
+                <SessionBrowser
+                  openSessions={Array []}
+                >
+                  <Container
+                    className="msg sessionBrowser"
+                    orientation="column"
+                    wrap="wrap"
+                  >
+                    <div
+                      className="msg container fixedScrollbar sessionBrowser"
+                      style={
+                        Object {
+                          "alignItems": undefined,
+                          "flexDirection": "column",
+                          "flexWrap": "wrap",
+                          "justifyContent": undefined,
+                        }
+                      }
+                    >
+                      <FrontPage
+                        caption="MySQL Shell - GUI Console"
+                        description="The GUI Console combines the advantages of MySQL Shell running in a classic terminal with the power of the interactive command editor of the MySQL Shell GUI."
+                        helpUrls={Object {}}
+                        onCloseGreeting={[Function]}
+                        showGreeting={true}
+                      >
+                        <Container
+                          className="msg frontPage"
+                          orientation="column"
+                        >
+                          <div
+                            className="msg container fixedScrollbar frontPage"
+                            style={
+                              Object {
+                                "alignItems": undefined,
+                                "flexDirection": "column",
+                                "flexWrap": undefined,
+                                "justifyContent": undefined,
+                              }
+                            }
+                          >
+                            <Label
+                              as="h2"
+                              id="title"
+                              textAlignment="center"
+                            >
+                              <h2
+                                className="msg label"
+                                data-tooltip="expand"
+                                id="title"
+                                style={
+                                  Object {
+                                    "textAlign": "center",
+                                  }
+                                }
+                              >
+                                MySQL Shell - GUI Console
+                              </h2>
+                            </Label>
+                            <Label
+                              id="description"
+                              textAlignment="center"
+                            >
+                              <label
+                                className="msg label"
+                                data-tooltip="expand"
+                                id="description"
+                                style={
+                                  Object {
+                                    "textAlign": "center",
+                                  }
+                                }
+                              >
+                                The GUI Console combines the advantages of MySQL Shell running in a classic terminal with the power of the interactive command editor of the MySQL Shell GUI.
+                              </label>
+                            </Label>
+                            <Container
+                              id="linksHost"
+                              mainAlignment="center"
+                              orientation="row"
+                              wrap="wrap"
+                            >
+                              <div
+                                className="msg container fixedScrollbar"
+                                id="linksHost"
+                                style={
+                                  Object {
+                                    "alignItems": undefined,
+                                    "flexDirection": "row",
+                                    "flexWrap": "wrap",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                              >
+                                <a
+                                  href="https://www.mysql.com"
+                                  key="Learn More >"
+                                  onClick={[Function]}
+                                  rel="noopener noreferrer"
+                                  tabIndex={0}
+                                  target="_blank"
+                                >
+                                  Learn More &gt;
+                                </a>
+                                <a
+                                  href="https://www.mysql.com"
+                                  key="Browse Tutorial >"
+                                  onClick={[Function]}
+                                  rel="noopener noreferrer"
+                                  tabIndex={0}
+                                  target="_blank"
+                                >
+                                  Browse Tutorial &gt;
+                                </a>
+                                <a
+                                  href="https://www.mysql.com"
+                                  key="Read Docs >"
+                                  onClick={[Function]}
+                                  rel="noopener noreferrer"
+                                  tabIndex={0}
+                                  target="_blank"
+                                >
+                                  Read Docs &gt;
+                                </a>
+                              </div>
+                            </Container>
+                            <Button
+                              data-tooltip="Close Greeting"
+                              disabled={false}
+                              id="closeButton"
+                              onClick={[Function]}
+                              round={true}
+                            >
+                              <button
+                                className="msg button round"
+                                data-tooltip="Close Greeting"
+                                disabled={false}
+                                id="closeButton"
+                                onClick={[Function]}
+                                onMouseDown={[Function]}
+                                style={
+                                  Object {
+                                    "flexDirection": undefined,
+                                  }
+                                }
+                              >
+                                <Icon
+                                  data-tooltip="inherit"
+                                  disabled={false}
+                                  src="close2.svg"
+                                >
+                                  <div
+                                    className="msg icon"
+                                    data-tooltip="inherit"
+                                    style={
+                                      Object {
+                                        "WebkitMaskImage": "url(close2.svg)",
+                                        "backgroundColor": undefined,
+                                        "height": undefined,
+                                        "maskImage": "url(close2.svg)",
+                                        "width": undefined,
+                                      }
+                                    }
+                                  />
+                                </Icon>
+                              </button>
+                            </Button>
+                            <Container
+                              orientation="column"
+                            >
+                              <div
+                                className="msg container fixedScrollbar"
+                                style={
+                                  Object {
+                                    "alignItems": undefined,
+                                    "flexDirection": "column",
+                                    "flexWrap": undefined,
+                                    "justifyContent": undefined,
+                                  }
+                                }
+                              >
+                                <Label
+                                  as="h2"
+                                  caption="MySQL Shell Sessions"
+                                  id="contentTitle"
+                                >
+                                  <h2
+                                    className="msg label"
+                                    data-tooltip="expand"
+                                    id="contentTitle"
+                                    style={
+                                      Object {
+                                        "textAlign": undefined,
+                                      }
+                                    }
+                                  >
+                                    MySQL Shell Sessions
+                                  </h2>
+                                </Label>
+                                <Container
+                                  id="tilesHost"
+                                  orientation="row"
+                                  wrap="wrap"
+                                >
+                                  <div
+                                    className="msg container fixedScrollbar"
+                                    id="tilesHost"
+                                    style={
+                                      Object {
+                                        "alignItems": undefined,
+                                        "flexDirection": "row",
+                                        "flexWrap": "wrap",
+                                        "justifyContent": undefined,
+                                      }
+                                    }
+                                  >
+                                    <SessionTile
+                                      caption="New Shell Session"
+                                      className="sessionTile"
+                                      description="Opens a new Shell instance tab"
+                                      details={
+                                        Object {
+                                          "caption": "New Shell Session",
+                                          "description": "Opens a new Shell instance tab",
+                                          "sessionId": -1,
+                                        }
+                                      }
+                                      icon="plus.svg"
+                                      innerRef={
+                                        Object {
+                                          "current": Object {
+                                            "l": Object {
+                                              "clickfalse": [Function],
+                                              "dragenterfalse": [Function],
+                                              "dragleavefalse": [Function],
+                                              "dragoverfalse": [Function],
+                                              "dragstartfalse": [Function],
+                                              "dropfalse": [Function],
+                                              "keypressfalse": [Function],
+                                              "mousedownfalse": [Function],
+                                            },
+                                          },
+                                        }
+                                      }
+                                      key="New Shell Session"
+                                      onAction={[Function]}
+                                      tileId={-1}
+                                      type={1}
+                                    >
+                                      <Button
+                                        className="msg browserTile secondary sessionTile"
+                                        disabled={false}
+                                        id="-1"
+                                        innerRef={
+                                          Object {
+                                            "current": Object {
+                                              "l": Object {
+                                                "clickfalse": [Function],
+                                                "dragenterfalse": [Function],
+                                                "dragleavefalse": [Function],
+                                                "dragoverfalse": [Function],
+                                                "dragstartfalse": [Function],
+                                                "dropfalse": [Function],
+                                                "keypressfalse": [Function],
+                                                "mousedownfalse": [Function],
+                                              },
+                                            },
+                                          }
+                                        }
+                                        onClick={[Function]}
+                                        onDragEnter={[Function]}
+                                        onDragLeave={[Function]}
+                                        onDragOver={[Function]}
+                                        onDragStart={[Function]}
+                                        onDrop={[Function]}
+                                        onKeyPress={[Function]}
+                                      >
+                                        <button
+                                          className="msg button browserTile secondary sessionTile"
+                                          disabled={false}
+                                          id="-1"
+                                          onClick={[Function]}
+                                          onDragEnter={[Function]}
+                                          onDragLeave={[Function]}
+                                          onDragOver={[Function]}
+                                          onDragStart={[Function]}
+                                          onDrop={[Function]}
+                                          onKeyPress={[Function]}
+                                          onMouseDown={[Function]}
+                                          style={
+                                            Object {
+                                              "flexDirection": undefined,
+                                            }
+                                          }
+                                        >
+                                          <Icon
+                                            disabled={false}
+                                            src="plus.svg"
+                                          >
+                                            <div
+                                              className="msg icon"
+                                              style={
+                                                Object {
+                                                  "WebkitMaskImage": "url(plus.svg)",
+                                                  "backgroundColor": undefined,
+                                                  "height": undefined,
+                                                  "maskImage": "url(plus.svg)",
+                                                  "width": undefined,
+                                                }
+                                              }
+                                            />
+                                          </Icon>
+                                          <Container
+                                            className="textHost"
+                                            orientation="column"
+                                          >
+                                            <div
+                                              className="msg container fixedScrollbar textHost"
+                                              style={
+                                                Object {
+                                                  "alignItems": undefined,
+                                                  "flexDirection": "column",
+                                                  "flexWrap": undefined,
+                                                  "justifyContent": undefined,
+                                                }
+                                              }
+                                            >
+                                              <Label
+                                                className="tileCaption"
+                                              >
+                                                <label
+                                                  className="msg label tileCaption"
+                                                  data-tooltip="expand"
+                                                  style={
+                                                    Object {
+                                                      "textAlign": undefined,
+                                                    }
+                                                  }
+                                                >
+                                                  New Shell Session
+                                                </label>
+                                              </Label>
+                                              <Label
+                                                className="tileDescription"
+                                              >
+                                                <label
+                                                  className="msg label tileDescription"
+                                                  data-tooltip="expand"
+                                                  style={
+                                                    Object {
+                                                      "textAlign": undefined,
+                                                    }
+                                                  }
+                                                >
+                                                  Opens a new Shell instance tab
+                                                </label>
+                                              </Label>
+                                            </div>
+                                          </Container>
+                                        </button>
+                                      </Button>
+                                    </SessionTile>
+                                  </div>
+                                </Container>
+                              </div>
+                            </Container>
+                          </div>
+                        </Container>
+                      </FrontPage>
+                    </div>
+                  </Container>
+                </SessionBrowser>
+              </div>
+            </Container>
+          </div>
+        </Container>
+      </Tabview>
+      <ValueEditDialog
+        caption="Feedback Requested"
+        id="shellPromptDialog"
+        onClose={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "begin": Array [],
+              "end": Array [
+                <Button
+                  caption="OK"
+                  disabled={false}
+                  id="ok"
+                  onClick={[Function]}
+                />,
+                <Button
+                  caption="Cancel"
+                  disabled={false}
+                  id="cancel"
+                  onClick={[Function]}
+                />,
+              ],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={388}
+              />
+              <Label>
+                Feedback Requested
+              </Label>
+            </y>
+          }
+          className="msg valueEditDialog"
+          container={Object {}}
+          content={
+            <Grid
+              columnGap={16}
+              columns={8}
+              rowGap={16}
+            />
+          }
+          id="shellPromptDialog"
+          onClose={[Function]}
+        >
+          <Portal
+            container={Object {}}
+            id="shellPromptDialog"
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ValueEditDialog>
+    </div>
+  </Container>
+</ShellModule>
+`;

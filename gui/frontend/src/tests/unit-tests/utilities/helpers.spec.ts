@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IShellFeedbackRequest } from "../../../communication";
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
+import { IOpenConnectionData, IShellFeedbackRequest, IShellResultType } from "../../../communication";
 import { PromptUtils } from "../../../modules/common/PromptUtils";
 import { ShellInterfaceShellSession } from "../../../supplement/ShellInterface";
 import {
@@ -104,7 +106,7 @@ describe("Utilities Tests", (): void => {
         expect(index).toEqual(-7);
     });
 
-    it("", (): void => {
+    it("Build password request", (): void => {
         const result: IShellFeedbackRequest = {};
         result.password = "1234567";
         let passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
@@ -153,6 +155,26 @@ describe("Utilities Tests", (): void => {
         expect(xhrMock.setRequestHeader).toBeCalledWith("Accept", "text/plain");
         (xhrMock.onreadystatechange as EventListener)(new Event(""));
         expect(callback.mock.calls).toEqual([["Hello World!"]]);
+    });
+
+    it ("Shell prompt result test", (): void => {
+        const val1 = { rows: [] };
+        let result = val1 as IShellResultType;
+        const val2 = { result: { prompt: "" }, requestState: { type: "error", msg: "test" } };
+        const result2 = val2 as IOpenConnectionData;
+        expect(PromptUtils.isShellPasswordResult(result)).toBe(false);
+        expect(PromptUtils.isShellPromptResult(result)).toBe(false);
+        expect(PromptUtils.isShellMdsPromptResult(result2)).toBe(true);
+
+        const val3 = { password: "" };
+        result = val3 as IShellResultType;
+        expect(PromptUtils.isShellPasswordResult(result)).toBe(true);
+        expect(PromptUtils.isShellPromptResult(result)).toBe(false);
+
+        const val4 = { prompt: "" };
+        result = val4 as IShellResultType;
+        expect(PromptUtils.isShellPasswordResult(result)).toBe(false);
+        expect(PromptUtils.isShellPromptResult(result)).toBe(true);
     });
 
     it("Select File", async () => {

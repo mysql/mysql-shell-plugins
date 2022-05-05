@@ -1,0 +1,847 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
+<ConnectionBrowser
+  connections={
+    Array [
+      Object {
+        "caption": "",
+        "dbType": "MySQL",
+        "description": "",
+        "folderPath": "",
+        "id": 0,
+        "options": Object {},
+        "useMDS": false,
+        "useSSH": false,
+      },
+    ]
+  }
+  onAddConnection={[MockFunction]}
+  onDropConnection={[MockFunction]}
+>
+  <Container
+    className="msg connectionBrowser"
+    orientation="column"
+    wrap="nowrap"
+  >
+    <div
+      className="msg container fixedScrollbar connectionBrowser"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": "nowrap",
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <ConfirmDialog
+        caption="Create New Bastion"
+        id="confirmNewBastionDialog"
+        onClose={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "end": Array [],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={275}
+              />
+              <Label>
+                Create New Bastion
+              </Label>
+            </y>
+          }
+          className="msg confirmDialog"
+          container={Object {}}
+          content={
+            <Container
+              orientation="column"
+            >
+              
+            </Container>
+          }
+        >
+          <Portal
+            container={Object {}}
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ConfirmDialog>
+      <ConfirmDialog
+        caption="MySQL Connection Testing"
+        id="keepConnectionDialogRef"
+        onClose={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "end": Array [],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={275}
+              />
+              <Label>
+                MySQL Connection Testing
+              </Label>
+            </y>
+          }
+          className="msg confirmDialog"
+          container={Object {}}
+          content={
+            <Container
+              orientation="column"
+            >
+              
+            </Container>
+          }
+        >
+          <Portal
+            container={Object {}}
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ConfirmDialog>
+      <ValueEditDialog
+        caption="Database Connection Configuration"
+        customFooter={<y />}
+        id="connectionEditor"
+        onClose={[Function]}
+        onSelectTab={[Function]}
+        onValidate={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "begin": Array [
+                <y />,
+              ],
+              "end": Array [
+                <Button
+                  caption="OK"
+                  disabled={false}
+                  id="ok"
+                  onClick={[Function]}
+                />,
+                <Button
+                  caption="Cancel"
+                  disabled={false}
+                  id="cancel"
+                  onClick={[Function]}
+                />,
+              ],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={388}
+              />
+              <Label>
+                Database Connection Configuration
+              </Label>
+            </y>
+          }
+          className="msg valueEditDialog"
+          container={Object {}}
+          content={
+            <Grid
+              columnGap={16}
+              columns={8}
+              rowGap={16}
+            />
+          }
+          id="connectionEditor"
+          onClose={[Function]}
+          onSelectTab={[Function]}
+        >
+          <Portal
+            container={Object {}}
+            id="connectionEditor"
+            onClose={[Function]}
+            onOpen={[Function]}
+            onSelectTab={[Function]}
+          />
+        </Dialog>
+      </ValueEditDialog>
+      <ConfirmDialog
+        caption="Password Cleared"
+        id="confirmClearPasswordDlg"
+      >
+        <Dialog
+          actions={
+            Object {
+              "end": Array [],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={275}
+              />
+              <Label>
+                Password Cleared
+              </Label>
+            </y>
+          }
+          className="msg confirmDialog"
+          container={Object {}}
+          content={
+            <Container
+              orientation="column"
+            >
+              
+            </Container>
+          }
+        >
+          <Portal
+            container={Object {}}
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ConfirmDialog>
+      <ConfirmDialog
+        caption="Delete Connection"
+        id="confirmDeleteDialog"
+        onClose={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "end": Array [],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={275}
+              />
+              <Label>
+                Delete Connection
+              </Label>
+            </y>
+          }
+          className="msg confirmDialog"
+          container={Object {}}
+          content={
+            <Container
+              orientation="column"
+            >
+              
+            </Container>
+          }
+        >
+          <Portal
+            container={Object {}}
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ConfirmDialog>
+      <ValueEditDialog
+        caption="Feedback Requested"
+        id="shellPromptDialog"
+        onClose={[Function]}
+      >
+        <Dialog
+          actions={
+            Object {
+              "begin": Array [],
+              "end": Array [
+                <Button
+                  caption="OK"
+                  disabled={false}
+                  id="ok"
+                  onClick={[Function]}
+                />,
+                <Button
+                  caption="Cancel"
+                  disabled={false}
+                  id="cancel"
+                  onClick={[Function]}
+                />,
+              ],
+            }
+          }
+          caption={
+            <y>
+              <Icon
+                disabled={false}
+                src={388}
+              />
+              <Label>
+                Feedback Requested
+              </Label>
+            </y>
+          }
+          className="msg valueEditDialog"
+          container={Object {}}
+          content={
+            <Grid
+              columnGap={16}
+              columns={8}
+              rowGap={16}
+            />
+          }
+          id="shellPromptDialog"
+          onClose={[Function]}
+        >
+          <Portal
+            container={Object {}}
+            id="shellPromptDialog"
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+      </ValueEditDialog>
+      <Menu
+        id="tileActionMenu"
+        onItemClick={[Function]}
+        orientation="column"
+        placement="bottom-start"
+      >
+        <Popup
+          className="msg menu"
+          id="tileActionMenu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="bottom-start"
+          showArrow={false}
+        >
+          <Portal
+            id="tileActionMenu"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+      <FrontPage
+        caption="MySQL Shell - SQL Notebook"
+        description="The SQL Notebook is a visual tool to work with databases. It can be used to create and manage databases schema objects, write SQL queries and scripts and work with table data."
+        helpUrls={Object {}}
+        onCloseGreeting={[Function]}
+        showGreeting={true}
+      >
+        <Container
+          className="msg frontPage"
+          orientation="column"
+        >
+          <div
+            className="msg container fixedScrollbar frontPage"
+            style={
+              Object {
+                "alignItems": undefined,
+                "flexDirection": "column",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <Label
+              as="h2"
+              id="title"
+              textAlignment="center"
+            >
+              <h2
+                className="msg label"
+                data-tooltip="expand"
+                id="title"
+                style={
+                  Object {
+                    "textAlign": "center",
+                  }
+                }
+              >
+                MySQL Shell - SQL Notebook
+              </h2>
+            </Label>
+            <Label
+              id="description"
+              textAlignment="center"
+            >
+              <label
+                className="msg label"
+                data-tooltip="expand"
+                id="description"
+                style={
+                  Object {
+                    "textAlign": "center",
+                  }
+                }
+              >
+                The SQL Notebook is a visual tool to work with databases. It can be used to create and manage databases schema objects, write SQL queries and scripts and work with table data.
+              </label>
+            </Label>
+            <Container
+              id="linksHost"
+              mainAlignment="center"
+              orientation="row"
+              wrap="wrap"
+            >
+              <div
+                className="msg container fixedScrollbar"
+                id="linksHost"
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "row",
+                    "flexWrap": "wrap",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <a
+                  href="https://www.mysql.com"
+                  key="Learn More >"
+                  onClick={[Function]}
+                  rel="noopener noreferrer"
+                  tabIndex={0}
+                  target="_blank"
+                >
+                  Learn More &gt;
+                </a>
+                <a
+                  href="https://www.mysql.com"
+                  key="Browse Tutorial >"
+                  onClick={[Function]}
+                  rel="noopener noreferrer"
+                  tabIndex={0}
+                  target="_blank"
+                >
+                  Browse Tutorial &gt;
+                </a>
+                <a
+                  href="https://www.mysql.com"
+                  key="Read Docs >"
+                  onClick={[Function]}
+                  rel="noopener noreferrer"
+                  tabIndex={0}
+                  target="_blank"
+                >
+                  Read Docs &gt;
+                </a>
+              </div>
+            </Container>
+            <Button
+              data-tooltip="Close Greeting"
+              disabled={false}
+              id="closeButton"
+              onClick={[Function]}
+              round={true}
+            >
+              <button
+                className="msg button round"
+                data-tooltip="Close Greeting"
+                disabled={false}
+                id="closeButton"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="close2.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(close2.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(close2.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Container
+              orientation="column"
+            >
+              <div
+                className="msg container fixedScrollbar"
+                style={
+                  Object {
+                    "alignItems": undefined,
+                    "flexDirection": "column",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
+                  }
+                }
+              >
+                <Label
+                  as="h2"
+                  caption="Database Connections"
+                  id="contentTitle"
+                >
+                  <h2
+                    className="msg label"
+                    data-tooltip="expand"
+                    id="contentTitle"
+                    style={
+                      Object {
+                        "textAlign": undefined,
+                      }
+                    }
+                  >
+                    Database Connections
+                  </h2>
+                </Label>
+                <Container
+                  id="tilesHost"
+                  innerRef={
+                    Object {
+                      "current": Object {
+                        "l": Object {
+                          "dragenterfalse": [Function],
+                          "dragleavefalse": [Function],
+                          "dragoverfalse": [Function],
+                          "dropfalse": [Function],
+                        },
+                      },
+                    }
+                  }
+                  onDragEnter={[Function]}
+                  onDragLeave={[Function]}
+                  onDragOver={[Function]}
+                  onDrop={[Function]}
+                  orientation="row"
+                  wrap="wrap"
+                >
+                  <div
+                    className="msg container fixedScrollbar"
+                    id="tilesHost"
+                    onDragEnter={[Function]}
+                    onDragLeave={[Function]}
+                    onDragOver={[Function]}
+                    onDrop={[Function]}
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "row",
+                        "flexWrap": "wrap",
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <ConnectionTile
+                      caption=""
+                      className="connectionTile"
+                      description=""
+                      details={
+                        Object {
+                          "caption": "",
+                          "dbType": "MySQL",
+                          "description": "",
+                          "folderPath": "",
+                          "id": 0,
+                          "options": Object {},
+                          "useMDS": false,
+                          "useSSH": false,
+                        }
+                      }
+                      draggable={true}
+                      icon="mysql.svg"
+                      onAction={[Function]}
+                      tileId={0}
+                      type={0}
+                    >
+                      <Button
+                        className="msg browserTile connectionTile"
+                        disabled={false}
+                        draggable={true}
+                        id="0"
+                        onClick={[Function]}
+                        onDragEnter={[Function]}
+                        onDragLeave={[Function]}
+                        onDragOver={[Function]}
+                        onDragStart={[Function]}
+                        onDrop={[Function]}
+                        onKeyPress={[Function]}
+                      >
+                        <button
+                          className="msg button browserTile connectionTile"
+                          disabled={false}
+                          draggable={true}
+                          id="0"
+                          onClick={[Function]}
+                          onDragEnter={[Function]}
+                          onDragLeave={[Function]}
+                          onDragOver={[Function]}
+                          onDragStart={[Function]}
+                          onDrop={[Function]}
+                          onKeyPress={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "flexDirection": undefined,
+                            }
+                          }
+                        >
+                          <Icon
+                            disabled={false}
+                            src="mysql.svg"
+                          >
+                            <div
+                              className="msg icon"
+                              style={
+                                Object {
+                                  "WebkitMaskImage": "url(mysql.svg)",
+                                  "backgroundColor": undefined,
+                                  "height": undefined,
+                                  "maskImage": "url(mysql.svg)",
+                                  "width": undefined,
+                                }
+                              }
+                            />
+                          </Icon>
+                          <Container
+                            className="textHost"
+                            orientation="column"
+                          >
+                            <div
+                              className="msg container fixedScrollbar textHost"
+                              style={
+                                Object {
+                                  "alignItems": undefined,
+                                  "flexDirection": "column",
+                                  "flexWrap": undefined,
+                                  "justifyContent": undefined,
+                                }
+                              }
+                            >
+                              <Label
+                                className="tileCaption"
+                              >
+                                <label
+                                  className="msg label tileCaption"
+                                  data-tooltip="expand"
+                                  style={
+                                    Object {
+                                      "textAlign": undefined,
+                                    }
+                                  }
+                                />
+                              </Label>
+                              <Label
+                                className="tileDescription"
+                              >
+                                <label
+                                  className="msg label tileDescription"
+                                  data-tooltip="expand"
+                                  style={
+                                    Object {
+                                      "textAlign": undefined,
+                                    }
+                                  }
+                                />
+                              </Label>
+                            </div>
+                          </Container>
+                          <Container
+                            crossAlignment="center"
+                            id="actions"
+                            innerRef={
+                              Object {
+                                "current": Object {},
+                              }
+                            }
+                            mainAlignment="center"
+                            orientation="row"
+                          >
+                            <div
+                              className="msg container fixedScrollbar"
+                              id="actions"
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "flexWrap": undefined,
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <Label
+                                caption="…"
+                                id="triggerTileAction"
+                                onClick={[Function]}
+                              >
+                                <label
+                                  className="msg label"
+                                  data-tooltip="expand"
+                                  id="triggerTileAction"
+                                  onClick={[Function]}
+                                  style={
+                                    Object {
+                                      "textAlign": undefined,
+                                    }
+                                  }
+                                >
+                                  …
+                                </label>
+                              </Label>
+                            </div>
+                          </Container>
+                        </button>
+                      </Button>
+                    </ConnectionTile>
+                    <ConnectionTile
+                      caption="New Connection"
+                      className="connectionTile"
+                      description="Add a new database connection"
+                      details={
+                        Object {
+                          "caption": "New Connection",
+                          "dbType": "MySQL",
+                          "description": "Add a new database connection",
+                          "folderPath": "",
+                          "id": -1,
+                          "options": Object {
+                            "dbFile": "",
+                            "dbName": "",
+                          },
+                          "useMDS": false,
+                          "useSSH": false,
+                        }
+                      }
+                      icon="plus.svg"
+                      key={-1}
+                      onAction={[Function]}
+                      tileId={-1}
+                      type={1}
+                    >
+                      <Button
+                        className="msg browserTile secondary connectionTile"
+                        disabled={false}
+                        id="-1"
+                        onClick={[Function]}
+                        onDragEnter={[Function]}
+                        onDragLeave={[Function]}
+                        onDragOver={[Function]}
+                        onDragStart={[Function]}
+                        onDrop={[Function]}
+                        onKeyPress={[Function]}
+                      >
+                        <button
+                          className="msg button browserTile secondary connectionTile"
+                          disabled={false}
+                          id="-1"
+                          onClick={[Function]}
+                          onDragEnter={[Function]}
+                          onDragLeave={[Function]}
+                          onDragOver={[Function]}
+                          onDragStart={[Function]}
+                          onDrop={[Function]}
+                          onKeyPress={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "flexDirection": undefined,
+                            }
+                          }
+                        >
+                          <Icon
+                            disabled={false}
+                            src="plus.svg"
+                          >
+                            <div
+                              className="msg icon"
+                              style={
+                                Object {
+                                  "WebkitMaskImage": "url(plus.svg)",
+                                  "backgroundColor": undefined,
+                                  "height": undefined,
+                                  "maskImage": "url(plus.svg)",
+                                  "width": undefined,
+                                }
+                              }
+                            />
+                          </Icon>
+                          <Container
+                            className="textHost"
+                            orientation="column"
+                          >
+                            <div
+                              className="msg container fixedScrollbar textHost"
+                              style={
+                                Object {
+                                  "alignItems": undefined,
+                                  "flexDirection": "column",
+                                  "flexWrap": undefined,
+                                  "justifyContent": undefined,
+                                }
+                              }
+                            >
+                              <Label
+                                className="tileCaption"
+                              >
+                                <label
+                                  className="msg label tileCaption"
+                                  data-tooltip="expand"
+                                  style={
+                                    Object {
+                                      "textAlign": undefined,
+                                    }
+                                  }
+                                >
+                                  New Connection
+                                </label>
+                              </Label>
+                              <Label
+                                className="tileDescription"
+                              >
+                                <label
+                                  className="msg label tileDescription"
+                                  data-tooltip="expand"
+                                  style={
+                                    Object {
+                                      "textAlign": undefined,
+                                    }
+                                  }
+                                >
+                                  Add a new database connection
+                                </label>
+                              </Label>
+                            </div>
+                          </Container>
+                        </button>
+                      </Button>
+                    </ConnectionTile>
+                  </div>
+                </Container>
+              </div>
+            </Container>
+          </div>
+        </Container>
+      </FrontPage>
+    </div>
+  </Container>
+</ConnectionBrowser>
+`;
