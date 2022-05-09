@@ -162,7 +162,7 @@ export const getDB = async (driver: WebDriver, name: string): Promise<WebElement
         }
 
         return undefined;
-    }, 5000, "No DB was found");
+    }, 5000, `No ${name} DB was found`);
 };
 
 export const closeDBconnection = async (driver: WebDriver, name: string): Promise<void> => {
@@ -670,8 +670,10 @@ export const toggleSchemaObject = async (driver: WebDriver, objType: string, obj
     await driver.sleep(1000);
 };
 
-export const addScript = async (driver: WebDriver, scriptType: string): Promise<void> => {
+export const addScript = async (driver: WebDriver, scriptType: string): Promise<string> => {
     const context = await driver.findElement(By.id("scriptSectionHost"));
+    const items = await context.findElements(By.css("div.tabulator-row"));
+
     await driver.executeScript(
         "arguments[0].click()",
         await context.findElement(By.id("addScript")),
@@ -690,6 +692,26 @@ export const addScript = async (driver: WebDriver, scriptType: string): Promise<
         default:
             break;
     }
+
+    await driver.wait(async () => {
+        return (await context.findElements(By.css("div.tabulator-row"))).length > items.length;
+    }, 2000, "No script was created");
+
+    return `Script ${(await context.findElements(By.css("div.tabulator-row"))).length}`;
+};
+
+export const existsScript = async (driver: WebDriver, scriptName: string, scriptType: string): Promise<boolean> => {
+    const context = await driver.findElement(By.id("scriptSectionHost"));
+    const items = await context.findElements(By.css("div.tabulator-row"));
+    for(const item of items) {
+        const label = await (await item.findElement(By.css(".schemaTreeEntry label"))).getText();
+        const src = await (await item.findElement(By.css(".schemaTreeEntry img"))).getAttribute("src");
+        if( label === scriptName && src.indexOf(scriptType) !== -1) {
+            return true;
+        }
+    }
+
+    return false;
 };
 
 export const getOpenEditor = async (driver: WebDriver, editor: string): Promise<WebElement | undefined> => {
@@ -1219,4 +1241,17 @@ export const setDBEditorStartLang = async (driver: WebDriver, lang: string): Pro
     const dropDown = await driver.wait(until.elementLocated(By.css(".dropdownList.manualFocus")),
         3000, "dropDown not displayed");
     await dropDown.findElement(By.id(lang)).click();
+};
+
+//This function checks if the Db Type drop down list is stale.
+//Because of the tests speed, sometimes we need to reload the dialog
+export const initConDialog = async (driver: WebDriver): Promise <void> => {
+    await driver
+        .findElement(By.css(".connectionBrowser"))
+        .findElement(By.id("-1"))
+        .click();
+
+    const dialog = driver.findElement(By.css(".valueEditDialog"));
+    await dialog.findElement(By.id("cancel")).click();
+    await driver.wait(until.stalenessOf(dialog), 2000, "Connection dialog is still displayed");
 };

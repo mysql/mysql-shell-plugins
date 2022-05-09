@@ -60,13 +60,8 @@ export const getDriver = async (): Promise<WebDriver> => {
     return driver;
 };
 
-export const load = async (driver: WebDriver, port: number, token: string | undefined): Promise<void> => {
-    if(token) {
-        await driver.get(`http://localhost:${port}/?token=${token}`);
-    } else {
-        await driver.get(`http://localhost:${port}`);
-    }
-
+export const load = async (driver: WebDriver, url: String): Promise<void> => {
+    await driver.get(String(url));
     await driver.wait(until.elementLocated(By.id("root")), 10000);
 };
 

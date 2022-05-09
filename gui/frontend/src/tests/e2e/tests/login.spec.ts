@@ -24,37 +24,18 @@
 import { promises as fsPromises } from "fs";
 import { getDriver, load } from "../lib/engine";
 import { WebDriver, By } from "selenium-webdriver";
-import {
-    findFreePort,
-    waitForLoginPage,
-} from "../lib/helpers";
-import { startServer, setupServerFolder, createUser } from "../lib/env";
-import { ChildProcess } from "child_process";
+import { waitForLoginPage } from "../lib/helpers";
 
 describe("Login", () => {
     let driver: WebDriver;
-    let port: number;
-    let child: ChildProcess;
-    let serverPath: string;
     let testFailed = false;
 
     beforeAll(async () => {
-        try {
-            driver = await getDriver();
-            port = await findFreePort();
-            serverPath = await setupServerFolder(port);
-            child = await startServer(driver, port, undefined);
-        } catch (e) {
-            if(child) { child.kill(); }
-            console.error(e);
-            if(driver) { await driver.quit(); }
-            await new Promise((resolve) => {return setTimeout(resolve, 500);});
-            process.exit(1);
-        }
+        driver = await getDriver();
     });
 
     beforeEach(async () => {
-        await load(driver, port, undefined);
+        await load(driver, String(process.env.SHELL_UI_MU_HOSTNAME));
         await waitForLoginPage(driver);
     });
 
@@ -74,12 +55,6 @@ describe("Login", () => {
     });
 
     afterAll(async () => {
-        child.kill();
-        try {
-            await fsPromises.rm(serverPath, {recursive: true});
-        } catch(e) {
-            //ignore exception
-        }
         await driver.quit();
     });
 
@@ -108,7 +83,7 @@ describe("Login", () => {
     it("Invalid login", async () => {
         try {
             await driver.findElement(By.id("loginUsername")).sendKeys("client");
-            await driver.findElement(By.id("loginPassword")).sendKeys("client");
+            await driver.findElement(By.id("loginPassword")).sendKeys("root");
             await driver.findElement(By.id("loginButton")).click();
 
             expect( await (await driver.findElement(By.css("div.message.error"))).getText() )
@@ -122,8 +97,6 @@ describe("Login", () => {
 
     it("Successfull login", async () => {
         try {
-            await createUser(port, "client", "client", "Administrator");
-
             await driver.findElement(By.id("loginUsername")).sendKeys("client");
             await driver.findElement(By.id("loginPassword")).sendKeys("client");
             await driver.findElement(By.id("loginButton")).click();
