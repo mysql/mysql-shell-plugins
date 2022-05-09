@@ -24,16 +24,11 @@
 ##THIS SCRIPT WILL PERFORM THE FOLLOWING TASKS##
 # INSTALL NODE MODULES
 # RUN E2E UPDATE (GET CHROME DRIVER)
-# DOWNLOAD LATEST MYSQLSHELL
-# DOWNLOAD LATEST GUI PLUGIN
-# START MYSQL SHELL FOR THE FIRST TIME, TO CREATE MYSQLSH FOLDER ON APPDATA (REQUIRED) 
-# COPY FILES FROM GUI PLUGIN TO MYSQLSH FOLDER
-# START WEB SERVER TO CHECK THAT IT WORKS
 # STARTS SELENIUM
 # EXECUTE TESTS
 # STOP SELENIUM
 #THESE TASKS WILL ENSURE THAT THE ENVIRONMENT IS OK TO RUN MYSQLSHELL UI TESTS
-#\mysql-client-qa\Selenium
+
 $basePath = Join-Path $env:WORKSPACE "shell-plugins" "gui" "frontend"
 
 function parseHTML($path){
@@ -57,12 +52,6 @@ try{
         
     }
     
-    if(!$env:SHELLBRANCH){
-        Throw "Please define 'SHELLBRANCH' env variable"
-    }
-    if(!$env:PLUGINBRANCH){
-        Throw "Please define 'PLUGINBRANCH' env variable"
-    }
     if(!$env:WORKSPACE){
         Throw "Please define 'WORKSPACE' env variable"
     }
@@ -72,14 +61,6 @@ try{
     }
 
     New-Item -ItemType "file" -Path $log
-
-    $curScreenRel = Get-DisplayResolution
-    writeMsg "Current display resolution: $curScreenRel"
-    writeMsg "Changing display resolution to 1024x768" "-NoNewLine"
-    $result = Set-DisplayResolution -Width 1024 -Height 768 -Force
-    writeMsg $result
-    $upScreenRel = Get-DisplayResolution
-    writeMsg "Current display resolution: $upScreenRel"
 
     writeMsg "Setup nodejs registry..." "-NoNewLine"
     Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-tip.oraclecorp.com/api/npm/npmjs-remote" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
@@ -99,145 +80,6 @@ try{
     $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
 	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-update" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
     writeMsg "DONE"
-
-    #DOWNLOAD SHELL
-    if(!$env:SHELL_PUSH_ID){
-        $env:SHELL_PUSH_ID = "latest"
-    }
-    writeMsg "MySQL Shell is not installed."
-    $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:SHELLBRANCH/pushes/$env:SHELL_PUSH_ID/").content     
-    $bundles = $bundles | ConvertFrom-Json
-    $shell = ($bundles.builds | Where-Object { 
-        $_.target_os -clike "windows"
-        }).artifacts | Where-Object {
-            ($_.name -eq "mysql-shell-commercial" -or 
-            $_.name -eq "mysql-shell") -and
-            $_.url -notlike "*unittest*" -and
-            $_.archive -eq "zip"
-        }
-
-    if($shell){
-        $shell | ForEach-Object { 
-            $shellItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
-            $dest = Join-Path $env:WORKSPACE $shellItem
-            $shellItem -match "\.(.*).zip"
-            $execPath = Join-Path $env:WORKSPACE $matches[1] "bin"
-            if( Test-Path -Path $dest ){
-                writeMsg "$shellItem already exists. Skipping download."
-            }
-            else{
-                writeMsg "Downloading $shellItem ..." "-NoNewline" 
-                Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
-                writeMsg "DONE"
-    
-                writeMsg  "Extracting MySQL Shell..." "-NoNewline"
-                Expand-Archive 	$dest -DestinationPath $env:WORKSPACE
-                writeMsg "DONE"
-            }
-        }	
-    }    
-    else{
-        writeMsg "Could not download MySQL Shell."
-        exit 1
-    }
-    
-    writeMsg "Updating PATH with '$execPath'" "-NoNewLine"
-    $env:PATH += ";$execPath"
-    refreshenv
-    writeMsg "DONE"
-
-    #START SHELL FOR THE FIRST TIME TO CREATE THE mysqlsh FOLDER on APPDATA
-    writeMsg "Starting/Stoping MySQL Shell for the first time..." "-NoNewline"
-    Start-Process "mysqlsh"
-
-    Sleep 5
-
-    Stop-Process -Name "mysqlsh"
-    writeMsg "DONE"
-    
-    #CREATE plugins FOLDER
-    $guipluginPath = Join-Path $HOME "AppData" "Roaming" "MySQL" "mysqlsh" "plugins"
-    writeMsg "Creating plugins folder ($guipluginPath) ..." "-NoNewline"
-    New-Item -ItemType "directory" -Force -Path $guipluginPath 
-    writeMsg "DONE"
-    
-    #DOWNLOAD PORTABLE.ZIP
-    if(!$env:PLUGIN_PUSH_ID){
-        $env:PLUGIN_PUSH_ID = "latest"
-    }
-
-    $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:PLUGINBRANCH/pushes/$env:PLUGIN_PUSH_ID/").content     
-    $bundles = $bundles | ConvertFrom-Json
-    $plugin = ($bundles.builds | Where-Object { 
-        #$_.product -eq "mysql-shell-ui-plugin_binary_commercial_portable_zip"
-        ( $_.product -eq "mysql-shell-ui-plugin_binary_commercial_portable_zip" ) -or
-        ( $_.product -eq "mysql-shell-ui-plugin_binary_gui-plugin_zip" )
-        }).artifacts | Where-Object {
-            $_.name -like "mysql-shell-gui-plugin"
-        }
-
-    if($plugin){
-        $plugin | ForEach-Object { 
-            $pluginItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
-            writeMsg "Downloading $pluginItem ..." "-NoNewline" 
-            $dest = Join-Path $env:WORKSPACE $pluginItem
-            Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
-            writeMsg "DONE"
-            }
-        }
-    else{
-        writeMsg "Could not download GUI plugin."
-        exit 1
-    }    
-
-    $pluginDestPath = Join-Path $env:WORKSPACE $pluginItem
-    #EXTRACT PORTABLE.ZIP
-    writeMsg "Extracting $pluginItem ..." "-NoNewline"
-    Expand-Archive -Path $pluginDestPath -DestinationPath $env:WORKSPACE
-    writeMsg "DONE"
-
-    #MOVE gui_plugin TO FOLDER
-    writeMsg "Moving plugins folder to destination..." "-NoNewLine"
-    $item = Get-ChildItem -Path $env:WORKSPACE | where { 
-        $_ -like "*mysql-shell-gui-plugin*" -and 
-        $_ -notlike "*.zip*" 
-    }
-    $item = $item.Name      
-    Rename-Item -Path "$env:WORKSPACE\$item" -NewName "gui_plugin"
-    $guiPluginFolder = Join-Path $env:WORKSPACE "gui_plugin"
-    Copy-Item $guiPluginFolder $guipluginPath -Recurse -Force
-    writeMsg "DONE"
-    
-    #CHECK THAT SERVER IS WORKING
-    writeMsg "Checking mysqlsh server..." "-NoNewLine"
-	Start-Process "mysqlsh" -ArgumentList "--py", "-e", "`"gui.start.web_server(port=8000, single_instance_token='1234test')`"" -PassThru -RedirectStandardOutput "$env:WORKSPACE\serverLog.log" -RedirectStandardError "$env:WORKSPACE\serverError.log"
-    
-    function isServerReady(){
-        return $null -ne (Get-Content -Path "$env:WORKSPACE\serverLog.log" | Select-String -Pattern "[token=1234test]" | % { $_.Matches.Groups[0].Value })
-    }
-
-    $counter = 0
-    $isReady = $false
-
-    while ($counter -le 10){
-        $isReady = isServerReady
-        if( $isReady ){
-            break
-        }
-        else{
-            Sleep 1
-            $counter++
-        }
-    }
-
-    if(!$isReady){ 
-        Throw "Shell GUI Server was not started!" 
-    }
-    else{
-        writeMsg "OK! Stopping it..." "-NoNewLine"
-        Stop-Process -Name "mysqlsh" -Force
-        writeMsg "DONE"
-    }
 
     #############################EXEC TESTS#####################################################
 
@@ -274,90 +116,6 @@ try{
         Throw "Could not get Selenium pid"
     }
     
-    #START MYSQL SERVER
-    writeMsg "Stopping MySQL Server..." "-NoNewLine"
-    Stop-Service -Name "MySQL" -Force
-    writeMsg "DONE"
-
-    writeMsg "Adding SSL certificates to config file..." "-NoNewLine"
-    $hasSSL = Select-String -Path "C:\tools\mysql\current\my.ini" -Pattern "ssl"
-    
-    if($null -eq $hasSSL){
-        $updatedPath = $basePath.replace("\", "\\")
-        Add-Content -Path "C:\tools\mysql\current\my.ini" -Value "`r`n
-        ssl-ca=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\ca-cert.pem`r`n
-        ssl-cert=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\server-cert.pem`r`n
-        ssl-key=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\server-key.pem`r`n
-        [client]`r`n
-        ssl-ca=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\ca-cert.pem`r`n
-        ssl-cert=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\client-cert.pem`r`n
-        ssl-key=$updatedPath\\src\\tests\\e2e\\ssl_certificates\\client-key.pem"
-        writeMsg "DONE"
-    }
-    else{
-        writeMsg "SSL is already setup on the server"
-    }
-    
-    if( !(Test-Path "C:\tools\mysql\current\init.txt") ){
-        New-Item -Path "C:\tools\mysql\current\init.txt" -Value "ALTER USER 'root'@'localhost' IDENTIFIED BY '$env:DBPASSWORD';"
-    }
-    
-    writeMsg "Starting MySQL Server..." "-NoNewLine"
-    Start-Process -FilePath "C:\tools\mysql\current\bin\mysqld" -ArgumentList "--init-file=C:\tools\mysql\current\init.txt" ,"--console" -RedirectStandardError "$env:WORKSPACE\mysql.log"
-    
-    function isMySQLReady(){
-        return $null -ne (Get-Content -Path "$env:WORKSPACE\mysql.log" | Select-String -Pattern "mysqld.exe: ready for connections" | % { $_.Matches.Groups[0].Value }) 
-    }
-
-    $counter = 0
-    $isReady = $false
-
-    while ($counter -le 20){
-        $isReady = isMySQLReady
-        if( $isReady ){
-            break
-        }
-        else{
-            Sleep 1
-            $counter++
-        }
-    }
-    
-    if(!$isReady){ Throw "MySQL was not ready after 20 tries! Check mysql.log file" }
-    writeMsg "DONE"
-
-    ##INSTALLING SCHEMAS ON MYSQL
-    $sakila = $false
-    $world = $false
-    writeMsg "Retrieving databases..." "-NoNewLine"
-    Start-Process "C:\tools\mysql\current\bin\mysql" -ArgumentList "-u", "$env:DBUSERNAME", "-p$env:DBPASSWORD", "-e", "`"show databases;`"" -RedirectStandardOutput "$env:WORKSPACE\showDBs.log" -RedirectStandardError "$env:WORKSPACE\showDBsErr.log" 
-    $result = Get-Content -Path "$env:WORKSPACE\showDBs.log" | % { 
-        if($_ -eq "sakila"){
-            $sakila = $true
-        }
-        if($_ -eq "world_x_cst"){
-            $world = $true
-        }
-     }
-    writeMsg "DONE"
-
-    if(!$sakila){
-        writeMsg "Installing sakila schema..." "-NoNewLine"
-        cmd.exe /c "C:\tools\mysql\current\bin\mysql -u $env:DBUSERNAME -p$env:DBPASSWORD < $basePath\src\tests\e2e\sql\sakila.sql"
-        writeMsg "DONE"
-    }
-    else{
-        writeMsg "Found sakila schema."
-    }
-    if(!$world){
-        writeMsg "Installing world schema..."
-        cmd.exe /c "C:\tools\mysql\current\bin\mysql -u $env:DBUSERNAME -p$env:DBPASSWORD < $basePath\src\tests\e2e\sql\world_x_cst.sql"
-        writeMsg "DONE"
-    }
-    else{
-        writeMsg "Found world schema."
-    }
-
     if($env:RERUN){
         #CHECK IF THERE IS A TEST-REPORT
         if( Test-Path -Path "$basePath\src\tests\e2e\test-report.html" ){
@@ -406,7 +164,6 @@ try{
         }
     }
     
-
     #EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
     Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\results.log" -RedirectStandardError "$env:WORKSPACE\resultsErr.log"
@@ -548,7 +305,6 @@ finally{
     try{
         Get-Process | Where-Object {$_.Name -like "*chromedriver*" } | Stop-Process -Force
         Get-Process | Where-Object {$_.Name -like "*chrome*" } | Stop-Process -Force
-        Get-Process | Where-Object {$_.Name -like "*mysql*" } | Stop-Process -Force
         $prc = Get-Process -Id (Get-NetTCPConnection -LocalPort 4444).OwningProcess
         writeMsg "Stopping Selenium..." "-NoNewLine"
         Stop-Process -Id $prc.Id

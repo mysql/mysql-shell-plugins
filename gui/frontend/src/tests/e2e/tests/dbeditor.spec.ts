@@ -22,7 +22,7 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { homedir, platform } from "os";
+import { platform } from "os";
 import { join } from "path";
 import { getDriver, load } from "../lib/engine";
 import { By, until, Key, WebDriver, WebElement } from "selenium-webdriver";
@@ -48,7 +48,6 @@ import {
     selectCurrentEditor,
     getResultTab,
     getResultColumnName,
-    findFreePort,
     getOutput,
     enterCmd,
     pressEnter,
@@ -61,15 +60,13 @@ import {
     setFeedbackRequested,
     IDbConfig,
     setDBEditorStartLang,
+    initConDialog,
+    existsScript,
 } from "../lib/helpers";
-
-import { startServer, setupServerFolder } from "../lib/env";
-
-import { ChildProcess } from "child_process";
 
 const dbConfig: IDbConfig = {
     dbType: "MySQL",
-    caption: "ClientQA test",
+    caption: "TestConnection",
     description: "my connection",
     hostname: process.env.DBHOSTNAME,
     protocol: "mysql",
@@ -86,13 +83,8 @@ const dbConfig: IDbConfig = {
     portX: "",
 };
 
-const token = "1234test";
-
 describe("DB Editor", () => {
     let driver: WebDriver;
-    let port: number;
-    let child: ChildProcess;
-    let serverPath: string;
     let testFailed = false;
 
     beforeAll( async () => {
@@ -100,43 +92,24 @@ describe("DB Editor", () => {
     });
 
     beforeEach(async () => {
-        try {
-            port = await findFreePort();
-            serverPath = await setupServerFolder(port);
-            child = await startServer(driver, port, token);
-            await load(driver, port, token);
-            await waitForHomePage(driver);
-            await driver.findElement(By.id("gui.sqleditor")).click();
-        } catch(e) {
-            if(child) { child.kill(); }
-            if(driver) { await driver.close(); }
-            throw new Error(String(e));
-        }
+        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+        await waitForHomePage(driver);
+        await driver.findElement(By.id("gui.sqleditor")).click();
+        await initConDialog(driver);
     });
 
     afterEach(async () => {
-        try {
-            if(testFailed) {
-                testFailed = false;
-                const img = await driver.takeScreenshot();
-                const testName: string = expect.getState().currentTestName
-                    .toLowerCase().replace(/\s/g, "_");
-                try {
-                    await fsPromises.access("src/tests/e2e/screenshots");
-                } catch(e) {
-                    await fsPromises.mkdir("src/tests/e2e/screenshots");
-                }
-                await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
-            }
-        } catch(e) {
-            throw new Error(String(e));
-        } finally {
+        if(testFailed) {
+            testFailed = false;
+            const img = await driver.takeScreenshot();
+            const testName: string = expect.getState().currentTestName
+                .toLowerCase().replace(/\s/g, "_");
             try {
-                await fsPromises.rm(serverPath, {recursive: true});
+                await fsPromises.access("src/tests/e2e/screenshots");
             } catch(e) {
-                //ignore exception
+                await fsPromises.mkdir("src/tests/e2e/screenshots");
             }
-            if(child) { child.kill(); }
+            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
         }
     });
 
@@ -369,6 +342,8 @@ describe("DB Editor", () => {
 
     it("Duplicate a database connection", async () => {
         try {
+
+            dbConfig.caption += String(Math.floor(Math.random() * 100));
             await createDBconnection(driver, dbConfig);
 
             const host = await getDB(driver, dbConfig.caption);
@@ -398,7 +373,9 @@ describe("DB Editor", () => {
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
-            await conDialog.findElement(By.id("caption")).sendKeys("ClientQA - other");
+            const dup = `Dup${String(Math.floor(Math.random() * 100))}`;
+
+            await conDialog.findElement(By.id("caption")).sendKeys(dup);
 
             await conDialog.findElement(By.id("description")).clear();
 
@@ -412,7 +389,7 @@ describe("DB Editor", () => {
 
             expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
 
-            const conn = await getDB(driver, "ClientQA - other");
+            const conn = await getDB(driver, dup);
 
             expect(conn).toBeDefined();
 
@@ -426,6 +403,8 @@ describe("DB Editor", () => {
 
     it("Edit a database connection", async () => {
         try {
+
+            dbConfig.caption += String(Math.floor(Math.random() * 100));
             await createDBconnection(driver, dbConfig);
 
             let host = await getDB(driver, dbConfig.caption);
@@ -455,7 +434,9 @@ describe("DB Editor", () => {
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
-            await conDialog.findElement(By.id("caption")).sendKeys("WexQA");
+            const conName = `Wex${String(Math.floor(Math.random() * 100))}`;
+
+            await conDialog.findElement(By.id("caption")).sendKeys(conName);
 
             await conDialog.findElement(By.id("description")).clear();
 
@@ -477,14 +458,14 @@ describe("DB Editor", () => {
 
             expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
 
-            const conn = await getDB(driver, "WexQA");
+            const conn = await getDB(driver, conName);
 
             expect(conn).toBeDefined();
 
             expect(await conn!.findElement(By.css(".tileDescription")).getText())
                 .toBe("Another description");
 
-            host = await getDB(driver, "WexQA");
+            host = await getDB(driver, conName);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -511,7 +492,7 @@ describe("DB Editor", () => {
 
             expect(
                 await conDialog.findElement(By.id("caption")).getAttribute("value"),
-            ).toBe("WexQA");
+            ).toBe(conName);
 
             expect(
                 await conDialog.findElement(By.id("description")).getAttribute("value"),
@@ -534,10 +515,10 @@ describe("DB Editor", () => {
         }
     });
 
-    //has bug
-    xit("Edit a database connection and verify errors", async () => {
+    it("Edit a database connection and verify errors", async () => {
         try {
 
+            dbConfig.caption += String(Math.floor(Math.random() * 100));
             await createDBconnection(driver, dbConfig);
 
             const host = await getDB(driver, dbConfig.caption);
@@ -620,6 +601,7 @@ describe("DB Editor", () => {
     it("Remove a database connection", async () => {
         try {
 
+            dbConfig.caption += String(Math.floor(Math.random() * 100));
             await createDBconnection(driver, dbConfig);
 
             const host = await getDB(driver, dbConfig.caption);
@@ -666,7 +648,6 @@ describe("DB Editor", () => {
 
     it("Connect to SQLite database", async () => {
         try {
-
             await driver
                 .findElement(By.css(".connectionBrowser"))
                 .findElement(By.id("-1"))
@@ -678,7 +659,11 @@ describe("DB Editor", () => {
 
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
-            await newConDialog.findElement(By.id("caption")).sendKeys("Sqlite DB");
+
+            dbConfig.caption += String(Math.floor(Math.random() * 100));
+            const conName = `Sqlite DB${String(Math.floor(Math.random() * 100))}`;
+            await newConDialog.findElement(By.id("caption")).sendKeys(conName);
+
             await newConDialog.findElement(By.id("description")).clear();
             await newConDialog
                 .findElement(By.id("description"))
@@ -692,20 +677,11 @@ describe("DB Editor", () => {
                 }
             }
 
-            let sqliteFile = "";
-            const dbFiles = await fsPromises.readdir(join(homedir(), port.toString(), "plugin_data", "gui_plugin"));
-            for(const file of dbFiles) {
-                if ( file === "mysqlsh_gui_backend.sqlite3") {
-                    sqliteFile = file;
-                    break;
-                }
-            }
-
-            await dbPath!.sendKeys(join(homedir(), port.toString(), "plugin_data", "gui_plugin", sqliteFile));
+            await dbPath!.sendKeys(String(process.env.SQLITE_PATH_FILE));
             await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
             await newConDialog.findElement(By.id("ok")).click();
 
-            const conn = await getDB(driver, "Sqlite DB");
+            const conn = await getDB(driver, conName);
             expect(conn).toBeDefined();
             expect(await conn!.findElement(By.css(".tileDescription")).getText()).toBe(
                 "Local Sqlite connection",
@@ -716,7 +692,7 @@ describe("DB Editor", () => {
                 conn,
             );
 
-            expect(await (await getConnectionTab(driver, "1")).getText()).toBe("Sqlite DB");
+            expect(await (await getConnectionTab(driver, "1")).getText()).toBe(conName);
 
             await toggleSchemaObject(driver, "Schema", "main");
 
@@ -747,9 +723,7 @@ describe("DB Editor", () => {
 
             await driver.findElement(By.id("selectRowsMenuItem")).click();
 
-            expect(await getResultStatus(driver, 1, true)).toContain(
-                "OK, 1 record retrieved",
-            );
+            expect(await getResultStatus(driver, 1, true)).toContain("OK");
 
             const resultSet = await driver.findElement(
                 By.css(".resultHost .tabulator-headers"),
@@ -786,7 +760,8 @@ describe("DB Editor", () => {
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
-            await newConDialog.findElement(By.id("caption")).sendKeys("SSL Connection");
+            const conName = `SSL Connection${String(Math.floor(Math.random() * 100))}`;
+            await newConDialog.findElement(By.id("caption")).sendKeys(conName);
 
             await newConDialog.findElement(By.id("description")).clear();
 
@@ -798,15 +773,15 @@ describe("DB Editor", () => {
 
             await newConDialog
                 .findElement(By.id("hostName"))
-                .sendKeys("localhost");
+                .sendKeys(String(dbConfig.hostname));
 
             await newConDialog
                 .findElement(By.id("userName"))
-                .sendKeys("root");
+                .sendKeys(String(dbConfig.username));
 
             await newConDialog
                 .findElement(By.id("defaultSchema"))
-                .sendKeys("sakila");
+                .sendKeys(String(dbConfig.schema));
 
             await newConDialog.findElement(By.id("page1")).click();
             await newConDialog.findElement(By.id("sslMode")).click();
@@ -815,18 +790,15 @@ describe("DB Editor", () => {
             expect( await newConDialog.findElement(By.css("#sslMode label")).getText() ).toBe("Require and Verify CA");
 
             const paths = await newConDialog.findElements(By.css(".tabview.top input.msg"));
-            await paths[0].sendKeys(join(String(process.env.WORKSPACE),
-                "shell-plugins", "gui", "frontend", "src", "tests", "e2e", "ssl_certificates", "ca-cert.pem"));
-            await paths[1].sendKeys(join(String(process.env.WORKSPACE),
-                "shell-plugins", "gui", "frontend", "src", "tests", "e2e", "ssl_certificates", "client-cert.pem"));
-            await paths[2].sendKeys(join(String(process.env.WORKSPACE),
-                "shell-plugins", "gui", "frontend", "src", "tests", "e2e", "ssl_certificates", "client-key.pem"));
+            await paths[0].sendKeys(join(String(process.env.SSL_ROOT_FOLDER), "ca.pem"));
+            await paths[1].sendKeys(join(String(process.env.SSL_ROOT_FOLDER), "client-cert.pem"));
+            await paths[2].sendKeys(join(String(process.env.SSL_ROOT_FOLDER), "client-key.pem"));
 
             const okBtn = await driver.findElement(By.id("ok"));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
 
-            const conn = await getDB(driver, "SSL Connection");
+            const conn = await getDB(driver, conName);
             expect(conn).toBeDefined();
 
             await driver.executeScript(
@@ -837,7 +809,7 @@ describe("DB Editor", () => {
             await setDBEditorPassword(driver, dbConfig);
             await setFeedbackRequested(driver, dbConfig, "N");
 
-            expect(await (await getConnectionTab(driver, "1")).getText()).toBe("SSL Connection");
+            expect(await (await getConnectionTab(driver, "1")).getText()).toBe(conName);
             await toggleExplorerHost(driver, "close");
             await setEditorLanguage(driver, "mysql");
 
@@ -870,6 +842,7 @@ describe("DB Editor", () => {
 
         beforeEach(async () => {
             await driver.findElement(By.id("gui.sqleditor")).click();
+            dbConfig.caption += String(Math.floor(Math.random() * 100));
             await createDBconnection(driver, dbConfig);
         });
 
@@ -1407,19 +1380,11 @@ describe("DB Editor", () => {
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
-                await addScript(driver, "JS");
+                const script = await addScript(driver, "JS");
 
-                await selectCurrentEditor(driver, "Script 1", "javascript");
+                await selectCurrentEditor(driver, script, "javascript");
 
-                const context = await driver.findElement(By.id("scriptSectionHost"));
-
-                expect(
-                    await context.findElement(By.css(".schemaTreeEntry img")).getAttribute("src"),
-                ).toContain("javascript");
-
-                expect(
-                    await context.findElement(By.css(".schemaTreeEntry label")).getText(),
-                ).toBe("Script 1");
+                expect(await existsScript(driver, script, "javascript")).toBe(true);
 
                 expect(
                     await driver
@@ -1433,14 +1398,14 @@ describe("DB Editor", () => {
                         .findElement(By.id("documentSelector"))
                         .findElement(By.css("label"))
                         .getText(),
-                ).toBe("Script 1");
+                ).toBe(script);
 
                 expect(
-                    await (await getOpenEditor(driver, "Script 1"))!.getAttribute("class"),
+                    await (await getOpenEditor(driver, script))!.getAttribute("class"),
                 ).toContain("selected");
 
                 expect(
-                    await (await getOpenEditor(driver, "Script 1"))!
+                    await (await getOpenEditor(driver, script))!
                         .findElement(By.css("img"))
                         .getAttribute("src"),
                 ).toContain("javascript");
@@ -1474,26 +1439,18 @@ describe("DB Editor", () => {
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
-                await addScript(driver, "TS");
+                const script = await addScript(driver, "TS");
 
-                await selectCurrentEditor(driver, "Script 1", "typescript");
+                await selectCurrentEditor(driver, script, "typescript");
 
-                const context = await driver.findElement(By.id("scriptSectionHost"));
-
-                let src = await context.findElement(By.css(".schemaTreeEntry img")).getAttribute("src");
-
-                expect(src.indexOf("typescript") !== -1 ).toBe(true);
-
-                expect(
-                    await context.findElement(By.css(".schemaTreeEntry label")).getText(),
-                ).toBe("Script 1");
+                expect(await existsScript(driver, script, "typescript")).toBe(true);
 
                 expect(
                     await driver.findElement(By.css(".editorHost")).getAttribute("data-mode-id"),
 
                 ).toBe("typescript");
 
-                src = await driver.findElement(By.id("documentSelector")).findElement(By.css("img"))
+                let src = await driver.findElement(By.id("documentSelector")).findElement(By.css("img"))
                     .getAttribute("src");
 
                 expect(
@@ -1505,13 +1462,13 @@ describe("DB Editor", () => {
                         .findElement(By.id("documentSelector"))
                         .findElement(By.css("label"))
                         .getText(),
-                ).toBe("Script 1");
+                ).toBe(script);
 
                 expect(
-                    await (await getOpenEditor(driver, "Script 1"))!.getAttribute("class"),
+                    await (await getOpenEditor(driver, script))!.getAttribute("class"),
                 ).toContain("selected");
 
-                src = (await (await getOpenEditor(driver, "Script 1"))!.findElement(By.css("img"))
+                src = (await (await getOpenEditor(driver, script))!.findElement(By.css("img"))
                     .getAttribute("src"));
 
                 expect(src.indexOf("typescript") !== -1).toBe(true);
@@ -1546,21 +1503,11 @@ describe("DB Editor", () => {
                     dbConfig.caption,
                 );
 
-                await addScript(driver, "SQL");
+                const script = await addScript(driver, "SQL");
 
-                await selectCurrentEditor(driver, "Script 1", "mysql");
+                await selectCurrentEditor(driver, script, "mysql");
 
-                const context = await driver.findElement(By.id("scriptSectionHost"));
-
-                const src = await context.findElement(By.css(".schemaTreeEntry img")).getAttribute("src");
-
-                expect(
-                    src.indexOf("mysql") !== -1,
-                ).toBe(true);
-
-                expect(
-                    await context.findElement(By.css(".schemaTreeEntry label")).getText(),
-                ).toBe("Script 1");
+                expect(await existsScript(driver, script, "mysql")).toBe(true);
 
                 expect(
                     await driver
@@ -1580,14 +1527,14 @@ describe("DB Editor", () => {
                         .findElement(By.id("documentSelector"))
                         .findElement(By.css("label"))
                         .getText(),
-                ).toBe("Script 1");
+                ).toBe(script);
 
                 expect(
-                    await (await getOpenEditor(driver, "Script 1"))!.getAttribute("class"),
+                    await (await getOpenEditor(driver, script))!.getAttribute("class"),
                 ).toContain("selected");
 
                 expect(
-                    await (await getOpenEditor(driver, "Script 1"))!
+                    await (await getOpenEditor(driver, script))!
                         .findElement(By.css("img"))
                         .getAttribute("src"),
                 ).toContain("mysql");
@@ -1637,34 +1584,34 @@ describe("DB Editor", () => {
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
-                await addScript(driver, "JS");
+                const script1 = await addScript(driver, "JS");
 
-                await selectCurrentEditor(driver, "Script 1", "javascript");
+                await selectCurrentEditor(driver, script1, "javascript");
 
                 await driver
                     .findElement(By.id("editorPaneHost"))
                     .findElement(By.css("textarea"))
                     .sendKeys("console.log('Hello JavaScript')");
 
-                await addScript(driver, "TS");
+                const script2 = await addScript(driver, "TS");
 
-                await selectCurrentEditor(driver, "Script 2", "typescript");
+                await selectCurrentEditor(driver, script2, "typescript");
 
                 await driver
                     .findElement(By.id("editorPaneHost"))
                     .findElement(By.css("textarea"))
                     .sendKeys("console.log('Hello Typescript')");
 
-                await addScript(driver, "SQL");
+                const script3 = await addScript(driver, "SQL");
 
-                await selectCurrentEditor(driver, "Script 3", "mysql");
+                await selectCurrentEditor(driver, script3, "mysql");
 
                 await driver
                     .findElement(By.id("editorPaneHost"))
                     .findElement(By.css("textarea"))
                     .sendKeys("SELECT * FROM sakila.actor;");
 
-                await selectCurrentEditor(driver, "Script 1", "javascript");
+                await selectCurrentEditor(driver, script1, "javascript");
 
                 expect(
                     await driver
@@ -1673,7 +1620,7 @@ describe("DB Editor", () => {
                         .getAttribute("value"),
                 ).toBe("console.log('Hello JavaScript')");
 
-                await selectCurrentEditor(driver, "Script 2", "typescript");
+                await selectCurrentEditor(driver, script2, "typescript");
 
                 expect(
                     await driver
@@ -1682,7 +1629,7 @@ describe("DB Editor", () => {
                         .getAttribute("value"),
                 ).toBe("console.log('Hello Typescript')");
 
-                await selectCurrentEditor(driver, "Script 3", "mysql");
+                await selectCurrentEditor(driver, script3, "mysql");
 
                 expect(
                     await driver
@@ -2603,7 +2550,7 @@ describe("DB Editor", () => {
                     expect(await (await getConnectionTab(driver, "1")).getText())
                         .toBe(dbConfig.caption);
                 } catch(e) { console.error(e); } finally {
-                    await load(driver, port, token);
+                    await load(driver, String(process.env.SHELL_UI_HOSTNAME));
                     await waitForHomePage(driver);
                     await driver.findElement(By.id("gui.sqleditor")).click();
                     const host = await getDB(driver, dbConfig.caption);

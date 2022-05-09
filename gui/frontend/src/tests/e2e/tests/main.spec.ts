@@ -28,43 +28,24 @@ import {
     waitForHomePage,
     selectAppColorTheme,
     getBackgroundColor,
-    findFreePort,
     setThemeEditorColors,
     getElementStyle,
     toggleUiColorsMenu,
     rgbToHex,
     hslToHex,
 } from "../lib/helpers";
-import { startServer, setupServerFolder } from "../lib/env";
 import { platform } from "os";
-import { ChildProcess } from "child_process";
-
-const token = "1234test";
 
 describe("Main pages", () => {
     let driver: WebDriver;
-    let port: number;
-    let child: ChildProcess;
-    let serverPath: string;
     let testFailed = false;
 
     beforeAll(async () => {
-        try {
-            driver = await getDriver();
-            port = await findFreePort();
-            serverPath = await setupServerFolder(port);
-            child = await startServer(driver, port, token);
-        } catch (e) {
-            if(child) { child.kill(); }
-            console.error(e);
-            if(driver) { await driver.quit(); }
-            await new Promise((resolve) => {return setTimeout(resolve, 500);});
-            process.exit(1);
-        }
+        driver = await getDriver();
     });
 
     beforeEach(async () => {
-        await load(driver, port, token);
+        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
         await waitForHomePage(driver);
     });
 
@@ -85,12 +66,6 @@ describe("Main pages", () => {
     });
 
     afterAll(async () => {
-        child.kill();
-        try {
-            await fsPromises.rm(serverPath, {recursive: true});
-        } catch(e) {
-            //ignore exception
-        }
         await driver.quit();
     });
 
@@ -146,21 +121,15 @@ describe("Main pages", () => {
                     .getText(),
             ).toBe("Database Connections");
 
-            expect(
-                await driver
-                    .findElement(
-                        By.css(".connectionBrowser #tilesHost button .tileCaption"),
-                    )
-                    .getText(),
-            ).toBe("New Connection");
+            const addButton = await driver.findElement(By.css(".connectionBrowser"),
+            ).findElement(By.id("-1"));
 
-            expect(
-                await driver
-                    .findElement(
-                        By.css(".connectionBrowser #tilesHost button .tileDescription"),
-                    )
-                    .getText(),
-            ).toBe("Add a new database connection");
+            expect( await addButton.findElement(By.css(".tileCaption"),
+            ).getAttribute("innerHTML")).toContain("New Connection");
+
+            expect( await addButton.findElement(By.css(".tileDescription"),
+            ).getAttribute("innerHTML")).toContain("Add a new database connection");
+
         } catch(e) {
             testFailed = true;
             throw e;
@@ -478,7 +447,7 @@ describe("Main pages", () => {
 
     it("Invalid token", async () => {
         try {
-            await load(driver, port, token + "xpto");
+            await load(driver, `${String(process.env.SHELL_UI_HOSTNAME)}xpto`);
             const errorPanel = await driver.findElement(By.css(".visible.errorPanel"));
 
             expect( await (await errorPanel.findElement(
@@ -494,7 +463,8 @@ describe("Main pages", () => {
 
     it("No token", async () => {
         try {
-            await load(driver, port, "");
+            const groups = String(process.env.SHELL_UI_HOSTNAME).match(/token=(.*)/);
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME).replace(groups![1], ""));
             const errorPanel = await driver.findElement(By.css(".visible.errorPanel"));
 
             expect( await (await errorPanel.findElement(

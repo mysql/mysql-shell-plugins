@@ -30,6 +30,28 @@ import { exit } from "process";
 jest.setTimeout(80000);
 
 // Check required environment variables before any test starts.
+if (!process.env.SHELL_UI_HOSTNAME) {
+    error("No value for environment var SHELL_UI_HOSTNAME was provided");
+    exit(1);
+} else {
+    if (process.env.SHELL_UI_HOSTNAME === "http://docker.mysql.oraclecorp.com:8000/?token=1234test") {
+        process.env.DBHOSTNAME = "db1";
+        process.env.DBUSERNAME= "root";
+        process.env.DBPASSWORD = "root";
+        process.env.DBPORT = "3306";
+        process.env.SSL_ROOT_FOLDER = "/home/clientqa/ssl/db1";
+        process.env.SQLITE_PATH_FILE = "/home/clientqa/.mysqlsh/plugin_data/gui_plugin/mysqlsh_gui_backend.sqlite3";
+    }
+}
+if (!process.env.SHELL_UI_MU_HOSTNAME) {
+    error("No value for environment var SHELL_UI_MU_HOSTNAME was provided");
+    exit(1);
+} else {
+    if (process.env.SHELL_UI_HOSTNAME === "http://docker.mysql.oraclecorp.com:8001") {
+        process.env.MU_USERNAME = "client";
+        process.env.MU_PASSWORD= "client";
+    }
+}
 if (!process.env.DBHOSTNAME) {
     error("No value for environment var DBHOSTNAME was provided");
     exit(1);
@@ -47,5 +69,13 @@ if (!process.env.DBPASSWORD) {
 
 if (!process.env.DBPORT) {
     error("No value for environment var DBPORT was provided");
+    exit(1);
+}
+if (!process.env.SSL_ROOT_FOLDER) {
+    error("No value for environment var SSL_ROOT_FOLDER was provided (path to folder with SSL certificates)");
+    exit(1);
+}
+if (!process.env.SQLITE_PATH_FILE) {
+    error("No value for environment var SQLITE_PATH_FILE was provided (path to a sqlite3 database file)");
     exit(1);
 }
