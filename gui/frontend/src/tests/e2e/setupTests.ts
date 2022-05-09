@@ -47,7 +47,7 @@ if (!process.env.SHELL_UI_MU_HOSTNAME) {
     error("No value for environment var SHELL_UI_MU_HOSTNAME was provided");
     exit(1);
 } else {
-    if (process.env.SHELL_UI_HOSTNAME === "http://docker.mysql.oraclecorp.com:8001") {
+    if (process.env.SHELL_UI_MU_HOSTNAME === "http://docker.mysql.oraclecorp.com:8001") {
         process.env.MU_USERNAME = "client";
         process.env.MU_PASSWORD= "client";
     }
