@@ -34,7 +34,7 @@ if (!process.env.SHELL_UI_HOSTNAME) {
     error("No value for environment var SHELL_UI_HOSTNAME was provided");
     exit(1);
 } else {
-    if (process.env.SHELL_UI_HOSTNAME === "http://docker.mysql.oraclecorp.com:8000/?token=1234test") {
+    if (process.env.SHELL_UI_HOSTNAME.indexOf("docker") !== -1) {
         process.env.DBHOSTNAME = "db1";
         process.env.DBUSERNAME= "root";
         process.env.DBPASSWORD = "root";
@@ -47,10 +47,18 @@ if (!process.env.SHELL_UI_MU_HOSTNAME) {
     error("No value for environment var SHELL_UI_MU_HOSTNAME was provided");
     exit(1);
 } else {
-    if (process.env.SHELL_UI_MU_HOSTNAME === "http://docker.mysql.oraclecorp.com:8001") {
+    if (process.env.SHELL_UI_MU_HOSTNAME.indexOf("docker") !== -1) {
         process.env.MU_USERNAME = "client";
         process.env.MU_PASSWORD= "client";
     }
+}
+if (!process.env.MU_USERNAME) {
+    error("No value for environment var MU_USERNAME was provided (Multi-user mode)");
+    exit(1);
+}
+if (!process.env.MU_PASSWORD) {
+    error("No value for environment var MU_PASSWORD was provided (Multi-user mode)");
+    exit(1);
 }
 if (!process.env.DBHOSTNAME) {
     error("No value for environment var DBHOSTNAME was provided");
