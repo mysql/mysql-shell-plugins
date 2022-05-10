@@ -34,62 +34,35 @@ import {
     setSetting,
     getBackgroundColor,
     getSettingValue,
-    findFreePort,
 } from "../lib/helpers";
-import { startServer, setupServerFolder } from "../lib/env";
-import { ChildProcess } from "child_process";
-
-const token = "1234test";
 
 xdescribe("Profiles", () => {
     let driver: WebDriver;
-    let port: number;
-    let child: ChildProcess;
-    let serverPath: string;
     let testFailed: boolean;
 
     beforeEach(async () => {
-        port = await findFreePort();
-        serverPath = await setupServerFolder(port);
         driver = await getDriver();
-        child= await startServer(driver, port, token);
-        await load(driver, port, token);
+        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
         await waitForHomePage(driver);
     });
 
     afterEach(async () => {
-        try {
-            if(testFailed) {
-                testFailed = false;
-                const img = await driver.takeScreenshot();
-                const testName: string = expect.getState().currentTestName
-                    .toLowerCase().replace(/\s/g, "_");
-                try {
-                    await fsPromises.access("src/tests/e2e/screenshots");
-                } catch(e) {
-                    await fsPromises.mkdir("src/tests/e2e/screenshots");
-                }
-                await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
-            }
-        } catch(e) {
-            throw new Error(String(e));
-        } finally {
+        if(testFailed) {
+            testFailed = false;
+            const img = await driver.takeScreenshot();
+            const testName: string = expect.getState().currentTestName
+                .toLowerCase().replace(/\s/g, "_");
             try {
-                await fsPromises.rm(serverPath, {recursive: true});
+                await fsPromises.access("src/tests/e2e/screenshots");
             } catch(e) {
-                //ignore exception
+                await fsPromises.mkdir("src/tests/e2e/screenshots");
             }
-            if(child) { child.kill(); }
-            await driver.close();
+            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
         }
     });
 
     afterAll( async () => {
-        try {
-            await driver.quit();
-        } catch(e) {
-            //ignore exception
-        }
+        await driver.quit();
     });
 
     it("Add profile", async () => {
