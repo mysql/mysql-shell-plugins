@@ -23,6 +23,10 @@
 
 /* eslint-disable max-classes-per-file */
 
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
+import { default as NodeWebSocket } from "ws";
+
 import { CommunicationEvents, IShellRequest, IWebSessionData, Protocol } from ".";
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import {
@@ -31,10 +35,9 @@ import {
 import {
     convertSnakeToCamelCase, convertCamelToSnakeCase, deepEqual, sleep, strictEval, uuid,
 } from "../utilities/helpers";
+
 import { IGenericResponse } from "./GeneralEvents";
 
-import ReconnectingWebSocket, { ErrorEvent, Options } from "reconnecting-websocket";
-import ws from "ws";
 import { IDictionary } from "../app-logic/Types";
 
 export enum ConnectionEventType {
@@ -51,11 +54,12 @@ export class ClientConnection {
     protected loadedScripts: Map<string, string>;
 
     private connectionEstablished = false;
+    private autoReconnecting = false;
     private disconnecting = false;
 
     private reconnectTimer: ReturnType<typeof setTimeout> | null;
 
-    private socket?: ReconnectingWebSocket;
+    private socket?: WebSocket | NodeWebSocket;
 
     /**
      * @returns True if the connection is established.
@@ -81,9 +85,12 @@ export class ClientConnection {
      *
      * @param url The target to connect to. This is a normal http(s) target from which the websocket address is
      *            derived.
+     * @param shellConfigDir The current shell configuration folder, which can be different, depending on the
+     *                       current host. Only needed when running from the extension (under Node.js).
+     *
      * @returns A promise which indicates success or failure.
      */
-    public connect(url: URL): Promise<void> {
+    public connect(url: URL, shellConfigDir: string): Promise<void> {
         this.disconnecting = false;
 
         return new Promise((resolve, reject) => {
@@ -100,22 +107,32 @@ export class ClientConnection {
                     url.port = "8000";
                 }
 
-                const options: Options = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    WebSocket: global.WebSocket ? global.WebSocket : ws,
-                    debug: false,
-                    startClosed: true,
-                };
+                if (typeof WebSocket !== "undefined") {
+                    const socket = new WebSocket(url.toString());
 
-                // TODO: fix the authentication on automatic reconnection.
-                this.socket = new ReconnectingWebSocket(url.toString(), [], options);
+                    socket.addEventListener("close", this.onClose);
+                    socket.addEventListener("message", this.onMessage);
+                    socket.addEventListener("open", this.onOpen.bind(this, resolve));
+                    socket.addEventListener("error", this.onError.bind(this, reject));
 
-                this.socket.addEventListener("close", this.onClose);
-                this.socket.addEventListener("message", this.onMessage);
-                this.socket.addEventListener("open", this.onOpen.bind(this, resolve));
-                this.socket.addEventListener("error", this.onError.bind(this, reject));
+                    this.socket = socket;
+                } else {
+                    const caFile = join(shellConfigDir, "plugin_data/gui_plugin/web_certs/rootCA.crt");
 
-                this.socket.reconnect();
+                    let ca;
+                    if (existsSync(caFile)) {
+                        ca = readFileSync(caFile);
+                    }
+
+                    const socket = new NodeWebSocket(url.toString(), { ca });
+
+                    socket.addEventListener("close", this.onClose);
+                    socket.addEventListener("message", this.onMessage);
+                    socket.addEventListener("open", this.onOpen.bind(this, resolve));
+                    socket.addEventListener("error", this.onError.bind(this, reject));
+
+                    this.socket = socket;
+                }
             }
         });
     }
@@ -166,6 +183,16 @@ export class ClientConnection {
      * @param resolve The resolver function to signal when the socket connection is available.
      */
     private onOpen = (resolve: (value: void | PromiseLike<void>) => void): void => {
+        if (this.autoReconnecting) {
+            this.autoReconnecting = false;
+
+            // TODO: convert this error message to a message toast.
+            void requisitions.execute("showError", [
+                "Connection Recovering",
+                "The connection was automatically re-establish after a failure.",
+            ]);
+        }
+
         if (this.reconnectTimer) {
             // Clear the timer for the disconnection message, since the connection is back.
             clearTimeout(this.reconnectTimer);
@@ -186,6 +213,7 @@ export class ClientConnection {
         const wasConnected = this.connectionEstablished;
 
         this.connectionEstablished = false;
+        this.autoReconnecting = false;
         dispatcher.triggerNotification("socketClosed");
 
         if (!this.disconnecting && !this.debugging) {
@@ -208,7 +236,7 @@ export class ClientConnection {
         }
     };
 
-    private onMessage = (event: MessageEvent): void => {
+    private onMessage = (event: MessageEvent | NodeWebSocket.MessageEvent): void => {
         // Convert message data string to object and also convert from snake case to camel case.
         // However, ignore row data in this process, as it either comes as array (no keys to convert) or comes
         // as object, whose keys are the real column names (which must stay as is).
@@ -233,11 +261,11 @@ export class ClientConnection {
      * @param reject The reject function to call to signal that the connection had a failure to open.
      * @param event Event that gives more info about the error.
      */
-    private onError = (reject: (reason?: unknown) => void, event: ErrorEvent): void => {
-        if (event) {
-            reject(event.message);
+    private onError = (reject: (reason?: unknown) => void, event: Event | NodeWebSocket.ErrorEvent): void => {
+        if ((event as NodeWebSocket.ErrorEvent).message) {
+            reject((event as NodeWebSocket.ErrorEvent).message);
         } else {
-            reject();
+            reject(String(event));
         }
 
         void requisitions.execute("showError", [

@@ -96,8 +96,7 @@
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "disableOptimisticBPs": true
+            "internalConsoleOptions": "neverOpen"
         },
         {
             "type": "node",
@@ -129,29 +128,22 @@
                 "--watchAll=false"
             ],
             "cwd": "${workspaceRoot}",
-            "protocol": "inspector",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "env": {
                 "CI": "true"
-            },
-            "disableOptimisticBPs": true
+            }
         },
         {
             "type": "chrome",
             "request": "attach",
             "name": "Attach to running Browser",
             "port": 9222,
-            "host": "",
             "webRoot": "${workspaceFolder}",
-            "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "sourceMaps": true,
             "sourceMapPathOverrides": {
                 "webpack:///build/*": "${webRoot}/*"
             },
-            "runtimeArgs": [
-                "--allow-insecure-localhost"
-            ]
         },
     ]
 }
