@@ -197,7 +197,7 @@ export class App extends React.Component<{}, IAppState> {
     public componentDidMount(): void {
         /* istanbul ignore next */
         if (!appParameters.testsRunning) {
-            void currentConnection.connect(new URL(window.location.href));
+            void currentConnection.connect(new URL(window.location.href), "");
         }
 
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);

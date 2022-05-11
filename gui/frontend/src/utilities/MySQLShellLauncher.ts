@@ -311,7 +311,9 @@ export class MySQLShellLauncher {
         if (target) {
             const url = new URL(target);
             try {
-                currentConnection.connect(new URL(target)).then(() => {
+                // For external targets we don't pass on a shell config dir, as we probably cannot access it
+                // anyway (unless the target is on localhost).
+                currentConnection.connect(new URL(target), "").then(() => {
                     this.launchDetails.port = Number(url.port);
                     this.launchDetails.singleUserToken = url.searchParams.get("token") ?? "";
 
@@ -344,13 +346,14 @@ export class MySQLShellLauncher {
                             `?token=${this.launchDetails.singleUserToken}`);
 
                         // Connect with a copy of the URL, because the URL will be modified in the connect() call.
-                        currentConnection.connect(new URL(url.href)).then(() => {
-                            void requisitions.execute("connectedToUrl", url);
-                        }).catch(/* istanbul ignore next */(reason) => {
-                            // Errors arriving here are directly reflected in test failures.
-                            this.onError(new Error(`Could not establish websocket connection: ${String(reason)}`));
-                            void requisitions.execute("connectedToUrl", undefined);
-                        });
+                        currentConnection.connect(new URL(url.href), MySQLShellLauncher.getShellUserConfigDir(rootPath))
+                            .then(() => {
+                                void requisitions.execute("connectedToUrl", url);
+                            }).catch(/* istanbul ignore next */(reason) => {
+                                // Errors arriving here are directly reflected in test failures.
+                                this.onError(new Error(`Could not establish websocket connection: ${String(reason)}`));
+                                void requisitions.execute("connectedToUrl", undefined);
+                            });
                     }
                     this.onOutput(output);
                 };

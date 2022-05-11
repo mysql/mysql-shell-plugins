@@ -670,7 +670,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         if (currentConnection.isConnected) {
             this.printOutput("/* ERROR: You are already connected */\n\n", OutputType.Error);
         } else {
-            void currentConnection.connect(new URL(window.location.href));
+            void currentConnection.connect(new URL(window.location.href), "");
         }
     };
 
