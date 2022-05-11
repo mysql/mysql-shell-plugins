@@ -896,16 +896,16 @@ export const setEditorLanguage = async (driver: WebDriver, language: string): Pr
         const contentHost = await driver.findElement(By.id("contentHost"));
         const textArea = await contentHost.findElement(By.css("textarea"));
         await enterCmd(driver, textArea, "\\" + language.replace("my", ""));
-        const result = await getOutput(driver, 1);
+        const result = await driver.findElement(By.css(".message.info"));
         switch (language) {
             case "sql":
-                expect(result).toBe("Switched to MySQL mode");
+                expect(await result.getText()).toBe("Switched to MySQL mode");
                 break;
             case "js":
-                expect(result).toBe("Switched to JavaScript mode");
+                expect(await result.getText()).toBe("Switched to JavaScript mode");
                 break;
             case "ts":
-                expect(result).toBe("Switched to TypeScript mode");
+                expect(await result.getText()).toBe("Switched to TypeScript mode");
                 break;
             default:
                 break;

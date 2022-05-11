@@ -65,8 +65,8 @@ import {
 
 const dbConfig: IDbConfig = {
     dbType: "MySQL",
-    caption: "TestConnection",
-    description: "my connection",
+    caption: "conn",
+    description: "random connection",
     hostname: process.env.DBHOSTNAME,
     protocol: "mysql",
     port: process.env.DBPORT,
@@ -342,7 +342,7 @@ describe("DB Editor", () => {
     it("Duplicate a database connection", async () => {
         try {
 
-            dbConfig.caption += String(Math.floor(Math.random() * 100));
+            dbConfig.caption += String(new Date().valueOf());
             await createDBconnection(driver, dbConfig);
 
             const host = await getDB(driver, dbConfig.caption);
@@ -403,7 +403,7 @@ describe("DB Editor", () => {
     it("Edit a database connection", async () => {
         try {
 
-            dbConfig.caption += String(Math.floor(Math.random() * 100));
+            dbConfig.caption += String(new Date().valueOf());
             await createDBconnection(driver, dbConfig);
 
             let host = await getDB(driver, dbConfig.caption);
@@ -517,7 +517,7 @@ describe("DB Editor", () => {
     it("Edit a database connection and verify errors", async () => {
         try {
 
-            dbConfig.caption += String(Math.floor(Math.random() * 100));
+            dbConfig.caption += String(new Date().valueOf());
             await createDBconnection(driver, dbConfig);
 
             const host = await getDB(driver, dbConfig.caption);
@@ -600,7 +600,7 @@ describe("DB Editor", () => {
     it("Remove a database connection", async () => {
         try {
 
-            dbConfig.caption += String(Math.floor(Math.random() * 100));
+            dbConfig.caption += String(new Date().valueOf());
             await createDBconnection(driver, dbConfig);
 
             const host = await getDB(driver, dbConfig.caption);
@@ -659,8 +659,8 @@ describe("DB Editor", () => {
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
-            dbConfig.caption += String(Math.floor(Math.random() * 100));
-            const conName = `Sqlite DB${String(Math.floor(Math.random() * 100))}`;
+            dbConfig.caption += String(new Date().valueOf());
+            const conName = `Sqlite DB${String(new Date().valueOf())}`;
             await newConDialog.findElement(By.id("caption")).sendKeys(conName);
 
             await newConDialog.findElement(By.id("description")).clear();
@@ -841,8 +841,12 @@ describe("DB Editor", () => {
 
         beforeEach(async () => {
             await driver.findElement(By.id("gui.sqleditor")).click();
-            dbConfig.caption += String(Math.floor(Math.random() * 100));
+            dbConfig.caption += String(new Date().valueOf());
             await createDBconnection(driver, dbConfig);
+        });
+
+        afterEach(() => {
+            dbConfig.caption = "conn";
         });
 
         it("Connect to database and verify default schema", async () => {
@@ -993,6 +997,8 @@ describe("DB Editor", () => {
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
             try {
+
+                await setStartLanguage(driver, "DB Editor", "typescript");
 
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
