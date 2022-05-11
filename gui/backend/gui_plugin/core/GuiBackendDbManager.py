@@ -288,7 +288,7 @@ class BackendSqliteDbManager(BackendDbManager):
 
         while len(backup_files) > self._config['log_rotation_period']:
             file_to_remove = sorted(backup_files)[0]
-            remove(file_to_remove)
+            remove(path.join(self.db_dir, file_to_remove))
             backup_files.remove(file_to_remove)
 
         try:
