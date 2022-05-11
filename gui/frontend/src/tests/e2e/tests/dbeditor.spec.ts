@@ -23,7 +23,6 @@
 
 import { promises as fsPromises } from "fs";
 import { platform } from "os";
-import { join } from "path";
 import { getDriver, load } from "../lib/engine";
 import { By, until, Key, WebDriver, WebElement } from "selenium-webdriver";
 import {
@@ -790,9 +789,9 @@ describe("DB Editor", () => {
             expect( await newConDialog.findElement(By.css("#sslMode label")).getText() ).toBe("Require and Verify CA");
 
             const paths = await newConDialog.findElements(By.css(".tabview.top input.msg"));
-            await paths[0].sendKeys(join(String(process.env.SSL_ROOT_FOLDER), "ca.pem"));
-            await paths[1].sendKeys(join(String(process.env.SSL_ROOT_FOLDER), "client-cert.pem"));
-            await paths[2].sendKeys(join(String(process.env.SSL_ROOT_FOLDER), "client-key.pem"));
+            await paths[0].sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/ca.pem`);
+            await paths[1].sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`);
+            await paths[2].sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`);
 
             const okBtn = await driver.findElement(By.id("ok"));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
@@ -1026,6 +1025,10 @@ describe("DB Editor", () => {
                 await textArea.sendKeys(Key.RETURN);
 
                 await textArea.sendKeys("select * from sakila.category;");
+
+                await driver.wait(async () => {
+                    return (await driver.findElements(By.css(".statementStart"))).length === 3;
+                }, 3000, "Statement start (blue dot) was not found on all lines");
 
                 await textArea.sendKeys(Key.ARROW_UP);
 
@@ -1798,7 +1801,7 @@ describe("DB Editor", () => {
                         .findElement(By.css("div.container.section label")),
                     await driver
                         .findElement(By.id("scriptSectionHost"))
-                        .findElement(By.css(".accordionItem")),
+                        .findElement(By.css(".tabulator-table")),
                     false,
                     0,
                 );
@@ -1822,7 +1825,7 @@ describe("DB Editor", () => {
                         .findElement(By.css("div.container.section label")),
                     await driver
                         .findElement(By.id("scriptSectionHost"))
-                        .findElement(By.css(".accordionItem")),
+                        .findElement(By.css(".tabulator-table")),
                     true,
                     0,
                 );
