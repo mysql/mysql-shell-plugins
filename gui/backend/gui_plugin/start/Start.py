@@ -151,6 +151,7 @@ def web_server(port=None, secure=None, webrootpath=None,
                 except Exception as e:
                     logger.info('\tCertificate is not correctly installed. '
                                 'Use gui.core.installShellWebCertificate() to fix the installation.')
+                    logger.exception(e)
                     return
 
             logger.info('\tCertificate is installed.')

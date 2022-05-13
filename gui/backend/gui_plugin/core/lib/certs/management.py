@@ -21,7 +21,7 @@
 from mysqlsh.plugin_manager import general
 from pathlib import Path
 import os
-from ..SystemUtils import run_system_command, get_os_name, in_vs_code, is_wsl2, run_shell_cmd, get_terminal_command
+from gui_plugin.core.lib import SystemUtils
 import gui_plugin.core.Logger as logger
 import platform
 from cryptography import x509
@@ -206,8 +206,19 @@ def create_certificate(cert_path):
     return True
 
 
+def delete_certificate(cert_path):
+    try:
+        os.remove(os.path.join(cert_path, "rootCA.crt"))
+        os.remove(os.path.join(cert_path, "server.crt"))
+        os.remove(os.path.join(cert_path, "server.key"))
+    except Exception as e:
+        logger.exception(e)
+        return False
+    return True
+
+
 def linux_has_certutil():
-    exit_code, output = run_system_command(['which', 'certutil'])
+    exit_code, output = SystemUtils.run_system_command(['which', 'certutil'])
     return exit_code == 0
 
 
@@ -224,28 +235,41 @@ def create_certificate_script(type, certs):
     script_sections = []
     script_actions = []
 
-    # Add the required removal operations
     for r in certs:
-        if r.scripted and r.installed and r.valid is False:
-            script_sections.append(r.get_uninstall_script(4))
-            script_actions.append(f'echo "  - {r.desc}"')
+        requirements = r.requirements
+        if not requirements is None:
+            for req in requirements:
+                if not req.met:
+                    script_actions.append(f'echo "  - {req.desc}"')
 
     if len(script_actions):
         script_actions.insert(
-            0, 'echo "- Remove the MySQL Shell GUI certificate from the following locations:"')
+            0, 'echo "- Install the following requirements:"')
+
+    # Add the required removal operations
+    uninstall_message = 'echo "- Remove the MySQL Shell GUI certificate from the following locations:"'
+    for r in certs:
+        if r.installed and (not installing or not r.valid or r.deprecated):
+            if len(uninstall_message):
+                script_actions.append(uninstall_message)
+                uninstall_message = ""
+            script_sections.append(r.get_uninstall_script(4))
+            script_actions.append(f'echo "  - {r.desc}"')
 
     # Add the required install operations
     if installing:
-        script_actions.append(
-            'echo "- Install the MySQL Shell GUI certificate at the following locations:"')
+        install_message = 'echo "- Install the MySQL Shell GUI certificate at the following locations:"'
         for i in certs:
-            if i.scripted and (i.installed is False or i.valid is False):
+            if not i.deprecated and (not i.installed or not i.valid):
+                if len(install_message):
+                    script_actions.append(install_message)
+                    install_message = ""
                 script_sections.append(i.get_install_script(4))
-                script_actions.append(f'echo "  - {i.desc}"')
+                script_actions.append(f'echo "* - {i.desc}"')
 
     if len(script_sections):
         str_script_actions = "\n".join(script_actions)
-        exit_code, output = run_system_command(['which', 'bash'])
+        exit_code, output = SystemUtils.run_system_command(['which', 'bash'])
         script_sections.insert(0, f"""#!{output}
 echo "The MySQL Shell Web Root Certificate required by the MySQL for VS Code extension will now be {type}ed on your system."
 echo -e "\\n"
@@ -264,36 +288,6 @@ read -r -p "Do you want to continue [Y/n] ? " response
 response=${{response,,}} # tolower
 
 if [[ $response =~ ^(yes|y| ) ]] || [[ -z $response ]]; then""")
-
-    # Adds the installation of the certutil if required
-    requires_certutil = False
-    for cert_location in certs:
-        if cert_location.id == locations.Type.NSS_DB:
-            requires_certutil = cert_location.scripted
-
-    if requires_certutil:
-        os_name = get_os_name()
-        cert_util_package = None
-        install_command = None
-        if os_name in ["Ubuntu", "Debian"]:
-            cert_util_package = "libnss3-tools"
-            install_command = "sudo apt install libnss3-tools"
-        elif os_name == "OpenSUSE":
-            cert_util_package = "mozilla-nss-tools"
-            install_command = "zypper install mozilla-nss-tools"
-
-        if install_command is not None:
-            script_sections.insert(1, f"""
-    # The certutil is required to install the UI certificate
-    echo "Installing the certificate management utility: {cert_util_package}"
-    {install_command}
-
-    if [ "$?" != "0" ]; then
-        echo "Failed installing {cert_util_package}"
-        read -r -p "Press any key to continue..." response
-        exit 1
-    fi
-""")
 
     if len(script_sections):
         script_sections.append(f"""
@@ -314,21 +308,27 @@ def get_required_locations(include_keychain):
     cert_locations = [user_home_cert]
 
     if include_keychain:
-        if is_wsl2():
-            cert_locations.append(locations.Win_wsl2(user_home_cert))
+        if SystemUtils.is_wsl():
+            cert_locations.append(locations.Win_wsl(user_home_cert))
 
-        os_name = get_os_name()
-        if os_name == "Darwin":
+        os_type = SystemUtils.get_os_type()
+        if os_type == "darwin":
             cert_locations.append(locations.Macos(user_home_cert))
-        elif os_name == "Windows":
+        elif os_type == "windows":
             cert_locations.append(locations.Win(user_home_cert))
-        elif os_name in ["OracleLinux", "RedHat", "Fedora"]:
-            cert_locations.append(locations.Trust(user_home_cert))
-        else:
-            ca_cert = locations.Ca_cert_folder(user_home_cert)
-            cert_locations.append(ca_cert)
-            cert_locations.append(locations.Ssl_cert_folder(ca_cert))
-            cert_locations.append(locations.Nss_db(user_home_cert))
+        elif os_type in ["debian", "fedora", "suse opensuse"]:
+            cert_locations.append(locations.Nss_db_cert(user_home_cert))
+
+            # Add deprecated certificates for a successful uninstall
+            if os_type == "fedora":
+                cert_locations.append(locations.Trust(
+                    user_home_cert, deprecated=True))
+            else:
+                ca_cert = locations.Ca_cert_folder(
+                    user_home_cert, deprecated=True)
+                cert_locations.append(ca_cert)
+                cert_locations.append(
+                    locations.Ssl_cert_folder(ca_cert, deprecated=True))
 
     return cert_locations
 
@@ -342,19 +342,6 @@ def _log_certificate_operations(context, certs):
         logger.info("\n".join(log_text))
 
 
-def reset(keychain, replace_existing):
-    required_certs = get_required_locations(keychain)
-
-    # Identifies the certificates that require to be deleted to
-    # guarantee successful operation (i.e. avoid duplicate certificates)
-    # to_install = certs.utils.get_required_certs(keychain)
-    if replace_existing:
-        required_certs[0].valid = False
-
-    # to_delete.reverse()
-    return reset_deployment(required_certs, "install")
-
-
 def remove():
     required_certs = get_required_locations(True)
     return reset_deployment(required_certs, "uninstall")
@@ -362,19 +349,22 @@ def remove():
 
 def reset_deployment(certs, type):
     installing = type == "install"
+    # Identify if any of the locations is scripted
+    scripted = False
     for cert_location in certs:
-        if not cert_location.scripted:
-            while cert_location.installed and (not installing or not cert_location.valid):
-                cert_location.uninstall()
+        if cert_location.scripted:
+            deprecated = cert_location.deprecated
+            installed = cert_location.installed
+            valid = cert_location.valid
 
-    if installing:
-        for cert_location in certs:
-            if cert_location.scripted is False and (cert_location.installed is False or cert_location.valid is False):
-                cert_location.install()
+            if installing and ((installed and deprecated) or (not deprecated and (not installed or not valid))):
+                scripted = True
+            elif not installing and installed:
+                scripted = True
 
-    script = create_certificate_script(type, certs)
-
-    if len(script):
+    # If any of the locations was scripted, all of the install is done through a script
+    if scripted:
+        script = create_certificate_script(type, certs)
         cert_path = general.get_shell_user_dir(
             "plugin_data", "gui_plugin", "web_certs")
 
@@ -387,78 +377,38 @@ def reset_deployment(certs, type):
             file.write(script)
 
         # Make the script executable
-        run_system_command(['chmod', 'u+x', script_path])
+        SystemUtils.run_system_command(['chmod', 'u+x', script_path])
 
         terminal_error = None
         cmd = None
         try:
-            cmd = get_terminal_command() + [script_path]
+            cmd = SystemUtils.get_terminal_command() + [script_path]
 
-            exit_code, output = run_shell_cmd(cmd)
+            exit_code, output = SystemUtils.run_shell_cmd(cmd)
             if not exit_code is None:
                 raise SystemError(output)
         except Exception as e:
             logger.error(e)
             terminal_error = f"Could not {type} the Shell GUI certificate. Please execute '{script_path}' to install it manually"
 
-            if in_vs_code():
+            if SystemUtils.in_vs_code():
                 terminal_error += ' and restart Visual Studio Code.'
             else:
                 terminal_error += '.'
 
         if not terminal_error is None:
             raise Exception(terminal_error)
+    # If none of the locations was scripted, then executes individual operations
+    else:
+        for cert_location in certs:
+            if not cert_location.scripted:
+                while cert_location.installed and (not installing or not cert_location.valid or cert_location.deprecated):
+                    cert_location.uninstall()
 
-    return True
-
-
-def update_certificate_deployment(type, to_delete, to_install):
-    script = ""
-    _log_certificate_operations("Removing certificates from:", to_delete)
-    _log_certificate_operations("Installing certificates at:", to_install)
-
-    for d in to_delete:
-        if not d.scripted:
-            d.uninstall()
-
-    for i in to_install:
-        if not i.scripted:
-            i.install()
-
-    script = create_certificate_script(type, to_delete, to_install)
-
-    if len(script):
-        cert_path = general.get_shell_user_dir(
-            "plugin_data", "gui_plugin", "web_certs")
-
-        script_path = os.path.join(cert_path, f'{type}.sh')
-
-        # Save the script
-        with open(script_path, 'w') as file:
-            file.write(script)
-
-        # Make the script executable
-        run_system_command(['chmod', 'u+x', script_path])
-
-        terminal_error = None
-        cmd = None
-        try:
-            cmd = get_terminal_command() + [script_path]
-
-            exit_code, output = run_shell_cmd(cmd)
-            if not exit_code is None:
-                raise SystemError(output)
-        except Exception as e:
-            logger.error(e)
-            terminal_error = f"Could not {type} the Shell GUI certificate. Please execute '{script_path}' to install it manually"
-
-            if in_vs_code():
-                terminal_error += ' and restart Visual Studio Code.'
-            else:
-                terminal_error += '.'
-
-        if not terminal_error is None:
-            raise Exception(terminal_error)
+        if installing:
+            for cert_location in certs:
+                if not cert_location.scripted and not cert_location.deprecated and (not cert_location.installed or not cert_location.valid):
+                    cert_location.install()
 
     return True
 
@@ -472,14 +422,22 @@ def get_availability(check_keychain):
     """
     certs = get_required_locations(check_keychain)
 
+    # In the precense of deprecated certificates, returns
+    deprecated = sum(c.installed and c.deprecated for c in certs)
+    if deprecated > 0:
+        return certs
+
+    # Counts number of required certs
+    required = sum(not c.deprecated for c in certs)
+
     # Counts number of installed locations
-    count = sum(c.installed for c in certs)
+    count = sum(c.installed and not c.deprecated for c in certs)
 
     if count == 0:
         return False
-    elif count == len(certs):
-        count = sum(c.valid for c in certs)
-        if count == len(certs):
+    elif count == required:
+        count = sum(c.valid and not c.deprecated for c in certs)
+        if count == required:
             return True
 
     return certs

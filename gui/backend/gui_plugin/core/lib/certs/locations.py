@@ -27,6 +27,7 @@ import filecmp
 from pathlib import Path
 import enum
 from gui_plugin.core.lib.certs import management
+from gui_plugin.core.lib import SystemUtils
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat import backends
@@ -57,21 +58,67 @@ def get_cert_sha1(cert_path):
     return cert.fingerprint(hashes.SHA1()).hex()
 
 
+class Cert_requirement:
+    def __init__(self, desc, parent=None):
+        self._desc = desc
+        self.error = ""
+        self._parent = parent
+        self._met = self._verify() if self._parent is None or self._parent.met else False
+
+    @property
+    def met(self):
+        return self._met
+
+    @property
+    def desc(self):
+        return self._desc
+
+    def _verify(self):
+        raise NotImplementedError()
+
+    def is_scripted(self):
+        raise NotImplementedError()
+
+    def get_script(self, padding=0):
+        raise NotImplementedError()
+
+    def get_install_command(self):
+        raise NotImplementedError()
+
+
 class Cert_location:
-    def __init__(self, id, desc, scripted):
+    def __init__(self, id, desc, scripted, deprecated=False, requirements=None):
         self._id = id
         self._desc = desc
         self._scripted = scripted
+        self._deprecated = deprecated
 
         self._valid = None
         self._error = None
         self._sha1 = None
+        self._installed = None
+        self._requirements = requirements
+        self._met_requirements = None
+
+    def _check_requirements(self):
+        if not self._requirements is None:
+            for req in self._requirements:
+                if not req.met:
+                    self._met_requirements = False
+                    self._error = f"Unable to verify certificate at {self.desc}: {req.error}"
+
+                    # For now, assuming a script is required if the requirements were not met
+                    self._scripted = req.is_scripted()
+                    break
 
     def __str__(self) -> str:
         invalid_reason = ''
-        if self.valid is False and self._error is not None:
+        if self._error is not None:
             invalid_reason = f', Reason: {self._error}'
-        return f"{self.id.name}: {self.desc}, [Installed: {str(self.installed)}, Valid: {str(self.valid)}{invalid_reason}]"
+        label = ""
+        if self.deprecated:
+            label = "(deprecated)"
+        return f"{self.id.name}{label}: {self.desc}, [Installed: {str(self.installed)}, Valid: {str(self.valid)}{invalid_reason}]"
 
     def _is_installed(self):
         raise NotImplementedError()
@@ -104,8 +151,11 @@ class Cert_location:
         return self._scripted
 
     @property
+    def deprecated(self):
+        return self._deprecated
+
+    @property
     def valid(self):
-        self._error = None
         self._valid = self._is_valid()
 
         # This is to honor when the certificate was intentionally invalidated from the outside
@@ -136,18 +186,50 @@ class Cert_location:
 
     @ property
     def installed(self):
-        if not self._is_installed():
-            self.error = f"The certificate is not installed at {self.desc}"
+        self._check_requirements()
+        if self._met_requirements is False:
             return False
-        return True
+
+        if self._installed is None:
+            self._installed = self._is_installed()
+            if not self._installed:
+                self.error = f"The certificate is not installed at {self.desc}"
+
+        return self._installed
+
+    @ property
+    def requirements(self):
+        return self._requirements
 
     def install(self):
-        raise NotImplementedError()
+        self._do_install()
+        # Updates the installed flag accordingly
+        self._installed = self._is_installed()
 
     def uninstall(self):
+        self._do_uninstall()
+        # Verifies if the certificate was really uninstalled, required to
+        # properly handle duplicate certificates
+        self._installed = self._is_installed()
+
+    def _do_uninstall(self):
         raise NotImplementedError()
 
+    def _get_requirement_script(self, padding=0):
+        script = ""
+        if not self._requirements is None:
+            for req in self._requirements:
+                if not req.met:
+                    script += req.get_script(padding=padding)
+                    script == "\n"
+        return script
+
     def get_install_script(self, padding=0):
+        script = self._get_requirement_script(padding=padding)
+        script += self._get_cert_install_script(padding=padding)
+        return script
+
+    def _get_cert_install_script(self, padding=0):
         raise NotImplementedError()
 
     def get_uninstall_script(self, padding=0):
@@ -165,19 +247,37 @@ class User_home(Cert_location):
     def _get_sha1(self):
         return get_cert_sha1(self.desc) if self.installed else None
 
-    def install(self):
+    def _do_install(self):
         cert_path = os.path.dirname(self.desc)
         Path(cert_path).mkdir(parents=True, exist_ok=True)
         return management.create_certificate(cert_path)
 
-    def uninstall(self):
-        os.remove(self.desc)
-        return True
+    def _do_uninstall(self):
+        cert_path = os.path.dirname(self.desc)
+        Path(cert_path).mkdir(parents=True, exist_ok=True)
+        return management.delete_certificate(cert_path)
+
+    def _get_cert_install_script(self, padding=0):
+        # No install script, this location is installed via install()
+        return ""
+
+    def get_uninstall_script(self, padding=0):
+        s = ' ' * padding
+        return f"""
+{s}# Removing the certificate from {self.desc}
+{s}echo -e "{BOLD}Removing the certificate from {self.desc}{BOLD}"
+{s}rm {self.desc}
+{s}if [ "$?" != "0" ]; then
+{s}    echo "Failed removing the certificate"
+{s}    read -r -p "Press any key to continue..." response
+{s}    exit 1
+{s}fi
+"""
 
 
 class Dependent_cert(Cert_location):
-    def __init__(self, id, desc, scripted, parent_cert):
-        super().__init__(id, desc, scripted)
+    def __init__(self, id, desc, scripted, parent_cert, deprecated=False, requirements=None):
+        super().__init__(id, desc, scripted, deprecated=deprecated, requirements=requirements)
         self.parent_cert = parent_cert
 
     def _parent_invalidates(self):
@@ -199,11 +299,13 @@ class Dependent_cert(Cert_location):
     def _matches_parent(self):
         return self.sha1 == self.parent_cert.sha1
 
+# TODO(rennox): to be deleted once the certificate install is considered complete with the NSS user database
+
 
 class Ca_cert_folder(Dependent_cert):
-    def __init__(self, parent_cert):
+    def __init__(self, parent_cert, deprecated=False):
         super().__init__(Type.CA_CERTS_FOLDER,
-                         "/usr/local/share/ca-certificates/rootCA.crt", True, parent_cert)
+                         "/usr/local/share/ca-certificates/rootCA.crt", True, parent_cert, deprecated=deprecated)
 
     def _is_installed(self):
         return os.path.isfile(self.desc)
@@ -211,7 +313,7 @@ class Ca_cert_folder(Dependent_cert):
     def _get_sha1(self):
         return get_cert_sha1(self.desc) if self.installed else None
 
-    def get_install_script(self, padding=0):
+    def _get_cert_install_script(self, padding=0):
         s = ' ' * padding
         return f"""
 {s}# Install the UI certificate on the system
@@ -239,10 +341,13 @@ class Ca_cert_folder(Dependent_cert):
 
 """
 
+# TODO(rennox): to be deleted once the certificate install is considered complete with the NSS user database
+
 
 class Ssl_cert_folder(Dependent_cert):
-    def __init__(self, parent_cert):
-        super().__init__(Type.SSL_CERTS, "/etc/ssl/certs/rootCA.pem", True, parent_cert)
+    def __init__(self, parent_cert, deprecated=False):
+        super().__init__(Type.SSL_CERTS, "/etc/ssl/certs/rootCA.pem",
+                         True, parent_cert, deprecated=deprecated)
 
     def _is_installed(self):
         return os.path.islink(self.desc) or os.path.exists(self.desc)
@@ -256,7 +361,7 @@ class Ssl_cert_folder(Dependent_cert):
             return False
         return True
 
-    def get_install_script(self, padding=0):
+    def _get_cert_install_script(self, padding=0):
         s = ' ' * padding
         return f"""
 {s}echo -e "{BOLD}Updating the system certificates...{NOBOLD}"
@@ -292,8 +397,9 @@ class Ssl_cert_folder(Dependent_cert):
 
 
 class Store_cert(Dependent_cert):
-    def __init__(self, type, description, scripted, parent_cert):
-        super().__init__(type, description, scripted, parent_cert)
+    def __init__(self, type, description, scripted, parent_cert, deprecated=False, requirements=None):
+        super().__init__(type, description, scripted,
+                         parent_cert, deprecated=deprecated, requirements=requirements)
         self._installed_certs = []
 
     def _is_installed(self):
@@ -309,22 +415,35 @@ class Store_cert(Dependent_cert):
     def _get_installed_certs(self):
         raise NotImplementedError()
 
-    def install(self):
-        cmd = self._get_install_command()
-        try:
-            exit_code, output = lib.run_shell_cmd(cmd)
+    def _do_install(self):
+        commands = self._get_install_commands()
 
-            if not exit_code is None:
-                raise SystemError(output)
-        except Exception as e:
-            logger.exception(e)
-            return False
+        for cmd in commands:
+            try:
+                exit_code, output = lib.run_shell_cmd(cmd)
+
+                if not exit_code is None:
+                    raise SystemError(output)
+            except Exception as e:
+                logger.exception(e)
+                return False
         return True
+
+    def _get_install_commands(self):
+        commands = []
+        if not self._requirements is None:
+            for req in self._requirements:
+                if not req.met and not req.is_scripted():
+                    commands.append(req.get_install_command())
+
+        commands.append(self._get_install_command())
+
+        return commands
 
     def _get_install_command(self):
         raise NotImplementedError()
 
-    def uninstall(self):
+    def _do_uninstall(self):
         cmd = self._get_uninstall_command()
         try:
             exit_code, output = lib.run_shell_cmd(cmd)
@@ -340,17 +459,130 @@ class Store_cert(Dependent_cert):
         raise NotImplementedError()
 
 
-class Nss_db(Store_cert):
-    def __init__(self, parent_cert):
-        super().__init__(Type.NSS_DB, "User NSS Database",
-                         lib.certs.management.linux_has_certutil() is False, parent_cert)
+class Linux_certutil(Cert_requirement):
+    def __init__(self):
+        super().__init__("certutil")
 
-    def _get_nss_db_path(self):
+    def _verify(self):
+        if not lib.certs.management.linux_has_certutil():
+            self.error = f"Missing {self._desc}"
+            return False
+        return True
+
+    def is_scripted(self):
+        return True
+
+    def get_script(self, padding=0):
+        os_type = SystemUtils.get_os_type()
+
+        cert_util_package = "unknown"
+        if os_type == "debian":
+            cert_util_package = "libnss3-tools"
+        elif os_type == "suse opensuse":
+            cert_util_package = "mozilla-nss-tools"
+        elif os_type == "fedora":
+            cert_util_package = "nss-tools"
+
+        s = ' ' * padding
+        script = f"""
+{s}# The certutil is required to install the UI certificate
+{s}echo "Installing the certificate management utility: {cert_util_package}"
+"""
+        if os_type == "debian":
+            script += f"""{s}sudo apt install -y {cert_util_package}
+{s}rc=$?
+{s}if [ "$rc" = "100" ]; then
+{s}    echo "Package was not found, updating packages..."
+{s}    sudo apt update
+{s}    rc=$?
+{s}    if [ "$rc" = "0" ]; then
+{s}       sudo apt install -y {cert_util_package}
+{s}       rc=$?
+{s}    fi
+{s}fi
+"""
+        elif os_type == "suse opensuse":
+            script += f"""{s}sudo zypper install -y {cert_util_package}
+{s}rc=$?"""
+
+        elif os_type == "fedora":
+            script += f"""{s}sudo yum install -y {cert_util_package}
+{s}rc=$?"""
+
+        script += f"""
+{s}if [ "$rc" != "0" ]; then
+{s}    echo "Failed installing {cert_util_package}"
+{s}    read -r -p "Press any key to continue..." response
+{s}    exit 1
+{s}fi
+"""
+        return script
+
+
+class Nss_user_database(Cert_requirement):
+    def __init__(self, path, parent):
+        self._db_path = path
+        super().__init__("NSS User Database", parent=parent)
+
+    def _verify(self):
+        ret_val = True
+        cmd = ["certutil", "-d", "sql:" + self._db_path, "-L"]
+
+        try:
+            exit_code, output = lib.run_shell_cmd(cmd)
+            if exit_code is not None:
+                self.error = output
+                ret_val = False
+        except Exception as e:
+            self.error = str(e)
+            ret_val = False
+
+        return ret_val
+
+    def is_scripted(self):
+        # Parent is Linux_certutil, it if is installed this does not need to be scripted
+        return self._parent.met is False
+
+    def get_script(self, padding=0):
+        s = ' ' * padding
+        script = f"""
+{s}# Verifying the user certificate database...
+{s}echo "Verifying existence of the NSS database..."
+{s}certutil -d {self._db_path} -L &> /dev/null
+{s}if [ "$?" != "0" ]; then
+{s}    echo "The NSS database does not exist, creating it..."
+
+{s}    mkdir -p {self._db_path}
+{s}    certutil -d sql:{self._db_path} -N --empty-password
+
+{s}    if [ "$?" != "0" ]; then
+{s}        echo "Failed initializing the NSS database"
+{s}        read -r -p "Press any key to continue..." response
+{s}        exit 1
+{s}    fi
+{s}fi
+"""
+        return script
+
+    def get_install_command(self):
+        return ["certutil", "-d", "sql:" + self._db_path, "-N", "--empty-password"]
+
+
+class Nss_db_cert(Store_cert):
+    def __init__(self, parent_cert):
+        certutil_req = Linux_certutil()
+        super().__init__(Type.NSS_DB, "NSS User Database",
+                         False, parent_cert, requirements=[certutil_req, Nss_user_database(self._get_nss_db_path(False), certutil_req)])
+
+    def _get_nss_db_path(self, prefixed=True):
         home_dir = Path.home()
         if not home_dir:
             raise Exception("No home directory set")
 
-        return os.path.join(home_dir, ".pki", "nssdb")
+        if prefixed:
+            return "sql:" + os.path.join(home_dir, ".pki", "nssdb")
+        else:
+            return os.path.join(home_dir, ".pki", "nssdb")
 
     def _get_installed_certs(self):
         cmd = ["certutil", "-d", self._get_nss_db_path(), "-L", "-n",
@@ -375,16 +607,22 @@ class Nss_db(Store_cert):
 
         return installed
 
+    def _do_install(self):
+        if not self._scripted:
+            Path(self._get_nss_db_path(False)).mkdir(
+                parents=True, exist_ok=True)
+        return super()._do_install()
+
     def _get_install_command(self):
-        return ["certutil", "-d", f"sql:{self._get_nss_db_path()}", "-A", "-t", "C,,", "-n", "MySQL Shell", "-i", self.parent_cert.desc]
+        return ["certutil", "-d", f"{self._get_nss_db_path()}", "-A", "-t", "C,,", "-n", "MySQL Shell", "-i", self.parent_cert.desc]
 
     def _get_uninstall_command(self):
         return ["certutil", "-d", self._get_nss_db_path(), "-D", "-n", "MySQL Shell"]
 
-    def get_install_script(self, padding=0):
+    def _get_cert_install_script(self, padding=0):
         s = ' ' * padding
         return f"""
-{s}certutil -d sql:{self._get_nss_db_path()} -A -t "C,," -n "MySQL Shell" -i {self.parent_cert.desc}
+{s}certutil -d {self._get_nss_db_path()} -A -t "C,," -n "MySQL Shell" -i {self.parent_cert.desc}
 
 {s}if [ "$?" != "0" ]; then
 {s}    echo "Failed registering the certificate on the NSS database"
@@ -466,7 +704,7 @@ class Win(Store_cert):
     def _matches_parent(self):
         return self._installed_certs[0] == get_cert_sha1(self.parent_cert.desc)
 
-    def _get_installed_certs(self, serials=False):
+    def _get_installed_certs(self):
         cmd = ["certutil.exe", "-verifystore", "-user", "ROOT",
                "MySQL Shell Auto Generated CA Certificate"]
         installed = []
@@ -475,18 +713,13 @@ class Win(Store_cert):
             exit_code, output = lib.run_shell_cmd(cmd)
 
             if exit_code is None:
-                current_cert = ""
                 for line in output.split("\n"):
                     line = line.strip()
-
-                    if line.startswith("================ Certificate"):
-                        current_cert = line
-                    elif serials and len(current_cert) and line.startswith("Serial Number: "):
-                        installed.append(line[15:])
-                        current_cert = ""
-                    elif len(current_cert) and line.startswith("Cert Hash(sha1): "):
-                        installed.append(line[17:].lower())
-                        current_cert = ""
+                    try:
+                        index = line.index("(sha1): ")
+                        installed.append(line[index+8:].lower())
+                    except:
+                        pass
         except Exception as e:
             logger.exception(e)
 
@@ -501,11 +734,11 @@ class Win(Store_cert):
                 "MySQL Shell Auto Generated CA Certificate"]
 
 
-class Win_wsl2(Win):
+class Win_wsl(Win):
     def __init__(self, parent_cert):
         super().__init__(parent_cert, True)
 
-    def get_install_script(self, padding=0):
+    def _get_cert_install_script(self, padding=0):
         s = ' ' * padding
         return f"""
 {s}# Install the certificate
@@ -524,7 +757,7 @@ class Win_wsl2(Win):
 
     def get_uninstall_script(self, padding=0):
         # The certificate uninstall process is done based on the installed shell certificates
-        certs = " ".join(self._get_installed_certs(True))
+        certs = " ".join(self._get_installed_certs())
         s = ' ' * padding
         return f"""
 {s}# Removing the certificate(s) from the {self.desc}
@@ -543,10 +776,13 @@ class Win_wsl2(Win):
 
 """
 
+# TODO(rennox): to be deleted once the certificate install is considered complete with the NSS user database
+
 
 class Trust(Store_cert):
-    def __init__(self, parent_cert):
-        super().__init__(Type.TRUST, "Trust Policy Store", True, parent_cert)
+    def __init__(self, parent_cert, deprecated=False):
+        super().__init__(Type.TRUST, "Trust Policy Store",
+                         True, parent_cert, deprecated=deprecated)
 
     def _get_sha1(self):
         ret_val = None
@@ -592,7 +828,7 @@ class Trust(Store_cert):
 
         return installed
 
-    def get_install_script(self, padding=0):
+    def _get_cert_install_script(self, padding=0):
         s = ' ' * padding
         return f"""
 {s}# Install the certificate

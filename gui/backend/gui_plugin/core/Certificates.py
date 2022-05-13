@@ -44,15 +44,17 @@ def is_shell_web_certificate_installed(**kwargs):
 
     availability = certs.management.get_availability(check_keychain)
 
-    error = None
     if not isinstance(availability, bool):
-        logger.debug2("The certificate installation is inconsistent:")
+        logger.debug("The certificate installation is inconsistent:")
+        errors = []
         for a in availability:
-            logger.debug2(str(a))
-            if not a.valid and error is None:
-                error = a.error
+            logger.debug(str(a))
+            if not a.valid and not a.deprecated:
+                errors.append(a.error)
 
-        raise Exception(f"The installed certificate has errors: {error}")
+        logger.info("The installed certificate has errors: " +
+                    '\n   '.join(errors))
+        availability = False
 
     return availability
 
@@ -77,19 +79,25 @@ def install_shell_web_certificate(**kwargs):
     replace_existing = kwargs.get("replace_existing")
     keychain = kwargs.get("keychain", True)
 
-    availability = certs.management.get_availability(keychain)
+    locations = certs.management.get_required_locations(keychain)
+    r_count = sum(not c.deprecated for c in locations)
+    d_count = sum(c.deprecated and c.installed for c in locations)
+    i_count = sum(not c.deprecated and c.installed for c in locations)
+    v_count = sum(
+        not c.deprecated and c.installed and c.valid for c in locations)
 
-    # If the certificate is already installed and should not be replaced,
-    # return right away
-    if isinstance(availability, bool):
-        if availability and not replace_existing:
-            return True
+    # If everything is in place and not requires replacing existing cert
+    if d_count == 0 and i_count == r_count and v_count == r_count and not replace_existing:
+        return True
+
+    if replace_existing or not locations[0].installed or not locations[0].valid:
+        locations[0].install()
 
     # In any other case resets the deployed certificates, i.e.
     # - Replace existing was indicated
     # - Certificate is not installed
     # - Certificate is partially installed
-    return certs.management.reset(keychain, replace_existing)
+    return certs.management.reset_deployment(locations, "install")
 
 
 @plugin_function('gui.core.removeShellWebCertificate', shell=True, cli=True, web=True)
