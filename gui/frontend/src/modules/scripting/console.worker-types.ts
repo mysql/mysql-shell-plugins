@@ -22,7 +22,6 @@
  */
 
 import { IDictionary } from "../../app-logic/Types";
-import { IPieGraphLayout, IPieGraphDataPoint, IResultSetRow } from "../../components/ResultView/graphs/PieGraphImpl";
 
 // Define an own worker type to allow adding some private functionality.
 // However, Safari doesn't support the Worker type in worker code, so we have to repeat some definitions.
@@ -39,19 +38,20 @@ export class PrivateWorker /*extends Worker*/ {
 }
 
 // API ids used in the communication between the scripting tab and its worker instance.
-// See also console.worker.ts.
+// See also execute.ts.
 export enum ScriptingApi {
     Request,         // Set when sending a task to a worker.
+
+    // Results sent from a worker to the app.
     QueryStatus,     // A status message without a result.
-    Result,          // A full result + status.
-    RunSqlIterative, // To execute an SQL statement.
-    RunSql,          // To execute an SQL statement and fetch a complete result set.
     Print,           // To print something from the user.
     QueryType,       // Determine the type of a query.
 
-    // Various graph result types.
-    PieGraphCreate,
-    PieGraphAddPoints,
+    // Actions sent from a worker.
+    Result,          // A full query result + status.
+    RunSqlIterative, // To execute an SQL statement.
+    RunSql,          // To execute an SQL statement and fetch a complete result set.
+    Graph,
 
     // A special "API" to denote that everything is done in the console worker and the task can be removed.
     Done,
@@ -83,7 +83,13 @@ export interface IConsoleWorkerResultData extends IDictionary {
     value?: unknown;
 
     // Graphs
-    graphLayout?: IPieGraphLayout;
-    graphData?: IPieGraphDataPoint[] | IResultSetRow[];
+    options?: IGraphOptions;
+}
+
+// A collection of values required in the scripting APIs.
+export interface IConsoleWorkerEnvironment {
+    worker: PrivateWorker;
+    taskId: number;
+    contextId: string;
 }
 

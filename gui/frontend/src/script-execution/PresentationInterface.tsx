@@ -25,7 +25,7 @@ import React from "react";
 import { render } from "preact";
 import { isNil } from "lodash";
 
-import { PieGraphImpl, ResultStatus } from "../components/ResultView";
+import { ResultStatus } from "../components/ResultView";
 import { ResultTabView } from "../components/ResultView/ResultTabView";
 import { CodeEditor } from "../components/ui/CodeEditor/CodeEditor";
 import { IExecutionResult, IResultSet, IResultSetRows, ITextResult, SQLExecutionContext } from ".";
@@ -36,8 +36,8 @@ import { requisitions } from "../supplement/Requisitions";
 import { Container, ContentAlignment, Label, Orientation } from "../components/ui";
 import { EditorLanguage } from "../supplement";
 
-import { IPieGraphDataPoint } from "../components/ResultView/graphs/PieGraphImpl";
 import { MessageType } from "../app-logic/Types";
+import { GraphHost } from "../components/graphs/GraphHost";
 
 // A flag telling if the result is currently being loaded.
 export enum LoadingState {
@@ -59,7 +59,11 @@ export class PresentationInterface {
 
     // The maximum height for the result area.
     protected static maxHeight = 800;
-    protected static maxAutoHeight = 292;
+    protected static maxAutoHeight = {
+        text: 292,
+        resultSets: 292,
+        graphData: 600,
+    };
 
     // The size of the result area after adding data or manual resize by the user.
     public currentHeight?: number;
@@ -236,14 +240,8 @@ export class PresentationInterface {
                 }
 
                 case "graphData": {
-                    element = <PieGraphImpl
-                        width={data.width}
-                        height={data.height}
-                        innerRadius={data.innerRadius}
-                        outerRadius={data.outerRadius}
-                        centerX={data.centerX}
-                        centerY={data.centerY}
-                        pointData={data.data as IPieGraphDataPoint[]}
+                    element = <GraphHost
+                        options={data.options ?? {}}
                     />;
                     this.minHeight = 200;
 
@@ -483,19 +481,9 @@ export class PresentationInterface {
                     return false;
                 }
 
-                this.resultData.data.push(data); // Extra layout data is being ignored here.
-
-                element = <>
-                    <PieGraphImpl
-                        width={this.resultData.width}
-                        height={this.resultData.height}
-                        innerRadius={this.resultData.innerRadius}
-                        outerRadius={this.resultData.outerRadius}
-                        centerX={this.resultData.centerX}
-                        centerY={this.resultData.centerY}
-                        pointData={this.resultData.data as IPieGraphDataPoint[]}
-                    />
-                </>;
+                element = <GraphHost
+                    options={data.options ?? {}}
+                />;
 
                 break;
             }

@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphHost Tests Base Rendering 1`] = `
+<GraphHost
+  options={Object {}}
+>
+  <svg
+    className="msg graphHost"
+  />
+</GraphHost>
+`;
+
+exports[`GraphHost Tests Render Combinations 1`] = `
+<GraphHost
+  options={
+    Object {
+      "colors": Array [
+        "red",
+        "green",
+        "blue",
+      ],
+      "series": Array [
+        Object {
+          "colors": Array [
+            "red",
+            "green",
+            "blue",
+          ],
+          "type": "bar",
+        },
+        Object {
+          "colors": Array [
+            "red",
+            "green",
+            "blue",
+          ],
+          "type": "line",
+        },
+        Object {
+          "colors": Array [
+            "red",
+            "green",
+            "blue",
+          ],
+          "type": "pie",
+        },
+      ],
+    }
+  }
+>
+  <svg
+    className="msg graphHost"
+  />
+</GraphHost>
+`;

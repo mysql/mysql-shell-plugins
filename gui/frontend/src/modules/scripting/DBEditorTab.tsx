@@ -44,7 +44,6 @@ import { ScriptingConsole } from "./ScriptingConsole";
 import { IEntityBase, EntityType, ISchemaTreeEntry, IModuleDataEntry, SchemaTreeType } from ".";
 import { StandaloneScriptEditor } from "./StandaloneScriptEditor";
 import { IPosition } from "../../components/ui/CodeEditor";
-import { IPieGraphDataPoint } from "../../components/ResultView/graphs/PieGraphImpl";
 import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
@@ -1006,7 +1005,7 @@ Execute \\help or \\? for help;`;
         if (runExecution) {
             switch (context.language) {
                 case "javascript": {
-                    context.setResult();
+                    //context.setResult();
                     workerPool.runTask({ api: ScriptingApi.Request, code: context.code, contextId: context.id })
                         .then(this.handleTaskResult);
 
@@ -1014,7 +1013,7 @@ Execute \\help or \\? for help;`;
                 }
 
                 case "typescript": {
-                    context.setResult();
+                    //context.setResult();
                     workerPool.runTask({
                         api: ScriptingApi.Request,
                         code: ts.transpile(context.code),
@@ -1046,258 +1045,236 @@ Execute \\help or \\? for help;`;
         const { workerPool } = this.props;
         const { backend } = this.state;
 
-        switch (data.api) {
-            case ScriptingApi.QueryStatus: {
-                const result = data.result as IResultSetData;
-                const status = `${result.requestState.type}, ` +
-                    `${formatWithNumber("record", result.totalRowCount || 0)} retrieved in ` +
-                    `${formatTime(result.executionTime)}`;
+        try {
+            switch (data.api) {
+                case ScriptingApi.QueryStatus: {
+                    const result = data.result as IResultSetData;
+                    const status = `${result.requestState.type}, ` +
+                        `${formatWithNumber("record", result.totalRowCount || 0)} retrieved in ` +
+                        `${formatTime(result.executionTime)}`;
 
-                const context = this.runningContexts.get(data.contextId);
-                void context?.addResultData({
-                    type: "text",
-                    text: [{
-                        type: MessageType.Info,
-                        content: status,
-                        language: "ansi",
-                    }],
-                    executionInfo: { text: "" },
-                }).then((added) => {
-                    if (added) {
-                        context?.updateResultDisplay();
-                    }
-                });
-
-                break;
-            }
-
-            case ScriptingApi.Result: { // Evaluation result.
-                if (data.result && data.result !== "PENDING") {
                     const context = this.runningContexts.get(data.contextId);
-                    if (context) {
-                        if (data.isError) {
-                            void context?.addResultData({
-                                type: "text",
-                                text: [{
-                                    type: MessageType.Error,
-                                    content: String(data.result),
-                                    language: "ansi",
-                                }],
-                                executionInfo: { type: MessageType.Error, text: "" },
-                            }).then((added) => {
-                                if (added) {
-                                    context?.updateResultDisplay();
-                                }
-                            });
-                        } else {
-                            void context?.addResultData({
-                                type: "text",
-                                text: [{
-                                    type: MessageType.Info,
-                                    content: String(data.result),
-                                }],
-                            }).then((added) => {
-                                if (added) {
-                                    context?.updateResultDisplay();
-                                }
-                            });
-                        }
-
-                    }
-                }
-
-                break;
-            }
-
-            case ScriptingApi.RunSql: {
-                if (backend) {
-                    // Make sure the task we are running currently on, stays assigned to this loop.
-                    workerPool.retainTask(taskId);
-
-                    let columns: Array<{ name: string; type: string }>;
-                    let result: Array<Record<string, unknown>> = [];
-
-                    backend.execute(data.code!, data.params as string[])
-                        .then((event: ICommResultSetEvent): void => {
-                            switch (event.eventType) {
-                                case EventType.DataResponse:
-                                case EventType.FinalResponse: {
-                                    if (event.data) {
-                                        // First result holds column information
-                                        if (event.data.columns) {
-                                            columns = event.data.columns;
-                                            result = [];
-                                        }
-
-                                        if (event.data.rows) {
-                                            for (const row of event.data.rows) {
-                                                // Get row into a format { columnName: fieldVal, columnName: fieldVal}
-                                                const rowForRes: Record<string, unknown> = {};
-                                                if (Array.isArray(row)) {
-                                                    for (let i = 0; i < row.length; i++) {
-                                                        rowForRes[columns[i].name] = row[i];
-                                                    }
-                                                }
-                                                result.push(rowForRes);
-                                            }
-                                        }
-                                    }
-
-                                    if (event.eventType === EventType.FinalResponse) {
-                                        // Send back the result data to the worker to allow the user to act on that in
-                                        // their JS code. If the `final` member of the data is set to true, the task is
-                                        // implicitly released and freed.
-                                        workerPool.continueTask(taskId, {
-                                            api: ScriptingApi.Request,
-                                            result,
-                                            contextId: data.contextId,
-                                            final: true,
-                                        });
-                                    }
-
-                                    break;
-                                }
-
-                                default: {
-                                    break;
-                                }
-                            }
-                        })
-                        .catch((event: ICommErrorEvent): void => {
-                            const context = this.runningContexts.get(data.contextId);
-                            context?.setResult({
-                                type: "text",
-                                executionInfo: {
-                                    type: MessageType.Error,
-                                    text: `Error: ${event.data?.error ?? "<unknown>"}`,
-                                },
-                            });
-
-                            workerPool.releaseTask(taskId);
-                        });
-                }
-
-                break;
-            }
-
-
-            case ScriptingApi.RunSqlIterative: {
-                if (backend) {
-                    // Make sure the task we are running currently on, stays assigned to this loop.
-                    workerPool.retainTask(taskId);
-
-                    backend.execute(data.code!, data.params as string[])
-                        .then((event: ICommResultSetEvent): void => {
-                            switch (event.eventType) {
-                                case EventType.DataResponse:
-                                case EventType.FinalResponse: {
-                                    // Send back the result data to the worker to allow the user to act on that in their
-                                    // JS code. If the `final` member of the data is set to true, the task is
-                                    // implicitly released and freed.
-                                    workerPool.continueTask(taskId, {
-                                        api: ScriptingApi.Request,
-                                        result: event.data,
-                                        contextId: data.contextId,
-                                        final: event.eventType === EventType.FinalResponse,
-                                    });
-
-                                    break;
-                                }
-
-                                default: {
-                                    break;
-                                }
-                            }
-                        })
-                        .catch((event: ICommErrorEvent): void => {
-                            const context = this.runningContexts.get(data.contextId);
-                            context?.setResult({
-                                type: "text",
-                                executionInfo: {
-                                    type: MessageType.Error,
-                                    text: `Error: ${event.data?.error ?? "<unknown>"}`,
-                                },
-                            });
-
-                            workerPool.releaseTask(taskId);
-                        });
-                }
-
-                break;
-            }
-
-            case ScriptingApi.Print: {
-                const context = this.runningContexts.get(data.contextId);
-
-                if (!isNil(data.value)) {
                     void context?.addResultData({
                         type: "text",
                         text: [{
                             type: MessageType.Info,
-                            content: String(data.value),
+                            content: status,
+                            language: "ansi",
                         }],
+                        executionInfo: { text: "" },
                     }).then((added) => {
                         if (added) {
                             context?.updateResultDisplay();
                         }
                     });
+
+                    break;
                 }
 
-                break;
-            }
+                case ScriptingApi.Result: { // Evaluation result.
+                    if (data.result && data.result !== "PENDING") {
+                        const context = this.runningContexts.get(data.contextId);
+                        if (context) {
+                            if (data.isError) {
+                                void context?.addResultData({
+                                    type: "text",
+                                    text: [{
+                                        type: MessageType.Error,
+                                        content: String(data.result),
+                                        language: "ansi",
+                                    }],
+                                    executionInfo: { type: MessageType.Error, text: "" },
+                                }).then((added) => {
+                                    if (added) {
+                                        context?.updateResultDisplay();
+                                    }
+                                });
+                            } else {
+                                void context?.addResultData({
+                                    type: "text",
+                                    text: [{
+                                        type: MessageType.Info,
+                                        content: String(data.result),
+                                    }],
+                                }).then((added) => {
+                                    if (added) {
+                                        context?.updateResultDisplay();
+                                    }
+                                });
+                            }
 
-            case ScriptingApi.PieGraphCreate: {
-                const context = this.runningContexts.get(data.contextId);
-                const graphLayout = data.graphLayout!;
-                const graphData = data.graphData!;
-                if (!graphLayout || !graphData) {
-                    const missing = graphLayout ? "graph data" : "graph layout data";
-                    context?.setResult({
-                        type: "text",
-                        executionInfo: { type: MessageType.Error, text: `Error: ${missing} is missing` },
-                    });
-                } else if (graphData.length === 0) {
-                    context?.setResult({
-                        type: "text",
-                        executionInfo: { type: MessageType.Error, text: "Error: No data points given." },
-                    });
-                } else if (!graphData[0].value) {
-                    context?.setResult({
-                        type: "text",
-                        executionInfo: {
-                            type: MessageType.Error,
-                            text: "Error: The graph data rows needs to include a 'value' field. " +
-                                "E.g. [{label: \"test\", value: 10}]",
-                        },
-                    });
-                } else {
-                    const height = graphLayout.height ?? 350;
+                        }
+                    }
+
+                    break;
+                }
+
+                case ScriptingApi.RunSql: {
+                    if (backend) {
+                        // Make sure the task we are running currently on, stays assigned to this loop.
+                        workerPool.retainTask(taskId);
+
+                        let columns: Array<{ name: string; type: string }>;
+                        let result: Array<Record<string, unknown>> = [];
+
+                        backend.execute(data.code!, data.params as string[])
+                            .then((event: ICommResultSetEvent): void => {
+                                switch (event.eventType) {
+                                    case EventType.DataResponse:
+                                    case EventType.FinalResponse: {
+                                        if (event.data) {
+                                            // First result holds column information
+                                            if (event.data.columns) {
+                                                columns = event.data.columns;
+                                                result = [];
+                                            }
+
+                                            if (event.data.rows) {
+                                                for (const row of event.data.rows) {
+                                                    // Convert rows to objects.
+                                                    const rowForRes: Record<string, unknown> = {};
+                                                    if (Array.isArray(row)) {
+                                                        for (let i = 0; i < row.length; i++) {
+                                                            rowForRes[columns[i].name] = row[i];
+                                                        }
+                                                    }
+                                                    result.push(rowForRes);
+                                                }
+                                            }
+                                        }
+
+                                        if (event.eventType === EventType.FinalResponse) {
+                                            // Send back the result data to the worker to allow the user to act on
+                                            // that in their JS code. If the `final` member of the data is set to
+                                            // true, the task is implicitly released and freed.
+                                            workerPool.continueTask(taskId, {
+                                                api: ScriptingApi.Request,
+                                                result,
+                                                contextId: data.contextId,
+                                                final: true,
+                                            });
+                                        }
+
+                                        break;
+                                    }
+
+                                    default: {
+                                        break;
+                                    }
+                                }
+                            })
+                            .catch((event: ICommErrorEvent): void => {
+                                const context = this.runningContexts.get(data.contextId);
+                                context?.setResult({
+                                    type: "text",
+                                    executionInfo: {
+                                        type: MessageType.Error,
+                                        text: `Error: ${event.data?.requestState.msg ?? "<unknown>"}`,
+                                    },
+                                });
+
+                                workerPool.releaseTask(taskId);
+                            });
+                    }
+
+                    break;
+                }
+
+
+                case ScriptingApi.RunSqlIterative: {
+                    if (backend) {
+                        // Make sure the task we are running currently on, stays assigned to this loop.
+                        workerPool.retainTask(taskId);
+
+                        backend.execute(data.code!, data.params as string[])
+                            .then((event: ICommResultSetEvent): void => {
+                                switch (event.eventType) {
+                                    case EventType.DataResponse:
+                                    case EventType.FinalResponse: {
+                                        // Send back the result data to the worker to allow the user to act on that in
+                                        // their JS code. If the `final` member of the data is set to true, the task is
+                                        // implicitly released and freed.
+                                        workerPool.continueTask(taskId, {
+                                            api: ScriptingApi.Request,
+                                            result: event.data,
+                                            contextId: data.contextId,
+                                            final: event.eventType === EventType.FinalResponse,
+                                        });
+
+                                        break;
+                                    }
+
+                                    default: {
+                                        break;
+                                    }
+                                }
+                            })
+                            .catch((event: ICommErrorEvent): void => {
+                                const context = this.runningContexts.get(data.contextId);
+                                context?.setResult({
+                                    type: "text",
+                                    executionInfo: {
+                                        type: MessageType.Error,
+                                        text: `Error: ${event.data?.requestState.msg ?? "<unknown>"}`,
+                                    },
+                                });
+
+                                workerPool.releaseTask(taskId);
+                            });
+                    }
+
+                    break;
+                }
+
+                case ScriptingApi.Print: {
+                    const context = this.runningContexts.get(data.contextId);
+
+                    if (!isNil(data.value)) {
+                        void context?.addResultData({
+                            type: "text",
+                            text: [{
+                                type: MessageType.Info,
+                                content: String(data.value),
+                            }],
+                        }).then((added) => {
+                            if (added) {
+                                context?.updateResultDisplay();
+                            }
+                        });
+                    }
+
+                    break;
+                }
+
+                case ScriptingApi.Graph: {
+                    const context = this.runningContexts.get(data.contextId);
                     context?.setResult({
                         type: "graphData",
-                        ...graphLayout,
-                        data: graphData,
-                    }, height + 30);
-                }
-
-                break;
-            }
-
-            case ScriptingApi.PieGraphAddPoints: {
-                const context = this.runningContexts.get(data.contextId);
-                if (context) {
-                    const graphData = data.content as IPieGraphDataPoint[];
-                    void context?.addResultData({
-                        type: "graphData",
-                        data: graphData,
+                        options: data.options,
                     });
+
+                    break;
                 }
 
-                break;
+                default: {
+                    break;
+                }
             }
+        } catch (error) {
+            const context = this.runningContexts.get(data.contextId);
+            void context?.addResultData({
+                type: "text",
+                text: [{
+                    type: MessageType.Error,
+                    content: error instanceof Error ? (error.stack ?? error.message) : String(error),
+                }],
+                executionInfo: { type: MessageType.Error, text: "" },
+            }).then((added) => {
+                if (added) {
+                    context?.updateResultDisplay();
+                }
+            });
 
-            default: {
-                break;
-            }
         }
     };
 

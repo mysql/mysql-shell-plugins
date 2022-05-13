@@ -379,7 +379,7 @@ export interface IObjectNamesData extends IGenericResponse {
 }
 
 export interface IErrorData extends IGenericResponse {
-    error: string;
+    msg: string;
 }
 
 export type ICommSimpleResultEvent = IDispatchEvent<ISimpleResultData>;
