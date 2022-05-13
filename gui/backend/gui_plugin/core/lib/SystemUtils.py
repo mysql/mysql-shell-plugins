@@ -22,6 +22,7 @@ import subprocess
 import platform
 import os
 
+import gui_plugin.core.Logger as logger
 
 # This structure should define the terminal/arguments required to execute a
 # command in linux assuming a last parameter with a script path will be
@@ -60,46 +61,65 @@ def get_terminal_command():
 
 def run_system_command(command):
     try:
-        return (0, subprocess.check_output(command, stderr=subprocess.STDOUT).decode("utf8").strip())
+        logger.debug3(f"Executing System Command: {' '.join(command)}")
+        output = subprocess.check_output(
+            command, stderr=subprocess.STDOUT).decode("utf8").strip()
+        logger.debug3(f"---\n{output}\n---")
+        return (0, output)
     except subprocess.CalledProcessError as e:
+        logger.debug3(f"---\n{e.output}\n---")
         return (e.returncode, e.output)
 
 
-def get_linux_pretty_name():
-    """Returns the the value of the PRETTY_NAME key in /etc/os-release"""
-    exit_code, output = run_system_command(['cat', '/etc/os-release'])
-    if exit_code == 0:
-        for line in output.split("\n"):
-            if line.startswith('PRETTY_NAME'):
-                return line[12:].lower()
-    return ""
+def get_os_release_key(key):
+    """Returns the the value of the key in /etc/os-release"""
+    if os.path.exists("/etc/os-release"):
+        with open("/etc/os-release") as f:
+            for line in f.readlines():
+                if line.startswith(key):
+                    # NOTE: Returns the value unquoted, this is important as some
+                    # platforms have the values quoted in /etc/os-release
+                    # i.e. OpenSUSE
+                    return line[len(key) + 1:].strip().strip("'").strip('"')
+    return None
 
 
-def get_os_name():
+# This function will return the system type as follows:
+# - OSX: darwin
+# - Windows: windows
+# - Linux: the value of ID_LIKE with fallback to ID on the
+#   /etc/os-release file, being the values as follows:
+# OS            ID            ID_LIKE
+# UWSL          ubuntu        debian
+# Ubuntu        ubuntu        debian
+# Kubuntu       ubuntu        debian
+# EL8           ol            fedora
+# EL7           ol            fedora
+# RHEL          rhel          fedora
+# Fedora35      fedora        ------
+# Fedora36      fedora        ------
+# Debian        debian        ------
+# OpenSUSE-Leap opensuse-leap suse opensuse
+# Sles          sles          ------
+# Solaris       solaris       ------
+def get_os_type():
     """Returns the specific name for the current OS"""
-    system = platform.system()
-    if system == "Linux":
+    type = platform.system()
+    if type == "Linux":
         # In case of Linux, attempts to identify the specific OS
-        pretty_name = get_linux_pretty_name()
-        if "ubuntu" in pretty_name:
-            return "Ubuntu"
-        elif "oracle linux" in pretty_name:
-            return "OracleLinux"
-        elif "red hat" in pretty_name:
-            return "RedHat"
-        elif "fedora" in pretty_name:
-            return "Fedora"
-        elif "debian" in pretty_name:
-            return "Debian"
-        elif "opensuse" in pretty_name:
-            return "openSUSE"
+        type = get_os_release_key('ID_LIKE')
+        if type is None:
+            type = get_os_release_key("ID")
+
+        return type
 
     # By default returns the platform
-    return system
+    return type.lower()
 
 
-def is_wsl2():
-    return "WSL2" in platform.uname().release
+def is_wsl():
+    release = platform.uname().release.lower()
+    return "wsl2" in release or "microsoft" in release
 
 
 def in_vs_code():
@@ -131,9 +151,13 @@ def run_shell_cmd(cmd):
        A tuple containing exit code and output, if process succeeded exit code is None
     """
 
+    logger.debug3(f"Executing Shell Command: {' '.join(cmd)}")
+
     stream = popen(cmd)
     output = stream.read()
     exit_code = stream.close()
+
+    logger.debug3(f"---\n{output}\n---")
 
     return (exit_code, output)
 
