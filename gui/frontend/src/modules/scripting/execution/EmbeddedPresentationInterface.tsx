@@ -234,12 +234,20 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     changeAccessor.layoutZone(this.resultInfo.zoneId);
                 } else {
                     // Make the render resize to its content size, temporarily.
-                    this.renderTarget.style.maxHeight = `${PresentationInterface.maxAutoHeight}px`;
-                    this.renderTarget.style.height = "fit-content";
-                    const usedHeight = this.renderTarget.getBoundingClientRect().height;
+                    const resultType = this.resultData?.type ?? "text";
+                    const maxAutoHeight: number = PresentationInterface.maxAutoHeight[resultType];
+                    if (resultType === "graphData") {
+                        // Use the maximum height for graph data. We cannot measure the current height from an SVG.
+                        this.currentHeight = maxAutoHeight;
+                        this.resultInfo.zone.heightInPx = maxAutoHeight;
+                    } else {
+                        this.renderTarget.style.maxHeight = `${maxAutoHeight}px`;
+                        this.renderTarget.style.height = "fit-content";
+                        const usedHeight = this.renderTarget.getBoundingClientRect().height;
 
-                    this.resultInfo.zone.heightInPx = Math.ceil(usedHeight);
-                    this.currentHeight = this.resultInfo.zone.heightInPx;
+                        this.resultInfo.zone.heightInPx = Math.ceil(usedHeight);
+                        this.currentHeight = this.resultInfo.zone.heightInPx;
+                    }
                     changeAccessor.layoutZone(this.resultInfo.zoneId);
 
                     this.renderTarget.style.height = "";
@@ -334,8 +342,9 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             const delta = e.screenY - this.lastMouseY;
 
             if (!this.currentHeight) {
+                const maxAutoHeight: number = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
                 this.currentHeight = this.renderTarget?.getBoundingClientRect().height
-                    ?? PresentationInterface.maxAutoHeight;
+                    ?? maxAutoHeight;
             }
 
             if (this.resultInfo) {

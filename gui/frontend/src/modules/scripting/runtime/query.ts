@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,10 +21,34 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-export * from "./ResultStatus";
-export * from "./ResultView";
-export * from "./ResultTabView";
+import { IConsoleWorkerEnvironment, ScriptingApi } from "../console.worker-types";
 
-// Possible languages used for results. Note: there's a similar type EditorLanguage, but with a few other entries.
-export type ResultTextLanguage =
-    "ansi" | "typescript" | "javascript" | "mysql" | "sql" | "python" | "json" | "markdown" | "xml" | "ini";
+export const runSqlIterativeImpl = (env: IConsoleWorkerEnvironment, sql: string, callback?: (res: unknown) => void,
+    params?: unknown): void => {
+    if (callback) {
+        env.worker.pendingRequests.set(env.contextId, callback);
+    }
+
+    env.worker.postContextMessage(env.taskId, {
+        api: ScriptingApi.RunSqlIterative,
+        contextId: env.contextId,
+        code: sql,
+        params,
+    });
+};
+
+export const runSqlImpl = (env: IConsoleWorkerEnvironment, sql: string, callback?: (res: unknown) => void,
+    params?: unknown): void => {
+    if (callback) {
+        env.worker.pendingRequests.set(env.contextId, callback);
+    }
+
+    env.worker.postContextMessage(env.taskId, {
+        api: ScriptingApi.RunSql,
+        contextId: env.contextId,
+        code: sql,
+        params,
+    });
+};
+
+

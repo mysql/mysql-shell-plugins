@@ -53,7 +53,7 @@ import {
     setEditorLanguage,
     toggleExplorerHost,
     setDBEditorPassword,
-    getPieChart,
+    getGraphHost,
     clickDBEditorContextItem,
     closeDBconnection,
     setFeedbackRequested,
@@ -86,7 +86,7 @@ describe("DB Editor", () => {
     let driver: WebDriver;
     let testFailed = false;
 
-    beforeAll( async () => {
+    beforeAll(async () => {
         driver = await getDriver();
     });
 
@@ -112,7 +112,7 @@ describe("DB Editor", () => {
         }
     });
 
-    afterAll( async () => {
+    afterAll(async () => {
         await driver.quit();
     });
 
@@ -394,7 +394,7 @@ describe("DB Editor", () => {
 
             expect(await conn!.findElement(By.css(".tileDescription")).getText())
                 .toBe("my other connection");
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -508,7 +508,7 @@ describe("DB Editor", () => {
             await okBtn.click();
 
             expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -590,7 +590,7 @@ describe("DB Editor", () => {
             expect(await conDialog.findElement(By.id("ok")).isEnabled()).toBe(false);
 
             await driver.findElement(By.id("cancel")).click();
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -634,12 +634,12 @@ describe("DB Editor", () => {
             await driver.wait(
                 async () => {
                     return (await driver.findElements(
-                        By.xpath("//label[contains(text(), '"+ dbConfig.caption +"')]"))).length === 0;
+                        By.xpath("//label[contains(text(), '" + dbConfig.caption + "')]"))).length === 0;
                 },
                 2000,
                 "DB still exists",
             );
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -669,9 +669,9 @@ describe("DB Editor", () => {
                 .sendKeys("Local Sqlite connection");
 
             const inputs = await newConDialog.findElements(By.css("input.msg.input"));
-            let dbPath : WebElement;
-            for(const input of inputs) {
-                if( !(await input.getAttribute("id")) ) {
+            let dbPath: WebElement;
+            for (const input of inputs) {
+                if (!(await input.getAttribute("id"))) {
                     dbPath = input;
                 }
             }
@@ -737,7 +737,7 @@ describe("DB Editor", () => {
             expect(await resultHeaderRows[2].getText()).toBe("caption");
             expect(await resultHeaderRows[3].getText()).toBe("description");
             expect(await resultHeaderRows[4].getText()).toBe("options");
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -786,7 +786,7 @@ describe("DB Editor", () => {
             await newConDialog.findElement(By.id("sslMode")).click();
             const dropDownList = await driver.findElement(By.css(".noArrow.dropdownList"));
             await dropDownList.findElement(By.id("Require and Verify CA")).click();
-            expect( await newConDialog.findElement(By.css("#sslMode label")).getText() ).toBe("Require and Verify CA");
+            expect(await newConDialog.findElement(By.css("#sslMode label")).getText()).toBe("Require and Verify CA");
 
             const paths = await newConDialog.findElements(By.css(".tabview.top input.msg"));
             await paths[0].sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/ca.pem`);
@@ -831,7 +831,7 @@ describe("DB Editor", () => {
                 3000, "No ssl cipher");
 
             expect(await valueCol.getText()).toMatch(new RegExp(/TLS_(.*)/));
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -870,7 +870,7 @@ describe("DB Editor", () => {
                 );
 
                 expect(await defaultSchema.findElement(By.css("label")).getText()).toBe(String(dbConfig.schema));
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -928,8 +928,8 @@ describe("DB Editor", () => {
                         .length > 0,
                 ).toBe(true);
 
-                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(3);
-            } catch(e) {
+                expect((await driver.findElements(By.css(".editorPromptFirst"))).length).toBe(3);
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -988,8 +988,8 @@ describe("DB Editor", () => {
                         .length > 0,
                 ).toBe(true);
 
-                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(4);
-            } catch(e) {
+                expect((await driver.findElements(By.css(".editorPromptFirst"))).length).toBe(4);
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1044,7 +1044,7 @@ describe("DB Editor", () => {
 
                 await textArea.sendKeys(Key.ARROW_LEFT);
 
-                let execCaret = await getToolbarButton(driver,"Execute the statement at the caret position");
+                let execCaret = await getToolbarButton(driver, "Execute the statement at the caret position");
                 await execCaret?.click();
 
                 let resultSet = await driver.findElement(
@@ -1065,7 +1065,7 @@ describe("DB Editor", () => {
 
                 await textArea.sendKeys(Key.ARROW_LEFT);
 
-                execCaret = await getToolbarButton(driver,"Execute the statement at the caret position");
+                execCaret = await getToolbarButton(driver, "Execute the statement at the caret position");
                 await execCaret?.click();
 
                 await driver.sleep(1000);
@@ -1084,7 +1084,7 @@ describe("DB Editor", () => {
 
                 await textArea.sendKeys(Key.ARROW_DOWN);
 
-                execCaret = await getToolbarButton(driver,"Execute the statement at the caret position");
+                execCaret = await getToolbarButton(driver, "Execute the statement at the caret position");
                 await execCaret?.click();
 
                 await driver.sleep(1000);
@@ -1098,7 +1098,7 @@ describe("DB Editor", () => {
                 );
 
                 expect(await resultHeaderRows[0].getText()).toBe("category_id");
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1160,10 +1160,10 @@ describe("DB Editor", () => {
                 textArea = (await contentHost.findElements(By.css("textarea")))[0];
 
                 await textArea.sendKeys(
-                    "SELECT * FROM sakila.actor WHERE first_name='"+ random +"';",
+                    "SELECT * FROM sakila.actor WHERE first_name='" + random + "';",
                 );
 
-                execSelNew = await getToolbarButton(driver,"Execute selection or full block and create a new block");
+                execSelNew = await getToolbarButton(driver, "Execute selection or full block and create a new block");
                 await execSelNew?.click();
 
                 expect(await getResultStatus(driver, 2)).toContain(
@@ -1171,10 +1171,10 @@ describe("DB Editor", () => {
                 );
 
                 await textArea.sendKeys(
-                    "INSERT INTO sakila.actor (first_name, last_name) VALUES ('"+ random + "','"+ random +"')",
+                    "INSERT INTO sakila.actor (first_name, last_name) VALUES ('" + random + "','" + random + "')",
                 );
 
-                execSelNew = await getToolbarButton(driver,"Execute selection or full block and create a new block");
+                execSelNew = await getToolbarButton(driver, "Execute selection or full block and create a new block");
                 await execSelNew?.click();
 
                 expect(await getResultStatus(driver, 3)).toContain("OK");
@@ -1182,10 +1182,10 @@ describe("DB Editor", () => {
                 await commitBtn!.click();
 
                 await textArea.sendKeys(
-                    "SELECT * FROM sakila.actor WHERE first_name='"+ random +"';",
+                    "SELECT * FROM sakila.actor WHERE first_name='" + random + "';",
                 );
 
-                execSelNew = await getToolbarButton(driver,"Execute selection or full block and create a new block");
+                execSelNew = await getToolbarButton(driver, "Execute selection or full block and create a new block");
                 await execSelNew?.click();
 
                 expect(await getResultStatus(driver, 4, true)).toContain(
@@ -1199,13 +1199,13 @@ describe("DB Editor", () => {
                     async () => {
                         return (
                             (await commitBtn!.isEnabled()) === false &&
-                        (await rollBackBtn!.isEnabled()) === false
+                            (await rollBackBtn!.isEnabled()) === false
                         );
                     },
                     5000,
                     "Commit/Rollback DB changes button is still enabled ",
                 );
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1257,7 +1257,7 @@ describe("DB Editor", () => {
                     "No words found",
                 );
 
-            //REPLACE
+                //REPLACE
 
                 await expandFinderReplace(finder, true);
 
@@ -1284,7 +1284,7 @@ describe("DB Editor", () => {
                 await closeFinder(finder);
 
                 expect(await finder.getAttribute("aria-hidden")).toBe("true");
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1368,7 +1368,7 @@ describe("DB Editor", () => {
                 )!.getAttribute("class");
 
                 expect(attr.split(" ").includes("expanded") === false).toBe(true);
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1427,7 +1427,7 @@ describe("DB Editor", () => {
                 await (
                     await getToolbarButton(driver, "Execute selection or full script")
                 )!.click();
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1490,7 +1490,7 @@ describe("DB Editor", () => {
                 await (
                     await getToolbarButton(driver, "Execute selection or full script")
                 )!.click();
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1574,7 +1574,7 @@ describe("DB Editor", () => {
                 expect(await columns[2].getText()).toBe("last_name");
 
                 expect(await columns[3].getText()).toBe("last_update");
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1646,7 +1646,7 @@ describe("DB Editor", () => {
                         .findElement(By.css("textarea"))
                         .getAttribute("value"),
                 ).toBe("SELECT * FROM sakila.actor;");
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1848,7 +1848,7 @@ describe("DB Editor", () => {
                     2000,
                     "Element 6 is still expanded",
                 );
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1919,7 +1919,7 @@ describe("DB Editor", () => {
                 expect(
                     await driver.findElement(By.css("#documentSelector label")).getText(),
                 ).toBe("Standard Console");
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -1969,32 +1969,32 @@ describe("DB Editor", () => {
 
                 expect(result2).toBeDefined();
 
-                expect( await getResultColumnName(driver, "actor_id") ).toBeDefined();
+                expect(await getResultColumnName(driver, "actor_id")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "first_name") ).toBeDefined();
+                expect(await getResultColumnName(driver, "first_name")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "last_name") ).toBeDefined();
+                expect(await getResultColumnName(driver, "last_name")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "last_update") ).toBeDefined();
+                expect(await getResultColumnName(driver, "last_update")).toBeDefined();
 
                 await result2!.click();
 
-                expect( await getResultColumnName(driver, "address_id") ).toBeDefined();
+                expect(await getResultColumnName(driver, "address_id")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "address") ).toBeDefined();
+                expect(await getResultColumnName(driver, "address")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "address2") ).toBeDefined();
+                expect(await getResultColumnName(driver, "address2")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "district") ).toBeDefined();
+                expect(await getResultColumnName(driver, "district")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "city_id") ).toBeDefined();
+                expect(await getResultColumnName(driver, "city_id")).toBeDefined();
 
-                expect( await getResultColumnName(driver, "postal_code") ).toBeDefined();
+                expect(await getResultColumnName(driver, "postal_code")).toBeDefined();
 
                 await result1!.click();
 
-                expect( await getResultColumnName(driver, "actor_id") ).toBeDefined();
-            } catch(e) {
+                expect(await getResultColumnName(driver, "actor_id")).toBeDefined();
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2033,7 +2033,7 @@ describe("DB Editor", () => {
 
                 await enterCmd(driver, textArea, "\\typescript");
 
-                expect( await getOutput(driver, 3) ).toBe("Switched to TypeScript mode");
+                expect(await getOutput(driver, 3)).toBe("Switched to TypeScript mode");
 
                 await enterCmd(driver, textArea, "Math.random();");
 
@@ -2063,7 +2063,7 @@ describe("DB Editor", () => {
 
                 expect(otherResult).toMatch(new RegExp(/(\d+).(\d+)/));
 
-                expect( otherResult !== result2).toBe(true);
+                expect(otherResult !== result2).toBe(true);
 
                 await textArea.sendKeys(Key.ARROW_DOWN);
 
@@ -2075,8 +2075,8 @@ describe("DB Editor", () => {
 
                 expect(otherResult1).toMatch(new RegExp(/(\d+).(\d+)/));
 
-                expect( otherResult1 !== result4).toBe(true);
-            } catch(e) {
+                expect(otherResult1 !== result4).toBe(true);
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2104,10 +2104,10 @@ describe("DB Editor", () => {
                 await toggleExplorerHost(driver, "close");
 
                 const line2Click = await driver.findElements(By.css("#contentHost .view-line"));
-                await line2Click[line2Click.length-1].click();
+                await line2Click[line2Click.length - 1].click();
 
                 let key;
-                if(platform() === "darwin") {
+                if (platform() === "darwin") {
                     key = Key.COMMAND;
                 } else {
                     key = Key.CONTROL;
@@ -2133,7 +2133,7 @@ describe("DB Editor", () => {
                 let text = `
                 DELIMITER $$
                     select 2 $$
-                select 1  
+                select 1
                 `;
                 text = text.trim();
                 await textArea.sendKeys(text);
@@ -2147,9 +2147,9 @@ describe("DB Editor", () => {
 
                 expect(lines.length).toBe(3);
 
-                expect( await lines[0].findElement(By.css(".statementStart")) ).toBeDefined();
-                expect( await lines[1].findElement(By.css(".statementStart")) ).toBeDefined();
-                expect( await lines[2].findElement(By.css(".statementStart")) ).toBeDefined();
+                expect(await lines[0].findElement(By.css(".statementStart"))).toBeDefined();
+                expect(await lines[1].findElement(By.css(".statementStart"))).toBeDefined();
+                expect(await lines[2].findElement(By.css(".statementStart"))).toBeDefined();
 
                 await textArea.sendKeys(Key.ARROW_UP);
                 await textArea.sendKeys(Key.ARROW_UP);
@@ -2160,30 +2160,30 @@ describe("DB Editor", () => {
                         By.css("#contentHost .editorHost div.margin-view-overlays > div"))).length > lines.length;
                 }, 2000, "A new line was not found");
 
-                await driver.wait(async ()=> {
+                await driver.wait(async () => {
                     try {
                         const lines = await driver.findElements(
                             By.css("#contentHost .editorHost div.margin-view-overlays > div"));
 
-                        return (await lines[2].findElements(By.css(".statementStart")) ).length === 0;
-                    } catch(e) {
+                        return (await lines[2].findElements(By.css(".statementStart"))).length === 0;
+                    } catch (e) {
                         return false;
                     }
                 }, 5000, "Line 2 has the statement start");
 
                 await textArea.sendKeys("select 1");
 
-                await driver.wait(async ()=> {
+                await driver.wait(async () => {
                     try {
                         const lines = await driver.findElements(
                             By.css("#contentHost .editorHost div.margin-view-overlays > div"));
 
-                        return (await lines[2].findElements(By.css(".statementStart")) ).length > 0;
-                    } catch(e) {
+                        return (await lines[2].findElements(By.css(".statementStart"))).length > 0;
+                    } catch (e) {
                         return false;
                     }
                 }, 5000, "Line 2 does not have the statement start");
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2233,14 +2233,14 @@ describe("DB Editor", () => {
                     new RegExp(/OK, (\d+) records retrieved/),
                 );
 
-                const higherServer = parseInt(serverVer, 10)+1;
+                const higherServer = parseInt(serverVer, 10) + 1;
 
                 await enterCmd(driver, textArea, `/*!${higherServer} select * from actor;*/`);
 
                 expect(await getResultStatus(driver, 3)).toContain(
                     "OK, 0 records retrieved",
                 );
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2279,10 +2279,10 @@ describe("DB Editor", () => {
                 const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
                 lines.shift();
                 let spans = await lines[0].findElements(By.css("span"));
-                await spans[spans.length-1].click();
+                await spans[spans.length - 1].click();
 
-                spans =  await lines[1].findElements(By.css("span"));
-                await spans[spans.length-1].click();
+                spans = await lines[1].findElements(By.css("span"));
+                await spans[spans.length - 1].click();
                 await driver.actions().keyUp(Key.ALT).perform();
 
                 await driver.actions().keyDown(Key.BACK_SPACE).keyUp(Key.BACK_SPACE).perform();
@@ -2304,7 +2304,7 @@ describe("DB Editor", () => {
                 expect(items[0]).toContain("testing");
                 expect(items[1]).toContain("testing");
                 expect(items[2]).toContain("testing");
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2353,9 +2353,9 @@ describe("DB Editor", () => {
                         .length > 0,
                 ).toBe(true);
 
-                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(2);
+                expect((await driver.findElements(By.css(".editorPromptFirst"))).length).toBe(2);
 
-                if(platform() === "darwin") {
+                if (platform() === "darwin") {
                     await textArea.sendKeys(Key.chord(Key.COMMAND, "a"));
                 } else {
                     await textArea.sendKeys(Key.chord(Key.CONTROL, "a"));
@@ -2390,8 +2390,8 @@ describe("DB Editor", () => {
                         .length > 0,
                 ).toBe(true);
 
-                expect( (await driver.findElements(By.css(".editorPromptFirst"))).length ).toBe(3);
-            } catch(e) {
+                expect((await driver.findElements(By.css(".editorPromptFirst"))).length).toBe(3);
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2421,7 +2421,7 @@ describe("DB Editor", () => {
 
                 await enterCmd(driver, textArea, "new PieGraph(PieGraph.layout.mediumDonut, PieGraph.demoData.budget)");
 
-                let pieChart = await getPieChart(driver, 1);
+                let pieChart = await getGraphHost(driver, 1);
 
                 expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
                 expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
@@ -2429,20 +2429,20 @@ describe("DB Editor", () => {
 
                 let labels = await pieChart.findElements(By.css(".labels text"));
 
-                expect( await labels[0].getAttribute("innerHTML") ).toContain("Third Party Logistics and Packaging");
-                expect( await labels[1].getAttribute("innerHTML") ).toContain("General Retail and Wholesale");
-                expect( await labels[2].getAttribute("innerHTML") ).toContain("Manufacturing");
-                expect( await labels[3].getAttribute("innerHTML") ).toContain("E-Commerce");
-                expect( await labels[4].getAttribute("innerHTML") ).toContain("Food and Beverage");
-                expect( await labels[5].getAttribute("innerHTML") ).toContain("Constructions/Improvements/Repair");
-                expect( await labels[6].getAttribute("innerHTML") ).toContain("Furniture and Appliances");
-                expect( await labels[7].getAttribute("innerHTML") ).toContain("Motor Vehicles/Tires/Parts");
+                expect(await labels[0].getAttribute("innerHTML")).toContain("Third Party Logistics and Packaging");
+                expect(await labels[1].getAttribute("innerHTML")).toContain("General Retail and Wholesale");
+                expect(await labels[2].getAttribute("innerHTML")).toContain("Manufacturing");
+                expect(await labels[3].getAttribute("innerHTML")).toContain("E-Commerce");
+                expect(await labels[4].getAttribute("innerHTML")).toContain("Food and Beverage");
+                expect(await labels[5].getAttribute("innerHTML")).toContain("Constructions/Improvements/Repair");
+                expect(await labels[6].getAttribute("innerHTML")).toContain("Furniture and Appliances");
+                expect(await labels[7].getAttribute("innerHTML")).toContain("Motor Vehicles/Tires/Parts");
 
                 textArea = await contentHost.findElement(By.css("textarea"));
 
                 await enterCmd(driver, textArea, "new PieGraph(PieGraph.layout.mediumPie, PieGraph.demoData.budget)");
 
-                pieChart = await getPieChart(driver, 2);
+                pieChart = await getGraphHost(driver, 2);
 
                 expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
                 expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
@@ -2450,15 +2450,15 @@ describe("DB Editor", () => {
 
                 labels = await pieChart.findElements(By.css(".labels text"));
 
-                expect( await labels[0].getAttribute("innerHTML") ).toContain("Third Party Logistics and Packaging");
-                expect( await labels[1].getAttribute("innerHTML") ).toContain("General Retail and Wholesale");
-                expect( await labels[2].getAttribute("innerHTML") ).toContain("Manufacturing");
-                expect( await labels[3].getAttribute("innerHTML") ).toContain("E-Commerce");
-                expect( await labels[4].getAttribute("innerHTML") ).toContain("Food and Beverage");
-                expect( await labels[5].getAttribute("innerHTML") ).toContain("Constructions/Improvements/Repair");
-                expect( await labels[6].getAttribute("innerHTML") ).toContain("Furniture and Appliances");
-                expect( await labels[7].getAttribute("innerHTML") ).toContain("Motor Vehicles/Tires/Parts");
-            } catch(e) {
+                expect(await labels[0].getAttribute("innerHTML")).toContain("Third Party Logistics and Packaging");
+                expect(await labels[1].getAttribute("innerHTML")).toContain("General Retail and Wholesale");
+                expect(await labels[2].getAttribute("innerHTML")).toContain("Manufacturing");
+                expect(await labels[3].getAttribute("innerHTML")).toContain("E-Commerce");
+                expect(await labels[4].getAttribute("innerHTML")).toContain("Food and Beverage");
+                expect(await labels[5].getAttribute("innerHTML")).toContain("Constructions/Improvements/Repair");
+                expect(await labels[6].getAttribute("innerHTML")).toContain("Furniture and Appliances");
+                expect(await labels[7].getAttribute("innerHTML")).toContain("Motor Vehicles/Tires/Parts");
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2512,7 +2512,7 @@ describe("DB Editor", () => {
                 });
             `);
 
-                const pieChart = await getPieChart(driver, 1);
+                const pieChart = await getGraphHost(driver, 1);
 
                 expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
                 expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
@@ -2520,12 +2520,12 @@ describe("DB Editor", () => {
 
                 const labels = await pieChart.findElements(By.css(".labels text"));
 
-                expect( await labels[0].getText() ).toBe("PENELOPE");
-                expect( await labels[1].getText() ).toBe("NICK");
-                expect( await labels[2].getText() ).toBe("ED");
-                expect( await labels[3].getText() ).toBe("JENNIFER");
-                expect( await labels[4].getText() ).toBe("JOHNNY");
-            } catch(e) {
+                expect(await labels[0].getText()).toBe("PENELOPE");
+                expect(await labels[1].getText()).toBe("NICK");
+                expect(await labels[2].getText()).toBe("ED");
+                expect(await labels[3].getText()).toBe("JENNIFER");
+                expect(await labels[4].getText()).toBe("JOHNNY");
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2578,7 +2578,7 @@ describe("DB Editor", () => {
                     const conDialog = await driver.findElement(By.css(".valueEditDialog"));
                     await conDialog.findElement(By.id("clearPassword")).click();
                 }
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2611,8 +2611,8 @@ describe("DB Editor", () => {
 
                 const feedbackDialog = await driver.findElement(By.css(".valueEditDialog"));
 
-                expect( await feedbackDialog.findElement(By.css(".title label")).getText() ).toBe("Feedback Requested");
-            } catch(e) {
+                expect(await feedbackDialog.findElement(By.css(".title label")).getText()).toBe("Feedback Requested");
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }
@@ -2645,7 +2645,7 @@ describe("DB Editor", () => {
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
-            } catch(e) {
+            } catch (e) {
                 testFailed = true;
                 throw e;
             }

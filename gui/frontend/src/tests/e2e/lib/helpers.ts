@@ -202,11 +202,11 @@ export const getResultStatus = async (driver: WebDriver, blockNbr: number, isSel
             results = await driver.findElements(By.css(".zoneHost"));
             const about = await results[0].findElement(By.css("span"));
             //first element is usually the about info
-            if ( (await about.getText()).indexOf("Welcome") !== -1 ) {
+            if ((await about.getText()).indexOf("Welcome") !== -1) {
                 results.shift();
             }
-            if(results.length > 0) {
-                if ( (await results[0].findElements(By.css(".message.info"))).length > 0 ) {
+            if (results.length > 0) {
+                if ((await results[0].findElements(By.css(".message.info"))).length > 0) {
                     //if languange has been changed...
                     results.shift();
                 }
@@ -214,13 +214,13 @@ export const getResultStatus = async (driver: WebDriver, blockNbr: number, isSel
                 return false;
             }
 
-            return results[blockNbr-1] !== undefined;
+            return results[blockNbr - 1] !== undefined;
         },
         7000,
         `Result Status is undefined (block number ${blockNbr})`,
     );
 
-    const block = await results![blockNbr-1].findElement(By.css(obj));
+    const block = await results![blockNbr - 1].findElement(By.css(obj));
 
     return block.getAttribute("innerHTML");
 };
@@ -778,7 +778,7 @@ export const getResultTab = async (driver: WebDriver, tabName: string): Promise<
         5000, "Tabs were not found in time");
 
     for (const tab of tabs) {
-        if( await tab.getAttribute("id") !== "selectorItemstepDown" &&
+        if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
             await tab.getAttribute("id") !== "selectorItemstepUp") {
             if (await (await tab.findElement(By.css("label"))).getText() === tabName) {
 
@@ -846,7 +846,7 @@ const existsAboutInformation = async (driver: WebDriver): Promise<boolean> => {
     return false;
 };
 
-export const getPieChart = async (driver: WebDriver, blockNbr: number): Promise<WebElement> => {
+export const getGraphHost = async (driver: WebDriver, blockNbr: number): Promise<WebElement> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     let context;
     if (await existsAboutInformation(driver)) {
@@ -855,7 +855,7 @@ export const getPieChart = async (driver: WebDriver, blockNbr: number): Promise<
         context = zoneHosts[blockNbr - 1];
     }
 
-    return context.findElement(By.css(".pieChart"));
+    return context.findElement(By.css(".graphHost"));
 };
 
 export const getOutput = async (driver: WebDriver, blockNbr: number): Promise<string> => {

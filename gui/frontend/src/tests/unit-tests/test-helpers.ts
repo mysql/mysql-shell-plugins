@@ -470,6 +470,76 @@ export const sendRightClick = (element: Element): void => {
 };
 
 /**
+ * Simulates an entering, moving and leaving mouse pointer.
+ *
+ * @param element The element for which to simulate the events.
+ * @param includeTouch When true also touch start, move and end are triggered.
+ */
+export const sendPointerMoveSequence = async (element: Element, includeTouch = false): Promise<void> => {
+    const event1 = new MouseEvent("pointerenter", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(event1);
+    await nextProcessTick();
+
+    const event2 = new MouseEvent("pointermove", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(event2);
+    await nextProcessTick();
+
+    const event3 = new MouseEvent("pointerleave", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(event3);
+    await nextProcessTick();
+
+    if (includeTouch) {
+        const event4 = new MouseEvent("touchstart", {
+            bubbles: true,
+            cancelable: false,
+            view: window,
+            clientX: element.getBoundingClientRect().x,
+            clientY: element.getBoundingClientRect().y,
+        });
+        element.dispatchEvent(event4);
+        await nextProcessTick();
+
+        const event5 = new MouseEvent("touchmove", {
+            bubbles: true,
+            cancelable: false,
+            view: window,
+            clientX: element.getBoundingClientRect().x,
+            clientY: element.getBoundingClientRect().y,
+        });
+        element.dispatchEvent(event5);
+        await nextProcessTick();
+
+        const event6 = new MouseEvent("touchend", {
+            bubbles: true,
+            cancelable: false,
+            view: window,
+            clientX: element.getBoundingClientRect().x,
+            clientY: element.getBoundingClientRect().y,
+        });
+        element.dispatchEvent(event6);
+        await nextProcessTick();
+    }
+};
+
+/**
  * Helper method to launch a MySQL Shell for a test suite and wait for it until it's fully up.
  *
  * @param testId A unique ID to identify a test suite, which is used to customize the user data dir name.

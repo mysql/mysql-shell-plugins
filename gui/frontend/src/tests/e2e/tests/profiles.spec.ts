@@ -94,7 +94,7 @@ xdescribe("Profiles", () => {
             await dialog.findElement(By.id("ok")).click();
 
             expect(await getProfile(driver, "ClientQA1")).toBeDefined();
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -134,7 +134,7 @@ xdescribe("Profiles", () => {
             expect(await getProfile(driver, "ClientQA2")).toBeDefined();
 
             expect(await getProfile(driver, "ClientQA1")).toBeUndefined();
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -172,7 +172,7 @@ xdescribe("Profiles", () => {
             await waitForHomePage(driver);
 
             expect(await getCurrentProfile(driver)).toBe("ClientQA1");
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -215,7 +215,7 @@ xdescribe("Profiles", () => {
             expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(
                 0,
             );
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -266,7 +266,7 @@ xdescribe("Profiles", () => {
             await confirmDialog.findElement(By.id("accept")).click();
 
             expect(await getProfile(driver, "ClientQA2")).toBeUndefined();
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -309,7 +309,7 @@ xdescribe("Profiles", () => {
 
             expect((await driver.findElements(By.css(".valueEditDialog"))).length)
                 .toBe(0);
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -342,7 +342,7 @@ xdescribe("Profiles", () => {
                 "Default Light",
             );
 
-            expect( String(await getBackgroundColor(driver)).trim()).toBe("#FFFFFF");
+            expect(String(await getBackgroundColor(driver)).trim()).toBe("#FFFFFF");
 
             await setSetting(driver, "dbEditor.startLanguage", "selectList", "python");
 
@@ -443,7 +443,7 @@ xdescribe("Profiles", () => {
             expect(
                 await getSettingValue(driver, "shellSession.sessionBrowser.showGreeting", "checkbox"),
             ).toBe("unchecked");
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }

@@ -297,10 +297,6 @@
     fill: none;
 }
 
-.msg .renderTarget svg g text {
-    fill: var(--editorZone-foreground);
-}
-
 .msg.resultHost .resultView .tabulator .tabulator-placeholder {
     background-color: var(--resultView-background);
 }

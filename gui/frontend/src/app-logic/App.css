@@ -100,7 +100,7 @@ pre {
 }
 
 .copyright::after {
-    content: "© 2020, 2021, Oracle Corporation and/or its affiliates.";
+    content: "© 2020, 2022, Oracle Corporation and/or its affiliates.";
     display: inline-block;
     margin-top: 80px;
     font-size: 10px;
@@ -112,9 +112,7 @@ html.themeSwitch,
 html.themeSwitch *,
 html.themeSwitch *:before,
 html.themeSwitch *:after {
-    transition: color 500ms !important;
-    transition: background 500ms !important;
-    transition: background-color 500ms !important;
+    transition: color 500ms, background-color 500ms !important;
     transition-delay: 0 !important;
 }
 

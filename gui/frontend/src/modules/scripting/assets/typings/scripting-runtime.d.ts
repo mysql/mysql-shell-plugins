@@ -21,6 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable max-classes-per-file */
+
 declare interface IRequestState {
     type: string;
     msg: string;
@@ -36,11 +38,11 @@ declare interface IResultSetData {
     totalRowCount?: number;
 }
 
-declare interface IResultSetRow {
+declare interface IDataRecord {
     [key: string]: unknown;
 }
 
-declare type ResultSetRows = IResultSetRow[];
+declare type DataRecords = IDataRecord[];
 
 
 /**
@@ -66,70 +68,200 @@ declare function runSqlIterative(code: string, callback?: (res: IResultSetData) 
  * @param params Optional parameters for the query.
  * @param callback A function to call on results.
  */
-declare function runSql(code: string, callback?: (res: IResultSetRow[]) => void, params?: unknown): void;
+declare function runSql(code: string, callback?: (res: IDataRecord[]) => void, params?: unknown): void;
 
+declare interface IBaseGraphEntry {
+    /** The series type. */
+    type: string;
 
-declare interface IPieGraphDataPoint {
-    /** The label to show for this data point. If no label is given then the value is printed instead. */
-    label?: string;
+    name?: string;
 
+    /** The ID used for the graph entry top level node. */
+    id?: string;
+
+    /** A local color palette for a single series. */
+    colors?: string[];
+}
+
+declare interface IPieDatum {
+    /** Title for a pie piece and id for the mapping between the datum and the legend. */
+    name?: string;
     value: number;
+}
+
+declare interface IPieGraphConfiguration extends IBaseGraphEntry {
+    type: "pie";
+
+    /** Inner and outer radius in CSS units. If not given the parent determines the size. */
+    radius?: [number, number];
+
+    /** The angle is specified in radians, with 0 at -y (12 o’clock) and positive angles proceeding clockwise. */
+    startAngle?: number;
+
+    /** The angle is specified in radians, with 0 at -y (12 o’clock) and positive angles proceeding clockwise. */
+    endAngle?: number;
 
     /**
-     * An optional color to use for this pie piece (specified as HTML color).
-     *  If not given then a default one is used instead.
+     * If the corner radius is greater than zero, the corners of the arc are rounded using circles of the given radius.
+     * For a circular sector, the two outer corners are rounded; for an annular sector, all four corners are rounded.
      */
-    color?: string;
-}
+    borderRadius?: number;
 
-/**
- * Defines the configuration of a PieChart and (optionally) initial data.
- */
-declare interface IPieGraphLayout {
-    /** The width of the root svg group element. */
-    width?: number;
-
-    /** The height of the root svg group element. */
-    height?: number;
-
-    /** The inner radius of the pie chart. Values > 0 create a donut graphic. */
-    innerRadius?: number;
-
-    /** The outer radius of the pie chart. Determines the overall size and must be > the inner radius. */
-    outerRadius?: number;
-
-    /** The horizontal position where to place the center of the pie chart. */
-    centerX?: number;
-
-    /** The vertical position where to place the center of the pie chart. */
-    centerY?: number;
-}
-
-declare interface IPieLayoutData {
-    mediumPie: IPieGraphLayout;
-    mediumDonut: IPieGraphLayout;
-    largePie: IPieGraphLayout;
-    largeDonut: IPieGraphLayout;
-}
-
-declare interface IPieDemoData {
-    budget: IPieGraphDataPoint[];
-    spending: IPieGraphDataPoint[];
-}
-
-/**
- * This class creates a Pie chart graphic.
- */
-declare class PieGraph {
-    public static readonly layout: IPieLayoutData;
-    public static readonly demoData: IPieDemoData;
+    borderColor?: string;
+    borderWidth?: number;
 
     /**
-     * Creates a new pie graphic using the given data.
-     *
-     * @param data Specify values that configure the graph.
+     * Specifies a padding sector between pie arcs.
+     * The recommended minimum inner radius when using padding is outerRadius * padAngle / sin(θ), where θ is
+     * the angular span of the smallest arc before padding.
      */
-    public constructor(layout: IPieGraphLayout, data: IPieGraphDataPoint[] | IResultSetRow[]);
+    padAngle?: number;
 
-    public addDataPoints(data: IPieGraphDataPoint[]): void;
+    /**
+     * The pad radius determines the fixed linear distance separating adjacent arcs, defined as padRadius * padAngle.
+     */
+    padRadius?: number;
+
+    data?: IPieDatum[];
+}
+
+declare interface IXYDatum {
+    xValue: number | Date;
+    yValue: number;
+}
+
+declare type DatumDataType = string | number | Date;
+
+declare type ITabularGraphRow = DatumDataType[];
+declare type ITabularGraphData = ITabularGraphRow[];
+
+declare interface IJsonGraphEntry {
+    [key: string]: DatumDataType;
+}
+
+declare type IJsonGraphData = IJsonGraphEntry[];
+
+/**
+ * Graph data consist of one of two formats:
+ *
+ * Tabular data uses the first entire row and the first column (the first value in each row) as categories of the data
+ * (depending on the graph layout).
+ *
+ * JSON data uses keys for categories, which nonetheless follow a similar pattern as tabular data.
+ */
+declare type IGraphData = ITabularGraphData | IJsonGraphData;
+
+declare interface ILineGraphConfiguration extends IBaseGraphEntry {
+    type: "line";
+
+    // The x axis value title for a given datum.
+    xTitle?: (datum: IXYDatum, index: number, data: IXYDatum[]) => string;
+
+    // The top margin, in pixels (default: 20).
+    marginTop?: number;
+
+    // The right margin, in pixels (default: 30).
+    marginRight?: number;
+
+    // The bottom margin, in pixels (default: 30).
+    marginBottom?: number;
+
+    // The left margin, in pixels (default: 40).
+    marginLeft?: number;
+
+    // Minimum and maximum X value.
+    xDomain?: [number, number] | [Date, Date];
+
+    // Minimum and maximum Y value.
+    yDomain?: [number, number];
+
+    // CSS Line color (default: "currentColor").
+    strokeColor?: string;
+
+    // Width of the line in pixels (default: 1.5).
+    strokeWidth?: number;
+
+    // The join type of line segments (default: "round").
+    strokeLinejoin?: string;
+
+    // The line cap of line segments (defaultL "round").
+    strokeLinecap?: string;
+
+    // A format specifier string for the y-axis,
+    yFormat?: string;
+
+    // A label for the y-axis.
+    yLabel?: string;
+
+    data?: IXYDatum[];
+}
+
+declare interface IBarGraphConfiguration extends IBaseGraphEntry {
+    type: "bar";
+
+    // The x axis tooltip for a given datum.
+    xTitle?: (datum: DatumDataType, index: number, data: DatumDataType[]) => string;
+
+    // The top margin, in pixels (default: 20).
+    marginTop?: number;
+
+    // The right margin, in pixels (default: 30).
+    marginRight?: number;
+
+    // The bottom margin, in pixels (default: 30).
+    marginBottom?: number;
+
+    // The left margin, in pixels (default: 40).
+    marginLeft?: number;
+
+    // Amount of x-space between bars (default: 0.1).
+    xPadding?: number;
+
+    // Minimum and maximum X value.
+    xDomain?: [DatumDataType, DatumDataType];
+
+    // Minimum and maximum Y value.
+    yDomain?: [DatumDataType, DatumDataType];
+
+    // A format specifier string for the y-axis,
+    yFormat?: string;
+
+    // A label for the y-axis.
+    yLabel?: string;
+
+    data?: IGraphData;
+}
+
+/** Description of an entry in the graph. */
+declare type IGraphConfiguration = IPieGraphConfiguration | ILineGraphConfiguration | IBarGraphConfiguration;
+
+/** Alignment of content within its parent container. */
+declare enum IGraphAlignment {
+    Start,
+    Middle,
+    End,
+}
+
+/** Description of a caption in a graph (titles, legend labels, data labels etc.). */
+declare interface IGraphLabel {
+    text: string;
+    horizontalAlignment?: IGraphAlignment;
+    verticalAlignment?: IGraphAlignment;
+}
+
+/** The top level interface for a graph host, which can contain multiple graphs. */
+declare interface IGraphOptions {
+    /** The graph's main title. */
+    title?: IGraphLabel;
+
+    /** The list of entries in the graph. */
+    series?: IGraphConfiguration[];
+
+    /** The global color palette. */
+    colors?: string[];
+}
+
+/** The entry point for graph rendering. */
+declare class Graph {
+    public render(options: IGraphOptions): void;
 }

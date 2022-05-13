@@ -22,77 +22,34 @@
  */
 
 /* eslint-disable no-restricted-globals */
-/* eslint-disable no-eval */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable max-classes-per-file */
 
 import {
     PrivateWorker, ScriptingApi, IConsoleWorkerResultData, IConsoleWorkerTaskData,
 } from "../console.worker-types";
-import { PieGraphProxy } from "../PieGraph";
 
-const ctx = self as unknown as PrivateWorker;
+import { execute } from "../runtime/execute";
 
-ctx.pendingRequests = new Map();
-ctx.postContextMessage = (taskId: number, data: IConsoleWorkerResultData): void => {
-    ctx.postMessage({
+const worker = self as unknown as PrivateWorker;
+
+worker.pendingRequests = new Map();
+worker.postContextMessage = (taskId: number, data: IConsoleWorkerResultData): void => {
+    worker.postMessage({
         taskId,
         data,
     });
 };
 
-// Public classes to give access to the various proxies.
-class PieGraph extends PieGraphProxy { }
-
-ctx.addEventListener("message", (event: MessageEvent) => {
+worker.addEventListener("message", (event: MessageEvent) => {
     const { taskId, data }: { taskId: number; data: IConsoleWorkerTaskData } = event.data;
 
-    const print = (value: unknown): void => {
-        if (typeof value !== "string") {
-            value = JSON.stringify(value, null, "\t");
-        }
-
-        ctx.postContextMessage(taskId, {
-            api: ScriptingApi.Print,
-            contextId: data.contextId!,
-            value,
-        });
-    };
-
-    const runSqlIterative = (sql: string, callback?: (res: unknown) => void, params?: unknown): void => {
-        if (callback) {
-            ctx.pendingRequests.set(data.contextId!, callback);
-        }
-
-        ctx.postContextMessage(taskId, {
-            api: ScriptingApi.RunSqlIterative,
-            contextId: data.contextId!,
-            code: sql,
-            params,
-        });
-    };
-
-    const runSql = (sql: string, callback?: (res: unknown) => void, params?: unknown): void => {
-        if (callback) {
-            ctx.pendingRequests.set(data.contextId!, callback);
-        }
-
-        ctx.postContextMessage(taskId, {
-            api: ScriptingApi.RunSql,
-            contextId: data.contextId!,
-            code: sql,
-            params,
-        });
-    };
-
-    ctx.currentContext = data.contextId;
-    ctx.currentTaskId = taskId;
+    worker.currentContext = data.contextId;
+    worker.currentTaskId = taskId;
 
     if (data.code) {
-        let result = "";
+        let result: unknown;
         let isError = false;
         try {
-            result = eval(data.code);
+            result = execute({ worker, taskId, contextId: data.contextId ?? "" }, data.code);
             if (typeof result === "object" || typeof result === "function" || Array.isArray(result)) {
                 result = String(result);
             }
@@ -101,7 +58,7 @@ ctx.addEventListener("message", (event: MessageEvent) => {
             isError = true;
         }
 
-        ctx.postContextMessage(taskId, {
+        worker.postContextMessage(taskId, {
             api: ScriptingApi.Result,
             contextId: data.contextId!,
             result,
@@ -110,22 +67,28 @@ ctx.addEventListener("message", (event: MessageEvent) => {
         });
     } else if (data.result) {
         // Query data sent back from the application.
-        const callback = ctx.pendingRequests.get(data.contextId!);
+        const callback = worker.pendingRequests.get(data.contextId!);
         if (callback) {
             callback(data.result);
             if (data.final) {
-                ctx.postContextMessage(taskId, {
+                worker.pendingRequests.delete(data.contextId!);
+
+                worker.postContextMessage(taskId, {
                     api: ScriptingApi.Done,
                     contextId: data.contextId!,
                     final: true,
                 });
             }
-        } else if (data.final) {
-            ctx.postContextMessage(taskId, {
-                api: ScriptingApi.QueryStatus,
-                contextId: data.contextId!,
-                result: data.result,
-                final: true,
+        } else {
+            let value = data.result;
+            if (typeof value !== "string") {
+                value = JSON.stringify(value, null, "\t");
+            }
+
+            worker.postContextMessage(taskId, {
+                api: ScriptingApi.Print,
+                contextId: data.contextId ?? "",
+                value,
             });
         }
     }

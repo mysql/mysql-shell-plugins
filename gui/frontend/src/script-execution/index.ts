@@ -128,14 +128,7 @@ export interface IResultSetRows extends IResultSetContent {
 export interface IGraphData {
     type: "graphData";
 
-    width?: number;
-    height?: number;
-    innerRadius?: number;
-    outerRadius?: number;
-    centerX?: number;
-    centerY?: number;
-
-    data: unknown[];
+    options?: IGraphOptions;
 }
 
 export interface IRequestIds {
