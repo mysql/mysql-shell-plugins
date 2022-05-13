@@ -38,6 +38,8 @@ if (!process.env.SHELL_UI_HOSTNAME) {
         process.env.DBHOSTNAME = "db1";
         process.env.DBUSERNAME= "root";
         process.env.DBPASSWORD = "root";
+        process.env.DBUSERNAME1= "clientqa";
+        process.env.DBPASSWORD1 = "clientqa";
         process.env.DBPORT = "3306";
         process.env.SSL_ROOT_FOLDER = "/home/clientqa/ssl/db1";
         process.env.SQLITE_PATH_FILE = "/home/clientqa/.mysqlsh/plugin_data/gui_plugin/mysqlsh_gui_backend.sqlite3";
@@ -72,6 +74,16 @@ if (!process.env.DBUSERNAME) {
 
 if (!process.env.DBPASSWORD) {
     error("No value for environment var DBPASSWORD was provided");
+    exit(1);
+}
+
+if (!process.env.DBUSERNAME1) {
+    error("No value for environment var DBUSERNAME1 (another user beyond root) was provided");
+    exit(1);
+}
+
+if (!process.env.DBPASSWORD1) {
+    error("No value for environment var DBPASSWORD1 (another password beyond root's password) was provided");
     exit(1);
 }
 

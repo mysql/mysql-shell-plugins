@@ -61,6 +61,7 @@ import {
     setDBEditorStartLang,
     initConDialog,
     existsScript,
+    writeSQL,
 } from "../lib/helpers";
 
 const dbConfig: IDbConfig = {
@@ -85,6 +86,7 @@ const dbConfig: IDbConfig = {
 describe("DB Editor", () => {
     let driver: WebDriver;
     let testFailed = false;
+    let captionId = "";
 
     beforeAll(async () => {
         driver = await getDriver();
@@ -118,6 +120,9 @@ describe("DB Editor", () => {
 
     it("Create a new database connection", async () => {
         try {
+
+            dbConfig.caption += String(new Date().valueOf());
+            captionId = dbConfig.caption;
             await driver.findElement(By.css(".connectionBrowser")).findElement(By.id("-1")).click();
             const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
 
@@ -334,6 +339,125 @@ describe("DB Editor", () => {
                 dbConfig.description,
             );
         } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Feedback Requested - Do not save password", async () => {
+        try {
+            await driver.findElement(By.id("gui.sqleditor")).click();
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, captionId),
+            );
+
+            await setDBEditorPassword(driver, dbConfig);
+
+            await setFeedbackRequested(driver, dbConfig, "N");
+
+            expect(await (await getConnectionTab(driver, "1")).getText())
+                .toBe(dbConfig.caption);
+
+            await closeDBconnection(driver, captionId);
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, dbConfig.caption),
+            );
+
+            await setDBEditorPassword(driver, dbConfig);
+
+            const feedbackDialog = await driver.findElement(By.css(".valueEditDialog"));
+
+            expect( await feedbackDialog.findElement(By.css(".title label")).getText() ).toBe("Feedback Requested");
+        } catch(e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Feedback Requested - Save password", async () => {
+        try {
+            await driver.findElement(By.id("gui.sqleditor")).click();
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, captionId),
+            );
+
+            await setDBEditorPassword(driver, dbConfig);
+
+            await setFeedbackRequested(driver, dbConfig, "Y");
+
+            try {
+                expect(await (await getConnectionTab(driver, "1")).getText())
+                    .toBe(captionId);
+
+                await closeDBconnection(driver, captionId);
+
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await getDB(driver, captionId),
+                );
+
+                expect(await (await getConnectionTab(driver, "1")).getText())
+                    .toBe(captionId);
+            } catch(e) { console.error(e); } finally {
+                await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+                await waitForHomePage(driver);
+                await driver.findElement(By.id("gui.sqleditor")).click();
+                const host = await getDB(driver, captionId);
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await host!.findElement(By.id("triggerTileAction")),
+                );
+                const contextMenu = await driver.wait(
+                    until.elementLocated(By.css(".noArrow.menu")),
+                    2000,
+                );
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await contextMenu.findElement(By.id("edit")),
+                );
+                const conDialog = await driver.findElement(By.css(".valueEditDialog"));
+                await conDialog.findElement(By.id("clearPassword")).click();
+            }
+        } catch(e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Feedback Requested - Never save password", async () => {
+        try {
+            await driver.findElement(By.id("gui.sqleditor")).click();
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, captionId),
+            );
+
+            await setDBEditorPassword(driver, dbConfig);
+
+            await setFeedbackRequested(driver, dbConfig, "v");
+
+            expect(await (await getConnectionTab(driver, "1")).getText())
+                .toBe(captionId);
+
+            await closeDBconnection(driver, captionId);
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, captionId),
+            );
+
+            await setDBEditorPassword(driver, dbConfig);
+
+            expect(await (await getConnectionTab(driver, "1")).getText())
+                .toBe(captionId);
+        } catch(e) {
             testFailed = true;
             throw e;
         }
@@ -805,8 +929,12 @@ describe("DB Editor", () => {
                 conn,
             );
 
-            await setDBEditorPassword(driver, dbConfig);
-            await setFeedbackRequested(driver, dbConfig, "N");
+            try {
+                await setDBEditorPassword(driver, dbConfig);
+                await setFeedbackRequested(driver, dbConfig, "Y");
+            } catch (e) {
+                //continue
+            }
 
             expect(await (await getConnectionTab(driver, "1")).getText()).toBe(conName);
             await toggleExplorerHost(driver, "close");
@@ -859,9 +987,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
@@ -887,9 +1022,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -898,11 +1040,7 @@ describe("DB Editor", () => {
 
                 await setEditorLanguage(driver, "mysql");
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
-
-                await contentHost
-                    .findElement(By.css("textarea"))
-                    .sendKeys("select * from sakila.actor");
+                await writeSQL(driver, "select * from sakila.actor");
 
                 const execSel = await getToolbarButton(driver, "Execute selection or full block");
                 await execSel?.click();
@@ -945,9 +1083,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
                     dbConfig.caption,
@@ -957,11 +1102,7 @@ describe("DB Editor", () => {
 
                 await setEditorLanguage(driver, "mysql");
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
-
-                await contentHost
-                    .findElement(By.css("textarea"))
-                    .sendKeys("select * from sakila.actor");
+                await writeSQL(driver, "select * from sakila.actor");
 
                 const exeSelNew = await getToolbarButton(driver,
                     "Execute selection or full block and create a new block");
@@ -1007,9 +1148,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -1018,19 +1166,17 @@ describe("DB Editor", () => {
 
                 await setEditorLanguage(driver, "mysql");
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
+                const textArea = await driver.findElement(By.css("textarea"));
 
-                const textArea = await contentHost.findElement(By.css("textarea"));
-
-                await textArea.sendKeys("select * from sakila.actor;");
+                await writeSQL(driver, "select * from sakila.actor;");
 
                 await textArea.sendKeys(Key.RETURN);
 
-                await textArea.sendKeys("select * from sakila.address;");
+                await writeSQL(driver, "select * from sakila.address;");
 
                 await textArea.sendKeys(Key.RETURN);
 
-                await textArea.sendKeys("select * from sakila.category;");
+                await writeSQL(driver, "select * from sakila.category;");
 
                 await driver.wait(async () => {
                     return (await driver.findElements(By.css(".statementStart"))).length === 3;
@@ -1114,9 +1260,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -1129,15 +1282,10 @@ describe("DB Editor", () => {
                 await driver.executeScript("arguments[0].scrollIntoView(true)", autoCommit);
                 await autoCommit!.click();
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
-
-                let textArea = await contentHost.findElement(By.css("textarea"));
-
                 const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
 
-                await textArea.sendKeys(
-                    "INSERT INTO sakila.actor (first_name, last_name) VALUES ('" + random + "','" + random + "')",
-                );
+                await writeSQL(driver,
+                    `INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}')`);
 
                 const commitBtn = await getToolbarButton(driver, "Commit DB changes");
 
@@ -1157,11 +1305,7 @@ describe("DB Editor", () => {
 
                 await rollBackBtn!.click();
 
-                textArea = (await contentHost.findElements(By.css("textarea")))[0];
-
-                await textArea.sendKeys(
-                    "SELECT * FROM sakila.actor WHERE first_name='" + random + "';",
-                );
+                await writeSQL(driver, `SELECT * FROM sakila.actor WHERE first_name='${random}';`);
 
                 execSelNew = await getToolbarButton(driver, "Execute selection or full block and create a new block");
                 await execSelNew?.click();
@@ -1170,9 +1314,8 @@ describe("DB Editor", () => {
                     "OK, 0 records retrieved",
                 );
 
-                await textArea.sendKeys(
-                    "INSERT INTO sakila.actor (first_name, last_name) VALUES ('" + random + "','" + random + "')",
-                );
+                await writeSQL(driver,
+                    `INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}`);
 
                 execSelNew = await getToolbarButton(driver, "Execute selection or full block and create a new block");
                 await execSelNew?.click();
@@ -1181,9 +1324,7 @@ describe("DB Editor", () => {
 
                 await commitBtn!.click();
 
-                await textArea.sendKeys(
-                    "SELECT * FROM sakila.actor WHERE first_name='" + random + "';",
-                );
+                await writeSQL(driver, `SELECT * FROM sakila.actor WHERE first_name='${random}';`);
 
                 execSelNew = await getToolbarButton(driver, "Execute selection or full block and create a new block");
                 await execSelNew?.click();
@@ -1221,9 +1362,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -1232,9 +1380,7 @@ describe("DB Editor", () => {
 
                 const contentHost = await driver.findElement(By.id("contentHost"));
 
-                await contentHost
-                    .findElement(By.css("textarea"))
-                    .sendKeys("select from sakila sakila sakila");
+                await writeSQL(driver, `select from sakila sakila sakila`);
 
                 const findBtn = await getToolbarButton(driver, "Find");
                 await findBtn!.click();
@@ -1300,9 +1446,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -1383,9 +1536,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
@@ -1442,9 +1602,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
@@ -1504,9 +1671,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
                     dbConfig.caption,
@@ -1587,9 +1761,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
@@ -1689,9 +1870,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
@@ -1863,9 +2051,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
 
@@ -1934,9 +2129,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
                     dbConfig.caption,
@@ -1946,14 +2148,8 @@ describe("DB Editor", () => {
 
                 await setEditorLanguage(driver, "mysql");
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
+                await writeSQL(driver, "select * from sakila.actor;select * from sakila.address;");
 
-                const textArea = await contentHost.findElement(By.css("textarea"));
-
-                await textArea.sendKeys(
-                    "select * from sakila.actor;select * from sakila.address;",
-                );
-                await driver.sleep(1000);
                 await (
                     await getToolbarButton(
                         driver,
@@ -2009,9 +2205,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
                     dbConfig.caption,
@@ -2093,9 +2296,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
                     dbConfig.caption,
@@ -2127,16 +2337,15 @@ describe("DB Editor", () => {
                     .keyUp(Key.BACK_SPACE)
                     .perform();
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
 
-                const textArea = await contentHost.findElement(By.css("textarea"));
                 let text = `
                 DELIMITER $$
                     select 2 $$
                 select 1
                 `;
+
                 text = text.trim();
-                await textArea.sendKeys(text);
+                await writeSQL(driver, text);
 
                 await driver.wait(async () => {
                     return (await driver.findElements(By.css(".statementStart"))).length > 1;
@@ -2151,6 +2360,8 @@ describe("DB Editor", () => {
                 expect(await lines[1].findElement(By.css(".statementStart"))).toBeDefined();
                 expect(await lines[2].findElement(By.css(".statementStart"))).toBeDefined();
 
+                const contentHost = await driver.findElement(By.id("contentHost"));
+                const textArea = await contentHost.findElement(By.css("textarea"));
                 await textArea.sendKeys(Key.ARROW_UP);
                 await textArea.sendKeys(Key.ARROW_UP);
                 await textArea.sendKeys(Key.ENTER);
@@ -2198,9 +2409,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -2255,24 +2473,27 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
-
-                const textArea = await contentHost.findElement(By.css("textarea"));
-
-                await textArea.sendKeys("select * from sakila.actor;");
+                await writeSQL(driver, "select * from sakila.actor;");
                 await driver.actions().keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
-                await textArea.sendKeys("select * from sakila.address;");
+                await writeSQL(driver, "select * from sakila.address;");
                 await driver.actions().keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
-                await textArea.sendKeys("select * from sakila.city;");
+                await writeSQL(driver, "select * from sakila.city;");
 
                 await driver.actions().keyDown(Key.ALT).perform();
 
@@ -2290,6 +2511,9 @@ describe("DB Editor", () => {
                 await driver.actions().keyDown(Key.BACK_SPACE).keyUp(Key.BACK_SPACE).perform();
                 await driver.sleep(1000);
                 await driver.actions().keyDown(Key.BACK_SPACE).keyUp(Key.BACK_SPACE).perform();
+
+                const contentHost = await driver.findElement(By.id("contentHost"));
+                const textArea = await contentHost.findElement(By.css("textarea"));
 
                 let items = (await textArea.getAttribute("value")).split("\n");
                 items.shift();
@@ -2321,18 +2545,23 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
 
-                const textArea = await driver.findElement(By.id("contentHost")).findElement(By.css("textarea"));
-                await textArea.sendKeys("select * from sakila.actor");
-                await textArea.sendKeys(Key.ENTER);
+                await writeSQL(driver, "select * from sakila.actor");
 
                 await clickDBEditorContextItem(driver, "Execute Block");
 
@@ -2355,10 +2584,10 @@ describe("DB Editor", () => {
 
                 expect((await driver.findElements(By.css(".editorPromptFirst"))).length).toBe(2);
 
-                if (platform() === "darwin") {
-                    await textArea.sendKeys(Key.chord(Key.COMMAND, "a"));
+                if(platform() === "darwin") {
+                    await writeSQL(driver, Key.chord(Key.COMMAND, "a"));
                 } else {
-                    await textArea.sendKeys(Key.chord(Key.CONTROL, "a"));
+                    await writeSQL(driver, Key.chord(Key.CONTROL, "a"));
                 }
 
                 await driver.actions()
@@ -2367,8 +2596,7 @@ describe("DB Editor", () => {
                     .pause(1000)
                     .perform();
 
-                await textArea.sendKeys("select * from sakila.city");
-                await textArea.sendKeys(Key.ENTER);
+                await writeSQL(driver, "select * from sakila.city");
                 await clickDBEditorContextItem(driver, "Execute Block and Advance");
 
                 await driver.sleep(1000);
@@ -2407,9 +2635,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -2474,9 +2709,16 @@ describe("DB Editor", () => {
                     await getDB(driver, dbConfig.caption),
                 );
 
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
+                try {
+                    await setDBEditorPassword(driver, dbConfig);
+                    await setFeedbackRequested(driver, dbConfig, "Y");
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        if (e.message.indexOf("dialog was found") === -1) {
+                            throw e;
+                        }
+                    }
+                }
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
@@ -2530,125 +2772,6 @@ describe("DB Editor", () => {
                 throw e;
             }
 
-        });
-
-        it("Feedback Requested - Save password", async () => {
-            try {
-                await driver.findElement(By.id("gui.sqleditor")).click();
-
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await getDB(driver, dbConfig.caption),
-                );
-
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "Y");
-
-                try {
-                    expect(await (await getConnectionTab(driver, "1")).getText())
-                        .toBe(dbConfig.caption);
-
-                    await closeDBconnection(driver, dbConfig.caption);
-
-                    await driver.executeScript(
-                        "arguments[0].click();",
-                        await getDB(driver, dbConfig.caption),
-                    );
-
-                    expect(await (await getConnectionTab(driver, "1")).getText())
-                        .toBe(dbConfig.caption);
-                } catch(e) { console.error(e); } finally {
-                    await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-                    await waitForHomePage(driver);
-                    await driver.findElement(By.id("gui.sqleditor")).click();
-                    const host = await getDB(driver, dbConfig.caption);
-                    await driver.executeScript(
-                        "arguments[0].click();",
-                        await host!.findElement(By.id("triggerTileAction")),
-                    );
-                    const contextMenu = await driver.wait(
-                        until.elementLocated(By.css(".noArrow.menu")),
-                        2000,
-                    );
-                    await driver.executeScript(
-                        "arguments[0].click();",
-                        await contextMenu.findElement(By.id("edit")),
-                    );
-                    const conDialog = await driver.findElement(By.css(".valueEditDialog"));
-                    await conDialog.findElement(By.id("clearPassword")).click();
-                }
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Feedback Requested - Do not save password", async () => {
-            try {
-                await driver.findElement(By.id("gui.sqleditor")).click();
-
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await getDB(driver, dbConfig.caption),
-                );
-
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "N");
-
-                expect(await (await getConnectionTab(driver, "1")).getText())
-                    .toBe(dbConfig.caption);
-
-                await closeDBconnection(driver, dbConfig.caption);
-
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await getDB(driver, dbConfig.caption),
-                );
-
-                await setDBEditorPassword(driver, dbConfig);
-
-                const feedbackDialog = await driver.findElement(By.css(".valueEditDialog"));
-
-                expect(await feedbackDialog.findElement(By.css(".title label")).getText()).toBe("Feedback Requested");
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Feedback Requested - Never save password", async () => {
-            try {
-                await driver.findElement(By.id("gui.sqleditor")).click();
-
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await getDB(driver, dbConfig.caption),
-                );
-
-                await setDBEditorPassword(driver, dbConfig);
-
-                await setFeedbackRequested(driver, dbConfig, "v");
-
-                expect(await (await getConnectionTab(driver, "1")).getText())
-                    .toBe(dbConfig.caption);
-
-                await closeDBconnection(driver, dbConfig.caption);
-
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await getDB(driver, dbConfig.caption),
-                );
-
-                await setDBEditorPassword(driver, dbConfig);
-
-                expect(await (await getConnectionTab(driver, "1")).getText())
-                    .toBe(dbConfig.caption);
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
         });
 
     });
