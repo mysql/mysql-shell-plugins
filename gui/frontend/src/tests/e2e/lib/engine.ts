@@ -27,7 +27,7 @@ import { Options } from "selenium-webdriver/chrome";
 export const getDriver = async (): Promise<WebDriver> => {
     const prom = async (): Promise<WebDriver> => {
         return new Promise( (resolve) => {
-            let options: Options = new Options();
+            const options: Options = new Options();
 
             let headless = process.env.HEADLESS;
             if(!headless) {
@@ -35,9 +35,10 @@ export const getDriver = async (): Promise<WebDriver> => {
             }
 
             let driver: WebDriver;
+            options.addArguments("--no-sandbox");
 
             if(headless === String("1")) {
-                options = new Options().headless().windowSize({width: 1024, height: 768});
+                options.headless().windowSize({width: 1024, height: 768});
                 driver = new Builder()
                     .forBrowser("chrome")
                     .usingServer("http://localhost:4444/wd/hub")
