@@ -32,6 +32,8 @@ import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
 } from "../../../frontend/src/utilities/MySQLShellLauncher";
 
+import * as regedit from "regedit";
+
 /**
  * Build CSS content for the webview
  *
@@ -159,6 +161,7 @@ const getCssWebviewContent = (rootPath: Uri): string => {
     }
     #waitForConfirmation {
         width: 80px;
+        display: block;
     }
     .pingEffect {
         display: inline-block;
@@ -241,10 +244,27 @@ const getRequirementsErrorWebviewContent = (requirementsError: string, rootPath:
  * Build content for the initial setup webview
  *
  * @param rootPath The root path for images and other resources
- *
+ * @param showVCRuntimePrompt Whether the VCRuntime check should be performed
  * @returns The content of the initial setup webview
  */
-const getWelcomeWebviewContent = (rootPath: Uri): string => {
+const getWelcomeWebviewContent = (rootPath: Uri, showVCRuntimePrompt: boolean): string => {
+    const pageOffset = showVCRuntimePrompt ? 1 : 0;
+    const vcRuntimePageIndex = showVCRuntimePrompt ? 2 : -100;
+    const vcRuntimePage = showVCRuntimePrompt ? `
+        <div id="page2" class="page inactivePage">
+            <h3>Installation of MS VC++ runtime libraries.</h3>
+            <p>This extension requires the MS VC++ runtime libraries. 
+            Please download them from the following web page and install them on your system.</p>
+            <p>
+                <a href="https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170">
+                MS Visual C++ 2019 Redistributable</a>
+            </p>
+            <div id="checkError" class="pError"></div>
+            <h3>Click the [Check VC++ Runtime] button after completing the installation.</h3>
+            <br/>
+        </div>
+` : ``;
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -271,27 +291,28 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
                 <p>Please click [Next >] to complete the installation of the
                     MySQL Shell for VS Code extension.</p>
             </div>
-            <div id="page2" class="page inactivePage">
+            ${vcRuntimePage}
+            <div id="page3" class="page inactivePage">
                 <h3>Installation of Certificate.</h3>
                 <p>This extension needs a certificate to be installed on your local
                     user account in order to securely access the MySQL Shell.</p>
                 <p class="pWithImg">
                     <img src="${rootPath.toString()}/images/welcome/trustSettingDlg-${platform()}.png"
                         width="171px" height="87px" alt="Trust Dialog" align="left" hspace="15px"/>
-                    In the next step a security dialog will be show, asking if
-                    the certificate should be installed.<br>
+                    In the next step a security dialog ${(platform() === "linux") ? "might" : "will"} be shown 
+                    for you to confirm the installation of the certificate.<br>
                     <br>
                     Please click [Next >] to start the installation of the
                     MySQL Shell certificate.</p>
             </div>
-            <div id="page3" class="page inactivePage">
+            <div id="page4" class="page inactivePage">
                 <h3>Installation of Certificate.</h3>
                 <p>Please confirm the installation of the certificate in order
                     to complete the installation of the extension.</p>
                 <div id="waitForConfirmation"><div class="pingEffect"><div></div><div></div></div></div>
                 <p id="certError" class="pError"></p>
             </div>
-            <div id="page4" class="page inactivePage">
+            <div id="page5" class="page inactivePage">
                 <h3>Installation Completed</h3>
                 <p>Thank you for installing the MySQL Shell for VS Code extension!</p>
                 <p>A reload of the VS Code window is needed to be able to use the MySQL Shell.</p>
@@ -299,7 +320,7 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
             </div>
         </div>
         <form name="welcomeControls" class="welcomeControls">
-        <input id="cancelBtn" alt="Cancel" type="button" value="Cancel"></input>
+            <input id="cancelBtn" alt="Cancel" type="button" value="Cancel"></input>
             <input id="nextBtn" alt="Next" type="button" value="Next >"></input>
         </form>
         <div class="CopyrightText">&copy; 2022, Oracle Corporation and/or its affiliates.</div>
@@ -307,7 +328,9 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
     <script>
         (function() {
             const vscode = acquireVsCodeApi();
-            const pageInstallCert = 3, pageLast = 4;
+            const pageInstallCert = 3 + ${pageOffset};
+            const pageLast = 4 + ${pageOffset};
+            const vcRuntimePage = ${vcRuntimePageIndex};
             const nextBtn = document.getElementById('nextBtn');
             const cancelBtn = document.getElementById('cancelBtn');
             var currentPage = 1;
@@ -328,7 +351,15 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
             // Register Next button click event
             nextBtn.addEventListener('click', () => {
                 // On button click, move to next page
-                currentPage += 1;
+                if (currentPage == vcRuntimePage) {
+                    nextBtn.disabled = true;
+                    nextBtn.classList.add("disabledBtn");
+                    document.getElementById("checkError").innerHTML = "";
+
+                    vscode.postMessage({ command: 'recheckRuntime' });
+                } else {
+                    currentPage += 1;
+                }
 
                 // Process handling for the new page or restart the wizard if requested
                 if (restartWizard) {
@@ -337,6 +368,7 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     document.getElementById("certError").innerHTML = "";
                     nextBtn.value = "Next >";
                     cancelBtn.style.display = "none";
+                    document.getElementById("waitForConfirmation").style.display = "block";
                     currentPage = 1;
                 } else if (currentPage == pageInstallCert) {
                     // Try to install the cert
@@ -344,11 +376,13 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
                     nextBtn.classList.add("disabledBtn");
 
                     vscode.postMessage({ command: 'installCert' });
+                } else if (currentPage == vcRuntimePage) {
+                    nextBtn.value = "Check VC++ Runtime";
                 } else if (currentPage >= pageLast) {
                     // Close the webview panel
                     vscode.postMessage({ command: 'restartVsCode' });
                     // Ensure no other page is shown
-                    currentPage = 6;
+                    currentPage = pageLast + 1;
                 }
 
                 showPage(currentPage);
@@ -366,20 +400,40 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
                 const message = event.data; // The JSON data our extension sent
 
                 switch (message.command) {
-                    case 'installCertResult':
-                        document.getElementById("waitForConfirmation").style.display = "none";
+                    case 'reCheckVcRuntime':
+                        if (message.output.includes("true")) {
+                            showPage(vcRuntimePage + 1);
+                            nextBtn.value = "Next >";
+                            currentPage = vcRuntimePage + 1; 
+                        } else {
+                            const errorMessage = "VC++ runtime library installation not detected.";
+                            document.getElementById("checkError").innerHTML = errorMessage;
 
+                            showPage(vcRuntimePage);
+                            currentPage = vcRuntimePage;
+                        }
                         nextBtn.disabled = false;
                         nextBtn.classList.remove("disabledBtn");
+                        break;
 
+                    case 'installCertResult':
                         if (message.output.includes("true")) {
-                            showPage(4);
+                            showPage(pageLast);
 
                             nextBtn.value = "Reload VS Code Window";
+                            nextBtn.disabled = false;
+                            nextBtn.classList.remove("disabledBtn");
+
+                            cancelBtn.style.display = "none";
+                            restartWizard = false;
                         } else if (message.output.includes("ERROR")) {
+                            document.getElementById("waitForConfirmation").style.display = "none";
                             document.getElementById("certError").innerHTML = message.output;
-                        } else {
+
                             nextBtn.value = "Restart Setup Wizard";
+                            nextBtn.disabled = false;
+                            nextBtn.classList.remove("disabledBtn");
+
                             cancelBtn.style.display = "block";
                             restartWizard = true;
                         }
@@ -391,6 +445,39 @@ const getWelcomeWebviewContent = (rootPath: Uri): string => {
     </script>
 </body>
 </html>`;
+};
+
+/**
+ * Checks if the VC++ runtimes are installed
+ *
+ * @returns true, if the VC++ runtimes are installed, otherwise false
+ */
+const checkVcRuntime = (): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+        if (platform() === "win32") {
+            // cSpell:ignore HKLM Runtimes promisified
+            regedit.promisified.list([
+                "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\X64",
+                "HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\X64",
+            ]).then((items: regedit.RegistryItemCollection<string[]>) => {
+                let cRuntimeInstalled = false;
+
+                for (const key in items) {
+                    const item = items[key];
+                    if (item.exists) {
+                        cRuntimeInstalled = true;
+                        break;
+                    }
+                }
+
+                resolve(cRuntimeInstalled);
+            }).catch((reason) => {
+                reject(`C++ Runtime availability could not checked: ${String(reason)}`);
+            });
+        } else {
+            resolve(false);
+        }
+    });
 };
 
 export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
@@ -418,7 +505,17 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
         if (requirementsError) {
             panel.webview.html = getRequirementsErrorWebviewContent(requirementsError, extensionPath);
         } else {
-            panel.webview.html = getWelcomeWebviewContent(extensionPath);
+            // On Windows, check if the VC++ runtime libs are available
+            if (osName === "win32") {
+                checkVcRuntime().then((result: boolean) => {
+                    panel.webview.html = getWelcomeWebviewContent(extensionPath, !result);
+                }).catch((reason) => {
+                    printChannelOutput(String(reason), true);
+                    panel.webview.html = getWelcomeWebviewContent(extensionPath, false);
+                });
+            } else {
+                panel.webview.html = getWelcomeWebviewContent(extensionPath, false);
+            }
         }
 
         // Handle messages from the webview
@@ -440,7 +537,10 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
                             onStdOutData: (output: string) => {
                                 // Pass the result to the webview
                                 printChannelOutput(output);
-                                void panel.webview.postMessage({ command: "installCertResult", output });
+
+                                if (!output.startsWith("Starting embedded MySQL Shell") && !output.includes("DEBUG")) {
+                                    void panel.webview.postMessage({ command: "installCertResult", output });
+                                }
                             },
                         };
 
@@ -454,6 +554,16 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
                         panel.dispose();
 
                         void commands.executeCommand("workbench.action.reloadWindow");
+
+                        return;
+                    }
+
+                    case "recheckRuntime": {
+                        checkVcRuntime().then((result: boolean) => {
+                            void panel.webview.postMessage({ command: "reCheckVcRuntime", output: result.toString() });
+                        }).catch((reason) => {
+                            printChannelOutput(String(reason));
+                        });
 
                         return;
                     }

@@ -70,7 +70,8 @@
         "VARCHARACTER",
         "webroot",
         "whitespaces",
-        "ZEROFILL"
+        "ZEROFILL",
+        "regedit"
     ],
     "ignoreWords": [
         "IDBP",
@@ -114,7 +115,8 @@
         "uuidv",
         "vnic",
         "webrootpath",
-        "zstd"
+        "zstd",
+        "dbeditor"
     ],
     "ignorePaths": [
         ".eslintrc.json"
