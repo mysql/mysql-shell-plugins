@@ -170,7 +170,7 @@ class DbModuleSession(ModuleSession):
 
         self._connection_options = options
 
-        return self.connect()
+        self.connect()
 
     def connect(self):
         session_id = "ServiceSession-" + self.web_session.session_uuid

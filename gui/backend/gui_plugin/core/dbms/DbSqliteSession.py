@@ -79,13 +79,11 @@ class DbCursor(sqlite3.Cursor):
         self.last_execution_time = None
 
         start_time = time.time()
-        # call excute of parent class
-        #res = super(DbCursor, self).execute(sql, params)
+        # call execute of parent class
         if params:
             res = super(DbCursor, self).execute(sql, params)
         else:
             res = super(DbCursor, self).execute(sql)
-        #res = self.execute(sql, params)
         end_time = time.time()
         # set executing time
         self.last_execution_time = end_time - start_time
@@ -258,56 +256,58 @@ class DbSqliteSession(DbSession):
         if type == "Schema":
 
             sql = """SELECT name
-                    FROM pragma_database_list()"""
-            if filter:
-                sql += f" WHERE name like '{filter}'"
-            sql += " ORDER BY name;"
+                     FROM pragma_database_list()
+                     WHERE name like ?
+                     ORDER BY name;"""
+
+            params = (filter,)
 
         self.add_task(SqliteOneFieldListTask(self, request_id, sql,
-                                             result_callback=callback))
+                                             result_callback=callback,
+                                             params=params))
 
     @check_supported_type
     def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):
         if type == "Table":
             sql = f"""SELECT name
-                       FROM `{schema_name}`.sqlite_master
-                       WHERE type = 'table'"""
-            if filter:
-                sql += f" AND name like '{filter}'"
-            sql += " ORDER BY name;"
+                    FROM `{schema_name}`.sqlite_master
+                    WHERE type = 'table'
+                    AND name like ?
+                    ORDER BY name;"""
         elif type == "View":
             sql = f"""SELECT name
-                       FROM `{schema_name}`.sqlite_master
-                       WHERE type = 'view'"""
-            if filter:
-                sql += f" AND name like '{filter}'"
-            sql += " ORDER BY name;"
+                    FROM `{schema_name}`.sqlite_master
+                    WHERE type = 'view'
+                    AND name like ?
+                    ORDER BY name;"""
+        params = (filter, )
 
         self.add_task(SqliteOneFieldListTask(self, request_id, sql,
-                                             result_callback=callback))
+                                             result_callback=callback,
+                                             params=params))
 
     @check_supported_type
     def get_table_object_names(self, request_id, type, schema_name, table_name, filter, callback=None):
-        params = None
+        params = (table_name, filter)
         if type == "Trigger":
             sql = f"""SELECT name
-                      FROM `{schema_name}`.sqlite_master
-                      WHERE type = 'trigger'
+                    FROM `{schema_name}`.sqlite_master
+                    WHERE type = 'trigger'
                         AND tbl_name = ?
-                      ORDER BY name;"""
-            params = (table_name, )
+                        AND name like ?
+                    ORDER BY name;"""
         elif type == "Index":
             sql = f"""SELECT name
-                      FROM `{schema_name}`.sqlite_master
-                      WHERE type = "index"
+                    FROM `{schema_name}`.sqlite_master
+                    WHERE type = "index"
                         AND tbl_name = ?
-                      ORDER BY name;"""
-            params = (table_name, )
+                        AND name like ?
+                    ORDER BY name;"""
         elif type == "Column":
             sql = f"""SELECT
                         c.name as column_name
-                      FROM `{schema_name}`.pragma_table_info(?) AS c
-                      LEFT OUTER JOIN (
+                    FROM `{schema_name}`.pragma_table_info(?) AS c
+                    LEFT OUTER JOIN (
                             SELECT DISTINCT m.name AS 'table_name',
                                 ii.name AS 'table_column',
                                 il.`unique` as UNIQUE_KEY
@@ -317,9 +317,10 @@ class DbSqliteSession(DbSession):
                             WHERE m.type='table' and m.tbl_name=? and
                                 il.`unique`=1
                             ) ic
-                      ON ic.table_name=? AND ic.table_column = c.name
-                      ORDER BY c.cid;"""
-            params = (table_name, table_name, table_name)
+                    ON ic.table_name=? AND ic.table_column = c.name
+                    WHERE c.name like ?
+                    ORDER BY c.cid;"""
+            params = (table_name, table_name, table_name, filter)
 
         self.add_task(SqliteOneFieldListTask(self, request_id, sql,
                                              result_callback=callback,
@@ -328,65 +329,71 @@ class DbSqliteSession(DbSession):
     @check_supported_type
     def get_catalog_object(self, request_id, type, name, callback=None):
         if type == "Schema":
-
             sql = f"""SELECT name
                     FROM pragma_database_list()
-                    WHERE name = '{name}'"""
+                    WHERE name = ?"""
+            params = (name,)
 
         self.add_task(SqliteBaseObjectTask(self, request_id, sql,
                                            result_callback=callback,
                                            type=type,
-                                           name=name))
+                                           name=name,
+                                           params=params))
 
     @check_supported_type
     def get_schema_object(self, request_id, type, schema_name, name, callback=None):
+        params = (name,)
         if type == "Table":
-            sql = [f"""SELECT name
+            sql = f"""SELECT name
                         FROM `{schema_name}`.sqlite_master
                         WHERE type = "table"
-                            AND name = '{name}'
+                            AND name = ?
                         ORDER BY name;""",
-                   ]
 
             self.add_task(SqliteTableObjectTask(self, request_id, sql,
                                                 result_callback=callback,
-                                                name=f"{schema_name}.{name}"))
+                                                name=f"{schema_name}.{name}",
+                                                params=params))
         else:
             if type == "View":
                 sql = f"""SELECT name
                         FROM `{schema_name}`.sqlite_master
                         WHERE type = 'view'
-                            AND name = '{name}'
+                            AND name = ?
                         ORDER BY name;"""
 
             self.add_task(SqliteBaseObjectTask(self, request_id, sql,
                                                result_callback=callback,
                                                type=type,
-                                               name=f"{schema_name}.{name}"))
+                                               name=f"{schema_name}.{name}",
+                                               params=params))
 
     @check_supported_type
     def get_table_object(self, request_id, type, schema_name, table_name, name, callback=None):
+        params = (table_name, name)
         if type == "Trigger":
             sql = f"""SELECT name
                     FROM `{schema_name}`.sqlite_master
                     WHERE type = 'trigger'
-                        AND tbl_name = '{table_name}'
-                        AND name = '{name}'
+                        AND tbl_name = ?
+                        AND name = ?
                     ORDER BY name;"""
         elif type == "Index":
             sql = f"""SELECT name
-                      FROM `{schema_name}`.sqlite_master
-                      WHERE type = 'index'
-                        AND tbl_name = '{table_name}'
-                        AND name = '{name}'
-                      ORDER BY name;"""
+                    FROM `{schema_name}`.sqlite_master
+                    WHERE type = 'index'
+                        AND tbl_name = ?
+                        AND name = ?
+                    ORDER BY name;"""
         elif type == "Column":
             sql = f"""SELECT name
-                      FROM pragma_table_info('{table_name}', '{schema_name}')
-                      WHERE name = '{name}'
-                      ORDER BY name;"""
+                    FROM pragma_table_info('{table_name}', '{schema_name}')
+                    WHERE name = ?
+                    ORDER BY name;"""
+            params = (name,)
 
         self.add_task(SqliteBaseObjectTask(self, request_id, sql,
                                            result_callback=callback,
                                            type=type,
-                                           name=f"{schema_name}.{name}"))
+                                           name=f"{schema_name}.{name}",
+                                           params=params))

@@ -70,6 +70,34 @@ await ws.sendAndValidate({
     "command": "gui.db.get_catalog_object_names",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
+        "type": "Schema",
+        "filter": "mysql"
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Execution started..."
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["mysql"]
+    }
+])
+
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_catalog_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
         "type": "User Variable"
     }
 }, [

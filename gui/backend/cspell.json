@@ -59,6 +59,8 @@
         "SIGUSR",
         "dbsession",
         "backenddb",
-        "iterdump"
+        "iterdump",
+        "webserver",
+        "resultset"
     ]
 }
