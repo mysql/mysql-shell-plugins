@@ -279,216 +279,223 @@ class DbMysqlSession(DbSession):
 
     @check_supported_type
     def get_catalog_object_names(self, request_id, type, filter, callback=None):
+        params = (filter,)
         if type == "Schema":
             sql = """SELECT SCHEMA_NAME
-                     FROM information_schema.schemata"""
-            if filter:
-                sql += f" WHERE SCHEMA_NAME like '{filter}'"
-            sql += " ORDER BY SCHEMA_NAME"
+                    FROM information_schema.schemata
+                    WHERE SCHEMA_NAME like ?
+                    ORDER BY SCHEMA_NAME"""
         elif type == "User Variable":
             sql = """SELECT VARIABLE_NAME
-                     FROM performance_schema.user_variables_by_thread"""
-            if filter:
-                sql += f" WHERE VARIABLE_NAME like '{filter}'"
-            sql += " ORDER BY VARIABLE_NAME"
+                    FROM performance_schema.user_variables_by_thread
+                    WHERE VARIABLE_NAME like ?
+                    ORDER BY VARIABLE_NAME"""
         elif type == "User":
             sql = """SELECT concat(User, '@', Host)
-                     FROM mysql.user"""
-            if filter:
-                sql += f" WHERE concat(User, '@', Host)  like '{filter}'"
-            sql += " ORDER BY concat(User, '@', Host) "
+                    FROM mysql.user
+                    WHERE concat(User, '@', Host)  like ?
+                    ORDER BY concat(User, '@', Host)"""
         elif type == "Engine":
             sql = """SELECT ENGINE
-                     FROM information_schema.ENGINES"""
-            if filter:
-                sql += f" WHERE ENGINE like '{filter}'"
-            sql += " ORDER BY ENGINE"
+                    FROM information_schema.ENGINES
+                    WHERE ENGINE like ?
+                    ORDER BY ENGINE"""
         elif type == "Plugin":
             sql = """SELECT PLUGIN_NAME
-                     FROM information_schema.PLUGINS"""
-            if filter:
-                sql += f" WHERE PLUGIN_NAME like '{filter}'"
-            sql += " ORDER BY PLUGIN_NAME"
+                    FROM information_schema.PLUGINS
+                    WHERE PLUGIN_NAME like ?
+                    ORDER BY PLUGIN_NAME"""
         elif type == "Character Set":
             sql = """SELECT CHARACTER_SET_NAME
-                     FROM information_schema.CHARACTER_SETS"""
-            if filter:
-                sql += f" WHERE CHARACTER_SET_NAME like '{filter}'"
-            sql += " ORDER BY CHARACTER_SET_NAME"
+                    FROM information_schema.CHARACTER_SETS
+                    WHERE CHARACTER_SET_NAME like ?
+                    ORDER BY CHARACTER_SET_NAME"""
 
         self.add_task(MySQLOneFieldListTask(self, request_id, sql,
-                                            result_callback=callback))
+                                            result_callback=callback,
+                                            params=params))
 
     @check_supported_type
     def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):
+        params = (schema_name, filter)
         if type == "Table":
-            sql = f"""SELECT TABLE_NAME
-                      FROM information_schema.tables
-                      WHERE TABLE_TYPE='BASE TABLE' AND table_schema = '{schema_name}'"""
-            if filter:
-                sql += f" AND TABLE_NAME like '{filter}'"
-            sql += " ORDER BY TABLE_NAME"
+            sql = """SELECT TABLE_NAME
+                    FROM information_schema.tables
+                    WHERE TABLE_TYPE='BASE TABLE' AND table_schema = ?
+                    AND TABLE_NAME like ?
+                    ORDER BY TABLE_NAME"""
         elif type == "View":
-            sql = f"""SELECT TABLE_NAME
-                      FROM information_schema.views
-                      WHERE table_schema = '{schema_name}'
-                      UNION
-                      SELECT TABLE_NAME
-                      FROM information_schema.tables
-                      WHERE TABLE_TYPE='SYSTEM VIEW' AND table_schema = '{schema_name}'"""
-            if filter:
-                sql += f" AND TABLE_NAME like '{filter}'"
-            sql += " ORDER BY TABLE_NAME"
+            sql = """SELECT TABLE_NAME
+                    FROM information_schema.views
+                    WHERE table_schema = ?
+                    UNION
+                    SELECT TABLE_NAME
+                    FROM information_schema.tables
+                    WHERE TABLE_TYPE='SYSTEM VIEW' AND table_schema = ?
+                    AND TABLE_NAME like ?
+                    ORDER BY TABLE_NAME"""
+            params = (schema_name, schema_name, filter)
         elif type == "Routine":
-            sql = f"""SELECT ROUTINE_NAME
-                      FROM information_schema.ROUTINES
-                      WHERE ROUTINE_SCHEMA = '{schema_name}'"""
+            sql = """SELECT ROUTINE_NAME
+                    FROM information_schema.ROUTINES
+                    WHERE ROUTINE_SCHEMA = ?"""
             if routine_type:
-                sql += f" AND ROUTINE_TYPE = '{routine_type.upper()}'"
+                sql += f" AND ROUTINE_TYPE = ?"
             if filter:
-                sql += f" AND ROUTINE_NAME like '{filter}'"
+                sql += f" AND ROUTINE_NAME like ?"
             sql += " ORDER BY ROUTINE_NAME"
+            params = (schema_name, routine_type.upper(), filter) if routine_type else (schema_name, filter)
         elif type == "Event":
-            sql = f"""SELECT EVENT_NAME
-                      FROM information_schema.EVENTS
-                      WHERE EVENT_SCHEMA = '{schema_name}'"""
-            if filter:
-                sql += f" AND EVENT_NAME like '{filter}'"
-            sql += " ORDER BY EVENT_NAME"
+            sql = """SELECT EVENT_NAME
+                    FROM information_schema.EVENTS
+                    WHERE EVENT_SCHEMA = ?
+                    AND EVENT_NAME like ?
+                    ORDER BY EVENT_NAME"""
 
         self.add_task(MySQLOneFieldListTask(self, request_id, sql,
-                                            result_callback=callback))
+                                            result_callback=callback,
+                                            params=params))
 
     @check_supported_type
     def get_table_object_names(self, request_id, type, schema_name, table_name, filter, callback=None):
+        params = (schema_name, table_name, filter)
         if type == "Trigger":
-            sql = f"""SELECT TRIGGER_NAME
-                      FROM information_schema.TRIGGERS
-                      WHERE TRIGGER_SCHEMA = '{schema_name}'
-                        AND EVENT_OBJECT_TABLE = '{table_name}'
-                        AND TRIGGER_NAME LIKE '{filter}'
-                      ORDER BY TRIGGER_NAME"""
+            sql = """SELECT TRIGGER_NAME
+                    FROM information_schema.TRIGGERS
+                    WHERE TRIGGER_SCHEMA = ?
+                        AND EVENT_OBJECT_TABLE = ?
+                        AND TRIGGER_NAME LIKE ?
+                    ORDER BY TRIGGER_NAME"""
         elif type == "Foreign Key":
-            sql = f"""SELECT CONSTRAINT_NAME
-                      FROM information_schema.KEY_COLUMN_USAGE
-                      WHERE CONSTRAINT_SCHEMA = '{schema_name}'
-                        AND TABLE_NAME = '{table_name}'
+            sql = """SELECT CONSTRAINT_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE CONSTRAINT_SCHEMA = ?
+                        AND TABLE_NAME = ?
                         AND REFERENCED_TABLE_NAME is not NULL
-                        AND CONSTRAINT_NAME LIKE '{filter}'
-                      ORDER BY CONSTRAINT_NAME"""
+                        AND CONSTRAINT_NAME LIKE ?
+                    ORDER BY CONSTRAINT_NAME"""
         elif type == "Index":
-            sql = f"""SELECT INDEX_NAME
-                      FROM information_schema.STATISTICS
-                      WHERE TABLE_SCHEMA = '{schema_name}'
-                        AND TABLE_NAME = '{table_name}'
-                        AND INDEX_NAME LIKE '{filter}'
-                      ORDER BY INDEX_NAME"""
+            sql = """SELECT INDEX_NAME
+                    FROM information_schema.STATISTICS
+                    WHERE TABLE_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND INDEX_NAME LIKE ?
+                    ORDER BY INDEX_NAME"""
         elif type == "Column":
-            sql = f"""SELECT COLUMN_NAME
-                      FROM INFORMATION_SCHEMA.COLUMNS
-                      WHERE TABLE_SCHEMA = '{schema_name}'
-                        AND TABLE_NAME = '{table_name}'
-                        AND COLUMN_NAME LIKE '{filter}'
-                      ORDER BY ORDINAL_POSITION"""
+            sql = """SELECT COLUMN_NAME
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND COLUMN_NAME LIKE ?
+                    ORDER BY ORDINAL_POSITION"""
 
         self.add_task(MySQLOneFieldListTask(self, request_id, sql,
-                                            result_callback=callback))
+                                            result_callback=callback,
+                                            params=params))
 
     @check_supported_type
     def get_catalog_object(self, request_id, type, name, callback=None):
+        params = (name, )
         if type == "Schema":
-            sql = f"""SELECT SCHEMA_NAME
-                      FROM information_schema.schemata
-                      WHERE schema_name = '{name}'"""
+            sql = """SELECT SCHEMA_NAME
+                    FROM information_schema.schemata
+                    WHERE schema_name = ?"""
         elif type == "User Variable":
-            sql = f"""SELECT VARIABLE_NAME
-                      FROM performance_schema.user_variables_by_thread
-                      WHERE VARIABLE_NAME = '{name}'"""
+            sql = """SELECT VARIABLE_NAME
+                    FROM performance_schema.user_variables_by_thread
+                    WHERE VARIABLE_NAME = ?"""
         elif type == "User":
-            sql = f"""SELECT concat(User, '@', Host)
-                      FROM mysql.user
-                      WHERE concat(User, '@', Host)  = '{name}'"""
+            sql = """SELECT concat(User, '@', Host)
+                    FROM mysql.user
+                    WHERE concat(User, '@', Host)  = ?"""
         elif type == "Engine":
-            sql = f"""SELECT ENGINE
-                     FROM information_schema.ENGINES
-                     WHERE ENGINE = '{name}'"""
+            sql = """SELECT ENGINE
+                    FROM information_schema.ENGINES
+                    WHERE ENGINE = ?"""
         elif type == "Plugin":
-            sql = f"""SELECT PLUGIN_NAME
-                     FROM information_schema.PLUGINS
-                     WHERE PLUGIN_NAME = '{name}'"""
+            sql = """SELECT PLUGIN_NAME
+                    FROM information_schema.PLUGINS
+                    WHERE PLUGIN_NAME = ?"""
         elif type == "Character Set":
-            sql = f"""SELECT CHARACTER_SET_NAME
-                     FROM information_schema.CHARACTER_SETS
-                     WHERE CHARACTER_SET_NAME = '{name}'"""
+            sql = """SELECT CHARACTER_SET_NAME
+                    FROM information_schema.CHARACTER_SETS
+                    WHERE CHARACTER_SET_NAME = ?"""
 
         self.add_task(MySQLBaseObjectTask(self, request_id, sql,
                                           result_callback=callback,
                                           type=type,
-                                          name=name))
+                                          name=name,
+                                          params=params))
 
     @check_supported_type
     def get_schema_object(self, request_id, type, schema_name, name, callback=None):
+        params = (schema_name, name)
+
         if type == "Table":
-            sql = [f"""SELECT TABLE_NAME
-                     FROM information_schema.tables
-                     WHERE TABLE_SCHEMA = '{schema_name}' AND TABLE_NAME = '{name}'""",
-                   f"""SELECT COLUMN_NAME
-                     FROM information_schema.COLUMNS
-                     WHERE TABLE_SCHEMA='{schema_name}' AND TABLE_NAME='{name}'
-                     ORDER BY ORDINAL_POSITION"""
-                   ]
+            sql = ["""SELECT TABLE_NAME
+                    FROM information_schema.tables
+                    WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?""",
+                """SELECT COLUMN_NAME
+                    FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA=? AND TABLE_NAME=?
+                    ORDER BY ORDINAL_POSITION"""
+                ]
 
             self.add_task(MySQLTableObjectTask(self, request_id, sql,
-                                               result_callback=callback,
-                                               name=f"{schema_name}.{name}"))
+                                            result_callback=callback,
+                                            name=f"{schema_name}.{name}",
+                                            params=params))
         else:
             if type == "View":
-                sql = f"""SELECT TABLE_NAME
+                sql = """SELECT TABLE_NAME
                         FROM information_schema.views
-                        WHERE table_schema = '{schema_name}' AND TABLE_NAME = '{name}'"""
+                        WHERE table_schema = ? AND TABLE_NAME = ?"""
             elif type == "Routine":
-                sql = f"""SELECT ROUTINE_NAME
+                sql = """SELECT ROUTINE_NAME
                         FROM information_schema.ROUTINES
-                        WHERE ROUTINE_SCHEMA = '{schema_name}' AND ROUTINE_NAME = '{name}'"""
+                        WHERE ROUTINE_SCHEMA = ? AND ROUTINE_NAME = ?"""
             elif type == "Event":
-                sql = f"""SELECT EVENT_NAME
+                sql = """SELECT EVENT_NAME
                         FROM information_schema.EVENTS
-                        WHERE EVENT_SCHEMA = '{schema_name}' AND EVENT_NAME = '{name}'"""
+                        WHERE EVENT_SCHEMA = ? AND EVENT_NAME = ?"""
 
             self.add_task(MySQLBaseObjectTask(self, request_id, sql,
                                               result_callback=callback,
                                               type=type,
-                                              name=f"{schema_name}.{name}"))
+                                              name=f"{schema_name}.{name}",
+                                              params=params))
 
     @check_supported_type
     def get_table_object(self, request_id, type, schema_name, table_name, name, callback=None):
+        params = (schema_name, table_name, name)
         if type == "Trigger":
-            sql = f"""SELECT TRIGGER_NAME
-                      FROM information_schema.TRIGGERS
-                      WHERE TRIGGER_SCHEMA = '{schema_name}'
-                        AND EVENT_OBJECT_TABLE = '{table_name}'
-                        AND TRIGGER_NAME LIKE '{name}'"""
+            sql = """SELECT TRIGGER_NAME
+                    FROM information_schema.TRIGGERS
+                    WHERE TRIGGER_SCHEMA = ?
+                        AND EVENT_OBJECT_TABLE = ?
+                        AND TRIGGER_NAME LIKE ?"""
         elif type == "Foreign Key":
-            sql = f"""SELECT CONSTRAINT_NAME
-                      FROM information_schema.KEY_COLUMN_USAGE
-                      WHERE CONSTRAINT_SCHEMA = '{schema_name}'
-                        AND TABLE_NAME = '{table_name}'
+            sql = """SELECT CONSTRAINT_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE CONSTRAINT_SCHEMA = ?
+                        AND TABLE_NAME = ?
                         AND REFERENCED_TABLE_NAME is not NULL
-                        AND CONSTRAINT_NAME LIKE '{name}'"""
+                        AND CONSTRAINT_NAME LIKE ?"""
         elif type == "Index":
-            sql = f"""SELECT INDEX_NAME
-                      FROM information_schema.STATISTICS
-                      WHERE TABLE_SCHEMA = '{schema_name}'
-                        AND TABLE_NAME = '{table_name}'
-                        AND INDEX_NAME LIKE '{name}'"""
+            sql = """SELECT INDEX_NAME
+                    FROM information_schema.STATISTICS
+                    WHERE TABLE_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND INDEX_NAME LIKE ?"""
         elif type == "Column":
-            sql = f"""SELECT COLUMN_NAME
-                      FROM INFORMATION_SCHEMA.COLUMNS
-                      WHERE TABLE_SCHEMA = '{schema_name}'
-                        AND TABLE_NAME = '{table_name}'
-                        AND COLUMN_NAME LIKE '{name}'"""
+            sql = """SELECT COLUMN_NAME
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND COLUMN_NAME LIKE ?"""
 
         self.add_task(MySQLBaseObjectTask(self, request_id, sql,
                                           result_callback=callback,
                                           type=type,
-                                          name=f"{schema_name}.{name}"))
+                                          name=f"{schema_name}.{name}",
+                                          params=params))

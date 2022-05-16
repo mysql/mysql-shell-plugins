@@ -281,8 +281,8 @@ def update_data(id, caption=None, content=None, web_session=None):
                     actions.append("content=?")
                     args += (json.dumps(content),)
 
-                db.execute("UPDATE data SET " + ",".join(actions) +
-                            " WHERE id=?", args + (id,))
+                db.execute(f"""UPDATE data SET {",".join(actions)}
+                            WHERE id=?""", args + (id,))
             else:
                 raise MSGException(Error.MODULES_USER_HAVE_NO_PRIVILEGES, "User have no privileges to perform operation.")
 

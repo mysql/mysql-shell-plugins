@@ -114,6 +114,28 @@ await ws.sendAndValidate({
     "command": "gui.db.get_schema_object_names",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
+        "type": "Table",
+        "schema_name": ws.tokens["schema"],
+        "filter": "categories"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["categories"]
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
         "type": "View",
         "schema_name": ws.tokens["schema"]
     }
@@ -135,6 +157,28 @@ await ws.sendAndValidate({
     "command": "gui.db.get_schema_object_names",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
+        "type": "View",
+        "schema_name": ws.tokens["schema"],
+        "filter": "view_products"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["view_products"]
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
         "type": "Routine",
         "schema_name": ws.tokens["schema"]
     }
@@ -147,6 +191,28 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["function_count", "procedure_get_names"])
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Routine",
+        "schema_name": ws.tokens["schema"],
+        "filter": "function_count"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["function_count"]
     }
 ])
 
@@ -180,7 +246,53 @@ await ws.sendAndValidate({
         "module_session_id": ws.lastModuleSessionId,
         "type": "Routine",
         "schema_name": ws.tokens["schema"],
+        "routine_type": "procedure",
+        "filter": "procedure_get_names"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["procedure_get_names"]
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Routine",
+        "schema_name": ws.tokens["schema"],
         "routine_type": "function"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["function_count"]
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Routine",
+        "schema_name": ws.tokens["schema"],
+        "routine_type": "function",
+        "filter": "function_count"
     }
 }, [
     responses.pending.executionStarted,

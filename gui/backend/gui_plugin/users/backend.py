@@ -356,9 +356,8 @@ def update_user_group(db, group_id, name=None, description=None):
         actions.append("description=?")
         args += (description,)
 
-    db.execute("UPDATE user_group SET " + ",".join(actions) +
-                " WHERE id=?", args + (group_id,))
-
+    db.execute(f"""UPDATE user_group SET {",".join(actions)}
+                WHERE id=?""", args + (group_id,))
     return db.rows_affected != 0
 
 def group_can_be_deleted(db, group_id):
