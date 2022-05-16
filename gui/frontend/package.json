@@ -86,7 +86,7 @@
         "unit-tests": "react-scripts test --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --setupFilesAfterEnv \"./src/tests/setupUnitTests.ts\" --coverage --watchAll=false",
         "e2e-tests-update": "webdriver-manager update --out_dir ../../src/tests/e2e/selenium",
         "e2e-tests-start": "webdriver-manager start --out_dir ../../src/tests/e2e/selenium",
-        "e2e-tests-run": "react-scripts test --testMatch [ \"**/tests/e2e/**/*.spec.ts?(x)\" ] --setupFilesAfterEnv \"./src/tests/e2e/setupTests.ts\" --maxWorkers=50% --watchAll=false",
+        "e2e-tests-run": "react-scripts test --testMatch [ \"**/tests/e2e/**/dbeditor.spec.ts?(x)\" ] --setupFilesAfterEnv \"./src/tests/e2e/setupTests.ts\" --testResultsProcessor \"./node_modules/jest-html-reporter\" --maxWorkers=50% --watchAll=false",
         "e2e-tests-report": "tsc src/tests/e2e/attachScreenshots.ts && node src/tests/e2e/attachScreenshots.js"
     },
     "browserslist": [
