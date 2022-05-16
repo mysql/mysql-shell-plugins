@@ -69,7 +69,10 @@
         "whitespaces",
         "ZEROFILL",
         "chromedriver",
-        "vsix"
+        "vsix",
+        "redistributable",
+        "regedit",
+        "Kubuntu"
     ],
     "ignoreWords": [
         "Divs",

@@ -1,5 +1,15 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.2.1+8.0.28
+
+### Additions
+
+- Added MS VC++ dependency installation check
+
+### Fixes
+
+- Fixed certificate deployment issues
+
 ## Changes in 1.1.8+8.0.28
 
 ### Fixes

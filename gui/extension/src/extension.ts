@@ -78,7 +78,7 @@ export const printChannelOutput = (content: string, reveal = false): void => {
  * @param output The process output.
  */
 const handleShellOutput = (output: string): void => {
-    if (!startupCompleted || output.includes("Sending session response...")) {
+    if (!startupCompleted && output.includes("Sending session response...")) {
         // Set startupCompleted to indicate the extension has completed its startup
         startupCompleted = true;
     }
@@ -199,7 +199,7 @@ export const activate = (context: ExtensionContext): void => {
                                         void commands.executeCommand("workbench.action.reloadWindow");
                                     }
                                 });
-                        } else {
+                        } else if (!output.startsWith("Starting embedded MySQL Shell") && !output.includes("DEBUG")) {
                             void window.showInformationMessage(
                                 `The following error occurred while deleting the certificate: ${output} ` +
                                 "Cancelled reset operation.");
@@ -256,7 +256,7 @@ export const activate = (context: ExtensionContext): void => {
     }));
 
     context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", async (): Promise<Boolean> => {
-        await waitFor(3000, () => { return startupCompleted; } );
+        await waitFor(5000, () => { return startupCompleted; } );
 
         return startupCompleted;
     }));

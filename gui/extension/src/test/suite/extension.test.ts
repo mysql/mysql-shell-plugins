@@ -39,7 +39,6 @@ suite("Extension Test Suite", () => {
 
     test("launch success test", async () => {
         const state = await vscode.commands.executeCommand("msg.hasLaunchedSuccessfully");
-
         assert.strictEqual(state, true);
     });
 

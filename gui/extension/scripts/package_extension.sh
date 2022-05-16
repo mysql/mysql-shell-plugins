@@ -155,7 +155,9 @@ for d in packaging/mysql-shell/*; do
         echo "Copy shell binaries, lib and share"
         cp -R $d/bin shell/.
         cp -R $d/lib shell/.
+        cp -R $d/libexec shell/.
         cp -R $d/share shell/.
+
 
         echo "Copy plugins"
         cp -RL $HOME/.mysqlsh/plugins/gui_plugin shell/lib/mysqlsh/plugins/.
