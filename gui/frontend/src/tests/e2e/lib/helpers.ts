@@ -866,7 +866,7 @@ export const getGraphHost = async (driver: WebDriver, blockNbr: number): Promise
         context = zoneHosts[blockNbr - 1];
     }
 
-    return context.findElement(By.css(".graphHost"));
+    return context.findElement(By.css(".pieChart"));
 };
 
 export const getOutput = async (driver: WebDriver, blockNbr: number): Promise<string> => {
