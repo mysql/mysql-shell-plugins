@@ -83,10 +83,28 @@ const dbConfig: IDbConfig = {
     portX: "",
 };
 
+const dbConfig1: IDbConfig = {
+    dbType: "MySQL",
+    caption: "conn",
+    description: "random connection",
+    hostname: process.env.DBHOSTNAME,
+    protocol: "mysql",
+    port: process.env.DBPORT,
+    username: process.env.DBUSERNAME1,
+    password: process.env.DBUSERNAME1,
+    schema: "sakila",
+    showAdvanced: false,
+    sslMode: "Disable",
+    compression: "",
+    timeout: "",
+    attributes: "",
+    clearPassword: false,
+    portX: "",
+};
+
 describe("DB Editor", () => {
     let driver: WebDriver;
     let testFailed = false;
-    let captionId = "";
 
     beforeAll(async () => {
         driver = await getDriver();
@@ -100,6 +118,7 @@ describe("DB Editor", () => {
     });
 
     afterEach(async () => {
+        dbConfig.caption = "conn";
         if(testFailed) {
             testFailed = false;
             const img = await driver.takeScreenshot();
@@ -122,7 +141,6 @@ describe("DB Editor", () => {
         try {
 
             dbConfig.caption += String(new Date().valueOf());
-            captionId = dbConfig.caption;
             await driver.findElement(By.css(".connectionBrowser")).findElement(By.id("-1")).click();
             const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
 
@@ -344,119 +362,88 @@ describe("DB Editor", () => {
         }
     });
 
-    it("Feedback Requested - Do not save password", async () => {
+    it("Store and clear Password", async () => {
+
         try {
             await driver.findElement(By.id("gui.sqleditor")).click();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await getDB(driver, captionId),
-            );
-
-            await setDBEditorPassword(driver, dbConfig);
-
-            await setFeedbackRequested(driver, dbConfig, "N");
-
-            expect(await (await getConnectionTab(driver, "1")).getText())
-                .toBe(dbConfig.caption);
-
-            await closeDBconnection(driver, captionId);
+            dbConfig.caption += String(new Date().valueOf());
+            await createDBconnection(driver, dbConfig, true);
 
             await driver.executeScript(
                 "arguments[0].click();",
                 await getDB(driver, dbConfig.caption),
             );
 
-            await setDBEditorPassword(driver, dbConfig);
+            expect(await (await getConnectionTab(driver, "1")).getText())
+                .toBe(dbConfig.caption);
 
-            const feedbackDialog = await driver.findElement(By.css(".valueEditDialog"));
+            await closeDBconnection(driver, dbConfig.caption);
 
-            expect( await feedbackDialog.findElement(By.css(".title label")).getText() ).toBe("Feedback Requested");
+            const host = await getDB(driver, dbConfig.caption);
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await host!.findElement(By.id("triggerTileAction")),
+            );
+
+            const contextMenu = await driver.wait(
+                until.elementLocated(By.css(".noArrow.menu")),
+                2000,
+            );
+
+            expect(contextMenu).toBeDefined();
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await contextMenu.findElement(By.id("edit")),
+            );
+
+            const conDialog = await driver.findElement(By.css(".valueEditDialog"));
+            await conDialog.findElement(By.id("clearPassword")).click();
+            await conDialog.findElement(By.id("ok")).click();
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, dbConfig.caption),
+            );
+
+            expect(await driver.findElement(By.css(".passwordDialog"))).toBeDefined();
         } catch(e) {
             testFailed = true;
             throw e;
         }
+
     });
 
     it("Feedback Requested - Save password", async () => {
         try {
             await driver.findElement(By.id("gui.sqleditor")).click();
+            dbConfig1.caption += String(new Date().valueOf());
+            await createDBconnection(driver, dbConfig1);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await getDB(driver, captionId),
+                await getDB(driver, dbConfig1.caption),
             );
 
-            await setDBEditorPassword(driver, dbConfig);
+            await setDBEditorPassword(driver, dbConfig1);
 
-            await setFeedbackRequested(driver, dbConfig, "Y");
+            await setFeedbackRequested(driver, dbConfig1, "Y");
 
-            try {
-                expect(await (await getConnectionTab(driver, "1")).getText())
-                    .toBe(captionId);
-
-                await closeDBconnection(driver, captionId);
-
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await getDB(driver, captionId),
-                );
-
-                expect(await (await getConnectionTab(driver, "1")).getText())
-                    .toBe(captionId);
-            } catch(e) { console.error(e); } finally {
-                await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-                await waitForHomePage(driver);
-                await driver.findElement(By.id("gui.sqleditor")).click();
-                const host = await getDB(driver, captionId);
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await host!.findElement(By.id("triggerTileAction")),
-                );
-                const contextMenu = await driver.wait(
-                    until.elementLocated(By.css(".noArrow.menu")),
-                    2000,
-                );
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await contextMenu.findElement(By.id("edit")),
-                );
-                const conDialog = await driver.findElement(By.css(".valueEditDialog"));
-                await conDialog.findElement(By.id("clearPassword")).click();
-            }
-        } catch(e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Feedback Requested - Never save password", async () => {
-        try {
-            await driver.findElement(By.id("gui.sqleditor")).click();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await getDB(driver, captionId),
-            );
-
-            await setDBEditorPassword(driver, dbConfig);
-
-            await setFeedbackRequested(driver, dbConfig, "v");
 
             expect(await (await getConnectionTab(driver, "1")).getText())
-                .toBe(captionId);
+                .toBe(dbConfig1.caption);
 
-            await closeDBconnection(driver, captionId);
+            await closeDBconnection(driver, dbConfig1.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await getDB(driver, captionId),
+                await getDB(driver, dbConfig1.caption),
             );
 
-            await setDBEditorPassword(driver, dbConfig);
-
             expect(await (await getConnectionTab(driver, "1")).getText())
-                .toBe(captionId);
+                .toBe(dbConfig1.caption);
+
         } catch(e) {
             testFailed = true;
             throw e;
@@ -2196,7 +2183,8 @@ describe("DB Editor", () => {
             }
         });
 
-        it("Using Math_random on js_py blocks", async () => {
+        //bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34179455
+        xit("Using Math_random on js_py blocks", async () => {
             try {
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
@@ -2625,80 +2613,6 @@ describe("DB Editor", () => {
             }
         });
 
-        it("Demo Pie Graphs", async () => {
-            try {
-                await setDBEditorStartLang(driver, "typescript");
-                await driver.findElement(By.id("gui.sqleditor")).click();
-
-                await driver.executeScript(
-                    "arguments[0].click();",
-                    await getDB(driver, dbConfig.caption),
-                );
-
-                try {
-                    await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        if (e.message.indexOf("dialog was found") === -1) {
-                            throw e;
-                        }
-                    }
-                }
-
-                expect(await (await getConnectionTab(driver, "1")).getText())
-                    .toBe(dbConfig.caption);
-
-                await toggleExplorerHost(driver, "close");
-
-                const contentHost = await driver.findElement(By.id("contentHost"));
-                let textArea = await contentHost.findElement(By.css("textarea"));
-
-                await enterCmd(driver, textArea, "new PieGraph(PieGraph.layout.mediumDonut, PieGraph.demoData.budget)");
-
-                let pieChart = await getGraphHost(driver, 1);
-
-                expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
-                expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
-                expect(await pieChart.findElement(By.css(".lines"))).toBeDefined();
-
-                let labels = await pieChart.findElements(By.css(".labels text"));
-
-                expect(await labels[0].getAttribute("innerHTML")).toContain("Third Party Logistics and Packaging");
-                expect(await labels[1].getAttribute("innerHTML")).toContain("General Retail and Wholesale");
-                expect(await labels[2].getAttribute("innerHTML")).toContain("Manufacturing");
-                expect(await labels[3].getAttribute("innerHTML")).toContain("E-Commerce");
-                expect(await labels[4].getAttribute("innerHTML")).toContain("Food and Beverage");
-                expect(await labels[5].getAttribute("innerHTML")).toContain("Constructions/Improvements/Repair");
-                expect(await labels[6].getAttribute("innerHTML")).toContain("Furniture and Appliances");
-                expect(await labels[7].getAttribute("innerHTML")).toContain("Motor Vehicles/Tires/Parts");
-
-                textArea = await contentHost.findElement(By.css("textarea"));
-
-                await enterCmd(driver, textArea, "new PieGraph(PieGraph.layout.mediumPie, PieGraph.demoData.budget)");
-
-                pieChart = await getGraphHost(driver, 2);
-
-                expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
-                expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
-                expect(await pieChart.findElement(By.css(".lines"))).toBeDefined();
-
-                labels = await pieChart.findElements(By.css(".labels text"));
-
-                expect(await labels[0].getAttribute("innerHTML")).toContain("Third Party Logistics and Packaging");
-                expect(await labels[1].getAttribute("innerHTML")).toContain("General Retail and Wholesale");
-                expect(await labels[2].getAttribute("innerHTML")).toContain("Manufacturing");
-                expect(await labels[3].getAttribute("innerHTML")).toContain("E-Commerce");
-                expect(await labels[4].getAttribute("innerHTML")).toContain("Food and Beverage");
-                expect(await labels[5].getAttribute("innerHTML")).toContain("Constructions/Improvements/Repair");
-                expect(await labels[6].getAttribute("innerHTML")).toContain("Furniture and Appliances");
-                expect(await labels[7].getAttribute("innerHTML")).toContain("Motor Vehicles/Tires/Parts");
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
         it("Pie Graph based on DB table", async () => {
             try {
                 await setDBEditorStartLang(driver, "typescript");
@@ -2729,50 +2643,32 @@ describe("DB Editor", () => {
                 const textArea = await contentHost.findElement(By.css("textarea"));
 
                 await enterCmd(driver, textArea, `
-                const graphData = [];
-                const colors = [
-                    "rgba(55, 128, 160, 1)",
-                    "darkgreen",
-                    "tomato",
-                    "crimson"
-                ];
-
-                runSqlIterative("select * from sakila.actor limit 5", (res: IResultSetData) => {
-                    if (res.rows) {
-                        res.rows.forEach((row, index) => {
-                            graphData.push({
-                                label: row[1] as string,
-                                value: 15,
-                                color: colors[index % colors.length],
-                            });
-                        });
+                runSql("SELECT Name, Capital FROM world_x_cst.country limit 10",(result) => {
+                    const options: IGraphOptions = {
+                        series: [
+                            {
+                                type: "bar",
+                                yLabel: "Actors",
+                                data: result as IJsonGraphData,
+                            }
+                        ]
                     }
-
-                    if (res.requestState.type === "OK") {
-                        const graph = new PieGraph(PieGraph.layout.mediumPie, graphData);
-                    }
-                });
-            `);
+                    const graph = new Graph();
+                    graph.render(options);
+                }
+                `);
 
                 const pieChart = await getGraphHost(driver, 1);
 
-                expect(await pieChart.findElement(By.css(".slices"))).toBeDefined();
-                expect(await pieChart.findElement(By.css(".labels"))).toBeDefined();
-                expect(await pieChart.findElement(By.css(".lines"))).toBeDefined();
+                const chartColumns = await pieChart.findElements(By.css("rect"));
+                for(const col of chartColumns) {
+                    expect(parseInt(await col.getAttribute("width"), 10)).toBeGreaterThan(0);
+                }
 
-                const labels = await pieChart.findElements(By.css(".labels text"));
-
-                expect(await labels[0].getText()).toBe("PENELOPE");
-                expect(await labels[1].getText()).toBe("NICK");
-                expect(await labels[2].getText()).toBe("ED");
-                expect(await labels[3].getText()).toBe("JENNIFER");
-                expect(await labels[4].getText()).toBe("JOHNNY");
             } catch (e) {
                 testFailed = true;
                 throw e;
             }
-
         });
-
     });
 });

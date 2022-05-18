@@ -87,7 +87,8 @@ export interface IDbConfig {
     portX: string;
 }
 
-export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig): Promise<void> => {
+export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig,
+    storePassword?: boolean): Promise<void> => {
     await driver
         .findElement(By.css(".connectionBrowser"))
         .findElement(By.id("-1"))
@@ -114,6 +115,14 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig)
         .sendKeys(String(dbConfig.schema));
     if (dbConfig.clearPassword) {
         await newConDialog.findElement(By.id("clearPassword")).click();
+    }
+    if (storePassword) {
+        const storeBtn = await newConDialog.findElement(By.id("storePassword"));
+        await storeBtn.click();
+        const dialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
+            2000, "No password dialog was found");
+        await dialog.findElement(By.css("input")).sendKeys(String(dbConfig.password));
+        await dialog.findElement(By.id("ok")).click();
     }
     await selectDatabaseType(driver, dbConfig.dbType);
     if (!dbConfig.showAdvanced) {
@@ -866,7 +875,7 @@ export const getGraphHost = async (driver: WebDriver, blockNbr: number): Promise
         context = zoneHosts[blockNbr - 1];
     }
 
-    return context.findElement(By.css(".pieChart"));
+    return context.findElement(By.css(".graphHost"));
 };
 
 export const getOutput = async (driver: WebDriver, blockNbr: number): Promise<string> => {
@@ -1041,10 +1050,9 @@ export const hslToHex = (h: number, s: number, l: number): string => {
 };
 
 export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig): Promise<void> => {
-    const dialog = await driver.findElements(By.css(".passwordDialog"));
-    if(dialog.length === 0) {
-        throw new Error("No Password dialog was found");
-    }
+    const dialog = await driver.wait(until.elementsLocated(By.css(".passwordDialog")),
+        500, "No Password dialog was found");
+
     const title = await dialog[0].findElement(By.css(".title .label"));
     const gridDivs = await dialog[0].findElements(By.css("div.grid > div"));
 
@@ -1069,10 +1077,9 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig
 };
 
 export const setFeedbackRequested = async (driver: WebDriver, dbConfig: IDbConfig, value: string): Promise<void> => {
-    const feedbackDialog = await driver.findElements(By.css(".valueEditDialog"));
-    if(feedbackDialog.length === 0) {
-        throw new Error("No Feedback Request dialog was found");
-    }
+    const feedbackDialog = await driver.wait(until.elementsLocated(By.css(".valueEditDialog")),
+        500, "No Feedback Request dialog was found");
+
     expect(await feedbackDialog[0].findElement(By.css(".title label")).getText()).toBe("Feedback Requested");
 
     expect(await feedbackDialog[0].findElement(By.css(".valueTitle")).getText())
@@ -1081,8 +1088,8 @@ export const setFeedbackRequested = async (driver: WebDriver, dbConfig: IDbConfi
     expect(await feedbackDialog[0].findElement(By.css(".valueTitle")).getText())
         .toContain("? [Y]es/[N]o/Ne[v]er (default No):");
 
-    await feedbackDialog[0].findElement(By.css("input")).sendKeys(value);
-    await driver.sleep(1000);
+    const input = await feedbackDialog[0].findElement(By.css("input"));
+    await input.sendKeys(value);
     await feedbackDialog[0].findElement(By.id("ok")).click();
 };
 
