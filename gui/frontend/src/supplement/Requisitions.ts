@@ -77,7 +77,8 @@ const parseAppParameters = (): void => {
         appParameters.testsRunning = true;
     } else if (process.env.NODE_ENV === "development") {
         appParameters.inDevelopment = true;
-    } else if (process.env.VSCODE_PID) {
+    } else if (process.env.VSCODE_PID ||
+        (process.env.WSLENV && process.env.WSLENV.indexOf("ELECTRON_RUN_AS_NODE") >= 0)) {
         appParameters.inExtension = true;
     }
 };
