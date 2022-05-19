@@ -83,12 +83,11 @@ export interface IDbConfig {
     compression: string;
     timeout: string;
     attributes: string;
-    clearPassword: boolean;
     portX: string;
 }
 
 export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig,
-    storePassword?: boolean): Promise<void> => {
+    storePassword?: boolean, clearPassword?: boolean): Promise<void> => {
     await driver
         .findElement(By.css(".connectionBrowser"))
         .findElement(By.id("-1"))
@@ -113,8 +112,14 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig,
     await newConDialog
         .findElement(By.id("defaultSchema"))
         .sendKeys(String(dbConfig.schema));
-    if (dbConfig.clearPassword) {
+    if (clearPassword) {
         await newConDialog.findElement(By.id("clearPassword")).click();
+        try {
+            const dialog = await driver.wait(until.elementsLocated(By.css(".errorPanel")), 500, "");
+            await dialog[0].findElement(By.css("button")).click();
+        } catch(e) {
+            //continue
+        }
     }
     if (storePassword) {
         const storeBtn = await newConDialog.findElement(By.id("storePassword"));

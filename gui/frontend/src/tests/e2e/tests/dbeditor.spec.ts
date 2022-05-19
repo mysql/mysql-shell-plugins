@@ -79,7 +79,6 @@ const dbConfig: IDbConfig = {
     compression: "",
     timeout: "",
     attributes: "",
-    clearPassword: false,
     portX: "",
 };
 
@@ -98,7 +97,6 @@ const dbConfig1: IDbConfig = {
     compression: "",
     timeout: "",
     attributes: "",
-    clearPassword: false,
     portX: "",
 };
 
@@ -419,7 +417,7 @@ describe("DB Editor", () => {
         try {
             await driver.findElement(By.id("gui.sqleditor")).click();
             dbConfig1.caption += String(new Date().valueOf());
-            await createDBconnection(driver, dbConfig1);
+            await createDBconnection(driver, dbConfig1, false, true);
 
             await driver.executeScript(
                 "arguments[0].click();",

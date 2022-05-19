@@ -189,7 +189,7 @@ try{
             writeMsg "Merging HTML reports..." "-NoNewLine"
             $prevHtml = parseHTML "$basePath\src\tests\e2e\prev-test-report.html"
             $curHtml = parseHTML "$basePath\src\tests\e2e\test-report.html"
-            
+            $failed = $failed.replace('"', '')
             $failedTests = $failed -split "\|"
     
             $htmlToSave = @()
