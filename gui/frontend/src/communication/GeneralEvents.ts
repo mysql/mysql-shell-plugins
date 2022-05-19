@@ -34,12 +34,15 @@ export interface IRequestState {
 }
 
 export interface IGenericResponse extends IResponseDictionary {
-    requestId?: string;          // Only set if this is a response to a client request.
+    /** Only set if this is a response to a client request. */
+    requestId?: string;
     requestState: IRequestState;
 }
 
-// This interface contains the combined fields from the separate profile add/update APIs, plus the userId field
-// which we need internally. The userId is never sent as part of a profile record to the backend.
+/**
+ * This interface contains the combined fields from the separate profile add/update APIs, plus the userId field
+ *  which we need internally. The userId is never sent as part of a profile record to the backend.
+ */
 export interface ICommShellProfile {
     id: number;
     userId: number;
@@ -62,22 +65,14 @@ export interface IStartSessionData extends IGenericResponse {
     moduleSessionId: string;
 }
 
-export interface IOpenDBConnectionData extends IGenericResponse {
+export interface IOpenConnectionData extends IGenericResponse {
     currentSchema?: string;
-    sqlMode?: string;
     info: {
+        sqlMode?: string;
         version?: string;
         edition?: string;
     };
 }
-
-export interface IOpenMdsConnectionData extends IGenericResponse {
-    result: {
-        prompt: string;
-    };
-}
-
-export type IOpenConnectionData = IOpenDBConnectionData | IOpenMdsConnectionData;
 
 export interface IAddConnectionData extends IGenericResponse {
     result: {
@@ -200,10 +195,100 @@ export interface IShellObjectResult extends IShellPromptValues {
     name: string;
 }
 
-export interface IShellFeedbackRequest {
-    prompt?: string;
-    password?: string;
+/**
+ * Defines the common fields for all shell prompt requests.
+ */
+export interface IShellBaseFeedbackRequest {
+    /** The request text to show. This is usually the question the user answers. */
+    prompt: string;
+
+    /** A custom title for the request dialog. */
+    title?: string;
+
+    /** Defines some context for the actual feedback request. It is a string list where every item is a paragraph. */
+    description?: string[];
 }
+
+/**
+ * Defines a simple text feedback request.
+ */
+export interface IShellTextFeedbackRequest extends IShellBaseFeedbackRequest {
+    type: "text";
+}
+
+/**
+ * Defines a confirmation feedback request. Used for simple yes/no/alt questions.
+ * Note: the yes/no/alt fields may contain shortcut markup (by prefixing a letter with &).
+ */
+export interface IShellConfirmFeedbackRequest extends IShellBaseFeedbackRequest {
+    type: "confirm";
+
+    /** If given this defines the text for the accept option. Use "Yes" otherwise. */
+    yes?: string;
+
+    /** If given this defines the text for the deny option. Use "No" otherwise. */
+    no?: string;
+
+    /** If given this defines the text for an alternative option. Otherwise show nothing for this field. */
+    alt?: string;
+
+    /**
+     * Defines which of the values above is to be marked as default and can also be selected using the <enter> key.
+     */
+    defaultValue?: string;
+}
+
+/**
+ * Defines a selection feedback request, which allows the user to pick one option from a list.
+ */
+export interface IShellSelectFeedbackRequest extends IShellBaseFeedbackRequest {
+    type: "select";
+
+    /** The elements of the selection list. */
+    options: string[];
+
+    /**
+     * Defines the index of the option in the list above, which should be marked as the default and
+     * represents the initial value to be shown in the UI, so it can be taken over with a single click/<enter>.
+     */
+    defaultValue?: number;
+}
+
+export interface IShellDirectoryFeedbackRequest extends IShellBaseFeedbackRequest {
+    type: "directory";
+
+    defaultValue?: string;
+}
+
+// cspell: ignore filesave, fileopen
+
+export interface IShellFileSaveFeedbackRequest extends IShellBaseFeedbackRequest {
+    type: "filesave";
+
+    defaultValue?: string;
+}
+
+export interface IShellFileOpenFeedbackRequest extends IShellBaseFeedbackRequest {
+    type: "fileopen";
+
+    defaultValue?: string;
+}
+
+export interface IShellPasswordFeedbackRequest extends IShellBaseFeedbackRequest {
+    type: "password";
+}
+
+/**
+ * This interface represents input requests from the BE.
+ */
+export type IShellFeedbackRequest =
+    IShellTextFeedbackRequest
+    | IShellConfirmFeedbackRequest
+    | IShellSelectFeedbackRequest
+    | IShellDirectoryFeedbackRequest
+    | IShellFileSaveFeedbackRequest
+    | IShellFileOpenFeedbackRequest
+    | IShellPasswordFeedbackRequest;
 
 export type IShellResultType =
     IShellFeedbackRequest

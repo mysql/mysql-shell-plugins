@@ -136,13 +136,11 @@ exports[`Grid component test Standard Rendering 1`] = `
           }
         >
           <Button
-            disabled={false}
             id="loginButton"
             round={true}
           >
             <button
               className="msg button round"
-              disabled={false}
               id="loginButton"
               onMouseDown={[Function]}
               style={

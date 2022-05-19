@@ -24,12 +24,13 @@
 import { EventType, ListenerEntry } from "../Dispatch";
 import {
     ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellPromptResponseType,
+    IPromptReplyBackend,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { IShellInterface } from ".";
 import { ShellInterfaceMds } from "./ShellInterfaceMds";
 
-export class ShellInterfaceShellSession implements IShellInterface {
+export class ShellInterfaceShellSession implements IShellInterface, IPromptReplyBackend {
 
     public readonly id = "shellSession";
 

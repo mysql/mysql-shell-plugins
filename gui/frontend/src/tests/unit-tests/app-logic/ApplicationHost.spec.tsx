@@ -28,7 +28,7 @@ import { act } from "preact/test-utils";
 import React from "react";
 
 import { ApplicationHost } from "../../../app-logic/ApplicationHost";
-import { DialogType, IDialogResponse } from "../../../app-logic/Types";
+import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/Types";
 import { IActivityBarItemProperties, IButtonProperties } from "../../../components/ui";
 import { DBEditorModuleId, ShellModuleId } from "../../../modules/ModuleInfo";
 import { ModuleRegistry } from "../../../modules/ModuleRegistry";
@@ -76,7 +76,7 @@ describe("Application host tests", () => {
 
         expect(requisitions.registrations("showAbout")).toBe(1);
         expect(requisitions.registrations("showPreferences")).toBe(1);
-        expect(requisitions.registrations("dialogResponse")).toBe(1);
+        expect(requisitions.registrations("dialogResponse")).toBe(2);
         expect(requisitions.registrations("showModule")).toBe(1);
 
         await requisitions.execute("showAbout", undefined);
@@ -88,7 +88,7 @@ describe("Application host tests", () => {
         component.unmount();
         expect(requisitions.registrations("showAbout")).toBe(0);
         expect(requisitions.registrations("showPreferences")).toBe(0);
-        expect(requisitions.registrations("dialogResponse")).toBe(0);
+        expect(requisitions.registrations("dialogResponse")).toBe(1);
         expect(requisitions.registrations("showModule")).toBe(0);
     });
 
@@ -350,7 +350,7 @@ describe("Application host tests", () => {
 
         const data: IDialogResponse = {
             type: DialogType.Prompt,
-            accepted: true,
+            closure: DialogResponseClosure.Accept,
         };
         let result = await requisitions.execute("dialogResponse", data);
         expect(result).toBe(false);

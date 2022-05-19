@@ -862,7 +862,6 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
           />,
           <Button
             caption="Cancel"
-            disabled={false}
             id="cancel"
             onClick={[Function]}
           />,

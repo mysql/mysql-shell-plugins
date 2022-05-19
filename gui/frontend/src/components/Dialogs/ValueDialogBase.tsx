@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,11 @@
 
 import React from "react";
 
-import { IDictionary } from "../../app-logic/Types";
+import { DialogResponseClosure, IDictionary } from "../../app-logic/Types";
 import { Component, IComponentProperties, IComponentState } from "../ui";
 
 export interface IValueDialogBaseProperties extends IComponentProperties {
-    onClose: (accepted: boolean, values?: IDictionary) => void;
+    onClose: (closure: DialogResponseClosure, values?: IDictionary) => void;
 }
 
 export abstract class ValueDialogBase<

@@ -139,7 +139,12 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
             onClose?.(cancelled, this.mergedProps);
 
             this.setState({ open: false, options: {} }, () => {
-                portalStack.pop();
+                const index = portalStack.findIndex((portal) => {
+                    return portal === this;
+                });
+                if (index > -1) {
+                    portalStack.splice(index, 1);
+                }
             });
         }
     };

@@ -72,8 +72,7 @@ class SqleditorModuleSession(DbModuleSession):
                 False,
                 self.on_user_session_connected,
                 lambda x: self.on_fail_connecting(x),
-                lambda x: self.on_shell_prompt(x),
-                lambda x: self.on_shell_password(x),
+                lambda x, o: self.on_shell_prompt(x, o),
                 self.on_session_message)
 
     def on_user_session_connected(self, db_session):

@@ -283,14 +283,12 @@ exports[`Login Page Tests Render Test 1`] = `
                 }
               >
                 <Button
-                  disabled={false}
                   id="loginButton"
                   onClick={[Function]}
                   round={true}
                 >
                   <button
                     className="msg button round"
-                    disabled={false}
                     id="loginButton"
                     onClick={[Function]}
                     onMouseDown={[Function]}

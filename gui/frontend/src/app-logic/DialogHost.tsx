@@ -23,22 +23,28 @@
 
 import React from "react";
 
-import { IDialogSection, IDialogValues, PasswordDialog, ValueDialogBase, ValueEditDialog } from "../components/Dialogs";
+import {
+    ConfirmDialog, DialogValueOption, IDialogSection, IDialogValues, PasswordDialog, ValueDialogBase, ValueEditDialog,
+} from "../components/Dialogs";
 import { Component } from "../components/ui";
 import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
 
 import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
 import { requisitions } from "../supplement/Requisitions";
-import { DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
+import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
 
-// A component to host all application wide accessible dialogs.
+/**
+ * A component to host certain application wide dialogs in a central place.
+ * They are all accessible via requisitions.
+ */
 export class DialogHost extends Component {
-
     private runningDialogs = new Set<DialogType>();
     private dialogRefs = new Map<DialogType, React.RefObject<ValueDialogBase>>();
 
     // The value edit dialog is special, as it uses a different approach for editing complex values.
     private promptDialogRef = React.createRef<ValueEditDialog>();
+
+    private confirmDialogRef = React.createRef<ConfirmDialog>();
 
     public constructor(props: {}) {
         super(props);
@@ -57,6 +63,13 @@ export class DialogHost extends Component {
                 caption="Feedback Requested"
                 ref={this.promptDialogRef}
                 onClose={this.handlePromptDialogClose}
+            />,
+
+            <ConfirmDialog
+                key="confirmDialog"
+                caption="Confirm"
+                ref={this.confirmDialogRef}
+                onClose={this.handleDialogClose.bind(this, DialogType.Confirm)}
             />,
         ];
 
@@ -87,16 +100,34 @@ export class DialogHost extends Component {
         // Only one of each type can be active at any time.
         if (!this.runningDialogs.has(request.type)) {
             this.runningDialogs.add(request.type);
-            if (request.type === DialogType.Prompt) {
-                this.runPromptDialog(request);
-
-                return Promise.resolve(true);
-            } else {
-                const ref = this.dialogRefs.get(request.type);
-                if (ref && ref.current) {
-                    ref.current.show(request, request.title);
+            switch (request.type) {
+                case DialogType.Prompt: {
+                    this.runPromptDialog(request);
 
                     return Promise.resolve(true);
+                }
+
+                case DialogType.Confirm: {
+                    this.runConfirmDialog(request);
+
+                    return Promise.resolve(true);
+                }
+
+                case DialogType.Select: {
+                    this.runSelectDialog(request);
+
+                    return Promise.resolve(true);
+                }
+
+                default: { // All dialogs with the base value editor return signature.
+                    const ref = this.dialogRefs.get(request.type);
+                    if (ref && ref.current) {
+                        ref.current.show(request, request.title);
+
+                        return Promise.resolve(true);
+                    }
+
+                    break;
                 }
             }
         }
@@ -105,10 +136,11 @@ export class DialogHost extends Component {
     };
 
     /**
-     * Configures a value edit dialog with a single section to let the user input a single value.
+     * Configures and runs a value edit dialog with a single section to let the user input a single value.
+     *
      * Support entries in the request are:
-     * - values.prompt A caption for the input field.
-     * - values.payload: A value that is forwarded to the response handler.
+     *   - values.prompt A caption for the input field.
+     *   - request.data: A dictionary that is forwarded to the response handler.
      *
      * @param request The request with the data for the dialog.
      */
@@ -131,34 +163,109 @@ export class DialogHost extends Component {
                 ]),
             },
             [],
-            { backgroundOpacity: 0.1 },
+            { backgroundOpacity: 0.5 },
             "",
             undefined,
-            request.data,
+            { ...request.data, type: request.type },
         );
-
     };
 
-    private handleDialogClose = (type: DialogType, accepted: boolean, values?: IDictionary): void => {
+    /**
+     * Configures and runs a confirmation dialog.
+     *
+     * Support entries in the request are:
+     *   - parameters.prompt The text to show for the confirmation.
+     *   - parameters.accept Optional text for the accept button (default: "OK").
+     *   - parameters.refuse Optional text for the refuse button (default: "Cancel").
+     *   - parameters.alternative Optional text for the accept button (no default).
+     *   - parameters.default Optional text for the button that should be auto focused.
+     *   - request.data: A dictionary that is forwarded to the response handler.
+     *
+     * @param request The request with the data for the dialog.
+     */
+    private runConfirmDialog = (request: IDialogRequest): void => {
+        this.confirmDialogRef.current?.show(
+            request.parameters?.prompt as string ?? "",
+            {
+                accept: request.parameters?.accept as string ?? "",
+                refuse: request.parameters?.refuse as string ?? "",
+                alternative: request.parameters?.alternative as string,
+                default: request.parameters?.default as string,
+            },
+            request.description,
+            { ...request.data, type: request.type },
+        );
+    };
+
+    /**
+     * Configures and runs a selection dialog.
+     *
+     * Support entries in the request are:
+     *   - parameters.prompt The text to show for the confirmation.
+     *   - parameters.default Optional text for the button that should be auto focused.
+     *   - parameters.options The list of values from which one must be selected.
+     *   - request.data: A dictionary that is forwarded to the response handler.
+     *
+     * @param request The request with the data for the dialog.
+     */
+    private runSelectDialog = (request: IDialogRequest): void => {
+        const promptSection: IDialogSection = {
+            values: {},
+        };
+
+        request.description?.forEach((entry, index) => {
+            promptSection.values[`description${index}`] = {
+                value: entry,
+                span: 8,
+                options: [DialogValueOption.Description],
+            };
+        });
+
+        const choices = request.parameters?.options as string[];
+        const defaultValue: number | undefined = request.parameters?.default as number;
+        promptSection.values.input = {
+            caption: request.parameters?.prompt as string,
+            value: defaultValue === undefined ? "" : choices[defaultValue - 1], // One-based value.
+            span: 8,
+            choices,
+        };
+
+        this.promptDialogRef.current?.show(
+            {
+                id: request.id,
+                sections: new Map<string, IDialogSection>([
+                    ["prompt", promptSection],
+                ]),
+            },
+            [],
+            { backgroundOpacity: 0.5 },
+            "",
+            undefined,
+            { ...request.data, type: request.type },
+        );
+    };
+
+    private handleDialogClose = (type: DialogType, closure: DialogResponseClosure, data?: IDictionary): void => {
         this.runningDialogs.delete(type);
 
         const response: IDialogResponse = {
             type,
-            accepted,
-            values,
+            closure,
+            data,
         };
 
         void requisitions.execute("dialogResponse", response);
     };
 
-    private handlePromptDialogClose = (accepted: boolean, values: IDialogValues, data?: IDictionary): void => {
+    private handlePromptDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
+        data?: IDictionary): void => {
         this.runningDialogs.delete(DialogType.Prompt);
 
         const promptSection = values.sections.get("prompt");
         if (promptSection) {
             const response: IDialogResponse = {
-                type: DialogType.Prompt,
-                accepted,
+                type: data?.type as DialogType,
+                closure,
                 values: {
                     input: promptSection.values.input.value as string,
                 },

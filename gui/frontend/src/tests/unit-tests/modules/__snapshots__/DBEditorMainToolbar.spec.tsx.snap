@@ -112,7 +112,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
           data-tooltip="Execute Explain for the statement at the caret position"
           disabled={true}
           imageOnly={true}
-          requestId="editorExecuteExplain"
+          requestType="editorExecuteExplain"
         >
           <button
             className="msg button imageOnly"
@@ -120,7 +120,6 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
             disabled={true}
             onClick={[Function]}
             onMouseDown={[Function]}
-            requestId="editorExecuteExplain"
             style={
               Object {
                 "flexDirection": undefined,
@@ -152,7 +151,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
           data-tooltip="Stop execution of the current statement/script"
           disabled={true}
           imageOnly={true}
-          requestId="editorStopExecution"
+          requestType="editorStopExecution"
         >
           <button
             className="msg button imageOnly"
@@ -160,7 +159,6 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
             disabled={true}
             onClick={[Function]}
             onMouseDown={[Function]}
-            requestId="editorStopExecution"
             style={
               Object {
                 "flexDirection": undefined,
@@ -190,14 +188,12 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
         </Button>
         <Button
           data-tooltip="Stop execution of the current statement/script in case of errors"
-          disabled={false}
           imageOnly={true}
           onClick={[Function]}
         >
           <button
             className="msg button imageOnly"
             data-tooltip="Stop execution of the current statement/script in case of errors"
-            disabled={false}
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
@@ -246,7 +242,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
           data-tooltip="Commit DB changes"
           disabled={true}
           imageOnly={true}
-          requestId="editorCommit"
+          requestType="editorCommit"
         >
           <button
             className="msg button imageOnly"
@@ -254,7 +250,6 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
             disabled={true}
             onClick={[Function]}
             onMouseDown={[Function]}
-            requestId="editorCommit"
             style={
               Object {
                 "flexDirection": undefined,
@@ -286,7 +281,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
           data-tooltip="Rollback DB changes"
           disabled={true}
           imageOnly={true}
-          requestId="editorRollback"
+          requestType="editorRollback"
         >
           <button
             className="msg button imageOnly"
@@ -294,7 +289,6 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
             disabled={true}
             onClick={[Function]}
             onMouseDown={[Function]}
-            requestId="editorRollback"
             style={
               Object {
                 "flexDirection": undefined,
@@ -324,14 +318,12 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
         </Button>
         <Button
           data-tooltip="Auto commit DB changes"
-          disabled={false}
           imageOnly={true}
           onClick={[Function]}
         >
           <button
             className="msg button imageOnly"
             data-tooltip="Auto commit DB changes"
-            disabled={false}
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
@@ -378,17 +370,14 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
         </Divider>
         <Button
           data-tooltip="Format current block or script"
-          disabled={false}
           imageOnly={true}
-          requestId="editorFormat"
+          requestType="editorFormat"
         >
           <button
             className="msg button imageOnly"
             data-tooltip="Format current block or script"
-            disabled={false}
             onClick={[Function]}
             onMouseDown={[Function]}
-            requestId="editorFormat"
             style={
               Object {
                 "flexDirection": undefined,
@@ -433,17 +422,14 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
         </Divider>
         <Button
           data-tooltip="Find"
-          disabled={false}
           imageOnly={true}
-          requestId="editorFind"
+          requestType="editorFind"
         >
           <button
             className="msg button imageOnly"
             data-tooltip="Find"
-            disabled={false}
             onClick={[Function]}
             onMouseDown={[Function]}
-            requestId="editorFind"
             style={
               Object {
                 "flexDirection": undefined,
@@ -473,14 +459,12 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
         </Button>
         <Button
           data-tooltip="Show hidden characters"
-          disabled={false}
           imageOnly={true}
           onClick={[Function]}
         >
           <button
             className="msg button imageOnly"
             data-tooltip="Show hidden characters"
-            disabled={false}
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
@@ -512,14 +496,12 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
         </Button>
         <Button
           data-tooltip="Soft wrap lines "
-          disabled={false}
           imageOnly={true}
           onClick={[Function]}
         >
           <button
             className="msg button imageOnly"
             data-tooltip="Soft wrap lines "
-            disabled={false}
             onClick={[Function]}
             onMouseDown={[Function]}
             style={

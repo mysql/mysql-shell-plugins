@@ -43,6 +43,7 @@ import { ShellInterface } from "../supplement/ShellInterface";
 import { webSession } from "../supplement/WebSession";
 import { requisitions } from "../supplement/Requisitions";
 import { eventFilterNoRequests, ListenerEntry } from "../supplement/Dispatch";
+import { DialogResponseClosure } from "./Types";
 
 interface IProfileSelectorState extends IComponentState {
     menuItems: React.ReactNode[];
@@ -360,8 +361,8 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         return result;
     };
 
-    private handleProfileChanges = (accepted: boolean, values: IDialogValues, payload: unknown): void => {
-        if (accepted) {
+    private handleProfileChanges = (closure: DialogResponseClosure, values: IDialogValues, payload: unknown): void => {
+        if (closure === DialogResponseClosure.Accept) {
             const details = payload as { saveProfile: boolean; section: string };
 
             if (details.saveProfile) {
@@ -488,12 +489,12 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         );
 
         if (this.confirmDialogRef.current) {
-            this.confirmDialogRef.current.show(content, "No", "Yes");
+            this.confirmDialogRef.current.show(content, { refuse: "No", accept: "Yes" });
         }
     };
 
-    private handleProfileDelete = (accepted: boolean): void => {
-        if (accepted) {
+    private handleProfileDelete = (closure: DialogResponseClosure): void => {
+        if (closure === DialogResponseClosure.Accept) {
             this.deleteList.forEach((item: ICommShellProfile) => {
                 ShellInterface.users.updateProfile(item).then((event: ICommProfileEvent) => {
                     if (!event.data?.result) {

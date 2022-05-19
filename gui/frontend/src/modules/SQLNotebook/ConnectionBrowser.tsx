@@ -60,8 +60,8 @@ import {
     IMdsProfileData, IMySQLDbSystem, IShellResultType,
 } from "../../communication";
 import { EventType } from "../../supplement/Dispatch";
-import { IDictionary, IServicePasswordRequest } from "../../app-logic/Types";
-import { PromptUtils } from "../common/PromptUtils";
+import { DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest } from "../../app-logic/Types";
+import { ShellPromptHandler } from "../common/ShellPromptHandler";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     connections: IConnectionDetails[];
@@ -111,11 +111,9 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private editorRef = React.createRef<ValueEditDialog>();
     private actionMenuRef = React.createRef<Menu>();
     private hostRef = React.createRef<HTMLElement>();
-    private confirmDialogRef = React.createRef<ConfirmDialog>();
     private confirmNewBastionDialogRef = React.createRef<ConfirmDialog>();
     private keepConnectionDialogRef = React.createRef<ConfirmDialog>();
     private confirmClearPasswordDialogRef = React.createRef<ConfirmDialog>();
-    private promptDialogRef = React.createRef<ValueEditDialog>();
     private testNotExisting = false;
 
     private shellSession = new ShellInterfaceShellSession();
@@ -297,18 +295,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     ref={this.confirmClearPasswordDialogRef}
                     id="confirmClearPasswordDlg"
                     caption="Password Cleared"
-                />
-                <ConfirmDialog
-                    ref={this.confirmDialogRef}
-                    id="confirmDeleteDialog"
-                    caption="Delete Connection"
-                    onClose={this.handleConnectionRemoval}
-                />
-                <ValueEditDialog
-                    ref={this.promptDialogRef}
-                    id="shellPromptDialog"
-                    caption="Feedback Requested"
-                    onClose={PromptUtils.handleClosePromptDialog}
                 />
                 <Menu
                     id="tileActionMenu"
@@ -604,15 +590,18 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     };
 
     private confirmTileRemoval = (connection: IConnectionDetails): void => {
-        if (this.confirmDialogRef.current) {
-            this.confirmDialogRef.current.show(
-                `You are about to remove the connection "${connection.caption}" from the list.`,
-                "Cancel",
-                "Confirm",
-                connection,
-            );
-        }
-
+        setImmediate(() => {
+            void requisitions.execute("showDialog", {
+                type: DialogType.Confirm,
+                parameters: {
+                    prompt: `You are about to remove the connection "${connection.caption}" from the list.`,
+                    refuse: "Cancel",
+                    accept: "Confirm",
+                    default: "Cancel",
+                },
+                data: { connection },
+            });
+        });
     };
 
     private confirmBastionCreation = (connection?: IConnectionDetails): void => {
@@ -628,31 +617,37 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         </GridCell>
                     </Grid>
                 </Container>),
-                "Cancel",
-                "Create New Bastion",
-                connection,
+                {
+                    refuse: "Cancel",
+                    accept: "Create New Bastion",
+                },
+                undefined,
+                { connection },
             );
         }
 
     };
 
-    private handleConnectionRemoval = (accepted: boolean, payload?: unknown): void => {
-        if (accepted) {
+    private handleConnectionRemoval = (closure: DialogResponseClosure, values?: IDictionary): void => {
+        if (closure === DialogResponseClosure.Accept) {
             const { onDropConnection } = this.props;
 
-            const details = payload as IConnectionDetails;
-            onDropConnection(details.id);
-            requisitions.executeRemote("refreshConnections", undefined);
+            if (values) {
+                const details = values.connection as IConnectionDetails;
+                onDropConnection(details.id);
+                requisitions.executeRemote("refreshConnections", undefined);
+            }
         }
     };
 
-    private handleCreateNewBastion = (accepted: boolean, payload?: unknown): void => {
-        if (accepted) {
-            const details = payload as IConnectionDetails;
+    private handleCreateNewBastion = (closure: DialogResponseClosure, values?: IDictionary): void => {
+        if (closure === DialogResponseClosure.Accept && values) {
+            const details = values.connection as IConnectionDetails;
             const initialContexts: string[] = [DBType.MySQL];
             if (details.useSSH) {
                 initialContexts.push("useSSH");
             }
+
             this.beginValueUpdating("Loading...", "bastionName");
             this.beginValueUpdating("Loading...", "mysqlDbSystemName");
             this.beginValueUpdating("Loading...", "bastionId");
@@ -715,9 +710,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         </GridCell>
                     </Grid>
                 </Container>),
-                "Cancel",
-                "Save",
-                connection,
+                {
+                    refuse: "Cancel",
+                    accept: "Save",
+                },
+                undefined,
+                { connection },
             );
         }
 
@@ -733,17 +731,17 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         </GridCell>
                     </Grid>
                 </Container>),
-                "Ok",
-                "",
-                connection,
+                { accept: "OK" },
+                undefined,
+                { connection },
             );
         }
 
     };
 
-    private handleKeepConnection = (accepted: boolean, payload?: unknown): void => {
-        const details = payload as IConnectionDetails;
-        if (accepted) {
+    private handleKeepConnection = (closure: DialogResponseClosure, values?: IDictionary): void => {
+        const details = values?.connection as IConnectionDetails;
+        if (closure === DialogResponseClosure.Accept) {
             const { onPushSavedConnection } = this.props;
             onPushSavedConnection?.(details);
             requisitions.executeRemote("refreshConnections", undefined);
@@ -1002,9 +1000,9 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         return result;
     };
 
-    private handleOptionsDialogClose = (accepted: boolean, values: IDialogValues, data?: IDictionary,
+    private handleOptionsDialogClose = (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary,
         callbackData?: ICallbackData): void => {
-        if (accepted) {
+        if (closure === DialogResponseClosure.Accept) {
             const generalSection = values.sections.get("general")!.values;
             const informationSection = values.sections.get("information")!.values;
             const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
@@ -1833,8 +1831,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                                 </GridCell>
                             </Grid>
                         </Container>),
-                        "",
-                        "Ok",
+                        { accept: "OK" },
                     );
                     // TODO: show message for success, once we have message toasts.
                 }
@@ -1890,7 +1887,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         this.hideProgress();
                         this.editorRef.current?.changeAdvActionText("Test connection");
                     } else {
-                        this.handleOptionsDialogClose(true, values, { createNew: true },
+                        this.handleOptionsDialogClose(DialogResponseClosure.Accept, values, { createNew: true },
                             { onAddConnection: this.saveAndTestConnection } as ICallbackData);
                     }
                 }
@@ -1970,20 +1967,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 switch (event.eventType) {
                     case EventType.DataResponse: {
                         const data = event.data;
-                        const result = data.result as IShellResultType;
-                        if (PromptUtils.isShellPasswordResult(result)) {
-                            const passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
-                                event.data.requestId!, backend);
-                            void requisitions.execute("requestPassword", passwordRequest);
-                        } else if (PromptUtils.isShellMdsPromptResult(data)) {
-                            PromptUtils.showBackendPromptDialog(this.promptDialogRef, data.result.prompt,
-                                event.data.requestId ?? "", backend);
-                        } else if (PromptUtils.isShellPromptResult(result)) {
-                            PromptUtils.showBackendPromptDialog(this.promptDialogRef, result.prompt as string,
-                                event.data.requestId ?? "", backend);
-                        } else {
+                        if (!ShellPromptHandler.handleShellPrompt(data.result as IShellResultType, data.requestId!,
+                            backend, "Provide Password")) {
                             this.setProgressMessage(event.message ?? "Loading ...");
                         }
+
                         break;
                     }
                     case EventType.FinalResponse: {

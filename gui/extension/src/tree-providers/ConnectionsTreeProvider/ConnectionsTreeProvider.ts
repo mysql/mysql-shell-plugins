@@ -468,9 +468,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                         case EventType.DataResponse: {
                             const result = event.data?.result as IShellResultType;
                             if (this.isShellPromptResult(result)) {
-                                if (result.password) {
+                                if (result.type === "password") {
                                     void window.showInputBox({
-                                        title: stripAnsiCode(result.password),
+                                        title: result.prompt,
                                         password: true,
                                     }).then((value) => {
                                         if (event.data && event.data.requestId) {
@@ -775,7 +775,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     private isShellPromptResult(response?: IShellResultType): response is IShellFeedbackRequest {
         const candidate = response as IShellFeedbackRequest;
 
-        return candidate?.password !== undefined || candidate?.prompt !== undefined;
+        return candidate?.prompt !== undefined;
     }
 
 }

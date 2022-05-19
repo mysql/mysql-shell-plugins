@@ -25,14 +25,12 @@ import * as React from "react";
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
-    IColumnInfo, DialogType, IDialogRequest, MessageType, IDialogResponse, IDictionary, IServicePasswordRequest,
-    DBDataType, IExecutionInfo,
+    IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, DBDataType, IExecutionInfo,
 } from "../../app-logic/Types";
 
 import {
     ICommShellEvent, IShellDocumentData, IShellObjectResult, IShellResultType, IShellRowData,
-    IShellSimpleResult, IShellValueResult, ShellPromptResponseType, IShellPromptValues, IShellFeedbackRequest,
-    IShellColumnsMetaData,
+    IShellSimpleResult, IShellValueResult, IShellPromptValues, IShellColumnsMetaData,
 } from "../../communication";
 import {
     Component, Container, ContentAlignment, IComponentProperties, Orientation,
@@ -45,11 +43,12 @@ import { requisitions } from "../../supplement/Requisitions";
 import { EventType } from "../../supplement/Dispatch";
 import { settings } from "../../supplement/Settings/Settings";
 import { DBType, ShellInterfaceDb, ShellInterfaceShellSession } from "../../supplement/ShellInterface";
-import { flattenObject, stripAnsiCode } from "../../utilities/helpers";
+import { flattenObject } from "../../utilities/helpers";
 import { ShellConsole } from "./ShellConsole";
 import { ShellPrompt } from "./ShellPrompt";
 import { unquote } from "../../utilities/string-helpers";
 import { MySQLConnectionScheme } from "../../communication/MySQL";
+import { ShellPromptHandler } from "../common/ShellPromptHandler";
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
@@ -101,18 +100,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
     public componentDidMount(): void {
         this.initialSetup();
-
-        requisitions.register("acceptPassword", this.acceptPassword);
-        requisitions.register("cancelPassword", this.cancelPassword);
-        requisitions.register("dialogResponse", this.handleDialogResponse);
     }
 
     public componentWillUnmount(): void {
         this.closeDbSession("");
-
-        requisitions.unregister("acceptPassword", this.acceptPassword);
-        requisitions.unregister("cancelPassword", this.cancelPassword);
-        requisitions.unregister("dialogResponse", this.handleDialogResponse);
     }
 
     public componentDidUpdate(): void {
@@ -464,82 +455,102 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             columns.push(...generateColumnInfo(
                                 context.language === "mysql" ? DBType.MySQL : DBType.Sqlite, rawColumns));
                         } else if (this.isShellShellRowData(result)) {
-                            // Document data must be handled first, as that includes an info field,
-                            // like the simple result.
-                            const rowString = result.rows.length === 1 ? "row" : "rows";
-                            const status = {
-                                type: MessageType.Info,
-                                text: `${result.rows.length} ${rowString} in set (${result.executionTime})`,
-                            };
-
-                            if (result.warningCount > 0) {
-                                status.type = MessageType.Warning;
-                                status.text += `, ${result.warningCount} ` +
-                                    `${result.warningCount === 1 ? "warning" : "warnings"}`;
-                            }
-
-                            // Flatten nested objects + arrays.
-                            result.rows.forEach((value) => {
-                                flattenObject(value as IDictionary);
-                            });
-
-                            // XXX: temporary workaround: create generic columns from data.
-                            // Column info should actually be return in the columns meta data response above.
-                            if (columns.length === 0 && result.rows.length > 0) {
-                                const row = result.rows[0] as object;
-                                Object.keys(row).forEach((value) => {
-                                    columns.push({
-                                        name: value,
-                                        dataType: {
-                                            type: DBDataType.String,
-                                        },
-                                    });
+                            // Some APIs return rows, which are not result sets (have no keys). Print them
+                            // as simple results.
+                            if (result.rows.length === 0 || typeof result.rows[0] !== "object") {
+                                let text = "[\n";
+                                result.rows.forEach((value) => {
+                                    text += `\t${String(value)}\n`;
                                 });
-                            }
+                                text += "]";
 
-                            const rows = convertRows(columns, result.rows);
-
-                            void ApplicationDB.db.add("shellModuleResultData", {
-                                tabId: id,
-                                requestId,
-                                rows,
-                                columns,
-                                executionInfo: status,
-                                index,
-                            });
-
-                            if (index === -1) {
-                                // An index of -1 indicates that we are handling non-SQL mode results and have not
-                                // set an initial result record in the execution context. Have to do that now.
-                                index = -2;
-                                context.setResult({
-                                    type: "resultSets",
-                                    sets: [{
+                                addResultData({
+                                    type: "text",
+                                    requestId: event.data.requestId,
+                                    text: [{
+                                        type: MessageType.Info,
                                         index,
-                                        head: {
-                                            requestId,
-                                            sql: "",
-                                        },
-                                        data: {
-                                            requestId,
-                                            rows,
-                                            columns,
-                                            currentPage: 0,
-                                            executionInfo: status,
-                                        },
+                                        content: text,
+                                        language: "xml",
                                     }],
+                                    executionInfo: { text: "OK" },
                                 });
                             } else {
-                                addResultData({
-                                    type: "resultSetRows",
+
+                                const rowString = result.rows.length === 1 ? "row" : "rows";
+                                const status = {
+                                    type: MessageType.Info,
+                                    text: `${result.rows.length} ${rowString} in set (${result.executionTime})`,
+                                };
+
+                                if (result.warningCount > 0) {
+                                    status.type = MessageType.Warning;
+                                    status.text += `, ${result.warningCount} ` +
+                                        `${result.warningCount === 1 ? "warning" : "warnings"}`;
+                                }
+
+                                // Flatten nested objects + arrays.
+                                result.rows.forEach((value) => {
+                                    flattenObject(value as IDictionary);
+                                });
+
+                                // XXX: temporary workaround: create generic columns from data.
+                                // Column info should actually be return in the columns meta data response above.
+                                if (columns.length === 0 && result.rows.length > 0) {
+                                    const row = result.rows[0] as object;
+                                    Object.keys(row).forEach((value) => {
+                                        columns.push({
+                                            name: value,
+                                            dataType: {
+                                                type: DBDataType.String,
+                                            },
+                                        });
+                                    });
+                                }
+
+                                const rows = convertRows(columns, result.rows);
+
+                                void ApplicationDB.db.add("shellModuleResultData", {
+                                    tabId: id,
                                     requestId,
                                     rows,
                                     columns,
-                                    currentPage: 0,
                                     executionInfo: status,
+                                    index,
                                 });
-                            }
 
+                                if (index === -1) {
+                                    // An index of -1 indicates that we are handling non-SQL mode results and have not
+                                    // set an initial result record in the execution context. Have to do that now.
+                                    index = -2;
+                                    context.setResult({
+                                        type: "resultSets",
+                                        sets: [{
+                                            index,
+                                            head: {
+                                                requestId,
+                                                sql: "",
+                                            },
+                                            data: {
+                                                requestId,
+                                                rows,
+                                                columns,
+                                                currentPage: 0,
+                                                executionInfo: status,
+                                            },
+                                        }],
+                                    });
+                                } else {
+                                    addResultData({
+                                        type: "resultSetRows",
+                                        requestId,
+                                        rows,
+                                        columns,
+                                        currentPage: 0,
+                                        executionInfo: status,
+                                    });
+                                }
+                            }
                         } else if (this.isShellShellData(result)) {
                             // Unspecified shell data (no documents, no rows). Just print the info as status, for now.
                             addResultData({
@@ -632,79 +643,42 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     language: "ansi",
                                 }],
                             });
-                        } else if (this.isShellPromptResult(result)) {
-                            if (result.password) {
-                                addResultData({
-                                    type: "text",
-                                    requestId,
-                                    text: [{
-                                        type: MessageType.Interactive,
-                                        index,
-                                        content: result.password,
-                                        language: "ansi",
-                                    }],
-                                });
-
-                                // Extract the service id (and from that the user name) from the password prompt.
-                                const parts = result.password.split("'");
-                                if (parts.length >= 3) {
-                                    const parts2 = parts[1].split("@");
-                                    const passwordRequest: IServicePasswordRequest = {
-                                        requestId,
-                                        caption: "Open MySQL Connection in Shell Session",
-                                        service: parts[1],
-                                        user: parts2[0],
-                                    };
-                                    void requisitions.execute("requestPassword", passwordRequest);
-                                } else {
-                                    const passwordRequest: IServicePasswordRequest = {
-                                        requestId,
-                                        caption: "MySQL Shell Password Request",
-                                        description: result.password,
-                                    };
-                                    void requisitions.execute("requestPassword", passwordRequest);
-                                }
-
-                            } else if (result.prompt) {
-                                // Any other input requested from the user.
-                                const promptRequest: IDialogRequest = {
-                                    type: DialogType.Prompt,
-                                    id: "shellPromptDialog",
-                                    values: {
-                                        prompt: stripAnsiCode(result.prompt),
-                                    },
-                                    data: {
-                                        requestId,
-                                    },
-                                };
-                                void requisitions.execute("showDialog", promptRequest);
-                            }
-                        } else if (this.isShellObjectResult(result)) {
-                            let text = "<" + result.class;
-                            if (result.name) {
-                                text += ":" + result.name;
-                            }
-                            text += ">";
-                            addResultData({
-                                type: "text",
-                                requestId: event.data.requestId,
-                                text: [{
-                                    type: MessageType.Info,
-                                    index,
-                                    content: text,
-                                    language: "xml",
-                                }],
-                            });
                         } else {
-                            // If no specialized result then print as is.
-                            const executionInfo: IExecutionInfo = {
-                                text: JSON.stringify(event.data.requestState, undefined, "\t"),
-                            };
-                            addResultData({
-                                type: "text",
-                                text: [],
-                                executionInfo,
-                            });
+                            // Temporarily listen to password requests, to be able to record any new password for this
+                            // session.
+                            requisitions.register("acceptPassword", this.acceptPassword);
+
+                            if (!ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend)) {
+                                requisitions.unregister("acceptPassword", this.acceptPassword);
+
+                                if (this.isShellObjectResult(result)) {
+                                    let text = "<" + result.class;
+                                    if (result.name) {
+                                        text += ":" + result.name;
+                                    }
+                                    text += ">";
+                                    addResultData({
+                                        type: "text",
+                                        requestId: event.data.requestId,
+                                        text: [{
+                                            type: MessageType.Info,
+                                            index,
+                                            content: text,
+                                            language: "xml",
+                                        }],
+                                    });
+                                } else {
+                                    // If no specialized result then print as is.
+                                    const executionInfo: IExecutionInfo = {
+                                        text: JSON.stringify(event.data.requestState, undefined, "\t"),
+                                    };
+                                    addResultData({
+                                        type: "text",
+                                        text: [],
+                                        executionInfo,
+                                    });
+                                }
+                            }
                         }
 
                         break;
@@ -815,47 +789,15 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         }
     };
 
-    private handleDialogResponse = (response: IDialogResponse): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const { savedState } = this.props;
-
-            if (response.data) {
-                if (response.accepted) {
-                    savedState.backend.sendReply(response.data.requestId as string, ShellPromptResponseType.Ok,
-                        response.values?.input as string);
-                } else {
-                    savedState.backend.sendReply(response.data.requestId as string, ShellPromptResponseType.Cancel, "");
-                }
-
-                resolve(true);
-            }
-
-            resolve(false);
-        });
-    };
-
     private acceptPassword = (data: { request: IServicePasswordRequest; password: string }): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const { savedState } = this.props;
+        // This password notification is a one-shot event, used only for handling password shell requests.
+        requisitions.unregister("acceptPassword", this.acceptPassword);
 
-            savedState.backend.sendReply(data.request.requestId, ShellPromptResponseType.Ok, data.password)
-                .then(() => {
-                    savedState.lastPassword = data.password;
-                    resolve(true);
-                })
-                .catch(() => { resolve(false); });
-        });
-    };
+        const { savedState } = this.props;
 
-    private cancelPassword = (request: IServicePasswordRequest): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const { savedState } = this.props;
+        savedState.lastPassword = data.password;
 
-            savedState.backend.sendReply(request.requestId, ShellPromptResponseType.Cancel, "")
-                .then(() => { resolve(true); })
-                .catch(() => { resolve(false); });
-
-        });
+        return Promise.resolve(false);
     };
 
     private listSchemas = (): Promise<string[]> => {
@@ -882,12 +824,6 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     };
 
     // Different type guards below, to keep various shell results apart.
-
-    private isShellPromptResult(response: IShellResultType): response is IShellFeedbackRequest {
-        const candidate = response as IShellFeedbackRequest;
-
-        return candidate.prompt !== undefined || candidate.password !== undefined;
-    }
 
     private isShellObjectListResult(response: IShellResultType): response is IShellObjectResult[] {
         return Array.isArray(response);

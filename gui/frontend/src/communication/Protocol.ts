@@ -24,6 +24,7 @@
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import { ListenerEntry } from "../supplement/Dispatch";
 import { uuid } from "../utilities/helpers";
 
 export type ShellDictionaryType = string | number | boolean | undefined | unknown | null | IShellDictionary;
@@ -80,4 +81,8 @@ export class Protocol {
             ...rest,
         };
     }
+}
+
+export interface IPromptReplyBackend {
+    sendReply: (requestId: string, type: ShellPromptResponseType, reply: string) => ListenerEntry;
 }

@@ -29,6 +29,7 @@ import { ConfirmDialog } from "../../../../components/Dialogs";
 import { Label } from "../../../../components/ui";
 
 import { nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../../test-helpers";
+import { DialogResponseClosure } from "../../../../app-logic/Types";
 
 describe("Confirm Dialog Tests", (): void => {
 
@@ -50,7 +51,8 @@ describe("Confirm Dialog Tests", (): void => {
             <ConfirmDialog caption="Confirm you are a spy!" />,
         );
 
-        component.instance().show("Answer The Question", "No, I'm no spy", "Yes, you got me", { brain: "Lorem Ipsum" });
+        component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+            undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -64,7 +66,8 @@ describe("Confirm Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.instance().show("", "No, I'm no spy", "Yes, you got me", { brain: "Lorem Ipsum" });
+        component.instance().show("", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+            undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -90,7 +93,8 @@ describe("Confirm Dialog Tests", (): void => {
         );
 
         const label = <Label>Time to say goodbye</Label>;
-        component.instance().show(label, "No, I'm no spy", "Yes, you got me", { brain: "Lorem Ipsum" });
+        component.instance().show(label, { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+            undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -108,7 +112,7 @@ describe("Confirm Dialog Tests", (): void => {
     });
 
     it("Test Buttons", async () => {
-        const spyOnClose = jest.fn((_accepted: boolean, _payload?: unknown): void => {
+        const spyOnClose = jest.fn((_closure: DialogResponseClosure, _payload?: unknown): void => {
             // no-op
         });
 
@@ -120,7 +124,8 @@ describe("Confirm Dialog Tests", (): void => {
         );
 
         // First round: accept.
-        component.instance().show("Answer The Question", "No, I'm no spy", "Yes, you got me", { brain: "Lorem Ipsum" });
+        component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+            undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         // Dialogs are rendered using portals, so we cannot use the component to interact with them.
@@ -133,7 +138,7 @@ describe("Confirm Dialog Tests", (): void => {
 
         (buttons[0] as HTMLButtonElement).click();
         expect(spyOnClose).toHaveBeenCalledTimes(1);
-        expect(spyOnClose).toHaveBeenCalledWith(true, { brain: "Lorem Ipsum" });
+        expect(spyOnClose).toHaveBeenCalledWith(DialogResponseClosure.Accept, { brain: "Lorem Ipsum" });
 
         // Check the dialog was closed.
         await nextProcessTick();
@@ -142,7 +147,8 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(0);
 
         // Second round: deny.
-        component.instance().show("Answer The Question", "No, I'm no spy", "Yes, you got me", { brain: "Dolor Sit" });
+        component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+            undefined, { brain: "Dolor Sit" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -154,7 +160,7 @@ describe("Confirm Dialog Tests", (): void => {
 
         (buttons[1] as HTMLButtonElement).click();
         expect(spyOnClose).toHaveBeenCalledTimes(2);
-        expect(spyOnClose).toHaveBeenCalledWith(false, { brain: "Dolor Sit" });
+        expect(spyOnClose).toHaveBeenCalledWith(DialogResponseClosure.Decline, { brain: "Dolor Sit" });
 
         // Check the dialog was closed.
         await nextProcessTick();

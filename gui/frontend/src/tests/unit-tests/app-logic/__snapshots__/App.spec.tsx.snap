@@ -285,14 +285,12 @@ exports[`Application tests Application readiness 1`] = `
                     }
                   >
                     <Button
-                      disabled={false}
                       id="loginButton"
                       onClick={[Function]}
                       round={true}
                     >
                       <button
                         className="msg button round"
-                        disabled={false}
                         id="loginButton"
                         onClick={[Function]}
                         onMouseDown={[Function]}
@@ -357,7 +355,6 @@ exports[`Application tests Application readiness 1`] = `
             "end": Array [
               <Button
                 caption="Close"
-                disabled={false}
                 onClick={[Function]}
               />,
             ],
@@ -517,7 +514,6 @@ exports[`Application tests Application readiness 1`] = `
                 />,
                 <Button
                   caption="Cancel"
-                  disabled={false}
                   id="cancel"
                   onClick={[Function]}
                 />,
@@ -586,6 +582,7 @@ exports[`Application tests Application readiness 1`] = `
               
             </Container>
           }
+          onClose={[Function]}
         >
           <Portal
             container={Object {}}

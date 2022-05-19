@@ -8,7 +8,6 @@ exports[`Error Panel Tests Render Test 1`] = `
         "end": Array [
           <Button
             caption="Close"
-            disabled={false}
             onClick={[Function]}
           />,
         ],

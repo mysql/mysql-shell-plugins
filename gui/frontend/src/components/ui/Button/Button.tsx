@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,33 +36,41 @@ export interface IButtonProperties extends IComponentProperties {
     round?: boolean;
     orientation?: Orientation;
     imageOnly?: boolean;       // When set the button gets no min width or extra padding.
+    isDefault?: boolean;         // If set this button gets the initial focus.
 
     // Buttons can automatically trigger requests, if no parameter is required.
-    requestId?: keyof IRequestTypeMap;
+    requestType?: keyof IRequestTypeMap;
 
     focusOnClick?: boolean;
 }
 
 export class Button extends Component<IButtonProperties> {
 
-    public static defaultProps = {
-        disabled: false,
-    };
+    private buttonRef: React.RefObject<HTMLButtonElement>;
 
     public constructor(props: IButtonProperties) {
         super(props);
 
-        this.addHandledProperties("innerRef", "round", "style", "orientation", "imageOnly", "commandId",
+        this.addHandledProperties("innerRef", "round", "style", "orientation", "imageOnly", "isDefault", "requestType",
             "commandParams", "focusOnClick");
 
-        if (props.requestId) {
+        if (props.requestType) {
             this.connectEvents("onClick");
         }
         this.connectEvents("onMouseDown");
+
+        this.buttonRef = props.innerRef ?? React.createRef<HTMLButtonElement>();
+    }
+
+    public componentDidMount(): void {
+        const { isDefault } = this.props;
+        if (isDefault && this.buttonRef?.current) {
+            this.buttonRef.current.focus();
+        }
     }
 
     public render(): React.ReactNode {
-        const { children, innerRef, caption, style, orientation, round, imageOnly } = this.mergedProps;
+        const { children, caption, style, orientation, round, imageOnly } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "button",
             this.classFromProperty(round, "round"),
@@ -77,31 +85,31 @@ export class Button extends Component<IButtonProperties> {
 
         return (
             <button
-                ref={innerRef}
+                ref={this.buttonRef}
                 style={newStyle}
                 className={className}
                 {...this.unhandledProperties}
             >
                 {content}
-            </button>
+            </button >
         );
     }
 
     protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
         switch (type) {
             case MouseEventType.Down: {
-                const { focusOnClick, innerRef } = this.mergedProps;
+                const { focusOnClick } = this.mergedProps;
                 if (!focusOnClick) {
                     e.preventDefault();
                 } else {
-                    innerRef?.current?.focus();
+                    this.buttonRef?.current?.focus();
                 }
 
                 break;
             }
 
             case MouseEventType.Click: {
-                const { requestId } = this.mergedProps;
+                const { requestType: requestId } = this.mergedProps;
                 if (requestId) {
                     void requisitions.execute(requestId, undefined);
 

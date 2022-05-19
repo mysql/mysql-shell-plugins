@@ -76,16 +76,15 @@ class DbMysqlSession(DbSession):
 
         self.open()
 
-    def on_shell_prompt(self, text):
-        return self._prompt_cb(text)
+    def on_shell_prompt(self, text, options):
+        if 'type' in options and options['type'] == 'password':
+            logger.add_filter({
+                "type": "key",
+                "key": "reply",
+                "expire": Filtering.FilterExpire.OnUse
+            })
 
-    def on_shell_password(self, text):
-        logger.add_filter({
-            "type": "key",
-            "key": "reply",
-            "expire": Filtering.FilterExpire.OnUse
-        })
-        return self._pwd_prompt_cb(text)
+        return self._prompt_cb(text, options)
 
     def on_shell_print(self, text):
         sys.real_stdout.write(text)
@@ -102,8 +101,7 @@ class DbMysqlSession(DbSession):
         self._shell_ctx = shell.create_context({"printDelegate": lambda x: self.on_shell_print(x),
                                                 "diagDelegate": lambda x: self.on_shell_print_diag(x),
                                                 "errorDelegate": lambda x: self.on_shell_print_error(x),
-                                                "promptDelegate": lambda x: self.on_shell_prompt(x),
-                                                "passwordDelegate": lambda x: self.on_shell_password(x), })
+                                                "promptDelegate": lambda x, o: self.on_shell_prompt(x, o), })
         self._shell = self._shell_ctx.get_shell()
 
         self._do_connect(notify_success=notify_success)

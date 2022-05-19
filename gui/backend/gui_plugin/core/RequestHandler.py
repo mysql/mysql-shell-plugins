@@ -70,18 +70,15 @@ class RequestHandler(Thread):
                                                     api=True)
             self._text_cache = None
 
-    def on_shell_prompt(self, text):
+    def on_shell_prompt(self, text, options):
+        # Append the message into the prompt
+        options["prompt"] = text
+
+        if not "type" in options:
+            options["type"] = "text"
+
         self._web_handler.send_prompt_response(
-            self._request_id, {"prompt": text}, self)
-
-        self._prompt_event.wait()
-        self._prompt_event.clear()
-
-        return [self._prompt_replied, self._prompt_reply]
-
-    def on_shell_password(self, text):
-        self._web_handler.send_prompt_response(
-            self._request_id, {"password": text}, self)
+            self._request_id, options, self)
 
         self._prompt_event.wait()
         self._prompt_event.clear()
@@ -120,8 +117,7 @@ class RequestHandler(Thread):
         self._shell_ctx = shell.create_context({"printDelegate": lambda x: self.on_shell_print(x),
                                                 "diagDelegate": lambda x: self.on_shell_print_diag(x),
                                                 "errorDelegate": lambda x: self.on_shell_print_error(x),
-                                                "promptDelegate": lambda x: self.on_shell_prompt(x),
-                                                "passwordDelegate": lambda x: self.on_shell_password(x), })
+                                                "promptDelegate": lambda x, y: self.on_shell_prompt(x, y), })
         self._shell = self._shell_ctx.get_shell()
 
         result = None

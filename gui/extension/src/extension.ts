@@ -256,14 +256,15 @@ export const activate = (context: ExtensionContext): void => {
     }));
 
     context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", async (): Promise<Boolean> => {
-        await waitFor(5000, () => { return startupCompleted; } );
+        await waitFor(5000, () => {
+            return startupCompleted;
+        });
 
         return startupCompleted;
     }));
 
     // Handle version specific topics
-    const currentVersion = extensions.getExtension(
-        "Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
+    const currentVersion = extensions.getExtension("Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
 
     // Check if this is the initial run of the MySQL Shell extension after an update
     const lastRunVersion = context.globalState.get("MySQLShellLastRunVersion");

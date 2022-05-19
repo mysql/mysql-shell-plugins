@@ -29,8 +29,11 @@ await ws.sendAndValidate({
             "msg": "Executing..."
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {
-            "password": "Please provide the password for 'msandbox@" + options.host + ":" + options.portStr + "': "
+        "result":
+        {
+            'defaultValue': '',
+            'prompt': "Please provide the password for 'msandbox@" + options.host + ":" + options.portStr + "': ",
+            'type': 'password'
         }
     }
 ])

@@ -51,23 +51,20 @@ import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Exp
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import {
     ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommModuleDataContentEvent,
-    ICommOpenConnectionEvent, ICommResultSetEvent, IOpenDBConnectionData,
-    IShellResultType, IResultSetData,
+    ICommOpenConnectionEvent, ICommResultSetEvent, IShellResultType, IResultSetData,
 } from "../../communication";
-import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
-import { convertSnakeToCamelCase, stripAnsiCode, uuid } from "../../utilities/helpers";
+import { convertSnakeToCamelCase, uuid } from "../../utilities/helpers";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { DBEditorModuleId } from "../ModuleInfo";
 import { EditorLanguage, IExecutionContext } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
-import { IDialogSection, ValueEditDialog } from "../../components/Dialogs";
-import { IServicePasswordRequest } from "../../app-logic/Types";
-import { PromptUtils } from "../common/PromptUtils";
+import { ShellPromptHandler } from "../common/ShellPromptHandler";
+import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem";
 
 /* eslint import/no-webpack-loader-syntax: off */
@@ -112,8 +109,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private editorCounter = 0;
 
     private scriptsTree: IModuleDataEntry[] = [];
-
-    private promptDialogRef = React.createRef<ValueEditDialog>();
 
     private pendingProgress: ReturnType<typeof setTimeout> | null;
 
@@ -409,12 +404,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 canReorderTabs
                 pages={pages}
                 onSelectTab={this.handleSelectTab}
-            />
-            <ValueEditDialog
-                ref={this.promptDialogRef}
-                id="shellPromptDialog"
-                caption="Feedback Requested"
-                onClose={PromptUtils.handleClosePromptDialog}
             />
         </>;
     }
@@ -713,20 +702,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 switch (event.eventType) {
                     case EventType.DataResponse: {
                         const data = event.data;
-                        const result = data.result as IShellResultType;
-                        if (PromptUtils.isShellPasswordResult(result)) {
-                            const passwordRequest = PromptUtils.splitAndBuildPasswdRequest(result,
-                                event.data.requestId!, backend);
-                            void requisitions.execute("requestPassword", passwordRequest);
-                        } else if (PromptUtils.isShellMdsPromptResult(data)) {
-                            PromptUtils.showBackendPromptDialog(this.promptDialogRef, data.result.prompt,
-                                event.data.requestId ?? "", backend);
-                        } else if (PromptUtils.isShellPromptResult(result)) {
-                            PromptUtils.showBackendPromptDialog(this.promptDialogRef, result.prompt as string,
-                                event.data.requestId ?? "", backend);
-                        } else {
+                        if (!ShellPromptHandler.handleShellPrompt(data.result as IShellResultType, data.requestId!,
+                            backend)) {
                             this.setProgressMessage(event.message ?? "Loading ...");
                         }
+
                         break;
                     }
 
@@ -736,23 +716,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         // Once the connection is open we can create the editor.
                         let currentSchema = "";
                         if (event.data.currentSchema) {
-                            currentSchema = event.data.currentSchema as string;
+                            currentSchema = event.data.currentSchema;
                         } else if (connection.dbType === DBType.MySQL) {
                             currentSchema = (connection.options as IMySQLConnectionOptions).schema ?? "";
                         }
 
-                        let serverVersion: number | undefined;
-                        let serverEdition = "";
-                        const sqlMode = event.data.sqlMode as string ?? settings.get("editor.sqlMode", "");
-
-                        if (!PromptUtils.isShellPromptResult(event.data as IShellResultType)) {
-                            const info = event.data.info as IOpenDBConnectionData;
-
-                            serverVersion = info.version ? parseVersion(info.version as string) : undefined;
-                            serverEdition = info.edition as string ?? "";
-                        }
-
-                        serverVersion = serverVersion ?? settings.get("editor.dbVersion", 80024);
+                        const info = event.data.info;
+                        const sqlMode = info.sqlMode ?? settings.get("editor.sqlMode", "");
+                        const serverVersion = info.version
+                            ? parseVersion(info.version)
+                            : settings.get("editor.dbVersion", 80024);
+                        const serverEdition = info.edition ?? "";
 
                         const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode, currentSchema);
 
@@ -827,97 +801,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     return;
                 }
 
-                // TODO: combine prompt handling here with that in `openNewConnection`.
                 switch (event.eventType) {
                     case EventType.DataResponse: {
                         const data = event.data;
                         const result = data.result as IShellResultType;
-                        if (PromptUtils.isShellPasswordResult(result)) {
-                            // Extract the service id (and from that the user name) from the password prompt.
-                            if (result !== undefined && result.password !== undefined) {
-                                const passwordRequest: IServicePasswordRequest = {
-                                    requestId: event.data.requestId!,
-                                    caption: "Open MySQL Connection in Shell Session",
-                                    payload: backend,
-                                    service: "",
-                                    user: "",
-                                };
-                                let parts = result.password.split("'");
-                                if (parts.length >= 3) {
-                                    const parts2 = parts[1].split("@");
-                                    passwordRequest.service = parts[1];
-                                    passwordRequest.user = parts2[0];
-                                } else {
-                                    parts = result.password.split("ssh://");
-                                    if (parts.length >= 2) {
-                                        passwordRequest.caption = "Open SSH tunnel in Shell Session";
-                                        const parts2 = parts[1].split("@");
-                                        passwordRequest.service = `ssh://${parts[1]}`.trim();
-                                        if (passwordRequest.service.endsWith(":")) {
-                                            passwordRequest.service = passwordRequest.service.slice(0, -1);
-                                        }
-                                        passwordRequest.user = parts2[0];
-                                    } else {
-                                        passwordRequest.caption = result.password;
-                                    }
-                                }
-                                void requisitions.execute("requestPassword", passwordRequest);
-                            }
-                        } else if (PromptUtils.isShellMdsPromptResult(data)) {
-                            if (this.promptDialogRef.current) {
-                                const prompt = stripAnsiCode(data.result.prompt);
-                                const promptSection: IDialogSection = {
-                                    values: {
-                                        input: {
-                                            caption: prompt,
-                                            value: "",
-                                            span: 8,
-                                        },
-                                    },
-                                };
-
-                                this.promptDialogRef.current.show(
-                                    {
-                                        id: "shellPrompt",
-                                        sections: new Map<string, IDialogSection>([
-                                            ["prompt", promptSection],
-                                        ]),
-                                    },
-                                    [],
-                                    { backgroundOpacity: 0.1 },
-                                    "",
-                                    prompt,
-                                    { backend, requestId: event.data.requestId },
-                                );
-                            }
-                        } else if (PromptUtils.isShellPromptResult(result)) {
-                            if (this.promptDialogRef.current) {
-                                const prompt = stripAnsiCode(result.prompt as string);
-                                const promptSection: IDialogSection = {
-                                    values: {
-                                        input: {
-                                            caption: prompt,
-                                            value: "",
-                                            span: 8,
-                                        },
-                                    },
-                                };
-
-                                this.promptDialogRef.current.show(
-                                    {
-                                        id: "shellPrompt",
-                                        sections: new Map<string, IDialogSection>([
-                                            ["prompt", promptSection],
-                                        ]),
-                                    },
-                                    [],
-                                    { backgroundOpacity: 0.1 },
-                                    "",
-                                    prompt,
-                                    { backend, requestId: event.data.requestId },
-                                );
-                            }
-                        } else {
+                        if (!ShellPromptHandler.handleShellPrompt(result, data.requestId!, backend)) {
                             this.setProgressMessage(event.message ?? "Loading ...");
                         }
 

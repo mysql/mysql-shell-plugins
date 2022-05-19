@@ -30,6 +30,7 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
         
       </Container>
     }
+    onClose={[Function]}
   >
     <Portal
       container={Object {}}
@@ -113,11 +114,11 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
         <button
           __self="[object Object]"
           __source="[object Object]"
-          caption="No, I'm no spy"
+          caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
         >
-          No, I'm no spy
+          No, I'm not a spy
         </button>
       </div>
     </div>
@@ -206,11 +207,11 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
         <button
           __self="[object Object]"
           __source="[object Object]"
-          caption="No, I'm no spy"
+          caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
         >
-          No, I'm no spy
+          No, I'm not a spy
         </button>
       </div>
     </div>
@@ -291,11 +292,11 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
         <button
           __self="[object Object]"
           __source="[object Object]"
-          caption="No, I'm no spy"
+          caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
         >
-          No, I'm no spy
+          No, I'm not a spy
         </button>
       </div>
     </div>

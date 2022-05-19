@@ -18,13 +18,11 @@ exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
     >
       <Button
         caption="Normal Button"
-        disabled={false}
         id="button1"
       >
         <button
           caption="Normal Button"
           className="msg button"
-          disabled={false}
           id="button1"
           onMouseDown={[Function]}
           style={
@@ -73,13 +71,11 @@ exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
       }
     >
       <Button
-        disabled={false}
         id="button3"
         orientation="column"
       >
         <button
           className="msg button"
-          disabled={false}
           id="button3"
           onMouseDown={[Function]}
           style={
@@ -95,12 +91,10 @@ exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
         </button>
       </Button>
       <Button
-        disabled={false}
         id="button4"
       >
         <button
           className="msg button"
-          disabled={false}
           id="button4"
           onMouseDown={[Function]}
           style={
@@ -125,14 +119,12 @@ exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
   </Container>
   <Button
     caption="Large Button"
-    disabled={false}
     id="button5"
     size="big"
   >
     <button
       caption="Large Button"
       className="msg button big"
-      disabled={false}
       id="button5"
       onMouseDown={[Function]}
       style={
@@ -159,12 +151,10 @@ exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
       }
     >
       <Button
-        disabled={false}
         round={true}
       >
         <button
           className="msg button round"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {
@@ -176,12 +166,10 @@ exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
         </button>
       </Button>
       <Button
-        disabled={false}
         round={true}
       >
         <button
           className="msg button round"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {

@@ -676,7 +676,6 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
             />,
             <Button
               caption="Cancel"
-              disabled={false}
               id="cancel"
               onClick={[Function]}
             />,
@@ -714,6 +713,46 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
       />
     </Dialog>
   </ValueEditDialog>
+  <ConfirmDialog
+    caption="Confirm"
+    key="confirmDialog"
+    onClose={[Function]}
+  >
+    <Dialog
+      actions={
+        Object {
+          "end": Array [],
+        }
+      }
+      caption={
+        <y>
+          <Icon
+            disabled={false}
+            src={275}
+          />
+          <Label>
+            Confirm
+          </Label>
+        </y>
+      }
+      className="msg confirmDialog"
+      container={Object {}}
+      content={
+        <Container
+          orientation="column"
+        >
+          
+        </Container>
+      }
+      onClose={[Function]}
+    >
+      <Portal
+        container={Object {}}
+        onClose={[Function]}
+        onOpen={[Function]}
+      />
+    </Dialog>
+  </ConfirmDialog>
   <MrsServiceDialog
     key="mrsServiceDialog"
     onClose={[Function]}
@@ -737,7 +776,6 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
               />,
               <Button
                 caption="Cancel"
-                disabled={false}
                 id="cancel"
                 onClick={[Function]}
               />,
@@ -798,7 +836,6 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
               />,
               <Button
                 caption="Cancel"
-                disabled={false}
                 id="cancel"
                 onClick={[Function]}
               />,

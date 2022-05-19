@@ -66,6 +66,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               
             </Container>
           }
+          onClose={[Function]}
         >
           <Portal
             container={Object {}}
@@ -105,6 +106,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               
             </Container>
           }
+          onClose={[Function]}
         >
           <Portal
             container={Object {}}
@@ -136,7 +138,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 />,
                 <Button
                   caption="Cancel"
-                  disabled={false}
                   id="cancel"
                   onClick={[Function]}
                 />,
@@ -206,109 +207,15 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               
             </Container>
           }
-        >
-          <Portal
-            container={Object {}}
-            onClose={[Function]}
-            onOpen={[Function]}
-          />
-        </Dialog>
-      </ConfirmDialog>
-      <ConfirmDialog
-        caption="Delete Connection"
-        id="confirmDeleteDialog"
-        onClose={[Function]}
-      >
-        <Dialog
-          actions={
-            Object {
-              "end": Array [],
-            }
-          }
-          caption={
-            <y>
-              <Icon
-                disabled={false}
-                src={275}
-              />
-              <Label>
-                Delete Connection
-              </Label>
-            </y>
-          }
-          className="msg confirmDialog"
-          container={Object {}}
-          content={
-            <Container
-              orientation="column"
-            >
-              
-            </Container>
-          }
-        >
-          <Portal
-            container={Object {}}
-            onClose={[Function]}
-            onOpen={[Function]}
-          />
-        </Dialog>
-      </ConfirmDialog>
-      <ValueEditDialog
-        caption="Feedback Requested"
-        id="shellPromptDialog"
-        onClose={[Function]}
-      >
-        <Dialog
-          actions={
-            Object {
-              "begin": Array [],
-              "end": Array [
-                <Button
-                  caption="OK"
-                  disabled={false}
-                  id="ok"
-                  onClick={[Function]}
-                />,
-                <Button
-                  caption="Cancel"
-                  disabled={false}
-                  id="cancel"
-                  onClick={[Function]}
-                />,
-              ],
-            }
-          }
-          caption={
-            <y>
-              <Icon
-                disabled={false}
-                src={388}
-              />
-              <Label>
-                Feedback Requested
-              </Label>
-            </y>
-          }
-          className="msg valueEditDialog"
-          container={Object {}}
-          content={
-            <Grid
-              columnGap={16}
-              columns={8}
-              rowGap={16}
-            />
-          }
-          id="shellPromptDialog"
           onClose={[Function]}
         >
           <Portal
             container={Object {}}
-            id="shellPromptDialog"
             onClose={[Function]}
             onOpen={[Function]}
           />
         </Dialog>
-      </ValueEditDialog>
+      </ConfirmDialog>
       <Menu
         id="tileActionMenu"
         onItemClick={[Function]}
@@ -443,7 +350,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             </Container>
             <Button
               data-tooltip="Close Greeting"
-              disabled={false}
               id="closeButton"
               onClick={[Function]}
               round={true}
@@ -451,7 +357,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               <button
                 className="msg button round"
                 data-tooltip="Close Greeting"
-                disabled={false}
                 id="closeButton"
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -575,7 +480,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                     >
                       <Button
                         className="msg browserTile connectionTile"
-                        disabled={false}
                         draggable={true}
                         id="0"
                         onClick={[Function]}
@@ -588,7 +492,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                       >
                         <button
                           className="msg button browserTile connectionTile"
-                          disabled={false}
                           draggable={true}
                           id="0"
                           onClick={[Function]}
@@ -739,7 +642,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                     >
                       <Button
                         className="msg browserTile secondary connectionTile"
-                        disabled={false}
                         id="-1"
                         onClick={[Function]}
                         onDragEnter={[Function]}
@@ -751,7 +653,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                       >
                         <button
                           className="msg button browserTile secondary connectionTile"
-                          disabled={false}
                           id="-1"
                           onClick={[Function]}
                           onDragEnter={[Function]}

@@ -33,7 +33,6 @@ exports[`Token editor testing Render test 1`] = `
       <Button
         className="styleEntryDeleteButton"
         data-tooltip="Delete this syntax entry"
-        disabled={false}
         id="tokenEditor1"
         onClick={[Function]}
         round={true}
@@ -41,7 +40,6 @@ exports[`Token editor testing Render test 1`] = `
         <button
           className="msg button round styleEntryDeleteButton"
           data-tooltip="Delete this syntax entry"
-          disabled={false}
           id="tokenEditor1"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -75,7 +73,6 @@ exports[`Token editor testing Render test 1`] = `
       <Button
         className="styleEntryCloneButton"
         data-tooltip="Clone this syntax entry"
-        disabled={false}
         id="tokenEditor1"
         onClick={[Function]}
         round={true}
@@ -83,7 +80,6 @@ exports[`Token editor testing Render test 1`] = `
         <button
           className="msg button round styleEntryCloneButton"
           data-tooltip="Clone this syntax entry"
-          disabled={false}
           id="tokenEditor1"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -309,13 +305,11 @@ exports[`Token editor testing Render test 1`] = `
                         >
                           local
                           <Button
-                            disabled={false}
                             id="local"
                             onClick={[Function]}
                           >
                             <button
                               className="msg button"
-                              disabled={false}
                               id="local"
                               onClick={[Function]}
                               onMouseDown={[Function]}

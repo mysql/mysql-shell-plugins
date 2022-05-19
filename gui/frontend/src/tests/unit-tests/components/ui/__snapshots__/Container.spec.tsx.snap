@@ -161,12 +161,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         }
       >
         <Button
-          disabled={false}
           round={true}
         >
           <button
             className="msg button round"
-            disabled={false}
             onMouseDown={[Function]}
             style={
               Object {
@@ -178,12 +176,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           </button>
         </Button>
         <Button
-          disabled={false}
           round={true}
         >
           <button
             className="msg button round"
-            disabled={false}
             onMouseDown={[Function]}
             style={
               Object {
@@ -195,12 +191,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           </button>
         </Button>
         <Button
-          disabled={false}
           round={true}
         >
           <button
             className="msg button round"
-            disabled={false}
             onMouseDown={[Function]}
             style={
               Object {
@@ -212,12 +206,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           </button>
         </Button>
         <Button
-          disabled={false}
           round={true}
         >
           <button
             className="msg button round"
-            disabled={false}
             onMouseDown={[Function]}
             style={
               Object {
@@ -229,12 +221,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           </button>
         </Button>
         <Button
-          disabled={false}
           round={true}
         >
           <button
             className="msg button round"
-            disabled={false}
             onMouseDown={[Function]}
             style={
               Object {

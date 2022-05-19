@@ -168,7 +168,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                 </Button>
                 <Button
                     data-tooltip="Execute Explain for the statement at the caret position"
-                    requestId="editorExecuteExplain"
+                    requestType="editorExecuteExplain"
                     imageOnly={true}
                     disabled
                 >
@@ -176,7 +176,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                 </Button>
                 <Button
                     data-tooltip="Stop execution of the current statement/script"
-                    requestId="editorStopExecution"
+                    requestType="editorStopExecution"
                     imageOnly={true}
                     disabled={!canStop}
                 >
@@ -196,7 +196,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                 <Divider vertical={true} thickness={1} />
                 <Button
                     data-tooltip="Commit DB changes"
-                    requestId="editorCommit"
+                    requestType="editorCommit"
                     imageOnly={true}
                     disabled={autoCommit}
                 >
@@ -204,7 +204,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                 </Button>
                 <Button
                     data-tooltip="Rollback DB changes"
-                    requestId="editorRollback"
+                    requestType="editorRollback"
                     imageOnly={true}
                     disabled={autoCommit}
                 >
@@ -222,7 +222,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                 <Divider vertical={true} thickness={1} />
                 <Button
                     data-tooltip="Format current block or script"
-                    requestId="editorFormat"
+                    requestType="editorFormat"
                     imageOnly={true}
                 >
                     <Icon src={formatIcon} data-tooltip="inherit" />
@@ -230,7 +230,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                 <Divider vertical={true} thickness={1} />
                 <Button
                     data-tooltip="Find"
-                    requestId="editorFind"
+                    requestType="editorFind"
                     imageOnly={true}
                 >
                     <Icon src={searchIcon} data-tooltip="inherit" />

@@ -67,6 +67,19 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
         const className = this.getEffectiveClassNames(["passwordDialog"]);
         const caption = request.caption ?? "Enter Password";
 
+        const descriptionCells: React.ReactNode[] = [];
+        request.description?.forEach((value) => {
+            descriptionCells.push(
+                <GridCell columnSpan={2} crossAlignment={ContentAlignment.Start}>
+                    <Label
+                        id="caption"
+                        language="ansi"
+                        caption={value}
+                    />
+                </GridCell>,
+            );
+        });
+
         return <Dialog
             ref={this.dialogRef}
             className={className}
@@ -79,16 +92,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
             }
             content={
                 <Grid columns={["30%", "auto"]} columnGap={8} rowGap={8}>
-                    {
-                        request.description &&
-                        <GridCell columnSpan={2} crossAlignment={ContentAlignment.Start}>
-                            <Label
-                                id="caption"
-                                language="ansi"
-                                caption={request.description}
-                            />
-                        </GridCell>
-                    }
+                    {descriptionCells}
                     {
                         request.service && <>
                             <GridCell className="left" crossAlignment={ContentAlignment.Center}>Service:</GridCell>

@@ -257,14 +257,12 @@ exports[`Theme editor core testing Render test 1`] = `
                         >
                           <Button
                             data-tooltip="Import Visual Studio Code theme file"
-                            disabled={false}
                             id="button1"
                             onClick={[Function]}
                           >
                             <button
                               className="msg button"
                               data-tooltip="Import Visual Studio Code theme file"
-                              disabled={false}
                               id="button1"
                               onClick={[Function]}
                               onMouseDown={[Function]}
@@ -317,14 +315,12 @@ exports[`Theme editor core testing Render test 1`] = `
                         >
                           <Button
                             data-tooltip="Export current theme as Visual Studio Code theme file"
-                            disabled={false}
                             id="button2"
                             onClick={[Function]}
                           >
                             <button
                               className="msg button"
                               data-tooltip="Export current theme as Visual Studio Code theme file"
-                              disabled={false}
                               id="button2"
                               onClick={[Function]}
                               onMouseDown={[Function]}
@@ -393,7 +389,6 @@ exports[`Theme editor core testing Render test 1`] = `
                                     />,
                                     <Button
                                       caption="Cancel"
-                                      disabled={false}
                                       id="cancel"
                                       onClick={[Function]}
                                     />,
@@ -433,14 +428,12 @@ exports[`Theme editor core testing Render test 1`] = `
                           </ValueEditDialog>
                           <Button
                             data-tooltip="Duplicate current theme"
-                            disabled={false}
                             id="button3"
                             onClick={[Function]}
                           >
                             <button
                               className="msg button"
                               data-tooltip="Duplicate current theme"
-                              disabled={false}
                               id="button3"
                               onClick={[Function]}
                               onMouseDown={[Function]}
