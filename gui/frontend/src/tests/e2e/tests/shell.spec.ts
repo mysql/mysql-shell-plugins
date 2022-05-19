@@ -56,7 +56,6 @@ const dbConfig: IDbConfig = {
     compression: "",
     timeout: "",
     attributes: "",
-    clearPassword: false,
     portX: "33060",
 };
 
