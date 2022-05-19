@@ -5,10 +5,12 @@
 ### Additions
 
 - Added MS VC++ dependency installation check
+- Added certutil dependency installation check (linux)
 
 ### Fixes
 
 - Fixed certificate deployment issues
+- Fixed linux credential manager
 
 ## Changes in 1.1.8+8.0.28
 
