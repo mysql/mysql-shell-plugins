@@ -28,6 +28,7 @@ import {
 } from "../ui";
 import { ValueEditDialog, IDialogValues, IDialogValidations, IDialogSection } from "../Dialogs/ValueEditDialog";
 import { ThemeEditorLists } from "./ThemeEditorLists";
+import { DialogResponseClosure } from "../../app-logic/Types";
 
 export interface IScopeSelectorProperties extends IComponentProperties {
     defaultScopes: string[];
@@ -160,11 +161,11 @@ export class ScopeSelector extends Component<IScopeSelectorProperties, IScopeSel
     /**
      * Triggered by the user to add a new syntax color scope.
      *
-     * @param accepted True if the user clicked the OK button (which involves validation).
+     * @param closure The selected action.
      * @param values The object with new theme name.
      */
-    private defineNewScope = (accepted: boolean, values: IDialogValues): void => {
-        if (accepted) {
+    private defineNewScope = (closure: DialogResponseClosure, values: IDialogValues): void => {
+        if (closure === DialogResponseClosure.Accept) {
             const { currentCustomScopes } = this.state;
             const sectionValues = values.sections[0].values;
 

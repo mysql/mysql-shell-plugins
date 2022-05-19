@@ -24,13 +24,13 @@
 import { EventType, ListenerEntry } from "../Dispatch";
 import {
     ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ICommSimpleResultEvent,
-    ShellPromptResponseType,
+    ShellPromptResponseType, IPromptReplyBackend,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
 import { ShellInterfaceDb, ShellInterfaceMds, ShellInterfaceMrs } from ".";
 
-export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
+export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPromptReplyBackend {
 
     public mds: ShellInterfaceMds = new ShellInterfaceMds();
     public mrs: ShellInterfaceMrs = new ShellInterfaceMrs();

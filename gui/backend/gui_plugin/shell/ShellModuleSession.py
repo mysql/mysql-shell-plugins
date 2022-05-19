@@ -116,7 +116,7 @@ class ShellModuleSession(ModuleSession):
         # setup a symlink if it does not exist yet
         if (not mysqlsh.plugin_manager.general.get_shell_user_dir().endswith(
             EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME)
-            and not os.path.exists(subprocess_plugins)):
+                and not os.path.exists(subprocess_plugins)):
             if os.name == 'nt':
                 p = subprocess.run(
                     f'mklink /J "{subprocess_plugins}" "{plugins_path}"',
@@ -371,18 +371,7 @@ class ShellModuleSession(ModuleSession):
                                 data=None if self._last_prompt == reply_json else reply_json)
                             self._command_complete.set()
                         self._last_prompt = reply_json
-                    elif 'prompt' in reply_json or 'password' in reply_json:
-                        # TODO(rennox): Temporary hack to make shell prompt changes transparent to the FE
-                        # This is needed to avoid FE having to deal with both old and new format and the reason for that
-                        # is that WL#14872 Improved the Shell Prompts when shell is integrated using MYSQLSH_JSON_SHELL
-                        # but missed supporting the new prompts when shell is integrated using shell.createContext and prompt
-                        # callbacks.
-                        # When that is fixed everything should change to the new prompt format
-                        if "type" in reply_json and reply_json["type"] == "password":
-                            reply_json["password"] = reply_json["prompt"]
-                            del reply_json["prompt"]
-                            del reply_json["type"]
-
+                    elif 'prompt' in reply_json:
                         # request for a client prompt
                         prompt_event = threading.Event()
                         self.send_prompt_response(
@@ -472,7 +461,6 @@ class ShellModuleSession(ModuleSession):
             self._shell.stdin.write(json.dumps(command.command) + "\n")
             self._shell.stdin.flush()
 
-
             # The command has been sent to the shell, now we wait until it completes
             self._command_complete.wait()
             self._command_complete.clear()
@@ -481,7 +469,7 @@ class ShellModuleSession(ModuleSession):
     def kill_command(self):
         # windows. Need CTRL_BREAK_EVENT to raise the signal in the whole process group
         os.kill(self._shell.pid,
-            signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)  # pylint: disable=no-member
+                signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)  # pylint: disable=no-member
 
     def cancel_request(self, request_id):
         self._cancel_requests.append(request_id)

@@ -35,7 +35,7 @@ import {
     FileSelector, IUpDownProperties, TreeGrid, ITreeGridOptions, SelectionType, IPortalOptions, ProgressIndicator,
     IInputProperties, Tabulator, IButtonProperties,
 } from "../ui";
-import { IDictionary, MessageType } from "../../app-logic/Types";
+import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types";
 import { ParamDialog } from "./ParamDialog";
 import { IOpenDialogFilters } from "../../supplement/Requisitions";
 import { IConnectionDetails } from "../../supplement/ShellInterface";
@@ -144,7 +144,8 @@ export interface IValueEditDialogProperties extends IComponentProperties {
     customFooter?: React.ReactNode;
 
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
-    onClose?: (accepted: boolean, values: IDialogValues, data?: IDictionary, callbackData?: ICallbackData) => void;
+    onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary,
+        callbackData?: ICallbackData) => void;
     onToggleAdvanced?: (checked: boolean) => void;
     onSelectTab?: (id: string) => void;
 }
@@ -834,7 +835,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             }
 
             // Only send success close events here. Closed on cancel are handled in `handleClose`.
-            onClose?.(true, values, this.data);
+            onClose?.(DialogResponseClosure.Accept, values, this.data);
         }
 
         this.dialogRef.current?.close(!accepted);
@@ -1030,7 +1031,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             const { values } = this.state;
 
             this.dialogRef.current?.close(false);
-            onClose?.(true, values, this.data);
+            onClose?.(DialogResponseClosure.Accept, values, this.data);
         }
     };
 
@@ -1060,7 +1061,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             const { onClose } = this.props;
             const { values } = this.state;
 
-            onClose?.(false, values, this.data);
+            onClose?.(DialogResponseClosure.Decline, values, this.data);
         }
     };
 

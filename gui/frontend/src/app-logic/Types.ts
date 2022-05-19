@@ -160,32 +160,52 @@ export interface IExecutionInfo {
 // Types for requesting a specific dialog and sending back the entered values.
 
 export enum DialogType {
-    Prompt = "prompt",        // A simple prompt value dialog, requesting a single value from the user.
-    MrsService = "mrsService",// A dialog to create or edit an MRS service.
-    MrsSchema = "mrsSchema",
+    Prompt,     // A simple prompt value dialog, requesting a single value from the user.
+    Confirm,    // Confirm a question (yes, no, alt).
+    Select,     // Select one entry from a list.
+    MrsService, // A dialog to create or edit an MRS service.
+    MrsSchema,
 }
 
+/**
+ * A set of values that describe a single modal dialog request.
+ */
 export interface IDialogRequest extends IDictionary {
     type: DialogType;
-    id?: string;    // An optional id to identify the invocation.
-    title?: string; // Optionally used to set a customized dialog title (where supported).
 
-    // Values to configure how the dialog looks like (available options in drop downs etc.).
+    /** An optional id to identify the invocation. */
+    id?: string;
+
+    /** Optionally used to set a customized dialog title (where supported). */
+    title?: string;
+
+    /** A list of strings to be rendered before the actual prompt, each in an own paragraph. */
+    description?: string[];
+
+    /** Values to configure how the dialog looks like (available options in drop downs etc.). */
     parameters?: IDictionary;
 
-    // Values to pre-fill certain elements or additional data for captions, payload etc.
+    /** Values to pre-fill certain elements or additional data for captions, payload etc. */
     values?: IDictionary;
 
-    // Additional data for specific use cases.
+    /** Additional data for specific use cases. */
     data?: IDictionary;
+}
+
+/**
+ * What decision made the user to close a dialog.
+ */
+export enum DialogResponseClosure {
+    Accept,
+    Decline,
+    Alternative
 }
 
 export interface IDialogResponse extends IDictionary {
     type: DialogType;
-    accepted: boolean;
+    closure: DialogResponseClosure;
 
     values?: IDictionary;
-
     data?: IDictionary;
 }
 
@@ -203,11 +223,21 @@ export interface IStatusbarInfo {
  * using native OS methods.
  */
 export interface IServicePasswordRequest {
-    requestId: string;    // The id of the request that asked for the password.
-    caption?: string;     // The password dialog title.
-    description?: string; // A normal description of what is requested.
-    service?: string;     // A human readable string describing the service.
-    user?: string;        // The user name for which to get the password.
+    /** The id of the request that asked for the password. */
+    requestId: string;
 
-    payload?: unknown;    // Any other data the caller wants to pass over.
+    /** The password dialog title. */
+    caption?: string;
+
+    /** A list of strings describing the circumstances of the password request. */
+    description?: string[];
+
+    /** A human readable string describing the service. */
+    service?: string;
+
+    /** The user name for which to get the password. */
+    user?: string;
+
+    /** Any other data the caller wants to pass over. */
+    payload?: IDictionary;
 }

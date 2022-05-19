@@ -39,6 +39,7 @@ import { selectFile, saveTextAsFile } from "../../utilities/helpers";
 import { settings } from "../../supplement/Settings/Settings";
 import { ThemeEditorLists } from "./ThemeEditorLists";
 import { requisitions } from "../../supplement/Requisitions";
+import { DialogResponseClosure } from "../../app-logic/Types";
 
 export interface IThemeEditorCoreProperties extends IComponentProperties {
     onThemeChange: () => void;
@@ -364,13 +365,13 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
      * This method is called when the user closed the value dialog for theme duplication.
      * Here we can actually do the action.
      *
-     * @param accepted True if the user clicked the OK button (which involves validation).
+     * @param closure The selected action.
      * @param values The object with new theme name.
      */
-    private executeThemeDuplication = (accepted: boolean, values: IDialogValues): void => {
+    private executeThemeDuplication = (closure: DialogResponseClosure, values: IDialogValues): void => {
         const sectionValues = values.sections.get("name")!.values;
         const newName = (sectionValues.themeName.value as string).trim();
-        if (accepted) {
+        if (closure === DialogResponseClosure.Accept) {
             themeManager.saveTheme();
 
             themeManager.duplicateCurrentTheme(newName);

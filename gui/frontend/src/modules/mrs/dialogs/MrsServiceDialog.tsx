@@ -22,7 +22,7 @@
  */
 
 import React from "react";
-import { IDialogRequest, IDictionary } from "../../../app-logic/Types";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 
 import {
     DialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog,
@@ -125,10 +125,10 @@ export class MrsServiceDialog extends ValueDialogBase {
         };
     }
 
-    private handleCloseDialog = (accepted: boolean, dialogValues: IDialogValues): void => {
+    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues): void => {
         const { onClose } = this.props;
 
-        if (accepted) {
+        if (closure === DialogResponseClosure.Accept) {
             const mainSection = dialogValues.sections.get("mainSection");
             if (mainSection) {
                 const values: IDictionary = {};
@@ -148,10 +148,10 @@ export class MrsServiceDialog extends ValueDialogBase {
                     }
                 });
 
-                onClose(true, values);
+                onClose(closure, values);
             }
         } else {
-            onClose(false);
+            onClose(closure);
         }
     };
 

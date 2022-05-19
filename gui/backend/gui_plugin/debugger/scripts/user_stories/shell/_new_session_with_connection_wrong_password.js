@@ -58,8 +58,11 @@ await ws.sendAndValidate({
         "result": {}
     },
     Object.assign(Object(), responses.pending.executing, {
-        "result": {
-            "password": "Please provide the password for '" + ws.tokens["uri"] + "': "
+        "result": 
+        {
+            'defaultValue': '',
+            'prompt': "Please provide the password for '" + ws.tokens["uri"] + "': ",
+            'type': 'password'
         }
     })
 ], 0))

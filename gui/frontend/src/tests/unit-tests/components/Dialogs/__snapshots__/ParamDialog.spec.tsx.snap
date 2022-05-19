@@ -10,13 +10,11 @@ exports[`Param Dialog Tests Render Test 1`] = `
         "end": Array [
           <Button
             caption="OK"
-            disabled={false}
             id="ok"
             onClick={[Function]}
           />,
           <Button
             caption="Cancel"
-            disabled={false}
             id="cancel"
             onClick={[Function]}
           />,

@@ -67,7 +67,8 @@ await ws.sendAndValidate({
         },
         "request_id": originalRequestId,
         "result": {
-            "prompt": "Gimme some data:"
+            "prompt": "Gimme some data:",
+            "type": "text"
         }
     }
 ])
@@ -116,7 +117,8 @@ await ws.sendAndValidate({
         },
         "request_id": originalRequestId,
         "result": {
-            "prompt": "Gimme some data:"
+            "prompt": "Gimme some data:",
+            "type": "text"
         }
     }
 ])
@@ -154,8 +156,10 @@ await ws.sendAndValidate({
             "msg": "Executing..."
         },
         "request_id": originalRequestId,
-        "result": {
-            "password": "Gimme a password:"
+        "result":
+        {
+            'prompt': 'Gimme a password:',
+            'type': 'password'
         }
     }
 ])
@@ -203,8 +207,10 @@ await ws.sendAndValidate({
             "msg": "Executing..."
         },
         "request_id": originalRequestId,
-        "result": {
-            "password": "Gimme a password:"
+        "result":
+        {
+            'prompt': 'Gimme a password:',
+            'type': 'password'
         }
     }
 ])

@@ -28,17 +28,25 @@ import React from "react";
 import {
     Button, Codicon, Component, Container, Dialog, IComponentProperties, IComponentState, Icon, Label, Orientation,
 } from "../ui";
+import { DialogResponseClosure, IDictionary } from "../../app-logic/Types";
+
+export interface IConfirmDialogButtons {
+    accept?: string;      // Default: "Yes".
+    refuse?: string;      // Default: "No".
+    alternative?: string; // Default: nothing.
+    default?: string;     // Default: nothing.
+}
 
 export interface IConfirmDialogProperties extends IComponentProperties {
     caption: string;
-    onClose?: (accepted: boolean, payload?: unknown) => void;
+    onClose?: (closure: DialogResponseClosure, values?: IDictionary) => void;
 }
 
 export interface IConfirmDialogState extends IComponentState {
     message: React.ReactNode;
-    refuseText: string;
-    acceptText: string;
-    payload?: unknown;
+    buttons: IConfirmDialogButtons;
+    values?: IDictionary;
+    description?: string[];
 }
 
 export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmDialogState> {
@@ -49,47 +57,77 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
         super(props);
         this.state = {
             message: "",
-            refuseText: "",
-            acceptText: "",
+            buttons: {},
         };
-        this.addHandledProperties("caption", "onClose");
+        this.addHandledProperties("caption", "buttons", "onClose");
     }
 
-    public show = (message: React.ReactNode, refuseText: string, acceptText: string, payload?: unknown): void => {
-        this.setState({ message, refuseText, acceptText, payload }, () => {
-            return this.dialogRef.current?.open();
+    public show = (message: React.ReactNode, buttons: IConfirmDialogButtons, description?: string[],
+        values?: IDictionary): void => {
+        this.setState({ message, buttons, values, description }, () => {
+            return this.dialogRef.current?.open({ closeOnEscape: true });
         });
     };
 
     public render(): React.ReactNode {
         const { caption } = this.props;
-        const { message, refuseText, acceptText } = this.state;
+        const { message, buttons, description } = this.state;
 
         const className = this.getEffectiveClassNames(["confirmDialog"]);
         let dialogContent = null;
         if (React.isValidElement(message)) {
             dialogContent = message;
         } else {
+            // If no explicit content is specified, use the description list for additional content.
+            const descriptionLabels: React.ReactNode[] = [];
+            description?.forEach((value) => {
+                descriptionLabels.push(
+                    <Container>
+                        <Label
+                            id="caption"
+                            language="ansi"
+                            caption={value}
+                        />
+                    </Container>,
+                );
+            });
+
+
             dialogContent =
                 <Container orientation={Orientation.TopDown}>
+                    {descriptionLabels}
                     {message && <Label id="dialogMessage" caption={message as string} />}
                 </Container>;
         }
 
+        // TODO: consider the different order of the buttons based on the OS.
         const actions: React.ReactNode[] = [];
-        if (acceptText) {
+        if (buttons.alternative) {
             actions.push(<Button
-                caption={acceptText}
-                id="accept"
-                key="accept"
+                caption={buttons.alternative.replace(/&/g, "")} // Remove hot key indicator. We cannot show them.
+                id="alternative"
+                key="alternative"
+                isDefault={buttons.alternative === buttons.default}
                 onClick={this.handleActionClick}
             />);
         }
-        if (refuseText) {
+
+        if (buttons.accept) {
             actions.push(<Button
-                caption={refuseText}
+                caption={buttons.accept.replace(/&/g, "")}
+                id="accept"
+                key="accept"
+                isDefault={buttons.accept === buttons.default}
+                onClick={this.handleActionClick}
+            />);
+        }
+
+        if (buttons.refuse) {
+            actions.push(<Button
+                caption={buttons.refuse.replace(/&/g, "")}
                 id="refuse"
                 key="refuse"
+                isDefault={buttons.refuse === buttons.default}
                 onClick={this.handleActionClick}
             />);
         }
@@ -108,6 +146,7 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
                 actions={{
                     end: actions,
                 }}
+                onClose={this.handleClose}
             >
             </Dialog>
         );
@@ -115,17 +154,42 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
 
     private handleActionClick = (e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;
-        const { payload } = this.state;
+        const { values } = this.state;
 
-        let accepted = false;
+        let closure;
+        switch (props.id) {
+            case "accept": {
+                closure = DialogResponseClosure.Accept;
+                break;
+            }
 
-        if (props.id === "accept") {
-            accepted = true;
+            case "alternative": {
+                closure = DialogResponseClosure.Alternative;
+                break;
+            }
+
+            default: {
+                closure = DialogResponseClosure.Decline;
+                break;
+            }
         }
 
-        this.dialogRef.current?.close(!accepted);
+        this.dialogRef.current?.close(closure === DialogResponseClosure.Decline);
 
-        onClose?.(accepted, payload);
+        // Trigger onClose only if not cancelled, because we have to handle that specific situation in handleClose
+        // (which is also triggered for closing via the escape key).
+        if (closure !== DialogResponseClosure.Decline) {
+            onClose?.(closure, values);
+        }
+    };
+
+    private handleClose = (cancelled: boolean): void => {
+        if (cancelled) {
+            const { onClose } = this.mergedProps;
+            const { values } = this.state;
+
+            onClose?.(DialogResponseClosure.Decline, values);
+        }
     };
 
 }

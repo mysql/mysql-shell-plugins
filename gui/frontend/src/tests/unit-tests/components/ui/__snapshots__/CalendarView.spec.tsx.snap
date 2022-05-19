@@ -40,13 +40,11 @@ exports[`CalendarView testing Render test 1`] = `
             }
           >
             <Button
-              disabled={false}
               id="prevMonthButton"
               onClick={[Function]}
             >
               <button
                 className="msg button"
-                disabled={false}
                 id="prevMonthButton"
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -127,13 +125,11 @@ exports[`CalendarView testing Render test 1`] = `
             }
           >
             <Button
-              disabled={false}
               id="nextMonthButton"
               onClick={[Function]}
             >
               <button
                 className="msg button"
-                disabled={false}
                 id="nextMonthButton"
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -462,13 +458,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="1"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="1"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -504,13 +498,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="2"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="2"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -546,13 +538,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="3"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="3"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -588,13 +578,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="4"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="4"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -630,13 +618,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="5"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="5"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -672,13 +658,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="6"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="6"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -714,13 +698,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="7"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="7"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -756,13 +738,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="8"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="8"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -798,13 +778,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="9"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="9"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -840,13 +818,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="10"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="10"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -882,13 +858,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="11"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="11"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -924,13 +898,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="12"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="12"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -966,13 +938,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="13"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="13"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1008,13 +978,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="14"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="14"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1050,13 +1018,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="15"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="15"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1092,13 +1058,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="16"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="16"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1134,13 +1098,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="17"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="17"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1176,13 +1138,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="18"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="18"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1218,13 +1178,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="19"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="19"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1260,13 +1218,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="20"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="20"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1302,13 +1258,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="21"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="21"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1344,13 +1298,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="22"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="22"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1386,13 +1338,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="23"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="23"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1428,13 +1378,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="24"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="24"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1470,13 +1418,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="25"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="25"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1512,13 +1458,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="26"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="26"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1554,13 +1498,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="27"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="27"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1596,13 +1538,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="28"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="28"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1638,13 +1578,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="29"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="29"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1680,13 +1618,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="30"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="30"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
@@ -1722,13 +1658,11 @@ exports[`CalendarView testing Render test 1`] = `
           >
             <Button
               caption="31"
-              disabled={false}
               onClick={[Function]}
             >
               <button
                 caption="31"
                 className="msg button"
-                disabled={false}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={

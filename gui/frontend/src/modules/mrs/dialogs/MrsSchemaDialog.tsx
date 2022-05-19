@@ -23,7 +23,7 @@
 
 import React from "react";
 
-import { IDialogRequest, IDictionary } from "../../../app-logic/Types";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 import { IMrsServiceData } from "../../../communication";
 
 import {
@@ -114,10 +114,11 @@ export class MrsSchemaDialog extends ValueDialogBase {
         };
     }
 
-    private handleCloseDialog = (accepted: boolean, dialogValues: IDialogValues, data?: IDictionary): void => {
+    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
+        data?: IDictionary): void => {
         const { onClose } = this.props;
 
-        if (accepted && data) {
+        if (closure === DialogResponseClosure.Accept && data) {
             const services = data.services as IMrsServiceData[];
             const mainSection = dialogValues.sections.get("mainSection");
             if (mainSection) {
@@ -126,16 +127,17 @@ export class MrsSchemaDialog extends ValueDialogBase {
                 values.serviceId = services.find((service) => {
                     return mainSection.values.service.value === service.hostCtx;
                 })?.id;
+
                 values.requestPath = mainSection.values.requestPath.value as string;
                 values.requiresAuth = mainSection.values.requiresAuth.value as boolean;
                 values.enabled = mainSection.values.enabled.value as boolean;
                 values.itemsPerPage = mainSection.values.itemsPerPage.value as number;
                 values.comments = mainSection.values.comments.value as string;
 
-                onClose(true, values);
+                onClose(closure, values);
             }
         } else {
-            onClose(false);
+            onClose(closure);
         }
     };
 

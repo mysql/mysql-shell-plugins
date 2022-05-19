@@ -348,7 +348,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
                     />;
                     editor = <Button
                         key={data.id}
-                        requestId={data.parameters.action}
+                        requestType={data.parameters.action}
                         caption={data.defaultValue as string}
                         className="settingValue"
                     />;

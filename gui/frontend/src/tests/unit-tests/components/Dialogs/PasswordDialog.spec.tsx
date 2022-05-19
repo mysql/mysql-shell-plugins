@@ -64,7 +64,7 @@ describe("Password Dialog Tests", (): void => {
         const request: IServicePasswordRequest = {
             requestId: "123",
             caption: "Enter Password",
-            description: "I need your password",
+            description: ["I need your password"],
             service: "unit tests",
             user: "mike",
             payload: { extra: 123 },
@@ -111,7 +111,7 @@ describe("Password Dialog Tests", (): void => {
 
         const request: IServicePasswordRequest = {
             requestId: "123",
-            description: "I need your password",
+            description: ["I need your password"],
             service: "unit tests",
             user: "mike",
             payload: { extra: 123 },

@@ -65,8 +65,11 @@ await ws.sendAndValidate({
     {
         "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {
-            "password": "Please provide the password for '" + ws.tokens["uri"] + "': "
+        "result": 
+        {
+            'defaultValue': '',
+            'prompt': "Please provide the password for '" + ws.tokens["uri"] + "': ",
+            'type': 'password'
         }
     }
 ], 0))
@@ -86,7 +89,12 @@ if (ws.tokens["hasCredentialManager"]) {
             "request_id": request_id,
             "result":
             {
-                "prompt": "Save password for '" + ws.tokens["uri"] + "'? [Y]es/[N]o/Ne[v]er (default No): "
+                "alt": "Ne&ver",
+                "defaultValue": "&No",
+                "no": "&No",
+                "prompt": "Save password for '" + ws.tokens["uri"] + "'?",
+                "type": "confirm",
+                "yes": "&Yes"
             }
         }
     ])

@@ -93,7 +93,7 @@ export class Dialog extends Component<IDialogProperties> {
 
     public open(options?: IPortalOptions): void {
         this.portalRef.current?.open({
-            backgroundOpacity: 0.4,
+            backgroundOpacity: 0.5,
             ...options,
         });
     }

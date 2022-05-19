@@ -61,8 +61,11 @@ await ws.sendAndValidate({
             "msg": "Executing..."
         },
         "request_id": originalRequestId,
-        "result": {
-            "password": ws.matchRegexp(".*Please provide the password for.*")
+        "result": 
+        {
+            'defaultValue': '',
+            'prompt': ws.matchRegexp(".*Please provide the password for.*"),
+            'type': 'password'
         }
     }
 ])
@@ -89,7 +92,12 @@ if (ws.tokens["hasCredentialManager"]) {
             "request_id": originalRequestId,
             "result":
             {
-                "prompt": "Save password for '" + ws.tokens["uri"] + "'? [Y]es/[N]o/Ne[v]er (default No): "
+                "alt": "Ne&ver",
+                "defaultValue": "&No",
+                "no": "&No",
+                "prompt": "Save password for '" + ws.tokens["uri"] + "'?",
+                "type": "confirm",
+                "yes": "&Yes"
             }
         }
     ])

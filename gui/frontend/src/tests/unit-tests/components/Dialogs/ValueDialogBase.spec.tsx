@@ -26,12 +26,12 @@ import { mount } from "enzyme";
 
 import { ValueDialogBase } from "../../../../components/Dialogs";
 import { snapshotFromWrapper } from "../../test-helpers";
-import { IDictionary } from "../../../../app-logic/Types";
+import { DialogResponseClosure, IDictionary } from "../../../../app-logic/Types";
 
 describe("Value Dialog Base Tests", (): void => {
     it("Render Test", () => {
         // This class is just the common base of several other dialogs, so tests are very simple here.
-        const onClose = (_accepted: boolean, _values?: IDictionary): void => { /**/ };
+        const onClose = (_closure: DialogResponseClosure, _values?: IDictionary): void => { /**/ };
 
         const component = mount<ValueDialogBase>(
             <ValueDialogBase onClose={onClose} />,

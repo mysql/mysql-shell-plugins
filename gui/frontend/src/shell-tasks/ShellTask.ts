@@ -92,14 +92,7 @@ export class ShellTask {
                         this.shellSession = new ShellInterfaceShellSession(event.data.moduleSessionId as string);
                     } else if (result) {
                         if (this.isShellPromptResult(result as IShellResultType)) {
-                            let text: string;
-                            if (result.password) {
-                                text = result.password as string;
-                            } else {
-                                text = result.prompt as string;
-                            }
-
-                            void this.promptCallback(text, !isNil(result.password)).then((value) => {
+                            void this.promptCallback(result.prompt as string, !isNil(result.password)).then((value) => {
                                 if (this.shellSession) {
                                     if (!isNil(value)) {
                                         this.shellSession.sendReply(requestId, ShellPromptResponseType.Ok, value);
@@ -143,7 +136,7 @@ export class ShellTask {
     private isShellPromptResult(response: IShellResultType): response is IShellFeedbackRequest {
         const candidate = response as IShellFeedbackRequest;
 
-        return candidate.prompt !== undefined || candidate.password !== undefined;
+        return candidate.prompt !== undefined;
     }
 
 }

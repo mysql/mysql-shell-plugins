@@ -155,7 +155,8 @@ class DbModuleSession(ModuleSession):
         self._current_request_id = request_id
 
         if isinstance(connection, int):
-            self._db_type, options = self.web_session.db.get_connection_details(connection)
+            self._db_type, options = self.web_session.db.get_connection_details(
+                connection)
         elif isinstance(connection, dict):
             self._db_type = connection['db_type']
             options = connection['options']
@@ -181,8 +182,7 @@ class DbModuleSession(ModuleSession):
             True,
             self.on_connected,
             lambda x: self.on_fail_connecting(x),
-            lambda x: self.on_shell_prompt(x),
-            lambda x: self.on_shell_password(x),
+            lambda x, o: self.on_shell_prompt(x, o),
             self.on_session_message)
 
     # Temporary hack, right thing would be that the shell unparse_uri
@@ -201,29 +201,23 @@ class DbModuleSession(ModuleSession):
 
         return mysqlsh.globals.shell.unparse_uri(uri_data)
 
-    def on_shell_password(self, caption):
+    def on_shell_prompt(self, caption, options):
         prompt_event = threading.Event()
+        options["prompt"] = caption
+
+        # FE requires type to always be present on prompts
+        if not "type" in options:
+            options["type"] = "text"
 
         self.send_prompt_response(
-            self._current_request_id, {"password": caption}, lambda: prompt_event.set())
+            self._current_request_id, options, lambda: prompt_event.set())
 
         prompt_event.wait()
 
         # If password is prompted, stores it on the connection data
         # TODO: avoid keeping the password
-        uri = self._get_simplified_uri(self._connection_options)
-        if caption.find(f"Please provide the password for '{uri}'") != -1:
+        if self._prompt_replied and options.type == "password":
             self._connection_options["password"] = self._prompt_reply
-
-        return self._prompt_replied, self._prompt_reply
-
-    def on_shell_prompt(self, caption):
-        prompt_event = threading.Event()
-
-        self.send_prompt_response(
-            self._current_request_id, {"prompt": caption}, lambda: prompt_event.set())
-
-        prompt_event.wait()
 
         return self._prompt_replied, self._prompt_reply
 

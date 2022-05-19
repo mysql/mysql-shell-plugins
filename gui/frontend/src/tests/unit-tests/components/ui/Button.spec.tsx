@@ -78,7 +78,7 @@ describe("Button component tests", (): void => {
     it("Test button commands", (done) => {
         requisitions.register("testButtonClick", requestButtonClick);
         const component = shallow(
-            <Button requestId="testButtonClick">
+            <Button requestType="testButtonClick">
                 Test button
             </Button>,
         );

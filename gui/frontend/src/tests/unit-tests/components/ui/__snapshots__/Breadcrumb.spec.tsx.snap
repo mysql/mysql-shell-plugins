@@ -32,13 +32,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
     >
       <Button
         className="breadcrumbItem"
-        disabled={false}
         id="root"
         onClick={[Function]}
       >
         <button
           className="msg button breadcrumbItem"
-          disabled={false}
           id="root"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -69,13 +67,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        disabled={false}
         id="folder"
         onClick={[Function]}
       >
         <button
           className="msg button breadcrumbItem"
-          disabled={false}
           id="folder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -106,13 +102,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        disabled={false}
         id="subfolder"
         onClick={[Function]}
       >
         <button
           className="msg button breadcrumbItem"
-          disabled={false}
           id="subfolder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -144,13 +138,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       <Button
         caption="..."
         className="picker"
-        disabled={false}
         key="picker"
       >
         <button
           caption="..."
           className="msg button picker"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {
@@ -198,13 +190,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
     >
       <Button
         className="breadcrumbItem"
-        disabled={false}
         id="root"
         onClick={[Function]}
       >
         <button
           className="msg button breadcrumbItem"
-          disabled={false}
           id="root"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -235,13 +225,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        disabled={false}
         id="folder"
         onClick={[Function]}
       >
         <button
           className="msg button breadcrumbItem"
-          disabled={false}
           id="folder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -272,13 +260,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        disabled={false}
         id="subfolder"
         onClick={[Function]}
       >
         <button
           className="msg button breadcrumbItem"
-          disabled={false}
           id="subfolder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -309,13 +295,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        disabled={false}
         id="subfolder2"
         onClick={[Function]}
       >
         <button
           className="msg button breadcrumbItem"
-          disabled={false}
           id="subfolder2"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -347,13 +331,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       <Button
         caption="..."
         className="picker"
-        disabled={false}
         key="picker"
       >
         <button
           caption="..."
           className="msg button picker"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {
@@ -397,7 +379,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       }
     >
       <Button
-        disabled={false}
         style={
           Object {
             "backgroundColor": "white",
@@ -407,7 +388,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       >
         <button
           className="msg button"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {
@@ -438,7 +418,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
         </button>
       </Button>
       <Button
-        disabled={false}
         style={
           Object {
             "backgroundColor": "#505050",
@@ -447,7 +426,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       >
         <button
           className="msg button"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {
@@ -473,7 +451,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       </Button>
       <Button
         caption="mysql"
-        disabled={false}
         style={
           Object {
             "backgroundColor": "gray",
@@ -483,7 +460,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
         <button
           caption="mysql"
           className="msg button"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {
@@ -497,7 +473,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       </Button>
       <Button
         caption="SQL"
-        disabled={false}
         style={
           Object {
             "backgroundColor": "darkorange",
@@ -508,7 +483,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
         <button
           caption="SQL"
           className="msg button"
-          disabled={false}
           onMouseDown={[Function]}
           style={
             Object {

@@ -3,12 +3,10 @@
 exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
 <div>
   <Button
-    disabled={false}
     onClick={[Function]}
   >
     <button
       className="msg button"
-      disabled={false}
       onClick={[Function]}
       onMouseDown={[Function]}
       style={
@@ -40,7 +38,6 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               />,
               <Button
                 caption="Cancel"
-                disabled={false}
                 id="cancel"
                 onClick={[Function]}
               />,
@@ -109,6 +106,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             
           </Container>
         }
+        onClose={[Function]}
       >
         <Portal
           container={Object {}}

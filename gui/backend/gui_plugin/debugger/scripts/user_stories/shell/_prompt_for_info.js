@@ -23,7 +23,8 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "prompt": "type some info: "
+            "prompt": "type some info: ",
+            "type": "text"
         }
     }
 ])
@@ -78,8 +79,10 @@ await ws.sendAndValidate({
             "msg": "Executing..."
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {
-            "password": "Gimme a password: "
+        "result": 
+        {
+            'prompt': 'Gimme a password: ',
+            'type': 'password'
         }
     }
 ])
