@@ -207,7 +207,7 @@ try{
             for($i=0; $i -le $size-1; $i++){
                 $item = $prevHtml.body.document.querySelectorAll(".test-result").item($i).querySelector(".test-title").InnerText
                 if( $failedTests -contains $item ){
-                    $prevHtml.querySelectorAll(".test-result").item($i).outerHTML = $htmlToSave | where { $_ -like "*$item*" }
+                    $prevHtml.querySelectorAll(".test-result").item($i).outerHTML = $htmlToSave | where { $_ -eq "*$item*" }
                 }
             }
     
