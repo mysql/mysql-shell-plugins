@@ -1,6 +1,12 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.2.1+8.0.28
+## Changes in 1.2.2+8.0.28
+
+### Fixes
+
+- Simplified certificate deployment in WSL
+
+## Changes in 1.2.21+8.0.28
 
 ### Additions
 

@@ -308,13 +308,10 @@ def get_required_locations(include_keychain):
     cert_locations = [user_home_cert]
 
     if include_keychain:
-        if SystemUtils.is_wsl():
-            cert_locations.append(locations.Win_wsl(user_home_cert))
-
         os_type = SystemUtils.get_os_type()
         if os_type == "darwin":
             cert_locations.append(locations.Macos(user_home_cert))
-        elif os_type == "windows":
+        elif os_type == "windows" or SystemUtils.is_wsl():
             cert_locations.append(locations.Win(user_home_cert))
         elif os_type in ["debian", "fedora", "suse opensuse"]:
             cert_locations.append(locations.Nss_db_cert(user_home_cert))
