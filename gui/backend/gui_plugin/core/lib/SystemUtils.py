@@ -141,7 +141,7 @@ def in_vs_code():
     return False
 
 
-def run_shell_cmd(cmd):
+def run_shell_cmd(cmd, cwd=None):
     """Runs the given shell command
 
     Args:
@@ -153,7 +153,7 @@ def run_shell_cmd(cmd):
 
     logger.debug3(f"Executing Shell Command: {' '.join(cmd)}")
 
-    stream = popen(cmd)
+    stream = popen(cmd, cwd=cwd)
     output = stream.read()
     exit_code = stream.close()
 
@@ -162,7 +162,7 @@ def run_shell_cmd(cmd):
     return (exit_code, output)
 
 
-def popen(cmd, mode="r", buffering=-1):
+def popen(cmd, mode="r", buffering=-1, cwd=None):
     """A custom implementation of popen that redirects STDERR to STDOUT
 
     Args:
@@ -186,14 +186,16 @@ def popen(cmd, mode="r", buffering=-1):
                                 text=True,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
-                                bufsize=buffering)
+                                bufsize=buffering,
+                                cwd=cwd)
         return _wrap_close(proc.stdout, proc)
     else:
         proc = subprocess.Popen(cmd,
                                 text=True,
                                 stdin=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
-                                bufsize=buffering)
+                                bufsize=buffering,
+                                cwd=cwd)
         return _wrap_close(proc.stdin, proc)
 
 # Helper for popen() -- a proxy for a file whose close waits for the process

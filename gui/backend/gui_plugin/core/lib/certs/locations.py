@@ -402,6 +402,9 @@ class Store_cert(Dependent_cert):
                          parent_cert, deprecated=deprecated, requirements=requirements)
         self._installed_certs = []
 
+    def get_cwd(self):
+        return None
+
     def _is_installed(self):
         self._installed_certs = self._get_installed_certs()
         return len(self._installed_certs) > 0
@@ -420,7 +423,7 @@ class Store_cert(Dependent_cert):
 
         for cmd in commands:
             try:
-                exit_code, output = lib.run_shell_cmd(cmd)
+                exit_code, output = lib.run_shell_cmd(cmd, cwd=self.get_cwd())
 
                 if not exit_code is None:
                     raise SystemError(output)
@@ -446,7 +449,7 @@ class Store_cert(Dependent_cert):
     def _do_uninstall(self):
         cmd = self._get_uninstall_command()
         try:
-            exit_code, output = lib.run_shell_cmd(cmd)
+            exit_code, output = lib.run_shell_cmd(cmd, cwd=self.get_cwd())
 
             if not exit_code is None:
                 raise SystemError(output)
@@ -698,6 +701,9 @@ class Macos(Store_cert):
 
 
 class Win(Store_cert):
+    def get_cwd(self):
+        return os.path.dirname(self.parent_cert.desc)
+
     def __init__(self, parent_cert, scripted=False):
         super().__init__(Type.WIN, "WIN Certificate Store", scripted, parent_cert)
 
@@ -710,7 +716,7 @@ class Win(Store_cert):
         installed = []
 
         try:
-            exit_code, output = lib.run_shell_cmd(cmd)
+            exit_code, output = lib.run_shell_cmd(cmd, cwd=self.get_cwd())
 
             if exit_code is None:
                 for line in output.split("\n"):
@@ -732,49 +738,6 @@ class Win(Store_cert):
     def _get_uninstall_command(self):
         return ["certutil.exe", "-delstore", "-user", "ROOT",
                 "MySQL Shell Auto Generated CA Certificate"]
-
-
-class Win_wsl(Win):
-    def __init__(self, parent_cert):
-        super().__init__(parent_cert, True)
-
-    def _get_cert_install_script(self, padding=0):
-        s = ' ' * padding
-        return f"""
-{s}# Install the certificate
-{s}(
-{s}    cd {os.path.dirname(self.parent_cert.desc)}
-{s}    certutil.exe -addstore -user -f ROOT {os.path.basename(self.parent_cert.desc)}
-
-{s}    if [ "$?" != "0" ]; then
-{s}        echo "Failed installing the certificate"
-{s}        read -r -p "Press any key to continue..." response
-{s}        exit 1
-{s}    fi
-{s})
-
-"""
-
-    def get_uninstall_script(self, padding=0):
-        # The certificate uninstall process is done based on the installed shell certificates
-        certs = " ".join(self._get_installed_certs())
-        s = ' ' * padding
-        return f"""
-{s}# Removing the certificate(s) from the {self.desc}
-{s}certs="{certs}"
-
-{s}for cert in $certs
-{s}do
-{s}    certutil.exe -delstore -user ROOT $cert
-
-{s}    if [ "$?" != "0" ]; then
-{s}        echo "Failed removing the certificate"
-{s}        read -r -p "Press any key to continue..." response
-{s}        exit 1
-{s}    fi
-{s}done
-
-"""
 
 # TODO(rennox): to be deleted once the certificate install is considered complete with the NSS user database
 
