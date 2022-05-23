@@ -398,7 +398,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
             dataTreeExpandElement: "<span class='treeToggle' />",
             dataTreeCollapseElement: "<span class='treeToggle expanded' />",
             dataTreeBranchElement: true,
-            dataTreeChildIndent: 18,
+            dataTreeChildIndent: 0,
             dataTreeStartExpanded: options?.expandedLevels ?? false,
 
             rowFormatter: onFormatRow,

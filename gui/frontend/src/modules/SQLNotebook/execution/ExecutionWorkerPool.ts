@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,27 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
-import React from "react";
-import { SQLNotebookToolbar } from "../../../modules/SQLNotebook/SQLNotebookToolbar";
-import { snapshotFromWrapper } from "../test-helpers";
+import { WorkerPool } from "../../../supplement/WorkerPool";
+import { IConsoleWorkerTaskData, IConsoleWorkerResultData } from "../console.worker-types";
 
+/* eslint import/no-webpack-loader-syntax: off */
+import ConsoleWorker from "worker-loader?filename=static/workers/[name].[contenthash].js!./console.worker";
 
-describe("SQLNotebookToolbar tests", (): void => {
-    it("Test SQLNotebookToolbar instantiation", () => {
-        const component = mount<SQLNotebookToolbar>(
-            <SQLNotebookToolbar
-                language={"pl"}
-                activeEditor={"DbEditor"}
-                editors={[]}
-                onSelectEditor={jest.fn()}
-            />,
-        );
-        const props = component.props();
-        expect(props.language).toEqual("pl");
-        expect(props.activeEditor).toEqual("DbEditor");
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
-        component.unmount();
-    });
+// A specialized worker pool for interactive console tasks.
+export class ExecutionWorkerPool extends WorkerPool<IConsoleWorkerTaskData, IConsoleWorkerResultData> {
 
-});
+    private static nextId = 0;
+
+    protected createNewWorker(): ConsoleWorker {
+        const worker = new ConsoleWorker();
+        worker.id = "ew" + String(ExecutionWorkerPool.nextId++);
+
+        return worker;
+    }
+}

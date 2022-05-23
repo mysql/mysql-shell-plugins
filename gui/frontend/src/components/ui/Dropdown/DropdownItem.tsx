@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,15 +31,15 @@ import { ContentAlignment, Orientation } from "../Container/Container";
 
 export interface IDropdownItemProperties extends IComponentProperties {
     caption?: string;
-    picture?: React.ReactElement<Image> | React.ReactElement<Icon>;
+    picture?: React.ReactElement<Image | Icon>;
     description?: string;
     selected?: boolean;
     checked?: boolean; // If given then a checkbox is shown (and checked/unchecked).
 }
 
-export class DropdownItem extends Component<IDropdownItemProperties> {
+export class DropdownItem<T extends IDropdownItemProperties> extends Component<T> {
 
-    public constructor(props: IDropdownItemProperties) {
+    public constructor(props: T) {
         super(props);
 
         this.addHandledProperties("caption", "picture", "description", "checked");
@@ -54,7 +54,7 @@ export class DropdownItem extends Component<IDropdownItemProperties> {
             this.classFromProperty(selected, "selected"),
         ]);
 
-        let content = children;
+        let content = children as React.ReactNode | React.ReactNode[] | undefined;
         if (!content) {
             if (!isNil(checked)) {
                 content = <Checkbox

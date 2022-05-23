@@ -73,9 +73,9 @@ describe("Accordion component tests", (): void => {
                         ],
                         id: "second",
                         content: [
-                            <Accordion.Item id="item5" key="item5" caption="Item 5" icon={imageImage} />,
-                            <Accordion.Item id="item6" key="item6" caption="Item 6" icon={imageImage} />,
-                            <Accordion.Item id="item7" key="item7" caption="Item 7" icon={imageImage} />,
+                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={imageImage} />,
+                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={imageImage} />,
+                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={imageImage} />,
                         ],
                     },
                     {
@@ -151,9 +151,9 @@ describe("Accordion component tests", (): void => {
                         caption: "SECOND SECTION",
                         id: "second",
                         content: [
-                            <Accordion.Item id="item5" key="item5" caption="Item 5" icon={imageImage} />,
-                            <Accordion.Item id="item6" key="item6" caption="Item 6" icon={imageImage} />,
-                            <Accordion.Item id="item7" key="item7" caption="Item 7" icon={imageImage} />,
+                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={imageImage} />,
+                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={imageImage} />,
+                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={imageImage} />,
                         ],
                     },
                     {

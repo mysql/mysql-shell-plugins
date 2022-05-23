@@ -23,7 +23,7 @@
 
 import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event } from "vscode";
 
-import { IModuleDataEntry } from "../../../frontend/src/modules/scripting";
+import { IModuleDataEntry } from "../../../frontend/src/modules/SQLNotebook";
 import { ShellInterface } from "../../../frontend/src/supplement/ShellInterface";
 import { ScriptTreeItem } from "./ScriptTreeItem";
 

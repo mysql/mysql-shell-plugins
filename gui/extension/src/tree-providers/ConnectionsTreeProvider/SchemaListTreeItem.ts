@@ -21,27 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
-import React from "react";
-import { SQLNotebookToolbar } from "../../../modules/SQLNotebook/SQLNotebookToolbar";
-import { snapshotFromWrapper } from "../test-helpers";
+import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
 
+export class SchemaListTreeItem extends ConnectionsTreeBaseItem {
+    public contextValue = "admin";
 
-describe("SQLNotebookToolbar tests", (): void => {
-    it("Test SQLNotebookToolbar instantiation", () => {
-        const component = mount<SQLNotebookToolbar>(
-            <SQLNotebookToolbar
-                language={"pl"}
-                activeEditor={"DbEditor"}
-                editors={[]}
-                onSelectEditor={jest.fn()}
-            />,
-        );
-        const props = component.props();
-        expect(props.language).toEqual("pl");
-        expect(props.activeEditor).toEqual("DbEditor");
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
-        component.unmount();
-    });
-
-});
+    protected get iconName(): string {
+        return "schemas.svg";
+    }
+}

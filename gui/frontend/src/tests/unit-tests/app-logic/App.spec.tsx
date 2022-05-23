@@ -27,7 +27,7 @@ import React from "react";
 import { App } from "../../../app-logic/App";
 import { IStatusbarInfo } from "../../../app-logic/Types";
 import { currentConnection } from "../../../communication";
-import { IEditorStatusInfo } from "../../../modules/scripting";
+import { IEditorStatusInfo } from "../../../modules/SQLNotebook";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { waitFor } from "../../../utilities/helpers";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";

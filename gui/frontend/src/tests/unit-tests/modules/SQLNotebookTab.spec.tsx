@@ -24,18 +24,20 @@
 import { mount } from "enzyme";
 import React from "react";
 import { setupShellForTests } from "../test-helpers";
-import { DBEditorTab, IDBEditorTabPersistentState, IOpenEditorState } from "../../../modules/scripting/DBEditorTab";
+import {
+    SQLNotebookTab, IOpenEditorState, ISQLNotebookTabPersistentState,
+} from "../../../modules/SQLNotebook/SQLNotebookTab";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { ExecutionWorkerPool } from "../../../modules/scripting/execution/ExecutionWorkerPool";
+import { ExecutionWorkerPool } from "../../../modules/SQLNotebook/execution/ExecutionWorkerPool";
 import { DBType } from "../../../supplement/ShellInterface";
 import { CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../../components/ui/CodeEditor/CodeEditor";
-import { EntityType } from "../../../modules/scripting";
+import { EntityType } from "../../../modules/SQLNotebook";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { Monaco } from "../../../components/ui/CodeEditor";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
 jest.mock("../../../components/ui/CodeEditor/CodeEditor");
 
-describe("DBEditor module tests", (): void => {
+describe("SQLNotebookTab tests", (): void => {
 
     let content = `\nprint("typescript");\n\\js\n`;
     content += `\nprint("javascript");\n\\sql\n`;
@@ -56,7 +58,7 @@ describe("DBEditor module tests", (): void => {
         await launcher.exitProcess();
     });
 
-    it("Test DBEditorTab instantiation", () => {
+    it("Test SQLNotebookTab instantiation", () => {
         const wp = new ExecutionWorkerPool();
         const eps: IEditorPersistentState = {
             viewState: null,
@@ -71,7 +73,7 @@ describe("DBEditor module tests", (): void => {
             caption: "",
         };
         const backend = new ShellInterfaceSqlEditor();
-        const savedState: IDBEditorTabPersistentState = {
+        const savedState: ISQLNotebookTabPersistentState = {
             backend,
             serverVersion: 1,
             serverEdition: "gpl",
@@ -79,13 +81,13 @@ describe("DBEditor module tests", (): void => {
             editors: [edState],
             scripts: [],
             schemaTree: [],
-            explorerState: new Map ([["state1", {}]]),
-            activeEditor: "SQLEditor",
+            explorerState: new Map([["state1", {}]]),
+            activeEntry: "SQLEditor",
             currentSchema: "myDb",
             explorerWidth: 200,
         };
-        const component = mount<DBEditorTab>(
-            <DBEditorTab
+        const component = mount<SQLNotebookTab>(
+            <SQLNotebookTab
                 connectionId={0}
                 dbType={DBType.MySQL}
                 savedState={savedState}

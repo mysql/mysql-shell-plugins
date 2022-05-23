@@ -21,27 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
 import React from "react";
-import { SQLNotebookToolbar } from "../../../modules/SQLNotebook/SQLNotebookToolbar";
-import { snapshotFromWrapper } from "../test-helpers";
 
+import { Component, Container, IComponentProperties } from "../../components/ui";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
-describe("SQLNotebookToolbar tests", (): void => {
-    it("Test SQLNotebookToolbar instantiation", () => {
-        const component = mount<SQLNotebookToolbar>(
-            <SQLNotebookToolbar
-                language={"pl"}
-                activeEditor={"DbEditor"}
-                editors={[]}
-                onSelectEditor={jest.fn()}
-            />,
+export interface IPerformanceDashboardProperties extends IComponentProperties {
+    backend: ShellInterfaceSqlEditor;
+}
+
+export class PerformanceDashboard extends Component<IPerformanceDashboardProperties> {
+    public render(): React.ReactNode {
+        return (
+            <Container>
+                PerformanceDashboard
+            </Container>
         );
-        const props = component.props();
-        expect(props.language).toEqual("pl");
-        expect(props.activeEditor).toEqual("DbEditor");
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
-        component.unmount();
-    });
-
-});
+    }
+}

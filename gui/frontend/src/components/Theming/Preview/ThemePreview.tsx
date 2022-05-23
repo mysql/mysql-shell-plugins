@@ -47,7 +47,7 @@ import { ActivityBarItem } from "../../ui/ActivityBar/ActivityBarItem";
 import { SymbolGrid } from "./SymbolGrid";
 import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor";
 import { Monaco } from "../../ui/CodeEditor";
-import { ScriptingConsole } from "../../../modules/scripting/ScriptingConsole";
+import { ScriptingConsole } from "../../../modules/SQLNotebook/ScriptingConsole";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { MySQLConnectionScheme } from "../../../communication/MySQL";
 import { DBType } from "../../../supplement/ShellInterface";
@@ -376,9 +376,9 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                                 caption: "SECOND SECTION",
                                 id: "second",
                                 content: [
-                                    <Accordion.Item id="item5" key="item5" caption="Item 5" icon={imageImage} />,
-                                    <Accordion.Item id="item6" key="item6" caption="Item 6" icon={imageImage} />,
-                                    <Accordion.Item id="item7" key="item7" caption="Item 7" icon={imageImage} />,
+                                    <Accordion.Item id="item5" key="item5" caption="Item 5" picture={imageImage} />,
+                                    <Accordion.Item id="item6" key="item6" caption="Item 6" picture={imageImage} />,
+                                    <Accordion.Item id="item7" key="item7" caption="Item 7" picture={imageImage} />,
                                 ],
                             },
                             {

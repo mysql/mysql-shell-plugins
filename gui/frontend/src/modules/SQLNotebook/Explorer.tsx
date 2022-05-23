@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import schemaIcon from "../../assets/images/database.svg";
+import schemaIcon from "../../assets/images/schema.svg";
 
 import tableIcon from "../../assets/images/schemaTable.svg";
 import tablesIcon from "../../assets/images/schemaTables.svg";
@@ -46,6 +46,10 @@ import indexesIcon from "../../assets/images/schemaTableIndexes.svg";
 
 import foreignKeyIcon from "../../assets/images/schemaTableForeignKey.svg";
 //import foreignKeysIcon from "../../assets/images/schemaTableForeignKeys.svg";
+
+import adminPerformanceDashboardIcon from "../../assets/images/adminPerformanceDashboard.svg";
+import adminServerStatusIcon from "../../assets/images/adminServerStatus.svg";
+import clientConnectionsIcon from "../../assets/images/clientConnections.svg";
 
 import defaultIcon from "../../assets/images/file-icons/default.svg";
 import iniIcon from "../../assets/images/file-icons/ini.svg";
@@ -72,12 +76,13 @@ import {
 } from "../../components/ui";
 import { EntityType, IDBEditorScriptState, IEntityBase, IModuleDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
-import { IOpenEditorState } from "./DBEditorTab";
+import { IOpenEditorState } from "./SQLNotebookTab";
 import { ICommErrorEvent } from "../../communication";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { EditorLanguage } from "../../supplement";
 
+/** Lookup for icons for a specific document type. */
 export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
     ["ini", iniIcon],
     ["javascript", javascriptIcon],
@@ -89,6 +94,13 @@ export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
     ["msg", shellIcon],
     ["typescript", typescriptIcon],
     ["xml", xmlIcon],
+]);
+
+/** Lookup for icons for special pages. */
+export const pageTypeToIcon: Map<string, string> = new Map([
+    ["serverStatus", adminServerStatusIcon],
+    ["clientConnections", clientConnectionsIcon],
+    ["performanceDashboard", adminPerformanceDashboardIcon],
 ]);
 
 export interface IExplorerSectionState {
@@ -234,6 +246,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
         const editorSectionState = state?.get("editorSection") ?? {};
         const schemaSectionState = state?.get("schemaSection") ?? {};
+        const adminSectionState = state?.get("adminSection") ?? {};
         const scriptSectionState = state?.get("scriptSection") ?? {};
 
         const sqlMenuIcon = dbType === DBType.MySQL ? mysqlIcon : sqliteIcon;
@@ -271,6 +284,43 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                             resizable: true,
                             minSize: 100,
                             content: schemaSectionContent,
+                        },
+                        {
+                            id: "adminSection",
+                            caption: "ADMINISTRATION",
+                            stretch: true,
+                            expanded: adminSectionState.expanded,
+                            initialSize: adminSectionState.size,
+                            resizable: true,
+                            minSize: 100,
+                            content: [
+                                <Accordion.Item
+                                    key="serverStatus"
+                                    id="serverStatus"
+                                    caption="Server Status"
+                                    picture={<Icon as="span" src={adminServerStatusIcon} width="20px" height="20px" />}
+                                    onClick={this.handleAccordionItemClick}
+                                />,
+                                <Accordion.Item
+                                    key="clientConnections"
+                                    id="clientConnections"
+                                    caption="Client Connections"
+                                    picture={<Icon as="span" src={clientConnectionsIcon} width="20px" height="20px" />}
+                                    onClick={this.handleAccordionItemClick}
+                                />,
+                                <Accordion.Item
+                                    key="performanceDashboard"
+                                    id="performanceDashboard"
+                                    caption="Performance Dashboard"
+                                    picture={<Icon
+                                        as="span"
+                                        src={adminPerformanceDashboardIcon}
+                                        width="20px"
+                                        height="20px"
+                                    />}
+                                    onClick={this.handleAccordionItemClick}
+                                />,
+                            ],
                         },
                         {
                             id: "scriptSection",
@@ -1104,8 +1154,14 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     />
                 );
             } else {
-                const language = entry.state.model.getLanguageId() as EditorLanguage;
-                const icon = documentTypeToIcon.get(language) || defaultIcon;
+                let icon;
+                if (entry.state) {
+                    const language = entry.state.model.getLanguageId() as EditorLanguage;
+                    icon = documentTypeToIcon.get(language) || defaultIcon;
+                } else {
+                    const name = pageTypeToIcon.get(entry.id) || defaultIcon;
+                    icon = <Icon as="span" src={name} width="20px" height="20px" />;
+                }
 
                 return (
                     <Accordion.Item
@@ -1113,7 +1169,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                         key={entry.id}
                         caption={entry.caption}
                         active={entry.id === selectedEntry}
-                        icon={icon}
+                        picture={icon}
                         closable={true}
                         onClose={this.handleEditorClose}
                         onClick={this.handleAccordionItemClick}

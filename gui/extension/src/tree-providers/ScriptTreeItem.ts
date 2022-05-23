@@ -24,7 +24,7 @@
 import * as path from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 
-import { EntityType, IDBEditorScriptState, IModuleDataEntry } from "../../../frontend/src/modules/scripting";
+import { EntityType, IDBEditorScriptState, IModuleDataEntry } from "../../../frontend/src/modules/SQLNotebook";
 
 export class ScriptTreeItem extends TreeItem {
     public contextValue = "script";

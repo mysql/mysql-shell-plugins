@@ -25,8 +25,6 @@ import { window, commands, ExtensionContext, TextEditor, workspace } from "vscod
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 
-import { IConnectionDetails } from "../../frontend/src/supplement/ShellInterface";
-
 import {
     ConnectionsTreeBaseItem,
     ConnectionsTreeDataProvider, ConnectionTreeItem, IConnectionEntry, SchemaEventTreeItem, SchemaMySQLTreeItem,
@@ -37,7 +35,7 @@ import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
 import { SqlEditorViewProvider } from "./web-views/SqlEditorViewProvider";
 import { IRunQueryRequest } from "../../frontend/src/supplement";
-import { IDBEditorScriptState } from "../../frontend/src/modules/scripting";
+import { IDBEditorScriptState } from "../../frontend/src/modules/SQLNotebook";
 
 import { CodeBlocks } from "./CodeBlocks";
 
@@ -90,15 +88,21 @@ export class DbEditorCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.showServerStatus",
-            (details: IConnectionDetails) => {
+            (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(details.caption, String(details.id), "showServerStatus");
+                void provider?.showPageSection(caption, String(id), "serverStatus");
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.showClientConnections",
+            (caption: string, id: number) => {
+                const provider = this.currentProvider;
+                void provider?.showPageSection(caption, String(id), "clientConnections");
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showPerformanceDashboard",
-            (details: IConnectionDetails) => {
+            (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(details.caption, String(details.id), "showPerformanceDashboard");
+                void provider?.showPageSection(caption, String(id), "performanceDashboard");
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.insertScript", (item: ScriptTreeItem) => {

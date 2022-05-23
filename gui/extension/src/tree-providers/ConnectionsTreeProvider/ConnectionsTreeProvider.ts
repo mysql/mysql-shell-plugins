@@ -52,6 +52,7 @@ import {
     SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
 } from ".";
 import { convertSnakeToCamelCase, stripAnsiCode } from "../../../../frontend/src/utilities/helpers";
+import { SchemaListTreeItem } from "./SchemaListTreeItem";
 
 export interface IConnectionEntry {
     id: string;
@@ -69,11 +70,15 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
     private changeEvent = new EventEmitter<TreeItem | undefined>();
 
+    private useDedicatedSchemaSubtree: boolean;
+
     public get onDidChangeTreeData(): Event<TreeItem | undefined> {
         return this.changeEvent.event;
     }
 
     public constructor() {
+        // TODO: make this configurable.
+        this.useDedicatedSchemaSubtree = false;
         requisitions.register("refreshConnections", this.refreshConnections);
     }
 
@@ -116,34 +121,54 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             });
         }
 
+        if (element instanceof ConnectionTreeItem) {
+            if (this.useDedicatedSchemaSubtree) {
+                const items = [];
+                if (element.entry.details.dbType === DBType.MySQL) {
+                    items.push(new AdminTreeItem("MySQL Administration", "", element.entry, true));
+                }
+
+                items.push(new SchemaListTreeItem("Schemas", "", element.entry, true));
+
+                return items;
+            }
+
+            return this.updateSchemaList(element.entry);
+        }
+
         if (element instanceof AdminTreeItem) {
+            const serverStatusCommand = {
+                title: "Show Server Status",
+                command: "msg.showServerStatus",
+                arguments: ["Server Status", element.entry.details.id],
+            };
+
+            const clientConnectionsCommand = {
+                title: "Show Client Connections",
+                command: "msg.showClientConnections",
+                arguments: ["Client Connections", element.entry.details.id],
+            };
+
             const performanceDashboardCommand = {
                 title: "Show Performance Dashboard",
                 command: "msg.showPerformanceDashboard",
-                arguments: [element.entry],
+                arguments: ["Performance Dashboard", element.entry.details.id],
             };
 
             return [
-                new AdminSectionTreeItem(
-                    "Server Status", "", element.entry, false, "adminServerStatus.svg",
-                    {
-                        title: "Show Server Status",
-                        command: "msg.showServerStatus",
-                        arguments: [element.entry],
-                    }),
-                new AdminSectionTreeItem("Client Connections", "", element.entry, false, "window.svg"),
-                new AdminSectionTreeItem("Users and Privileges", "", element.entry, false, "window.svg"),
-                new AdminSectionTreeItem("Server Logs", "", element.entry, false, "window.svg"),
-                new AdminSectionTreeItem("Server Configuration", "", element.entry, false, "window.svg"),
-                new AdminSectionTreeItem("Status and System Variables", "", element.entry, false, "window.svg"),
+                new AdminSectionTreeItem("Server Status", "", element.entry, false, "adminServerStatus.svg",
+                    serverStatusCommand),
+                new AdminSectionTreeItem("Client Connections", "", element.entry, false, "clientConnections.svg",
+                    clientConnectionsCommand),
                 new AdminSectionTreeItem("Performance Dashboard", "", element.entry, false,
                     "adminPerformanceDashboard.svg", performanceDashboardCommand),
-                new AdminSectionTreeItem("Performance Reports", "", element.entry, false, "window.svg"),
             ];
         }
 
-        if (element instanceof ConnectionTreeItem) {
-            return this.updateSchemaList(element.entry);
+        if (this.useDedicatedSchemaSubtree) {
+            if (element instanceof SchemaListTreeItem) {
+                return this.updateSchemaList(element.entry);
+            }
         }
 
         if (element instanceof SchemaTreeItem) {
@@ -389,6 +414,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         return new Promise((resolve, reject) => {
             if (entry.backend) {
                 const schemaList: TreeItem[] = [];
+                if (entry.details.dbType === DBType.MySQL) {
+                    schemaList.push(new AdminTreeItem("MySQL Administration", "", entry, true));
+                }
 
                 entry.backend.getCatalogObjects("Schema", "").then((schemas) => {
                     schemas.forEach((schema) => {
@@ -415,13 +443,6 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             schemaList.push(new SchemaTreeItem(schema, schema, entry, true));
                         }
                     });
-
-                    // TODO: Implement the MySQL Administration subtree,
-                    // leave the current implementation commented out for now on purpose
-                    /*if (entry.details.dbType === DBType.MySQL) {
-                        schemaList.unshift(new AdminTreeItem(
-                            "MySQL Administration", "", entry, true));
-                    }*/
 
                     resolve(schemaList);
                 }).catch((reason) => {

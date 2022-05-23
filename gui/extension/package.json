@@ -538,6 +538,10 @@
                 "title": "Show Server Status"
             },
             {
+                "command": "msg.showClientConnections",
+                "title": "Show Client Connections"
+            },
+            {
                 "command": "msg.showPerformanceDashboard",
                 "title": "Show Performance Dashboard"
             },

@@ -117,14 +117,14 @@ describe("DB Editor", () => {
 
     afterEach(async () => {
         dbConfig.caption = "conn";
-        if(testFailed) {
+        if (testFailed) {
             testFailed = false;
             const img = await driver.takeScreenshot();
             const testName: string = expect.getState().currentTestName
                 .toLowerCase().replace(/\s/g, "_");
             try {
                 await fsPromises.access("src/tests/e2e/screenshots");
-            } catch(e) {
+            } catch (e) {
                 await fsPromises.mkdir("src/tests/e2e/screenshots");
             }
             await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
@@ -406,7 +406,7 @@ describe("DB Editor", () => {
             );
 
             expect(await driver.findElement(By.css(".passwordDialog"))).toBeDefined();
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -442,7 +442,7 @@ describe("DB Editor", () => {
             expect(await (await getConnectionTab(driver, "1")).getText())
                 .toBe(dbConfig1.caption);
 
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -975,7 +975,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1010,7 +1010,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1071,7 +1071,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1136,7 +1136,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1248,7 +1248,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1350,7 +1350,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1434,7 +1434,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1524,7 +1524,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1590,7 +1590,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1659,7 +1659,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1749,7 +1749,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -1858,7 +1858,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2039,7 +2039,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2117,7 +2117,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2194,7 +2194,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2285,7 +2285,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2398,7 +2398,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2462,7 +2462,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2534,7 +2534,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2570,7 +2570,7 @@ describe("DB Editor", () => {
 
                 expect((await driver.findElements(By.css(".editorPromptFirst"))).length).toBe(2);
 
-                if(platform() === "darwin") {
+                if (platform() === "darwin") {
                     await writeSQL(driver, Key.chord(Key.COMMAND, "a"));
                 } else {
                     await writeSQL(driver, Key.chord(Key.CONTROL, "a"));
@@ -2624,7 +2624,7 @@ describe("DB Editor", () => {
                 try {
                     await setDBEditorPassword(driver, dbConfig);
                     await setFeedbackRequested(driver, dbConfig, "Y");
-                } catch (e: unknown) {
+                } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
                             throw e;
@@ -2659,7 +2659,7 @@ describe("DB Editor", () => {
                 const pieChart = await getGraphHost(driver, 1);
 
                 const chartColumns = await pieChart.findElements(By.css("rect"));
-                for(const col of chartColumns) {
+                for (const col of chartColumns) {
                     expect(parseInt(await col.getAttribute("width"), 10)).toBeGreaterThan(0);
                 }
 

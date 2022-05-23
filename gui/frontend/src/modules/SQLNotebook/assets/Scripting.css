@@ -71,7 +71,7 @@
     align-self: center;
 
     /* Corresponds to the width of the tree toggle and is used when there are no children and hence no toggle. */
-    padding-left: 16px;
+    padding-left: 21px;
 }
 
 .msg.connectionTabHost .scriptingExplorer .treeToggle + .schemaTreeEntry {
@@ -120,7 +120,7 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar,
-.msg.connectionTabHost #dbEditorMainToolbar {
+.msg.connectionTabHost #sqlNotebookToolbar {
     min-height: 0;
     flex: 0 0 28px;
     margin: 0;
@@ -128,7 +128,7 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar .image,
-.msg.connectionTabHost #dbEditorMainToolbar .image {
+.msg.connectionTabHost #sqlNotebookToolbar .image {
     width: 24px;
     height: 24px;
 }
@@ -139,8 +139,8 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar #connectionSelector,
-.msg.connectionTabHost #dbEditorMainToolbar #connectionSelector,
-.msg.connectionTabHost #dbEditorMainToolbar #documentSelector {
+.msg.connectionTabHost #sqlNotebookToolbar #connectionSelector,
+.msg.connectionTabHost #sqlNotebookToolbar #documentSelector {
     flex: 0 0 200px;
     margin: 0 3px 0 6px;
 }

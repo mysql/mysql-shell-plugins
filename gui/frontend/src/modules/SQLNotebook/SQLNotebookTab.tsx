@@ -50,7 +50,7 @@ import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
-import { DBEditorMainToolbar } from "./DBEditorMainToolbar";
+import { SQLNotebookToolbar } from "./SQLNotebookToolbar";
 import { IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
@@ -58,6 +58,9 @@ import {
     convertRows,
     EditorLanguage, generateColumnInfo, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest,
 } from "../../supplement";
+import { ServerStatus } from "./ServerStatus";
+import { ClientConnections } from "./ClientConnections";
+import { PerformanceDashboard } from "./PerformanceDashboard";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
@@ -65,7 +68,7 @@ interface IResultTimer {
 }
 
 export interface IOpenEditorState extends IEntityBase {
-    state: IEditorPersistentState;
+    state?: IEditorPersistentState;
 
     // A copy of the script state data id, if this editor was created from a script.
     moduleDataId?: number;
@@ -74,7 +77,7 @@ export interface IOpenEditorState extends IEntityBase {
     currentVersion: number;
 }
 
-export interface IDBEditorTabPersistentState {
+export interface ISQLNotebookTabPersistentState {
     backend: ShellInterfaceSqlEditor;
 
     // Informations about the connected backend (where supported).
@@ -87,17 +90,17 @@ export interface IDBEditorTabPersistentState {
     schemaTree: ISchemaTreeEntry[];
     explorerState: Map<string, IExplorerSectionState>;
 
-    activeEditor: string;
+    activeEntry: string;
     currentSchema: string;
 
     // The size to be used for the explorer pane.
     explorerWidth: number;
 }
 
-export interface IDBEditorTabProperties extends IComponentProperties {
+export interface ISQLNotebookTabProperties extends IComponentProperties {
     connectionId: number;
     dbType: DBType;
-    savedState: IDBEditorTabPersistentState;
+    savedState: ISQLNotebookTabPersistentState;
     workerPool: ExecutionWorkerPool;
 
     // An element to render in this page's toolbar.
@@ -110,7 +113,7 @@ export interface IDBEditorTabProperties extends IComponentProperties {
 
     onAddEditor?: (id: string) => string | undefined;
     onRemoveEditor?: (id: string, editorId: string) => void;
-    onSelectEditor?: (id: string, editorId: string) => void;
+    onSelectItem?: (id: string, editorId: string) => void;
     onChangeEditor?: (id: string, editorId: string, newCaption: string) => void;
 
     onAddScript?: (id: string, language: EditorLanguage, dbType: DBType) => void;
@@ -123,14 +126,14 @@ export interface IDBEditorTabProperties extends IComponentProperties {
     onExplorerMenuAction?: (id: string, itemId: string, params: unknown) => void;
 }
 
-interface IDBEditorTabState extends IComponentState {
+interface ISQLNotebookTabState extends IComponentState {
     errorMessage?: string;
 
     backend?: ShellInterfaceSqlEditor;
 }
 
 // A tab page for a single connection (managed by the scripting module).
-export class DBEditorTab extends Component<IDBEditorTabProperties, IDBEditorTabState> {
+export class SQLNotebookTab extends Component<ISQLNotebookTabProperties, ISQLNotebookTabState> {
 
     private static aboutMessage = `Welcome to the MySQL Shell - SQL Notebook.
 
@@ -148,18 +151,18 @@ Execute \\help or \\? for help;`;
     private consoleRef = React.createRef<ScriptingConsole>();
     private standaloneRef = React.createRef<StandaloneScriptEditor>();
 
-    public constructor(props: IDBEditorTabProperties) {
+    public constructor(props: ISQLNotebookTabProperties) {
         super(props);
 
         this.state = {
             backend: props.savedState.backend,
         };
 
-        this.addHandledProperties("storageDb", "connectionId", "dbType", "savedState", "workerPool", "actionParams",
-            "toolbarInset", "showExplorer", "showAbout",
-            "onHelpCommand", "onAddEditor", "onRemoveEditor", "onSelectEditor", "onAddScript", "onSaveSchemaTree",
-            "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction",
-        );
+        this.addHandledProperties("connectionId", "dbType", "savedState", "workerPool", "toolbarInset", "showExplorer",
+            "showAbout",
+            "onHelpCommand", "onAddEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor", "onAddScript",
+            "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
+
     }
 
     public componentDidMount(): void {
@@ -170,6 +173,7 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorRunQuery", this.editorRunQuery);
         requisitions.register("editorRunScript", this.editorRunScript);
         requisitions.register("editorInsertUserScript", this.editorInsertUserScript);
+        requisitions.register("showPageSection", this.showPageSection);
 
         this.consoleRef.current?.focus();
     }
@@ -187,9 +191,10 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("editorRunQuery", this.editorRunQuery);
         requisitions.unregister("editorRunScript", this.editorRunScript);
         requisitions.unregister("editorInsertUserScript", this.editorInsertUserScript);
+        requisitions.unregister("showPageSection", this.showPageSection);
     }
 
-    public componentDidUpdate(prevProps: IDBEditorTabProperties): void {
+    public componentDidUpdate(prevProps: ISQLNotebookTabProperties): void {
         const { connectionId, savedState } = this.props;
 
         if (connectionId !== prevProps.connectionId) {
@@ -205,11 +210,13 @@ Execute \\help or \\? for help;`;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
 
-        // Determine editor to show from the editor state. There must always be at least a single editor.
+        let document;
+
+        // Determine the editor to show from the editor state. There must always be at least a single editor.
         // If we cannot find the given active editor then pick the first one unconditionally.
         let activeEditor = savedState.editors.find(
             (entry: IOpenEditorState): boolean => {
-                return entry.id === savedState.activeEditor;
+                return entry.id === savedState.activeEntry;
             },
         );
 
@@ -217,12 +224,12 @@ Execute \\help or \\? for help;`;
             activeEditor = savedState.editors[0];
         }
 
-        let document;
+        const language = activeEditor.state?.model.getLanguageId() ?? "";
         switch (activeEditor.type) {
             case EntityType.Console: {
                 document = <ScriptingConsole
                     ref={this.consoleRef}
-                    editorState={activeEditor.state}
+                    editorState={activeEditor.state!}
                     dbType={dbType}
                     showAbout={showAbout}
                     onHelpCommand={onHelpCommand}
@@ -234,78 +241,97 @@ Execute \\help or \\? for help;`;
             case EntityType.Script: {
                 document = <StandaloneScriptEditor
                     ref={this.standaloneRef}
-                    editorState={activeEditor.state}
+                    editorState={activeEditor.state!}
                     onScriptExecution={this.handleExecution}
                 />;
 
                 break;
             }
 
-            case EntityType.Table: {
+            case EntityType.Admin: {
+                switch (savedState.activeEntry) {
+                    case "serverStatus": {
+                        document = <ServerStatus backend={savedState.backend} />;
+                        break;
+                    }
+
+                    case "clientConnections": {
+                        document = <ClientConnections backend={savedState.backend} />;
+                        break;
+                    }
+
+                    case "performanceDashboard": {
+                        document = <PerformanceDashboard backend={savedState.backend} />;
+                        break;
+                    }
+
+                    default:
+
+                }
+
                 break;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
 
         return (
             <SplitContainer
                 className={className}
-                panes={[
-                    {
-                        id: "explorer",
-                        minSize: 150,
-                        initialSize: savedState.explorerWidth > -1 ? savedState.explorerWidth : 250,
-                        snap: true,
-                        resizable: true,
-                        collapsed: !showExplorer,
-                        content: (
-                            <Explorer
-                                id={id}
-                                dbType={dbType}
-                                schemaTree={savedState.schemaTree}
-                                state={savedState.explorerState}
-                                editors={savedState.editors}
-                                scripts={savedState.scripts}
-                                selectedEntry={savedState.activeEditor}
-                                markedSchema={savedState.currentSchema}
-                                backend={savedState.backend}
-                                onSelectItem={this.handleSelectEditor}
-                                onCloseItem={this.handleCloseEditor}
-                                onAddItem={this.handleAddEditor}
-                                onChangeItem={this.handleChangeEditor}
-                                onAddScript={this.handleAddScript}
-                                onSaveSchemaTree={this.saveSchemaTree}
-                                onSaveExplorerState={this.saveExplorerState}
-                                onContextMenuItemClick={this.handleExplorerMenuAction}
-                            />),
-                    },
-                    {
-                        id: "content",
-                        minSize: 350,
-                        snap: false,
-                        stretch: true,
-                        content: <Container
-                            orientation={Orientation.TopDown}
-                            style={{
-                                flex: "1 1 auto",
-                            }}
-                            mainAlignment={ContentAlignment.Stretch}
-                        >
-                            <DBEditorMainToolbar
-                                inset={toolbarInset}
-                                language={activeEditor.state.model.getLanguageId()}
-                                activeEditor={savedState.activeEditor}
-                                editors={savedState.editors}
-                                backend={backend}
-                                onSelectEditor={this.handleSelectEditor}
-                            />
-                            {document}
-                        </Container>,
-                    },
-                ]}
+                panes={
+                    [
+                        {
+                            id: "explorer",
+                            minSize: 150,
+                            initialSize: savedState.explorerWidth > -1 ? savedState.explorerWidth : 250,
+                            snap: true,
+                            resizable: true,
+                            collapsed: !showExplorer,
+                            content: (
+                                <Explorer
+                                    id={id}
+                                    dbType={dbType}
+                                    schemaTree={savedState.schemaTree}
+                                    state={savedState.explorerState}
+                                    editors={savedState.editors}
+                                    scripts={savedState.scripts}
+                                    selectedEntry={savedState.activeEntry}
+                                    markedSchema={savedState.currentSchema}
+                                    backend={savedState.backend}
+                                    onSelectItem={this.handleSelectItem}
+                                    onCloseItem={this.handleCloseEditor}
+                                    onAddItem={this.handleAddEditor}
+                                    onChangeItem={this.handleChangeEditor}
+                                    onAddScript={this.handleAddScript}
+                                    onSaveSchemaTree={this.saveSchemaTree}
+                                    onSaveExplorerState={this.saveExplorerState}
+                                    onContextMenuItemClick={this.handleExplorerMenuAction}
+                                />),
+                        },
+                        {
+                            id: "content",
+                            minSize: 350,
+                            snap: false,
+                            stretch: true,
+                            content: <Container
+                                orientation={Orientation.TopDown}
+                                style={{
+                                    flex: "1 1 auto",
+                                }}
+                                mainAlignment={ContentAlignment.Stretch}
+                            >
+                                <SQLNotebookToolbar
+                                    inset={toolbarInset}
+                                    language={language}
+                                    activeEditor={savedState.activeEntry}
+                                    editors={savedState.editors}
+                                    backend={backend}
+                                    onSelectEditor={this.handleSelectItem}
+                                />
+                                {document}
+                            </Container>,
+                        },
+                    ]}
                 onPaneResized={this.handlePaneResize}
             />
         );
@@ -422,6 +448,12 @@ Execute \\help or \\? for help;`;
                         ["Loading Error", "Cannot load scripts content:", String(event.message)]);
                 });
         });
+    };
+
+    private showPageSection = (section: string): Promise<boolean> => {
+        this.handleSelectItem(section);
+
+        return Promise.resolve(true);
     };
 
     /**
@@ -969,7 +1001,7 @@ Execute \\help or \\? for help;`;
             switch (temp) {
                 case "\\about": {
                     const isMac = navigator.userAgent.includes("Macintosh");
-                    const content = DBEditorTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
+                    const content = SQLNotebookTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
                     context?.setResult({
                         type: "text",
                         requestId: "",
@@ -1278,10 +1310,10 @@ Execute \\help or \\? for help;`;
         }
     };
 
-    private handleSelectEditor = (editorId: string): void => {
-        const { id, onSelectEditor } = this.props;
+    private handleSelectItem = (itemId: string): void => {
+        const { id, onSelectItem: onSelectEditor } = this.props;
 
-        onSelectEditor?.(id!, editorId);
+        onSelectEditor?.(id!, itemId);
     };
 
     private handleCloseEditor = (editorId: string): void => {
@@ -1303,7 +1335,7 @@ Execute \\help or \\? for help;`;
     };
 
     private handleEditorSelectorChange = (selectedId: string | number): void => {
-        const { id, onSelectEditor } = this.props;
+        const { id, onSelectItem: onSelectEditor } = this.props;
 
         onSelectEditor?.(id!, selectedId as string);
     };
