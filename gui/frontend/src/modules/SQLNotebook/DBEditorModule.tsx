@@ -36,8 +36,9 @@ import { ConnectionBrowser } from "./ConnectionBrowser";
 import {
     ITabviewPage, Tabview, Button, Icon, TabPosition, defaultEditorOptions, Divider, Label, Dropdown, Image,
     ProgressIndicator,
+    IDropdownProperties,
 } from "../../components/ui";
-import { DBEditorTab, IDBEditorTabPersistentState, IOpenEditorState } from "./DBEditorTab";
+import { SQLNotebookTab, ISQLNotebookTabPersistentState, IOpenEditorState } from "./SQLNotebookTab";
 import { ICodeEditorModel, CodeEditor, CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
 import { Monaco } from "../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
@@ -45,7 +46,7 @@ import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails, ShellInterface } from "../../supplement/ShellInterface";
 import { EntityType, IDBEditorScriptState, IModuleDataEntry, ISchemaTreeEntry } from ".";
-import { documentTypeToIcon, IExplorerSectionState } from "./Explorer";
+import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import {
@@ -67,6 +68,7 @@ import { webSession } from "../../supplement/WebSession";
 import { IDialogSection, ValueEditDialog } from "../../components/Dialogs";
 import { IServicePasswordRequest } from "../../app-logic/Types";
 import { PromptUtils } from "../common/PromptUtils";
+import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem";
 
 /* eslint import/no-webpack-loader-syntax: off */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -102,7 +104,7 @@ interface IDBEditorModuleState extends IModuleState {
 export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEditorModuleState> {
 
     // The saved document state when switching tabs.
-    private connectionState: Map<string, IDBEditorTabPersistentState> = new Map();
+    private connectionState: Map<string, ISQLNotebookTabPersistentState> = new Map();
 
     private workerPool: ExecutionWorkerPool;
 
@@ -222,6 +224,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             ];
 
             editorTabs.forEach((info: IDBEditorTabInfo) => {
+                const connectionState = this.connectionState.get(info.id)!;
+
+                // Add one entry per connection.
                 const language = info.details.dbType === DBType.MySQL ? "mysql" : "sql";
                 const icon = documentTypeToIcon.get(language) || defaultIcon;
 
@@ -233,6 +238,30 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         picture={<Icon src={icon} />}
                     />,
                 );
+
+                // After that add an entry for each open document (indented).
+                connectionState.editors.forEach((entry) => {
+                    let picture;
+                    if (entry.state) {
+                        const language = entry.state.model.getLanguageId() as EditorLanguage;
+                        picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
+                    } else {
+                        const name = pageTypeToIcon.get(entry.id) || defaultIcon;
+                        picture = <Icon as="span" src={name} width="20px" height="20px" />;
+                    }
+
+                    items.push((
+                        <DocumentDropdownItem
+                            page={info.id}
+                            item={entry.id}
+                            id={info.id + "-" + entry.id}
+                            key={entry.id}
+                            caption={entry.caption}
+                            picture={picture}
+                            style={{ marginLeft: 16 }}
+                        />
+                    ));
+                });
             });
 
             toolbarInset = <>
@@ -240,7 +269,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 <Dropdown
                     id="connectionSelector"
                     initialSelection={selectedTab}
-                    onSelect={this.handleSelectTab}
+                    onSelect={this.handleSelectItem}
                 >
                     {items}
                 </Dropdown>
@@ -300,20 +329,26 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     <Label>Current Editor:</Label>
                     <Dropdown
                         id="documentSelector"
-                        initialSelection={connectionState.activeEditor}
+                        initialSelection={connectionState.activeEntry}
                         onSelect={this.handleEditorSelectorChange}
                     >
                         {
                             connectionState.editors.map((entry) => {
-                                const language = entry.state.model.getLanguageId() as EditorLanguage;
-                                const icon = documentTypeToIcon.get(language) || defaultIcon;
+                                let picture;
+                                if (entry.state) {
+                                    const language = entry.state.model.getLanguageId() as EditorLanguage;
+                                    picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
+                                } else {
+                                    const name = pageTypeToIcon.get(entry.id) || defaultIcon;
+                                    picture = <Icon as="span" src={name} width="20px" height="20px" />;
+                                }
 
                                 return (
                                     <Dropdown.Item
                                         id={entry.id}
                                         key={entry.id}
                                         caption={entry.caption}
-                                        picture={<Image src={icon} />}
+                                        picture={picture}
                                     />
                                 );
                             })
@@ -323,7 +358,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 </>;
             }
 
-            const content = (<DBEditorTab
+            const content = (<SQLNotebookTab
                 id={info.id}
                 showAbout={!info.suppressAbout}
                 workerPool={this.workerPool}
@@ -335,7 +370,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 onHelpCommand={this.handleHelpCommand}
                 onAddEditor={this.handleAddEditor}
                 onRemoveEditor={this.handleRemoveEditor}
-                onSelectEditor={this.handleSelectEditor}
+                onSelectItem={this.handleSelectEntry}
                 onChangeEditor={this.handleChangeEditor}
                 onAddScript={this.handleAddScript}
                 onSaveSchemaTree={this.handleSaveSchemaTree}
@@ -485,8 +520,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                             // Change existing editors.
                             connectionState.editors.forEach((state) => {
-                                const contexts = state.state.model.executionContexts;
-                                contexts.currentSchema = data.schema;
+                                if (state.state) {
+                                    const contexts = state.state.model.executionContexts;
+                                    contexts.currentSchema = data.schema;
+                                }
                             });
                         }
                     }
@@ -719,8 +756,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                         const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode, currentSchema);
 
-                        const connectionState: IDBEditorTabPersistentState = {
-                            activeEditor: "standardConsole",
+                        const connectionState: ISQLNotebookTabPersistentState = {
+                            activeEntry: "standardConsole",
                             currentSchema,
                             schemaTree: [],
                             explorerState: new Map(),
@@ -978,6 +1015,28 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return Promise.resolve(true);
     }
 
+    private handleSelectItem = (id: string, props: IDropdownProperties): void => {
+        const list = React.Children.toArray(props.children);
+        const item = list.find((entry) => {
+            // eslint-disable-next-line dot-notation
+            const props = entry["props"] as IDocumentDropdownItemProperties;
+            const candidate = props.page + "-" + props.item;
+
+            return candidate === id; // Fails always for tab entries.
+        });
+
+        if (item) {
+            // eslint-disable-next-line dot-notation
+            const props = item["props"] as IDocumentDropdownItemProperties;
+
+            this.handleSelectTab(props.page);
+            this.handleSelectEntry(props.page, props.item);
+        } else {
+            // A connection tab or the overview tab.
+            this.handleSelectTab(id);
+        }
+    };
+
     private handleSelectTab = (id: string): void => {
         this.setState({ selectedTab: id });
 
@@ -1013,7 +1072,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 },
                 currentVersion: model.getVersionId(),
             });
-            connectionState.activeEditor = id;
+            connectionState.activeEntry = id;
             this.forceUpdate();
 
             return id;
@@ -1031,13 +1090,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 // Make sure any pending change is sent to the backend, if that editor represents a stored script.
                 this.saveEditorIfNeeded(connectionState.editors[index]);
 
-                if (connectionState.activeEditor === editorId) {
+                if (connectionState.activeEntry === editorId) {
                     // Select another editor if we're just removing the selected one.
                     if (index > 0) {
-                        connectionState.activeEditor = connectionState.editors[index - 1].id;
+                        connectionState.activeEntry = connectionState.editors[index - 1].id;
                     } else {
                         if (index < connectionState.editors.length - 1) {
-                            connectionState.activeEditor = connectionState.editors[index + 1].id;
+                            connectionState.activeEntry = connectionState.editors[index + 1].id;
                         }
                     }
                 }
@@ -1072,31 +1131,45 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleEditorSelectorChange = (selectedId: string | number): void => {
         const { selectedTab } = this.state;
 
-        this.handleSelectEditor(selectedTab, selectedId as string);
+        this.handleSelectEntry(selectedTab, selectedId as string);
     };
 
-    private handleSelectEditor = (id: string, editorId: string): void => {
+    private handleSelectEntry = (id: string, entryId: string): void => {
         const connectionState = this.connectionState.get(id);
-        if (connectionState && connectionState.activeEditor !== editorId) {
-            // Check if we have an open editor with that id.
-            const newEditor = connectionState.editors.find(
-                (candidate: IOpenEditorState) => { return candidate.id === editorId; },
-            );
+        if (connectionState && connectionState.activeEntry !== entryId) {
+            // if there's a current editor. Save its content, if it represents a user script.
+            const currentEditor = connectionState.editors.find((candidate: IOpenEditorState) => {
+                return candidate.id === connectionState.activeEntry;
+            });
+
+            if (currentEditor) {
+                this.saveEditorIfNeeded(currentEditor);
+            }
+
+            let updateCurrentEntry = true;
+
+            // Check if we have an open editor with the new id (administration pages like server status count here too).
+            const newEditor = connectionState.editors.find((candidate: IOpenEditorState) => {
+                return candidate.id === entryId;
+            });
 
             if (!newEditor) {
                 // If no open editor exists, try to find a script with that id and open that.
-                const script = connectionState.scripts.find(
-                    (candidate: IModuleDataEntry) => { return candidate.id === editorId; },
-                ) as IDBEditorScriptState;
+
+                const script = connectionState.scripts.find((candidate: IModuleDataEntry) => {
+                    return candidate.id === entryId;
+                }) as IDBEditorScriptState;
 
                 if (script) {
                     if (script.moduleDataId) {
+                        // Defer the current entry update to the moment when script data has been loaded.
+                        updateCurrentEntry = false;
                         ShellInterface.modules.getDataContent(script.moduleDataId)
                             .then((event: ICommModuleDataContentEvent) => {
                                 if (event.data) {
                                     this.addEditorFromScript(connectionState, script, event.data.result);
 
-                                    connectionState.activeEditor = editorId;
+                                    connectionState.activeEntry = entryId;
                                     this.forceUpdate();
                                 }
                             }).catch((event) => {
@@ -1107,20 +1180,51 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         // No script either? Create a new one.
                         this.addEditorFromScript(connectionState, script, "");
                     }
-                }
-            } else {
-                // There's a current editor. Save its content, if it represents a user script.
-                const currentEditor = connectionState.editors.find(
-                    (candidate: IOpenEditorState) => { return candidate.id === connectionState.activeEditor; },
-                );
+                } else {
+                    // Must be an administration page then.
+                    switch (entryId) {
+                        case "serverStatus": {
+                            connectionState.editors.push({
+                                id: "serverStatus",
+                                caption: "Server Status",
+                                type: EntityType.Admin,
+                                currentVersion: 0,
+                            });
 
-                if (currentEditor) {
-                    this.saveEditorIfNeeded(currentEditor);
-                }
+                            break;
+                        }
 
-                connectionState.activeEditor = editorId;
+                        case "clientConnections": {
+                            connectionState.editors.push({
+                                id: "clientConnections",
+                                caption: "Client Connections",
+                                type: EntityType.Admin,
+                                currentVersion: 0,
+                            });
+
+                            break;
+                        }
+
+                        case "performanceDashboard": {
+                            connectionState.editors.push({
+                                id: "performanceDashboard",
+                                caption: "Performance Dashboard",
+                                type: EntityType.Admin,
+                                currentVersion: 0,
+                            });
+
+                            break;
+                        }
+
+                        default:
+                    }
+
+                }
+            }
+
+            if (updateCurrentEntry) {
+                connectionState.activeEntry = entryId;
                 setImmediate(() => { this.forceUpdate(); });
-
             }
         }
     };
@@ -1132,7 +1236,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param script The script from which we create the editor.
      * @param content The script's content.
      */
-    private addEditorFromScript(state: IDBEditorTabPersistentState, script: IDBEditorScriptState,
+    private addEditorFromScript(state: ISQLNotebookTabPersistentState, script: IDBEditorScriptState,
         content: string): void {
         const model = this.createEditorModel(state.backend, content, script.language, state.serverVersion,
             state.sqlMode, state.currentSchema);
@@ -1158,7 +1262,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param editor The editor state to use for the update.
      */
     private saveEditorIfNeeded(editor: IOpenEditorState): void {
-        if (editor.moduleDataId) {
+        if (editor.moduleDataId && editor.state) {
             const model = editor.state.model;
             const newVersion = model.getVersionId();
             if (newVersion !== editor.currentVersion) {
@@ -1235,7 +1339,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
             }
 
-            connectionState.activeEditor = id;
+            connectionState.activeEntry = id;
 
             // Add a module data record for the new script.
             const category = ShellInterface.modules.scriptTypeFromLanguage(editorLanguage);

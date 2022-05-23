@@ -282,7 +282,6 @@
     justify-content: center;
 }
 
-
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col.tabulator-col-vertical.tabulator-col-vertical-flip .tabulator-col-title {
     transform: rotate(180deg);
 }
@@ -328,13 +327,10 @@
     box-sizing: border-box;
     min-width: 600%;
 
-    border-top: 2px solid var(--headerSeparatorColor) !important;
+    border-top: 2px solid var(--headerSeparatorColor);
 
     background: lighten(var(--list-headerBackground), 5%) !important;
-
-    border-top: 1px solid var(--list-gridColor);
     border-bottom: 1px solid var(--list-gridColor);
-
     overflow: hidden;
 }
 
@@ -473,19 +469,16 @@
 
     text-align: left;
 
-    background: lighten(var(--footerBackgroundColor), 5%) !important;
+    background: lighten(var(--footerBackgroundColor), 5%);
 
-    border-top: 3px solid var(--headerSeparatorColor) !important;
-    border-bottom: 2px solid var(--headerSeparatorColor) !important;
-
-    border-bottom: 1px solid var(--list-gridColor);
-    border-top: 1px solid var(--list-gridColor);
+    border-top: 3px solid var(--headerSeparatorColor);
+    border-bottom: 2px solid var(--headerSeparatorColor);
 
     overflow: hidden;
 }
 
 .msg.treeGrid.tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row {
-    background: lighten(var(--footerBackgroundColor), 5%) !important;
+    background: lighten(var(--footerBackgroundColor), 5%);
 }
 
 .msg.treeGrid.tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row .tabulator-col-resize-handle {
@@ -503,7 +496,6 @@
 .msg.treeGrid.tabulator .tabulator-footer .tabulator-calcs-holder:only-child {
     margin-bottom: -5px;
     border-bottom: none;
-    border-bottom: none !important;
 }
 
 /* pagination container element */
@@ -607,7 +599,7 @@
     box-sizing: border-box;
     min-height: calc(1em + (var(--headerMargin) * 2));
 
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell:first-child {
@@ -1372,29 +1364,30 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
 }
 
 .msg.treeGrid.tabulator .treeToggle {
-    flex: 0 0 16px;
 
     display: inline-block;
-    font-family: initial;
     cursor: pointer;
     user-select: none;
-
-    width: 16px;
-    height: 16px;
-
-    font-size: 16px;
 }
 
 .msg.treeGrid.tabulator .treeToggle::after {
     display: block;
     position: relative;
-    content: "▸";
-    top: -1px;
-    left: 2px;
+    content: "";
+
+    margin-left: 0.2em;
+    margin-right: 0.6em;
+    width: 0.5em;
+    height: 0.5em;
+
+    border-right: 1px solid var(--sideBarSectionHeader-foreground);
+    border-bottom: 1px solid var(--sideBarSectionHeader-foreground);
+
+    transform: rotate(-45deg);
+    transition: transform 0.3s
 }
 
 .msg.treeGrid.tabulator .treeToggle.expanded::after  {
-    transform: rotate(90deg);
-    top: 3px;
-    left: 0px;
+    transform: translateX(2px) translateY(-2px) rotate(45deg);
+    transition: transform 0.3s
 }

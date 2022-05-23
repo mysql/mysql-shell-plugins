@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { ConnectionBrowser } from "../../../modules/scripting/ConnectionBrowser";
+import { ConnectionBrowser } from "../../../modules/SQLNotebook/ConnectionBrowser";
 import { DBType, IConnectionDetails } from "../../../supplement/ShellInterface";
 import { snapshotFromWrapper } from "../test-helpers";
 
@@ -44,8 +44,8 @@ describe("Connection browser tests", (): void => {
         const component = mount<ConnectionBrowser>(
             <ConnectionBrowser
                 connections={[connection1]}
-                onAddConnection={ jest.fn() }
-                onDropConnection={ jest.fn() }
+                onAddConnection={jest.fn()}
+                onDropConnection={jest.fn()}
             />,
         );
         const props = component.props();

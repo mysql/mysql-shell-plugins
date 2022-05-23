@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DBEditorMainToolbar tests Test DBEditorMainToolbar instantiation 1`] = `
-<DBEditorMainToolbar
+exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
+<SQLNotebookToolbar
   activeEditor="DbEditor"
   editors={Array []}
   language="pl"
@@ -9,18 +9,18 @@ exports[`DBEditorMainToolbar tests Test DBEditorMainToolbar instantiation 1`] = 
 >
   <Toolbar
     dropShadow={false}
-    id="dbEditorMainToolbar"
+    id="sqlNotebookToolbar"
     vibrant={false}
   >
     <Container
       className="msg toolbar verticalCenterContent"
       crossAlignment="center"
-      id="dbEditorMainToolbar"
+      id="sqlNotebookToolbar"
       orientation="row"
     >
       <div
         className="msg container fixedScrollbar toolbar verticalCenterContent"
-        id="dbEditorMainToolbar"
+        id="sqlNotebookToolbar"
         style={
           Object {
             "alignItems": "center",
@@ -552,5 +552,5 @@ exports[`DBEditorMainToolbar tests Test DBEditorMainToolbar instantiation 1`] = 
       </div>
     </Container>
   </Toolbar>
-</DBEditorMainToolbar>
+</SQLNotebookToolbar>
 `;

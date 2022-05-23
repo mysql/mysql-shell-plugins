@@ -28,8 +28,8 @@ import { Component, IComponentProperties } from "../../components/ui";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContext, PresentationInterface } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
-import { IEditorStatusInfo } from "../scripting";
-import { EmbeddedPresentationInterface } from "../scripting/execution/EmbeddedPresentationInterface";
+import { IEditorStatusInfo } from "../SQLNotebook";
+import { EmbeddedPresentationInterface } from "../SQLNotebook/execution/EmbeddedPresentationInterface";
 import { EditorLanguage } from "../../supplement";
 import { settings } from "../../supplement/Settings/Settings";
 

@@ -32,7 +32,7 @@ import { DialogType, IDialogResponse } from "../../../app-logic/Types";
 import { IActivityBarItemProperties, IButtonProperties } from "../../../components/ui";
 import { DBEditorModuleId, ShellModuleId } from "../../../modules/ModuleInfo";
 import { ModuleRegistry } from "../../../modules/ModuleRegistry";
-import { DBEditorModule } from "../../../modules/scripting/DBEditorModule";
+import { DBEditorModule } from "../../../modules/SQLNotebook/DBEditorModule";
 import { ShellModule } from "../../../modules/shell/ShellModule";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { webSession } from "../../../supplement/WebSession";

@@ -124,7 +124,7 @@ export enum SelectionType {
 type Constructor<T> = new (...args: any) => T;
 
 export interface IComponentProperties {
-    children?: React.ReactNode;
+    children?: React.ReactNode | React.ReactNode[];
 
     className?: string; // Additional class names to apply for this component.
     id?: string;

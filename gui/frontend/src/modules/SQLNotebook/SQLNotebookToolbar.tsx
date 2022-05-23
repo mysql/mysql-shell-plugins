@@ -28,10 +28,7 @@ import executeCaretIcon from "../../assets/images/toolbar/execute-caret.svg";
 import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
 import executeNewCommandIcon from "../../assets/images/toolbar/execute-new-cmd.svg";
 import executeIcon from "../../assets/images/toolbar/execute.svg";
-//import expandIcon from "../../assets/images/toolbar/expand.svg";
 import formatIcon from "../../assets/images/toolbar/format.svg";
-//import gridIcon from "../../assets/images/toolbar/grid.svg";
-//import menuIcon from "../../assets/images/toolbar/menu.svg";
 import rollbackIcon from "../../assets/images/toolbar/rollback.svg";
 import searchIcon from "../../assets/images/toolbar/search.svg";
 import showHiddenActiveIcon from "../../assets/images/toolbar/show-hidden-active.svg";
@@ -48,13 +45,13 @@ import {
     Button, Component, Divider, IComponentProperties, IComponentState, Icon, Toolbar,
 } from "../../components/ui";
 import { settings } from "../../supplement/Settings/Settings";
-import { IOpenEditorState } from "./DBEditorTab";
+import { IOpenEditorState } from "./SQLNotebookTab";
 import { requisitions } from "../../supplement/Requisitions";
 import { IEditorStatusInfo } from ".";
 import { LoadingState } from "../../script-execution";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
-export interface IDBEditorMainToolbarProperties extends IComponentProperties {
+export interface ISQLNotebookToolbarProperties extends IComponentProperties {
     // An element for navigation via this toolbar (current editor, current connection etc.).
     inset?: React.ReactElement;
 
@@ -67,7 +64,7 @@ export interface IDBEditorMainToolbarProperties extends IComponentProperties {
     onSelectEditor?: (editorId: string) => void;
 }
 
-interface IDBEditorMainToolbarState extends IComponentState {
+interface ISQLNotebookToolbarState extends IComponentState {
     editorId: string;
     currentEditor: IOpenEditorState;
 
@@ -76,13 +73,13 @@ interface IDBEditorMainToolbarState extends IComponentState {
     autoCommit: boolean;
 }
 
-export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarProperties, IDBEditorMainToolbarState> {
+export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties, ISQLNotebookToolbarState> {
 
     // Track the current editor caret position for button updates.
     private currentLine = 1;
     private currentColumn = 1;
 
-    public constructor(props: IDBEditorMainToolbarProperties) {
+    public constructor(props: ISQLNotebookToolbarProperties) {
         super(props);
 
         this.state = {
@@ -133,7 +130,7 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
 
         return (
             <Toolbar
-                id="dbEditorMainToolbar"
+                id="sqlNotebookToolbar"
                 dropShadow={false}
             >
                 {inset}
@@ -307,7 +304,7 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
         try {
             await backend?.setAutoCommit(!active);
             await this.queryAutoCommit();
-        } catch(reason) {
+        } catch (reason) {
             void requisitions.execute("showError",
                 ["Execution Error", "Cannot Switch Auto Commit Mode.", String(reason)]);
         }
@@ -348,7 +345,7 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
                 try {
                     await backend?.setAutoCommit(!autoCommit);
                     await this.queryAutoCommit();
-                } catch(reason) {
+                } catch (reason) {
                     void requisitions.execute("showError",
                         ["Execution Error", "Cannot Switch Auto Commit Mode.", String(reason)]);
                 }
@@ -381,13 +378,15 @@ export class DBEditorMainToolbar extends Component<IDBEditorMainToolbarPropertie
     private updateState(): void {
         const { currentEditor } = this.state;
 
-        const context = currentEditor.state.model.executionContexts
-            .contextFromPosition({ lineNumber: this.currentLine, column: this.currentColumn });
-        if (context) {
-            this.setState({
-                canExecute: context.loadingState === LoadingState.Idle,
-                canStop: context.loadingState !== LoadingState.Idle,
-            });
+        if (currentEditor.state) {
+            const context = currentEditor.state.model.executionContexts
+                .contextFromPosition({ lineNumber: this.currentLine, column: this.currentColumn });
+            if (context) {
+                this.setState({
+                    canExecute: context.loadingState === LoadingState.Idle,
+                    canStop: context.loadingState !== LoadingState.Idle,
+                });
+            }
         }
 
     }

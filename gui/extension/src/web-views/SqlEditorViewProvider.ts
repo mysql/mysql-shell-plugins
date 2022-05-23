@@ -27,7 +27,7 @@ import { IOpenDialogOptions, requisitions } from "../../../frontend/src/suppleme
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
-import { IDBEditorScriptState } from "../../../frontend/src/modules/scripting";
+import { IDBEditorScriptState } from "../../../frontend/src/modules/SQLNotebook";
 import { WebviewProvider } from "./WebviewProvider";
 import { IRunQueryRequest, IRunScriptRequest } from "../../../frontend/src/supplement";
 
@@ -62,8 +62,11 @@ export class SqlEditorViewProvider extends WebviewProvider {
      * @returns A promise which resolves after the command was executed.
      */
     public showPageSection(caption: string, page: string, section: string): Promise<boolean> {
-        return this.runCommand("showPageSection", { module: DBEditorModuleId, page, section }, caption,
-            "newConnection");
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
+            { requestType: "showPageSection", parameter: section },
+        ], caption, "newConnection");
     }
 
     /**

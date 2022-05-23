@@ -253,7 +253,7 @@ const getWelcomeWebviewContent = (rootPath: Uri, showVCRuntimePrompt: boolean): 
     const vcRuntimePage = showVCRuntimePrompt ? `
         <div id="page2" class="page inactivePage">
             <h3>Installation of MS VC++ runtime libraries.</h3>
-            <p>This extension requires the MS VC++ runtime libraries. 
+            <p>This extension requires the MS VC++ runtime libraries.
             Please download them from the following web page and install them on your system.</p>
             <p>
                 <a href="https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170">
@@ -299,7 +299,7 @@ const getWelcomeWebviewContent = (rootPath: Uri, showVCRuntimePrompt: boolean): 
                 <p class="pWithImg">
                     <img src="${rootPath.toString()}/images/welcome/trustSettingDlg-${platform()}.png"
                         width="171px" height="87px" alt="Trust Dialog" align="left" hspace="15px"/>
-                    In the next step a security dialog ${(platform() === "linux") ? "might" : "will"} be shown 
+                    In the next step a security dialog ${(platform() === "linux") ? "might" : "will"} be shown
                     for you to confirm the installation of the certificate.<br>
                     <br>
                     Please click [Next >] to start the installation of the
@@ -404,7 +404,7 @@ const getWelcomeWebviewContent = (rootPath: Uri, showVCRuntimePrompt: boolean): 
                         if (message.output.includes("true")) {
                             showPage(vcRuntimePage + 1);
                             nextBtn.value = "Next >";
-                            currentPage = vcRuntimePage + 1; 
+                            currentPage = vcRuntimePage + 1;
                         } else {
                             const errorMessage = "VC++ runtime library installation not detected.";
                             document.getElementById("checkError").innerHTML = errorMessage;

@@ -64,8 +64,7 @@ export interface IContainerProperties extends IComponentProperties {
 export class Container<
     P extends IContainerProperties = {},
     S extends IComponentState = {},
-    SS = unknown
-> extends Component<P, S, SS> {
+    SS = unknown> extends Component<P, S, SS> {
 
     public static defaultProps = {
         orientation: Orientation.LeftToRight,

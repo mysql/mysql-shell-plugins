@@ -27,7 +27,7 @@ import {
 import { EventType, ListenerEntry } from "../Dispatch";
 import { EditorLanguage } from "..";
 import { IShellInterface } from ".";
-import { EntityType, IDBEditorScriptState, IFolderEntity, IModuleDataEntry } from "../../modules/scripting";
+import { EntityType, IDBEditorScriptState, IFolderEntity, IModuleDataEntry } from "../../modules/SQLNotebook";
 
 // These are predefined data categories that always exist.
 export enum StandardDataCategories {

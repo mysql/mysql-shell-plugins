@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { StandaloneScriptEditor } from "../../../modules/scripting/StandaloneScriptEditor";
+import { StandaloneScriptEditor } from "../../../modules/SQLNotebook/StandaloneScriptEditor";
 import { Monaco } from "../../../components/ui/CodeEditor";
 import { CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";

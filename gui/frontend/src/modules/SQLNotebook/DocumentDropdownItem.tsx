@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,21 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WorkerPool } from "../../../supplement/WorkerPool";
-import { IConsoleWorkerTaskData, IConsoleWorkerResultData } from "../console.worker-types";
+import { DropdownItem, IDropdownItemProperties } from "../../components/ui/Dropdown/DropdownItem";
 
-/* eslint import/no-webpack-loader-syntax: off */
-import ConsoleWorker from "worker-loader?filename=static/workers/[name].[contenthash].js!./console.worker";
+export interface IDocumentDropdownItemProperties extends IDropdownItemProperties {
+    page: string;
+    item: string;
+}
 
-// A specialized worker pool for interactive console tasks.
-export class ExecutionWorkerPool extends WorkerPool<IConsoleWorkerTaskData, IConsoleWorkerResultData> {
+// This class adds no different rendering output, but only data fields.
+export class DocumentDropdownItem extends DropdownItem<IDocumentDropdownItemProperties> {
 
-    private static nextId = 0;
+    public constructor(props: IDocumentDropdownItemProperties) {
+        super(props);
 
-    protected createNewWorker(): ConsoleWorker {
-        const worker = new ConsoleWorker();
-        worker.id = "ew" + String(ExecutionWorkerPool.nextId++);
-
-        return worker;
+        this.addHandledProperties("page");
     }
 }

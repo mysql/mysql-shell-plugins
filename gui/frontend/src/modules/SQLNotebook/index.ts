@@ -27,8 +27,8 @@ import { EditorLanguage } from "../../supplement";
 export enum EntityType {
     Console,
     Script,
-    Table,
     Folder,
+    Admin,
 }
 
 export enum SchemaTreeType {
