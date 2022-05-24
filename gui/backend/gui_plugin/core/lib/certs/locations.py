@@ -449,7 +449,7 @@ class Store_cert(Dependent_cert):
     def _do_uninstall(self):
         cmd = self._get_uninstall_command()
         try:
-            exit_code, output = lib.run_shell_cmd(cmd, cwd=self.get_cwd())
+            exit_code, output = lib.run_shell_cmd(cmd)
 
             if not exit_code is None:
                 raise SystemError(output)
@@ -716,7 +716,7 @@ class Win(Store_cert):
         installed = []
 
         try:
-            exit_code, output = lib.run_shell_cmd(cmd, cwd=self.get_cwd())
+            exit_code, output = lib.run_shell_cmd(cmd)
 
             if exit_code is None:
                 for line in output.split("\n"):
