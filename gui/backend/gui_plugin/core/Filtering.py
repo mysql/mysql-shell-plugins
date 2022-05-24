@@ -77,4 +77,4 @@ class SubstringFilter(LogFilter):
                 end = data.find(self._end)
                 data = data[:start] + SENSITIVE_DATA_REPLACEMENT + data[end:]
                 self._on_apply()
-                return data
+        return data

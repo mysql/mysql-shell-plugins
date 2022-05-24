@@ -20,6 +20,8 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gui_plugin.core import Logger
+from gui_plugin.core import Filtering
+import json
 
 allowed_levels = ['NONE', 'INTERNAL_ERROR', 'ERROR', 'WARNING',
                   'INFO', 'DEBUG', 'DEBUG2', 'DEBUG3']
@@ -54,11 +56,104 @@ def test_log_level():
 
 
 def test_filter_sensitivity_data():
-    message = '{"request": "authenticate", "username": "admin1", "password": "admin1"}'
-    output = Logger.BackendLogger.get_instance()._filter(message)
-    assert output == '{"request": "authenticate", "username": "admin1", "password": "****"}'
+    message = {
+                "request": "authenticate",
+                "username": "admin1",
+                "password": "admin1"
+            }
 
-    message = '{"request": "execute", "command": "gui.dbconnections.add_db_connection", "args": {"profile_id": 1, "connection": {"db_type": "MySQL", "caption": "This is a test database", "description": "This is a test database description", "options": {"host": "localhost", "port":3306, "user": "root", "password": "password", "scheme": "mysql", "schema": "information_schema"}}, "folder_path": ""}}'
+    expected = {
+                "request": "authenticate",
+                "username": "admin1",
+                "password": "****"
+            }
+
+    output = Logger.BackendLogger.get_instance()._filter(json.dumps(message))
+    assert output == json.dumps(expected)
+
+    message = {
+                    "request": "execute",
+                    "command": "gui.dbconnections.add_db_connection",
+                    "args": {
+                        "profile_id": 1,
+                        "connection": {
+                            "db_type":
+                            "MySQL",
+                            "caption": "This is a test database",
+                            "description": "This is a test database description",
+                            "options": {
+                                "host": "localhost",
+                                "port":3306,
+                                "user": "root",
+                                "password": "password",
+                                "scheme": "mysql",
+                                "schema": "information_schema"
+                            }
+                        },
+                        "folder_path": ""
+                    }
+                }
+
+    expected = {
+                    "request": "execute",
+                    "command": "gui.dbconnections.add_db_connection",
+                    "args": {
+                        "profile_id": 1,
+                        "connection": {
+                            "db_type": "MySQL",
+                            "caption": "This is a test database",
+                            "description": "This is a test database description",
+                            "options": {
+                                "host": "localhost",
+                                "port": 3306,
+                                "user": "root",
+                                "password": "****",
+                                "scheme": "mysql",
+                                "schema": "information_schema"
+                            }
+                        },
+                        "folder_path": ""
+                    }
+                }
+
+    output = Logger.BackendLogger.get_instance()._filter(json.dumps(message))
+    assert output == json.dumps(expected)
+
+    message = """{{ "password": "****", """
+    output = Logger.BackendLogger.get_instance()._filter(message)
+    assert output == message
+
+    message = {
+                "request": "execute",
+                "command": "gui.dbconnections.remove_db_connection",
+                "args": {
+                    "profile_id": 1,
+                    "connection_id": 1
+                }
+            }
+
+    output = Logger.BackendLogger.get_instance()._filter(json.dumps(message))
+    assert output == json.dumps(message)
+
+    message = "GET token=1234-5678-1234 HTTP"
+    output = Logger.BackendLogger.get_instance()._filter(message)
+    assert output == message
+
+    Logger.BackendLogger.get_instance().add_filter({
+                "type": "substring",
+                "start": "token=",
+                "end": " HTTP",
+                "expire": Filtering.FilterExpire.OnUse,
+            })
+
+    message = "GET 1.1 HTTP"
+    output = Logger.BackendLogger.get_instance()._filter(message)
+    assert output == message
+
+    message = "GET token=1234-5678-1234 HTTP"
+    expected = "GET token=**** HTTP"
+    output = Logger.BackendLogger.get_instance()._filter(message)
+    assert output == expected
 
     output = Logger.BackendLogger.get_instance()._filter(message)
-    assert output == '{"request": "execute", "command": "gui.dbconnections.add_db_connection", "args": {"profile_id": 1, "connection": {"db_type": "MySQL", "caption": "This is a test database", "description": "This is a test database description", "options": {"host": "localhost", "port": 3306, "user": "root", "password": "****", "scheme": "mysql", "schema": "information_schema"}}, "folder_path": ""}}'
+    assert output == message
