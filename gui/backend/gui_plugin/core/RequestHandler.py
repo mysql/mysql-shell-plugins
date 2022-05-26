@@ -152,4 +152,4 @@ class RequestHandler(Thread):
             # does not return anything, we should return an OK response anyway
             # to confirm it completed
             self.web_handler.send_command_response(
-                self.request_id, Response.ok("Completed"))
+                self.request_id, Response.completed)

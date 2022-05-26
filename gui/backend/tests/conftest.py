@@ -97,7 +97,7 @@ def create_users():
     }
 
     def user_exists(user, user_list):
-        for stock_user in user_list['rows']:
+        for stock_user in user_list:
             if stock_user['name'] == user:
                 return True
         return False

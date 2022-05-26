@@ -11,8 +11,9 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Profile set successfully."
-    }
+        "msg": ""
+    },
+    "result": "Completed"
 })
 
 ws.tokens["active_profile"]["id"] = 1

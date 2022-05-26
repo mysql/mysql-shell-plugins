@@ -4396,6 +4396,26 @@ var profile = {
     }
 }
 
+//  Get the original profile, so that we can put it back
+ws.sendAndValidate({
+    "request_id": ws.generateRequestId(),
+    "request":"execute",
+    "command":"gui.users.get_profile",
+    "args":{
+       "profile_id": 1
+    }
+ }, [
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": "",
+        },
+        "result": ws.ignore,
+        "request_id": ws.lastGeneratedRequestId
+    }
+])
+
+var originalProfile = ws.lastResponse["result"]
 ws.sendAndValidate({
     "request_id": ws.generateRequestId(),
     "request":"execute",
@@ -4407,11 +4427,9 @@ ws.sendAndValidate({
      {
          "request_state": {
              "type": "OK",
-             "msg": ws.ignore
+             "msg": ""
             },
-            "result": {
-                "id": 1
-            },
+            "result": "Completed",
             "request_id": ws.lastGeneratedRequestId
         }
 ])
@@ -4427,7 +4445,7 @@ ws.sendAndValidate({
     {
         "request_state": {
             "type": "OK",
-            "msg": ws.ignore
+            "msg": "",
         },
         "result": profile,
         "request_id": ws.lastGeneratedRequestId
@@ -4446,11 +4464,9 @@ ws.sendAndValidate({
      {
          "request_state": {
              "type": "OK",
-             "msg": ws.ignore
+             "msg": ""
             },
-            "result": {
-                "id": 1
-            },
+            "result": "Completed",
             "request_id": ws.lastGeneratedRequestId
         }
 ])
@@ -4466,7 +4482,7 @@ ws.sendAndValidate({
     {
         "request_state": {
             "type": "OK",
-            "msg": ws.ignore
+            "msg": ""
         },
         "result": originalProfile,
         "request_id": ws.lastGeneratedRequestId

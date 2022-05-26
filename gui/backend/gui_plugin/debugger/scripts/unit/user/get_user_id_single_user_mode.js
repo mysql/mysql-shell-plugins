@@ -11,8 +11,8 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Successfully obtained user id."
+        "msg": ""
     },
-    "id": ws.matchRegexp("\\d+"),
+    "result": ws.matchRegexp("\\d+"),
 })
 

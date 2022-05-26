@@ -268,8 +268,6 @@ def set_log_level(log_level=LogLevel.INFO.name):
     """
     BackendLogger.get_instance().set_log_level(LogLevel[log_level.upper()])
 
-    return Response.ok("Log level set successfully.")
-
 
 @plugin_function('gui.core.getLogLevel', shell=False, web=True)
 def get_log_level():

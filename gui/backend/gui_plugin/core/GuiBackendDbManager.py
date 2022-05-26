@@ -51,8 +51,8 @@ class BackendDbManager():
     Subclasses of this class handle the specific implementation details
     """
 
-    def __init__(self, log_rotation=False, web_session=None, connection_options=None):
-        self._web_session = web_session
+    def __init__(self, log_rotation=False, session_uuid=None, connection_options=None):
+        self._session_uuid = session_uuid
         self._connection_options = connection_options
 
         self._config = DEFAULT_CONFIG
@@ -107,7 +107,7 @@ class BackendSqliteDbManager(BackendDbManager):
     Implementation details for the backend database in Sqlite
     """
 
-    def __init__(self, log_rotation=False, web_session=None, connection_options=None):
+    def __init__(self, log_rotation=False, session_uuid=None, connection_options=None):
         if connection_options and "db_dir" in connection_options:
             self.db_dir = connection_options["db_dir"]
         else:
@@ -118,7 +118,7 @@ class BackendSqliteDbManager(BackendDbManager):
         self.current_dir = getcwd()
 
         super().__init__(log_rotation=log_rotation,
-                         web_session=web_session,
+                         session_uuid=session_uuid,
                          connection_options=connection_options if connection_options is not None else {
                              "database_name": "main",
                              "db_file": path.join(self.db_dir, f'mysqlsh_gui_backend.sqlite3'),
@@ -131,9 +131,9 @@ class BackendSqliteDbManager(BackendDbManager):
 
     def open_database(self):
         session_id = f"BackendDB-" + \
-            "anonymous" if self._web_session is None else self._web_session.session_uuid
-        return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options, None,
-                                       True, None, None, None, None, None)
+            "anonymous" if self._session_uuid is None else self._session_uuid
+        return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options,
+                                       None, True, None, None, None, None, None)
 
     def current_database_exist(self):
         return path.isfile(self._connection_options["db_file"])

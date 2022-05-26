@@ -175,7 +175,7 @@ binding_method_enum_item = """{__ENUM_NAME__} = "{__FUNCTION_NAME__}",
     //  End auto generated API names"""
 
 
-arguments_to_ignore = ['request_id', 'web_session']
+arguments_to_ignore = ['request_id', 'web_session', 'be_session']
 
 method_enums = {
 }

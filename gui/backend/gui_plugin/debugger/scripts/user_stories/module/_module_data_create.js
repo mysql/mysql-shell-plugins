@@ -294,12 +294,12 @@ await ws.sendAndValidate({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Successfully obtained user id."
+        "msg": ""
     },
-    "id": ws.matchRegexp("\\d+"),
+    "result": ws.matchRegexp("\\d+"),
 }])
 
-ws.tokens['admin1_id'] = ws.lastResponse['id']
+ws.tokens['admin1_id'] = ws.lastResponse['result']
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -312,12 +312,12 @@ await ws.sendAndValidate({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Successfully obtained user id."
+        "msg": ""
     },
-    "id": ws.matchRegexp("\\d+"),
+    "result": ws.matchRegexp("\\d+"),
 }])
 
-ws.tokens['admin2_id'] = ws.lastResponse['id']
+ws.tokens['admin2_id'] = ws.lastResponse['result']
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -334,12 +334,12 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": ws.ignore
+        "msg": "", 
     },
     "request_id": ws.lastGeneratedRequestId
 }])
 
-ws.tokens['admin1_profile_id'] = ws.lastResponse['result']['id']
+ws.tokens['admin1_profile_id'] = ws.lastResponse['result']
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -530,12 +530,12 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": "User group created successfully."
+        "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId
 }])
 
-ws.tokens['user_group_id'] = ws.lastResponse['id']
+ws.tokens['user_group_id'] = ws.lastResponse['result']
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -549,8 +549,9 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": "User has been added to group successfully."
+        "msg": ""
     },
+    "result": "Completed",
     "request_id": ws.lastGeneratedRequestId
 }])
 
@@ -565,8 +566,9 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": "User has been added to group successfully."
+        "msg": ""
     },
+    "result": "Completed",
     "request_id": ws.lastGeneratedRequestId
 }])
 

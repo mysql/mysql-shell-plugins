@@ -411,26 +411,24 @@ export class ExtensionHost {
     private selectProfile(): void {
         if (this.activeProfile) {
             ShellInterface.users.listProfiles(this.activeProfile.userId).then((event: ICommListProfilesEvent) => {
-                if (event.data?.rows) {
-                    const items = event.data.rows.map((value) => {
-                        return value.name;
-                    });
+                const items = event.data.result.map((profile) => {
+                    return profile.name;
+                });
 
-                    void window.showQuickPick(items, {
-                        title: "Activate a Profile",
-                        matchOnDescription: true,
-                        placeHolder: "Type the name of an existing profile",
-                    }).then((name) => {
-                        if (name && event.data?.rows) {
-                            const row = event.data.rows.find((candidate) => { return candidate.name === name; });
-                            if (row) {
-                                ShellInterface.users.setCurrentProfile(row.id).then(() => {
-                                    window.setStatusBarMessage("Profile set successfully", 5000);
-                                });
-                            }
+                void window.showQuickPick(items, {
+                    title: "Activate a Profile",
+                    matchOnDescription: true,
+                    placeHolder: "Type the name of an existing profile",
+                }).then((name) => {
+                    if (name) {
+                        const row = event.data.result.find((candidate) => { return candidate.name === name; });
+                        if (row) {
+                            ShellInterface.users.setCurrentProfile(row.id).then(() => {
+                                window.setStatusBarMessage("Profile set successfully", 5000);
+                            });
                         }
-                    });
-                }
+                    }
+                });
             });
         }
     }

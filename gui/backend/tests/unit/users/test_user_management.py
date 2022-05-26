@@ -56,27 +56,27 @@ test_modules_data = [
 ]
 
 def name_in_message(name, message):
-    for row in message["rows"]:
+    for row in message:
         if name == row["name"]:
             return True
     return False
 
 
 def type_in_message(type, message):
-    for row in message["rows"]:
+    for row in message:
         if type == row["type"]:
             return True
     return False
 
 
 def access_pattern_in_message(access_pattern, message):
-    for row in message["rows"]:
+    for row in message:
         if access_pattern == row["access_pattern"]:
             return True
     return False
 
 def value_in_message(key, value, message):
-    for row in message["rows"]:
+    for row in message:
         if value == row[key]:
             return True
     return False
@@ -85,8 +85,7 @@ def value_in_message(key, value, message):
 @pytest.mark.parametrize("user, password, role", test_users_data)
 def test_create_user(user, password, role):
     msg = UserManagement.create_user(user, password, role=role)
-    assert msg['request_state']['type'] == "OK"
-    assert msg['request_state']['msg'] == "User created successfully."
+    assert isinstance(msg, int)
     users = UserManagement.list_users()
     assert name_in_message(user, users) == True
     roles = UserManagement.list_user_roles(user)
@@ -101,8 +100,7 @@ def test_grant_role(user, password, role):
             msg = UserManagement.grant_role(user, fake_role)
 
         msg = UserManagement.grant_role(user, "User")
-        assert msg['request_state']['type'] == "OK"
-        assert msg['request_state']['msg'] == "Role(s) successfully granted to user."
+        assert msg is None
         roles = UserManagement.list_user_roles(user)
         assert name_in_message("User", roles) == True
 
@@ -151,12 +149,11 @@ def test_get_fake_user_id(user, password, role):
 @pytest.mark.parametrize("user, modules", test_modules_data)
 def test_gui_module_list(user, modules):
     msg = UserManagement.get_user_id(user)
-    assert "id" in msg
-    user_id = msg["id"]
+    assert isinstance(msg, int)
+    user_id = msg
     msg = UserManagement.get_gui_module_list(user_id)
-    assert msg['request_state']['type'] == "OK"
-    assert msg['request_state']['msg'] == "Module list gathered."
-    assert sorted(msg['result']) == sorted(modules)
+    assert isinstance(msg, list)
+    assert sorted(msg) == sorted(modules)
 
 
 @pytest.mark.parametrize("user, password, role", test_users_data)
@@ -165,21 +162,20 @@ def test_profile(user, password, role):
     profile = {'name': profile_name,
                'description': 'Profile description.', 'options': {}}
     msg = UserManagement.get_user_id(user)
-    assert "id" in msg
-    user_id = msg["id"]
+    assert isinstance(msg, int)
+    user_id = msg
 
-    msg = UserManagement.add_profile(user_id, profile)
-    profile_id = int(msg["result"].get("id"))
+    profile_id = UserManagement.add_profile(user_id, profile)
     assert profile_id > 0
     profiles = UserManagement.list_profiles(user_id)
     assert name_in_message(profile_name, profiles)
     new_profile = UserManagement.get_profile(profile_id)
-    assert profile_name == new_profile["result"]["name"]
+    assert profile_name == new_profile["name"]
     default_profile = UserManagement.get_default_profile(user_id)
     # assert "Default" == default_profile["result"].get("name")
     UserManagement.set_default_profile(user_id, profile_id)
     default_profile = UserManagement.get_default_profile(user_id)
-    assert profile_name == default_profile["result"].get("name")
+    assert profile_name == default_profile["name"]
 
     fake_user_id = 999
     with pytest.raises(MSGException, match=re.escape(f"Error[MSG-1301]: There is no user with the given id.")):
@@ -190,7 +186,7 @@ def test_profile(user, password, role):
     profile['options'] = {'test': 'test_value'}
     UserManagement.update_profile(profile)
     msg = UserManagement.get_profile(profile_id)
-    assert msg['request_state']['type'] == 'OK'
+    assert isinstance(msg, dict)
 
     profiles = UserManagement.list_profiles(user_id)
     logger.debug(f"user_id: {user_id} , profile_id: {profile_id}")
@@ -212,56 +208,46 @@ def test_profile(user, password, role):
 def test_user_group():
     # Test create user group
     msg = UserManagement.list_user_groups()
-
-    assert msg['request_state']['type'] == "OK"
+    logger.debug(f"msg: {msg}")
     assert not value_in_message("name", "user_group_1", msg)
 
     msg = UserManagement.create_user_group("user_group_1", "First user group")
 
-    assert msg['request_state']['type'] == "OK"
-    assert msg['request_state']['msg'] == "User group created successfully."
-    assert isinstance(msg['id'], int)
-    user_group_id_1 = msg['id']
+    assert isinstance(msg, int)
+    user_group_id_1 = msg
 
     msg = UserManagement.create_user_group("user_group_2", "Second user group")
 
-    assert msg['request_state']['type'] == "OK"
-    assert msg['request_state']['msg'] == "User group created successfully."
-    assert isinstance(msg['id'], int)
-    user_group_id_2 = msg['id']
+    assert isinstance(msg, int)
+    user_group_id_2 = msg
 
     msg = UserManagement.list_user_groups()
 
-    assert msg['request_state']['type'] == "OK"
     assert value_in_message("name", "user_group_1", msg)
     assert value_in_message("name", "user_group_2", msg)
 
     # Test list user group
     msg = UserManagement.get_user_id('pytest_user1')
-    assert "id" in msg
-    user_id = msg["id"]
+    assert isinstance(msg, int)
+    user_id = msg
 
     msg = UserManagement.list_user_groups(user_id)
-    assert msg['request_state']['type'] == "OK"
     assert value_in_message("name", "pytest_user1", msg)
     assert value_in_message("name", "all", msg)
     assert not value_in_message("name", "user_group_1", msg)
 
     msg = UserManagement.add_user_to_group(user_id, user_group_id_1, 1)
-    assert msg['request_state']['type'] == "OK"
-    assert msg['request_state']['msg'] == "User has been added to group successfully."
+    assert msg is None
 
     msg = UserManagement.list_user_groups(user_id)
-    assert msg['request_state']['type'] == "OK"
     assert value_in_message("name", "pytest_user1", msg)
     assert value_in_message("name", "all", msg)
     assert value_in_message("name", "user_group_1", msg)
 
     msg = UserManagement.update_user_group(user_group_id_1, "user_group_1.1", "First user group updated")
-    assert msg == True
+    assert msg is None
 
     msg = UserManagement.list_user_groups(user_id)
-    assert msg['request_state']['type'] == "OK"
     assert value_in_message("name", "pytest_user1", msg)
     assert value_in_message("name", "all", msg)
     assert not value_in_message("name", "user_group_1", msg)
@@ -269,10 +255,9 @@ def test_user_group():
     assert value_in_message("description", "First user group updated", msg)
 
     msg = UserManagement.remove_user_from_group(user_id, user_group_id_1)
-    assert msg == True
+    assert msg is None
 
     msg = UserManagement.list_user_groups(user_id)
-    assert msg['request_state']['type'] == "OK"
     assert value_in_message("name", "pytest_user1", msg)
     assert value_in_message("name", "all", msg)
     assert not value_in_message("name", "user_group_1", msg)
@@ -282,7 +267,6 @@ def test_user_group():
     # Test remove user group
     msg = UserManagement.list_user_groups()
 
-    assert msg['request_state']['type'] == "OK"
     assert value_in_message("name", "all", msg)
     assert value_in_message("description", "All Users", msg)
     assert value_in_message("name", "pytest_user1", msg)
@@ -297,23 +281,21 @@ def test_user_group():
     assert value_in_message("description", "Second user group", msg)
 
     msg = UserManagement.add_user_to_group(user_id, user_group_id_1, 1)
-    assert msg['request_state']['type'] == "OK"
-    assert msg['request_state']['msg'] == "User has been added to group successfully."
+    assert msg is None
 
     with pytest.raises(MSGException, match=re.escape(f"Error[MSG-1307]: Can't delete user group that contains users.")) as e:
         UserManagement.remove_user_group(user_group_id_1)
 
     msg = UserManagement.remove_user_from_group(user_id, user_group_id_1)
-    assert msg == True
+    assert msg is None
 
     msg = UserManagement.remove_user_group(user_group_id_1)
-    assert msg == True
+    assert msg is None
     msg = UserManagement.remove_user_group(user_group_id_2)
-    assert msg == True
+    assert msg is None
 
     msg = UserManagement.list_user_groups()
 
-    assert msg['request_state']['type'] == "OK"
     assert value_in_message("name", "all", msg)
     assert value_in_message("description", "All Users", msg)
     assert value_in_message("name", "pytest_user1", msg)
@@ -332,8 +314,7 @@ def test_user_group():
 def test_delete_user(user, password, role):
     msg = UserManagement.delete_user(user)
 
-    assert msg['request_state']['type'] == "OK"
-    assert msg['request_state']['msg'] == "User deleted successfully."
+    assert msg is None
 
 
 @pytest.mark.parametrize("user, password, role", test_users_data)

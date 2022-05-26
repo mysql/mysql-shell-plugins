@@ -98,7 +98,7 @@ export interface IResultSetData extends IGenericResponse {
 }
 
 export interface IProfileListData extends IGenericResponse {
-    rows?: Array<{
+    result: Array<{
         id: number;
         name: string;
     }>;

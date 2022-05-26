@@ -50,20 +50,22 @@ def get_gui_module_display_info():
 
 
 @plugin_function('gui.shell.startSession', shell=False, web=True)
-def start_session(request_id, db_connection_id=None, shell_args=None, web_session=None):
+def start_session(request_id, db_connection_id=None, shell_args=None, web_session=None, be_session=None):
     """Starts a new Shell Interactive Session
     Args:
         request_id (str): The request_id of the command.
         db_connection_id (int): The id of the connection id to use on the shell session.
         shell_args (list): The list of command line arguments required to execute a specific operation.
         web_session (object): The web_session object this session will belong to
+        be_session (object):  A session to the GUI backend database 
+            where the operation will be performed.
     Returns:
         A dict holding the result message
     """
     options = None
     if db_connection_id is not None:
         db_type = None
-        with BackendDatabase(web_session) as db:
+        with BackendDatabase(be_session) as db:
             db_type, options = db.get_connection_details(db_connection_id)
 
         if db_type != "MySQL":

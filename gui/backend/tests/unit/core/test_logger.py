@@ -31,25 +31,19 @@ def test_log_level():
     assert current_level in allowed_levels
 
     ret = Logger.set_log_level(allowed_levels[1])
-    assert ret is not None
-    assert ret['request_state']['type'] == 'OK'
-    assert ret['request_state']['msg'] == 'Log level set successfully.'
+    assert ret is None
 
     level = Logger.get_log_level()
     assert level == allowed_levels[1]
 
     ret = Logger.set_log_level(allowed_levels[2])
-    assert ret is not None
-    assert ret['request_state']['type'] == 'OK'
-    assert ret['request_state']['msg'] == 'Log level set successfully.'
+    assert ret is None
 
     level = Logger.get_log_level()
     assert level == allowed_levels[2]
 
     ret = Logger.set_log_level(current_level)
-    assert ret is not None
-    assert ret['request_state']['type'] == 'OK'
-    assert ret['request_state']['msg'] == 'Log level set successfully.'
+    assert ret is None
 
     level = Logger.get_log_level()
     assert level == current_level

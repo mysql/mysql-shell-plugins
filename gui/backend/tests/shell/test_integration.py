@@ -327,56 +327,56 @@ DESCRIPTION
       Shell GUI module
 
 FUNCTIONS
-      add_user_to_group(member_id, group_id[, owner][, web_session])
+      add_user_to_group(member_id, group_id[, owner][, be_session])
             Adds user to user group.
 
-      create_user(username, password[, role][, allowed_hosts][, web_session])
+      create_user(username, password[, role][, allowed_hosts][, be_session])
             Creates a new user account
 
-      create_user_group(name, description[, web_session])
+      create_user_group(name, description[, be_session])
             Creates user group.
 
-      delete_user(username[, web_session])
+      delete_user(username[, be_session])
             Deletes a user account
 
-      get_user_id(username[, web_session])
+      get_user_id(username[, be_session])
             Gets the id for a given user.
 
-      grant_role(username, role[, web_session])
+      grant_role(username, role[, be_session])
             Grant the given roles to the user.
 
       help([member])
             Provides help about this object and it's members
 
-      list_role_privileges(role[, web_session])
+      list_role_privileges(role[, be_session])
             Lists all privileges of a role.
 
-      list_roles([web_session])
+      list_roles([be_session])
             Lists all roles that can be assigned to users.
 
-      list_user_groups([member_id][, web_session])
+      list_user_groups([member_id][, be_session])
             Returns the list of all groups or list all groups that given user
             belongs.
 
-      list_user_privileges(username[, web_session])
+      list_user_privileges(username[, be_session])
             Lists all privileges assigned to a user.
 
-      list_user_roles(username[, web_session])
+      list_user_roles(username[, be_session])
             List the granted roles for a given user.
 
-      list_users([web_session])
+      list_users([be_session])
             Lists all user accounts.
 
-      remove_user_from_group(member_id, group_id[, web_session])
+      remove_user_from_group(member_id, group_id[, be_session])
             Removes user from user group.
 
-      remove_user_group(group_id[, web_session])
+      remove_user_group(group_id[, be_session])
             Removes given user group.
 
-      set_allowed_hosts(user_id, allowed_hosts[, web_session])
+      set_allowed_hosts(user_id, allowed_hosts[, be_session])
             Sets the allowed hosts for the given user.
 
-      update_user_group(group_id[, name][, description][, web_session])
+      update_user_group(group_id[, name][, description][, be_session])
             Updates user group.'''
 
     assert help_text == mysqlsh.globals.gui.users.help() # pylint: disable=no-member
