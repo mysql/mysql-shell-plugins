@@ -182,16 +182,11 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
     private getProfileList = (userId: number): void => {
         ShellInterface.users.listProfiles(userId).then((event: ICommListProfilesEvent) => {
-            // istanbul ignore if
-            if (!event.data.rows) {
-                return;
-            }
-
-            this.activeProfiles = event.data.rows.map((row) => {
+            this.activeProfiles = event.data.result.map((profile) => {
                 return {
-                    id: row.id,
+                    id: profile.id,
                     userId,
-                    name: row.name,
+                    name: profile.name,
                     description: "",
                     options: {},
                 };

@@ -15,7 +15,8 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Allowed hosts set successfully."
-    }
+        "msg": ""
+    },
+    "result": "Completed"
 })
 

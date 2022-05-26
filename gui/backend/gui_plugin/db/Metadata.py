@@ -200,8 +200,6 @@ def close_session(module_session):
     """
     module_session.close()
 
-    return "Completed"
-
 
 @plugin_function('gui.db.reconnect', shell=False, web=True)
 def reconnect(module_session):

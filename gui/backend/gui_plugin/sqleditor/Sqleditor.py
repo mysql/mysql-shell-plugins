@@ -71,8 +71,6 @@ def close_session(module_session):
     """
     module_session.close()
 
-    return "Completed"
-
 
 @plugin_function('gui.sqleditor.openConnection', shell=False, web=True)
 def open_connection(db_connection_id, module_session, password=None):

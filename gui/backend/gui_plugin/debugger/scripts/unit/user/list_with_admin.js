@@ -11,7 +11,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ws.ignore
     },
-    "rows": [
+    "result": [
         { "name": "admin1" },
         { "name": "admin2" },
         { "name": "power1" },

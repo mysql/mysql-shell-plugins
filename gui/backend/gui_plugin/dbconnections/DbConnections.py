@@ -34,7 +34,7 @@ import threading
 
 @plugin_function('gui.dbconnections.addDbConnection', shell=False, web=True)
 def add_db_connection(profile_id, connection, folder_path='',
-                      web_session=None):
+                      be_session=None):
     """add a new db_connection and associate the connection with a profile
 
     Args:
@@ -49,8 +49,8 @@ def add_db_connection(profile_id, connection, folder_path='',
             }}
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
-        web_session (object): The webserver session object, optional. Will be
-            passed in my the webserver automatically
+        be_session (object):  A session to the GUI backend database 
+            where the operation will be performed.
 
     Allowed options for connection:
         db_type (str,required): The db type name
@@ -74,7 +74,7 @@ def add_db_connection(profile_id, connection, folder_path='',
         raise MSGException(Error.CORE_INVALID_PARAMETER,
                            "The connection must contain valid database type.")
 
-    with BackendDatabase(web_session) as db:
+    with BackendDatabase(be_session) as db:
         # TODO: Encrypt stored password. The password will be inside "options", but we
         # don't know the structure of that object. Maybe the FE should pass the keys that should
         # be encrypted.
@@ -108,7 +108,7 @@ def add_db_connection(profile_id, connection, folder_path='',
 
 
 @plugin_function('gui.dbconnections.updateDbConnection', shell=False, web=True)
-def update_db_connection(profile_id, connection_id, connection, folder_path='', web_session=None):
+def update_db_connection(profile_id, connection_id, connection, folder_path='', be_session=None):
     """update the data for a database connection
 
     Args:
@@ -124,8 +124,8 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
             }
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
-        web_session (object): The webserver session object, optional. Will be
-            passed in my the webserver automatically
+        be_session (object):  A session to the GUI backend database 
+            where the operation will be performed.
 
     Allowed options for connection:
         db_type (str,required): The db type name
@@ -137,7 +137,7 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
         Nothing
     """
 
-    with BackendDatabase(web_session) as db:
+    with BackendDatabase(be_session) as db:
         with BackendTransaction(db):
             if "db_type" in connection:
                 db.execute("UPDATE db_connection SET db_type=? WHERE id=?",
@@ -170,20 +170,20 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
 
 
 @plugin_function('gui.dbconnections.removeDbConnection', shell=False, web=True)
-def remove_db_connection(profile_id, connection_id, web_session=None):
+def remove_db_connection(profile_id, connection_id, be_session=None):
     """remove a db_connection by disassociating the connection from a profile
 
     Args:
         profile_id (int): The id of the profile
         connection_id (int): The connection id to remove
-        web_session (object): The webserver session object, optional. Will be
-            passed in my the webserver automatically
+        be_session (object):  A session to the GUI backend database 
+            where the operation will be performed.
 
     Returns:
         Nothing
     """
 
-    with BackendDatabase(web_session) as db:
+    with BackendDatabase(be_session) as db:
         with BackendTransaction(db):
 
             # Remove the connection for this profile
@@ -206,49 +206,48 @@ def remove_db_connection(profile_id, connection_id, web_session=None):
 
 
 @plugin_function('gui.dbconnections.listDbConnections', shell=False, web=True)
-def list_db_connections(profile_id, folder_path='', web_session=None):
+def list_db_connections(profile_id, folder_path='', be_session=None):
     """lists the db_connections for the given profile
 
     Args:
         profile_id (int): The id of the profile
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
-        web_session (object): The webserver session object, optional. Will be
-            passed in my the webserver automatically
+        be_session (object):  A session to the GUI backend database 
+            where the operation will be performed.
 
     Returns:
         str: The list of connections in a result JSON string
     """
     result = None
-    with BackendDatabase(web_session) as db:
+    with BackendDatabase(be_session) as db:
         result = db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
             dc.description, dc.db_type, dc.options, p_dc.`index`
             FROM profile_has_db_connection p_dc
                 LEFT JOIN db_connection dc ON
                     p_dc.db_connection_id = dc.id
             WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ?''',
-                           (profile_id, '%' if folder_path == '' else folder_path),
-                           close=(web_session is None))
+                           (profile_id, '%' if folder_path == '' else folder_path))
 
     return result
 
 
 @plugin_function('gui.dbconnections.getDbConnection', shell=False, web=True)
-def get_db_connection(db_connection_id, web_session=None):
+def get_db_connection(db_connection_id, be_session=None):
     """get the a db_connection
 
     Args:
         db_connection_id (int): The id of the db_connection
-        web_session (object): The webserver session object, optional. Will be
-            passed in my the webserver automatically
+        be_session (object):  A session to the GUI backend database 
+            where the operation will be performed.
 
     Returns:
         str: The db_connections in a result JSON string
     """
     result = None
-    with BackendDatabase(web_session) as db:
+    with BackendDatabase(be_session) as db:
         result = db.select('SELECT * FROM db_connection WHERE id = ?',
-                           (db_connection_id,), close=(web_session is None))
+                           (db_connection_id,))
 
     return result
 
@@ -338,7 +337,7 @@ def test_connection(connection, password=None, web_session=None):
 
 
 @plugin_function('gui.dbconnections.moveConnection', shell=False, web=True)
-def move_connection(profile_id, folder_path, connection_id_to_move, connection_id_offset, before=False, web_session=None):
+def move_connection(profile_id, folder_path, connection_id_to_move, connection_id_offset, before=False, be_session=None):
     """updates the connections sort order for the given profile
 
     Args:
@@ -347,15 +346,15 @@ def move_connection(profile_id, folder_path, connection_id_to_move, connection_i
         connection_id_to_move (int): The id of the connection to move
         connection_id_offset (int): The id of the offset connection
         before (bool): Indicates whether connection_id_to_move should be moved before connection_id_offset or after
-        web_session (object): The webserver session object, optional. Will be
-            passed in my the webserver automatically
+        be_session (object):  A session to the GUI backend database 
+            where the operation will be performed.
 
 
     Returns:
         string: The connection_id in a result JSON string
     """
 
-    with BackendDatabase(web_session) as db:
+    with BackendDatabase(be_session) as db:
         with BackendTransaction(db):
             index_to_move = dbconnections.get_connection_folder_index(
                 db, profile_id, folder_path, connection_id_to_move)
@@ -378,8 +377,4 @@ def move_connection(profile_id, folder_path, connection_id_to_move, connection_i
             db.execute("""UPDATE profile_has_db_connection
                           SET `index`=?
                           WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
-                       (index, profile_id, folder_path, connection_id_to_move))
-
-            result = Response.ok(
-                "Successfully updated db connections sort order.")
-    return result
+                          (index, profile_id, folder_path, connection_id_to_move))

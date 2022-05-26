@@ -221,7 +221,7 @@ def test_upgrade_db():
                              "database_name": "main",
                              "db_file": os.path.join(tmpdirname, f'mysqlsh_gui_backend.sqlite3')}
         BackendSqliteDbManager(log_rotation=False,
-                               web_session=None,
+                               session_uuid=None,
                                connection_options=connection_options)
 
         conn = sqlite3.connect(os.path.join(tmpdirname, "mysqlsh_gui_backend.sqlite3"))
@@ -290,7 +290,7 @@ def test_backup_logs():
                                         "db_file": os.path.join(tmpdirname, f'mysqlsh_gui_backend_log.sqlite3')
                                     }]}
         db_manager = BackendSqliteDbManager(log_rotation=False,
-                                            web_session=None,
+                                            session_uuid=None,
                                             connection_options=connection_options)
 
         db = db_manager.open_database()

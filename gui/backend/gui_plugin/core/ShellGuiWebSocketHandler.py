@@ -80,17 +80,16 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self.send_message(json.dumps(json_message, default=str))
 
     def process_message(self, json_message):
-        if 'request' in json_message:
-            request = json_message.get('request')
-            if request == 'authenticate':
-                if not self.is_authenticated:
-                    self.authenticate_session(json_message)
-                else:
-                    self.send_response_message('ERROR',
-                                               'This session was already '
-                                               'authenticated.',
-                                               json_message.get('request_id'))
-            elif request == 'logout':
+        request = json_message.get('request')
+        if request == 'authenticate':
+            if not self.is_authenticated:
+                self.authenticate_session(json_message)
+            else:
+                self.send_response_message('ERROR',
+                                            'This session was already '
+                                            'authenticated.',
+                                            json_message.get('request_id'))
+        elif request == 'logout':
                 if self.is_authenticated:
                     self._session_user_id = None
                     self.send_response_message('OK',
@@ -102,21 +101,21 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                                                'This session is not '
                                                'authenticated.',
                                                json_message.get('request_id'))
-            elif not self.is_authenticated:
-                self.send_response_message('ERROR',
-                                           'This session is not yet '
-                                           'authenticated.',
-                                           json_message.get('request_id'))
-            elif request == 'execute':
-                self.execute_command_request(json_message)
-            elif request == 'cancel':
-                self.cancel_request(json_message)
-            elif request == 'prompt_reply':
-                self.prompt_reply(json_message)
-            else:
-                self.send_response_message('ERROR',
-                                           f'Unknown request: {request}.',
-                                           json_message.get('request_id'))
+        elif not self.is_authenticated:
+            self.send_response_message('ERROR',
+                                        'This session is not yet '
+                                        'authenticated.',
+                                        json_message.get('request_id'))
+        elif request == 'execute':
+            self.execute_command_request(json_message)
+        elif request == 'cancel':
+            self.cancel_request(json_message)
+        elif request == 'prompt_reply':
+            self.prompt_reply(json_message)
+        else:
+            self.send_response_message('ERROR',
+                                        f'Unknown request: {request}.',
+                                        json_message.get('request_id'))
 
     def on_ws_message(self, frame: WebSocket.Frame):
         if frame.is_initial_fragment:
@@ -391,6 +390,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         return self._session_user_id
 
     @property
+    def user_personal_group_id(self):
+        return self._session_user_personal_group_id
+
+    @property
     def session_active_profile_id(self):
         return self._active_profile_id
 
@@ -403,7 +406,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         if not self._db:
             # open the database connection for this thread
             self._db = GuiBackendDb(
-                log_rotation=True, web_session=WebSession(self))
+                log_rotation=True, session_uuid=self.session_uuid)
 
         return self._db
 
@@ -468,17 +471,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                             db, self._session_user_id)
 
                     # get default profile for the user
-                    default_profile = gui.users.get_default_profile(
-                        row[0], WebSession(self))
-                    if default_profile["request_state"]["type"] != "OK":
-                        msg = default_profile["request_state"]["msg"]
-                        raise Exception(f'Could not get the default profile for'
-                                        f' the user. {msg}')
-
-                    self.set_active_profile_id(
-                        default_profile["result"]["id"])
-
-                    values = {"active_profile": default_profile["result"]}
+                    default_profile = gui.users.get_default_profile(row[0], self.db)
+                    self.set_active_profile_id(default_profile["id"])
+                    values = {"active_profile": default_profile}
 
                     self.send_response_message('OK',
                                                f'User {username} was '
@@ -509,10 +504,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
     def execute_command_request(self, json_msg):
         request_id = json_msg.get('request_id')
         try:
-            if not request_id:
-                raise Exception('No request_id given. '
-                                'Please provide the request_id.')
-
             cmd = json_msg.get('command')
             if not cmd:
                 raise Exception(
@@ -564,10 +555,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             # Loop over all chained objects/functions of the given cmd and find
             # the function to call
             matches = re.findall(r'(\w+)\.', cmd + '.')
-            mod = None
-            mod_name = None
             parent_obj = None
-            parent_obj_name = None
             func = None
 
             if len(matches) < 2:
@@ -644,6 +632,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             if "interactive" in f_args:
                 kwargs.update({"interactive": False})
 
+            if "be_session" in f_args:
+                kwargs.update({"be_session": self.db})
+
             if "session" in f_args:
                 # If the called function requires a session parameter,
                 # get it from the given module_session
@@ -713,9 +704,22 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             else:
                 if cmd.startswith('gui.db.') \
                         or cmd.startswith('gui.sqleditor.') \
-                        or cmd in ['gui.dbconnections.test_connection']:
+                        or cmd.startswith('gui.dbconnections.') \
+                        or cmd.startswith('gui.users.') \
+                        or cmd.startswith('gui.modules.') \
+                        or cmd in ['gui.core.set_log_level', 'gui.core.get_log_level']:
+
+                    confirm_complete = True
+                    if cmd in ['gui.sqleditor.execute', 'gui.sqleditor.open_connection',
+                        'gui.sqleditor.set_auto_commit', 'gui.sqleditor.get_auto_commit',
+                        'gui.sqleditor.get_current_schema', 'gui.sqleditor.set_current_schema',
+                        'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
+                        'gui.db.get_catalog_object_names', 'gui.db.get_schema_object_names',
+                        'gui.db.get_table_object_names', 'gui.db.get_catalog_object',
+                        'gui.db.get_schema_object', 'gui.db.get_table_object']:
+                        confirm_complete = False
                     thread = RequestHandler(
-                        request_id, func, kwargs, self, False)
+                        request_id, func, kwargs, self, confirm_complete)
                     thread.start()
                     result = None
                 else:

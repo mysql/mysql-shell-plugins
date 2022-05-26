@@ -1258,7 +1258,7 @@ export class ProtocolGui extends Protocol {
      * @param role The role that should be granted to the user, optional
      * @param allowedHosts Allowed hosts that user can connect from
      *
-     * @returns The generated shell request record.
+     * @returns int: the user ID.
      */
     public static getRequestUsersCreateUser(username: string, password: string, role?: string, allowedHosts?: string): IShellRequest {
 
@@ -1279,7 +1279,7 @@ export class ProtocolGui extends Protocol {
      * @param userId The id of the user.
      * @param allowedHosts Allowed hosts that user can connect from
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersSetAllowedHosts(userId: number, allowedHosts: string): IShellRequest {
 
@@ -1297,7 +1297,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param username    The name of the user
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersDeleteUser(username: string): IShellRequest {
 
@@ -1315,7 +1315,7 @@ export class ProtocolGui extends Protocol {
      * @param username The name of the user
      * @param role The list of roles that should be assigned to the user. Use listRoles() to list all available roles.
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersGrantRole(username: string, role: string): IShellRequest {
 
@@ -1333,7 +1333,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param username The user for which the id will be returned.
      *
-     * @returns The generated shell request record.
+     * @returns int: the user ID.
      */
     public static getRequestUsersGetUserId(username: string): IShellRequest {
 
@@ -1348,7 +1348,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Lists all user accounts.
      *
-     * @returns The generated shell request record.
+     * @returns list: the list of users.
      */
     public static getRequestUsersListUsers(): IShellRequest {
 
@@ -1363,7 +1363,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param username The name of the user
      *
-     * @returns The generated shell request record.
+     * @returns list: the list of roles.
      */
     public static getRequestUsersListUserRoles(username: string): IShellRequest {
 
@@ -1378,7 +1378,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Lists all roles that can be assigned to users.
      *
-     * @returns The generated shell request record.
+     * @returns list: the list of roles.
      */
     public static getRequestUsersListRoles(): IShellRequest {
 
@@ -1393,7 +1393,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param role The name of the role.
      *
-     * @returns The generated shell request record.
+     * @returns list: the list of privileges.
      */
     public static getRequestUsersListRolePrivileges(role: string): IShellRequest {
 
@@ -1410,7 +1410,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param username The name of the user.
      *
-     * @returns The generated shell request record.
+     * @returns list: the list of privileges.
      */
     public static getRequestUsersListUserPrivileges(username: string): IShellRequest {
 
@@ -1427,7 +1427,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param userId The id of the user.
      *
-     * @returns The generated shell request record.
+     * @returns list: the list of modules.
      */
     public static getRequestUsersGetGuiModuleList(userId: number): IShellRequest {
 
@@ -1444,7 +1444,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param userId The id of the user.
      *
-     * @returns The generated shell request record.
+     * @returns list: the list of profiles.
      */
     public static getRequestUsersListProfiles(userId: number): IShellRequest {
 
@@ -1461,7 +1461,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param profileId The id of the profile.
      *
-     * @returns The generated shell request record.
+     * @returns dict: the user profile.
      */
     public static getRequestUsersGetProfile(profileId: number): IShellRequest {
 
@@ -1478,7 +1478,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param profile A dictionary with the profile information
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersUpdateProfile(profile: IShellUsersUpdateProfileProfile): IShellRequest {
 
@@ -1503,7 +1503,7 @@ export class ProtocolGui extends Protocol {
      * @param userId The id of the user.
      * @param profile The profile to add
      *
-     * @returns The generated shell request record.
+     * @returns int: the profile ID.
      */
     public static getRequestUsersAddProfile(userId: number, profile: IShellUsersAddProfileProfile): IShellRequest {
 
@@ -1528,7 +1528,7 @@ export class ProtocolGui extends Protocol {
      * @param userId The id of the user to which the profile belongs to.
      * @param profileId The ID of the profile to delete.
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersDeleteProfile(userId: number, profileId: number): IShellRequest {
 
@@ -1546,7 +1546,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param userId The id of the user.
      *
-     * @returns The generated shell request record.
+     * @returns dict: the user profile.
      */
     public static getRequestUsersGetDefaultProfile(userId: number): IShellRequest {
 
@@ -1564,7 +1564,7 @@ export class ProtocolGui extends Protocol {
      * @param userId The id of the user.
      * @param profileId The id of the profile to become the default profile
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersSetDefaultProfile(userId: number, profileId: number): IShellRequest {
 
@@ -1582,7 +1582,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param profileId The id of the profile to become the current profile
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersSetCurrentProfile(profileId: number): IShellRequest {
 
@@ -1599,7 +1599,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param memberId User ID
      *
-     * @returns The generated shell request record.
+     * @returns list: the list od user groups.
      */
     public static getRequestUsersListUserGroups(memberId?: number): IShellRequest {
 
@@ -1617,7 +1617,7 @@ export class ProtocolGui extends Protocol {
      * @param name Group name
      * @param description Description of the group
      *
-     * @returns The generated shell request record.
+     * @returns int: the group ID.
      */
     public static getRequestUsersCreateUserGroup(name: string, description: string): IShellRequest {
 
@@ -1637,7 +1637,7 @@ export class ProtocolGui extends Protocol {
      * @param groupId Group ID
      * @param owner If user is owner
      *
-     * @returns The generated shell request record.
+     * @returns None
      */
     public static getRequestUsersAddUserToGroup(memberId: number, groupId: number, owner = 0): IShellRequest {
 
@@ -1657,7 +1657,7 @@ export class ProtocolGui extends Protocol {
      * @param memberId User ID
      * @param groupId Group ID
      *
-     * @returns A boolean value indicating whether the given user was removed from the given group.
+     * @returns None
      */
     public static getRequestUsersRemoveUserFromGroup(memberId: number, groupId: number): IShellRequest {
 
@@ -1677,7 +1677,7 @@ export class ProtocolGui extends Protocol {
      * @param name Group name
      * @param description Description of the group
      *
-     * @returns A boolean value indicating whether the record was updated or not.
+     * @returns None
      */
     public static getRequestUsersUpdateUserGroup(groupId: number, name?: string, description?: string): IShellRequest {
 
@@ -1696,7 +1696,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param groupId Group ID
      *
-     * @returns A boolean value indicating whether the record was deleted or not.
+     * @returns None
      */
     public static getRequestUsersRemoveUserGroup(groupId: number): IShellRequest {
 

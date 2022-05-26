@@ -82,12 +82,12 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": ws.ignore
+        "msg": "", 
     },
     "request_id": ws.lastGeneratedRequestId
 }])
 
-ws.tokens['admin2_profile_id'] = ws.lastResponse['result']['id']
+ws.tokens['admin2_profile_id'] = ws.lastResponse['result']
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -155,12 +155,12 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": "User group created successfully."
+        "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId
 }])
 
-ws.tokens['user_group_id2'] = ws.lastResponse['id']
+ws.tokens['user_group_id2'] = ws.lastResponse['result']
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -174,8 +174,9 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": "User has been added to group successfully."
+        "msg": ""
     },
+    "result": "Completed",
     "request_id": ws.lastGeneratedRequestId
 }])
 
@@ -190,8 +191,9 @@ await ws.sendAndValidate({
 }, [{
     "request_state": {
         "type": "OK",
-        "msg": "User has been added to group successfully."
+        "msg": ""
     },
+    "result": "Completed",
     "request_id": ws.lastGeneratedRequestId
 }])
 

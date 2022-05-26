@@ -66,7 +66,7 @@ def params():
         "caption": "This is a test MySQL database",
         "description": "This is a test MySQL database description",
         "options": connection_options
-    }, '', parameters._web_session)
+    }, '', parameters._web_session.db)
 
     parameters._web_session.request_id = open_connection_cb.request_id
     parameters._db_connection_id = result['result']['db_connection_id']

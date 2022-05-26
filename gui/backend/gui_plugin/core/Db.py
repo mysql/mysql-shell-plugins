@@ -24,6 +24,7 @@ import gui_plugin.core.Logger as logger
 import re
 import json
 import datetime
+import uuid
 from os import path, listdir
 from pathlib import Path
 from .Protocols import Response
@@ -32,23 +33,25 @@ from gui_plugin.core import Error
 
 
 class BackendDatabase():
-    def __init__(self, web_session=None, log_rotation=False):
-        self.web_session = web_session
+    def __init__(self, be_session=None, log_rotation=False):
+        if be_session is not None and not isinstance(be_session, GuiBackendDb):
+            raise Exception("Parameter be_session must be an instance of GuiBackendDb")
+        self.db = be_session
+        self.needs_close = self.db is None
         self.log_rotation = log_rotation
 
     def __enter__(self):
-        if self.web_session is None:
+        if self.db is None:
             self.db = GuiBackendDb(
-                log_rotation=self.log_rotation, web_session=self.web_session)
-        else:
-            self.db = self.web_session.db
+                log_rotation=self.log_rotation,
+                session_uuid=str(uuid.uuid1()))
 
         return self.db
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type:
             logger.exception(exc_value)
-        if self.web_session is None:
+        if self.needs_close:
             self.db.close()
 
 
@@ -71,7 +74,7 @@ class GuiBackendDb():
     Interface to handle CRUD operations on the Backend Database
     """
 
-    def __init__(self, log_rotation=False, web_session=None):
+    def __init__(self, log_rotation=False, session_uuid=None):
         # Creates the database manager which will do the automatic maintenance tasks:
         # - Database Initialization
         # - Log Rotation: should be enabled only on specific instances of the backend database
@@ -80,9 +83,11 @@ class GuiBackendDb():
         # TODO(rennox): Identify logic to determine whether this should be an SqliteDbManager
         # or a MySQLDbManager
 
+        self._session_uuid = session_uuid
+
         backend_db_manager = BackendSqliteDbManager(
             log_rotation=log_rotation,
-            web_session=web_session)
+            session_uuid=self._session_uuid)
 
         # Opens the session to the backend database
         self._db = backend_db_manager.open_database()

@@ -21,8 +21,9 @@ await ws.sendAndValidate({
         "request_state":
         {
             "type": "OK",
-            "msg": "Completed"
+            "msg": ""
         },
+        "result": "Completed",
         "request_id": ws.lastGeneratedRequestId,
     }
 ])
@@ -92,8 +93,9 @@ await ws.sendAndValidate({
         "request_state":
         {
             "type": "OK",
-            "msg": "Completed"
+            "msg": ""
         },
+        "result": "Completed",
         "request_id": originalRequestId,
     }
 ])
@@ -183,8 +185,9 @@ await ws.sendAndValidate({
         "request_state":
         {
             "type": "OK",
-            "msg": "Completed"
+            "msg": ""
         },
+        "result": "Completed",
         "request_id": originalRequestId,
     }
 ])

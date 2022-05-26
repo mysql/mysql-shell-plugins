@@ -166,7 +166,7 @@ def get_user_id(db, username):
 
 
 def list_users(db):
-    return db.select("SELECT name FROM user")
+    return db.select("SELECT name FROM user")['rows']
 
 
 def add_profile(db, user_id, profile):
@@ -308,7 +308,7 @@ def get_user_groups(db, user_id=None):
                   WHERE ughu.user_id=?'''
 
     args = (user_id,) if user_id is not None else None
-    return db.select(sql, args)
+    return db.select(sql, args)['rows']
 
 
 def get_id_personal_user_group(db, user_id):
@@ -363,8 +363,6 @@ def remove_user_from_group(db, user_id, group_id):
                   WHERE user_id = ? AND user_group_id=?""",
                (user_id, group_id,))
 
-    return db.rows_affected != 0
-
 
 def update_user_group(db, group_id, name=None, description=None):
     """Updates user group.
@@ -390,7 +388,6 @@ def update_user_group(db, group_id, name=None, description=None):
 
     db.execute(f"""UPDATE user_group SET {",".join(actions)}
                 WHERE id=?""", args + (group_id,))
-    return db.rows_affected != 0
 
 
 def group_can_be_deleted(db, group_id):
@@ -441,9 +438,6 @@ def remove_user_group(db, group_id):
 
     db.execute("""DELETE FROM user_group WHERE id=?""",
                (group_id,))
-
-    return db.rows_affected != 0
-
 
 def create_local_user(db):
     try:

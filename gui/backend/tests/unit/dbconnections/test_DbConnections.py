@@ -245,14 +245,12 @@ class TestDbConnectionMySQL:
         default_root_config = config.Config.get_instance(
         ).database_connections[0]
         user_name = "test_sort_user"
-        user = UserManagement.create_user(user_name, "user1", role='User')
-        user_id = user['id']
+        user_id = UserManagement.create_user(user_name, "user1", role='User')
         assert user_id > 0
         profile = {'name': 'New test profile',
                    'description': 'Profile description.', 'options': {}}
 
-        msg = UserManagement.add_profile(user_id, profile)
-        profile_id = int(msg["result"].get("id"))
+        profile_id = UserManagement.add_profile(user_id, profile)
         assert profile_id > 0
 
         result = DbConnections.add_db_connection(profile_id, {
@@ -323,10 +321,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 4}])
 
         # Move 3 before 1
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn3_id, conn1_id, True)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn3_id, conn1_id, True)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -339,10 +335,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 4}])
 
         # Move 3 after 1
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn3_id, conn1_id, False)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn3_id, conn1_id, False)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -355,10 +349,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 4}])
 
         # Move 4 before 2
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn4_id, conn2_id, True)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn4_id, conn2_id, True)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -371,10 +363,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 3}])
 
         # Move 4 after 2
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn4_id, conn2_id, False)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn4_id, conn2_id, False)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -387,10 +377,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 4}])
 
         # Move 2 before 3
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn2_id, conn3_id, True)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn2_id, conn3_id, True)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -403,10 +391,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 4}])
 
         # Move 2 before 4
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn2_id, conn4_id, True)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn2_id, conn4_id, True)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -419,10 +405,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 4}])
 
         # Move 2 after 4
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn2_id, conn4_id, False)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn2_id, conn4_id, False)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -435,10 +419,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 3}])
 
         # Move 1 before 4
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn1_id, conn4_id, True)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn1_id, conn4_id, True)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -451,10 +433,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 3}])
 
         # Move 1 after 4
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn1_id, conn4_id, False)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn1_id, conn4_id, False)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -467,10 +447,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 2}])
 
         # Move 3 before 4
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn3_id, conn4_id, True)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn3_id, conn4_id, True)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -483,10 +461,8 @@ class TestDbConnectionMySQL:
                                          {'caption': "This is a test MySQL database 4", "index": 2}])
 
         # Move 4 after 3
-        status = DbConnections.move_connection(
-            profile_id, 'sort_tests', conn4_id, conn3_id, False)
-        assert status['request_state']['type'] == 'OK'
-        assert status['request_state']['msg'] == 'Successfully updated db connections sort order.'
+        status = DbConnections.move_connection(profile_id, 'sort_tests', conn4_id, conn3_id, False)
+        assert status is None
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
@@ -506,7 +482,7 @@ class TestDbConnectionMySQL:
         UserManagement.delete_profile(user_id, profile_id)
 
         groups = UserManagement.list_user_groups(user_id)
-        for group in groups['rows']:
+        for group in groups:
             group_id = group['id']
             if group["name"] != "test_sort_user":
                 UserManagement.remove_user_from_group(user_id, group_id)
