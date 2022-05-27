@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StatusMark component tests Test StatusMark render 1`] = `
+<StatusMark
+  id="cb1"
+  statusState={0}
+  text="n/a"
+>
+  <Checkbox
+    checkState={0}
+    className="msg statusmark"
+    disabled={true}
+  >
+    <label
+      className="msg checkbox unchecked disabled statusmark"
+      onClick={[Function]}
+      onKeyPress={[Function]}
+      tabIndex={0}
+    >
+      <span
+        className="checkMark"
+      />
+      n/a
+    </label>
+  </Checkbox>
+</StatusMark>
+`;

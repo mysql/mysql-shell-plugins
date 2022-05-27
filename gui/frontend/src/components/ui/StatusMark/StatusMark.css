@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+ .msg.statusmark {
+    display: flex;
+    align-items: center;
+    position: relative;
+    user-select: unset;
+    padding: 0;
+    cursor: none;
+    margin-right: 10px;
+    cursor: pointer;
+    pointer-events: none;
+    min-height: unset;
+}
+
+.msg.statusmark.disabled{
+    color: var(--foreground)
+}
+
+.msg.statusmark .checkMark {
+    border-radius: 1rem;
+}
+
+.msg.statusmark.unchecked .checkMark:before {
+    display: block;
+    transform: rotate(45deg);
+}
+
+.msg.statusmark.unchecked .checkMark::after {
+    width: 8px;
+    height: 0px;
+    top: 7px;
+    left: 3px;
+    display: block;
+    border: solid var(--checkbox-foreground);
+    border-width: 2px 2px 0 0;
+    transform: rotate(-45deg);
+}
