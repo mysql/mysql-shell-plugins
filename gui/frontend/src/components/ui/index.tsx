@@ -104,6 +104,8 @@ export * from "./ConnectionTile/ConnectionTile";
 export * from "./SessionTile/SessionTile";
 export * from "./BrowserTile/BrowserTile";
 
+export * from "./StatusMark/StatusMark";
+
 /**
  * Creates a synthetic event from a native DOM event, for interaction of DOM events with React components.
  *
