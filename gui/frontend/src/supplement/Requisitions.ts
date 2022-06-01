@@ -34,7 +34,7 @@ import {
 } from "../communication";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { IEditorStatusInfo, IModuleDataEntry, ISchemaTreeEntry } from "../modules/SQLNotebook";
+import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry } from "../modules/SQLNotebook";
 import { RequisitionPipeline } from "./RequisitionPipeline";
 import { IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 
@@ -168,7 +168,7 @@ export interface IRequestTypeMap {
     "editConnection": (connectionId: number) => Promise<boolean>;
     "duplicateConnection": (connectionId: number) => Promise<boolean>;
 
-    "explorerShowRows": (entry: ISchemaTreeEntry | IModuleDataEntry) => Promise<boolean>;
+    "explorerShowRows": (entry: ISchemaTreeEntry | IDBDataEntry) => Promise<boolean>;
     "explorerDoubleClick": (entry: ISchemaTreeEntry) => Promise<boolean>;
 
     "requestPassword": (request: IServicePasswordRequest) => Promise<boolean>;

@@ -51,7 +51,10 @@
             "outFiles": [
                 "${workspaceFolder}/output/extension/src/test/**/*.js"
             ],
-            "preLaunchTask": "tsc: watch"
+            "preLaunchTask": "tsc: watch",
+            "env": {
+                "NODE_ENV": "test"
+            }
         }
     ]
 }

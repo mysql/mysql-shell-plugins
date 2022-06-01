@@ -48,11 +48,17 @@ export class StandalonePresentationInterface extends PresentationInterface {
     }
 
     protected updateRenderTarget(): void {
-        this.host.setState({ showResultPane: true });
+        this.host.setState({
+            showResultPane: true,
+            maximizeResultPane: this.maximizedResult ?? false,
+        });
     }
 
     protected defineRenderTarget(): HTMLDivElement {
-        this.host.setState({ showResultPane: true });
+        this.host.setState({
+            showResultPane: true,
+            maximizeResultPane: this.maximizedResult ?? false,
+        });
 
         return this.target.current!;
     }

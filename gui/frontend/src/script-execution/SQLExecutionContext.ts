@@ -62,6 +62,8 @@ export class SQLExecutionContext extends ExecutionContext {
             setImmediate(() => {
                 return this.validateNextStatement();
             });
+        } else {
+            this.scheduleFullValidation();
         }
     }
 
@@ -92,7 +94,7 @@ export class SQLExecutionContext extends ExecutionContext {
                     delimiter: ";",
                     span: {
                         start: 0,
-                        length: change.text.length,
+                        length: this.model?.getValue().length ?? 0,
                     },
                     contentStart: 0,
                     state: StatementFinishState.Complete,

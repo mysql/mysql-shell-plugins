@@ -487,31 +487,29 @@ export class SplitContainer extends Component<ISplitContainerProperties> {
                         const part = remainingSpace / remainingStretchCount;
                         const paneData = this.paneData[index];
                         if (paneData.stretch) {
-                            if (isNil(paneData.initialSize)) {
-                                const newSize = computedSizes[index] + part;
-                                if (part < 0) {
-                                    // Make pane smaller.
-                                    if (computedSizes[index] > paneData.minSize) {
-                                        if (newSize < paneData.minSize) {
-                                            remainingSpace -= paneData.minSize - computedSizes[index];
-                                            computedSizes[index] = paneData.minSize;
-                                        } else {
-                                            computedSizes[index] = newSize;
-                                            remainingSpace -= part;
-                                            ++availableStretchCount; // This pane could take more, if required.
-                                        }
+                            const newSize = computedSizes[index] + part;
+                            if (part < 0) {
+                                // Make pane smaller.
+                                if (computedSizes[index] > paneData.minSize) {
+                                    if (newSize < paneData.minSize) {
+                                        remainingSpace -= paneData.minSize - computedSizes[index];
+                                        computedSizes[index] = paneData.minSize;
+                                    } else {
+                                        computedSizes[index] = newSize;
+                                        remainingSpace -= part;
+                                        ++availableStretchCount; // This pane could take more, if required.
                                     }
-                                } else {
-                                    // Make pane larger.
-                                    if (computedSizes[index] < paneData.maxSize) {
-                                        if (newSize > paneData.maxSize) {
-                                            remainingSpace -= paneData.maxSize - computedSizes[index];
-                                            computedSizes[index] = paneData.maxSize;
-                                        } else {
-                                            computedSizes[index] = newSize;
-                                            remainingSpace -= part;
-                                            ++availableStretchCount; // This pane could take more, if required.
-                                        }
+                                }
+                            } else {
+                                // Make pane larger.
+                                if (computedSizes[index] < paneData.maxSize) {
+                                    if (newSize > paneData.maxSize) {
+                                        remainingSpace -= paneData.maxSize - computedSizes[index];
+                                        computedSizes[index] = paneData.maxSize;
+                                    } else {
+                                        computedSizes[index] = newSize;
+                                        remainingSpace -= part;
+                                        ++availableStretchCount; // This pane could take more, if required.
                                     }
                                 }
                             }

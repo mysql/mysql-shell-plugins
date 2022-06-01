@@ -23,7 +23,7 @@
 
 import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event } from "vscode";
 
-import { IModuleDataEntry } from "../../../frontend/src/modules/SQLNotebook";
+import { IDBDataEntry } from "../../../frontend/src/modules/SQLNotebook";
 import { ShellInterface } from "../../../frontend/src/supplement/ShellInterface";
 import { ScriptTreeItem } from "./ScriptTreeItem";
 
@@ -31,7 +31,7 @@ import { ScriptTreeItem } from "./ScriptTreeItem";
 export class ScriptsTreeDataProvider implements TreeDataProvider<TreeItem> {
     private changeEvent = new EventEmitter<void>();
 
-    private tree: IModuleDataEntry[] = [];
+    private tree: IDBDataEntry[] = [];
 
     public constructor(private scriptTypeId: number) { }
 

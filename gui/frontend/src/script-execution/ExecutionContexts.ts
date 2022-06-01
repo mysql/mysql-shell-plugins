@@ -24,7 +24,7 @@
 import { ExecutionContext, IExecutionResult, IResultSet, SQLExecutionContext } from ".";
 import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB";
 import { MessageType } from "../app-logic/Types";
-import { IExecutionContextsState, IPosition } from "../components/ui/CodeEditor";
+import { IExecutionContextState, IPosition } from "../components/ui/CodeEditor";
 import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor";
 import { IStatementSpan } from "../parsing/parser-common";
 import { EditorLanguage, ITextRange } from "../supplement";
@@ -90,8 +90,8 @@ export class ExecutionContexts {
      *
      * @returns A list of context states that can be used to restore the previous execution context structure.
      */
-    public cleanUpAndReturnState(): IExecutionContextsState[] {
-        const result: IExecutionContextsState[] = [];
+    public cleanUpAndReturnState(): IExecutionContextState[] {
+        const result: IExecutionContextState[] = [];
 
         this.content.forEach((context: ExecutionContext) => {
             result.push(context.state);
@@ -110,13 +110,13 @@ export class ExecutionContexts {
      * @param states The list of context states to restore.
      */
     public restoreFromState(editor: CodeEditor, factory: ResultPresentationFactory,
-        states: IExecutionContextsState[]): void {
+        states: IExecutionContextState[]): void {
         this.content.forEach((context: ExecutionContext) => {
             return context.dispose();
         });
 
         this.content.splice(0, this.content.length);
-        states.forEach((state: IExecutionContextsState) => {
+        states.forEach((state: IExecutionContextState) => {
             const presentation = factory(editor, state.language);
             presentation.startLine = state.start;
             presentation.endLine = state.end;
@@ -133,7 +133,8 @@ export class ExecutionContexts {
                         };
 
                         this.loadResultSets(state.result.list).then((resultSets) => {
-                            // Remove any result with no columns or rows and add their execution info the output list.
+                            // Remove any result with no columns or rows and add their execution info
+                            // to the output list.
                             resultSets.forEach((set) => {
                                 if (set.data.columns.length === 0 || set.data.rows.length === 0) {
                                     result.output?.push({
@@ -149,7 +150,8 @@ export class ExecutionContexts {
                             result.sets = resultSets.filter((value) => {
                                 return value.data.columns.length > 0 && value.data.rows.length > 0;
                             });
-                            context.setResult(result, state.currentHeight);
+
+                            context.setResult(result, state.currentHeight, state.currentSet, state.maximizeResultPane);
                         }).catch(() => {
                             // Ignore load errors.
                         });

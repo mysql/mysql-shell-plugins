@@ -90,22 +90,29 @@ export interface ICodeEditorOptions {
     trimAutoWhitespace?: boolean;
 }
 
-export interface IExecutionContextsState {
-    // The start line for this context.
+export interface IExecutionContextState {
+    /** The start line for this context. */
     start: number;
 
-    // The end line for this context.
+    /** The end line for this context. */
     end: number;
 
-    // The language used in the context.
+    /** The language used in the context. */
     language: EditorLanguage;
 
-    // Optionally: an attached result (reference).
+    /** Optionally: an attached result (reference). */
     result?: IExecuteResultReference;
 
-    // The height of the result set.
+    /** The height of the result pane. Only considered if the pane is not maximized. */
     currentHeight?: number;
 
+    /** The index of the active set, in a multi set result. */
+    currentSet?: number;
+
+    /** When true no editor is shown and the result pane takes the entire space. */
+    maximizeResultPane?: boolean;
+
+    /** Stored statement ranges. */
     statements: IStatementSpan[];
 }
 

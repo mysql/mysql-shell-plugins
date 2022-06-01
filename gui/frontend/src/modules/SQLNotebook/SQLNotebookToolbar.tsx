@@ -47,8 +47,7 @@ import {
 import { settings } from "../../supplement/Settings/Settings";
 import { IOpenEditorState } from "./SQLNotebookTab";
 import { requisitions } from "../../supplement/Requisitions";
-import { IEditorStatusInfo } from ".";
-import { LoadingState } from "../../script-execution";
+import { ExecutionContext, LoadingState } from "../../script-execution";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
 export interface ISQLNotebookToolbarProperties extends IComponentProperties {
@@ -66,28 +65,56 @@ export interface ISQLNotebookToolbarProperties extends IComponentProperties {
 
 interface ISQLNotebookToolbarState extends IComponentState {
     editorId: string;
-    currentEditor: IOpenEditorState;
+    currentEditor?: IOpenEditorState;
+
+    currentContext?: ExecutionContext;
 
     canExecute: boolean;
     canStop: boolean;
+    canExecuteSubparts: boolean;
     autoCommit: boolean;
 }
 
 export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties, ISQLNotebookToolbarState> {
 
-    // Track the current editor caret position for button updates.
-    private currentLine = 1;
-    private currentColumn = 1;
-
     public constructor(props: ISQLNotebookToolbarProperties) {
         super(props);
 
+        const currentEditor = props.editors.find((state) => {
+            return state.id === props.activeEditor;
+        });
+
         this.state = {
             editorId: props.activeEditor,
-            currentEditor: props.editors.find((state) => { return state.id === props.activeEditor; })!,
+            currentEditor,
             canExecute: true,
             canStop: false,
+            canExecuteSubparts: false,
             autoCommit: true,
+        };
+    }
+
+    public static getDerivedStateFromProps(props: ISQLNotebookToolbarProperties): Partial<ISQLNotebookToolbarState> {
+        const currentEditor = props.editors.find((state) => {
+            return state.id === props.activeEditor;
+        });
+
+        if (currentEditor?.state) {
+            const context = currentEditor.state.model.executionContexts
+                .contextFromPosition(currentEditor.state.model.executionContexts.cursorPosition);
+            if (context) {
+                return {
+                    currentEditor,
+                    currentContext: context,
+                    canExecute: context.loadingState === LoadingState.Idle,
+                    canStop: context.loadingState !== LoadingState.Idle,
+                    canExecuteSubparts: context.isSQLLike,
+                };
+            }
+        }
+
+        return {
+            currentEditor,
         };
     }
 
@@ -113,9 +140,10 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
 
     public render(): React.ReactNode {
         const { inset, language } = this.props;
-        const { autoCommit, canExecute, canStop } = this.state;
+        const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
 
         const area = language === "msg" ? "block" : "script";
+        const selectionText = canExecuteSubparts ? "selection or " : "";
 
         const stopOnErrors = settings.get("editor.stopOnErrors", true);
         const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
@@ -135,7 +163,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
             >
                 {inset}
                 <Button
-                    data-tooltip={"Execute selection or full " + area}
+                    data-tooltip={`Execute ${selectionText}full ${area}`}
                     imageOnly={true}
                     disabled={!canExecute}
                     onClick={
@@ -146,7 +174,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                 </Button>
                 {
                     language === "msg" && <Button
-                        data-tooltip="Execute selection or full block and create a new block"
+                        data-tooltip={`Execute ${selectionText}full block and create a new block`}
                         imageOnly={true}
                         disabled={!canExecute}
                         onClick={
@@ -156,34 +184,40 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                         <Icon src={executeNewCommandIcon} data-tooltip="inherit" />
                     </Button>
                 }
-                <Button
-                    data-tooltip="Execute the statement at the caret position"
-                    imageOnly={true}
-                    disabled={!canExecute}
-                    onClick={
-                        () => { void requisitions.execute("editorExecuteCurrent", false); }
-                    }
-                >
-                    <Icon src={executeCaretIcon} data-tooltip="inherit" />
-                </Button>
-                <Button
-                    data-tooltip="Execute Explain for the statement at the caret position"
-                    requestType="editorExecuteExplain"
-                    imageOnly={true}
-                    disabled
-                >
-                    <Icon src={executeExplainIcon} data-tooltip="inherit" />
-                </Button>
-                <Button
-                    data-tooltip="Stop execution of the current statement/script"
-                    requestType="editorStopExecution"
-                    imageOnly={true}
-                    disabled={!canStop}
-                >
-                    <Icon src={stopExecutionIcon} data-tooltip="inherit" />
-                </Button>
                 {
-                    language !== "msg" && <Button
+                    canExecuteSubparts && <Button
+                        data-tooltip="Execute the statement at the caret position"
+                        imageOnly={true}
+                        disabled={!canExecute}
+                        onClick={
+                            () => { void requisitions.execute("editorExecuteCurrent", false); }
+                        }
+                    >
+                        <Icon src={executeCaretIcon} data-tooltip="inherit" />
+                    </Button>
+                }
+                {
+                    canExecuteSubparts && <Button
+                        data-tooltip="Execute Explain for the statement at the caret position"
+                        requestType="editorExecuteExplain"
+                        imageOnly={true}
+                        disabled
+                    >
+                        <Icon src={executeExplainIcon} data-tooltip="inherit" />
+                    </Button>
+                }
+                {
+                    canExecuteSubparts && <Button
+                        data-tooltip="Stop execution of the current statement/script"
+                        requestType="editorStopExecution"
+                        imageOnly={true}
+                        disabled={!canStop}
+                    >
+                        <Icon src={stopExecutionIcon} data-tooltip="inherit" />
+                    </Button>
+                }
+                {
+                    canExecuteSubparts && <Button
                         data-tooltip="Stop execution of the current statement/script in case of errors"
                         imageOnly={true}
                         onClick={
@@ -194,32 +228,36 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
                     </Button>
                 }
                 <Divider vertical={true} thickness={1} />
-                <Button
-                    data-tooltip="Commit DB changes"
-                    requestType="editorCommit"
-                    imageOnly={true}
-                    disabled={autoCommit}
-                >
-                    <Icon src={commitIcon} data-tooltip="inherit" />
-                </Button>
-                <Button
-                    data-tooltip="Rollback DB changes"
-                    requestType="editorRollback"
-                    imageOnly={true}
-                    disabled={autoCommit}
-                >
-                    <Icon src={rollbackIcon} data-tooltip="inherit" />
-                </Button>
-                <Button
-                    data-tooltip="Auto commit DB changes"
-                    imageOnly={true}
-                    onClick={
-                        () => { void requisitions.execute("editorToggleAutoCommit", autoCommit); }
-                    }
-                >
-                    <Icon src={autoCommitIcon} data-tooltip="inherit" />
-                </Button>
-                <Divider vertical={true} thickness={1} />
+                {
+                    canExecuteSubparts && <>
+                        <Button
+                            data-tooltip="Commit DB changes"
+                            requestType="editorCommit"
+                            imageOnly={true}
+                            disabled={autoCommit}
+                        >
+                            <Icon src={commitIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Button
+                            data-tooltip="Rollback DB changes"
+                            requestType="editorRollback"
+                            imageOnly={true}
+                            disabled={autoCommit}
+                        >
+                            <Icon src={rollbackIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Button
+                            data-tooltip="Auto commit DB changes"
+                            imageOnly={true}
+                            onClick={
+                                () => { void requisitions.execute("editorToggleAutoCommit", autoCommit); }
+                            }
+                        >
+                            <Icon src={autoCommitIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Divider vertical={true} thickness={1} />
+                    </>
+                }
                 <Button
                     data-tooltip="Format current block or script"
                     requestType="editorFormat"
@@ -255,16 +293,10 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
         );
     }
 
-    private editorInfoUpdated = (info: IEditorStatusInfo): Promise<boolean> => {
-        if (info.line && info.column) {
-            this.currentColumn = info.column;
-            this.currentLine = info.line;
+    private editorInfoUpdated = (): Promise<boolean> => {
+        this.updateState();
 
-            this.updateState();
-
-            return Promise.resolve(true);
-        }
-
+        // Allow other subscribers to get this event too.
         return Promise.resolve(false);
     };
 
@@ -316,7 +348,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
 
     private toggleSoftWrap = (active: boolean): Promise<boolean> => {
         settings.set("editor.wordWrap", active ? "off" : "on");
-        this.updateState();
+        this.forceUpdate();
 
         return Promise.resolve(true);
     };
@@ -376,19 +408,22 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
     };
 
     private updateState(): void {
-        const { currentEditor } = this.state;
+        const { currentEditor, currentContext } = this.state;
 
-        if (currentEditor.state) {
+        if (currentEditor?.state) {
             const context = currentEditor.state.model.executionContexts
-                .contextFromPosition({ lineNumber: this.currentLine, column: this.currentColumn });
+                .contextFromPosition(currentEditor.state.model.executionContexts.cursorPosition);
             if (context) {
-                this.setState({
-                    canExecute: context.loadingState === LoadingState.Idle,
-                    canStop: context.loadingState !== LoadingState.Idle,
-                });
+                if (context !== currentContext) {
+                    this.setState({
+                        currentContext: context,
+                        canExecute: context.loadingState === LoadingState.Idle,
+                        canStop: context.loadingState !== LoadingState.Idle,
+                        canExecuteSubparts: context.isSQLLike,
+                    });
+                }
             }
         }
-
     }
 
     /**

@@ -418,7 +418,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                     schemaList.push(new AdminTreeItem("MySQL Administration", "", entry, true));
                 }
 
-                entry.backend.getCatalogObjects("Schema", "").then((schemas) => {
+                entry.backend.getCatalogObjects("Schema").then((schemas) => {
                     schemas.forEach((schema) => {
                         if (entry.details.dbType === "MySQL") {
                             if (schema === "mysql_rest_service_metadata") {

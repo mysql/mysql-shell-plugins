@@ -27,7 +27,7 @@ import {
 import { EventType, ListenerEntry } from "../Dispatch";
 import { EditorLanguage } from "..";
 import { IShellInterface } from ".";
-import { EntityType, IDBEditorScriptState, IFolderEntity, IModuleDataEntry } from "../../modules/SQLNotebook";
+import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/SQLNotebook";
 
 // These are predefined data categories that always exist.
 export enum StandardDataCategories {
@@ -57,11 +57,11 @@ export class ShellInterfaceModule implements IShellInterface {
 
     private languageToScriptCategory = new Map<EditorLanguage, number>([
         ["mysql", StandardDataCategories.MySQLScript],
-        ["python", StandardDataCategories.MySQLScript],
-        ["javascript", StandardDataCategories.MySQLScript],
-        ["typescript", StandardDataCategories.MySQLScript],
-        ["sql", StandardDataCategories.MySQLScript],
-        ["json", StandardDataCategories.MySQLScript],
+        ["python", StandardDataCategories.PythonScript],
+        ["javascript", StandardDataCategories.JavaScriptScript],
+        ["typescript", StandardDataCategories.TypeScriptScript],
+        ["sql", StandardDataCategories.SQLiteScript],
+        ["json", StandardDataCategories.JSON],
     ]);
 
     /**
@@ -305,7 +305,7 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @returns A promise which resolves with the script details.
      */
-    public async loadScriptsTree(profileId?: number): Promise<IModuleDataEntry[]> {
+    public async loadScriptsTree(profileId?: number): Promise<IDBDataEntry[]> {
         return this.loadScriptTreeEntries(StandardDataCategories.Script, profileId);
     }
 
@@ -317,10 +317,10 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @returns A promise resolving to a list of script state entries, comprising the tree.
      */
-    private async loadScriptTreeEntries(categoryId: number, profileId?: number): Promise<IModuleDataEntry[]> {
+    private async loadScriptTreeEntries(categoryId: number, profileId?: number): Promise<IDBDataEntry[]> {
         const dataTree = await this.loadDataTree("scripts", profileId);
 
-        const createTree = async (parentId: number, target: IModuleDataEntry[]): Promise<void> => {
+        const createTree = async (parentId: number, target: IDBDataEntry[]): Promise<void> => {
             const result = dataTree.filter((entry, index, arr) => {
                 if (entry.parentFolderId === parentId) {
                     arr.splice(index, 1);
@@ -347,17 +347,19 @@ export class ShellInterfaceModule implements IShellInterface {
 
         };
 
-        const result: IModuleDataEntry[] = [];
+        const result: IDBDataEntry[] = [];
         if (dataTree.length > 0 && dataTree[0].caption === "scripts") {
             // The first entry is the always present root folder, which we do not show in the UI.
 
             // First load the root (non-folder) data entries.
             const root = dataTree.shift();
-            const states = await this.loadScriptStates(root!.id, categoryId);
-            result.push(...states);
+            if (root) {
+                const states = await this.loadScriptStates(root.id, categoryId);
+                result.push(...states);
 
-            // Then create the remaining tree.
-            await createTree(root!.id, result);
+                // Then create the remaining tree.
+                await createTree(root.id, result);
+            }
         }
 
         return result;
@@ -403,10 +405,10 @@ export class ShellInterfaceModule implements IShellInterface {
     }
 
     /**
-     * Constructs script state entries from script module data entries.
+     * Constructs script state entries from script data entries.
      *
      * @param folderId The ID of the folder from which to load the items.
-     * @param dataCategoryId The ID of the data category, which determines which of the data items to load.
+     * @param dataCategoryId The ID of the data category, which determines the data items to load.
      *
      * @returns A list of state entries for all found data entries.
      */
@@ -422,7 +424,7 @@ export class ShellInterfaceModule implements IShellInterface {
                     case EventType.DataResponse:
                     case EventType.FinalResponse: {
                         listData.push(...scriptEvent.data.result.map((entry) => {
-                            // The language depends on the data type.
+                            // The language depends on the data category.
                             const language = this.scriptCategoryToLanguage.get(entry.dataCategoryId) ?? "mysql";
 
                             return {

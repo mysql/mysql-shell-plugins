@@ -44,11 +44,22 @@ export interface IResultTabViewProperties extends IComponentProperties {
     // One set per tab page.
     resultSets: IResultSets;
 
+    currentSet?: number;
+    resultPaneMaximized?: boolean;
+
     onResultPageChange?: (requestId: string, currentPage: number, sql: string) => void;
+    onSetResultPaneViewState?: (maximized: boolean) => void;
+    onSelectTab?: (index: number) => void;
 }
 
 interface IResultTabViewState extends IComponentState {
+    // Set to true when a result set was selected by the user.
+    manualTab: boolean;
+
     currentResultSet?: IResultSet;
+
+    // Have to keep track locally as the presentation interface cannot re-render this component on toggle.
+    resultPaneMaximized: boolean;
 }
 
 // Holds a collection of result views and other output in a tabbed interface.
@@ -69,39 +80,71 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         super(props);
 
         this.state = {
+            manualTab: false,
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
+            resultPaneMaximized: props.resultPaneMaximized ?? false,
         };
 
-        this.addHandledProperties("output", "resultSets", "onResultPageChange");
+        this.addHandledProperties("resultSets", "currentSet", "resultPaneMaximized",
+            "onResultPageChange", "onSetResultPaneViewState", "onSelectTab");
     }
 
     public static getDerivedStateFromProps(newProps: IResultTabViewProperties,
-        oldState: IResultTabViewState): IResultTabViewState {
+        oldState: IResultTabViewState): Partial<IResultTabViewState> {
 
-        const { currentResultSet } = oldState;
+        const { currentSet, resultSets } = newProps;
+        const { manualTab, currentResultSet } = oldState;
 
-        if (!currentResultSet && (newProps.resultSets.output?.length ?? 0) > 0) {
-            return {};
+        if (manualTab) {
+            return {
+                manualTab: false,
+            };
+
+        }
+        const resultPaneMaximized = newProps.resultPaneMaximized;
+
+        if (resultSets.sets.length === 0) {
+            return {
+                currentResultSet: undefined,
+                resultPaneMaximized,
+            };
         }
 
-        const found = newProps.resultSets.sets.find((candidate) => {
+        // If a current set is specified, select that. Otherwise keep what was selected before, if it still exists.
+        if (currentSet !== undefined) {
+            // Convert the tab index into a value used to select a specific tab.
+            let currentResultSet;
+            if (currentSet > 0) { // Index 0 is the output page.
+                currentResultSet = (currentSet - 1) < resultSets.sets.length
+                    ? resultSets.sets[currentSet - 1]
+                    : resultSets.sets[resultSets.sets.length - 1];
+            }
+
+            return {
+                currentResultSet,
+                resultPaneMaximized,
+            };
+        }
+
+        const found = resultSets.sets.find((candidate) => {
             return candidate === currentResultSet;
         });
 
-        // If the current result set is still in the list then keep it selected. Otherwise take the first one
-        // in the set.
         if (found) {
-            return {};
+            return {
+                resultPaneMaximized,
+            };
         }
 
         return {
-            currentResultSet: newProps.resultSets.sets.length > 0 ? newProps.resultSets.sets[0] : undefined,
+            currentResultSet: resultSets.sets.length > 0 ? newProps.resultSets.sets[0] : undefined,
+            resultPaneMaximized,
         };
     }
 
     public render(): React.ReactNode {
         const { resultSets } = this.props;
-        const { currentResultSet } = this.state;
+        const { currentResultSet, resultPaneMaximized } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
 
@@ -237,7 +280,11 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                                 <Button
                                     id="maximizeResultSetButton"
                                     imageOnly={true}
-                                    data-tooltip="Maximize Result Set View"
+                                    data-tooltip={resultPaneMaximized
+                                        ? "Normalize Result Set View"
+                                        : "Maximize Result Set View"
+                                    }
+                                    onClick={this.handleResultToggle}
                                 >
                                     <Icon src={expandIcon} data-tooltip="inherit" />
                                 </Button>
@@ -350,17 +397,28 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     }
 
     private handleTabSelection = (id: string): void => {
+        let currentIndex = 0;
         if (id === "output") {
-            this.setState({ currentResultSet: undefined });
+            this.setState({ currentResultSet: undefined, manualTab: true });
         } else {
             const { resultSets } = this.props;
 
-            const currentResultSet = resultSets.sets.find((candidate) => {
-                return candidate.head.requestId === id;
+            const currentResultSet = resultSets.sets.find((candidate, index) => {
+                if (candidate.head.requestId === id) {
+                    currentIndex = index + 1; // Account for the output page.
+
+                    return true;
+                }
+
+                return false;
             });
 
-            this.setState({ currentResultSet });
+            this.setState({ currentResultSet, manualTab: true });
         }
+
+        const { onSelectTab } = this.props;
+
+        onSelectTab?.(currentIndex);
     };
 
     private showActionMenu = (e: React.SyntheticEvent): void => {
@@ -417,6 +475,15 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                     currentResultSet.head.sql);
             }
         }
+    };
+
+    private handleResultToggle = (): void => {
+        const { onSetResultPaneViewState } = this.props;
+        const { resultPaneMaximized } = this.state;
+
+        this.setState({ resultPaneMaximized: !resultPaneMaximized }, () => {
+            onSetResultPaneViewState?.(!resultPaneMaximized);
+        });
     };
 
     // Editing is not supported yet, so we cannot test it.

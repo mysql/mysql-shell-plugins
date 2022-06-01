@@ -206,3 +206,8 @@
     flex: 1;
     padding: 2px;
 }
+
+.msg.connectionTabHost .standaloneScriptHost .resultHost {
+    border-radius: 0;
+}
+

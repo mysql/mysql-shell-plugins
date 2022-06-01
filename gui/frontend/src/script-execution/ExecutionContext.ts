@@ -23,7 +23,7 @@
 
 import { IPosition } from "monaco-editor";
 
-import { IExecutionContextsState, IRange, Monaco, Position } from "../components/ui/CodeEditor";
+import { IExecutionContextState, IRange, Monaco, Position } from "../components/ui/CodeEditor";
 import { isTextSpan } from "../utilities/ts-helpers";
 import { CodeEditorLanguageServices } from "./ScriptingLanguageServices";
 import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common";
@@ -87,7 +87,7 @@ export class ExecutionContext implements IExecutionContext {
         return this.presentation.isSQLLike;
     }
 
-    public get state(): IExecutionContextsState {
+    public get state(): IExecutionContextState {
         let result: IExecuteResultReference | undefined;
         const data = this.presentation.resultData;
 
@@ -133,6 +133,8 @@ export class ExecutionContext implements IExecutionContext {
             language: this.language,
             result,
             currentHeight: this.presentation.currentHeight,
+            currentSet: this.presentation.currentSet,
+            maximizeResultPane: this.presentation.maximizedResult,
             statements: this.statementSpans,
         };
     }
@@ -266,9 +268,9 @@ export class ExecutionContext implements IExecutionContext {
         return new Position(1, 1);
     }
 
-    public setResult(data?: IExecutionResult, manualHeight?: number): void {
+    public setResult(data?: IExecutionResult, manualHeight?: number, currentSet?: number, maximized?: boolean): void {
         if (!this.disposed) {
-            this.presentation.setResult(data, manualHeight);
+            this.presentation.setResult(data, manualHeight, currentSet, maximized);
         }
     }
 

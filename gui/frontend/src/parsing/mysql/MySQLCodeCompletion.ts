@@ -285,7 +285,7 @@ export class AutoCompletionContext {
             }
         }
 
-        // The this.scanner is now on the leading identifier or dot (if there's no leading id).
+        // The scanner is now on the leading identifier or dot (if there's no leading id).
         let schema = "";
         let table = "";
 
@@ -576,7 +576,9 @@ export class AutoCompletionContext {
                     }
 
                     case MySQLLexer.CLOSE_PAR_SYMBOL: {
-                        if (level > 0) { --level; }
+                        if (level > 0) {
+                            --level;
+                        }
                         break;
                     }
 

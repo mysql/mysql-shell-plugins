@@ -40,7 +40,9 @@ export const main = async (): Promise<void> => {
             extensionDevelopmentPath,
             extensionTestsPath,
             launchArgs: ["--disable-extensions"],
-            extensionTestsEnv: { extensionTestsRunning: "running" } });
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            extensionTestsEnv: { NODE_ENV: "test" },
+        });
     } catch (err) {
         console.error("Failed to run tests");
         process.exit(1);
@@ -51,5 +53,5 @@ export const main = async (): Promise<void> => {
 (async () => {
     await main();
 })().catch((e: Error) => {
-    console.error("\nError during conversion: " + String(e.stack));
+    console.error("\nError while launching tests: " + String(e.stack));
 });

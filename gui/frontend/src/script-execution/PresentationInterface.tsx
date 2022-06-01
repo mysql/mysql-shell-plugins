@@ -67,6 +67,12 @@ export class PresentationInterface {
 
     // The size of the result area after adding data or manual resize by the user.
     public currentHeight?: number;
+
+    public currentSet?: number;
+
+    // A flag which indicates if the result pane shall be maximized.
+    public maximizedResult?: boolean;
+
     public resultData?: IExecutionResult;
     public loadingState = LoadingState.Idle;
 
@@ -188,8 +194,10 @@ export class PresentationInterface {
      *
      * @param data The data that must be visualized in the result (if not given then remove any existing result).
      * @param manualHeight Set to restore the size of the result area, when a user had resized it before.
+     * @param currentSet The index of the currently visible set (tab page), for multi set results.
+     * @param maximized Indicates that the result page is to be maximized.
      */
-    public setResult(data?: IExecutionResult, manualHeight?: number): void {
+    public setResult(data?: IExecutionResult, manualHeight?: number, currentSet?: number, maximized?: boolean): void {
         let element: React.ReactNode | undefined;
 
         if (this.waitTimer) {
@@ -218,7 +226,11 @@ export class PresentationInterface {
                     element = <ResultTabView
                         ref={this.resultRef}
                         resultSets={data}
+                        currentSet={currentSet}
+                        resultPaneMaximized={this.maximizedResult}
                         onResultPageChange={this.handleResultPageChange}
+                        onSetResultPaneViewState={this.handleResultPaneChange}
+                        onSelectTab={this.handleSelectTab}
                     />;
                     this.minHeight = 36;
 
@@ -257,6 +269,9 @@ export class PresentationInterface {
         if (manualHeight) {
             this.currentHeight = manualHeight;
         }
+
+        this.currentSet = currentSet;
+        this.maximizedResult = maximized;
 
         // Do we have a result already?
         if (this.renderTarget) {
@@ -370,7 +385,10 @@ export class PresentationInterface {
                 element = <ResultTabView
                     ref={this.resultRef}
                     resultSets={this.resultData}
+                    resultPaneMaximized={this.maximizedResult}
                     onResultPageChange={this.handleResultPageChange}
+                    onSetResultPaneViewState={this.handleResultPaneChange}
+                    onSelectTab={this.handleSelectTab}
                 />;
 
                 break;
@@ -453,7 +471,10 @@ export class PresentationInterface {
                     element = <ResultTabView
                         ref={this.resultRef}
                         resultSets={this.resultData}
+                        resultPaneMaximized={this.maximizedResult}
                         onResultPageChange={this.handleResultPageChange}
+                        onSetResultPaneViewState={this.handleResultPaneChange}
+                        onSelectTab={this.handleSelectTab}
                     />;
 
                     break;
@@ -642,6 +663,7 @@ export class PresentationInterface {
     protected removeRenderTarget(): void {
         this.renderTarget = undefined;
         this.currentHeight = undefined;
+        this.maximizedResult = undefined;
         this.manuallyResized = false;
     }
 
@@ -650,6 +672,7 @@ export class PresentationInterface {
     }
 
     protected defineRenderTarget(): HTMLDivElement | undefined {
+        // Overridden by descendants.
         return undefined;
     }
 
@@ -724,6 +747,16 @@ export class PresentationInterface {
         }
     };
 
+    private handleResultPaneChange = (maximized: boolean): void => {
+        this.maximizedResult = maximized;
+
+        this.updateRenderTarget();
+    };
+
+    private handleSelectTab = (index: number): void => {
+        this.currentSet = index;
+    };
+
     private handleNewRows = async (data: IResultSetRows): Promise<boolean | React.ReactNode> => {
         if (!this.resultData) {
             return false;
@@ -755,7 +788,10 @@ export class PresentationInterface {
             return <ResultTabView
                 ref={this.resultRef}
                 resultSets={this.resultData}
+                resultPaneMaximized={this.maximizedResult}
                 onResultPageChange={this.handleResultPageChange}
+                onSetResultPaneViewState={this.handleResultPaneChange}
+                onSelectTab={this.handleSelectTab}
             />;
 
         }
@@ -796,7 +832,10 @@ export class PresentationInterface {
                     return <ResultTabView
                         ref={this.resultRef}
                         resultSets={this.resultData}
+                        resultPaneMaximized={this.maximizedResult}
                         onResultPageChange={this.handleResultPageChange}
+                        onSetResultPaneViewState={this.handleResultPaneChange}
+                        onSelectTab={this.handleSelectTab}
                     />;
                 }
             }
