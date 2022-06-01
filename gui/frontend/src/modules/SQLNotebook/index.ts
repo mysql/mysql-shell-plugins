@@ -76,19 +76,19 @@ export interface IEntityBase {
     caption: string;
 }
 
-export interface IModuleDataEntry extends IEntityBase {
+export interface IDBDataEntry extends IEntityBase {
     // The id under which this entry is reachable in the backend.
     moduleDataId: number;
 
-    // The module data ID of the folder in which this entry resides.
+    // The ID of the folder in which this entry resides.
     folderId: number;
 }
 
-export interface IFolderEntity extends IModuleDataEntry {
-    children: IModuleDataEntry[];
+export interface IFolderEntity extends IDBDataEntry {
+    children: IDBDataEntry[];
 }
 
-export interface IDBEditorScriptState extends IModuleDataEntry {
+export interface IDBEditorScriptState extends IDBDataEntry {
     language: EditorLanguage;
 }
 

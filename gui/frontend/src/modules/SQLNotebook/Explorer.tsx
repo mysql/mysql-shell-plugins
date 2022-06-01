@@ -74,7 +74,7 @@ import {
     IAccordionProperties, Menu, ComponentPlacement, IMenuItemProperties, MenuItem, TreeGrid, ITreeGridOptions, Image,
     Tabulator, TabulatorProxy,
 } from "../../components/ui";
-import { EntityType, IDBEditorScriptState, IEntityBase, IModuleDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
+import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
 import { IOpenEditorState } from "./SQLNotebookTab";
 import { ICommErrorEvent } from "../../communication";
@@ -112,7 +112,7 @@ export interface IExplorerProperties extends IComponentProperties {
     // The schema tree as loaded so far.
     schemaTree: ISchemaTreeEntry[];
     editors: IOpenEditorState[];
-    scripts: IModuleDataEntry[];
+    scripts: IDBDataEntry[];
     selectedEntry: string;
     markedSchema: string;
     backend: ShellInterfaceSqlEditor;
@@ -693,7 +693,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         const { backend } = this.props;
         const schemaList: ISchemaTreeEntry[] = [];
 
-        backend.getCatalogObjects("Schema", "").then((names) => {
+        backend.getCatalogObjects("Schema").then((names) => {
             names.forEach((schema) => {
                 const schemaEntry: ISchemaTreeEntry = {
                     type: SchemaTreeType.Schema,
@@ -835,7 +835,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     };
 
     private scriptTreeCellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
-        const data = cell.getData() as IModuleDataEntry;
+        const data = cell.getData() as IDBDataEntry;
 
         let image;
         switch (data.type) {
@@ -1018,7 +1018,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     private handleScriptItemClick = (e: UIEvent, cell: Tabulator.CellComponent): void => {
         const { onSelectItem } = this.props;
 
-        const data = cell.getData() as IModuleDataEntry;
+        const data = cell.getData() as IDBDataEntry;
         if (data.type === EntityType.Script && data.id) {
             onSelectItem?.(data.id);
         }
@@ -1225,17 +1225,17 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
     private handleCellEdited = (cell: Tabulator.CellComponent): void => {
         const { onChangeItem } = this.props;
-        const data = cell.getData() as IModuleDataEntry;
+        const data = cell.getData() as IDBDataEntry;
 
         onChangeItem?.(data.id, cell.getValue() as string);
     };
 
     private handleScriptTreeRowContext = (event: Event, row: Tabulator.RowComponent): void => {
-        const entry = row.getData() as IModuleDataEntry;
+        const entry = row.getData() as IDBDataEntry;
         this.showScriptTreeContextMenu(entry, event as MouseEvent);
     };
 
-    private showScriptTreeContextMenu = (rowData: IModuleDataEntry, e: MouseEvent): boolean => {
+    private showScriptTreeContextMenu = (rowData: IDBDataEntry, e: MouseEvent): boolean => {
         const targetRect = new DOMRect(e.clientX, e.clientY, 2, 2);
 
         switch (rowData.type) {
@@ -1263,7 +1263,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         payload: unknown): boolean => {
         const { id, onContextMenuItemClick } = this.props;
 
-        const data = payload as IModuleDataEntry;
+        const data = payload as IDBDataEntry;
         switch (props.id!) {
             case "selectRowsMenuItem": {
                 void requisitions.execute("explorerShowRows", data);

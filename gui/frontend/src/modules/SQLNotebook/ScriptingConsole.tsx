@@ -26,7 +26,7 @@ import { IPosition, Position } from "monaco-editor";
 
 import { Component, IComponentProperties } from "../../components/ui";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { IEditorStatusInfo, IModuleDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
+import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { ExecutionContext, PresentationInterface, SQLExecutionContext } from "../../script-execution";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
 import { DBType } from "../../supplement/ShellInterface";
@@ -263,7 +263,7 @@ export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
         return Promise.resolve(true);
     };
 
-    private explorerShowRows = (entry: ISchemaTreeEntry | IModuleDataEntry): Promise<boolean> => {
+    private explorerShowRows = (entry: ISchemaTreeEntry | IDBDataEntry): Promise<boolean> => {
         if ("qualifiedName" in entry) {
             const schema = entry.qualifiedName.schema;
             const table = entry.qualifiedName.table;

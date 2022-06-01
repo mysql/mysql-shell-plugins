@@ -28,8 +28,8 @@ import React from "react";
 import Color from "color";
 
 import {
-    ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextsState, KeyCode, KeyMod,
-    languages, Monaco, Position, Range, Selection, IPosition,
+    ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextState, KeyCode, KeyMod,
+    languages, Monaco, Position, Range, IPosition, Selection,
 } from ".";
 import { Component, IComponentProperties } from "..";
 import { ExecutionContext } from "../../../script-execution";
@@ -93,7 +93,7 @@ export type ResultPresentationFactory = (editor: CodeEditor, language: EditorLan
 export interface IEditorPersistentState {
     viewState: ICodeEditorViewState | null;
     model: ICodeEditorModel;
-    contextStates?: IExecutionContextsState[]; // Serializable execution blocks.
+    contextStates?: IExecutionContextState[]; // Serializable execution blocks.
     options: ICodeEditorOptions;
 }
 
@@ -342,7 +342,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             : "off";
         const wordWrapColumn = settings.get("editor.wordWrapColumn", 120);
 
-        const combinedLanguage = language === "msg";
         const guides: Monaco.IGuidesOptions = {
             indentation: showIndentGuides,
         };
@@ -353,10 +352,14 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         };
         effectiveMinimapSettings.enabled = showMinimap;
 
+        let combinedLanguage;
+
         let model: ICodeEditorModel;
         if (state && !state.model.isDisposed()) {
             model = state.model;
+            combinedLanguage = model.getLanguageId() === "msg";
         } else {
+            combinedLanguage = language === "msg";
             model = Monaco.createModel(initialContent ?? "", language) as ICodeEditorModel;
             model.executionContexts =
                 new ExecutionContexts(undefined, settings.get("editor.dbVersion", 80024),
@@ -605,7 +608,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             );
 
             // Add line and set cursor onto the beginning of that line.
-            // TODO: should we avoid getting an undo entry for this operation?
             editor.executeEdits("", [{ range, text }], () => {
                 return [new Selection(lastLineCount + 1, 1, lastLineCount + 1, 1)];
             });
@@ -777,27 +779,28 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         const precondition = "editorTextFocus && !suggestWidgetVisible && !renameInputVisible && !inSnippetMode " +
             "&& !quickFixWidgetVisible";
 
-        if (language === "msg") {
-            editor.addAction({
-                id: "executeCurrentAndAdvance",
-                label: "Execute Block and Advance",
-                keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
-                contextMenuGroupId: "2_execution",
-                precondition,
-                run: () => {
-                    this.executeCurrentContext(false, true);
-                },
-            });
+        const blockBased = language === "msg";
+        editor.addAction({
+            id: "executeCurrentAndAdvance",
+            label: blockBased ? "Execute Block and Advance" : "Execute Script",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
+            contextMenuGroupId: "2_execution",
+            precondition,
+            run: () => {
+                this.executeCurrentContext(false, true);
+            },
+        });
 
-            editor.addAction({
-                id: "executeCurrent",
-                label: "Execute Block",
-                keybindings: [KeyMod.Shift | KeyCode.Enter],
-                contextMenuGroupId: "2_execution",
-                precondition,
-                run: () => { return this.executeCurrentContext(false, false); },
-            });
+        editor.addAction({
+            id: "executeCurrent",
+            label: blockBased ? "Execute Block" : "Execute Script and Move Cursor",
+            keybindings: [KeyMod.Shift | KeyCode.Enter],
+            contextMenuGroupId: "2_execution",
+            precondition,
+            run: () => { return this.executeCurrentContext(false, false); },
+        });
 
+        if (blockBased) {
             editor.addAction({
                 id: "sendBlockUpdates",
                 label: "Update SQL in Original Source File",
@@ -837,7 +840,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 const model = this.model;
                 if (model) {
                     model.executionContexts.cursorPosition = e.position;
-
                 }
             }
 

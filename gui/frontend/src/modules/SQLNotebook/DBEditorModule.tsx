@@ -45,7 +45,7 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails, ShellInterface } from "../../supplement/ShellInterface";
-import { EntityType, IDBEditorScriptState, IModuleDataEntry, ISchemaTreeEntry } from ".";
+import { EntityType, IDBDataEntry, IDBEditorScriptState, ISchemaTreeEntry } from ".";
 import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
@@ -108,7 +108,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     // For unique naming of editors.
     private editorCounter = 0;
 
-    private scriptsTree: IModuleDataEntry[] = [];
+    private scriptsTree: IDBDataEntry[] = [];
 
     private pendingProgress: ReturnType<typeof setTimeout> | null;
 
@@ -859,6 +859,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         if (index > -1) {
             const connectionState = this.connectionState.get(id);
             if (connectionState) {
+                // Save pending changes.
+                connectionState.editors.forEach((editor) => {
+                    this.saveEditorIfNeeded(editor);
+                });
+
                 this.connectionState.delete(id);
                 await connectionState.backend.closeSession();
             }
@@ -926,6 +931,16 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private handleSelectTab = (id: string): void => {
+        const { selectedTab } = this.state;
+
+        const connectionState = this.connectionState.get(selectedTab);
+        if (connectionState) {
+            // Save pending changes.
+            connectionState.editors.forEach((editor) => {
+                this.saveEditorIfNeeded(editor);
+            });
+        }
+
         this.setState({ selectedTab: id });
 
         if (id === "connections") {
@@ -1044,7 +1059,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             if (!newEditor) {
                 // If no open editor exists, try to find a script with that id and open that.
 
-                const script = connectionState.scripts.find((candidate: IModuleDataEntry) => {
+                const script = connectionState.scripts.find((candidate: IDBDataEntry) => {
                     return candidate.id === entryId;
                 }) as IDBEditorScriptState;
 
@@ -1174,7 +1189,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 needsUpdate = true;
             }
 
-            const script = connectionState.scripts.find((candidate: IModuleDataEntry) => {
+            const script = connectionState.scripts.find((candidate: IDBDataEntry) => {
                 return candidate.id === editorId;
             });
 
@@ -1229,7 +1244,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             connectionState.activeEntry = id;
 
-            // Add a module data record for the new script.
+            // Add a data record for the new script.
             const category = ShellInterface.modules.scriptTypeFromLanguage(editorLanguage);
             if (category) {
                 ShellInterface.modules.addData(caption, "", category, "scripts", "")
@@ -1280,7 +1295,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             switch (actionId) {
                 case "deleteScriptMenuItem": {
                     if (params) {
-                        const data = params as IModuleDataEntry;
+                        const data = params as IDBDataEntry;
                         const scriptIndex = connectionState.scripts.findIndex((state) => {
                             return state.id === data.id;
                         });

@@ -771,12 +771,13 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             }
 
             savedState.dbSession = new ShellInterfaceDb();
+            const useXProtocol = savedState.promptDescriptor?.session === "x" ?? false;
             await savedState.dbSession.startSession("shellTab", {
                 dbType: DBType.MySQL,
                 caption: "Shell Tab DB Session",
                 description: "",
                 options: {
-                    scheme: MySQLConnectionScheme.MySQL,
+                    scheme: useXProtocol ? MySQLConnectionScheme.MySQLx : MySQLConnectionScheme.MySQL,
                     user: savedState.lastUserName,
                     password: savedState.lastPassword,
                     host: savedState.promptDescriptor?.host,

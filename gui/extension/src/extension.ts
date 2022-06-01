@@ -31,7 +31,7 @@ import { existsSync, rmSync } from "fs";
 import { join } from "path";
 import { platform, arch } from "os";
 
-import { requisitions } from "../../frontend/src/supplement/Requisitions";
+import { appParameters, requisitions } from "../../frontend/src/supplement/Requisitions";
 
 import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
@@ -283,7 +283,7 @@ export const activate = (context: ExtensionContext): void => {
 
     // Check if this is the initial run of the MySQL Shell extension after installation
     const initialRun = context.globalState.get("MySQLShellInitialRun");
-    if ((!initialRun || initialRun === "") && !process.env.extensionTestsRunning) {
+    if ((!initialRun || initialRun === "") && !appParameters.testsRunning) {
         void context.globalState.update("MySQLShellInitialRun", currentVersion);
 
         void commands.executeCommand("msg.runWelcomeWizard");

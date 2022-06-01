@@ -22,14 +22,12 @@
  */
 
 import * as assert from "assert";
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from "vscode";
+
 import { showStatusText, statusBarItem } from "../../extension";
 
-suite("Extension Test Suite", () => {
-    //void vscode.window.showInformationMessage("Start all tests.");
+suite("Extension Test Suite", function () {
+    this.timeout(10000);
 
     test("wait for extension", async () => {
         const ext = vscode.extensions.getExtension("Oracle.mysql-shell-for-vs-code");

@@ -41,7 +41,7 @@ import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers";
 import { ScriptingConsole } from "./ScriptingConsole";
-import { IEntityBase, EntityType, ISchemaTreeEntry, IModuleDataEntry, SchemaTreeType } from ".";
+import { IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType } from ".";
 import { StandaloneScriptEditor } from "./StandaloneScriptEditor";
 import { IPosition } from "../../components/ui/CodeEditor";
 import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../script-execution";
@@ -86,7 +86,7 @@ export interface ISQLNotebookTabPersistentState {
     sqlMode: string;
 
     editors: IOpenEditorState[];
-    scripts: IModuleDataEntry[];
+    scripts: IDBDataEntry[];
     schemaTree: ISchemaTreeEntry[];
     explorerState: Map<string, IExplorerSectionState>;
 

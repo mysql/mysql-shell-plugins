@@ -24,12 +24,12 @@
 import * as path from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 
-import { EntityType, IDBEditorScriptState, IModuleDataEntry } from "../../../frontend/src/modules/SQLNotebook";
+import { EntityType, IDBEditorScriptState, IDBDataEntry } from "../../../frontend/src/modules/SQLNotebook";
 
 export class ScriptTreeItem extends TreeItem {
     public contextValue = "script";
 
-    public constructor(public entry: IModuleDataEntry, command?: Command) {
+    public constructor(public entry: IDBDataEntry, command?: Command) {
         super(entry.caption, TreeItemCollapsibleState.None);
 
         if (entry.type === EntityType.Script) {

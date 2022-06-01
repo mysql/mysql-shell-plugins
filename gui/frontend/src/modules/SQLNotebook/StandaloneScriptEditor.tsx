@@ -27,7 +27,7 @@ import { IPosition, Position } from "monaco-editor";
 import {
     Component, Container, IComponentProperties, IComponentState, ISplitterPaneSizeInfo, Orientation, SplitContainer,
 } from "../../components/ui";
-import { ISchemaTreeEntry, languageMap } from ".";
+import { IEditorStatusInfo, ISchemaTreeEntry } from ".";
 import { ExecutionContext, PresentationInterface } from "../../script-execution";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface";
 import { requisitions } from "../../supplement/Requisitions";
@@ -41,8 +41,9 @@ export interface IStandaloneScriptEditorProperties extends IComponentProperties 
 }
 
 interface IStandaloneScriptEditorState extends IComponentState {
+    // These two fields are set via setState in the StandalonePresentationInterface.
     showResultPane: boolean;
-    resultPaneHeight: number;
+    maximizeResultPane: boolean;
 }
 
 export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorProperties, IStandaloneScriptEditorState> {
@@ -50,12 +51,14 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
     private editorRef = React.createRef<CodeEditor>();
     private resultRef = React.createRef<HTMLDivElement>();
 
+    private presentationInterface?: PresentationInterface;
+
     public constructor(props: IStandaloneScriptEditorProperties) {
         super(props);
 
         this.state = {
             showResultPane: false,
-            resultPaneHeight: 300,
+            maximizeResultPane: false,
         };
 
         this.addHandledProperties("editorState", "onScriptExecution");
@@ -64,11 +67,11 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
     public componentDidMount(): void {
         requisitions.register("explorerDoubleClick", this.handleExplorerDoubleClick);
 
-        this.updateStatusbar();
+        this.sendStatusInfo();
     }
 
     public componentDidUpdate(): void {
-        this.updateStatusbar();
+        this.sendStatusInfo();
     }
 
     public componentWillUnmount(): void {
@@ -84,9 +87,10 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
 
     public render(): React.ReactNode {
         const { editorState, onScriptExecution } = this.props;
-        const { showResultPane, resultPaneHeight } = this.state;
+        const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
+        const resultPaneHeight = this.presentationInterface?.currentHeight ?? 300;
 
         return (
             <SplitContainer
@@ -95,10 +99,10 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
                 panes={[
                     {
                         id: "editorPane",
-                        minSize: 200,
-                        snap: true,
-                        stretch: true,
-                        resizable: showResultPane,
+                        minSize: maximizeResultPane ? 0 : 200,
+                        initialSize: maximizeResultPane ? 0 : undefined,
+                        stretch: !maximizeResultPane,
+                        resizable: showResultPane && !maximizeResultPane,
                         content: <CodeEditor
                             ref={this.editorRef}
                             state={editorState}
@@ -130,7 +134,7 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
                         id: "resultPane",
                         minSize: showResultPane ? 200 : 0,
                         initialSize: showResultPane ? resultPaneHeight : 0,
-                        snap: true,
+                        stretch: maximizeResultPane,
                         content: <Container
                             innerRef={this.resultRef}
                             className="renderTarget"
@@ -183,51 +187,35 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
         return Promise.resolve(true);
     };
 
-    private updateStatusbar = (): void => {
+    private sendStatusInfo = (): void => {
         if (this.editorRef.current) {
             const { editorState } = this.props;
             const position = editorState.viewState?.cursorState[0].position;
             const language = editorState.model.getLanguageId() as EditorLanguage;
 
-            let text = "";
-            if (editorState.options.insertSpaces) {
-                text = `Spaces: ${editorState.options.indentSize ?? 4}`;
-            } else {
-                text = `Tab Size: ${editorState.options.tabSize ?? 4}`;
-            }
+            const info: IEditorStatusInfo = {
+                insertSpaces: editorState.options.insertSpaces,
+                indentSize: editorState.options.indentSize ?? 4,
+                tabSize: editorState.options.tabSize ?? 4,
+                line: position?.lineNumber ?? 1,
+                column: position?.column ?? 1,
+                language,
+                eol: editorState.options.defaultEOL || "LF",
+            };
 
-            void requisitions.execute("updateStatusbar", [
-                {
-                    id: "editorPosition",
-                    visible: true,
-                    text: `Ln ${position?.lineNumber || 1}, Col ${position?.column || 1}`,
-                },
-                {
-                    id: "editorLanguage",
-                    visible: true,
-                    text: languageMap.get(language) ?? "Unknown",
-                },
-                {
-                    id: "editorIndent",
-                    visible: true,
-                    text,
-                },
-                {
-                    id: "editorEOL",
-                    visible: true,
-                    text: editorState.options.defaultEOL || "LF",
-                },
-            ]);
+            void requisitions.execute("editorInfoUpdated", info);
         }
     };
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
-        return new StandalonePresentationInterface(this, editor, language, this.resultRef);
+        this.presentationInterface = new StandalonePresentationInterface(this, editor, language, this.resultRef);
+
+        return this.presentationInterface;
     };
 
     private handlePaneResized = (first: ISplitterPaneSizeInfo, second: ISplitterPaneSizeInfo): void => {
-        if (second.paneId === "resultPane") {
-            this.setState({ resultPaneHeight: second.size });
+        if (second.paneId === "resultPane" && this.presentationInterface) {
+            this.presentationInterface.currentHeight = second.size;
         }
     };
 }

@@ -24,15 +24,16 @@
 import { shallow } from "enzyme";
 import React from "react";
 import { ThemePreview } from "../../../../components/Theming/Preview/ThemePreview";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("ThemePreview testing", () => {
 
-    // overflow buffer
+    // Disabled because it runs into max stack depth.
     xit("Render test", () => {
         const component = shallow(
             <ThemePreview />,
         );
-        expect(component).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
     });
 });
 
