@@ -73,18 +73,18 @@ export class DialogHost extends Component {
             />,
         ];
 
-        let ref = React.createRef<ValueDialogBase>();
-        this.dialogRefs.set(DialogType.MrsService, ref);
+        const ref1 = React.createRef<MrsServiceDialog>();
+        this.dialogRefs.set(DialogType.MrsService, ref1);
         dialogs.push(<MrsServiceDialog
             key="mrsServiceDialog"
-            ref={ref as React.RefObject<MrsServiceDialog>}
+            ref={ref1}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsService)}
         />);
 
-        ref = React.createRef<ValueDialogBase>();
-        this.dialogRefs.set(DialogType.MrsSchema, ref);
+        const ref2 = React.createRef<MrsSchemaDialog>();
+        this.dialogRefs.set(DialogType.MrsSchema, ref2);
         dialogs.push(<MrsSchemaDialog
-            ref={ref as React.RefObject<MrsSchemaDialog>}
+            ref={ref2}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsSchema)}
         />);
 
@@ -138,7 +138,7 @@ export class DialogHost extends Component {
     /**
      * Configures and runs a value edit dialog with a single section to let the user input a single value.
      *
-     * Support entries in the request are:
+     * Supported entries in the request are:
      *   - values.prompt A caption for the input field.
      *   - request.data: A dictionary that is forwarded to the response handler.
      *
@@ -151,6 +151,7 @@ export class DialogHost extends Component {
                     caption: request.values?.prompt as string,
                     value: "",
                     span: 8,
+                    options: [DialogValueOption.AutoFocus],
                 },
             },
         };
@@ -173,7 +174,7 @@ export class DialogHost extends Component {
     /**
      * Configures and runs a confirmation dialog.
      *
-     * Support entries in the request are:
+     * Supported entries in the request are:
      *   - parameters.prompt The text to show for the confirmation.
      *   - parameters.accept Optional text for the accept button (default: "OK").
      *   - parameters.refuse Optional text for the refuse button (default: "Cancel").
@@ -200,7 +201,7 @@ export class DialogHost extends Component {
     /**
      * Configures and runs a selection dialog.
      *
-     * Support entries in the request are:
+     * Supported entries in the request are:
      *   - parameters.prompt The text to show for the confirmation.
      *   - parameters.default Optional text for the button that should be auto focused.
      *   - parameters.options The list of values from which one must be selected.
