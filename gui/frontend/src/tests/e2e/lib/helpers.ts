@@ -230,7 +230,7 @@ export const getResultStatus = async (driver: WebDriver, blockNbr: number, isSel
 
             return results[blockNbr - 1] !== undefined;
         },
-        7000,
+        10000,
         `Result Status is undefined (block number ${blockNbr})`,
     );
 
@@ -1081,21 +1081,33 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig
     await dialog[0].findElement(By.id("ok")).click();
 };
 
-export const setFeedbackRequested = async (driver: WebDriver, dbConfig: IDbConfig, value: string): Promise<void> => {
-    const feedbackDialog = await driver.wait(until.elementsLocated(By.css(".valueEditDialog")),
-        500, "No Feedback Request dialog was found");
+export const setConfirmDialog = async (driver: WebDriver, dbConfig: IDbConfig, value: string): Promise<void> => {
+    const confirmDialog = await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
+        500, "No confirm dialog was found");
 
-    expect(await feedbackDialog[0].findElement(By.css(".title label")).getText()).toBe("Feedback Requested");
+    expect(await confirmDialog[0].findElement(By.css(".title label")).getText()).toBe("Confirm");
 
-    expect(await feedbackDialog[0].findElement(By.css(".valueTitle")).getText())
-        .toContain(`${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}`);
+    expect(await confirmDialog[0].findElement(By.id("dialogMessage")).getText())
+        .toContain(
+            `Save password for '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}'?`);
 
-    expect(await feedbackDialog[0].findElement(By.css(".valueTitle")).getText())
-        .toContain("? [Y]es/[N]o/Ne[v]er (default No):");
+    const noBtn = await confirmDialog[0].findElement(By.id("refuse"));
+    const yesBtn = await confirmDialog[0].findElement(By.id("accept"));
+    const neverBtn = await confirmDialog[0].findElement(By.id("alternative"));
 
-    const input = await feedbackDialog[0].findElement(By.css("input"));
-    await input.sendKeys(value);
-    await feedbackDialog[0].findElement(By.id("ok")).click();
+    switch(value) {
+        case "yes":
+            await yesBtn.click();
+            break;
+        case "no":
+            await noBtn.click();
+            break;
+        case "never":
+            await neverBtn.click();
+            break;
+        default:
+            break;
+    }
 };
 
 export const clickDBEditorContextItem = async (driver: WebDriver, itemName: string): Promise<void> => {
@@ -1283,4 +1295,62 @@ export const initConDialog = async (driver: WebDriver): Promise <void> => {
     const dialog = driver.findElement(By.css(".valueEditDialog"));
     await dialog.findElement(By.id("cancel")).click();
     await driver.wait(until.stalenessOf(dialog), 2000, "Connection dialog is still displayed");
+};
+
+export const expandCollapseSchemaMenus = async ( driver: WebDriver, menu: String, expand: boolean,
+    retries: number): Promise<void> => {
+    if (retries === 3) {
+        throw new Error("Error on expanding collapse");
+    }
+    try {
+        let elToClick;
+        let elToVerify;
+
+        switch(menu) {
+            case "open editors":
+                elToClick = await driver.findElement(
+                    By.id("editorSectionHost")).findElement(By.css("div.container.section label"));
+                elToVerify = await driver.findElement(By.id("standardConsole"));
+                break;
+            case "schemas":
+                elToClick = await driver.findElement(
+                    By.id("schemaSectionHost")).findElement(By.css("div.container.section label"));
+                elToVerify = await driver.findElement(
+                    By.id("schemaSectionHost")).findElement(By.css(".tabulator-table"));
+
+                break;
+            case "admin":
+                elToClick = await driver.findElement(
+                    By.id("adminSectionHost")).findElement(By.css("div.container.section label"));
+                elToVerify = await driver.findElement(
+                    By.id("adminSectionHost")).findElement(By.id("serverStatus"));
+                break;
+            case "scripts":
+                elToClick = await driver.findElement(
+                    By.id("scriptSectionHost")).findElement(By.css("div.container.section label"));
+                elToVerify = await driver.findElement(
+                    By.id("scriptSectionHost")).findElement(By.css(".tabulator-table"));
+                break;
+            default:
+                break;
+        }
+        await elToClick?.click();
+
+        if (!expand) {
+            await driver.wait(
+                until.elementIsNotVisible(elToVerify as WebElement),
+                3000,
+                "Element is still visible",
+            );
+        } else {
+            await driver.wait(
+                until.elementIsVisible(elToVerify as WebElement),
+                3000,
+                "Element is still not visible",
+            );
+        }
+    } catch (e) {
+        await driver.sleep(1000);
+        await expandCollapseSchemaMenus(driver, menu, expand, retries + 1);
+    }
 };

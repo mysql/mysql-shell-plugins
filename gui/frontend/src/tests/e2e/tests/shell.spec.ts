@@ -37,7 +37,7 @@ import {
     shellGetTotalRows,
     shellGetLangResult,
     setDBEditorPassword,
-    setFeedbackRequested,
+    setConfirmDialog,
     IDbConfig,
 } from "../lib/helpers";
 
@@ -184,7 +184,7 @@ describe("MySQL Shell Sessions", () => {
 
             await setDBEditorPassword(driver, dbConfig);
 
-            await setFeedbackRequested(driver, dbConfig, "N");
+            await setConfirmDialog(driver, dbConfig, "no");
 
             const result = await shellGetResult(driver);
 
@@ -584,8 +584,8 @@ describe("MySQL Shell Sessions", () => {
         }
     });
 
-    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34139151
-    xit("Change schemas using menu", async () => {
+    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34241454
+    it("Change schemas using menu", async () => {
         try {
             const editor = await driver.findElement(By.id("shellEditorHost"));
 

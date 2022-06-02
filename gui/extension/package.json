@@ -1071,7 +1071,7 @@
         "mocha": "9.2.0",
         "mochawesome": "7.1.3",
         "typescript": "4.5.2",
-        "vscode-extension-tester": "4.2.3"
+        "vscode-extension-tester": "4.2.4"
     },
     "scripts": {
         "build-dev-package": "vsce package",
@@ -1083,7 +1083,8 @@
         "e2e-tests-setup": "extest get-vscode -s tests/e2e/test-resources && extest get-chromedriver -s tests/e2e/test-resources && extest install-vsix -s tests/e2e/test-resources -f",
         "e2e-tests-local-setup": "extest setup-tests -s tests/e2e/test-resources -e tests/e2e/test-resources/test-extension -t stable",
         "e2e-tests-local": "tsc -p tests/e2e/ && extest run-tests -s tests/e2e/test-resources -e tests/e2e/test-resources/test-extension -t stable -f ./tests/e2e/output/tests/*.js",
-        "e2e-tests": "tsc -p tests/e2e/ && extest run-tests -s tests/e2e/test-resources ./tests/e2e/output/tests/*.js",
+        "e2e-tests": "tsc -p tests/e2e/ && extest run-tests -u -s tests/e2e/test-resources ./tests/e2e/output/tests/*.js",
+        "e2e-report": "marge mochawesome-report/test-report.json",
         "test": "node ./output/extension/src/test/runTest.js"
     }
 }

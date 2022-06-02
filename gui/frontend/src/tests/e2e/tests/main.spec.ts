@@ -213,7 +213,8 @@ describe("Main pages", () => {
             ).toBeDefined();
 
             expect(
-                await settingsValueList.findElement(By.xpath("//button[contains(@requestid, 'showThemeEditor')]")),
+                await settingsValueList.findElement(
+                    By.xpath("//button[contains(@caption, 'Click to Open the Theme Editor')]")),
             ).toBeDefined();
 
         //click code editor
