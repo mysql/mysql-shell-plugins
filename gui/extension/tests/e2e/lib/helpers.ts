@@ -41,8 +41,7 @@ import {
 import { expect } from "chai";
 import { keyboard, Key } from "@nut-tree/nut-js";
 import { ChildProcess, spawn, execSync } from "child_process";
-import { join } from "path";
-import { platform, homedir } from "os";
+import { platform } from "os";
 let treeSection: DefaultTreeSection;
 
 export const moreActionsContextMenu = new Map<string, Number> ([
@@ -65,7 +64,7 @@ export const connContextMenu = new Map<string, Number> ([
 
 export const schemaContextMenu = new Map<string, Number> ([
     ["Copy To Clipboard", 3],
-    ["Drop Schema...", 4],
+    ["Drop Schema...", 5],
 ]);
 
 export const restContextMenu = new Map<string, Number> ([
@@ -378,8 +377,6 @@ export const startServer = async (driver: WebDriver): Promise<ChildProcess> => {
             detached: "true",
             // eslint-disable-next-line @typescript-eslint/naming-convention
             PATH: process.env.PATH,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            MYSQLSH_USER_CONFIG_HOME: join(homedir(), ".mysqlsh"),
             stdio: "inherit",
         },
     });
@@ -738,7 +735,6 @@ export const writePassword = async (driver: WebDriver): Promise<void> => {
 };
 
 export const installCertificate = async (driver: WebDriver): Promise<void> => {
-
     const editorView = new EditorView();
     await driver.wait(async () => {
         const tabs = await editorView.getOpenTabs();
@@ -756,14 +752,15 @@ export const installCertificate = async (driver: WebDriver): Promise<void> => {
     expect(welcome).to.exist;
 
     await driver.findElement(By.id("nextBtn")).click();
-    const h3 = await driver.wait(until.elementLocated(By.css("#page2 h3")));
-    expect(await h3.getText()).to.equals("Installation of Certificate.");
-    await driver.findElement(By.id("nextBtn")).click();
 
+    const h3 = await driver.wait(until.elementLocated(By.css("#page3 h3")), 5000, "Title was not found");
+    expect(await h3.getText()).to.equals("Installation of Certificate.");
+
+    await driver.findElement(By.id("nextBtn")).click();
     await waitForSystemDialog(driver);
 
     await writePassword(driver);
-    const installResult = await driver.findElement(By.css("#page4 h3"));
+    const installResult = await driver.findElement(By.css("#page5 h3"));
     await driver.wait(until.elementTextContains(installResult, "Installation Completed"), 5000,
         "Installation was not completed");
 
@@ -787,7 +784,7 @@ export const waitForShell = async (driver: WebDriver): Promise<void> => {
 };
 
 const isBottomBarVisible = async (driver: WebDriver): Promise<boolean> => {
-    const bottomBar = await driver.findElement(By.id("workbench\.parts\.panel"));
+    const bottomBar = await driver.findElement(By.id("workbench.parts.panel"));
     const parentNode = await driver.executeScript("return arguments[0].parentNode", bottomBar);
     const parentNodeClasses = await (parentNode as WebElement).getAttribute("class");
     const arrayClass = parentNodeClasses.split(" ");
@@ -796,7 +793,6 @@ const isBottomBarVisible = async (driver: WebDriver): Promise<boolean> => {
     } else {
         return false;
     }
-
 };
 
 export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> => {
@@ -908,4 +904,23 @@ export const existsTreeElement = async (driver: WebDriver, section: string, el: 
     const els = await sec?.findElements(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
 
     return els.length > 0;
+};
+
+export const reloadSection = async (driver: WebDriver, sectionName: string): Promise<void> => {
+    const section = await getLeftSection(driver, sectionName);
+    await section.click();
+    let btnName = "";
+    switch (sectionName) {
+        case "DATABASE":
+            btnName = "Reload the connection list";
+            break;
+        case "ORACLE CLOUD INFRASTRUCTURE":
+            btnName = "Reload the OCI Profile list";
+            break;
+        default:
+            break;
+
+    }
+    const reloadConnsBtn = await getLeftSectionButton(driver, sectionName, btnName);
+    await reloadConnsBtn.click();
 };

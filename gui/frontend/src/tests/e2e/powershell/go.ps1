@@ -116,21 +116,34 @@ try{
         Throw "Could not get Selenium pid"
     }
     
+    #MANAGE THE RE-RUN
+    $jsonReporter = Get-Content -Path "$basePath\jesthtmlreporter.config.json" | Out-String | ConvertFrom-Json
+    if( !(Test-Path -Path "$basePath\src\tests\e2e\test-report.html") ){
+        $jsonReporter.append = $false
+    }
+    else {
+        $jsonReporter.append = $true
+        $jsonReporter.pageTitle += " RE-RUN FAILED TESTS" 
+    }
+
+    $jsonReporter | ConvertTo-Json -Depth 1 | Set-Content "$basePath\jesthtmlreporter.config.json"
+    
     if($env:RERUN){
         #CHECK IF THERE IS A TEST-REPORT
         if( Test-Path -Path "$basePath\src\tests\e2e\test-report.html" ){
             writeMsg "Found an existing test report"
-            Rename-Item -Path "$basePath\src\tests\e2e\test-report.html" -NewName "prev-test-report.html"
 
             ###GET FAILED TESTS###
-            writeMsg "Getting failed tests..."
-            $html = parseHTML "$basePath\src\tests\e2e\prev-test-report.html"
-            $size = $html.body.document.querySelectorAll(".failed .test-title").Length
+            writeMsg "Getting failed tests from last run..."
+            $html = parseHTML "$basePath\src\tests\e2e\test-report.html"
+            $lastRun = $html.body.document.querySelectorAll("#jesthtml-content")
+            $lastRunSize = $lastRun.Length
+            $size = $lastRun[$lastRunSize -1].querySelectorAll(".failed .test-title").Length
 
             if($size -gt 0){
                 $failed = "`""
                 for($i=0; $i -le $size-1; $i++){
-                    $failedTest = $html.body.document.querySelectorAll(".failed .test-title").item($i).InnerText
+                    $failedTest = $lastRun.querySelectorAll(".failed .test-title").item($i).InnerText
                     writeMsg "- $failedTest"
                     $failed += $failedTest
                     if($i -ne $size-1){
@@ -179,106 +192,6 @@ try{
             $files = Get-ChildItem -Path $screenshots
             writeMsg "Adding screenshots to html-report ($($files.Length))" "-NoNewLine"
             Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-report" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\addScreenshots.log" -RedirectStandardError "$env:WORKSPACE\addScreenshotsErr.log"
-            writeMsg "DONE"
-        }
-    }
-    
-    if($env:RERUN){
-        if( Test-Path -Path "$basePath\src\tests\e2e\prev-test-report.html" ){
-            #MERGE HTML REPORTS
-            writeMsg "Merging HTML reports..." "-NoNewLine"
-            $prevHtml = parseHTML "$basePath\src\tests\e2e\prev-test-report.html"
-            $curHtml = parseHTML "$basePath\src\tests\e2e\test-report.html"
-            $failed = $failed.replace('"', '')
-            $failedTests = $failed -split "\|"
-    
-            $htmlToSave = @()
-    
-            #GET THE LATEST RESULTS FROM LATEST REPORT
-            $size = $curHtml.body.document.querySelectorAll(".test-result").Length
-            for($i=0; $i -le $size-1; $i++){
-                if( $failedTests -contains $curHtml.body.document.querySelectorAll(".test-result").item($i).querySelector(".test-title").InnerText ){
-                    $htmlToSave += $curHtml.querySelectorAll(".test-result").item($i).outerHTML
-                }
-            }
-    
-            #SET LATEST RESULTS ON PREVIOUS REPORT
-            $size = $prevHtml.body.document.querySelectorAll(".test-result").Length
-            for($i=0; $i -le $size-1; $i++){
-                $item = $prevHtml.body.document.querySelectorAll(".test-result").item($i).querySelector(".test-title").InnerText
-                if( $failedTests -contains $item ){
-                    $prevHtml.querySelectorAll(".test-result").item($i).outerHTML = $htmlToSave | where { $_ -eq "*$item*" }
-                }
-            }
-    
-            #GET TEST-SUMMARY/SUITE-SUMMARY FROM LATEST REPORT
-            $curTestsPassed = [int]($curHtml.body.document.querySelector("#test-summary .summary-passed").InnerText).replace(" passed", "")
-            $prevTestsPassed = [int]($prevHtml.body.document.querySelector("#test-summary .summary-passed").InnerText).replace(" passed", "")
-            $prevTestsFailed = [int]($prevHtml.body.document.querySelector("#test-summary .summary-failed").InnerText).replace(" failed", "")
-    
-            $curSuitePassed = [int]($curHtml.body.document.querySelector("#suite-summary .summary-passed").InnerText).replace(" passed", "")
-            $prevSuitePassed = [int]($prevHtml.body.document.querySelector("#suite-summary .summary-passed").InnerText).replace(" passed", "")
-            $prevSuiteFailed = [int]($prevHtml.body.document.querySelector("#suite-summary .summary-failed").InnerText).replace(" failed", "")
-    
-            $totalTestsPassed = $prevTestsPassed + $curTestsPassed
-            $totalTestsFailed = $prevTestsFailed - $curTestsPassed
-    
-            $totalSuitePassed = $prevSuitePassed + $curSuitePassed
-            $totalSuiteFailed = $prevSuiteFailed - $curSuitePassed
-    
-            $prevHtml.body.document.querySelector("#test-summary .summary-passed").innerHTML = $prevHtml.body.document.querySelector("#test-summary .summary-passed").innerHTML -replace '(\d+) passed', "$totalTestsPassed passed"
-            $prevHtml.body.document.querySelector("#test-summary .summary-failed").innerHTML = $prevHtml.body.document.querySelector("#test-summary .summary-failed").innerHTML -replace '(\d+) failed', "$totalTestsFailed failed"
-            
-            $prevHtml.body.document.querySelector("#suite-summary .summary-passed").innerHTML = $prevHtml.body.document.querySelector("#suite-summary .summary-passed").innerHTML -replace '(\d+) passed', "$totalSuitePassed passed"
-            $prevHtml.body.document.querySelector("#suite-summary .summary-failed").innerHTML = $prevHtml.body.document.querySelector("#suite-summary .summary-failed").innerHTML -replace '(\d+) failed', "$totalSuiteFailed failed"
-    
-            if($totalTestsPassed -gt 0){ 
-                if($prevHtml.body.document.querySelector("#test-summary .summary-passed").className -like "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#test-summary .summary-passed").className = $prevHtml.body.document.querySelector("#test-summary .summary-passed").className.replace(" summary-empty", "")
-                }
-            }
-            else{
-                if($prevHtml.body.document.querySelector("#test-summary .summary-passed").className -notlike "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#test-summary .summary-passed").className += " summary-empty"
-                }
-            }
-    
-            if($totalTestsFailed -gt 0){ 
-                if($prevHtml.body.document.querySelector("#test-summary .summary-failed").className -like "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#test-summary .summary-failed").className = $prevHtml.body.document.querySelector("#test-summary .summary-failed").className.replace(" summary-empty", "")
-                }
-            }
-            else{
-                if($prevHtml.body.document.querySelector("#test-summary .summary-failed").className -notlike "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#test-summary .summary-failed").className += " summary-empty"
-                }
-            }
-    
-            if($totalSuitePassed -gt 0){ 
-                if($prevHtml.body.document.querySelector("#suite-summary .summary-passed").className -like "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#suite-summary .summary-passed").className = $prevHtml.body.document.querySelector("#suite-summary .summary-passed").className.replace(" summary-empty", "")
-                }
-            }
-            else{
-                if($prevHtml.body.document.querySelector("#suite-summary .summary-passed").className -notlike "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#suite-summary .summary-passed").className += " summary-empty"
-                }
-            }
-    
-            if($totalSuiteFailed -gt 0){ 
-                if($prevHtml.body.document.querySelector("#suite-summary .summary-failed").className -like "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#suite-summary .summary-failed").className = $prevHtml.body.document.querySelector("#suite-summary .summary-failed").className.replace(" summary-empty", "")
-                }
-            }
-            else{
-                if($prevHtml.body.document.querySelector("#suite-summary .summary-failed").className -notlike "*summary-empty*"){
-                    $prevHtml.body.document.querySelector("#suite-summary .summary-failed").className += " summary-empty"
-                }
-            }
-        
-            Remove-Item -Path "$basePath\src\tests\e2e\test-report.html" -Force
-            $prevHtml.documentElement.outerHTML | Out-File "$basePath\src\tests\e2e\test-report.html" -Force
-            Remove-Item -Path "$basePath\src\tests\e2e\prev-test-report.html" -Force
             writeMsg "DONE"
         }
     }

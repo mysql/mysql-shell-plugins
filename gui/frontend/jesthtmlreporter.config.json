@@ -2,6 +2,7 @@
 	"pageTitle": "MySQL Shell GUI Tests Report",
 	"includeFailureMsg": true,
 	"styleOverridePath": "style.css",
-	"outputPath": "src/tests/e2e/test-report.html"	
+	"outputPath": "src/tests/e2e/test-report.html",
+	"append": false
 }
 

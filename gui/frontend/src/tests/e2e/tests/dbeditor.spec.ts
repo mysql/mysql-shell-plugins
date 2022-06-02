@@ -56,12 +56,13 @@ import {
     getGraphHost,
     clickDBEditorContextItem,
     closeDBconnection,
-    setFeedbackRequested,
+    setConfirmDialog,
     IDbConfig,
     setDBEditorStartLang,
     initConDialog,
     existsScript,
     writeSQL,
+    expandCollapseSchemaMenus,
 } from "../lib/helpers";
 
 const dbConfig: IDbConfig = {
@@ -91,6 +92,42 @@ const dbConfig1: IDbConfig = {
     port: process.env.DBPORT,
     username: process.env.DBUSERNAME1,
     password: process.env.DBUSERNAME1,
+    schema: "sakila",
+    showAdvanced: false,
+    sslMode: "Disable",
+    compression: "",
+    timeout: "",
+    attributes: "",
+    portX: "",
+};
+
+const dbConfig2: IDbConfig = {
+    dbType: "MySQL",
+    caption: "conn",
+    description: "random connection",
+    hostname: process.env.DBHOSTNAME,
+    protocol: "mysql",
+    port: process.env.DBPORT,
+    username: process.env.DBUSERNAME2,
+    password: process.env.DBUSERNAME2,
+    schema: "sakila",
+    showAdvanced: false,
+    sslMode: "Disable",
+    compression: "",
+    timeout: "",
+    attributes: "",
+    portX: "",
+};
+
+const dbConfig3: IDbConfig = {
+    dbType: "MySQL",
+    caption: "conn",
+    description: "random connection",
+    hostname: process.env.DBHOSTNAME,
+    protocol: "mysql",
+    port: process.env.DBPORT,
+    username: process.env.DBUSERNAME3,
+    password: process.env.DBUSERNAME3,
     schema: "sakila",
     showAdvanced: false,
     sslMode: "Disable",
@@ -413,7 +450,7 @@ describe("DB Editor", () => {
 
     });
 
-    it("Feedback Requested - Save password", async () => {
+    it("Confirm dialog - Save password", async () => {
         try {
             await driver.findElement(By.id("gui.sqleditor")).click();
             dbConfig1.caption += String(new Date().valueOf());
@@ -426,7 +463,7 @@ describe("DB Editor", () => {
 
             await setDBEditorPassword(driver, dbConfig1);
 
-            await setFeedbackRequested(driver, dbConfig1, "Y");
+            await setConfirmDialog(driver, dbConfig1, "yes");
 
 
             expect(await (await getConnectionTab(driver, "1")).getText())
@@ -441,6 +478,79 @@ describe("DB Editor", () => {
 
             expect(await (await getConnectionTab(driver, "1")).getText())
                 .toBe(dbConfig1.caption);
+
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Confirm dialog - Do not save password", async () => {
+        try {
+            await driver.findElement(By.id("gui.sqleditor")).click();
+            dbConfig2.caption += String(new Date().valueOf());
+            await createDBconnection(driver, dbConfig2, false, true);
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, dbConfig2.caption),
+            );
+
+            await setDBEditorPassword(driver, dbConfig2);
+
+            await setConfirmDialog(driver, dbConfig2, "no");
+
+
+            expect(await (await getConnectionTab(driver, "1")).getText())
+                .toBe(dbConfig2.caption);
+
+            await closeDBconnection(driver, dbConfig2.caption);
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, dbConfig2.caption),
+            );
+
+            await driver.wait(until.elementLocated(By.css(".passwordDialog")),
+                3000, "Confirm dialog was not displayed");
+
+
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Confirm dialog - Never save password", async () => {
+        try {
+            await driver.findElement(By.id("gui.sqleditor")).click();
+            dbConfig3.caption += String(new Date().valueOf());
+            await createDBconnection(driver, dbConfig3, false, true);
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, dbConfig3.caption),
+            );
+
+            await setDBEditorPassword(driver, dbConfig3);
+
+            await setConfirmDialog(driver, dbConfig3, "never");
+
+            expect(await (await getConnectionTab(driver, "1")).getText())
+                .toBe(dbConfig3.caption);
+
+            await closeDBconnection(driver, dbConfig3.caption);
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await getDB(driver, dbConfig3.caption),
+            );
+
+            await setDBEditorPassword(driver, dbConfig3);
+
+            expect(await (await getConnectionTab(driver, "1")).getText())
+                .toBe(dbConfig3.caption);
+
 
         } catch (e) {
             testFailed = true;
@@ -706,6 +816,7 @@ describe("DB Editor", () => {
 
     });
 
+    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34237038
     it("Remove a database connection", async () => {
         try {
 
@@ -916,7 +1027,7 @@ describe("DB Editor", () => {
 
             try {
                 await setDBEditorPassword(driver, dbConfig);
-                await setFeedbackRequested(driver, dbConfig, "Y");
+                await setConfirmDialog(driver, dbConfig, "yes");
             } catch (e) {
                 //continue
             }
@@ -974,7 +1085,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1009,7 +1120,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1070,7 +1181,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1135,7 +1246,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1247,7 +1358,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1349,7 +1460,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1433,7 +1544,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1444,6 +1555,10 @@ describe("DB Editor", () => {
 
                 expect(await (await getConnectionTab(driver, "1")).getText())
                     .toBe(dbConfig.caption);
+
+                await expandCollapseSchemaMenus(driver, "open editors", false, 0);
+                await expandCollapseSchemaMenus(driver, "admin", false, 0);
+                await expandCollapseSchemaMenus(driver, "scripts", false, 0);
 
                 const sakila = await getSchemaObject(driver, "Schema", "sakila");
 
@@ -1523,7 +1638,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1570,7 +1685,7 @@ describe("DB Editor", () => {
                     .sendKeys("console.log('Hello JavaScript')");
 
                 await (
-                    await getToolbarButton(driver, "Execute selection or full script")
+                    await getToolbarButton(driver, "Execute full script")
                 )!.click();
             } catch (e) {
                 testFailed = true;
@@ -1589,7 +1704,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1640,7 +1755,7 @@ describe("DB Editor", () => {
                     .sendKeys("console.log('Hello Typescript')");
 
                 await (
-                    await getToolbarButton(driver, "Execute selection or full script")
+                    await getToolbarButton(driver, "Execute full script")
                 )!.click();
             } catch (e) {
                 testFailed = true;
@@ -1658,7 +1773,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1748,7 +1863,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1820,36 +1935,6 @@ describe("DB Editor", () => {
 
         it("Expand_Collapse menus", async () => {
             try {
-                const expandCollapse = async (
-                    elToClick: WebElement,
-                    elToVerify: WebElement,
-                    visible: boolean,
-                    retries: number,
-                ) => {
-                    if (retries === 3) {
-                        throw new Error("Error on expanding collapse");
-                    }
-                    try {
-                        await elToClick.click();
-                        if (!visible) {
-                            await driver.wait(
-                                until.elementIsNotVisible(elToVerify),
-                                3000,
-                                "Element is still visible",
-                            );
-                        } else {
-                            await driver.wait(
-                                until.elementIsVisible(elToVerify),
-                                3000,
-                                "Element is still not visible",
-                            );
-                        }
-                    } catch (e) {
-                        await driver.sleep(1000);
-                        await expandCollapse(elToClick, elToVerify, visible, retries + 1);
-                    }
-                };
-
                 await driver.executeScript(
                     "arguments[0].click();",
                     await getDB(driver, dbConfig.caption),
@@ -1857,7 +1942,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -1875,14 +1960,7 @@ describe("DB Editor", () => {
                         .getAttribute("class"),
                 ).toContain("expanded");
 
-                await expandCollapse(
-                    await driver
-                        .findElement(By.id("editorSectionHost"))
-                        .findElement(By.css("div.container.section label")),
-                    await driver.findElement(By.id("standardConsole")),
-                    false,
-                    0,
-                );
+                await expandCollapseSchemaMenus(driver, "open editors", false, 0);
 
                 await driver.wait(
                     async () => {
@@ -1894,17 +1972,10 @@ describe("DB Editor", () => {
                         ).includes("expanded");
                     },
                     2000,
-                    "Element 1 is still expanded",
+                    "'Open Editors' is still expanded",
                 );
 
-                await expandCollapse(
-                    await driver
-                        .findElement(By.id("editorSectionHost"))
-                        .findElement(By.css("div.container.section label")),
-                    await driver.findElement(By.id("standardConsole")),
-                    true,
-                    0,
-                );
+                await expandCollapseSchemaMenus(driver, "open editors", true, 0);
 
                 await driver.wait(
                     async () => {
@@ -1916,7 +1987,7 @@ describe("DB Editor", () => {
                         ).includes("expanded");
                     },
                     2000,
-                    "Element 2 is still expanded",
+                    "'Open Editors' is still collapsed",
                 );
 
                 expect(
@@ -1926,16 +1997,7 @@ describe("DB Editor", () => {
                         .getAttribute("class"),
                 ).toContain("expanded");
 
-                await expandCollapse(
-                    await driver
-                        .findElement(By.id("schemaSectionHost"))
-                        .findElement(By.css("div.container.section label")),
-                    await driver
-                        .findElement(By.id("schemaSectionHost"))
-                        .findElement(By.css(".tabulator-table")),
-                    false,
-                    0,
-                );
+                await expandCollapseSchemaMenus(driver, "schemas", false, 0);
 
                 await driver.wait(
                     async () => {
@@ -1947,19 +2009,10 @@ describe("DB Editor", () => {
                         ).includes("expanded");
                     },
                     2000,
-                    "Element 3 is still expanded",
+                    "'Schemas' is still expanded",
                 );
 
-                await expandCollapse(
-                    await driver
-                        .findElement(By.id("schemaSectionHost"))
-                        .findElement(By.css("div.container.section label")),
-                    await driver
-                        .findElement(By.id("schemaSectionHost"))
-                        .findElement(By.css(".tabulator-table")),
-                    true,
-                    0,
-                );
+                await expandCollapseSchemaMenus(driver, "schemas", true, 0);
 
                 await driver.wait(
                     async () => {
@@ -1971,19 +2024,40 @@ describe("DB Editor", () => {
                         ).includes("expanded");
                     },
                     2000,
-                    "Element 4 is still expanded",
+                    "'Schemas' is still collapsed",
                 );
 
-                await expandCollapse(
-                    await driver
-                        .findElement(By.id("scriptSectionHost"))
-                        .findElement(By.css("div.container.section label")),
-                    await driver
-                        .findElement(By.id("scriptSectionHost"))
-                        .findElement(By.css(".tabulator-table")),
-                    false,
-                    0,
+                await expandCollapseSchemaMenus(driver, "admin", false, 0);
+
+                await driver.wait(
+                    async () => {
+                        return !(
+                            await driver
+                                .findElement(By.id("adminSectionHost"))
+                                .findElement(By.css(".fixedScrollbar"))
+                                .getAttribute("class")
+                        ).includes("expanded");
+                    },
+                    2000,
+                    "'Administration' is still expanded",
                 );
+
+                await expandCollapseSchemaMenus(driver, "admin", true, 0);
+
+                await driver.wait(
+                    async () => {
+                        return (
+                            await driver
+                                .findElement(By.id("adminSectionHost"))
+                                .findElement(By.css(".fixedScrollbar"))
+                                .getAttribute("class")
+                        ).includes("expanded");
+                    },
+                    2000,
+                    "'Administration' is still collapsed",
+                );
+
+                await expandCollapseSchemaMenus(driver, "scripts", false, 0);
 
                 await driver.wait(
                     async () => {
@@ -1995,19 +2069,10 @@ describe("DB Editor", () => {
                         ).includes("expanded");
                     },
                     2000,
-                    "Element 5 is still expanded",
+                    "'Scripts' is still expanded",
                 );
 
-                await expandCollapse(
-                    await driver
-                        .findElement(By.id("scriptSectionHost"))
-                        .findElement(By.css("div.container.section label")),
-                    await driver
-                        .findElement(By.id("scriptSectionHost"))
-                        .findElement(By.css(".tabulator-table")),
-                    true,
-                    0,
-                );
+                await expandCollapseSchemaMenus(driver, "scripts", true, 0);
 
                 await driver.wait(
                     async () => {
@@ -2019,7 +2084,7 @@ describe("DB Editor", () => {
                         ).includes("expanded");
                     },
                     2000,
-                    "Element 6 is still expanded",
+                    "'Scripts' is still collapsed",
                 );
             } catch (e) {
                 testFailed = true;
@@ -2038,7 +2103,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -2116,7 +2181,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -2181,8 +2246,8 @@ describe("DB Editor", () => {
             }
         });
 
-        //bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34179455
-        xit("Using Math_random on js_py blocks", async () => {
+        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34179455
+        it("Using Math_random on js_py blocks", async () => {
             try {
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
@@ -2193,7 +2258,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -2284,7 +2349,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -2397,7 +2462,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -2461,7 +2526,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -2533,7 +2598,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
@@ -2623,7 +2688,7 @@ describe("DB Editor", () => {
 
                 try {
                     await setDBEditorPassword(driver, dbConfig);
-                    await setFeedbackRequested(driver, dbConfig, "Y");
+                    await setConfirmDialog(driver, dbConfig, "yes");
                 } catch (e) {
                     if (e instanceof Error) {
                         if (e.message.indexOf("dialog was found") === -1) {
