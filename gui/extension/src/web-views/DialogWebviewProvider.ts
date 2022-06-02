@@ -69,15 +69,16 @@ export class DialogWebviewManager {
     private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
         if (response.data) {
             const view = response.data.view as WebviewProvider;
-            view.close();
 
+            // Is this a response for a request we sent out from here?
             const resolve = this.pendingDialogRequests.get(view);
             if (resolve) {
+                view.close();
                 this.pendingDialogRequests.delete(view);
                 resolve(response);
-            }
 
-            return Promise.resolve(true);
+                return Promise.resolve(true);
+            }
         }
 
         return Promise.resolve(false);
