@@ -35,8 +35,7 @@ import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../Mod
 import { ConnectionBrowser } from "./ConnectionBrowser";
 import {
     ITabviewPage, Tabview, Button, Icon, TabPosition, defaultEditorOptions, Divider, Label, Dropdown, Image,
-    ProgressIndicator,
-    IDropdownProperties,
+    ProgressIndicator, IDropdownProperties,
 } from "../../components/ui";
 import { SQLNotebookTab, ISQLNotebookTabPersistentState, IOpenEditorState } from "./SQLNotebookTab";
 import { ICodeEditorModel, CodeEditor, CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
@@ -61,7 +60,7 @@ import { convertSnakeToCamelCase, uuid } from "../../utilities/helpers";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { DBEditorModuleId } from "../ModuleInfo";
-import { EditorLanguage, IExecutionContext } from "../../supplement";
+import { EditorLanguage, IExecutionContext, IScriptRequest } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
@@ -74,7 +73,7 @@ const typings = require("!!raw-loader?esModule=false!./assets/typings/scripting-
 // Details generated while adding a new tab. These are used in the render method to fill the tab page details.
 interface IDBEditorTabInfo {
     details: IConnectionDetails;
-    id: string;
+    tabId: string;
     caption: string;
     suppressAbout: boolean;
 }
@@ -84,8 +83,14 @@ export type IDBEditorModuleProperties = IModuleProperties;
 interface IDBEditorModuleState extends IModuleState {
     editorTabs: IDBEditorTabInfo[];
 
-    selectedTab: string; // The tab to activate.
-    lastTab?: string;    // Set when we need to restore a tab that was temporarily disabled.
+    // The IDs of editors which have been changed.
+    dirtyEditors: Set<string>;
+
+    // The tab or page to activate.
+    selectedPage: string;
+
+    // Set when we need to restore a page selection that was temporarily disabled.
+    lastSelectedPage?: string;
 
     showExplorer: boolean;
     showTabs: boolean;
@@ -126,8 +131,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         this.workerPool = new ExecutionWorkerPool();
 
         this.state = {
-            selectedTab: "",
+            selectedPage: "",
             editorTabs: [],
+            dirtyEditors: new Set(),
             showExplorer: true,
             showTabs: !appParameters.embedded,
             connections: [],
@@ -151,9 +157,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const { editorTabs } = this.state;
 
             editorTabs.forEach((tab) => {
-                const state = this.connectionState.get(tab.id);
+                const state = this.connectionState.get(tab.tabId);
                 if (state) {
-                    void state.backend.startSession(tab.id).then(() => {
+                    void state.backend.startSession(tab.tabId).then(() => {
                         void this.reOpenConnection(state.backend, tab.details);
                     });
                 }
@@ -164,17 +170,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     public static getDerivedStateFromProps(props: IDBEditorModuleProperties,
         state: IDBEditorModuleState): Partial<IDBEditorModuleState> {
 
-        const { selectedTab, loading } = state;
+        const { selectedPage, loading } = state;
 
-        let newTab = selectedTab;
-        if (!newTab) {
+        let newSelection = selectedPage;
+        if (!newSelection) {
             if (!loading && !appParameters.embedded) {
-                newTab = "connections";
+                newSelection = "connections";
             }
         }
 
         const newState = {
-            selectedTab: newTab,
+            selectedPage: newSelection,
         };
 
         return newState;
@@ -203,7 +209,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     public render(): React.ReactNode {
         const { innerRef } = this.props;
         const {
-            connections, connectionsLoaded, selectedTab, editorTabs, showExplorer, showTabs, loading, progressMessage,
+            connections, connectionsLoaded, selectedPage, editorTabs, showExplorer, showTabs, loading,
+            progressMessage, dirtyEditors,
         } = this.state;
 
         // Generate the main toolbar inset based on the current display mode.
@@ -218,8 +225,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 />,
             ];
 
+            let showSaveButton = false;
+            let needsSave = false;
+            let selectedEntry: string | undefined;
             editorTabs.forEach((info: IDBEditorTabInfo) => {
-                const connectionState = this.connectionState.get(info.id)!;
+                const connectionState = this.connectionState.get(info.tabId)!;
 
                 // Add one entry per connection.
                 const language = info.details.dbType === DBType.MySQL ? "mysql" : "sql";
@@ -227,8 +237,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                 items.push(
                     <Dropdown.Item
-                        id={info.id}
-                        key={info.id}
+                        id={info.tabId}
+                        key={info.tabId}
                         caption={info.caption}
                         picture={<Icon src={icon} />}
                     />,
@@ -247,15 +257,21 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                     items.push((
                         <DocumentDropdownItem
-                            page={info.id}
+                            page={info.tabId}
                             item={entry.id}
-                            id={info.id + "-" + entry.id}
+                            id={entry.id}
                             key={entry.id}
                             caption={entry.caption}
                             picture={picture}
                             style={{ marginLeft: 16 }}
                         />
                     ));
+
+                    if (entry.id === connectionState.activeEntry && entry.type === EntityType.Script) {
+                        showSaveButton = true;
+                        needsSave = dirtyEditors.has(entry.id);
+                        selectedEntry = entry.id;
+                    }
                 });
             });
 
@@ -263,11 +279,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 <Label style={{ paddingRight: "8px" }}>SQL Notebook:</Label>
                 <Dropdown
                     id="connectionSelector"
-                    initialSelection={selectedTab}
+                    initialSelection={selectedEntry ?? selectedPage}
                     onSelect={this.handleSelectItem}
                 >
                     {items}
                 </Dropdown>
+                {showSaveButton && <Button
+                    id="itemSaveButton"
+                    caption="Save"
+                    disabled={!needsSave}
+                    onClick={this.handleEditorSave}
+                />}
                 <Divider vertical={true} thickness={1} />
             </>;
 
@@ -275,7 +297,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         const pages: ITabviewPage[] = [];
 
-        let actualSelection = selectedTab;
+        let actualSelection = selectedPage;
         if (loading || !connectionsLoaded) {
             const content = <>
                 <ProgressIndicator
@@ -316,7 +338,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
 
         editorTabs.forEach((info: IDBEditorTabInfo) => {
-            const connectionState = this.connectionState.get(info.id)!;
+            const connectionState = this.connectionState.get(info.tabId)!;
 
             if (!toolbarInset) {
                 // If no special UI is to be rendered use an editor selection dropdown.
@@ -354,7 +376,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
 
             const content = (<SQLNotebookTab
-                id={info.id}
+                id={info.tabId}
                 showAbout={!info.suppressAbout}
                 workerPool={this.workerPool}
                 dbType={info.details.dbType}
@@ -366,7 +388,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 onAddEditor={this.handleAddEditor}
                 onRemoveEditor={this.handleRemoveEditor}
                 onSelectItem={this.handleSelectEntry}
-                onChangeEditor={this.handleChangeEditor}
+                onEditorRename={this.handleEditorRename}
+                onEditorChange={this.handleEditorChange}
                 onAddScript={this.handleAddScript}
                 onSaveSchemaTree={this.handleSaveSchemaTree}
                 onSaveExplorerState={this.handleSaveExplorerState}
@@ -377,11 +400,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             pages.push({
                 icon: scriptingIcon,
                 caption: info.caption,
-                id: info.id,
+                id: info.tabId,
                 content,
                 auxillary: (
                     <Button
-                        id={info.id}
+                        id={info.tabId}
                         className="closeButton"
                         round={true}
                         onClick={this.handleCloseTab}>
@@ -525,9 +548,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private toggleModule = (id: string): Promise<boolean> => {
         return new Promise((resolve) => {
-            const { showExplorer, selectedTab } = this.state;
+            const { showExplorer, selectedPage } = this.state;
 
-            if (id === DBEditorModuleId && selectedTab !== "connections") {
+            if (id === DBEditorModuleId && selectedPage !== "connections") {
                 this.setState({ showExplorer: !showExplorer }, () => { resolve(true); });
             } else {
                 resolve(false);
@@ -537,7 +560,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private showConnections = (): Promise<boolean> => {
         return new Promise((resolve) => {
-            this.setState({ selectedTab: "connections" }, () => { resolve(true); });
+            this.setState({ selectedPage: "connections" }, () => { resolve(true); });
             requisitions.executeRemote("selectConnectionTab", "SQL Connections");
         });
     };
@@ -582,8 +605,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private addConnectionTab = (connection: IConnectionDetails, force: boolean,
         suppressAbout: boolean): Promise<boolean> => {
         return new Promise((resolve, reject) => {
-            const connectionName = `connection_${connection.id}`;
-
             const { editorTabs } = this.state;
 
             // Count how many tabs we already have for this connection.
@@ -600,15 +621,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             if (foundEntry && !force) {
                 // We already have a tab for that connection and a new tab wasn't enforced,
                 // so simply activate that existing tab.
-                this.setState({ selectedTab: foundEntry.id }, () => {
+                this.setState({ selectedPage: foundEntry.tabId }, () => {
                     resolve(true);
                 });
             } else {
                 const suffix = counter > 1 ? ` (${counter})` : "";
-                const id = `${connectionName}.tab${counter}`;
+                const tabId = uuid();
 
                 // If there's no previous editor state for this connection, create a default editor.
-                const connectionState = this.connectionState.get(id);
+                const connectionState = this.connectionState.get(tabId);
                 if (!connectionState) {
                     this.showProgress();
 
@@ -628,21 +649,21 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     };
 
                     this.setProgressMessage("Starting editor session...");
-                    backend.startSession(id).then(() => {
+                    backend.startSession(tabId).then(() => {
                         this.setProgressMessage("Session created, opening new connection...");
 
                         // Before opening the connection check the DB file, if this is an sqlite connection.
                         if (connection.dbType === DBType.Sqlite) {
                             const options = connection.options as ISqliteConnectionOptions;
                             ShellInterface.core.validatePath(options.dbFile).then(() => {
-                                void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
+                                void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout)
                                     .then((success) => {
                                         handleOutcome(success);
                                     });
                             }).catch(() => {
                                 // If the path is not ok then we might have to create the DB file first.
                                 ShellInterface.core.createDatabaseFile(options.dbFile).then(() => {
-                                    void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
+                                    void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout)
                                         .then(() => {
                                             resolve(true);
                                         });
@@ -652,7 +673,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 });
                             });
                         } else {
-                            void this.openNewConnection(backend, id, suffix, connection, suppressAbout)
+                            void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout)
                                 .then((success) => {
                                     handleOutcome(success);
                                 });
@@ -665,12 +686,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 } else {
                     editorTabs.push({
                         details: connection,
-                        id,
+                        tabId,
                         caption: connection.caption + suffix,
                         suppressAbout,
                     });
 
-                    this.setState({ editorTabs, selectedTab: id }, () => {
+                    this.setState({ editorTabs, selectedPage: tabId }, () => {
                         resolve(true);
                     });
                 }
@@ -682,14 +703,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * Opens the given connection once all verification was done. Used when opening a connection the first time.
      *
      * @param backend The backend for the connection.
-     * @param id The new id of the tab.
+     * @param tabId The new id of the tab.
      * @param tabSuffix An additional string to add to the caption of the tab we are about to open.
      * @param connection The connection details.
      * @param suppressAbout If true then no about text is shown.
      *
      * @returns A promise which fulfills once the connection is open.
      */
-    private openNewConnection(backend: ShellInterfaceSqlEditor, id: string, tabSuffix: string,
+    private openNewConnection(backend: ShellInterfaceSqlEditor, tabId: string, tabSuffix: string,
         connection: IConnectionDetails, suppressAbout: boolean): Promise<boolean> {
         return new Promise((resolve) => {
             const { editorTabs } = this.state;
@@ -730,13 +751,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                         const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode, currentSchema);
 
+                        const entryId = uuid();
                         const connectionState: ISQLNotebookTabPersistentState = {
-                            activeEntry: "standardConsole",
+                            activeEntry: entryId,
                             currentSchema,
                             schemaTree: [],
                             explorerState: new Map(),
                             editors: [{
-                                id: "standardConsole",
+                                id: entryId,
                                 caption: "Standard Console",
                                 type: EntityType.Console,
                                 state: {
@@ -755,17 +777,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             explorerWidth: -1,
                         };
 
-                        this.connectionState.set(id, connectionState);
+                        this.connectionState.set(tabId, connectionState);
 
                         editorTabs.push({
                             details: connection,
-                            id,
+                            tabId,
                             caption: connection.caption + tabSuffix,
                             suppressAbout,
                         });
 
                         this.hideProgress(false);
-                        this.setState({ editorTabs, selectedTab: id, loading: false }, () => {
+                        this.setState({ editorTabs, selectedPage: tabId, loading: false }, () => {
                             resolve(true);
                         });
 
@@ -779,8 +801,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }).catch((errorEvent: ICommErrorEvent) => {
                 void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
 
-                const { lastTab } = this.state;
-                this.setState({ selectedTab: lastTab ?? "connections" }, () => { resolve(false); });
+                const { lastSelectedPage } = this.state;
+                this.setState({ selectedPage: lastSelectedPage ?? "connections" }, () => { resolve(false); });
                 this.hideProgress(true);
             });
         });
@@ -827,8 +849,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }).catch((errorEvent: ICommErrorEvent) => {
                 void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
 
-                const { lastTab } = this.state;
-                this.setState({ selectedTab: lastTab ?? "connections" });
+                const { lastSelectedPage } = this.state;
+                this.setState({ selectedPage: lastSelectedPage ?? "connections" });
                 this.hideProgress(true);
                 reject();
             });
@@ -848,42 +870,45 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         void this.removeTab(id);
     };
 
-    private async removeTab(id: string): Promise<boolean> {
-        const { selectedTab, editorTabs } = this.state;
+    private async removeTab(tabId: string): Promise<boolean> {
+        const { selectedPage, editorTabs } = this.state;
 
         // Remove all result data from the application DB.
-        await ApplicationDB.removeDataByTabId(StoreType.DbEditor, id);
+        await ApplicationDB.removeDataByTabId(StoreType.DbEditor, tabId);
 
         // Remove tab info from the connection state and select another tab.
-        const index = editorTabs.findIndex((info: IDBEditorTabInfo) => { return info.id === id; });
+        const index = editorTabs.findIndex((info: IDBEditorTabInfo) => {
+            return info.tabId === tabId;
+        });
+
         if (index > -1) {
-            const connectionState = this.connectionState.get(id);
+            const connectionState = this.connectionState.get(tabId);
             if (connectionState) {
                 // Save pending changes.
                 connectionState.editors.forEach((editor) => {
                     this.saveEditorIfNeeded(editor);
                 });
 
-                this.connectionState.delete(id);
+                this.connectionState.delete(tabId);
                 await connectionState.backend.closeSession();
             }
 
             editorTabs.splice(index, 1);
-            let newSelection = selectedTab;
+            let newSelection = selectedPage;
 
-            if (id === newSelection) {
+            if (tabId === newSelection) {
                 if (index > 0) {
-                    newSelection = editorTabs[index - 1].id;
+                    newSelection = editorTabs[index - 1].tabId;
                 } else {
                     if (index >= editorTabs.length - 1) {
                         newSelection = "connections"; // The overview page cannot be closed.
                     } else {
-                        newSelection = editorTabs[index + 1].id;
+                        newSelection = editorTabs[index + 1].tabId;
                     }
                 }
             }
 
-            this.setState({ selectedTab: newSelection, editorTabs });
+            this.setState({ selectedPage: newSelection, editorTabs });
         }
 
         return true;
@@ -901,7 +926,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         for (const tab of editorTabs) {
             if (tab.details.id === connectionId) {
-                await this.removeTab(tab.id);
+                await this.removeTab(tab.tabId);
             }
         }
 
@@ -912,28 +937,46 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         const list = React.Children.toArray(props.children);
         const item = list.find((entry) => {
             // eslint-disable-next-line dot-notation
-            const props = entry["props"] as IDocumentDropdownItemProperties;
-            const candidate = props.page + "-" + props.item;
+            const candidateProps = entry["props"] as IDocumentDropdownItemProperties;
 
-            return candidate === id; // Fails always for tab entries.
+            return candidateProps.page && candidateProps.id === id;
         });
 
         if (item) {
             // eslint-disable-next-line dot-notation
-            const props = item["props"] as IDocumentDropdownItemProperties;
+            const candidateProps = item["props"] as IDocumentDropdownItemProperties;
 
-            this.handleSelectTab(props.page);
-            this.handleSelectEntry(props.page, props.item);
+            // For UI elements that have to show the current connection title.
+            this.handleSelectTab(candidateProps.page);
+
+            // For the content.
+            this.handleSelectEntry(candidateProps.page, candidateProps.item);
         } else {
             // A connection tab or the overview tab.
             this.handleSelectTab(id);
         }
     };
 
-    private handleSelectTab = (id: string): void => {
-        const { selectedTab } = this.state;
+    private handleEditorSave = (): void => {
+        const { selectedPage } = this.state;
 
-        const connectionState = this.connectionState.get(selectedTab);
+        const connectionState = this.connectionState.get(selectedPage);
+        if (connectionState) {
+            const state = connectionState.editors.find((state) => {
+                return state.id === connectionState.activeEntry;
+            });
+
+            if (state) {
+                this.saveEditorIfNeeded(state);
+            }
+        }
+
+    };
+
+    private handleSelectTab = (id: string): void => {
+        const { selectedPage } = this.state;
+
+        const connectionState = this.connectionState.get(selectedPage);
         if (connectionState) {
             // Save pending changes.
             connectionState.editors.forEach((editor) => {
@@ -941,14 +984,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             });
         }
 
-        this.setState({ selectedTab: id });
+        this.setState({ selectedPage: id, selectedItem: undefined });
 
         if (id === "connections") {
             requisitions.executeRemote("selectConnectionTab", "SQL Connections");
         } else {
             const { editorTabs } = this.state;
             const tab = editorTabs.find((info) => {
-                return info.id === id;
+                return info.tabId === id;
             });
 
             if (tab) {
@@ -1011,8 +1054,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const model = this.createEditorModel(connectionState.backend, "", "msg",
                         connectionState.serverVersion, connectionState.sqlMode, connectionState.currentSchema);
 
+                    const entryId = uuid();
                     connectionState.editors.push({
-                        id: "standardConsole",
+                        id: entryId,
                         caption: "Standard Console",
                         type: EntityType.Console,
                         state: {
@@ -1022,6 +1066,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         },
                         currentVersion: model.getVersionId(),
                     });
+
+                    connectionState.activeEntry = entryId;
                 }
 
                 if (doUpdate) {
@@ -1032,12 +1078,21 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private handleEditorSelectorChange = (selectedId: string | number): void => {
-        const { selectedTab } = this.state;
+        const { selectedPage } = this.state;
 
-        this.handleSelectEntry(selectedTab, selectedId as string);
+        this.handleSelectEntry(selectedPage, selectedId as string);
     };
 
-    private handleSelectEntry = (id: string, entryId: string): void => {
+    /**
+     * The central method to deal with selection changes in the notebook explorer and requests to open editors/pages
+     * for specific pages, which includes admin pages and external or broken out scripts.
+     *
+     * @param id The editor of the notebook sending this event.
+     * @param entryId The unique ID of the item that will be (or is already) selected.
+     * @param name An optional display name for broken out and external scripts.
+     * @param content The SQL code of such scripts.
+     */
+    private handleSelectEntry = (id: string, entryId: string, name?: string, content?: string): void => {
         const connectionState = this.connectionState.get(id);
         if (connectionState && connectionState.activeEntry !== entryId) {
             // if there's a current editor. Save its content, if it represents a user script.
@@ -1064,10 +1119,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }) as IDBEditorScriptState;
 
                 if (script) {
-                    if (script.moduleDataId) {
+                    if (script.dbDataId) {
                         // Defer the current entry update to the moment when script data has been loaded.
                         updateCurrentEntry = false;
-                        ShellInterface.modules.getDataContent(script.moduleDataId)
+                        ShellInterface.modules.getDataContent(script.dbDataId)
                             .then((event: ICommModuleDataContentEvent) => {
                                 if (event.data) {
                                     this.addEditorFromScript(connectionState, script, event.data.result);
@@ -1084,7 +1139,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         this.addEditorFromScript(connectionState, script, "");
                     }
                 } else {
-                    // Must be an administration page then.
+                    // Must be an administration page or an external script then.
                     switch (entryId) {
                         case "serverStatus": {
                             connectionState.editors.push({
@@ -1119,7 +1174,22 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             break;
                         }
 
-                        default:
+                        default: {
+                            if (content) {
+                                // External scripts come with their full content.
+                                const script: IDBEditorScriptState = {
+                                    id: entryId,
+                                    caption: name ?? "Script",
+                                    language: "mysql",
+                                    dbDataId: -1,
+                                    folderId: -1,
+                                    type: EntityType.Script,
+                                };
+                                this.addEditorFromScript(connectionState, script, content);
+                            }
+
+                            break;
+                        }
                     }
 
                 }
@@ -1127,7 +1197,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             if (updateCurrentEntry) {
                 connectionState.activeEntry = entryId;
-                setImmediate(() => { this.forceUpdate(); });
+                this.forceUpdate();
             }
         }
     };
@@ -1153,7 +1223,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 viewState: null,
                 options: defaultEditorOptions,
             },
-            moduleDataId: script.moduleDataId,
+            dbDataId: script.dbDataId,
             currentVersion: model.getVersionId(),
         });
     }
@@ -1165,18 +1235,35 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param editor The editor state to use for the update.
      */
     private saveEditorIfNeeded(editor: IOpenEditorState): void {
-        if (editor.moduleDataId && editor.state) {
+        if (editor.dbDataId && editor.state) {
             const model = editor.state.model;
             const newVersion = model.getVersionId();
             if (newVersion !== editor.currentVersion) {
                 editor.currentVersion = newVersion;
                 const content = model.getValue();
-                ShellInterface.modules.updateData(editor.moduleDataId, undefined, content);
+                if (editor.dbDataId > -1) {
+                    // Represents a DB data entry.
+                    ShellInterface.modules.updateData(editor.dbDataId, undefined, content);
+                } else {
+                    // Represents a script file from the extension.
+                    const details: IScriptRequest = {
+                        scriptId: editor.id,
+                        content,
+                    };
+                    requisitions.executeRemote("editorSaveScript", details);
+                }
+
+                // Remove the editor also from the dirty editors list, to disable the save button.
+                const { dirtyEditors } = this.state;
+
+                if (dirtyEditors.delete(editor.id)) {
+                    this.setState({ dirtyEditors });
+                }
             }
         }
     }
 
-    private handleChangeEditor = (id: string, editorId: string, newCaption: string): void => {
+    private handleEditorRename = (id: string, editorId: string, newCaption: string): void => {
         const connectionState = this.connectionState.get(id);
         if (connectionState) {
             let needsUpdate = false;
@@ -1199,12 +1286,21 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
 
             if (needsUpdate) {
-                if (script?.moduleDataId) {
-                    ShellInterface.modules.updateData(script.moduleDataId, script.caption);
+                if (script?.dbDataId) {
+                    ShellInterface.modules.updateData(script.dbDataId, script.caption);
                 }
 
                 this.forceUpdate();
             }
+        }
+    };
+
+    private handleEditorChange = (id: string, editorId: string): void => {
+        const { dirtyEditors } = this.state;
+
+        if (!dirtyEditors.has(editorId)) {
+            dirtyEditors.add(editorId);
+            this.setState({ dirtyEditors });
         }
     };
 
@@ -1251,9 +1347,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     .then((event: ICommModuleAddDataEvent) => {
                         if (event.data) {
                             const moduleDataId = event.data.result;
-                            const id = `script-${moduleDataId}`;
+                            const scriptId = uuid();
                             connectionState.editors.push({
-                                id,
+                                id: scriptId,
                                 caption,
                                 type: EntityType.Script,
                                 state: {
@@ -1265,11 +1361,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             });
 
                             connectionState.scripts.push({
-                                id,
+                                id: scriptId,
                                 type: EntityType.Script,
                                 caption,
                                 language: editorLanguage,
-                                moduleDataId,
+                                dbDataId: moduleDataId,
                             } as IDBEditorScriptState);
 
                             this.forceUpdate();
@@ -1301,11 +1397,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         });
 
                         const script = scriptIndex > -1 ? connectionState.scripts[scriptIndex] : undefined;
-                        if (script && script.moduleDataId) {
+                        if (script && script.dbDataId) {
                             // Found the script. Remove its editor, if there's one.
                             this.handleRemoveEditor(id, data.id, false);
 
-                            ShellInterface.modules.deleteData(script.moduleDataId, data.folderId)
+                            ShellInterface.modules.deleteData(script.dbDataId, data.folderId)
                                 .then(() => {
                                     connectionState.scripts.splice(scriptIndex, 1);
                                     this.forceUpdate();
@@ -1356,9 +1452,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private showProgress = (): void => {
         this.pendingProgress = setTimeout(() => {
-            const { selectedTab } = this.state;
+            const { selectedPage } = this.state;
 
-            this.setState({ loading: true, lastTab: selectedTab });
+            this.setState({ loading: true, lastSelectedPage: selectedPage });
         }, 500);
     };
 

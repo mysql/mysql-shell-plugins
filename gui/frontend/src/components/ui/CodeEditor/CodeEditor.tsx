@@ -139,6 +139,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
     onCursorChange?: (position: Position) => void;
     onOptionsChanged?: () => void;
+    onModelChange?: () => void;
 
     // The presentation class depends on the place where the editor is used.
     createResultPresentation?: ResultPresentationFactory;
@@ -1061,6 +1062,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 break;
             }
         }
+
+        const { onModelChange } = this.mergedProps;
+
+        onModelChange?.();
     };
 
     private handlePaste = (e: Monaco.IPasteEvent): void => {

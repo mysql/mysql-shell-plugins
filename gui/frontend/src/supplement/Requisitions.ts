@@ -24,7 +24,7 @@
 // eslint-disable-next-line max-classes-per-file
 import React from "react";
 
-import { EditorLanguage, IExecutionContext, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest } from ".";
+import { EditorLanguage, IExecutionContext, IRunQueryRequest, IScriptRequest, ISqlPageRequest } from ".";
 
 import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
@@ -148,7 +148,9 @@ export interface IRequestTypeMap {
     "editorInsertUserScript": (data: { language: EditorLanguage; resourceId: number }) => Promise<boolean>;
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
     "editorRunQuery": (details: IRunQueryRequest) => Promise<boolean>;
-    "editorRunScript": (details: IRunScriptRequest) => Promise<boolean>;
+    "editorRunScript": (details: IScriptRequest) => Promise<boolean>;
+    "editorEditScript": (details: IScriptRequest) => Promise<boolean>;
+    "editorSaveScript": (details: IScriptRequest) => Promise<boolean>;
     "editorValidationDone": (id: string) => Promise<boolean>;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string }) => Promise<boolean>;

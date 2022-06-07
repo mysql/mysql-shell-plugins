@@ -28,6 +28,7 @@ import { EventType, ListenerEntry } from "../Dispatch";
 import { EditorLanguage } from "..";
 import { IShellInterface } from ".";
 import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/SQLNotebook";
+import { uuid } from "../../utilities/helpers";
 
 // These are predefined data categories that always exist.
 export enum StandardDataCategories {
@@ -338,7 +339,7 @@ export class ShellInterfaceModule implements IShellInterface {
                 target.push({
                     id: "",
                     folderId: parentId,
-                    moduleDataId: entry.id,
+                    dbDataId: entry.id,
                     caption: entry.caption,
                     children: entries,
                     type: EntityType.Folder,
@@ -428,12 +429,12 @@ export class ShellInterfaceModule implements IShellInterface {
                             const language = this.scriptCategoryToLanguage.get(entry.dataCategoryId) ?? "mysql";
 
                             return {
-                                id: `script-${entry.id}`,
+                                id: uuid(),
                                 folderId,
                                 type: EntityType.Script,
                                 caption: entry.caption,
                                 language,
-                                moduleDataId: entry.id,
+                                dbDataId: entry.id,
                             };
                         }));
 

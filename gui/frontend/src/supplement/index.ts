@@ -63,7 +63,11 @@ export interface IRunQueryRequest {
     linkId: number;
 }
 
-export interface IRunScriptRequest {
+export interface IScriptRequest {
+    /** A unique ID to identify the script in this request. */
+    scriptId: string;
+
+    name?: string;
     content: string;
 }
 

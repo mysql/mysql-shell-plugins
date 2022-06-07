@@ -38,6 +38,7 @@ export interface IStandaloneScriptEditorProperties extends IComponentProperties 
     editorState: IEditorPersistentState;
 
     onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>, position?: IPosition) => void;
+    onEdit?: (id?: string) => void;
 }
 
 interface IStandaloneScriptEditorState extends IComponentState {
@@ -61,7 +62,7 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
             maximizeResultPane: false,
         };
 
-        this.addHandledProperties("editorState", "onScriptExecution");
+        this.addHandledProperties("editorState", "onScriptExecution", "onEdit");
     }
 
     public componentDidMount(): void {
@@ -127,6 +128,7 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
                             }}
                             onCursorChange={this.handleCursorChange}
                             onScriptExecution={onScriptExecution}
+                            onModelChange={this.handleModelChange}
                             createResultPresentation={this.createPresentation}
                         />,
                     },
@@ -180,6 +182,12 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
         ]);
     };
 
+    private handleModelChange = (): void => {
+        const { id, onEdit } = this.props;
+
+        onEdit?.(id);
+    };
+
     private handleExplorerDoubleClick = (entry: ISchemaTreeEntry): Promise<boolean> => {
         this.editorRef.current?.insertText(entry.caption);
         this.editorRef.current?.focus();
@@ -213,7 +221,7 @@ export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorPro
         return this.presentationInterface;
     };
 
-    private handlePaneResized = (first: ISplitterPaneSizeInfo, second: ISplitterPaneSizeInfo): void => {
+    private handlePaneResized = (_first: ISplitterPaneSizeInfo, second: ISplitterPaneSizeInfo): void => {
         if (second.paneId === "resultPane" && this.presentationInterface) {
             this.presentationInterface.currentHeight = second.size;
         }

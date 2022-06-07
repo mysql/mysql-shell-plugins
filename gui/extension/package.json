@@ -494,6 +494,10 @@
                 "title": "Create Statement"
             },
             {
+                "command": "msg.editInNotebook",
+                "title": "Edit File in SQL Notebook"
+            },
+            {
                 "command": "msg.mrs.configureMySQLRestService",
                 "title": "Configure MySQL REST Service"
             },
@@ -656,23 +660,30 @@
                     "group": "1_msg@2"
                 }
             ],
+            "explorer/context": [
+                {
+                    "when": "resourceLangId == mysql || resourceLangId == sql",
+                    "command": "msg.editInNotebook",
+                    "group": "1_msg@1"
+                }
+            ],
             "editor/title/context": [
                 {
                     "when": "resourceLangId == mysql",
                     "command": "msg.execute.normal",
-                    "group": "msg@1"
+                    "group": "1_msg@1"
                 }
             ],
             "editor/title": [
                 {
                     "when": "resourceLangId == mysql",
                     "command": "msg.execute.normal",
-                    "group": "msg@1"
+                    "group": "1_msg@1"
                 }
             ],
             "editor/context": [
                 {
-                    "when": "resourceLangId == mysql",
+                    "when": "resourceLangId == mysql || resourceLangId == sql",
                     "command": "msg.executeSelectedSqlFromEditor",
                     "group": "navigation"
                 },

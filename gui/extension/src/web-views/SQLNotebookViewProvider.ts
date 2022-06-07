@@ -29,9 +29,9 @@ import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 import { IDBEditorScriptState } from "../../../frontend/src/modules/SQLNotebook";
 import { WebviewProvider } from "./WebviewProvider";
-import { IRunQueryRequest, IRunScriptRequest } from "../../../frontend/src/supplement";
+import { IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 
-export class SqlEditorViewProvider extends WebviewProvider {
+export class SQLNotebookViewProvider extends WebviewProvider {
 
     public constructor(url: URL, onDispose: (view: WebviewProvider) => void) {
         super(url, onDispose);
@@ -95,11 +95,28 @@ export class SqlEditorViewProvider extends WebviewProvider {
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runScript(caption: string, page: string, details: IRunScriptRequest): Promise<boolean> {
+    public runScript(caption: string, page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorRunScript", parameter: details },
+        ], caption, "newConnection");
+    }
+
+    /**
+     * Executes a full script in a webview tab.
+     *
+     * @param caption The title of the webview tab.
+     * @param page The page to open in the webview tab (if not already done).
+     * @param details The content of the script to run and other related information.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public editScriptInNotebook(caption: string, page: string, details: IScriptRequest): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            { requestType: "editorEditScript", parameter: details },
         ], caption, "newConnection");
     }
 
@@ -112,9 +129,9 @@ export class SqlEditorViewProvider extends WebviewProvider {
      * @returns A promise which resolves after the command was executed.
      */
     public insertScriptData(state: IDBEditorScriptState): Promise<boolean> {
-        if (state.moduleDataId) {
+        if (state.dbDataId) {
             return this.runCommand("editorInsertUserScript",
-                { language: state.language, resourceId: state.moduleDataId }, "", "newConnection");
+                { language: state.language, resourceId: state.dbDataId }, "", "newConnection");
         }
 
         return Promise.resolve(false);
@@ -189,11 +206,12 @@ export class SqlEditorViewProvider extends WebviewProvider {
         super.requisitionsCreated();
 
         if (this.requisitions) {
-            // For requests sent by the web app.
+            // For requests sent by the web app. These are usually forwarded to the extension global requisitions.
             this.requisitions.register("refreshConnections", this.refreshConnections);
             this.requisitions.register("refreshOciTree", this.refreshOciTree);
             this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
+            this.requisitions.register("editorSaveScript", this.editorSaveScript);
         }
     }
 
@@ -210,6 +228,11 @@ export class SqlEditorViewProvider extends WebviewProvider {
     protected updateCodeBlock = (data: { linkId: number; code: string }): Promise<boolean> => {
         // Ditto.
         return requisitions.execute("codeBlocksUpdate", data);
+    };
+
+    private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
+        // Ditto.
+        return requisitions.execute("editorSaveScript", details);
     };
 
     private showOpenDialog = (options: IOpenDialogOptions): Promise<boolean> => {
