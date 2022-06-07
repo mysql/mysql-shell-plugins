@@ -128,7 +128,7 @@ try{
 
     $jsonReporter | ConvertTo-Json -Depth 1 | Set-Content "$basePath\jesthtmlreporter.config.json"
     
-    if($env:RERUN){
+    if($env:RERUN -eq $true){
         #CHECK IF THERE IS A TEST-REPORT
         if( Test-Path -Path "$basePath\src\tests\e2e\test-report.html" ){
             writeMsg "Found an existing test report"

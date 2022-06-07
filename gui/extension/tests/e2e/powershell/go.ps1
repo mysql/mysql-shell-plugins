@@ -154,7 +154,7 @@ try{
     }
 
     #RERUN ?
-    if($env:RERUN){
+    if($env:RERUN -eq $true){
         $path2json = Join-Path $basePath "mochawesome-report" "test-report.json"
         $json = Get-Content $path2json | Out-String | ConvertFrom-Json
         if ( [int]$json.PSObject.Properties.Value.failures[0] -gt 0 ) {
@@ -199,7 +199,7 @@ try{
     writeMsg "DONE"
 
     #REMOVE THE RE-RUNS and MERGE
-    if($env:RERUN){
+    if($env:RERUN -eq $true){
         writeMsg "Removing re-runs on file..." "-NoNewLine"
         $content = Get-Content $testsPath
         $content = $content.replace(".only", "")
