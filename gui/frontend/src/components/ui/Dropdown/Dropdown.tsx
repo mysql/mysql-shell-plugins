@@ -121,14 +121,22 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
     }
 
     public componentDidUpdate(prevProps: IDropdownProperties): void {
-        const { initialSelection, defaultId } = this.mergedProps;
+        const { children, initialSelection, defaultId } = this.mergedProps;
+
         const previousSelection = prevProps.initialSelection || prevProps.defaultId || "";
+
         if (initialSelection instanceof Set) {
-            this.setState({ currentSelection: initialSelection });
+            this.setState({
+                currentSelection: initialSelection,
+                childArray: React.Children.toArray(children),
+            });
         } else {
             const newSelection = initialSelection || defaultId || "";
             if (newSelection !== previousSelection) {
-                this.setState({ currentSelection: new Set([newSelection]) });
+                this.setState({
+                    currentSelection: new Set([newSelection]),
+                    childArray: React.Children.toArray(children),
+                });
             }
         }
     }

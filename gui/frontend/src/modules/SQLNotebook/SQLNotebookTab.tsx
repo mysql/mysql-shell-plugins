@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./assets/Scripting.css";
+import "./assets/SQLNotebook.css";
 
 import React from "react";
 import ts from "typescript";
@@ -56,7 +56,7 @@ import { settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
     convertRows,
-    EditorLanguage, generateColumnInfo, IRunQueryRequest, IRunScriptRequest, ISqlPageRequest,
+    EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
 } from "../../supplement";
 import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
@@ -71,7 +71,7 @@ export interface IOpenEditorState extends IEntityBase {
     state?: IEditorPersistentState;
 
     // A copy of the script state data id, if this editor was created from a script.
-    moduleDataId?: number;
+    dbDataId?: number;
 
     // The version number of the editor model when we last saved it (for entries that are actually saved).
     currentVersion: number;
@@ -113,8 +113,11 @@ export interface ISQLNotebookTabProperties extends IComponentProperties {
 
     onAddEditor?: (id: string) => string | undefined;
     onRemoveEditor?: (id: string, editorId: string) => void;
-    onSelectItem?: (id: string, editorId: string) => void;
-    onChangeEditor?: (id: string, editorId: string, newCaption: string) => void;
+    onSelectItem?: (id: string, editorId: string, name?: string, content?: string) => void;
+    onEditorRename?: (id: string, editorId: string, newCaption: string) => void;
+
+    // Sent when the content of a standalone editor changed (typing, pasting, undo/redo etc.).
+    onEditorChange?: (id: string, editorId: string) => void;
 
     onAddScript?: (id: string, language: EditorLanguage, dbType: DBType) => void;
 
@@ -174,6 +177,7 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorRunScript", this.editorRunScript);
         requisitions.register("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.register("showPageSection", this.showPageSection);
+        requisitions.register("editorEditScript", this.editorEditScript);
 
         this.consoleRef.current?.focus();
     }
@@ -192,6 +196,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("editorRunScript", this.editorRunScript);
         requisitions.unregister("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.unregister("showPageSection", this.showPageSection);
+        requisitions.unregister("editorEditScript", this.editorEditScript);
     }
 
     public componentDidUpdate(prevProps: ISQLNotebookTabProperties): void {
@@ -240,9 +245,11 @@ Execute \\help or \\? for help;`;
 
             case EntityType.Script: {
                 document = <StandaloneScriptEditor
+                    id={savedState.activeEntry}
                     ref={this.standaloneRef}
                     editorState={activeEditor.state!}
                     onScriptExecution={this.handleExecution}
+                    onEdit={this.handleEdit}
                 />;
 
                 break;
@@ -301,7 +308,7 @@ Execute \\help or \\? for help;`;
                                     onSelectItem={this.handleSelectItem}
                                     onCloseItem={this.handleCloseEditor}
                                     onAddItem={this.handleAddEditor}
-                                    onChangeItem={this.handleChangeEditor}
+                                    onChangeItem={this.handleEditorRename}
                                     onAddScript={this.handleAddScript}
                                     onSaveSchemaTree={this.saveSchemaTree}
                                     onSaveExplorerState={this.saveExplorerState}
@@ -414,7 +421,7 @@ Execute \\help or \\? for help;`;
         return Promise.resolve(true);
     };
 
-    private editorRunScript = (details: IRunScriptRequest): Promise<boolean> => {
+    private editorRunScript = (details: IScriptRequest): Promise<boolean> => {
         return new Promise((resolve) => {
             if (this.consoleRef.current) {
                 void this.consoleRef.current.executeScript(details.content).then((handled) => {
@@ -452,6 +459,14 @@ Execute \\help or \\? for help;`;
 
     private showPageSection = (section: string): Promise<boolean> => {
         this.handleSelectItem(section);
+
+        return Promise.resolve(true);
+    };
+
+    private editorEditScript = (details: IScriptRequest): Promise<boolean> => {
+        const { id, onSelectItem } = this.props;
+
+        onSelectItem?.(id!, details.scriptId, details.name, details.content);
 
         return Promise.resolve(true);
     };
@@ -1037,7 +1052,6 @@ Execute \\help or \\? for help;`;
         if (runExecution) {
             switch (context.language) {
                 case "javascript": {
-                    //context.setResult();
                     workerPool.runTask({ api: ScriptingApi.Request, code: context.code, contextId: context.id })
                         .then(this.handleTaskResult);
 
@@ -1045,7 +1059,6 @@ Execute \\help or \\? for help;`;
                 }
 
                 case "typescript": {
-                    //context.setResult();
                     workerPool.runTask({
                         api: ScriptingApi.Request,
                         code: ts.transpile(context.code),
@@ -1064,6 +1077,14 @@ Execute \\help or \\? for help;`;
                 default:
                     break;
             }
+        }
+    };
+
+    private handleEdit = (editorId?: string): void => {
+        if (editorId) {
+            const { id = "", onEditorChange } = this.props;
+
+            onEditorChange?.(id, editorId);
         }
     };
 
@@ -1311,9 +1332,9 @@ Execute \\help or \\? for help;`;
     };
 
     private handleSelectItem = (itemId: string): void => {
-        const { id, onSelectItem: onSelectEditor } = this.props;
+        const { id, onSelectItem } = this.props;
 
-        onSelectEditor?.(id!, itemId);
+        onSelectItem?.(id!, itemId);
     };
 
     private handleCloseEditor = (editorId: string): void => {
@@ -1328,16 +1349,10 @@ Execute \\help or \\? for help;`;
         return onAddEditor?.(id!);
     };
 
-    private handleChangeEditor = (editorId: string, newCaption: string): void => {
-        const { id, onChangeEditor } = this.props;
+    private handleEditorRename = (editorId: string, newCaption: string): void => {
+        const { id, onEditorRename } = this.props;
 
-        return onChangeEditor?.(id!, editorId, newCaption);
-    };
-
-    private handleEditorSelectorChange = (selectedId: string | number): void => {
-        const { id, onSelectItem: onSelectEditor } = this.props;
-
-        onSelectEditor?.(id!, selectedId as string);
+        return onEditorRename?.(id!, editorId, newCaption);
     };
 
     private handleAddScript = (language: EditorLanguage): void => {

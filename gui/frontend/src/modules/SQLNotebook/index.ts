@@ -78,7 +78,7 @@ export interface IEntityBase {
 
 export interface IDBDataEntry extends IEntityBase {
     // The id under which this entry is reachable in the backend.
-    moduleDataId: number;
+    dbDataId: number;
 
     // The ID of the folder in which this entry resides.
     folderId: number;

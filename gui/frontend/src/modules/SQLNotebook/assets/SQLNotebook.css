@@ -166,7 +166,7 @@
     height: 26px;
 
     padding: 0;
-    margin: 0 5px 0 0;
+    margin: 0;
 }
 
 .msg.connectionTabHost .toolbar .button > .icon {
@@ -211,3 +211,7 @@
     border-radius: 0;
 }
 
+.msg.connectionTabHost #sqlNotebookToolbar #itemSaveButton{
+    width: 80px;
+    margin-left: 8px;
+}

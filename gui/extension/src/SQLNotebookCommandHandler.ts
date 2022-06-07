@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { window, commands, ExtensionContext, TextEditor, workspace } from "vscode";
+import { basename } from "path";
+
+import { window, commands, ExtensionContext, TextEditor, workspace, Uri } from "vscode";
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 
@@ -33,21 +35,25 @@ import {
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
-import { SqlEditorViewProvider } from "./web-views/SqlEditorViewProvider";
-import { IRunQueryRequest } from "../../frontend/src/supplement";
+import { SQLNotebookViewProvider } from "./web-views/SQLNotebookViewProvider";
+import { IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
 import { IDBEditorScriptState } from "../../frontend/src/modules/SQLNotebook";
 
 import { CodeBlocks } from "./CodeBlocks";
+import { uuid } from "../../frontend/src/utilities/helpers";
 
 // A class to handle all DB editor related commands and jobs.
-export class DbEditorCommandHandler {
+export class SQLNotebookCommandHandler {
     private connectionsProvider = new ConnectionsTreeDataProvider();
 
     // All open DB editor view providers.
-    private providers: SqlEditorViewProvider[] = [];
+    private providers: SQLNotebookViewProvider[] = [];
     private url?: URL;
 
     private codeBlocks = new CodeBlocks();
+
+    // For each open editor a list of open scripts is held (via a mapping of script IDs and their target URI).
+    private openScripts = new Map<SQLNotebookViewProvider, Map<string, Uri>>();
 
     public setup(context: ExtensionContext): void {
         this.codeBlocks.setup(context);
@@ -55,6 +61,7 @@ export class DbEditorCommandHandler {
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("editorRunQuery", this.editorRunQuery);
+        requisitions.register("editorSaveScript", this.editorSaveScript);
 
         context.subscriptions.push(commands.registerCommand("msg.refreshConnections", () => {
             void requisitions.execute("refreshConnections", undefined);
@@ -197,6 +204,44 @@ export class DbEditorCommandHandler {
                 item.copyCreateScriptToClipboard();
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.editInNotebook", async (uri?: Uri) => {
+            if (uri?.scheme === "file") {
+                const stat = await workspace.fs.stat(uri);
+
+                if (stat.size >= 10000000) {
+                    await window.showInformationMessage(`The file "${uri.fsPath}" ` +
+                        `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                } else {
+                    const connection = await this.determineConnection();
+                    if (connection) {
+                        await workspace.fs.readFile(uri).then((value) => {
+                            const content = value.toString();
+                            const provider = this.currentProvider;
+
+                            if (provider) {
+                                const name = basename(uri.fsPath);
+                                const caption = connection.details.caption + " - " + name;
+                                const details: IScriptRequest = {
+                                    scriptId: uuid(),
+                                    name,
+                                    content,
+                                };
+
+                                let scripts = this.openScripts.get(provider);
+                                if (!scripts) {
+                                    scripts = new Map();
+                                    this.openScripts.set(provider, scripts);
+                                }
+                                scripts.set(details.scriptId, uri);
+
+                                void provider.editScriptInNotebook(caption, String(connection.details.id), details);
+                            }
+                        });
+                    }
+                }
+            }
+        }));
+
         context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
             (item?: OciDbSystemTreeItem) => {
                 if (item) {
@@ -229,6 +274,7 @@ export class DbEditorCommandHandler {
                         }
 
                         return provider.runScript(connection.details.caption, String(connection.details.id), {
+                            scriptId: uuid(),
                             content: sql,
                         });
                     }
@@ -253,7 +299,7 @@ export class DbEditorCommandHandler {
         this.providers = [];
     }
 
-    private get currentProvider(): SqlEditorViewProvider | undefined {
+    private get currentProvider(): SQLNotebookViewProvider | undefined {
         if (this.providers.length > 0) {
             return this.providers[this.providers.length - 1];
         } else {
@@ -261,13 +307,19 @@ export class DbEditorCommandHandler {
         }
     }
 
-    private get newProvider(): SqlEditorViewProvider | undefined {
+    private get newProvider(): SQLNotebookViewProvider | undefined {
         if (this.url) {
-            const provider = new SqlEditorViewProvider(this.url, (view) => {
-                const index = this.providers.findIndex((candidate) => { return candidate === view; });
+            const provider = new SQLNotebookViewProvider(this.url, (view) => {
+                const index = this.providers.findIndex((candidate) => {
+                    return candidate === view;
+                });
+
                 if (index > -1) {
                     this.providers.splice(index, 1);
                 }
+
+                // Remove also any open script entry.
+                this.openScripts.delete(view as SQLNotebookViewProvider);
             });
 
             this.providers.push(provider);
@@ -306,6 +358,22 @@ export class DbEditorCommandHandler {
         return Promise.resolve(false);
     };
 
+    private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
+        const provider = this.currentProvider;
+        if (provider) {
+            const scripts = this.openScripts.get(provider);
+            if (scripts) {
+                const uri = scripts.get(details.scriptId);
+                if (uri) {
+                    const buffer = Buffer.from(details.content, "utf-8");
+                    void workspace.fs.writeFile(uri, buffer);
+                }
+            }
+        }
+
+        return Promise.resolve(true);
+    };
+
     /**
      * Determines a connection to run SQL code with.
      *
@@ -319,12 +387,12 @@ export class DbEditorCommandHandler {
                 return candidate.details.caption === connectionName;
             });
 
-            if (connection) {
-                return connection;
-            }
+            return connection;
         } else {
             // No default connection set. Show a picker.
-            const items = connections.map((connection) => { return connection.details.caption; });
+            const items = connections.map((connection) => {
+                return connection.details.caption;
+            });
             const name = await window.showQuickPick(items, {
                 title: "Select a connection for SQL execution",
                 matchOnDescription: true,
@@ -335,10 +403,7 @@ export class DbEditorCommandHandler {
                 return candidate.details.caption === name;
             });
 
-            if (connection) {
-                return connection;
-            }
+            return connection;
         }
-
     };
 }
