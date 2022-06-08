@@ -66,14 +66,24 @@ describe("MySQL Shell Sessions", () => {
 
     beforeAll(async () => {
         driver = await getDriver();
-        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-        await waitForHomePage(driver);
+        try {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        } catch (e) {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        }
         await setStartLanguage(driver, "Shell Session", "javascript");
     });
 
     beforeEach(async () => {
-        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-        await waitForHomePage(driver);
+        try {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        } catch (e) {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        }
         await driver.findElement(By.id("gui.shell")).click();
         await openShellSession(driver);
     });
@@ -585,7 +595,7 @@ describe("MySQL Shell Sessions", () => {
     });
 
     // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34241454
-    it("Change schemas using menu", async () => {
+    xit("Change schemas using menu", async () => {
         try {
             const editor = await driver.findElement(By.id("shellEditorHost"));
 

@@ -79,6 +79,9 @@ try{
     else{
         writeMsg "DONE"
     }
+
+    $env:HTTP_PROXY = 'http://www-proxy.us.oracle.com:80'
+    $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
     
     writeMsg "Installing node modules..." "-NoNewLine"
     if( !(Test-Path -Path "$basePath\node_modules") ){
@@ -93,9 +96,6 @@ try{
     else{
         writeMsg "SKIPPED"
     }
-    
-    $env:HTTP_PROXY = 'http://www-proxy.us.oracle.com:80'
-    $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
     
     ##COPY OCI .PEM FILES
     $ociPath = Join-Path $env:userprofile ".oci"

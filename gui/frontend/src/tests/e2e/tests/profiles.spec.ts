@@ -36,7 +36,7 @@ import {
     getSettingValue,
 } from "../lib/helpers";
 
-xdescribe("Profiles", () => {
+describe("Profiles", () => {
     let driver: WebDriver;
     let testFailed: boolean;
 
@@ -65,7 +65,8 @@ xdescribe("Profiles", () => {
         await driver.quit();
     });
 
-    it("Add profile", async () => {
+    // reason: Profiles section is under development
+    xit("Add profile", async () => {
         try {
             await openProfileMenu(driver);
 
@@ -100,8 +101,8 @@ xdescribe("Profiles", () => {
         }
     });
 
-    //has bug
-    it("Edit profile - change profile name", async () => {
+    // reason: Profiles section is under development
+    xit("Edit profile - change profile name", async () => {
         try {
             await addProfile(driver, "ClientQA1", undefined);
 
@@ -140,8 +141,8 @@ xdescribe("Profiles", () => {
         }
     });
 
-    //has bug
-    it("Edit profile - set profile as default", async () => {
+    // reason: Profiles section is under development
+    xit("Edit profile - set profile as default", async () => {
         try {
             await addProfile(driver, "ClientQA1", undefined);
 
@@ -178,7 +179,8 @@ xdescribe("Profiles", () => {
         }
     });
 
-    it("Delete active profile", async () => {
+    // reason: Profiles section is under development
+    xit("Delete active profile", async () => {
         try {
             await addProfile(driver, "ClientQA1", undefined);
 
@@ -221,7 +223,8 @@ xdescribe("Profiles", () => {
         }
     });
 
-    it("Delete non active profile", async () => {
+    // reason: Profiles section is under development
+    xit("Delete non active profile", async () => {
         try {
             await addProfile(driver, "ClientQA1", undefined);
 
@@ -272,7 +275,8 @@ xdescribe("Profiles", () => {
         }
     });
 
-    it("Delete default profile", async () => {
+    // reason: Profiles section is under development
+    xit("Delete default profile", async () => {
         try {
             await addProfile(driver, "ClientQA1", undefined);
 
@@ -315,7 +319,8 @@ xdescribe("Profiles", () => {
         }
     });
 
-    it("Saving profile settings", async () => {
+    // reason: Profiles section is under development
+    xit("Saving profile settings", async () => {
         try {
             await addProfile(driver, "ClientQA1", undefined);
 

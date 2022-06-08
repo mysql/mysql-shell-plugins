@@ -33,7 +33,7 @@ import {
     getDB,
     createDBconnection,
     setStartLanguage,
-    getConnectionTab,
+    getSelectedConnectionTab,
     getToolbarButton,
     getResultStatus,
     findInSelection,
@@ -146,8 +146,14 @@ describe("DB Editor", () => {
     });
 
     beforeEach(async () => {
-        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-        await waitForHomePage(driver);
+        try {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        } catch (e) {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        }
+
         await driver.findElement(By.id("gui.sqleditor")).click();
         await initConDialog(driver);
     });
@@ -409,7 +415,7 @@ describe("DB Editor", () => {
                 await getDB(driver, dbConfig.caption),
             );
 
-            expect(await (await getConnectionTab(driver, "1")).getText())
+            expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig.caption);
 
             await closeDBconnection(driver, dbConfig.caption);
@@ -466,7 +472,7 @@ describe("DB Editor", () => {
             await setConfirmDialog(driver, dbConfig1, "yes");
 
 
-            expect(await (await getConnectionTab(driver, "1")).getText())
+            expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig1.caption);
 
             await closeDBconnection(driver, dbConfig1.caption);
@@ -476,7 +482,7 @@ describe("DB Editor", () => {
                 await getDB(driver, dbConfig1.caption),
             );
 
-            expect(await (await getConnectionTab(driver, "1")).getText())
+            expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig1.caption);
 
         } catch (e) {
@@ -501,7 +507,7 @@ describe("DB Editor", () => {
             await setConfirmDialog(driver, dbConfig2, "no");
 
 
-            expect(await (await getConnectionTab(driver, "1")).getText())
+            expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig2.caption);
 
             await closeDBconnection(driver, dbConfig2.caption);
@@ -536,7 +542,7 @@ describe("DB Editor", () => {
 
             await setConfirmDialog(driver, dbConfig3, "never");
 
-            expect(await (await getConnectionTab(driver, "1")).getText())
+            expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig3.caption);
 
             await closeDBconnection(driver, dbConfig3.caption);
@@ -548,7 +554,7 @@ describe("DB Editor", () => {
 
             await setDBEditorPassword(driver, dbConfig3);
 
-            expect(await (await getConnectionTab(driver, "1")).getText())
+            expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig3.caption);
 
 
@@ -817,7 +823,7 @@ describe("DB Editor", () => {
     });
 
     // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34237038
-    it("Remove a database connection", async () => {
+    xit("Remove a database connection", async () => {
         try {
 
             dbConfig.caption += String(new Date().valueOf());
@@ -911,7 +917,7 @@ describe("DB Editor", () => {
                 conn,
             );
 
-            expect(await (await getConnectionTab(driver, "1")).getText()).toBe(conName);
+            expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(conName);
 
             await toggleSchemaObject(driver, "Schema", "main");
 
@@ -1032,7 +1038,7 @@ describe("DB Editor", () => {
                 //continue
             }
 
-            expect(await (await getConnectionTab(driver, "1")).getText()).toBe(conName);
+            expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(conName);
             await toggleExplorerHost(driver, "close");
             await setEditorLanguage(driver, "mysql");
 
@@ -1094,7 +1100,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(dbConfig.caption);
 
                 const defaultSchema = await driver.findElement(
                     By.css("#schemaSectionHost div.marked"),
@@ -1129,7 +1135,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
@@ -1190,7 +1196,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(
                     dbConfig.caption,
                 );
 
@@ -1255,7 +1261,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
@@ -1346,7 +1352,8 @@ describe("DB Editor", () => {
             }
         });
 
-        it("Connection toolbar buttons - Autocommit DB Changes", async () => {
+        //bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34259236
+        xit("Connection toolbar buttons - Autocommit DB Changes", async () => {
             try {
 
                 await driver.findElement(By.id("gui.sqleditor")).click();
@@ -1367,7 +1374,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
@@ -1469,7 +1476,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
@@ -1553,7 +1560,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await expandCollapseSchemaMenus(driver, "open editors", false, 0);
@@ -1647,7 +1654,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(dbConfig.caption);
 
                 const script = await addScript(driver, "JS");
 
@@ -1713,7 +1720,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(dbConfig.caption);
 
                 const script = await addScript(driver, "TS");
 
@@ -1782,7 +1789,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(
                     dbConfig.caption,
                 );
 
@@ -1872,7 +1879,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(dbConfig.caption);
 
                 const script1 = await addScript(driver, "JS");
 
@@ -1951,7 +1958,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(dbConfig.caption);
 
                 expect(
                     await driver
@@ -2112,7 +2119,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(dbConfig.caption);
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(dbConfig.caption);
 
                 await driver.executeScript(
                     "arguments[0].click()",
@@ -2190,7 +2197,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(
                     dbConfig.caption,
                 );
 
@@ -2247,7 +2254,7 @@ describe("DB Editor", () => {
         });
 
         // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34179455
-        it("Using Math_random on js_py blocks", async () => {
+        xit("Using Math_random on js_py blocks", async () => {
             try {
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
@@ -2267,7 +2274,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(
                     dbConfig.caption,
                 );
 
@@ -2358,7 +2365,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText()).toBe(
+                expect(await (await getSelectedConnectionTab(driver)).getText()).toBe(
                     dbConfig.caption,
                 );
 
@@ -2471,7 +2478,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
@@ -2535,7 +2542,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
@@ -2607,7 +2614,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");
@@ -2697,7 +2704,7 @@ describe("DB Editor", () => {
                     }
                 }
 
-                expect(await (await getConnectionTab(driver, "1")).getText())
+                expect(await (await getSelectedConnectionTab(driver)).getText())
                     .toBe(dbConfig.caption);
 
                 await toggleExplorerHost(driver, "close");

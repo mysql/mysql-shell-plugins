@@ -479,7 +479,7 @@ describe("Main pages", () => {
         }
     });
 
-    xdescribe("Theme Editor", () => {
+    describe("Theme Editor", () => {
         beforeEach(async () => {
             await driver.findElement(By.id("settings")).click();
             await driver.findElement(By.id("themeEditor")).click();
@@ -487,11 +487,8 @@ describe("Main pages", () => {
             await driver.findElement(By.id("Default Dark")).click();
         });
 
-        afterAll(async () => {
-            await driver.quit();
-        });
-
-        it("Drag and drop - Color Pad to Base colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("Drag and drop - Color Pad to Base colors", async () => {
             try {
                 const dragAndDrop = (await fsPromises.readFile("src/e2e/lib/dragAndDrop.js")).toString();
 
@@ -549,7 +546,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("Drag and drop - Base colors to Color Pad", async () => {
+        // reason: Theme Editor section is still under development
+        xit("Drag and drop - Base colors to Color Pad", async () => {
             try {
                 const dragAndDrop = (await fsPromises.readFile("src/e2e/lib/dragAndDrop.js")).toString();
 
@@ -593,7 +591,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Base Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Base Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
                 const uiColorsClasses = (await uiColors.getAttribute("class")).split(" ");
@@ -626,7 +625,7 @@ describe("Main pages", () => {
             }
         });
 
-        //has bug
+        // reason: Theme Editor section is still under development
         xit("UI Colors - Window Dialog Colors", async () => {
             try {
             //WINDOW/DIALOG COLORS
@@ -667,7 +666,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Popup Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Popup Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -719,7 +719,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Button Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Button Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -754,7 +755,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Dropdown Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Dropdown Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -806,7 +808,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Input Controls Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Input Controls Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -839,7 +842,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Tag Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Tag Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -872,7 +876,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Progress Bar Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Progress Bar Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -898,7 +903,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - List Tree Grid Table Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - List Tree Grid Table Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -933,7 +939,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Activity Bar Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Activity Bar Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -965,7 +972,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Side Bar Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Side Bar Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -996,7 +1004,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Tabview Group Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Tabview Group Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1027,7 +1036,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Editor Colors, except syntax highlighting", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Editor Colors, except syntax highlighting", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1062,7 +1072,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Scrollbar Slider Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Scrollbar Slider Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1090,7 +1101,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Hint Info Tooltip Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Hint Info Tooltip Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1142,7 +1154,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Status Bar Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Status Bar Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1171,7 +1184,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Browser Tile Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Browser Tile Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1207,7 +1221,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Title Bar Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Title Bar Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1240,7 +1255,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Menu Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Menu Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1282,7 +1298,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Integrated Terminal Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Integrated Terminal Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1318,7 +1335,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Breadcrumb Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Breadcrumb Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1355,7 +1373,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("UI Colors - Icon Colors", async () => {
+        // reason: Theme Editor section is still under development
+        xit("UI Colors - Icon Colors", async () => {
             try {
                 const uiColors = await driver.findElement(By.id("uiColors"));
 
@@ -1395,7 +1414,8 @@ describe("Main pages", () => {
             }
         });
 
-        it("Syntax Colors - Change scope selector settings", async () => {
+        // reason: Theme Editor section is still under development
+        xit("Syntax Colors - Change scope selector settings", async () => {
             try {
                 await driver.findElement(By.css(".themeSelector")).click();
                 await driver.findElement(By.id("Default Dark")).click();
@@ -1504,7 +1524,6 @@ describe("Main pages", () => {
                     return String(elStyle).indexOf("underline") !== -1;
                 }, 3000, "Destination element is not underlined") );
 
-            //KEYWORD
                 const keyword = await findItem("keyword", 1, 8);
                 await driver.executeScript("arguments[0].scrollIntoView(true)", keyword);
                 foreground = await keyword.findElement(By.id("foreground"));
@@ -1575,7 +1594,8 @@ describe("Main pages", () => {
                 const dialog = await driver.findElement(By.css(".valueEditDialog"));
                 const theme = await dialog.findElement(By.id("themeName"));
                 await theme.clear();
-                await theme.sendKeys("ClientQA Theme");
+                const themeName = `theme${String(new Date().valueOf())}`;
+                await theme.sendKeys(themeName);
                 await dialog.findElement(By.id("ok")).click();
 
                 const uiColors = await driver.findElement(By.id("uiColors"));
@@ -1612,13 +1632,13 @@ describe("Main pages", () => {
                 expect( await driver.wait(async () => { return await driver.findElement(
                     By.css(".themeSelector label")).getText() === "Default Dark"; },
                 3000, "Theme was not changed to Default Dark") ).toBe(true);
-                expect( String(await getBackgroundColor(driver)).trim() ).toBe("#2C2C2C");
+                expect( String(await getBackgroundColor(driver)).trim() ).toBe("#2C2C2CFF");
 
                 await driver.findElement(By.css(".themeSelector")).click();
-                await driver.findElement(By.id("ClientQA Theme")).click();
+                await driver.findElement(By.id(themeName)).click();
                 expect( await driver.wait(async () => { return await driver.findElement(
-                    By.css(".themeSelector label")).getText() === "ClientQA Theme"; },
-                3000, "Theme was not changed to ClientQA Theme") ).toBe(true);
+                    By.css(".themeSelector label")).getText() === themeName; },
+                3000, `Theme was not changed to ${themeName}`) ).toBe(true);
 
                 expect( await getElementStyle(driver, element, "backgroundColor") ).toBe(elBackgrd);
                 expect( await getElementStyle(driver, element, "color") ).toBe(elFgrd);
@@ -1628,8 +1648,7 @@ describe("Main pages", () => {
             }
         });
 
-        //has bug
-        xit("Delete theme", async () => {
+        it("Delete theme", async () => {
             try {
                 const create = await driver.findElement(By.xpath("//button[contains(@data-tooltip, 'Duplicate')]"));
                 await create.click();
@@ -1660,6 +1679,5 @@ describe("Main pages", () => {
                 throw e;
             }
         });
-
     });
 });
