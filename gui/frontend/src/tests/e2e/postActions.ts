@@ -22,7 +22,7 @@
  */
 
 //This script attaches screenshots to failed tests
-//This script marks failed tests to existing bugs if there is the tag <bug:> before the test title
+//This script marks pending tests to existing bugs if there is the tag <bug:> before the test title
 
 import * as jsdom from "jsdom";
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -31,17 +31,18 @@ import * as fs from "fs";
 import { join } from "path";
 const baseDir = "src/tests/e2e";
 const html = fs.readFileSync(join(baseDir, "test-report.html"));
+const parsedHtml = new JSDOM(html, { includeNodeLocations: true });
+const document = parsedHtml.window.document;
 const mainFile = fs.readFileSync(join(baseDir, "tests", "main.spec.ts"));
 const profilesFile = fs.readFileSync(join(baseDir, "tests", "profiles.spec.ts"));
 const dbEditorFile = fs.readFileSync(join(baseDir, "tests", "dbeditor.spec.ts"));
 const shellFile = fs.readFileSync(join(baseDir, "tests", "shell.spec.ts"));
 const loginFile = fs.readFileSync(join(baseDir, "tests", "login.spec.ts"));
+const pendingDivs = document.querySelectorAll("div.pending");
 
 if (fs.existsSync(join(baseDir, "screenshots"))) {
     const files = fs.readdirSync(join(baseDir, "screenshots"));
     console.log(`"Processing ${files.length} screenshots..."`);
-    const parsedHtml = new JSDOM(html, { includeNodeLocations: true });
-    const document = parsedHtml.window.document;
     const testTitles = document.querySelectorAll("div.failed div.test-title");
     const failedDivs = document.querySelectorAll("div.failed");
 
@@ -57,62 +58,94 @@ if (fs.existsSync(join(baseDir, "screenshots"))) {
                         if (!failedDivs[j].querySelector("div.failureMessages img")) {
                             failedDivs[j].querySelector("div.failureMessages")!.appendChild(img);
                         }
-                        if (!failedDivs[j].querySelector("div.failureMessages a")) {
-                            //Mark test with existing bug
-                            console.log(`Marking '${String(testTitles[i].textContent)}' with existing bug`);
-                            const suite = failedDivs[j].querySelector("div.test-suitename")?.textContent;
-                            let codeLines: string[] = [];
-                            switch(suite) {
-                                case "Profiles":
-                                    codeLines = profilesFile.toString().split("\n");
-                                    break;
-                                case "Login":
-                                    codeLines = loginFile.toString().split("\n");
-                                    break;
-                                case "Main pages":
-                                    codeLines = mainFile.toString().split("\n");
-                                    break;
-                                case "MySQL Shell Sessions":
-                                    codeLines = shellFile.toString().split("\n");
-                                    break;
-                                case "DB Editor":
-                                case "DB Editor > SQL Database connections":
-                                    codeLines = dbEditorFile.toString().split("\n");
-                                    break;
-                                default:
-                                    break;
-                            }
-
-                            let bugLink = "";
-                            for(let y=0; y <= codeLines.length-1; y++) {
-                                if (codeLines[y].indexOf(String(testTitles[i].textContent)) !== -1) {
-                                    if (codeLines[y-1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
-                                        bugLink = codeLines[y-1].replace("// bug: ", "").trim();
-                                        const htmlLink = document.createElement("a");
-                                        const breakLine1 = document.createElement("br");
-                                        htmlLink.href = bugLink;
-                                        htmlLink.text = "---->  HAS A BUG  <-----";
-                                        htmlLink.target = "_blank";
-
-                                        failedDivs[j].querySelector("div.failureMessages")!
-                                            .insertBefore(htmlLink,
-                                                failedDivs[j].querySelector("div.failureMessages")!.firstChild);
-
-                                        failedDivs[j].querySelector("div.failureMessages")!
-                                            .insertBefore(breakLine1,
-                                                failedDivs[j].querySelector("div.failureMessages")!.firstChild);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
         }
     }
-
-    fs.writeFileSync("src/tests/e2e/test-report.html", parsedHtml.serialize());
 } else {
     console.log("There are no screenshots to attach.");
 }
+
+//Mark bugs on skipped tests
+for (let i=0; i <= pendingDivs.length-1; i++) {
+    const suite = pendingDivs[i].querySelector(".test-suitename")!.textContent;
+    const title = pendingDivs[i].querySelector(".test-title")!.textContent;
+    if (!pendingDivs[i].querySelector("a") || !pendingDivs[i].querySelector("b")) {
+        let codeLines: string[] = [];
+        switch(true) {
+            case (/Profiles/).test(String(suite)):
+                codeLines = profilesFile.toString().split("\n");
+                break;
+            case (/Login/).test(String(suite)):
+                codeLines = loginFile.toString().split("\n");
+                break;
+            case (/Main pages/).test(String(suite)):
+                codeLines = mainFile.toString().split("\n");
+                break;
+            case (/MySQL Shell Sessions/).test(String(suite)):
+                codeLines = shellFile.toString().split("\n");
+                break;
+            case (/DB Editor/).test(String(suite)):
+                codeLines = dbEditorFile.toString().split("\n");
+                break;
+            default:
+                break;
+        }
+
+        let text = "";
+        for (let y=0; y <= codeLines.length-1; y++) {
+            if (codeLines[y].indexOf(String(title)) !== -1) {
+                const breakLine1 = document.createElement("br");
+                const breakLine2 = document.createElement("br");
+                if (!pendingDivs[i].querySelector("a")) {
+                    if (codeLines[y-1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
+                        text = codeLines[y-1].match(/bug:(.*)/)![1].trim();
+                        const htmlEl = document.createElement("a");
+                        htmlEl.href = text;
+                        htmlEl.text = "---->  HAS A BUG  <-----";
+                        htmlEl.target = "_blank";
+
+                        pendingDivs[i]
+                            .insertBefore(breakLine1,
+                                pendingDivs[i].firstChild);
+
+                        pendingDivs[i]
+                            .insertBefore(breakLine2,
+                                pendingDivs[i].firstChild);
+
+                        pendingDivs[i]
+                            .insertBefore(htmlEl,
+                                pendingDivs[i].firstChild);
+
+                        console.log(`Marked '${String(title)}' with existing bug`);
+                        break;
+                    }
+                }
+                if (!pendingDivs[i].querySelector("b")) {
+                    if (codeLines[y-1].indexOf("reason:") !== -1) {
+                        text = codeLines[y-1].match(/reason:(.*)/)![1].trim();
+                        const htmlEl = document.createElement("b");
+                        htmlEl.textContent = `Skipped Reason: ${text}`;
+
+                        pendingDivs[i]
+                            .insertBefore(breakLine1,
+                                pendingDivs[i].firstChild);
+
+                        pendingDivs[i]
+                            .insertBefore(breakLine2,
+                                pendingDivs[i].firstChild);
+
+                        pendingDivs[i]
+                            .insertBefore(htmlEl,
+                                pendingDivs[i].firstChild);
+
+                        console.log(`Marked '${String(title)}' with skipped reason`);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+fs.writeFileSync("src/tests/e2e/test-report.html", parsedHtml.serialize());

@@ -181,12 +181,11 @@ export const getDB = async (driver: WebDriver, name: string): Promise<WebElement
 
 export const closeDBconnection = async (driver: WebDriver, name: string): Promise<void> => {
 
-    const connections = await driver
-        .findElements(By.xpath("//div[contains(@id, 'connection_') and contains(@class, 'selectorItem')]"));
+    const tabs = await driver.findElements(By.css(".hasAuxillary"));
 
-    for (const connection of connections) {
-        if (await connection.findElement(By.css("label")).getText() === name) {
-            await connection.findElement(By.css(".closeButton > div")).click();
+    for (const tab of tabs) {
+        if (await tab.findElement(By.css("label")).getText() === name) {
+            await tab.findElement(By.css("#auxillary > button")).click();
         }
     }
 
@@ -239,8 +238,8 @@ export const getResultStatus = async (driver: WebDriver, blockNbr: number, isSel
     return block.getAttribute("innerHTML");
 };
 
-export const getConnectionTab = async (driver: WebDriver, id: string): Promise<WebElement> => {
-    const tab = await driver.findElement(By.xpath("//div[contains(@id, 'tab" + id + "')]"));
+export const getSelectedConnectionTab = async (driver: WebDriver): Promise<WebElement> => {
+    const tab = await driver.findElement(By.css(".selected.hasAuxillary"));
 
     return tab.findElement(By.css(".label"));
 };
@@ -813,20 +812,40 @@ export const getResultTab = async (driver: WebDriver, tabName: string): Promise<
     }
 };
 
-export const getResultColumnName = async (driver: WebDriver, columnName: string): Promise<WebElement | undefined> => {
-    const resultSet = await driver.findElement(
-        By.css(".resultHost .tabulator-headers"),
-    );
-
-    const resultHeaderRows = await resultSet.findElements(
-        By.css(".tabulator-col-title"),
-    );
-
-    for (const row of resultHeaderRows) {
-        if (await row.getText() === columnName) {
-            return row;
+export const getResultColumnName = async (driver: WebDriver, columnName: string,
+    retry?: number): Promise<WebElement | undefined> => {
+    if (!retry) {
+        retry = 0;
+    } else {
+        if (retry === 2) {
+            throw new Error("Max retries for getting column name was reached");
         }
     }
+    try {
+        const resultSet = await driver.findElement(
+            By.css(".resultHost .tabulator-headers"),
+        );
+
+        const resultHeaderRows = await resultSet.findElements(
+            By.css(".tabulator-col-title"),
+        );
+
+        for (const row of resultHeaderRows) {
+            if (await row.getText() === columnName) {
+                return row;
+            }
+        }
+    } catch(e) {
+        if (e instanceof Error) {
+            if (e.message.indexOf("stale") === -1) {
+                throw e;
+            }
+        } else {
+            await getResultColumnName(driver, columnName, retry+1);
+        }
+    }
+
+
 };
 
 export const findFreePort = async (): Promise<number> => {
@@ -1300,7 +1319,7 @@ export const initConDialog = async (driver: WebDriver): Promise <void> => {
 export const expandCollapseSchemaMenus = async ( driver: WebDriver, menu: String, expand: boolean,
     retries: number): Promise<void> => {
     if (retries === 3) {
-        throw new Error("Error on expanding collapse");
+        throw new Error("Max retries reached on expanding collapse");
     }
     try {
         let elToClick;
@@ -1310,7 +1329,7 @@ export const expandCollapseSchemaMenus = async ( driver: WebDriver, menu: String
             case "open editors":
                 elToClick = await driver.findElement(
                     By.id("editorSectionHost")).findElement(By.css("div.container.section label"));
-                elToVerify = await driver.findElement(By.id("standardConsole"));
+                elToVerify = await driver.findElement(By.css("#editorSectionHost .accordionItem"));
                 break;
             case "schemas":
                 elToClick = await driver.findElement(
@@ -1328,8 +1347,15 @@ export const expandCollapseSchemaMenus = async ( driver: WebDriver, menu: String
             case "scripts":
                 elToClick = await driver.findElement(
                     By.id("scriptSectionHost")).findElement(By.css("div.container.section label"));
+
                 elToVerify = await driver.findElement(
-                    By.id("scriptSectionHost")).findElement(By.css(".tabulator-table"));
+                    By.id("scriptSectionHost")).findElements(By.css(".tabulator-table"));
+                if (elToVerify.length === 0) {
+                    elToVerify = await driver.findElement(
+                        By.id("scriptSectionHost")).findElement(By.css(".accordionItem"));
+                } else {
+                    elToVerify = elToVerify[0];
+                }
                 break;
             default:
                 break;
@@ -1351,6 +1377,7 @@ export const expandCollapseSchemaMenus = async ( driver: WebDriver, menu: String
         }
     } catch (e) {
         await driver.sleep(1000);
+        console.error(e);
         await expandCollapseSchemaMenus(driver, menu, expand, retries + 1);
     }
 };
