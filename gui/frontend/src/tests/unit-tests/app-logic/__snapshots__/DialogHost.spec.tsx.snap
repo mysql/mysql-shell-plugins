@@ -279,6 +279,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -288,6 +289,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -520,6 +522,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -529,6 +532,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -635,6 +639,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -644,6 +649,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -659,7 +665,6 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
     key="passwordDialog"
   />
   <ValueEditDialog
-    caption="Feedback Requested"
     key="valueEditDialog"
     onClose={[Function]}
   >
@@ -688,9 +693,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
             disabled={false}
             src={388}
           />
-          <Label>
-            Feedback Requested
-          </Label>
+          <Label />
         </y>
       }
       className="msg valueEditDialog"
@@ -714,7 +717,6 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
     </Dialog>
   </ValueEditDialog>
   <ConfirmDialog
-    caption="Confirm"
     key="confirmDialog"
     onClose={[Function]}
   >
@@ -741,6 +743,10 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         <Container
           orientation="column"
         >
+          <Container
+            className="description"
+            orientation="column"
+          />
           
         </Container>
       }
@@ -758,7 +764,6 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
     onClose={[Function]}
   >
     <ValueEditDialog
-      caption="MySQL REST Service"
       id="mrsServiceDialog"
       onClose={[Function]}
       onValidate={[Function]}
@@ -788,9 +793,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
               disabled={false}
               src={388}
             />
-            <Label>
-              MySQL REST Service
-            </Label>
+            <Label />
           </y>
         }
         className="msg valueEditDialog"
@@ -818,7 +821,6 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
     onClose={[Function]}
   >
     <ValueEditDialog
-      caption="MySQL REST Service"
       id="mrsSchemaDialog"
       onClose={[Function]}
       onValidate={[Function]}
@@ -848,9 +850,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
               disabled={false}
               src={388}
             />
-            <Label>
-              MySQL REST Service
-            </Label>
+            <Label />
           </y>
         }
         className="msg valueEditDialog"

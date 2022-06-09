@@ -252,6 +252,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -261,6 +262,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -411,6 +413,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -420,6 +423,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>

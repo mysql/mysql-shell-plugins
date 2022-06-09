@@ -88,6 +88,7 @@ export class Button extends Component<IButtonProperties> {
                 ref={this.buttonRef}
                 style={newStyle}
                 className={className}
+                tabIndex={0}
                 {...this.unhandledProperties}
             >
                 {content}

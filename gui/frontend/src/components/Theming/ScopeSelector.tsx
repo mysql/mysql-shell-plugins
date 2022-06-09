@@ -113,7 +113,6 @@ export class ScopeSelector extends Component<IScopeSelectorProperties, IScopeSel
                 <div className="footer verticalCenterContent unselectable">
                     <ValueEditDialog
                         ref={this.newScopeDialogRef}
-                        caption="Enter a name for the new scope"
                         onValidate={this.validateScopeName}
                         onClose={this.defineNewScope}
                     />
@@ -189,7 +188,7 @@ export class ScopeSelector extends Component<IScopeSelectorProperties, IScopeSel
                         },
                     }]]),
             },
-            [],
+            { title: "Enter a name for the new scope" },
         );
     };
 }

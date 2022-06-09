@@ -38,7 +38,6 @@ export class MrsSchemaDialog extends ValueDialogBase {
             <ValueEditDialog
                 ref={this.dialogRef}
                 id="mrsSchemaDialog"
-                caption="MySQL REST Service"
                 onClose={this.handleCloseDialog}
                 onValidate={this.validateInput}
             />
@@ -48,8 +47,8 @@ export class MrsSchemaDialog extends ValueDialogBase {
     public show(request: IDialogRequest, title: string): void {
         const services = request.parameters?.services as IMrsServiceData[];
 
-        this.dialogRef.current?.show(this.dialogValues(request, title, services), [],
-            undefined, undefined, undefined, { services });
+        this.dialogRef.current?.show(this.dialogValues(request, title, services), { title: "MySQL REST Service" },
+            { services });
     }
 
     private dialogValues(request: IDialogRequest, title: string, services: IMrsServiceData[]): IDialogValues {

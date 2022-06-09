@@ -171,6 +171,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             M
           </button>
@@ -186,6 +187,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             M
           </button>
@@ -201,6 +203,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             M
           </button>
@@ -216,6 +219,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             M
           </button>
@@ -231,6 +235,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             M
           </button>

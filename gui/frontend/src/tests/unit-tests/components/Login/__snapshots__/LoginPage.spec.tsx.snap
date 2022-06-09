@@ -297,6 +297,7 @@ exports[`Login Page Tests Render Test 1`] = `
                         "flexDirection": undefined,
                       }
                     }
+                    tabIndex={0}
                   >
                     <Icon
                       disabled={false}

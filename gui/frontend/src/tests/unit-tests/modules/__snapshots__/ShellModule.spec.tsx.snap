@@ -526,6 +526,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                     "flexDirection": undefined,
                                   }
                                 }
+                                tabIndex={0}
                               >
                                 <Icon
                                   data-tooltip="inherit"
@@ -673,6 +674,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                               "flexDirection": undefined,
                                             }
                                           }
+                                          tabIndex={0}
                                         >
                                           <Icon
                                             disabled={false}

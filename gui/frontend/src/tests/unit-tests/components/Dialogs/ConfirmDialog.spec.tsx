@@ -35,7 +35,7 @@ describe("Confirm Dialog Tests", (): void => {
 
     it("Confirm Dialog Render Test", () => {
         const component = mount<ConfirmDialog>(
-            <ConfirmDialog caption="Confirm you are a spy!" />,
+            <ConfirmDialog />,
         );
 
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
@@ -48,11 +48,11 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(0);
 
         const component = mount<ConfirmDialog>(
-            <ConfirmDialog caption="Confirm you are a spy!" />,
+            <ConfirmDialog />,
         );
 
         component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
-            undefined, { brain: "Lorem Ipsum" });
+            "Confirm you are a spy!", undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -67,7 +67,7 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(0);
 
         component.instance().show("", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
-            undefined, { brain: "Lorem Ipsum" });
+            "Resistance is futile", undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -89,12 +89,12 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(0);
 
         const component = mount<ConfirmDialog>(
-            <ConfirmDialog caption="Confirm you are a spy!" />,
+            <ConfirmDialog />,
         );
 
         const label = <Label>Time to say goodbye</Label>;
         component.instance().show(label, { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
-            undefined, { brain: "Lorem Ipsum" });
+            "Confirm you are a spy!", undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -118,14 +118,13 @@ describe("Confirm Dialog Tests", (): void => {
 
         const component = mount<ConfirmDialog>(
             <ConfirmDialog
-                caption="Confirm you are a spy!"
                 onClose={spyOnClose}
             />,
         );
 
         // First round: accept.
         component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
-            undefined, { brain: "Lorem Ipsum" });
+            "Confirm you are a spy!", undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
         // Dialogs are rendered using portals, so we cannot use the component to interact with them.
@@ -148,7 +147,7 @@ describe("Confirm Dialog Tests", (): void => {
 
         // Second round: deny.
         component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
-            undefined, { brain: "Dolor Sit" });
+            "Resistance is futile", undefined, { brain: "Dolor Sit" });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

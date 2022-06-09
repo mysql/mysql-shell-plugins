@@ -271,6 +271,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                   "flexDirection": undefined,
                                 }
                               }
+                              tabIndex={0}
                             >
                               <Icon
                                 data-tooltip="inherit"
@@ -329,6 +330,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                   "flexDirection": undefined,
                                 }
                               }
+                              tabIndex={0}
                             >
                               <Icon
                                 data-tooltip="inherit"
@@ -372,7 +374,6 @@ exports[`Theme editor core testing Render test 1`] = `
                           }
                         >
                           <ValueEditDialog
-                            caption="Enter a name for the new theme"
                             onClose={[Function]}
                             onValidate={[Function]}
                           >
@@ -401,9 +402,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                     disabled={false}
                                     src={388}
                                   />
-                                  <Label>
-                                    Enter a name for the new theme
-                                  </Label>
+                                  <Label />
                                 </y>
                               }
                               className="msg valueEditDialog"
@@ -442,6 +441,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                   "flexDirection": undefined,
                                 }
                               }
+                              tabIndex={0}
                             >
                               <Icon
                                 data-tooltip="inherit"
@@ -502,6 +502,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                   "flexDirection": undefined,
                                 }
                               }
+                              tabIndex={0}
                             >
                               <Icon
                                 data-tooltip="inherit"

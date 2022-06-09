@@ -131,9 +131,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
     it("Render with Defaults Test", () => {
         const component = mount<ValueEditDialog>(
-            <ValueEditDialog
-                caption="Enter a name for the new theme"
-            />,
+            <ValueEditDialog />,
         );
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
 
@@ -142,9 +140,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
     it("Simple Dialog", async () => {
         const component = mount<ValueEditDialog>(
-            <ValueEditDialog
-                caption="Enter a name for the new theme"
-            />,
+            <ValueEditDialog />,
         );
 
         const nameSection: IDialogSection = {
@@ -167,7 +163,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["name", nameSection],
                 ]),
             },
-            [],
+            { title: "Enter a name for the new theme" },
         );
         await nextProcessTick();
 
@@ -188,7 +184,6 @@ describe("Value Edit Dialog Tests", (): void => {
     it("Show Dialog with Advanced Field", async () => {
         const component = mount<ValueEditDialog>(
             <ValueEditDialog
-                caption="Select Value"
                 advancedActionCaption="More..."
             />,
         );
@@ -202,7 +197,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["name", nameSection],
                 ]),
             },
-            ["advanced"],
+            { contexts: ["advanced"], title: "Select Value" },
         );
         await nextProcessTick();
         expect(component.state().activeContexts).toContain("advanced");
@@ -218,7 +213,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["name", nameSection],
                 ]),
             },
-            [],
+            { title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -241,7 +236,6 @@ describe("Value Edit Dialog Tests", (): void => {
 
         let component = mount<ValueEditDialog>(
             <ValueEditDialog
-                caption="Select Value"
                 advancedActionCaption="More..."
                 onToggleAdvanced={onToggleAdvanced}
             />,
@@ -254,7 +248,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["name", nameSection],
                 ]),
             },
-            ["myContext"],
+            { contexts: ["myContext"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -280,7 +274,6 @@ describe("Value Edit Dialog Tests", (): void => {
 
         component = mount<ValueEditDialog>(
             <ValueEditDialog
-                caption="Select Value"
                 advancedActionCaption="More..."
                 advancedAction={advancedAction}
             />,
@@ -293,7 +286,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["name", nameSection],
                 ]),
             },
-            ["myContext"],
+            { contexts: ["myContext"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -311,9 +304,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
     it("Update Contexts", async () => {
         const component = mount<ValueEditDialog>(
-            <ValueEditDialog
-                caption="Select Value"
-            />,
+            <ValueEditDialog />,
         );
 
         expect(component.state().activeContexts).not.toContain("myContext");
@@ -326,7 +317,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["full", fullSection],
                 ]),
             },
-            [],
+            { title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -361,7 +352,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["full", fullSection],
                 ]),
             },
-            ["myContext"],
+            { contexts: ["myContext"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -374,9 +365,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
     it("Updating Dialog Values", async () => {
         const component = mount<ValueEditDialog>(
-            <ValueEditDialog
-                caption="Select Value"
-            />,
+            <ValueEditDialog />,
         );
 
         component.instance().show(
@@ -387,7 +376,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["full", fullSection],
                 ]),
             },
-            ["myContext"],
+            { contexts: ["myContext"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -492,7 +481,6 @@ describe("Value Edit Dialog Tests", (): void => {
 
         const component = mount<ValueEditDialog>(
             <ValueEditDialog
-                caption="Select Value"
                 onValidate={onValidate}
             />,
         );
@@ -505,7 +493,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["full", fullSection],
                 ]),
             },
-            ["myContext", "context 2"],
+            { contexts: ["myContext", "context 2"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -556,7 +544,6 @@ describe("Value Edit Dialog Tests", (): void => {
     it("Footer, Heading, Description and Payload", async () => {
         const component = mount<ValueEditDialog>(
             <ValueEditDialog
-                caption="Select Value"
                 customFooter={<Label caption="Custom Footer" />}
             />,
         );
@@ -568,10 +555,14 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["simple", nameSection],
                 ]),
             },
-            ["myContext", "context 2"],
-            undefined,
-            "Lorem Ipsum Dolor Sit Amet",
-            "Show this dialog to show a dialog",
+            {
+                contexts: ["myContext", "context 2"],
+                title: "Select Value",
+                description: [
+                    "Lorem Ipsum Dolor Sit Amet",
+                    "Show this dialog to show a dialog",
+                ],
+            },
             { world: "earth" },
         );
         await nextProcessTick();
@@ -641,7 +632,6 @@ describe("Value Edit Dialog Tests", (): void => {
 
         const component = mount<ValueEditDialog>(
             <ValueEditDialog
-                caption="Select Value"
                 customFooter={<Label caption="Custom Footer" />}
                 onSelectTab={onSelectTab}
             />,
@@ -657,7 +647,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["four", section4],
                 ]),
             },
-            ["myContext", "context 2"],
+            { contexts: ["myContext", "context 2"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -717,9 +707,7 @@ describe("Value Edit Dialog Tests", (): void => {
         };
 
         const component = mount<ValueEditDialog>(
-            <ValueEditDialog
-                caption="Select Value"
-            />,
+            <ValueEditDialog />,
         );
 
         component.instance().show(
@@ -729,7 +717,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["simple", simpleSection],
                 ]),
             },
-            ["myContext", "context 2"],
+            { contexts: ["myContext", "context 2"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -743,7 +731,6 @@ describe("Value Edit Dialog Tests", (): void => {
     it("Interaction", async () => {
         const component = mount<ValueEditDialog>(
             <ValueEditDialog
-                caption="Select Value"
                 onClose={close}
             />,
         );
@@ -758,7 +745,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["full", fullSection],
                 ]),
             },
-            ["myContext"],
+            { contexts: ["myContext"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -799,7 +786,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["full", fullSection],
                 ]),
             },
-            ["myContext"],
+            { contexts: ["myContext"], title: "Select Value" },
         );
         await nextProcessTick();
 
@@ -823,7 +810,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     ["full", fullSection],
                 ]),
             },
-            ["myContext"],
+            { contexts: ["myContext"], title: "Select Value" },
         );
         await nextProcessTick();
 

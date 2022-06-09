@@ -51,7 +51,7 @@ interface IProfileSelectorState extends IComponentState {
 
 export class ProfileSelector extends React.Component<{}, IProfileSelectorState> {
 
-    private profileCreatingDialogRef = React.createRef<ValueEditDialog>();
+    private profileDialogRef = React.createRef<ValueEditDialog>();
     private confirmDialogRef = React.createRef<ConfirmDialog>();
 
     private actionMenuRef = React.createRef<Menu>();
@@ -97,16 +97,14 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         return (
             <>
                 <ValueEditDialog
-                    ref={this.profileCreatingDialogRef}
+                    ref={this.profileDialogRef}
                     id="profileCreating"
-                    caption="Add/Edit Profile"
                     onValidate={this.validateProfileValues}
                     onClose={this.handleProfileChanges}
                 />
                 <ConfirmDialog
                     ref={this.confirmDialogRef}
                     id="confirmDeleteDialog"
-                    caption="Delete Profile"
                     onClose={this.handleProfileDelete}
                 />
                 <Menu
@@ -231,39 +229,39 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
     };
 
     private addProfile = (): void => {
-        if (this.profileCreatingDialogRef.current) {
-            this.profileCreatingDialogRef.current.show(
+        if (this.profileDialogRef.current) {
+            this.profileDialogRef.current.show(
                 this.generateEditorConfig(),
-                ["add"],
-                {},
-                "Add a New Profile",
-                undefined,
+                {
+                    contexts: ["add"],
+                    title: "Add New Profile",
+                },
                 { saveProfile: true, section: "add" },
             );
         }
     };
 
     private editProfile = (): void => {
-        if (this.profileCreatingDialogRef.current) {
-            this.profileCreatingDialogRef.current.show(
+        if (this.profileDialogRef.current) {
+            this.profileDialogRef.current.show(
                 this.generateEditorConfig(),
-                ["edit"],
-                {},
-                "Edit this Profile",
-                undefined,
+                {
+                    contexts: ["edit"],
+                    title: "Edit Profile",
+                },
                 { saveProfile: true, section: "edit" },
             );
         }
     };
 
     private deleteProfile = (): void => {
-        if (this.profileCreatingDialogRef.current) {
-            this.profileCreatingDialogRef.current.show(
+        if (this.profileDialogRef.current) {
+            this.profileDialogRef.current.show(
                 this.generateEditorConfig(),
-                ["delete"],
-                {},
-                "Delete Profile",
-                undefined,
+                {
+                    contexts: ["delete"],
+                    title: "Delete Profile",
+                },
                 { saveProfile: true, section: "delete" },
             );
         }
@@ -489,7 +487,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         );
 
         if (this.confirmDialogRef.current) {
-            this.confirmDialogRef.current.show(content, { refuse: "No", accept: "Yes" });
+            this.confirmDialogRef.current.show(content, { refuse: "No", accept: "Yes" }, "Delete Profile");
         }
     };
 

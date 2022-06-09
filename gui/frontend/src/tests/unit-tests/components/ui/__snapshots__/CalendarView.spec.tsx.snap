@@ -53,6 +53,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               />
             </Button>
           </div>
@@ -138,6 +139,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               />
             </Button>
           </div>
@@ -470,6 +472,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 1
               </button>
@@ -510,6 +513,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 2
               </button>
@@ -550,6 +554,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 3
               </button>
@@ -590,6 +595,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 4
               </button>
@@ -630,6 +636,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 5
               </button>
@@ -670,6 +677,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 6
               </button>
@@ -710,6 +718,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 7
               </button>
@@ -750,6 +759,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 8
               </button>
@@ -790,6 +800,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 9
               </button>
@@ -830,6 +841,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 10
               </button>
@@ -870,6 +882,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 11
               </button>
@@ -910,6 +923,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 12
               </button>
@@ -950,6 +964,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 13
               </button>
@@ -990,6 +1005,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 14
               </button>
@@ -1030,6 +1046,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 15
               </button>
@@ -1070,6 +1087,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 16
               </button>
@@ -1110,6 +1128,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 17
               </button>
@@ -1150,6 +1169,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 18
               </button>
@@ -1190,6 +1210,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 19
               </button>
@@ -1230,6 +1251,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 20
               </button>
@@ -1270,6 +1292,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 21
               </button>
@@ -1310,6 +1333,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 22
               </button>
@@ -1350,6 +1374,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 23
               </button>
@@ -1390,6 +1415,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 24
               </button>
@@ -1430,6 +1456,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 25
               </button>
@@ -1470,6 +1497,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 26
               </button>
@@ -1510,6 +1538,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 27
               </button>
@@ -1550,6 +1579,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 28
               </button>
@@ -1590,6 +1620,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 29
               </button>
@@ -1630,6 +1661,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 30
               </button>
@@ -1670,6 +1702,7 @@ exports[`CalendarView testing Render test 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 31
               </button>

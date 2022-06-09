@@ -34,37 +34,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="header"
-    >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg container fixedScrollbar"
-        style="flex-direction: column;"
-      >
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="expand"
-          id="dialogHeading"
-        >
-          Lorem Ipsum Dolor Sit Amet
-        </label>
-        <label
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg label"
-          data-tooltip="expand"
-          id="dialogDescription"
-        >
-          Show this dialog to show a dialog
-        </label>
-      </div>
-    </div>
-    <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
@@ -73,6 +42,49 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar"
+            style="flex-direction: column;"
+          >
+            <div
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg container fixedScrollbar dialogDescription"
+              style="flex-direction: column;"
+            >
+              <label
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg label"
+                data-lang="text"
+                data-tooltip="expand"
+                id="caption0"
+                language="text"
+              >
+                Lorem Ipsum Dolor Sit Amet
+              </label>
+              <label
+                __self="[object Object]"
+                __source="[object Object]"
+                class="msg label"
+                data-lang="text"
+                data-tooltip="expand"
+                id="caption1"
+                language="text"
+              >
+                Show this dialog to show a dialog
+              </label>
+            </div>
+          </div>
+        </div>
         <div
           __self="[object Object]"
           __source="[object Object]"
@@ -137,6 +149,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -146,6 +159,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -388,6 +402,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -397,6 +412,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -639,6 +655,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -648,6 +665,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -827,6 +845,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -836,6 +855,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -846,9 +866,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
 `;
 
 exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
-<ValueEditDialog
-  caption="Enter a name for the new theme"
->
+<ValueEditDialog>
   <Dialog
     actions={
       Object {
@@ -874,9 +892,7 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
           disabled={false}
           src={388}
         />
-        <Label>
-          Enter a name for the new theme
-        </Label>
+        <Label />
       </y>
     }
     className="msg valueEditDialog"
@@ -998,6 +1014,7 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -1007,6 +1024,7 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -1113,6 +1131,7 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -1122,6 +1141,7 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -1294,6 +1314,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               __source="[object Object]"
               caption="..."
               class="msg button"
+              tabindex="0"
             >
               ...
             </button>
@@ -1351,6 +1372,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             caption="Do it!"
             class="msg button valueEditor"
             id="clickMe"
+            tabindex="0"
           >
             Do it!
           </button>
@@ -1400,6 +1422,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                 class="msg button"
                 data-tooltip="Add new property entry"
                 id="buttonAddEntry"
+                tabindex="0"
               >
                 <div
                   __self="[object Object]"
@@ -1415,6 +1438,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                 class="msg button"
                 data-tooltip="Remove selected entries"
                 id="buttonRemoveEntry"
+                tabindex="0"
               >
                 <div
                   __self="[object Object]"
@@ -1591,6 +1615,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -1600,6 +1625,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>
@@ -1772,6 +1798,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               __source="[object Object]"
               caption="..."
               class="msg button"
+              tabindex="0"
             >
               ...
             </button>
@@ -1829,6 +1856,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             caption="Do it!"
             class="msg button valueEditor"
             id="clickMe"
+            tabindex="0"
           >
             Do it!
           </button>
@@ -1878,6 +1906,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                 class="msg button"
                 data-tooltip="Add new property entry"
                 id="buttonAddEntry"
+                tabindex="0"
               >
                 <div
                   __self="[object Object]"
@@ -1893,6 +1922,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                 class="msg button"
                 data-tooltip="Remove selected entries"
                 id="buttonRemoveEntry"
+                tabindex="0"
               >
                 <div
                   __self="[object Object]"
@@ -2069,6 +2099,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           caption="OK"
           class="msg button"
           id="ok"
+          tabindex="0"
         >
           OK
         </button>
@@ -2078,6 +2109,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           caption="Cancel"
           class="msg button"
           id="cancel"
+          tabindex="0"
         >
           Cancel
         </button>

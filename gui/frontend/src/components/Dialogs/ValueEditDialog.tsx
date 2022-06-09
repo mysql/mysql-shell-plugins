@@ -135,14 +135,31 @@ export interface ICallbackData {
     onAddConnection?: (vale: IConnectionDetails) => void;
 }
 
+/** A collection of values to configure the invocation of the value editor. */
+export interface IValueEditDialogShowOptions {
+    /** The dialog contexts that should be active initially. */
+    contexts?: string[];
+
+    /** Options to send to the underlying dialog portal. */
+    options?: IPortalOptions;
+
+    /** The title of the dialog. */
+    title?: string;
+
+    /** A main caption. */
+    heading?: string;
+
+    /** A list of strings to describe the information that must be entered. */
+    description?: string[];
+}
+
 export interface IValueEditDialogProperties extends IComponentProperties {
     container?: HTMLElement; // A node where to mount the dialog to.
 
-    caption: string;
-    advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
     advancedActionCaption?: string;
     customFooter?: React.ReactNode;
 
+    advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
     onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary,
         callbackData?: ICallbackData) => void;
@@ -151,14 +168,18 @@ export interface IValueEditDialogProperties extends IComponentProperties {
 }
 
 interface IValueEditDialogState extends IComponentState {
+    title?: string;
     heading?: string;
-    description?: string;
+    description?: string[];
     values: IDialogValues;
     validations: IDialogValidations;
     preventConfirm: boolean;
     actionText?: string;
 
     activeContexts: Set<string>; // A list of ids that allow conditional rendering of sections and values.
+
+    // Additional data directly passed through from the caller to the receiver.
+    data?: IDictionary;
 }
 
 // A dialog to let the user enter values and to validate them.
@@ -166,9 +187,6 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
     private dialogRef = React.createRef<Dialog>();
     private paramDialogRef = React.createRef<ParamDialog>();
-
-    // Additional data directly passed through from the caller to the receiver.
-    private data?: IDictionary;
 
     public constructor(props: IValueEditDialogProperties) {
         super(props);
@@ -183,7 +201,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             preventConfirm: false,
         };
 
-        this.addHandledProperties("container", "caption", "advancedAction", "advancedActionCaption",
+        this.addHandledProperties("container", "advancedAction", "advancedActionCaption",
             "customFooter", "onClose", "onValidate", "onToggleAdvanced");
     }
 
@@ -191,29 +209,27 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      * Makes the dialog visible with the given dialog values set.
      *
      * @param values The values to use to layout and initially fill the dialog.
-     * @param contexts The dialog contexts that should be active initially.
-     * @param options Options to send to the underlying dialog portal.
-     * @param heading A main caption.
-     * @param description A short description about the purpose of the dialog.
+     * @param dialogOptions Details for the appearance of the dialog.
      * @param data Anything that should be passed to the validation and close functions.
      */
-    public show = (values: IDialogValues, contexts: string[], options?: IPortalOptions, heading?: string,
-        description?: string, data?: IDictionary): void => {
-        this.data = data;
+    public show = (values: IDialogValues, dialogOptions?: IValueEditDialogShowOptions, data?: IDictionary): void => {
+        const activeContexts = new Set(dialogOptions?.contexts);
 
         // Keep the advanced state/context if it was set before.
         if (this.state.activeContexts.has("advanced")) {
-            contexts.push("advanced");
+            activeContexts.add("advanced");
         }
 
         this.setState({
-            heading,
-            description,
+            title: dialogOptions?.title,
+            heading: dialogOptions?.heading,
+            description: dialogOptions?.description,
             values,
-            activeContexts: new Set(contexts),
+            activeContexts,
             validations: { messages: {} },
+            data,
         }, () => {
-            return this.dialogRef.current?.open(options);
+            return this.dialogRef.current?.open(dialogOptions?.options);
         });
     };
 
@@ -237,7 +253,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     };
 
     public updateInputValue = (value: string, id: string): void => {
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         values.sections.forEach((section) => {
             const entry = section.values[id];
@@ -249,7 +265,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 }
 
                 const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
 
                 return;
@@ -262,7 +278,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     };
 
     public updateDropdownValue = (items: string[], active: string, id: string): void => {
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         values.sections.forEach((section) => {
             const entry = section.values[id];
@@ -271,7 +287,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 entry.value = active;
 
                 const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
 
                 return;
@@ -280,7 +296,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     };
 
     public beginValueUpdating = (value: string, id: string): void => {
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         values.sections.forEach((section) => {
             const entry = section.values[id];
@@ -293,7 +309,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 }
 
                 const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
             }
         });
@@ -304,8 +320,10 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     };
 
     public render(): React.ReactNode {
-        const { container, caption, advancedActionCaption, advancedAction, customFooter } = this.props;
-        const { heading, actionText, description, validations, activeContexts, values, preventConfirm } = this.state;
+        const { container, advancedActionCaption, advancedAction, customFooter } = this.props;
+        const {
+            title, heading, actionText, description, validations, activeContexts, values, preventConfirm,
+        } = this.state;
 
         // Take over any context that is now required to show up due to validation issues.
         if (validations.requiredContexts && validations.requiredContexts.length > 0) {
@@ -343,11 +361,31 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             customActions.push(customFooter);
         }
 
+        const descriptionLabels: React.ReactNode[] = [];
+        description?.forEach((value, index) => {
+            descriptionLabels.push(
+                <Label
+                    id={`caption${index}`}
+                    language="text"
+                    caption={value}
+                />,
+            );
+        });
+
+        const descriptionContent = description ?
+            <Container orientation={Orientation.TopDown}>
+                <Container
+                    orientation={Orientation.TopDown}
+                    className="dialogDescription">
+                    {descriptionLabels}
+                </Container>
+            </Container> : undefined;
+
+
         let header;
         if (heading) {
             header = <Container orientation={Orientation.TopDown}>
-                {heading && <Label id="dialogHeading" caption={heading} />}
-                {description && <Label id="dialogDescription" caption={description} />}
+                <Label id="dialogHeading" caption={heading} />
             </Container>;
         }
 
@@ -360,7 +398,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 caption={
                     <>
                         <Icon src={Codicon.Terminal} />
-                        <Label>{caption}</Label>
+                        <Label>{title}</Label>
                     </>
                 }
                 header={header}
@@ -388,6 +426,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                         rowGap={16}
                         columnGap={16}
                     >
+                        {descriptionContent && <GridCell columnSpan={8}>{descriptionContent}</GridCell>}
                         {groups}
                     </Grid>
                 }
@@ -824,7 +863,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
     private handleActionClick = (_e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
         let accepted = false;
 
         if (props.id === "ok") {
@@ -835,7 +874,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             }
 
             // Only send success close events here. Closed on cancel are handled in `handleClose`.
-            onClose?.(DialogResponseClosure.Accept, values, this.data);
+            onClose?.(DialogResponseClosure.Accept, values, data);
         }
 
         this.dialogRef.current?.close(!accepted);
@@ -843,7 +882,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
     private inputChange = (_e: React.ChangeEvent, props: IInputChangeProperties): void => {
         const { onValidate } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         values.sections.forEach((section) => {
             if (props.id) {
@@ -851,7 +890,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 if (!isNil(entry)) {
                     entry.value = props.value;
 
-                    const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
                     this.setState({ values, validations });
                 }
             }
@@ -860,7 +899,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
     private fileChange = (newValue: string[], props: IFileSelectorProperties): void => {
         const { onValidate } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         if (newValue.length > 0) {
             values.sections.forEach((section) => {
@@ -869,7 +908,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                     if (!isNil(entry)) {
                         entry.value = newValue[0];
 
-                        const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                        const validations = onValidate?.(false, values, data) || { messages: {} };
                         this.setState({ values, validations });
                     }
                 }
@@ -885,7 +924,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      */
     private checkboxChange = (checkState: CheckState, props: ICheckboxProperties): void => {
         const { onValidate } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         const id = props.id;
 
@@ -899,7 +938,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             const entry = section.values[id];
             if (entry) {
                 entry.value = (checkState === CheckState.Checked) ? true : false;
-                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
 
                 entry.onChange?.(checkState === CheckState.Checked);
@@ -921,7 +960,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     /* istanbul ignore next */
     private listCheckboxChange = (valueId: string, checkState: CheckState, props: ICheckboxProperties): void => {
         const { onValidate } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         const id = props.id;
         const templateData = props.data && props.dataId ? props.data[props.dataId] : undefined;
@@ -944,7 +983,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 }
 
 
-                const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
 
                 entry.onChange?.(checkState === CheckState.Checked);
@@ -974,7 +1013,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
     private upDownChange = (item: string | number, props: IUpDownProperties): void => {
         const { onValidate } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         values.sections.forEach((section) => {
             if (props.id) {
@@ -982,7 +1021,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 if (!isNil(entry)) {
                     entry.value = item;
 
-                    const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
                     this.setState({ values, validations });
                 }
             }
@@ -991,7 +1030,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
     private dropdownChange = (selectedId: string | number, props: IDropdownProperties): void => {
         const { onValidate } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
 
         values.sections.forEach((section) => {
             if (props.id) {
@@ -999,7 +1038,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 if (!isNil(entry)) {
                     entry.value = selectedId;
 
-                    const validations = onValidate?.(false, values, this.data) || { messages: {} };
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
                     this.setState({ values, validations });
 
                     entry.onChange?.(selectedId);
@@ -1028,10 +1067,10 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     private acceptOnConfirm = (): void => {
         if (this.inputIsValid()) {
             const { onClose } = this.props;
-            const { values } = this.state;
+            const { values, data } = this.state;
 
             this.dialogRef.current?.close(false);
-            onClose?.(DialogResponseClosure.Accept, values, this.data);
+            onClose?.(DialogResponseClosure.Accept, values, data);
         }
     };
 
@@ -1059,9 +1098,9 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
     private handleClose = (cancelled: boolean): void => {
         if (cancelled) {
             const { onClose } = this.props;
-            const { values } = this.state;
+            const { values, data } = this.state;
 
-            onClose?.(DialogResponseClosure.Decline, values, this.data);
+            onClose?.(DialogResponseClosure.Decline, values, data);
         }
     };
 
@@ -1072,9 +1111,9 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      */
     private inputIsValid(): boolean {
         const { onValidate } = this.props;
-        const { values } = this.state;
+        const { values, data } = this.state;
 
-        const validations = onValidate?.(true, values, this.data) ?? { messages: {} };
+        const validations = onValidate?.(true, values, data) ?? { messages: {} };
         this.setState({ validations });
 
         return Object.keys(validations.messages).length === 0;

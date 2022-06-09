@@ -36,12 +36,14 @@
     white-space: inherit;
 }
 
-.msg.confirmDialog #dialogDescription {
-    font-size: 0.95em;
-    color: var(--text-dimmedForeground);
-    max-width: 300px;
+.msg.confirmDialog .description {
+    margin-bottom: 20px;
 }
 
 .msg.confirmDialog .footer {
     padding: 8px 0
+}
+
+.msg.confirmDialog #dialogMessage {
+    color: var(--text-dimmedForeground);
 }

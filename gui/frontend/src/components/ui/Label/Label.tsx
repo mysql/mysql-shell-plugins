@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -120,7 +120,7 @@ export class Label extends Component<ILabelProperties> {
     private colorizeText() {
         const { language } = this.props;
 
-        if (language && language !== "ansi" && this.labelRef.current) {
+        if (language && language !== "ansi" && language !== "text" && this.labelRef.current) {
             void Monaco.colorizeElement(this.labelRef.current as HTMLElement, {
                 theme: CodeEditor.currentThemeId,
                 tabSize: 4,

@@ -14,13 +14,13 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           "flexDirection": undefined,
         }
       }
+      tabIndex={0}
     >
       Open Profile Selector
     </button>
   </Button>
   <ProfileSelector>
     <ValueEditDialog
-      caption="Add/Edit Profile"
       id="profileCreating"
       onClose={[Function]}
       onValidate={[Function]}
@@ -50,9 +50,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               disabled={false}
               src={388}
             />
-            <Label>
-              Add/Edit Profile
-            </Label>
+            <Label />
           </y>
         }
         className="msg valueEditDialog"
@@ -76,7 +74,6 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
       </Dialog>
     </ValueEditDialog>
     <ConfirmDialog
-      caption="Delete Profile"
       id="confirmDeleteDialog"
       onClose={[Function]}
     >
@@ -93,7 +90,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               src={275}
             />
             <Label>
-              Delete Profile
+              Confirm
             </Label>
           </y>
         }
@@ -103,6 +100,10 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           <Container
             orientation="column"
           >
+            <Container
+              className="description"
+              orientation="column"
+            />
             
           </Container>
         }
