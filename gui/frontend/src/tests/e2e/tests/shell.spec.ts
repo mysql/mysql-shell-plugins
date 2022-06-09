@@ -70,7 +70,7 @@ describe("MySQL Shell Sessions", () => {
             await load(driver, String(process.env.SHELL_UI_HOSTNAME));
             await waitForHomePage(driver);
         } catch (e) {
-            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await driver.navigate().refresh();
             await waitForHomePage(driver);
         }
         await setStartLanguage(driver, "Shell Session", "javascript");
@@ -81,7 +81,7 @@ describe("MySQL Shell Sessions", () => {
             await load(driver, String(process.env.SHELL_UI_HOSTNAME));
             await waitForHomePage(driver);
         } catch (e) {
-            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await driver.navigate().refresh();
             await waitForHomePage(driver);
         }
         await driver.findElement(By.id("gui.shell")).click();

@@ -35,8 +35,13 @@ describe("Login", () => {
     });
 
     beforeEach(async () => {
-        await load(driver, String(process.env.SHELL_UI_MU_HOSTNAME));
-        await waitForLoginPage(driver);
+        try {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForLoginPage(driver);
+        } catch (e) {
+            await driver.navigate().refresh();
+            await waitForLoginPage(driver);
+        }
     });
 
     afterEach(async () => {

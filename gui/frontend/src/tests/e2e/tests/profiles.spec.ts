@@ -42,8 +42,13 @@ describe("Profiles", () => {
 
     beforeEach(async () => {
         driver = await getDriver();
-        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-        await waitForHomePage(driver);
+        try {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        } catch (e) {
+            await driver.navigate().refresh();
+            await waitForHomePage(driver);
+        }
     });
 
     afterEach(async () => {

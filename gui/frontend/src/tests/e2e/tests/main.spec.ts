@@ -45,8 +45,13 @@ describe("Main pages", () => {
     });
 
     beforeEach(async () => {
-        await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-        await waitForHomePage(driver);
+        try {
+            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage(driver);
+        } catch (e) {
+            await driver.navigate().refresh();
+            await waitForHomePage(driver);
+        }
     });
 
     afterEach(async () => {
@@ -1655,25 +1660,39 @@ describe("Main pages", () => {
                 const dialog = await driver.findElement(By.css(".valueEditDialog"));
                 const theme = await dialog.findElement(By.id("themeName"));
                 await theme.clear();
-                await theme.sendKeys("ClientQA Theme2");
+                const random = `theme${String(new Date().valueOf())}`;
+                await theme.sendKeys(random);
+                const value = await theme.getAttribute("value");
                 await dialog.findElement(By.id("ok")).click();
 
                 await driver.wait(async () => { return await driver.findElement(
-                    By.css(".themeSelector label")).getText() === "ClientQA Theme2"; },
-                3000, "Theme was not changed to ClientQA Theme2");
+                    By.css(".themeSelector label")).getText() === value; },
+                3000, `Theme was not changed to '${random}'`);
 
                 const delBtn = await driver.findElement(By.xpath("//button[contains(@data-tooltip, 'Delete')]"));
                 await driver.executeScript("arguments[0].click()", delBtn);
 
-                expect( await driver.wait(async () => { return (await driver.findElement(
-                    By.css(".themeSelector label")).getText()).indexOf("Default") !== -1; },
-                3000, "Theme was not changed to Default Light, after delete") ).toBe(true);
+                await driver.wait(async () => {
+                    try {
+                        return (await driver.findElement(
+                            By.css(".themeSelector label")).getText()).indexOf("Default") !== -1;
+                    } catch (e) {
+                        if (e instanceof Error) {
+                            if (e.message.indexOf("StaleElementReferenceError") === -1) {
+                                return false;
+                            } else {
+                                throw e;
+                            }
+                        }
+                    }
+                }, 3000, "Theme was not changed to Default Light, after delete");
+
 
                 await driver.findElement(By.css(".themeSelector")).click();
 
                 const dropDownList = await driver.findElement(By.css(".dropdownList"));
 
-                expect( (await dropDownList.findElements(By.id("ClientQA Theme"))).length ).toBe(0);
+                expect( (await dropDownList.findElements(By.id(value))).length ).toBe(0);
             } catch(e) {
                 testFailed = true;
                 throw e;
