@@ -1006,22 +1006,35 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
         }
     }, 2000, "Elements are stale");
 
-    const uiColorsItems = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
-
-    for (let i = 0; i <= uiColorsItems.length - 1; i++) {
-        if (await uiColorsItems[i].findElement(By.css("label")).getText() === menu) { //base colors
-            await driver.executeScript("arguments[0].scrollIntoView(true)",
-                await uiColorsItems[i].findElement(By.css("label")));
-            if (action === "open") {
-                if (!(await isTabOpened(uiColorsItems[i]))) {
-                    await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
+    const toggle = async () => {
+        const uiColorsItems = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
+        for (let i = 0; i <= uiColorsItems.length - 1; i++) {
+            if (await uiColorsItems[i].findElement(By.css("label")).getText() === menu) { //base colors
+                await driver.executeScript("arguments[0].scrollIntoView(true)",
+                    await uiColorsItems[i].findElement(By.css("label")));
+                if (action === "open") {
+                    if (!(await isTabOpened(uiColorsItems[i]))) {
+                        await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
+                    }
+                } else {
+                    if (await isTabOpened(uiColorsItems[i])) {
+                        await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
+                    }
                 }
-            } else {
-                if (await isTabOpened(uiColorsItems[i])) {
-                    await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
-                }
+                break;
             }
-            break;
+        }
+    };
+
+    try {
+        await toggle();
+    } catch (e) {
+        if (e instanceof Error) {
+            if (e.message.indexOf("StaleElementReferenceError") === -1) {
+                await toggle();
+            } else {
+                throw e;
+            }
         }
     }
 };

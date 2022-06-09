@@ -101,24 +101,6 @@ const dbConfig1: IDbConfig = {
     portX: "",
 };
 
-const dbConfig2: IDbConfig = {
-    dbType: "MySQL",
-    caption: "conn",
-    description: "random connection",
-    hostname: process.env.DBHOSTNAME,
-    protocol: "mysql",
-    port: process.env.DBPORT,
-    username: process.env.DBUSERNAME2,
-    password: process.env.DBUSERNAME2,
-    schema: "sakila",
-    showAdvanced: false,
-    sslMode: "Disable",
-    compression: "",
-    timeout: "",
-    attributes: "",
-    portX: "",
-};
-
 const dbConfig3: IDbConfig = {
     dbType: "MySQL",
     caption: "conn",
@@ -150,7 +132,7 @@ describe("DB Editor", () => {
             await load(driver, String(process.env.SHELL_UI_HOSTNAME));
             await waitForHomePage(driver);
         } catch (e) {
-            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await driver.navigate().refresh();
             await waitForHomePage(driver);
         }
 
@@ -484,42 +466,6 @@ describe("DB Editor", () => {
 
             expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig1.caption);
-
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Confirm dialog - Do not save password", async () => {
-        try {
-            await driver.findElement(By.id("gui.sqleditor")).click();
-            dbConfig2.caption += String(new Date().valueOf());
-            await createDBconnection(driver, dbConfig2, false, true);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await getDB(driver, dbConfig2.caption),
-            );
-
-            await setDBEditorPassword(driver, dbConfig2);
-
-            await setConfirmDialog(driver, dbConfig2, "no");
-
-
-            expect(await (await getSelectedConnectionTab(driver)).getText())
-                .toBe(dbConfig2.caption);
-
-            await closeDBconnection(driver, dbConfig2.caption);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await getDB(driver, dbConfig2.caption),
-            );
-
-            await driver.wait(until.elementLocated(By.css(".passwordDialog")),
-                3000, "Confirm dialog was not displayed");
-
 
         } catch (e) {
             testFailed = true;
@@ -2592,7 +2538,7 @@ describe("DB Editor", () => {
             }
         });
 
-        it("Context Menu - Execute", async () => {
+        fit("Context Menu - Execute", async () => {
             try {
                 await setDBEditorStartLang(driver, "sql");
 
@@ -2683,7 +2629,7 @@ describe("DB Editor", () => {
             }
         });
 
-        it("Pie Graph based on DB table", async () => {
+        fit("Pie Graph based on DB table", async () => {
             try {
                 await setDBEditorStartLang(driver, "typescript");
                 await driver.findElement(By.id("gui.sqleditor")).click();
