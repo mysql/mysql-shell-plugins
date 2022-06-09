@@ -48,6 +48,7 @@ exports[`Token editor testing Render test 1`] = `
               "flexDirection": undefined,
             }
           }
+          tabIndex={0}
         >
           <Icon
             data-tooltip="inherit"
@@ -88,6 +89,7 @@ exports[`Token editor testing Render test 1`] = `
               "flexDirection": undefined,
             }
           }
+          tabIndex={0}
         >
           <Icon
             data-tooltip="inherit"
@@ -318,6 +320,7 @@ exports[`Token editor testing Render test 1`] = `
                                   "flexDirection": undefined,
                                 }
                               }
+                              tabIndex={0}
                             >
                               <Icon
                                 as="span"

@@ -118,6 +118,7 @@ exports[`Error Panel Tests Show Panel 1`] = `
           __source="[object Object]"
           caption="Close"
           class="msg button"
+          tabindex="0"
         >
           Close
         </button>
@@ -203,6 +204,7 @@ Line 2
           __source="[object Object]"
           caption="Close"
           class="msg button"
+          tabindex="0"
         >
           Close
         </button>

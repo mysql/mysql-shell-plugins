@@ -80,6 +80,7 @@ export class ShellPromptHandler {
                         title: result.title,
                         description: result.description,
                         parameters: {
+                            title: result.title,
                             prompt: result.prompt,
                             accept,
                             refuse,
@@ -244,7 +245,7 @@ export class ShellPromptHandler {
         } else {
             parts = request.prompt.split("ssh://");
             if (parts.length >= 2) {
-                passwordRequest.caption = "Open SSH tunnel in Shell Session";
+                passwordRequest.caption = title ?? "Open SSH tunnel in Shell Session";
                 const parts2 = parts[1].split("@");
                 passwordRequest.service = `ssh://${parts[1]}`.trim();
                 if (passwordRequest.service.endsWith(":")) {

@@ -187,7 +187,6 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                 <GridCell>
                     <ValueEditDialog
                         ref={this.themeNameDialogRef}
-                        caption="Enter a name for the new theme"
                         onValidate={this.validateThemeName}
                         onClose={this.executeThemeDuplication}
                     />
@@ -334,7 +333,9 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                     ["name", nameSection],
                 ]),
             },
-            [],
+            {
+                title: "Enter a name for the new theme",
+            },
         );
     };
 

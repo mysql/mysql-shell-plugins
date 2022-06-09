@@ -90,8 +90,10 @@ interface IConnectionBrowserState extends IComponentState {
 }
 
 const editorHeading = "Database Connection Configuration";
-const editorDescription = "Use this form to specify your database connection information. Select a database type " +
-    "and enter database specific connection data.";
+const editorDescription = [
+    "Use this form to specify your database connection information.",
+    "Select a database type and enter database specific connection data.",
+];
 
 export class ConnectionBrowser extends Component<IConnectionBrowserProperties, IConnectionBrowserState> {
 
@@ -271,19 +273,16 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 <ConfirmDialog
                     ref={this.confirmNewBastionDialogRef}
                     id="confirmNewBastionDialog"
-                    caption="Create New Bastion"
                     onClose={this.handleCreateNewBastion}
                 />
                 <ConfirmDialog
                     ref={this.keepConnectionDialogRef}
                     id="keepConnectionDialogRef"
-                    caption="MySQL Connection Testing"
                     onClose={this.handleKeepConnection}
                 />
                 <ValueEditDialog
                     ref={this.editorRef}
                     id="connectionEditor"
-                    caption="Database Connection Configuration"
                     onValidate={this.validateConnectionValues}
                     onClose={this.handleOptionsDialogClose}
                     //advancedAction={this.testConnection}
@@ -294,7 +293,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 <ConfirmDialog
                     ref={this.confirmClearPasswordDialogRef}
                     id="confirmClearPasswordDlg"
-                    caption="Password Cleared"
                 />
                 <Menu
                     id="tileActionMenu"
@@ -621,6 +619,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     refuse: "Cancel",
                     accept: "Create New Bastion",
                 },
+                "Create New Bastion",
                 undefined,
                 { connection },
             );
@@ -643,9 +642,9 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private handleCreateNewBastion = (closure: DialogResponseClosure, values?: IDictionary): void => {
         if (closure === DialogResponseClosure.Accept && values) {
             const details = values.connection as IConnectionDetails;
-            const initialContexts: string[] = [DBType.MySQL];
+            const contexts: string[] = [DBType.MySQL];
             if (details.useSSH) {
-                initialContexts.push("useSSH");
+                contexts.push("useSSH");
             }
 
             this.beginValueUpdating("Loading...", "bastionName");
@@ -654,10 +653,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
             this.editorRef.current?.show(
                 this.generateEditorConfig(details),
-                initialContexts,
-                {},
-                editorHeading,
-                editorDescription,
+                {
+                    contexts,
+                    title: editorHeading,
+                    description: editorDescription,
+                },
                 {
                     createNew: !(details.id > 0),
                     details,
@@ -714,6 +714,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     refuse: "Cancel",
                     accept: "Save",
                 },
+                "MySQL Connection Testing",
                 undefined,
                 { connection },
             );
@@ -732,6 +733,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     </Grid>
                 </Container>),
                 { accept: "OK" },
+                "MySQL Connection Testing",
                 undefined,
                 { connection },
             );
@@ -848,19 +850,20 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     });
             } else {
                 // Activate the SSH/MDS contexts as needed
-                const initialContexts: string[] = [dbTypeName];
+                const contexts: string[] = [dbTypeName];
                 if (details?.useSSH) {
-                    initialContexts.push("useSSH");
+                    contexts.push("useSSH");
                 }
                 if (details?.useMDS) {
-                    initialContexts.push("useMDS");
+                    contexts.push("useMDS");
                 }
                 this.editorRef.current.show(
                     this.generateEditorConfig(details),
-                    initialContexts,
-                    {},
-                    editorHeading,
-                    editorDescription,
+                    {
+                        contexts,
+                        title: editorHeading,
+                        description: editorDescription,
+                    },
                     {
                         createNew: newConnection,
                         details,
@@ -871,16 +874,17 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
     private loadMdsAdditionalDataAndShowConnectionDlg = ((dbTypeName: string, newConnection: boolean,
         details?: IConnectionDetails): void => {
-        const initialContexts: string[] = [dbTypeName];
+        const contexts: string[] = [dbTypeName];
 
         this.beginValueUpdating("Loading...", "bastionName");
         this.beginValueUpdating("Loading...", "mysqlDbSystemName");
         this.editorRef.current?.show(
             this.generateEditorConfig(details),
-            initialContexts,
-            {},
-            editorHeading,
-            editorDescription,
+            {
+                contexts,
+                title: editorHeading,
+                description: editorDescription,
+            },
             {
                 createNew: newConnection,
                 details,
@@ -1832,6 +1836,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                             </Grid>
                         </Container>),
                         { accept: "OK" },
+                        "Password Cleared",
                     );
                     // TODO: show message for success, once we have message toasts.
                 }

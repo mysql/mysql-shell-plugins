@@ -47,6 +47,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             <Icon
               data-tooltip="inherit"
@@ -99,6 +100,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             <Icon
               data-tooltip="inherit"
@@ -151,6 +153,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             <Icon
               data-tooltip="inherit"
@@ -188,6 +191,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             <Icon
               data-tooltip="inherit"
@@ -225,6 +229,7 @@ exports[`SQLNotebookToolbar tests Test SQLNotebookToolbar instantiation 1`] = `
                 "flexDirection": undefined,
               }
             }
+            tabIndex={0}
           >
             <Icon
               data-tooltip="inherit"

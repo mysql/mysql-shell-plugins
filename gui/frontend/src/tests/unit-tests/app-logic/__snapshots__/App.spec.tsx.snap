@@ -299,6 +299,7 @@ exports[`Application tests Application readiness 1`] = `
                             "flexDirection": undefined,
                           }
                         }
+                        tabIndex={0}
                       >
                         <Icon
                           disabled={false}
@@ -496,7 +497,6 @@ exports[`Application tests Application readiness 1`] = `
     </Statusbar>
     <ProfileSelector>
       <ValueEditDialog
-        caption="Add/Edit Profile"
         id="profileCreating"
         onClose={[Function]}
         onValidate={[Function]}
@@ -526,9 +526,7 @@ exports[`Application tests Application readiness 1`] = `
                 disabled={false}
                 src={388}
               />
-              <Label>
-                Add/Edit Profile
-              </Label>
+              <Label />
             </y>
           }
           className="msg valueEditDialog"
@@ -552,7 +550,6 @@ exports[`Application tests Application readiness 1`] = `
         </Dialog>
       </ValueEditDialog>
       <ConfirmDialog
-        caption="Delete Profile"
         id="confirmDeleteDialog"
         onClose={[Function]}
       >
@@ -569,7 +566,7 @@ exports[`Application tests Application readiness 1`] = `
                 src={275}
               />
               <Label>
-                Delete Profile
+                Confirm
               </Label>
             </y>
           }
@@ -579,6 +576,10 @@ exports[`Application tests Application readiness 1`] = `
             <Container
               orientation="column"
             >
+              <Container
+                className="description"
+                orientation="column"
+              />
               
             </Container>
           }

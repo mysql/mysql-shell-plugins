@@ -36,7 +36,6 @@ export class MrsServiceDialog extends ValueDialogBase {
             <ValueEditDialog
                 ref={this.dialogRef}
                 id="mrsServiceDialog"
-                caption="MySQL REST Service"
                 onClose={this.handleCloseDialog}
                 onValidate={this.validateInput}
             />
@@ -44,7 +43,7 @@ export class MrsServiceDialog extends ValueDialogBase {
     }
 
     public show(request: IDialogRequest, title: string): void {
-        this.dialogRef.current?.show(this.dialogValues(request, title), []);
+        this.dialogRef.current?.show(this.dialogValues(request, title), { title: "MySQL REST Service" });
     }
 
     private dialogValues(request: IDialogRequest, title: string): IDialogValues {

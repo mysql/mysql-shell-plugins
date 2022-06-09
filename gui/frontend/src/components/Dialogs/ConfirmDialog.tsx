@@ -38,11 +38,11 @@ export interface IConfirmDialogButtons {
 }
 
 export interface IConfirmDialogProperties extends IComponentProperties {
-    caption: string;
     onClose?: (closure: DialogResponseClosure, values?: IDictionary) => void;
 }
 
 export interface IConfirmDialogState extends IComponentState {
+    title?: string;
     message: React.ReactNode;
     buttons: IConfirmDialogButtons;
     values?: IDictionary;
@@ -59,19 +59,18 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
             message: "",
             buttons: {},
         };
-        this.addHandledProperties("caption", "buttons", "onClose");
+        this.addHandledProperties("onClose");
     }
 
-    public show = (message: React.ReactNode, buttons: IConfirmDialogButtons, description?: string[],
+    public show = (message: React.ReactNode, buttons: IConfirmDialogButtons, title?: string, description?: string[],
         values?: IDictionary): void => {
-        this.setState({ message, buttons, values, description }, () => {
+        this.setState({ title, message, buttons, values, description }, () => {
             return this.dialogRef.current?.open({ closeOnEscape: true });
         });
     };
 
     public render(): React.ReactNode {
-        const { caption } = this.props;
-        const { message, buttons, description } = this.state;
+        const { title, message, buttons, description } = this.state;
 
         const className = this.getEffectiveClassNames(["confirmDialog"]);
         let dialogContent = null;
@@ -80,22 +79,23 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
         } else {
             // If no explicit content is specified, use the description list for additional content.
             const descriptionLabels: React.ReactNode[] = [];
-            description?.forEach((value) => {
+            description?.forEach((value, index) => {
                 descriptionLabels.push(
-                    <Container>
-                        <Label
-                            id="caption"
-                            language="ansi"
-                            caption={value}
-                        />
-                    </Container>,
+                    <Label
+                        id={`caption${index}`}
+                        language="text"
+                        caption={value}
+                    />,
                 );
             });
 
-
             dialogContent =
                 <Container orientation={Orientation.TopDown}>
-                    {descriptionLabels}
+                    <Container
+                        orientation={Orientation.TopDown}
+                        className="description">
+                        {descriptionLabels}
+                    </Container>
                     {message && <Label id="dialogMessage" caption={message as string} />}
                 </Container>;
         }
@@ -139,7 +139,7 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
                 caption={
                     <>
                         <Icon src={Codicon.Question} />
-                        <Label>{caption}</Label>
+                        <Label>{title ?? "Confirm"}</Label>
                     </>
                 }
                 content={dialogContent}

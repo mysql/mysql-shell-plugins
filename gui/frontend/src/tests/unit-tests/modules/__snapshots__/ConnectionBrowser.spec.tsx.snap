@@ -36,7 +36,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
       }
     >
       <ConfirmDialog
-        caption="Create New Bastion"
         id="confirmNewBastionDialog"
         onClose={[Function]}
       >
@@ -53,7 +52,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 src={275}
               />
               <Label>
-                Create New Bastion
+                Confirm
               </Label>
             </y>
           }
@@ -63,6 +62,10 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             <Container
               orientation="column"
             >
+              <Container
+                className="description"
+                orientation="column"
+              />
               
             </Container>
           }
@@ -76,7 +79,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         </Dialog>
       </ConfirmDialog>
       <ConfirmDialog
-        caption="MySQL Connection Testing"
         id="keepConnectionDialogRef"
         onClose={[Function]}
       >
@@ -93,7 +95,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 src={275}
               />
               <Label>
-                MySQL Connection Testing
+                Confirm
               </Label>
             </y>
           }
@@ -103,6 +105,10 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             <Container
               orientation="column"
             >
+              <Container
+                className="description"
+                orientation="column"
+              />
               
             </Container>
           }
@@ -116,7 +122,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         </Dialog>
       </ConfirmDialog>
       <ValueEditDialog
-        caption="Database Connection Configuration"
         customFooter={<y />}
         id="connectionEditor"
         onClose={[Function]}
@@ -150,9 +155,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 disabled={false}
                 src={388}
               />
-              <Label>
-                Database Connection Configuration
-              </Label>
+              <Label />
             </y>
           }
           className="msg valueEditDialog"
@@ -178,7 +181,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         </Dialog>
       </ValueEditDialog>
       <ConfirmDialog
-        caption="Password Cleared"
         id="confirmClearPasswordDlg"
       >
         <Dialog
@@ -194,7 +196,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 src={275}
               />
               <Label>
-                Password Cleared
+                Confirm
               </Label>
             </y>
           }
@@ -204,6 +206,10 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             <Container
               orientation="column"
             >
+              <Container
+                className="description"
+                orientation="column"
+              />
               
             </Container>
           }
@@ -365,6 +371,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                     "flexDirection": undefined,
                   }
                 }
+                tabIndex={0}
               >
                 <Icon
                   data-tooltip="inherit"
@@ -507,6 +514,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                               "flexDirection": undefined,
                             }
                           }
+                          tabIndex={0}
                         >
                           <Icon
                             disabled={false}
@@ -667,6 +675,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                               "flexDirection": undefined,
                             }
                           }
+                          tabIndex={0}
                         >
                           <Icon
                             disabled={false}

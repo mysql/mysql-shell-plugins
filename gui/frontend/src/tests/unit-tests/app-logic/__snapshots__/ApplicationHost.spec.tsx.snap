@@ -874,6 +874,7 @@ exports[`Application host tests Rendering About 1`] = `
                                           "flexDirection": undefined,
                                         }
                                       }
+                                      tabIndex={0}
                                     >
                                       <Icon
                                         data-tooltip="inherit"
@@ -1021,6 +1022,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     "flexDirection": undefined,
                                                   }
                                                 }
+                                                tabIndex={0}
                                               >
                                                 <Icon
                                                   disabled={false}
@@ -1112,7 +1114,6 @@ exports[`Application host tests Rendering About 1`] = `
           key="passwordDialog"
         />
         <ValueEditDialog
-          caption="Feedback Requested"
           key="valueEditDialog"
           onClose={[Function]}
         >
@@ -1141,9 +1142,7 @@ exports[`Application host tests Rendering About 1`] = `
                   disabled={false}
                   src={388}
                 />
-                <Label>
-                  Feedback Requested
-                </Label>
+                <Label />
               </y>
             }
             className="msg valueEditDialog"
@@ -1167,7 +1166,6 @@ exports[`Application host tests Rendering About 1`] = `
           </Dialog>
         </ValueEditDialog>
         <ConfirmDialog
-          caption="Confirm"
           key="confirmDialog"
           onClose={[Function]}
         >
@@ -1194,6 +1192,10 @@ exports[`Application host tests Rendering About 1`] = `
               <Container
                 orientation="column"
               >
+                <Container
+                  className="description"
+                  orientation="column"
+                />
                 
               </Container>
             }
@@ -1211,7 +1213,6 @@ exports[`Application host tests Rendering About 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsServiceDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -1241,9 +1242,7 @@ exports[`Application host tests Rendering About 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -1271,7 +1270,6 @@ exports[`Application host tests Rendering About 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsSchemaDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -1301,9 +1299,7 @@ exports[`Application host tests Rendering About 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -2207,6 +2203,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                           "flexDirection": undefined,
                                         }
                                       }
+                                      tabIndex={0}
                                     >
                                       <Icon
                                         data-tooltip="inherit"
@@ -2354,6 +2351,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     "flexDirection": undefined,
                                                   }
                                                 }
+                                                tabIndex={0}
                                               >
                                                 <Icon
                                                   disabled={false}
@@ -2445,7 +2443,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
           key="passwordDialog"
         />
         <ValueEditDialog
-          caption="Feedback Requested"
           key="valueEditDialog"
           onClose={[Function]}
         >
@@ -2474,9 +2471,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                   disabled={false}
                   src={388}
                 />
-                <Label>
-                  Feedback Requested
-                </Label>
+                <Label />
               </y>
             }
             className="msg valueEditDialog"
@@ -2500,7 +2495,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
           </Dialog>
         </ValueEditDialog>
         <ConfirmDialog
-          caption="Confirm"
           key="confirmDialog"
           onClose={[Function]}
         >
@@ -2527,6 +2521,10 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               <Container
                 orientation="column"
               >
+                <Container
+                  className="description"
+                  orientation="column"
+                />
                 
               </Container>
             }
@@ -2544,7 +2542,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsServiceDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -2574,9 +2571,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -2604,7 +2599,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsSchemaDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -2634,9 +2628,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -3540,6 +3532,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                           "flexDirection": undefined,
                                         }
                                       }
+                                      tabIndex={0}
                                     >
                                       <Icon
                                         data-tooltip="inherit"
@@ -3687,6 +3680,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     "flexDirection": undefined,
                                                   }
                                                 }
+                                                tabIndex={0}
                                               >
                                                 <Icon
                                                   disabled={false}
@@ -3778,7 +3772,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
           key="passwordDialog"
         />
         <ValueEditDialog
-          caption="Feedback Requested"
           key="valueEditDialog"
           onClose={[Function]}
         >
@@ -3807,9 +3800,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                   disabled={false}
                   src={388}
                 />
-                <Label>
-                  Feedback Requested
-                </Label>
+                <Label />
               </y>
             }
             className="msg valueEditDialog"
@@ -3833,7 +3824,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
           </Dialog>
         </ValueEditDialog>
         <ConfirmDialog
-          caption="Confirm"
           key="confirmDialog"
           onClose={[Function]}
         >
@@ -3860,6 +3850,10 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               <Container
                 orientation="column"
               >
+                <Container
+                  className="description"
+                  orientation="column"
+                />
                 
               </Container>
             }
@@ -3877,7 +3871,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsServiceDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -3907,9 +3900,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -3937,7 +3928,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsSchemaDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -3967,9 +3957,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -4873,6 +4861,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                           "flexDirection": undefined,
                                         }
                                       }
+                                      tabIndex={0}
                                     >
                                       <Icon
                                         data-tooltip="inherit"
@@ -5020,6 +5009,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     "flexDirection": undefined,
                                                   }
                                                 }
+                                                tabIndex={0}
                                               >
                                                 <Icon
                                                   disabled={false}
@@ -5111,7 +5101,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
           key="passwordDialog"
         />
         <ValueEditDialog
-          caption="Feedback Requested"
           key="valueEditDialog"
           onClose={[Function]}
         >
@@ -5140,9 +5129,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                   disabled={false}
                   src={388}
                 />
-                <Label>
-                  Feedback Requested
-                </Label>
+                <Label />
               </y>
             }
             className="msg valueEditDialog"
@@ -5166,7 +5153,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
           </Dialog>
         </ValueEditDialog>
         <ConfirmDialog
-          caption="Confirm"
           key="confirmDialog"
           onClose={[Function]}
         >
@@ -5193,6 +5179,10 @@ exports[`Application host tests Rendering Preferences 1`] = `
               <Container
                 orientation="column"
               >
+                <Container
+                  className="description"
+                  orientation="column"
+                />
                 
               </Container>
             }
@@ -5210,7 +5200,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsServiceDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -5240,9 +5229,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -5270,7 +5257,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsSchemaDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -5300,9 +5286,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -6206,6 +6190,7 @@ exports[`Application host tests Standard Rendering 1`] = `
                                           "flexDirection": undefined,
                                         }
                                       }
+                                      tabIndex={0}
                                     >
                                       <Icon
                                         data-tooltip="inherit"
@@ -6353,6 +6338,7 @@ exports[`Application host tests Standard Rendering 1`] = `
                                                     "flexDirection": undefined,
                                                   }
                                                 }
+                                                tabIndex={0}
                                               >
                                                 <Icon
                                                   disabled={false}
@@ -6444,7 +6430,6 @@ exports[`Application host tests Standard Rendering 1`] = `
           key="passwordDialog"
         />
         <ValueEditDialog
-          caption="Feedback Requested"
           key="valueEditDialog"
           onClose={[Function]}
         >
@@ -6473,9 +6458,7 @@ exports[`Application host tests Standard Rendering 1`] = `
                   disabled={false}
                   src={388}
                 />
-                <Label>
-                  Feedback Requested
-                </Label>
+                <Label />
               </y>
             }
             className="msg valueEditDialog"
@@ -6499,7 +6482,6 @@ exports[`Application host tests Standard Rendering 1`] = `
           </Dialog>
         </ValueEditDialog>
         <ConfirmDialog
-          caption="Confirm"
           key="confirmDialog"
           onClose={[Function]}
         >
@@ -6526,6 +6508,10 @@ exports[`Application host tests Standard Rendering 1`] = `
               <Container
                 orientation="column"
               >
+                <Container
+                  className="description"
+                  orientation="column"
+                />
                 
               </Container>
             }
@@ -6543,7 +6529,6 @@ exports[`Application host tests Standard Rendering 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsServiceDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -6573,9 +6558,7 @@ exports[`Application host tests Standard Rendering 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"
@@ -6603,7 +6586,6 @@ exports[`Application host tests Standard Rendering 1`] = `
           onClose={[Function]}
         >
           <ValueEditDialog
-            caption="MySQL REST Service"
             id="mrsSchemaDialog"
             onClose={[Function]}
             onValidate={[Function]}
@@ -6633,9 +6615,7 @@ exports[`Application host tests Standard Rendering 1`] = `
                     disabled={false}
                     src={388}
                   />
-                  <Label>
-                    MySQL REST Service
-                  </Label>
+                  <Label />
                 </y>
               }
               className="msg valueEditDialog"

@@ -1,9 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
-<ConfirmDialog
-  caption="Confirm you are a spy!"
->
+<ConfirmDialog>
   <Dialog
     actions={
       Object {
@@ -17,7 +15,7 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
           src={275}
         />
         <Label>
-          Confirm you are a spy!
+          Confirm
         </Label>
       </y>
     }
@@ -27,6 +25,10 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
       <Container
         orientation="column"
       >
+        <Container
+          className="description"
+          orientation="column"
+        />
         
       </Container>
     }
@@ -108,6 +110,7 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
           caption="Yes, you got me"
           class="msg button"
           id="accept"
+          tabindex="0"
         >
           Yes, you got me
         </button>
@@ -117,6 +120,7 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
           caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
+          tabindex="0"
         >
           No, I'm not a spy
         </button>
@@ -167,6 +171,12 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
         class="msg container fixedScrollbar"
         style="flex-direction: column;"
       >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar description"
+          style="flex-direction: column;"
+        />
         <label
           __self="[object Object]"
           __source="[object Object]"
@@ -201,6 +211,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
           caption="Yes, you got me"
           class="msg button"
           id="accept"
+          tabindex="0"
         >
           Yes, you got me
         </button>
@@ -210,6 +221,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
           caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
+          tabindex="0"
         >
           No, I'm not a spy
         </button>
@@ -246,7 +258,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
         class="msg label"
         data-tooltip="expand"
       >
-        Confirm you are a spy!
+        Resistance is futile
       </label>
     </div>
     <div
@@ -260,6 +272,12 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
         class="msg container fixedScrollbar"
         style="flex-direction: column;"
       >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar description"
+          style="flex-direction: column;"
+        />
         
       </div>
     </div>
@@ -286,6 +304,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
           caption="Yes, you got me"
           class="msg button"
           id="accept"
+          tabindex="0"
         >
           Yes, you got me
         </button>
@@ -295,6 +314,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
           caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
+          tabindex="0"
         >
           No, I'm not a spy
         </button>
