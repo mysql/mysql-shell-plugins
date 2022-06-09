@@ -63,7 +63,9 @@ export interface IAuthenticationData extends IGenericResponse {
 }
 
 export interface IStartSessionData extends IGenericResponse {
-    moduleSessionId: string;
+    result: {
+        moduleSessionId: string;
+    };
 }
 
 export interface IOpenConnectionData extends IGenericResponse {

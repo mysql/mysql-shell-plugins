@@ -22,7 +22,22 @@
  */
 
 import { Protocol, IShellRequest, IShellDictionary } from ".";
-import { convertCamelToSnakeCase } from "../utilities/helpers";
+
+import _ from "lodash";
+
+export interface IConversionOptions {
+    ignore?: string[];
+}
+
+export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
+    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
+        const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
+            return `${match1}_${match2.toLowerCase()}`;
+        });
+
+        return snakeCased;
+    });
+};
 
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -1888,7 +1903,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns the database objects supported by a DBMS
      *
-     * @param moduleSessionId The string id for the module session object where the query is running
+     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
      *
      * @returns object: The list of the database objects
      */
@@ -1905,7 +1920,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns the names of the existing objects of the given     type. If a filter is provided, only the names matching the given filter will be returned.
      *
-     * @param moduleSessionId The string id for the module session object where the query is running
+     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
      * @param type the catalog object type
      * @param filter object filter
      *
@@ -1926,7 +1941,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns the names of the existing objects of the given type in the given     schema that match the provided filter.
      *
-     * @param moduleSessionId The string id for the module session object where the query is running
+     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
      * @param type the schema object type
      * @param schemaName schema name
      * @param filter object filter
@@ -1951,7 +1966,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns the names of the existing objects of the given type in the given     table that match the provided filter.
      *
-     * @param moduleSessionId The string id for the module session object where the query is running
+     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
      * @param type the table object type
      * @param schemaName schema name
      * @param tableName table name
@@ -1976,7 +1991,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns a JSON representation of the object matching the given type and name.
      *
-     * @param moduleSessionId The string id for the module session object where the query is running
+     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
      * @param type the catalog object type
      * @param name object name
      *
@@ -1997,7 +2012,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns a JSON representation of the schema object matching the given type, schema and name.
      *
-     * @param moduleSessionId The string id for the module session object where the query is running
+     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
      * @param type the database object type
      * @param schemaName schema name
      * @param name object name
@@ -2020,7 +2035,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns a JSON representation of the table object matching the given type, schema, table and name.
      *
-     * @param moduleSessionId The string id for the module session object where the query is running
+     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
      * @param type the database object type
      * @param schemaName schema name
      * @param tableName table name

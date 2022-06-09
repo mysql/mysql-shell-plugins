@@ -30,6 +30,7 @@ from queue import Queue
 import gui_plugin.core.Logger as logger
 import gui_plugin.core.WebSocketCommon as WebSocket
 
+
 class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
     _ws_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
     _single_instance_token = None
@@ -38,24 +39,26 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
 
     def on_ws_message(self, message):
         """Override this handler to process incoming websocket messages."""
-        pass #pragma: no cover
+        pass  # pragma: no cover
 
     def on_ws_connected(self):
         """Override this handler."""
-        pass #pragma: no cover
+        pass  # pragma: no cover
 
     def on_ws_closed(self):
         """Override this handler."""
-        pass #pragma: no cover
+        pass  # pragma: no cover
 
     def send_message(self, message):
         with self.mutex:
             try:
-                message = self.on_ws_sending_message(message) # pylint: disable=no-member
+                message = self.on_ws_sending_message(
+                    message)  # pylint: disable=no-member
                 if message is not None:
                     packet = WebSocket.Packet(message)
                     packet.send(self.request)
-                    logger.debug2(message=packet.message, sensitive=True, prefix="-> ")
+                    logger.debug2(message=packet.message,
+                                  sensitive=True, prefix="-> ")
             except Exception as e:
                 logger.error(f"Exception sending a message. {e}")
 
@@ -70,7 +73,7 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
 
     def check_credentials(self, auth_header):
         """Override this handler to perform the credentials check."""
-        return False #pragma: no cover
+        return False  # pragma: no cover
 
     def send_auth_header(self):
         self.send_response(401)

@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from typing import Dict
 import mysqlsh
 from gui_plugin.core.DbSession import DbSession, DbSessionFactory
 from gui_plugin.core.DbSessionTasks import DbExecuteTask, check_supported_type
@@ -28,8 +29,9 @@ from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLOneFieldTask, MySQLOne
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLBaseObjectTask, MySQLTableObjectTask
 from gui_plugin.core.lib.OciUtils import BastionHandler
 from gui_plugin.core import Filtering
-import base64
 import gui_plugin.core.Logger as logger
+from gui_plugin.core.Context import get_context
+import base64
 import sys
 import time
 
@@ -52,27 +54,30 @@ class DbMysqlSession(DbSession):
                         {"name": "Column",        "type": "TABLE_OBJECT"}]
 
     def __init__(self, id, threaded, connection_options, ping_interval=None,
-                 auto_reconnect=False, on_connected_cb=None, on_failed_cb=None,
-                 prompt_cb=None, message_callback=None):
-        super().__init__(id, threaded, connection_options, ping_interval=ping_interval,
-                         auto_reconnect=auto_reconnect)
+                 auto_reconnect=False, task_state_cb=None, on_connected_cb=None, on_failed_cb=None,
+                 prompt_cb=None, message_callback=None, session=None):
+        super().__init__(id, threaded if session is None else False, connection_options if session is None else {}, ping_interval=ping_interval,
+                         auto_reconnect=auto_reconnect, task_state_cb=task_state_cb)
 
-        self._connection_options_backup = connection_options.copy()
+        self._connection_options_backup = self._connection_options.copy()
         self._prompt_cb = prompt_cb
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
-        self.session = None
+        self.session = session
         self._message_callback = message_callback if message_callback is not None else message_callback
         self._shell_ctx = None
 
-        if not 'scheme' in self._connection_options:
-            raise MSGException(Error.DB_INVALID_OPTIONS,
-                               "MySQL scheme not defined in the connection options.")
+        # If the session object is already provided, no connection will be created
+        if self.session is None:
+            if not 'scheme' in self._connection_options:
+                raise MSGException(Error.DB_INVALID_OPTIONS,
+                                   "MySQL scheme not defined in the connection options.")
 
-        if self._connection_options["scheme"] not in ["mysql", "mysqlx"]:
-            raise MSGException(Error.DB_INVALID_OPTIONS,
-                               "Invalid MySQL scheme defined in the connection options. Valid values are 'mysql' and 'mysqlx'.")
-        self.open()
+            if self._connection_options["scheme"] not in ["mysql", "mysqlx"]:
+                raise MSGException(Error.DB_INVALID_OPTIONS,
+                                   "Invalid MySQL scheme defined in the connection options. Valid values are 'mysql' and 'mysqlx'.")
+
+            self.open()
 
     def on_shell_prompt(self, text, options):
         if 'type' in options and options['type'] == 'password':
@@ -270,11 +275,11 @@ class DbMysqlSession(DbSession):
         self.add_task(DbExecuteTask(self, request_id,
                                     f"SET AUTOCOMMIT={1 if state == True else 0}", result_callback=callback, options=options))
 
-    def get_objects_types(self, request_id, callback=None):
-        callback("OK", "", request_id, self._supported_types)
+    def get_objects_types(self):
+        return self._supported_types
 
     @check_supported_type
-    def get_catalog_object_names(self, request_id, type, filter, callback=None):
+    def get_catalog_object_names(self, type, filter):
         params = (filter,)
         if type == "Schema":
             sql = """SELECT SCHEMA_NAME
@@ -307,12 +312,16 @@ class DbMysqlSession(DbSession):
                     WHERE CHARACTER_SET_NAME like ?
                     ORDER BY CHARACTER_SET_NAME"""
 
-        self.add_task(MySQLOneFieldListTask(self, request_id, sql,
-                                            result_callback=callback,
-                                            params=params))
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLOneFieldListTask(
+                self, task_id=task_id, sql=sql, params=params))
+        else:
+            return self.execute(sql, params)
 
     @check_supported_type
-    def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):
+    def get_schema_object_names(self, type, schema_name, filter, routine_type=None):
         params = (schema_name, filter)
         if type == "Table":
             sql = """SELECT TABLE_NAME
@@ -340,7 +349,8 @@ class DbMysqlSession(DbSession):
             if filter:
                 sql += f" AND ROUTINE_NAME like ?"
             sql += " ORDER BY ROUTINE_NAME"
-            params = (schema_name, routine_type.upper(), filter) if routine_type else (schema_name, filter)
+            params = (schema_name, routine_type.upper(),
+                      filter) if routine_type else (schema_name, filter)
         elif type == "Event":
             sql = """SELECT EVENT_NAME
                     FROM information_schema.EVENTS
@@ -348,12 +358,18 @@ class DbMysqlSession(DbSession):
                     AND EVENT_NAME like ?
                     ORDER BY EVENT_NAME"""
 
-        self.add_task(MySQLOneFieldListTask(self, request_id, sql,
-                                            result_callback=callback,
-                                            params=params))
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLOneFieldListTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                params=params))
+        else:
+            return self.execute(sql, params)
 
     @check_supported_type
-    def get_table_object_names(self, request_id, type, schema_name, table_name, filter, callback=None):
+    def get_table_object_names(self, type, schema_name, table_name, filter):
         params = (schema_name, table_name, filter)
         if type == "Trigger":
             sql = """SELECT TRIGGER_NAME
@@ -385,12 +401,18 @@ class DbMysqlSession(DbSession):
                         AND COLUMN_NAME LIKE ?
                     ORDER BY ORDINAL_POSITION"""
 
-        self.add_task(MySQLOneFieldListTask(self, request_id, sql,
-                                            result_callback=callback,
-                                            params=params))
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLOneFieldListTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                params=params))
+        else:
+            return self.execute(sql, params)
 
     @check_supported_type
-    def get_catalog_object(self, request_id, type, name, callback=None):
+    def get_catalog_object(self, type, name):
         params = (name, )
         if type == "Schema":
             sql = """SELECT SCHEMA_NAME
@@ -417,30 +439,51 @@ class DbMysqlSession(DbSession):
                     FROM information_schema.CHARACTER_SETS
                     WHERE CHARACTER_SET_NAME = ?"""
 
-        self.add_task(MySQLBaseObjectTask(self, request_id, sql,
-                                          result_callback=callback,
-                                          type=type,
-                                          name=name,
-                                          params=params))
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLBaseObjectTask(self,
+                                              task_id=task_id,
+                                              sql=sql,
+                                              type=type,
+                                              name=name,
+                                              params=params))
+        else:
+            result = self.execute(sql, params).fetch_one()
+            return {"name": result[0]} if result else {}
 
     @check_supported_type
-    def get_schema_object(self, request_id, type, schema_name, name, callback=None):
+    def get_schema_object(self, type, schema_name, name):
         params = (schema_name, name)
 
         if type == "Table":
             sql = ["""SELECT TABLE_NAME
                     FROM information_schema.tables
                     WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?""",
-                """SELECT COLUMN_NAME
+                   """SELECT COLUMN_NAME
                     FROM information_schema.COLUMNS
                     WHERE TABLE_SCHEMA=? AND TABLE_NAME=?
                     ORDER BY ORDINAL_POSITION"""
-                ]
+                   ]
 
-            self.add_task(MySQLTableObjectTask(self, request_id, sql,
-                                            result_callback=callback,
-                                            name=f"{schema_name}.{name}",
-                                            params=params))
+            if self.threaded:
+                context = get_context()
+                task_id = context.request_id if context else None
+                self.add_task(MySQLTableObjectTask(self,
+                                                   task_id=task_id,
+                                                   sql=sql,
+                                                   name=f"{schema_name}.{name}",
+                                                   params=params))
+            else:
+                result = {}
+                resultset = self.execute(sql[0], params).fetch_one()
+                if not resultset:
+                    raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                                   f"The table '{schema_name}.{name}' does not exist.")
+                result["name"] = resultset[0] if resultset else ""
+                resultset = self.execute(sql[1], params).fetch_all()
+                result["columns"] = [name[0] for name in resultset]
+                return result
         else:
             if type == "View":
                 sql = """SELECT TABLE_NAME
@@ -455,14 +498,24 @@ class DbMysqlSession(DbSession):
                         FROM information_schema.EVENTS
                         WHERE EVENT_SCHEMA = ? AND EVENT_NAME = ?"""
 
-            self.add_task(MySQLBaseObjectTask(self, request_id, sql,
-                                              result_callback=callback,
-                                              type=type,
-                                              name=f"{schema_name}.{name}",
-                                              params=params))
+            if self.threaded:
+                context = get_context()
+                task_id = context.request_id if context else None
+                self.add_task(MySQLBaseObjectTask(self,
+                                                  task_id=task_id,
+                                                  sql=sql,
+                                                  type=type,
+                                                  name=f"{schema_name}.{name}",
+                                                  params=params))
+            else:
+                result = self.execute(sql, params).fetch_one()
+                if not result:
+                    raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                                   f"The view '{schema_name}.{name}' does not exist.")
+                return {"name": result[0]}
 
     @check_supported_type
-    def get_table_object(self, request_id, type, schema_name, table_name, name, callback=None):
+    def get_table_object(self, type, schema_name, table_name, name):
         params = (schema_name, table_name, name)
         if type == "Trigger":
             sql = """SELECT TRIGGER_NAME
@@ -490,8 +543,17 @@ class DbMysqlSession(DbSession):
                         AND TABLE_NAME = ?
                         AND COLUMN_NAME LIKE ?"""
 
-        self.add_task(MySQLBaseObjectTask(self, request_id, sql,
-                                          result_callback=callback,
-                                          type=type,
-                                          name=f"{schema_name}.{name}",
-                                          params=params))
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLBaseObjectTask(self,
+                                              task_id=task_id,
+                                              sql=sql,
+                                              type=type, name=f"{schema_name}.{name}",
+                                              params=params))
+        else:
+            result = self.execute(sql, params).fetch_one()
+            if not result:
+                    raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                                   f"The {type.lower()} '{schema_name}.{name}' does not exist.")
+            return {"name": result[0]}

@@ -8,13 +8,11 @@ await ws.sendAndValidate({
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
-}, [
-    {
-        "module_session_id": ws.lastModuleSessionId,
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": {
-            "type": "OK",
-            "msg": "DB session has been closed successfully."
-        }
-    }
-])
+}, [{
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "result": "Completed"
+}])

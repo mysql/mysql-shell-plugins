@@ -68,7 +68,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
             listener.then((event: ICommStartSessionEvent) => {
                 if (event.data) {
-                    webSession.setModuleSessionId(this.moduleSessionLookupId, event.data.moduleSessionId);
+                    webSession.setModuleSessionId(this.moduleSessionLookupId, event.data.result.moduleSessionId);
 
                     resolve();
                 }

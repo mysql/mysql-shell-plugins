@@ -71,7 +71,7 @@ class GuiBackendDb():
     Interface to handle CRUD operations on the Backend Database
     """
 
-    def __init__(self, log_rotation=False, web_session=None, check_same_thread=True):
+    def __init__(self, log_rotation=False, web_session=None):
         # Creates the database manager which will do the automatic maintenance tasks:
         # - Database Initialization
         # - Log Rotation: should be enabled only on specific instances of the backend database
@@ -82,8 +82,7 @@ class GuiBackendDb():
 
         backend_db_manager = BackendSqliteDbManager(
             log_rotation=log_rotation,
-            web_session=web_session,
-            check_same_thread=check_same_thread)
+            web_session=web_session)
 
         # Opens the session to the backend database
         self._db = backend_db_manager.open_database()

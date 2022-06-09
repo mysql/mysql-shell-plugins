@@ -54,11 +54,13 @@ await ws.sendAndValidate({
             "type": "PENDING",
             "msg": "New Shell session initiated..."
         },
-        "module_session_id": ws.lastModuleSessionId,
-        "result": {}
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "last_prompt": {},
+        }
     },
     Object.assign(Object(), responses.pending.executing, {
-        "result": 
+        "result":
         {
             'defaultValue': '',
             'prompt': "Please provide the password for '" + ws.tokens["uri"] + "': ",

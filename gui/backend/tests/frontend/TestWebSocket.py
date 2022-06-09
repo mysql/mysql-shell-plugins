@@ -250,9 +250,6 @@ class TWebSocket:
     def _validateResponse(self, actual, expected, prefix=""):
         if isinstance(expected, Object):
             expected = expected.as_dict()
-            # assert isinstance(actual, dict)
-            # for key in Object.keys(expected):
-            #     self.validateResponse(actual[key], expected[key])
         if isinstance(expected, dict):
             assert isinstance(actual, dict)
             self.validation_trace.insert(0, diff(str(actual), str(expected), prefix))
@@ -449,7 +446,6 @@ class TWebSocket:
 
     def sendAndValidate(self, message, expectedResponses):
         self.doSend(message)
-
         if isinstance(expectedResponses, tuple) and expectedResponses[0] == DEBUGGER_LIST_SUBSET:
             self.validateResponse(self.response_generator(), expectedResponses)
         else:
@@ -481,9 +477,11 @@ class TWebSocket:
             self.logger.info(text)
 
     def _check_module_session_id(self, message):
-        if re.match(r"New .* session [created successfully\.|initiated\.\.\.]", str(message["request_state"]["msg"])) \
-                and "module_session_id" in message:
-            self._last_module_session_id = message["module_session_id"]
+        if "result" in message \
+                and isinstance(message["result"], dict) \
+                and "module_session_id" in message["result"] \
+                and not "prompt" in message["result"]:
+            self._last_module_session_id = message["result"]["module_session_id"]
 
     def validateLastResponse(self, expected):
         self._wait_response()

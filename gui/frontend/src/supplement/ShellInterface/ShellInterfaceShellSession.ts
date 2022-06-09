@@ -78,8 +78,8 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
         const listener = MessageScheduler.get.sendRequest(request, { messageClass: "startShellModuleSession" });
 
         listener.then((event: ICommStartSessionEvent) => {
-            if (event.data && event.eventType === EventType.DataResponse && event.data.moduleSessionId) {
-                webSession.setModuleSessionId(this.moduleSessionLookupId, event.data.moduleSessionId);
+            if (event.data && event.eventType === EventType.DataResponse && event.data.result.moduleSessionId) {
+                webSession.setModuleSessionId(this.moduleSessionLookupId, event.data.result.moduleSessionId);
             }
         }).catch(() => {
             // Ignore errors here. They must be handled by the caller of this method.

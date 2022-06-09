@@ -24,49 +24,49 @@ from gui_plugin.core.Protocols import Response
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
+from gui_plugin.db import backend
 
 
-@plugin_function('gui.db.getObjectsTypes', shell=False, web=True)
-def get_objects_types(module_session, request_id):
+@plugin_function('gui.db.getObjectsTypes', shell=True, web=True)
+def get_objects_types(session):
     """Returns the database objects supported by a DBMS
 
     Args:
-        module_session (object): The module session object where the query is running
-        request_id (str): The request_id of the command
+        session (object): The session used to execute the operation
 
     Returns:
         object: The list of the database objects
     """
-    module_session.get_objects_types(request_id=request_id)
+    session = backend.get_db_session(session)
+
+    return session.get_objects_types()
 
 
-@plugin_function('gui.db.getCatalogObjectNames', shell=False, web=True)
-def get_catalog_object_names(module_session, request_id, type, filter='%'):
+@plugin_function('gui.db.getCatalogObjectNames', shell=True, web=True)
+def get_catalog_object_names(session, type, filter='%'):
     """Returns the names of the existing objects of the given
         type. If a filter is provided, only the names matching the given filter will be returned.
 
     Args:
-        module_session (object): The module session object where the query is running
-        request_id (str): The request_id of the command
+        session (object): The session used to execute the operation
         type (str): the catalog object type
         filter (str): object filter
 
     Returns:
         object: The list of names
     """
-    module_session.get_catalog_object_names(request_id=request_id,
-                                            type=type,
-                                            filter=filter)
+    session = backend.get_db_session(session)
+
+    return session.get_catalog_object_names(type=type, filter=filter)
 
 
-@plugin_function('gui.db.getSchemaObjectNames', shell=False, web=True)
-def get_schema_object_names(module_session, request_id, type, schema_name, filter='%', routine_type=None):
+@plugin_function('gui.db.getSchemaObjectNames', shell=True, web=True)
+def get_schema_object_names(session, type, schema_name, filter='%', routine_type=None):
     """Returns the names of the existing objects of the given type in the given
         schema that match the provided filter.
 
     Args:
-        module_session (object): The module session object where the query is running
-        request_id (str): The request_id of the command
+        session (object): The session used to execute the operation
         type (str): the schema object type
         schema_name (str): schema name
         filter (str): object filter
@@ -80,21 +80,21 @@ def get_schema_object_names(module_session, request_id, type, schema_name, filte
     if routine_type is not None and routine_type not in ['procedure', 'function']:
         raise MSGException(Error.CORE_INVALID_PARAMETER,
                            "The routine_type could be only 'procedure' or 'function'.")
-    module_session.get_schema_object_names(request_id=request_id,
-                                           type=type,
+    session = backend.get_db_session(session)
+
+    return session.get_schema_object_names(type=type,
                                            schema_name=schema_name,
                                            routine_type=routine_type,
                                            filter=filter)
 
 
-@plugin_function('gui.db.getTableObjectNames', shell=False, web=True)
-def get_table_object_names(module_session, request_id, type, schema_name, table_name, filter='%'):
+@plugin_function('gui.db.getTableObjectNames', shell=True, web=True)
+def get_table_object_names(session, type, schema_name, table_name, filter='%'):
     """Returns the names of the existing objects of the given type in the given
         table that match the provided filter.
 
     Args:
-        module_session (object): The module session object where the query is running
-        request_id (str): The request_id of the command
+        session (object): The session used to execute the operation
         type (str): the table object type
         schema_name (str): schema name
         table_name (str): table name
@@ -103,38 +103,37 @@ def get_table_object_names(module_session, request_id, type, schema_name, table_
     Returns:
         object: The list of names
     """
-    module_session.get_table_object_names(request_id=request_id,
-                                          type=type,
+    session = backend.get_db_session(session)
+
+    return session.get_table_object_names(type=type,
                                           schema_name=schema_name,
                                           table_name=table_name,
                                           filter=filter)
 
 
-@plugin_function('gui.db.getCatalogObject', shell=False, web=True)
-def get_catalog_object(module_session, request_id, type, name):
+@plugin_function('gui.db.getCatalogObject', shell=True, web=True)
+def get_catalog_object(session, type, name):
     """Returns a JSON representation of the object matching the given type and name.
 
     Args:
-        module_session (object): The module session object where the query is running
-        request_id (str): The request_id of the command
+        session (object): The session used to execute the operation
         type (str): the catalog object type
         name (str): object name
 
     Returns:
         object: The catalog object
     """
-    module_session.get_catalog_object(request_id=request_id,
-                                      type=type,
-                                      name=name)
+    session = backend.get_db_session(session)
+
+    return session.get_catalog_object(type=type, name=name)
 
 
-@plugin_function('gui.db.getSchemaObject', shell=False, web=True)
-def get_schema_object(module_session, request_id, type, schema_name, name):
+@plugin_function('gui.db.getSchemaObject', shell=True, web=True)
+def get_schema_object(session, type, schema_name, name):
     """Returns a JSON representation of the schema object matching the given type, schema and name.
 
     Args:
-        module_session (object): The module session object where the query is running
-        request_id (str): The request_id of the command
+        session (object): The session used to execute the operation
         type (str): the database object type
         schema_name (str): schema name
         name (str): object name
@@ -142,19 +141,19 @@ def get_schema_object(module_session, request_id, type, schema_name, name):
     Returns:
         object: The database object
     """
-    module_session.get_schema_object(request_id=request_id,
-                                     type=type,
+    session = backend.get_db_session(session)
+
+    return session.get_schema_object(type=type,
                                      schema_name=schema_name,
                                      name=name)
 
 
-@plugin_function('gui.db.getTableObject', shell=False, web=True)
-def get_table_object(module_session, request_id, type, schema_name, table_name, name):
+@plugin_function('gui.db.getTableObject', shell=True, web=True)
+def get_table_object(session, type, schema_name, table_name, name):
     """Returns a JSON representation of the table object matching the given type, schema, table and name.
 
     Args:
-        module_session (object): The module session object where the query is running
-        request_id (str): The request_id of the command
+        session (object): The session used to execute the operation
         type (str): the database object type
         schema_name (str): schema name
         table_name (str): table name
@@ -163,18 +162,18 @@ def get_table_object(module_session, request_id, type, schema_name, table_name, 
     Returns:
         object: The database object
     """
-    module_session.get_table_object(request_id=request_id,
-                                    type=type,
+    session = backend.get_db_session(session)
+
+    return session.get_table_object(type=type,
                                     schema_name=schema_name,
                                     table_name=table_name,
                                     name=name)
 
 
 @plugin_function('gui.db.startSession', shell=False, web=True)
-def start_session(request_id, connection, password=None, web_session=None):
+def start_session(connection, password=None, web_session=None):
     """Starts a DB Session
     Args:
-        request_id (str): The request_id of the command
         connection (object): The id of the db_connection or connection information
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
         web_session (object): The web_session object this session will belong to
@@ -184,45 +183,35 @@ def start_session(request_id, connection, password=None, web_session=None):
     """
 
     new_session = DbModuleSession(web_session)
-    new_session.open_connection(connection, password, request_id)
+    new_session.open_connection(connection, password)
 
-    result = Response.ok("New DB session created successfully.", {
-        "module_session_id": new_session.module_session_id,
-        "request_id": request_id
-    })
-
-    return result
+    return {"module_session_id": new_session.module_session_id}
 
 
 @plugin_function('gui.db.closeSession', shell=False, web=True)
-def close_session(module_session, request_id):
+def close_session(module_session):
     """Closes the DB Session
 
     Args:
         module_session (object): The module session object that should be closed
-        request_id (str): The request_id of the command
 
     Returns:
         A dict holding the result message
     """
     module_session.close()
 
-    return Response.ok("DB session has been closed successfully.", {
-        "module_session_id": module_session.module_session_id,
-        "request_id": request_id
-    })
+    return "Completed"
 
 
 @plugin_function('gui.db.reconnect', shell=False, web=True)
-def reconnect(module_session, request_id):
+def reconnect(module_session):
     """Reconnects the DB Session
 
     Args:
         module_session (object): The session where the session will be reconnected
-        request_id (str): ID of the request for reconnection.
 
     Returns:
         A dict holding the result message and the connection information
         when available.
     """
-    module_session.reconnect(request_id)
+    module_session.reconnect()

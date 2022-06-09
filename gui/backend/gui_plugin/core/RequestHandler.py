@@ -20,10 +20,9 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from threading import Thread, Event
+import threading
 from gui_plugin.core.Protocols import Response
 import mysqlsh
-import sys
-
 
 class RequestHandler(Thread):
     """
@@ -43,20 +42,33 @@ class RequestHandler(Thread):
       responses to the caller.
     """
 
-    def __init__(self, request_id, func, kwargs, web_handler):
+    def __init__(self, request_id, func, kwargs, web_handler, confirm_complete):
         super().__init__()
         self._request_id = request_id
         self._func = func
         self._kwargs = kwargs
         self._web_handler = web_handler
         self._text_cache = None
+        self._thread_context = None
+        self._confirm_complete = confirm_complete
 
         # Prompt handling members
         self._prompt_event = None
         self._prompt_replied = False
         self._prompt_reply = None
 
-    def send_response_message(self, type, text):
+    def get_context(self):
+        return self._thread_context
+
+    @property
+    def request_id(self):
+        return self.get_context().request_id
+
+    @property
+    def web_handler(self):
+        return self.get_context().web_handler
+
+    def handle_print(self, type, text):
         """
         Used internally to send the information being printed as on the operation
         being executed to the caller as PENDING response messages.
@@ -64,10 +76,10 @@ class RequestHandler(Thread):
         if self._text_cache is None:
             self._text_cache = text
         else:
-            self._web_handler.send_response_message("PENDING", "", request_id=self._request_id,
-                                                    values={
-                                                        type: self._text_cache + text},
-                                                    api=True)
+            self.web_handler.send_response_message("PENDING", "", request_id=self.request_id,
+                                                   values={
+                                                       type: self._text_cache + text},
+                                                   api=True)
             self._text_cache = None
 
     def on_shell_prompt(self, text, options):
@@ -77,8 +89,8 @@ class RequestHandler(Thread):
         if not "type" in options:
             options["type"] = "text"
 
-        self._web_handler.send_prompt_response(
-            self._request_id, options, self)
+        self.web_handler.send_prompt_response(
+            self.request_id, options, self)
 
         self._prompt_event.wait()
         self._prompt_event.clear()
@@ -86,21 +98,19 @@ class RequestHandler(Thread):
         return [self._prompt_replied, self._prompt_reply]
 
     def on_shell_print(self, text):
-        self.send_response_message("info", text)
+        self.handle_print("info", text)
 
     def on_shell_print_diag(self, text):
-        self.send_response_message("info", text)
+        self.handle_print("info", text)
 
     def on_shell_print_error(self, text):
-        self.send_response_message("error", text)
+        self.handle_print("error", text)
 
     def process_prompt_reply(self, reply):
         request_id = reply['request_id']
-
         if not self._request_id == request_id:
             raise Exception(
                 f"Unexpected request_id in prompt reply: {request_id}")
-
         self._prompt_replied = reply['type'] == "OK"
         self._prompt_reply = reply['reply']
         self._prompt_event.set()
@@ -110,6 +120,9 @@ class RequestHandler(Thread):
         Thread function to setup the shell callbacks for print and prompt
         functions.
         """
+        self._thread_context = threading.local()
+        self._thread_context.request_id = self._request_id
+        self._thread_context.web_handler = self._web_handler
         self._prompt_event = Event()
 
         shell = mysqlsh.globals.shell
@@ -120,6 +133,11 @@ class RequestHandler(Thread):
                                                 "promptDelegate": lambda x, y: self.on_shell_prompt(x, y), })
         self._shell = self._shell_ctx.get_shell()
 
+        self._do_execute()
+
+        self._shell_ctx.finalize()
+
+    def _do_execute(self):
         result = None
         try:
             result = self._func(**self._kwargs)
@@ -127,12 +145,11 @@ class RequestHandler(Thread):
             result = Response.exception(e)
 
         if result is not None:
-            self._web_handler.send_command_response(self._request_id, result)
-        else:
+            self.web_handler.send_command_response(
+                self.request_id, result)
+        elif self._confirm_complete:
             # This is the case of any plugin function that does not fail but
             # does not return anything, we should return an OK response anyway
             # to confirm it completed
-            self._web_handler.send_command_response(
-                self._request_id, Response.ok("Completed"))
-
-        self._shell_ctx.finalize()
+            self.web_handler.send_command_response(
+                self.request_id, Response.ok("Completed"))

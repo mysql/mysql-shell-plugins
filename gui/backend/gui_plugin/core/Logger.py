@@ -40,6 +40,7 @@ _thread_count = 0
 SENSITIVE_KEYWORDS = ["password"]
 SENSITIVE_DATA_REPLACEMENT = "****"
 
+
 class LogLevel(IntEnum):
     NONE = 1
     INTERNAL_ERROR = 2
@@ -91,16 +92,16 @@ class BackendLogger:
         if 'stdout' in tags:
             if self.__log_level >= log_type:
                 print(
-                    f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}")
+                    f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}", file=sys.real_stdout, flush=True)
 
     def add_filter(self, options):
         if "type" in options:
             if options["type"] == "key":
                 self.__log_filters.append(Filtering.KeyFilter(options["key"],
-                                            options["expire"]))
+                                                              options["expire"]))
             elif options["type"] == "substring":
                 self.__log_filters.append(Filtering.SubstringFilter(options["start"],
-                                            options["end"], options["expire"]))
+                                                                    options["end"], options["expire"]))
 
     def set_log_level(self, log_level: LogLevel):
         BackendLogger.__log_level = log_level
@@ -113,8 +114,10 @@ class BackendLogger:
             if not filter.expired():
                 data = filter.apply(data)
 
-        self.__log_filters = [filter for filter in self.__log_filters if not filter.expired()]
+        self.__log_filters = [
+            filter for filter in self.__log_filters if not filter.expired()]
         return data
+
 
 def debug(message, tags=[], sensitive=False, prefix=""):
     # TODO: tweak these tags according the environment settings
@@ -178,8 +181,10 @@ def internal_error(message, tags=[], sensitive=False, prefix=""):
     BackendLogger.get_instance().message_logger(
         LogLevel.INTERNAL_ERROR, message, tags, sensitive, prefix)
 
+
 def add_filter(options):
     BackendLogger.get_instance().add_filter(options)
+
 
 def track_print(type):
     pass

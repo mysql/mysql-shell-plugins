@@ -39,7 +39,7 @@ class BackendDbLogger:
         else:
             from gui_plugin.core.Db import GuiBackendDb
             BackendDbLogger.__instance = self
-            self.__gui_backend_db = GuiBackendDb(log_rotation=log_rotation, check_same_thread=False)
+            self.__gui_backend_db = GuiBackendDb(log_rotation=log_rotation)
 
     def _close(self):
         if self.__gui_backend_db:

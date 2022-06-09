@@ -21,7 +21,6 @@
 
 from asyncio.log import logger
 import sqlite3
-import mysqlsh
 import os.path
 import time
 from pathlib import Path
@@ -32,6 +31,7 @@ from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.DbSessionTasks import check_supported_type
 import gui_plugin.core.Logger as logger
+from gui_plugin.core.Context import get_context
 
 
 def find_schema_name(config):
@@ -112,16 +112,15 @@ class DbSqliteSession(DbSession):
                         {"name": "Index",   "type": "TABLE_OBJECT"},
                         {"name": "Column",   "type": "TABLE_OBJECT"}]
 
-    def __init__(self, id, threaded, connection_options, ping_interval=None, auto_reconnect=True,
+    def __init__(self, id, threaded, connection_options, ping_interval=None, auto_reconnect=True, task_state_cb=None,
                  on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None,
-                 message_callback=None, check_same_thread=True):
+                 message_callback=None):
         super().__init__(id, threaded, connection_options, ping_interval=ping_interval,
-                         auto_reconnect=auto_reconnect)
+                         auto_reconnect=auto_reconnect, task_state_cb=task_state_cb)
 
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
         self.session = None
-        self.check_same_thread = check_same_thread
 
         self._databases = {}
 
@@ -153,7 +152,7 @@ class DbSqliteSession(DbSession):
     def _open_database(self, notify_success=True):
         try:
             self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=5, factory=SqliteConnection,
-                                        isolation_level=None, check_same_thread=self.check_same_thread)
+                                        isolation_level=None, check_same_thread=False)
             self.cursor = self.conn.cursor()
 
             init_cursor = self.conn.cursor()
@@ -248,11 +247,11 @@ class DbSqliteSession(DbSession):
         raise MSGException(Error.CORE_FEATURE_NOT_SUPPORTED,
                            "This feature is not supported.")
 
-    def get_objects_types(self, request_id, callback=None):
-        callback("OK", "", request_id, self._supported_types)
+    def get_objects_types(self):
+        return self._supported_types
 
     @check_supported_type
-    def get_catalog_object_names(self, request_id, type, filter, callback=None):
+    def get_catalog_object_names(self, type, filter):
         if type == "Schema":
 
             sql = """SELECT name
@@ -262,12 +261,16 @@ class DbSqliteSession(DbSession):
 
             params = (filter,)
 
-        self.add_task(SqliteOneFieldListTask(self, request_id, sql,
-                                             result_callback=callback,
-                                             params=params))
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(SqliteOneFieldListTask(
+                self, task_id=task_id, sql=sql, params=params))
+        else:
+            return self.execute(sql, params)
 
     @check_supported_type
-    def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):
+    def get_schema_object_names(self, type, schema_name, filter, routine_type=None):
         if type == "Table":
             sql = f"""SELECT name
                     FROM `{schema_name}`.sqlite_master
@@ -282,12 +285,13 @@ class DbSqliteSession(DbSession):
                     ORDER BY name;"""
         params = (filter, )
 
-        self.add_task(SqliteOneFieldListTask(self, request_id, sql,
-                                             result_callback=callback,
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteOneFieldListTask(self, task_id=task_id, sql=sql,
                                              params=params))
 
     @check_supported_type
-    def get_table_object_names(self, request_id, type, schema_name, table_name, filter, callback=None):
+    def get_table_object_names(self, type, schema_name, table_name, filter):
         params = (table_name, filter)
         if type == "Trigger":
             sql = f"""SELECT name
@@ -322,27 +326,29 @@ class DbSqliteSession(DbSession):
                     ORDER BY c.cid;"""
             params = (table_name, table_name, table_name, filter)
 
-        self.add_task(SqliteOneFieldListTask(self, request_id, sql,
-                                             result_callback=callback,
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteOneFieldListTask(self, task_id=task_id, sql=sql,
                                              params=params))
 
     @check_supported_type
-    def get_catalog_object(self, request_id, type, name, callback=None):
+    def get_catalog_object(self, type, name):
         if type == "Schema":
             sql = f"""SELECT name
                     FROM pragma_database_list()
                     WHERE name = ?"""
             params = (name,)
 
-        self.add_task(SqliteBaseObjectTask(self, request_id, sql,
-                                           result_callback=callback,
-                                           type=type,
-                                           name=name,
-                                           params=params))
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
+                                           type=type, name=name, params=params))
 
     @check_supported_type
-    def get_schema_object(self, request_id, type, schema_name, name, callback=None):
+    def get_schema_object(self, type, schema_name, name):
         params = (name,)
+        context = get_context()
+        task_id = context.request_id if context else None
         if type == "Table":
             sql = f"""SELECT name
                         FROM `{schema_name}`.sqlite_master
@@ -350,10 +356,8 @@ class DbSqliteSession(DbSession):
                             AND name = ?
                         ORDER BY name;""",
 
-            self.add_task(SqliteTableObjectTask(self, request_id, sql,
-                                                result_callback=callback,
-                                                name=f"{schema_name}.{name}",
-                                                params=params))
+            self.add_task(SqliteTableObjectTask(self, task_id=task_id, sql=sql,
+                                                name=f"{schema_name}.{name}", params=params))
         else:
             if type == "View":
                 sql = f"""SELECT name
@@ -362,14 +366,12 @@ class DbSqliteSession(DbSession):
                             AND name = ?
                         ORDER BY name;"""
 
-            self.add_task(SqliteBaseObjectTask(self, request_id, sql,
-                                               result_callback=callback,
-                                               type=type,
-                                               name=f"{schema_name}.{name}",
+            self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
+                                               type=type, name=f"{schema_name}.{name}",
                                                params=params))
 
     @check_supported_type
-    def get_table_object(self, request_id, type, schema_name, table_name, name, callback=None):
+    def get_table_object(self, type, schema_name, table_name, name):
         params = (table_name, name)
         if type == "Trigger":
             sql = f"""SELECT name
@@ -392,8 +394,8 @@ class DbSqliteSession(DbSession):
                     ORDER BY name;"""
             params = (name,)
 
-        self.add_task(SqliteBaseObjectTask(self, request_id, sql,
-                                           result_callback=callback,
-                                           type=type,
-                                           name=f"{schema_name}.{name}",
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
+                                           type=type, name=f"{schema_name}.{name}",
                                            params=params))

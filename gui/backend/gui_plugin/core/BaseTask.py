@@ -21,9 +21,10 @@
 
 import gui_plugin.core.Logger as logger
 
+
 class BaseTask():
-    def __init__(self, request_id, result_queue=None, result_callback=None, options=None):
-        self.request_id = request_id
+    def __init__(self, task_id=None, result_queue=None, result_callback=None, options=None):
+        self.task_id = task_id
         self.result_queue = result_queue
         self.result_callback = result_callback
         self.options = options if options else {}
@@ -39,9 +40,10 @@ class BaseTask():
 
         if not self.result_callback is None:
             try:
-                self.result_callback(state, message, self.request_id, data)
+                self.result_callback(state, message, self.task_id, data)
             except Exception as e:
-                logger.error("There was an unhandled exception during the callback")
+                logger.error(
+                    "There was an unhandled exception during the callback")
                 logger.debug(self.result_callback)
                 logger.exception(e)
                 raise
@@ -57,7 +59,7 @@ class BaseTask():
 
 
 class CommandTask(BaseTask):
-    def __init__(self, request_id, command, params=None, result_queue=None, result_callback=None, options=None):
-        super().__init__(request_id, result_queue, result_callback, options)
+    def __init__(self, task_id, command, params=None, result_queue=None, result_callback=None, options=None):
+        super().__init__(task_id, result_queue, result_callback, options)
         self.command = command
         self.params = params

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -34,6 +34,8 @@ class MockWebSession():
         self.callbacks = {}
         self._requests = {}
 
+        self.request_id = None
+
     def register_callback(self, request_id, callback):
         self.callbacks[request_id] = callback
 
@@ -50,6 +52,8 @@ class MockWebSession():
 
     def send_response_message(self, msg_type, msg, request_id=None,
                               values=None, api=True):
+        if request_id is None:
+            request_id = self.request_id
         if msg_type in ["OK", "ERROR", "CANCELLED"]:
             self.unregister_module_request(request_id)
         self.callbacks[request_id](msg_type, msg, request_id, values)
@@ -62,5 +66,7 @@ class MockWebSession():
             del self._requests[request_id]
 
     def send_command_response(self, request_id, values):
+        if request_id is None:
+            request_id = self.request_id
         self.unregister_module_request(request_id)
         self.callbacks[request_id]("", "", request_id, values)

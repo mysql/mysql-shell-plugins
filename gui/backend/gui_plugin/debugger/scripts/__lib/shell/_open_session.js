@@ -21,8 +21,10 @@ await ws.sendAndValidate({
             "type": "PENDING",
             "msg": "New Shell session initiated..."
         },
-        "module_session_id": ws.lastModuleSessionId,
-        "result": {}
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "last_prompt": {},
+        }
     },
     Object.assign(Object(), responses.ok.default, {
         "request_state": { "msg": "New Shell Interactive session created successfully." },

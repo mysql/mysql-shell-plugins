@@ -69,11 +69,14 @@ def params():
         "options": connection_options
     }, '', parameters._web_session)
 
+    parameters._web_session.request_id = open_connection_cb.request_id
     parameters._db_connection_id = result['result']['db_connection_id']
     sqleditor.open_connection(
-        parameters._db_connection_id, parameters._module_session, open_connection_cb.request_id)
+        parameters._db_connection_id, parameters._module_session)
 
     open_connection_cb.join_and_validate()
+
+    parameters._web_session.request_id = None
 
     yield parameters
 
@@ -122,10 +125,12 @@ class TestSqleditor:
         params._web_session.register_callback(
             open_connection_cb.request_id, open_connection_cb)
 
+        params._web_session.request_id = open_connection_cb.request_id
         sqleditor.open_connection(
-            params._db_connection_id, params._module_session, open_connection_cb.request_id)
+            params._db_connection_id, params._module_session)
 
         open_connection_cb.join_and_validate()
+        params._web_session.request_id = None
 
     def test_kill_query(self, params):
         @backend_callback_with_pending()

@@ -23,6 +23,8 @@
 
 import { Protocol, IShellRequest, IShellDictionary } from ".";
 
+
+
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -127,6 +129,7 @@ export interface IShellListCompartmentsKwargs {
 export interface IShellGetCompartmentKwargs {
     parentCompartmentId?: string;
     config?: object;
+    interactive?: boolean;
 }
 
 
@@ -731,6 +734,7 @@ export class ProtocolMds extends Protocol {
             kwargsToUse = {
                 parent_compartment_id: kwargs.parentCompartmentId,
                 config: kwargs.config,
+                interactive: kwargs.interactive,
             };
         }
 
