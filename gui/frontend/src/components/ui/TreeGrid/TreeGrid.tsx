@@ -141,6 +141,9 @@ export class TreeGrid extends Component<ITreeGridProperties> {
     // A counter to manage redraw blocks.
     private updateCount = 0;
 
+    // Automatic re-layout on host resize.
+    private resizeObserver?: ResizeObserver;
+
     public constructor(props: ITreeGridProperties) {
         super(props);
 
@@ -149,6 +152,10 @@ export class TreeGrid extends Component<ITreeGridProperties> {
             "onRowCollapsed", "isRowExpanded", "onFormatRow", "onRowContext", "onCellContext", "onRowSelected",
             "onRowDeselected", "onVerticalScroll", "onColumnResized",
         );
+
+        if (typeof ResizeObserver !== "undefined") {
+            this.resizeObserver = new ResizeObserver(this.handleTabulatorResize);
+        }
     }
 
     public static initialize(): void {
@@ -179,9 +186,11 @@ export class TreeGrid extends Component<ITreeGridProperties> {
 
                     // Assign the table holder class our fixed scrollbar class too.
                     if (this.hostRef.current) {
+                        this.resizeObserver?.observe(this.hostRef.current as Element);
                         (this.hostRef.current.lastChild as HTMLElement).classList.add("fixedScrollbar");
                     }
                     this.tableReady = true;
+
                 });
                 this.tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
                 this.tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
@@ -202,6 +211,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
+        this.resizeObserver?.unobserve(this.hostRef.current as Element);
     }
 
     public componentDidUpdate(): void {
@@ -482,6 +492,13 @@ export class TreeGrid extends Component<ITreeGridProperties> {
 
         onColumnResized?.(column);
     };
+
+    private handleTabulatorResize = (entries: readonly ResizeObserverEntry[]): void => {
+        if (entries.length > 0) {
+            this.tabulator?.redraw();
+        }
+    };
+
 }
 
 // TODO: replace with static initializer, once we can raise eslint to support ES2022.

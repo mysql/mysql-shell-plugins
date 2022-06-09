@@ -14,7 +14,7 @@
         "monaco-editor": "0.30.1",
         "preact": "10.7.1",
         "set-interval-async": "2.0.3",
-        "tabulator-tables": "5.1.6",
+        "tabulator-tables": "5.2.7",
         "topojson-client": "3.1.0",
         "ws": "8.5.0"
     },
