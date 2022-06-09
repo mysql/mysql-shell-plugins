@@ -36,7 +36,7 @@ describe("Login", () => {
 
     beforeEach(async () => {
         try {
-            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
+            await load(driver, String(process.env.SHELL_UI_MU_HOSTNAME));
             await waitForLoginPage(driver);
         } catch (e) {
             await driver.navigate().refresh();

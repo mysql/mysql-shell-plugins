@@ -2538,7 +2538,7 @@ describe("DB Editor", () => {
             }
         });
 
-        fit("Context Menu - Execute", async () => {
+        it("Context Menu - Execute", async () => {
             try {
                 await setDBEditorStartLang(driver, "sql");
 
@@ -2629,7 +2629,7 @@ describe("DB Editor", () => {
             }
         });
 
-        fit("Pie Graph based on DB table", async () => {
+        it("Pie Graph based on DB table", async () => {
             try {
                 await setDBEditorStartLang(driver, "typescript");
                 await driver.findElement(By.id("gui.sqleditor")).click();
