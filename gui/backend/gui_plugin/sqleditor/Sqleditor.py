@@ -57,11 +57,7 @@ def start_session(web_session=None):
     """
     new_session = SqleditorModuleSession(web_session)
 
-    result = Response.ok("New SQL Editor session created successfully.", {
-        "module_session_id": new_session.module_session_id
-    })
-
-    return result
+    return {"module_session_id": new_session.module_session_id}
 
 
 @plugin_function('gui.sqleditor.closeSession', shell=False, web=True)
@@ -75,40 +71,36 @@ def close_session(module_session):
     """
     module_session.close()
 
-    return Response.ok("SQL Editor session has been closed successfully.", {
-        "module_session_id": module_session.module_session_id
-    })
+    return "Completed"
 
 
 @plugin_function('gui.sqleditor.openConnection', shell=False, web=True)
-def open_connection(db_connection_id, module_session, request_id, password=None):
+def open_connection(db_connection_id, module_session, password=None):
     """Opens the SQL Editor Session
 
     Args:
         db_connection_id (int): The id of the db_connection
         module_session (object): The session where the connection will open
-        request_id (str): ID of the request starting the session.
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
 
     Returns:
         A dict holding the result message and the connection information
         when available.
     """
-    module_session.open_connection(db_connection_id, password, request_id)
+    module_session.open_connection(db_connection_id, password)
 
 @plugin_function('gui.sqleditor.reconnect', shell=False, web=True)
-def reconnect(module_session, request_id):
+def reconnect(module_session):
     """Reconnects the SQL Editor Session
 
     Args:
         module_session (object): The session where the session will be reconnected
-        request_id (str): ID of the request for reconnection.
 
     Returns:
         A dict holding the result message and the connection information
         when available.
     """
-    module_session.reconnect(request_id)
+    module_session.reconnect()
 
 
 @plugin_function('gui.sqleditor.execute', shell=False, web=True)
@@ -144,8 +136,6 @@ def kill_query(module_session):
         Nothing
     """
     module_session.kill_query()
-
-    result = Response.ok('Query kill requested')
 
 
 @plugin_function('gui.sqleditor.getCurrentSchema', shell=False, web=True)

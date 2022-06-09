@@ -20,9 +20,10 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gui_plugin.core.DbSessionTasks import DbQueryTask
-from gui_plugin.core.DbSessionTasks import  BaseObjectTask, DbSqlTask
+from gui_plugin.core.DbSessionTasks import BaseObjectTask
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
+
 
 class MySQLOneFieldTask(DbQueryTask):
     def process_result(self):
@@ -34,17 +35,20 @@ class MySQLOneFieldTask(DbQueryTask):
             # If so, should the default value be provided by the caller?
             self.dispatch_result("OK", data="")
 
+
 class MySQLBaseObjectTask(BaseObjectTask):
     def process_result(self):
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
 
             if not row:
-                self.dispatch_result("ERROR", message=f"The {self.type} '{self.name}' does not exist.")
+                self.dispatch_result(
+                    "ERROR", message=f"The {self.type} '{self.name}' does not exist.")
             else:
                 self.dispatch_result("OK", data=self.format(row))
         else:
-            self.dispatch_result("ERROR", message=f"The {self.type} '{self.name}' does not exist.")
+            self.dispatch_result(
+                "ERROR", message=f"The {self.type} '{self.name}' does not exist.")
 
 
 class MySQLTableObjectTask(BaseObjectTask):
@@ -61,12 +65,14 @@ class MySQLTableObjectTask(BaseObjectTask):
 
                 if not row:
                     self._break = True
-                    self.dispatch_result("ERROR", message=f"The table '{self.name}' does not exist.")
+                    self.dispatch_result(
+                        "ERROR", message=f"The table '{self.name}' does not exist.")
                 else:
                     self.dispatch_result("PENDING", data=self.format(row))
             else:
                 self._break = True
-                self.dispatch_result("ERROR", message=f"The table '{self.name}' does not exist.")
+                self.dispatch_result(
+                    "ERROR", message=f"The table '{self.name}' does not exist.")
         else:
             # Process result set
             buffer_size = self.options.get("row_packet_size", 25)
@@ -77,8 +83,8 @@ class MySQLTableObjectTask(BaseObjectTask):
                 # Loop over all rows
                 for row in self.session.row_generator():
                     if self.session.is_killed():
-                        raise MSGException(Error.DB_QUERY_KILLED, "Query killed")
-
+                        raise MSGException(
+                            Error.DB_QUERY_KILLED, "Query killed")
 
                     # Return chunks of buffer_size a time, if buffer_size is 0
                     # or -1, do not return chunks but only the full result set
@@ -95,6 +101,7 @@ class MySQLTableObjectTask(BaseObjectTask):
 
             # Call the callback
             self.dispatch_result("OK", data=values)
+
 
 class MySQLOneFieldListTask(DbQueryTask):
     def process_result(self):

@@ -29,6 +29,7 @@ import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.backenddb import dbconnections
+import threading
 
 
 @plugin_function('gui.dbconnections.addDbConnection', shell=False, web=True)
@@ -311,12 +312,11 @@ def list_credentials():
 
 
 @plugin_function('gui.dbconnections.testConnection', shell=False, web=True)
-def test_connection(connection, request_id, password=None, web_session=None):
+def test_connection(connection, password=None, web_session=None):
     """Opens test connection
 
     Args:
         connection (object): The id of the db_connection or connection information
-        request_id (str): ID of the request starting the session.
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
         web_session (object): The web_session object this session will belong to
 
@@ -329,13 +329,9 @@ def test_connection(connection, request_id, password=None, web_session=None):
     """
 
     new_session = DbModuleSession(web_session)
-    new_session.open_connection(connection, password, request_id)
+    new_session.open_connection(connection, password)
     if password is None and not 'password' in connection['options']:
-        result = Response.ok("New database session created successfully.", {
-            "module_session_id": new_session.module_session_id,
-            "request_id": request_id
-        })
-        return result
+        return {"module_session_id": new_session.module_session_id}
 
     new_session.close()
 

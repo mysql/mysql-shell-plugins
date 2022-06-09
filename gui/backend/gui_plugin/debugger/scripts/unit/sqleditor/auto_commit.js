@@ -3,7 +3,7 @@ var lib = ws.tokens.lib
 var unit = ws.tokens["unit"]
 
 ws.tokens["current_directory"] = "unit/sqleditor"
-ws.tokens["current_test_name"] = "auto_commit_whatever"
+ws.tokens["current_test_name"] = "auto_commit"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 //  Initialize

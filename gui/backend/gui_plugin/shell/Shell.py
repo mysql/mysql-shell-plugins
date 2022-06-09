@@ -73,8 +73,10 @@ def start_session(request_id, db_connection_id=None, shell_args=None, web_sessio
     new_session = ShellModuleSession(
         web_session, request_id, options=options, shell_args=shell_args)
     return Response.pending("New Shell session initiated...", {
-        "module_session_id": new_session.module_session_id,
-        "result": new_session._last_prompt
+        "result": {
+            "last_prompt": new_session._last_prompt,
+            "module_session_id": new_session.module_session_id,
+        }
     })
 
 

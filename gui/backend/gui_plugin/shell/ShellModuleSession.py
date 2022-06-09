@@ -375,7 +375,7 @@ class ShellModuleSession(ModuleSession):
                         # request for a client prompt
                         prompt_event = threading.Event()
                         self.send_prompt_response(
-                            self._pending_request.request_id, reply_json, lambda: prompt_event.set())
+                            self._pending_request.task_id, reply_json, lambda: prompt_event.set())
 
                         # Locks until the prompt is handled
                         prompt_event.wait()
@@ -452,9 +452,9 @@ class ShellModuleSession(ModuleSession):
             # check if there is a command request to send to
             # the shell and handle it
             command = self._request_queue.get()
-            if command.request_id in self._cancel_requests:
+            if command.task_id in self._cancel_requests:
                 command.cancel()
-                self._cancel_requests.remove(command.request_id)
+                self._cancel_requests.remove(command.task_id)
                 continue
 
             self._pending_request = command

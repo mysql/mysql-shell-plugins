@@ -19,7 +19,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import json
 import os
 import threading
 import mysqlsh
@@ -30,6 +29,7 @@ import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
 from gui_plugin.core.Protocols import Response
 import gui_plugin.core.Logger as logger
+from gui_plugin.core.Context import get_context
 
 
 def check_service_database_session(func):
@@ -67,8 +67,9 @@ class DbModuleSession(ModuleSession):
             self._db_service_session.close()
             self._db_service_session = None
 
-    def reconnect(self, request_id):
-        self._current_request_id = request_id
+    def reconnect(self):
+        context = get_context()
+        self._current_request_id = context.request_id if context else None
 
         if self._db_service_session is None:
             raise MSGException(Error.DB_NOT_OPEN,
@@ -148,14 +149,15 @@ class DbModuleSession(ModuleSession):
                                                     request_id,
                                                     data)
 
-    def open_connection(self, connection, password, request_id):
+    def open_connection(self, connection, password):
         # Closes the existing connections if any
         self.close_connection()
 
-        self._current_request_id = request_id
+        context = get_context()
+        self._current_request_id = context.request_id if context else None
 
         if isinstance(connection, int):
-            self._db_type, options = self.web_session.db.get_connection_details(
+            self._db_type, options = self._web_session.db.get_connection_details(
                 connection)
         elif isinstance(connection, dict):
             self._db_type = connection['db_type']
@@ -180,6 +182,7 @@ class DbModuleSession(ModuleSession):
             self._connection_options,
             self._ping_interval,
             True,
+            self._handle_api_response,
             self.on_connected,
             lambda x: self.on_fail_connecting(x),
             lambda x, o: self.on_shell_prompt(x, o),
@@ -235,54 +238,6 @@ class DbModuleSession(ModuleSession):
 
         self.send_command_response(
             self._current_request_id, Response.exception(exc))
-
-    @ check_service_database_session
-    def get_objects_types(self, request_id):
-        self._db_service_session.get_objects_types(request_id=request_id,
-                                                   callback=self._handle_api_response)
-
-    @ check_service_database_session
-    def get_catalog_object_names(self, request_id,   type, filter=None):
-        self._db_service_session.get_catalog_object_names(request_id=request_id,
-                                                          type=type, filter=filter,
-                                                          callback=self._handle_api_response)
-
-    @ check_service_database_session
-    def get_schema_object_names(self, request_id, type, schema_name, filter=None, routine_type=None):
-        self._db_service_session.get_schema_object_names(request_id=request_id,
-                                                         type=type, schema_name=schema_name,
-                                                         filter=filter,
-                                                         routine_type=routine_type,
-                                                         callback=self._handle_api_response)
-
-    @ check_service_database_session
-    def get_table_object_names(self, request_id, type, schema_name, table_name, filter=None):
-        self._db_service_session.get_table_object_names(request_id=request_id,
-                                                        type=type,
-                                                        schema_name=schema_name, table_name=table_name,
-                                                        filter=filter,
-                                                        callback=self._handle_api_response)
-
-    @ check_service_database_session
-    def get_catalog_object(self, request_id, type, name):
-        self._db_service_session.get_catalog_object(request_id=request_id,
-                                                    type=type, name=name,
-                                                    callback=self._handle_api_response)
-
-    @ check_service_database_session
-    def get_schema_object(self, request_id, type, schema_name, name):
-        self._db_service_session.get_schema_object(request_id=request_id,
-                                                   type=type, schema_name=schema_name,
-                                                   name=name,
-                                                   callback=self._handle_api_response)
-
-    @ check_service_database_session
-    def get_table_object(self, request_id, type, schema_name, table_name, name):
-        self._db_service_session.get_table_object(request_id=request_id,
-                                                  type=type,
-                                                  schema_name=schema_name, table_name=table_name,
-                                                  name=name,
-                                                  callback=self._handle_api_response)
 
     def cancel_request(self, request_id):
         raise NotImplementedError()

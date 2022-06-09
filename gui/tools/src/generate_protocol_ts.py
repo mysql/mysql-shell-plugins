@@ -78,6 +78,21 @@ js_parameter_override = {
     }
 }
 
+CONVERT_TO_CAMEL_FUNCTION = """import _ from "lodash";
+
+export interface IConversionOptions {
+    ignore?: string[];
+}
+
+export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
+    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
+        const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
+            return `${match1}_${match2.toLowerCase()}`;
+        });
+
+        return snakeCased;
+    });
+};"""
 
 bindings_template = """/*
  * {__COPYRIGHT__} (c) {__YEARS__}, Oracle and/or its affiliates.
@@ -103,6 +118,8 @@ bindings_template = """/*
  */
 
 import { {__PLUGIN_IMPORTS__} } from ".";
+
+{__ADDITIONAL_DEFINITIONS__}
 
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -339,6 +356,10 @@ class PythonParamToJavascript:
     @property
     def generate_json_argument(self):
         "Generated the entry for the args: {} object"
+        if self.plugin_name == "Gui" and self.function_name == "DbStartSession" \
+                and self.python_name == "connection":
+            return f'{self.python_name}: typeof connection === "number" ? connection : convertCamelToSnakeCase(connection)'
+
         if self.has_override:
             return f"{self.python_name}: {self.javascript_name}ToUse"
 
@@ -442,6 +463,13 @@ def add_to_protocol_ts(definition):
             "{__PLUGIN__}", plugin_name)
         binding[plugin_name] = binding[plugin_name].replace(
             "{__COPYRIGHT__}", "Copyright")
+
+        if plugin_name == "Gui":
+            binding[plugin_name] = binding[plugin_name].replace(
+                "{__ADDITIONAL_DEFINITIONS__}", CONVERT_TO_CAMEL_FUNCTION)
+        else:
+            binding[plugin_name] = binding[plugin_name].replace(
+                "{__ADDITIONAL_DEFINITIONS__}", "")
 
         current_year = datetime.datetime.now().year
         years = f"{current_year}" if current_year == beginning_year else f"{beginning_year}, {current_year}"

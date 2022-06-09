@@ -60,7 +60,7 @@ export class ShellInterfaceDb implements IShellInterface {
             listener.then((event: ICommStartSessionEvent) => {
                 // istanbul ignore else
                 if (event.eventType === EventType.FinalResponse) {
-                    const id = event.data.moduleSessionId;
+                    const id = event.data.result.moduleSessionId;
                     webSession.setModuleSessionId(this.moduleSessionLookupId, id);
 
                     resolve();

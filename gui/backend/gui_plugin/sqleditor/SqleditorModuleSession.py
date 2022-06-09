@@ -54,10 +54,10 @@ class SqleditorModuleSession(DbModuleSession):
 
         super().close_connection()
 
-    def reconnect(self, request_id):
+    def reconnect(self):
         self._db_user_session.close()
         self._db_user_session = None
-        super().reconnect(request_id=request_id)
+        super().reconnect()
 
     # Overrides the on_connected function at the DBModuleSession to actually
     # trigger the user session connection, on this one no prompts are expected
@@ -70,6 +70,7 @@ class SqleditorModuleSession(DbModuleSession):
                 db_session.connection_options,
                 self._ping_interval,
                 False,
+                self._handle_api_response,
                 self.on_user_session_connected,
                 lambda x: self.on_fail_connecting(x),
                 lambda x, o: self.on_shell_prompt(x, o),

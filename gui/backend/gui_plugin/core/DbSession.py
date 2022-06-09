@@ -28,7 +28,7 @@ from .DbSessionTasks import DbSqlTask, DBCloseTask, DBReconnectTask
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
-
+from gui_plugin.core.Context import get_context
 
 class DbSessionFactory:
     registry = {}
@@ -113,7 +113,7 @@ class DbSession(threading.Thread):
     _cancel_requests = []
 
     def __init__(self, id, threaded, connection_options, ping_interval=None,
-                 auto_reconnect=False):
+                 auto_reconnect=False, task_state_cb=None):
         super().__init__()
         self._id = id
         # Enable auto-reconnect logic for this session
@@ -139,8 +139,17 @@ class DbSession(threading.Thread):
         self.thread_error = None
         self._opened = False
         self._db_pinger = None
+        self._task_state_cb = task_state_cb
         if not ping_interval is None:
             self._db_pinger = DbPingHandler(self, ping_interval)
+
+    @property
+    def threaded(self):
+        return self._threaded
+
+    @property
+    def task_state_cb(self):
+        return self._task_state_cb
 
     @property
     def connection_options(self):
@@ -149,7 +158,7 @@ class DbSession(threading.Thread):
     def open(self):
         self._opened = True
         logger.debug3(f"Connecting {self._id}...")
-        if self._threaded:
+        if self.threaded:
             # Start the session thread
             self.start()
 
@@ -187,7 +196,8 @@ class DbSession(threading.Thread):
             self._db_pinger.join()
         self._close_database(True)
         if self.thread_error != 0:
-            logger.error(f"Thread {self._id} exiting with code {self.thread_error}")
+            logger.error(
+                f"Thread {self._id} exiting with code {self.thread_error}")
         self._term_complete.set()
 
     def execute_thread(self, sql, params):
@@ -239,14 +249,14 @@ class DbSession(threading.Thread):
         raise NotImplementedError()
 
     def close(self):
-        if self._threaded:
+        if self.threaded:
             self.add_task(DBCloseTask())
             self._term_complete.wait()
         else:
             self._close_database(True)
 
     def reconnect(self):
-        if self._threaded:
+        if self.threaded:
             self.add_task(DBReconnectTask())
             self._term_complete.wait()
         else:
@@ -257,9 +267,13 @@ class DbSession(threading.Thread):
 
     def execute(self, sql, params=None, result_queue=None, request_id=None,
                 callback=None, options=None):
-        if self._threaded:
+
+        if self.threaded:
+            context = get_context()
+            if request_id is None:
+                request_id = context.request_id if context else None
             self._killed = False
-            self.add_task(DbSqlTask(self, request_id, sql, params=params,
+            self.add_task(DbSqlTask(self, task_id=request_id, sql=sql, params=params,
                                     result_queue=result_queue, result_callback=callback, options=options))
         else:
             return self.execute_thread(sql, params)
@@ -323,25 +337,25 @@ class DbSession(threading.Thread):
     def kill_query(self, user_session):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_objects_types(self, request_id, callback=None):  # pragma: no cover
+    def get_objects_types(self):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_catalog_object_names(self, request_id, type, filter, callback=None):  # pragma: no cover
+    def get_catalog_object_names(self, type, filter):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_schema_object_names(self, request_id, type, schema_name, filter, routine_type=None, callback=None):  # pragma: no cover
+    def get_schema_object_names(self, type, schema_name, filter, routine_type=None):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_table_object_names(self, request_id, type, schema_name, table_name, filter, callback=None):  # pragma: no cover
+    def get_table_object_names(self, type, schema_name, table_name, filter):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_catalog_object(self, request_id, type, name, callback=None):  # pragma: no cover
+    def get_catalog_object(self, type, name):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_schema_object(self, request_id, type, schema_name, name, callback=None):  # pragma: no cover
+    def get_schema_object(self, type, schema_name, name):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_table_object(self, request_id, type, schema_name, table_name, name, callback=None):  # pragma: no cover
+    def get_table_object(self, type, schema_name, table_name, name):  # pragma: no cover
         raise NotImplementedError()
 
     def run(self):
@@ -365,9 +379,9 @@ class DbSession(threading.Thread):
                 self._reconnect(auto_reconnect=False)
                 self._term_complete.set()
             else:
-                if task.request_id in DbSession._cancel_requests:
+                if task.task_id in DbSession._cancel_requests:
                     task.cancel()
-                    DbSession._cancel_requests.remove(task.request_id)
+                    DbSession._cancel_requests.remove(task.task_id)
 
                 # Resets the killed flag for the next task
                 self._killed = False

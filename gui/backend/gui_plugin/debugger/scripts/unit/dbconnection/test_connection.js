@@ -51,7 +51,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "OK",
-            "msg": "New database session created successfully."
+            "msg": ""
         },
         "request_id": originalRequestId
     },
@@ -61,7 +61,7 @@ await ws.sendAndValidate({
             "msg": "Executing..."
         },
         "request_id": originalRequestId,
-        "result": 
+        "result":
         {
             'defaultValue': '',
             'prompt': ws.matchRegexp(".*Please provide the password for.*"),
@@ -131,16 +131,14 @@ await ws.sendAndValidate({
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
-}, [
-    {
-        "module_session_id": ws.lastModuleSessionId,
-        "request_id": originalRequestId,
-        "request_state": {
-            "type": "OK",
-            "msg": "DB session has been closed successfully."
-        }
-    }
-])
+}, [{
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "result": "Completed"
+}])
 
 await ws.sendAndValidate({
     "request": "execute",

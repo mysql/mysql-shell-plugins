@@ -41,6 +41,8 @@ from gui_plugin.users.backend import get_id_personal_user_group
 from queue import Queue, Empty
 from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
+from gui_plugin.core.modules.DbModuleSession import DbModuleSession
+from gui_plugin.core.dbms.DbMySQLSession import DbSession
 
 
 class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
@@ -134,7 +136,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 # log message, if logging does not work, do not process
                 # the message due to security concerns
                 if not BackendDbLogger.message(self.session_id, json.dumps(message), is_response=False,
-                                                request_id=request_id):
+                                               request_id=request_id):
                     raise Exception("Unable to process the request.")
 
                 self.process_message(json_message)
@@ -146,7 +148,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
                 # log the original message
                 BackendDbLogger.message(self.session_id,
-                    json.dumps(message), is_response=False)
+                                        json.dumps(message), is_response=False)
                 self.send_json_response(Response.exception(e, args))
 
     def on_ws_connected(self):
@@ -264,7 +266,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
     def on_ws_sending_message(self, message):
         json_message = json.loads(message)
         if BackendDbLogger.message(self.session_id, message, is_response=True,
-                                    request_id=json_message.get('request_id', None)):
+                                   request_id=json_message.get('request_id', None)):
             return message
         logger.error("Failed to log message in the database.")
 
@@ -532,7 +534,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             args = json_msg.get('args', {})
             kwargs = json_msg.get('kwargs', {})
 
-            kwargs = { **args, **kwargs }
+            kwargs = {**args, **kwargs}
 
             v = kwargs.get('value')
             if v and type(v) == dict:
@@ -630,8 +632,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 kwargs.update({"interactive": False})
 
             if "session" in f_args:
-                from gui_plugin.core.modules.DbModuleSession import DbModuleSession
-                from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
                 # If the called function requires a session parameter,
                 # get it from the given module_session
                 if not 'module_session_id' in kwargs:
@@ -645,12 +645,12 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         f'The function {cmd} needs a module_session_id '
                         'argument set to a DbModuleSession.')
                 db_module_session = module_session._db_service_session
-                if not isinstance(db_module_session, DbMysqlSession):
+                if not isinstance(db_module_session, DbSession):
                     raise Exception(
                         f'The function {cmd} needs a module_session_id '
-                        'argument set to a DbModuleSession using MySQL.')
+                        'argument set to a DbSession.')
 
-                kwargs.update({"session": db_module_session.session})
+                kwargs.update({"session": db_module_session})
                 del kwargs['module_session_id']
 
             module_session = None
@@ -680,11 +680,20 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 thread.name = f'req-{request_id}'
                 thread.start()
             elif found_objects[0] != 'gui':
-                thread = RequestHandler(request_id, func, kwargs, self)
+                thread = RequestHandler(request_id, func, kwargs, self, True)
                 thread.start()
                 result = None
             else:
-                result = func(**kwargs)
+                if cmd.startswith('gui.db.') \
+                        or cmd in ['gui.sqleditor.open_connection', 'gui.sqleditor.start_session',
+                                    'gui.sqleditor.close_session', 'gui.dbconnections.test_connection',
+                                    'gui.sqleditor.reconnect']:
+                    thread = RequestHandler(
+                        request_id, func, kwargs, self, False)
+                    thread.start()
+                    result = None
+                else:
+                    result = func(**kwargs)
 
         except Exception as e:
             logger.exception(e)
