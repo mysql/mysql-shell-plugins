@@ -38,7 +38,10 @@ import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDi
  * They are all accessible via requisitions.
  */
 export class DialogHost extends Component {
-    private runningDialogs = new Set<DialogType>();
+    // Holds the currently running dialog type (only one of each type can run at the same time) and last
+    // active HTML element, when this dialog was launched.
+    private runningDialogs = new Map<DialogType, Element | null>();
+
     private dialogRefs = new Map<DialogType, React.RefObject<ValueDialogBase>>();
 
     // The value edit dialog is special, as it uses a different approach for editing complex values.
@@ -119,6 +122,7 @@ export class DialogHost extends Component {
                 default: { // All dialogs with the base value editor return signature.
                     const ref = this.dialogRefs.get(request.type);
                     if (ref && ref.current) {
+                        this.runningDialogs.set(request.type, document.activeElement);
                         ref.current.show(request, request.title);
 
                         return Promise.resolve(true);
@@ -143,7 +147,7 @@ export class DialogHost extends Component {
      * @param request The request with the data for the dialog.
      */
     private runPromptDialog = (request: IDialogRequest): void => {
-        this.runningDialogs.add(DialogType.Prompt);
+        this.runningDialogs.set(DialogType.Prompt, document.activeElement);
 
         const promptSection: IDialogSection = {
             values: {
@@ -187,7 +191,7 @@ export class DialogHost extends Component {
      * @param request The request with the data for the dialog.
      */
     private runConfirmDialog = (request: IDialogRequest): void => {
-        this.runningDialogs.add(DialogType.Confirm);
+        this.runningDialogs.set(DialogType.Confirm, document.activeElement);
 
         this.confirmDialogRef.current?.show(
             request.parameters?.prompt as string ?? "",
@@ -216,7 +220,7 @@ export class DialogHost extends Component {
      * @param request The request with the data for the dialog.
      */
     private runSelectDialog = (request: IDialogRequest): void => {
-        this.runningDialogs.add(DialogType.Prompt);
+        this.runningDialogs.set(DialogType.Prompt, document.activeElement);
 
         const promptSection: IDialogSection = {
             values: {},
@@ -255,6 +259,7 @@ export class DialogHost extends Component {
     };
 
     private handleDialogClose = (type: DialogType, closure: DialogResponseClosure, data?: IDictionary): void => {
+        const element = this.runningDialogs.get(type);
         this.runningDialogs.delete(type);
 
         const response: IDialogResponse = {
@@ -264,10 +269,16 @@ export class DialogHost extends Component {
         };
 
         void requisitions.execute("dialogResponse", response);
+
+        if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+            element.focus();
+        }
     };
 
     private handlePromptDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
         data?: IDictionary): void => {
+
+        const element = this.runningDialogs.get(DialogType.Prompt);
         this.runningDialogs.delete(DialogType.Prompt);
 
         const promptSection = values.sections.get("prompt");
@@ -287,6 +298,10 @@ export class DialogHost extends Component {
             };
 
             void requisitions.execute("dialogResponse", response);
+        }
+
+        if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+            element.focus();
         }
     };
 
