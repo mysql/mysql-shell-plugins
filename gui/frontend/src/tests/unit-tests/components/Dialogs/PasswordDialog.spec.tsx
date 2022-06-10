@@ -147,10 +147,10 @@ describe("Password Dialog Tests", (): void => {
         await nextProcessTick();
 
         const buttons = portals[0].getElementsByTagName("button");
-        expect(buttons).toHaveLength(2);
-        expect(buttons[0].id).toBe("ok");
-        expect(buttons[1].id).toBe("cancel");
-        buttons[0].click();
+        expect(buttons).toHaveLength(3);
+        expect(buttons[1].id).toBe("ok");
+        expect(buttons[2].id).toBe("cancel");
+        buttons[1].click();
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

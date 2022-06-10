@@ -576,11 +576,11 @@ exports[`Application tests Application readiness 1`] = `
             <Container
               orientation="column"
             >
+              
               <Container
                 className="description"
                 orientation="column"
               />
-              
             </Container>
           }
           onClose={[Function]}

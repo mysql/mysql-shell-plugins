@@ -500,9 +500,9 @@ describe("Value Edit Dialog Tests", (): void => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
         const buttons = portals[0].getElementsByTagName("button");
-        expect(buttons.length).toBe(8);
-        expect(buttons[6].id).toBe("ok");
-        buttons[6].click();
+        expect(buttons.length).toBe(9);
+        expect(buttons[7].id).toBe("ok");
+        buttons[7].click();
         await nextProcessTick();
 
         // Because we return error messages during validation, the dialog must not be closed.

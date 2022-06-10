@@ -759,7 +759,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             explorerState: new Map(),
                             editors: [{
                                 id: entryId,
-                                caption: "Standard Console",
+                                caption: "Default Notebook",
                                 type: EntityType.Console,
                                 state: {
                                     model,
@@ -1057,7 +1057,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const entryId = uuid();
                     connectionState.editors.push({
                         id: entryId,
-                        caption: "Standard Console",
+                        caption: "Default Notebook",
                         type: EntityType.Console,
                         state: {
                             model,

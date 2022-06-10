@@ -116,10 +116,10 @@
 }
 
 .msg.valueEditDialog #matrixActions .button {
-    padding: 0px;
+    padding: 0;
     margin: 0 0 0 3px;
-    min-width: 0px;
-    min-height: 0px;
+    min-width: 0;
+    min-height: 0;
 
     width: 24px;
     height: 24px;
@@ -137,7 +137,7 @@
 }
 
 .msg.valueEditDialog .inputWithProgress .progressIndicatorHost .linearBackground {
-    border-radius: 0px;
+    border-radius: 0;
     padding: 0;
     margin-left: 4px;
     margin-right: 4px;
