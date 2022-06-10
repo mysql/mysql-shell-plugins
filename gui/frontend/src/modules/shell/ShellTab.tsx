@@ -67,6 +67,8 @@ export interface IShellTabPersistentState extends IShellPromptValues {
     // For DB session handling.
     lastUserName?: string;
     lastPassword?: string;
+    lastHost?: string;
+    lastPort?: number;
 }
 
 export interface IShellTabProperties extends IComponentProperties {
@@ -744,17 +746,24 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         }
         savedState.lastPassword = undefined;
         savedState.lastUserName = undefined;
+        savedState.lastHost = undefined;
+        savedState.lastPort = undefined;
         savedState.schemaList = undefined;
 
         // The user is enclosed in quotes.
         const match = startText.match(/^[^']+('.+')/);
-        const user = match?.[1];
-        if (user) {
-            const parts = unquote(user).split("@");
+        let connectionString = match?.[1];
+        if (connectionString) {
+            connectionString = unquote(connectionString);
+            try {
+                const url = new URL(connectionString);
 
-            // istanbul ignore else
-            if (parts.length > 0) {
-                savedState.lastUserName = parts[0];
+                savedState.lastUserName = url.username;
+                savedState.lastHost = url.host;
+                savedState.lastPassword = url.password;
+                savedState.lastPort = parseInt(url.port, 10);
+            } catch (e) {
+                // Ignore invalid connection strings.
             }
         }
     };
@@ -780,8 +789,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     scheme: useXProtocol ? MySQLConnectionScheme.MySQLx : MySQLConnectionScheme.MySQL,
                     user: savedState.lastUserName,
                     password: savedState.lastPassword,
-                    host: savedState.promptDescriptor?.host,
-                    port: savedState.promptDescriptor?.port,
+                    host: savedState.lastHost,
+                    port: savedState.lastPort,
 
                 },
             });
