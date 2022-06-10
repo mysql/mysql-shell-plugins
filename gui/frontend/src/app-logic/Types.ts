@@ -198,7 +198,10 @@ export interface IDialogRequest extends IDictionary {
 export enum DialogResponseClosure {
     Accept,
     Decline,
-    Alternative
+    Alternative,
+
+    /** Set when no decision was made. */
+    Cancel,
 }
 
 export interface IDialogResponse extends IDictionary {

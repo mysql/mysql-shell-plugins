@@ -21,16 +21,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import closeButton from "../../../assets/images/close2.svg";
+
 import React from "react";
 import { isNil } from "lodash";
 
-import { Component, IComponentProperties, IDialogActions, Container, Orientation } from "..";
+import { Component, IComponentProperties, IDialogActions, Container, Orientation, Icon, Button } from "..";
 
 export interface IDialogContentProperties extends IComponentProperties {
     content?: React.ReactNode;
     header?: React.ReactNode;
     caption?: React.ReactNode;
     actions?: IDialogActions;
+
+    onCloseClick?: () => void;
 }
 
 // This component is the separated-out content for a dialog, but can be rendered anywhere.
@@ -39,7 +43,7 @@ export class DialogContent extends Component<IDialogContentProperties> {
     public constructor(props: IDialogContentProperties) {
         super(props);
 
-        this.addHandledProperties("content", "header", "caption", "actions");
+        this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick");
     }
 
     public render(): React.ReactNode {
@@ -52,7 +56,16 @@ export class DialogContent extends Component<IDialogContentProperties> {
         } else {
             dialogContent = (
                 <>
-                    {caption && <div className="title verticalCenterContent">{caption}</div>}
+                    {caption && <div className="title verticalCenterContent">
+                        {caption}
+                        <Button id="closeButton"
+                            imageOnly
+                            onClick={this.handleCloseClick}
+                        >
+                            <Icon src={closeButton} />
+                        </Button>
+                    </div>
+                    }
                     {header && <div className="header">{header}</div>}
                     {content && <div className="content fixedScrollbar">{content}</div>}
                     {actions &&
@@ -85,4 +98,9 @@ export class DialogContent extends Component<IDialogContentProperties> {
         );
     }
 
+    private handleCloseClick = () => {
+        const { onCloseClick } = this.props;
+
+        onCloseClick?.();
+    };
 }
