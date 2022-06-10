@@ -23,7 +23,6 @@
 class BastionHandler():
     def __init__(self, progress_cb=None):
         self._progress_cb = progress_cb
-        pass
 
     def report_progress(self, msg):
         if not self._progress_cb is None:

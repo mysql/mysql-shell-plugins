@@ -53,12 +53,11 @@ class DbMysqlSession(DbSession):
 
     def __init__(self, id, threaded, connection_options, ping_interval=None,
                  auto_reconnect=False, on_connected_cb=None, on_failed_cb=None,
-                 prompt_cb=None, pwd_prompt_cb=None, message_callback=None):
+                 prompt_cb=None, message_callback=None):
         super().__init__(id, threaded, connection_options, ping_interval=ping_interval,
                          auto_reconnect=auto_reconnect)
 
         self._connection_options_backup = connection_options.copy()
-        self._pwd_prompt_cb = pwd_prompt_cb
         self._prompt_cb = prompt_cb
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
@@ -73,7 +72,6 @@ class DbMysqlSession(DbSession):
         if self._connection_options["scheme"] not in ["mysql", "mysqlx"]:
             raise MSGException(Error.DB_INVALID_OPTIONS,
                                "Invalid MySQL scheme defined in the connection options. Valid values are 'mysql' and 'mysqlx'.")
-
         self.open()
 
     def on_shell_prompt(self, text, options):
