@@ -220,7 +220,7 @@ export class DialogHost extends Component {
      * @param request The request with the data for the dialog.
      */
     private runSelectDialog = (request: IDialogRequest): void => {
-        this.runningDialogs.set(DialogType.Prompt, document.activeElement);
+        this.runningDialogs.set(DialogType.Select, document.activeElement);
 
         const promptSection: IDialogSection = {
             values: {},
@@ -278,21 +278,29 @@ export class DialogHost extends Component {
     private handlePromptDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
         data?: IDictionary): void => {
 
-        const element = this.runningDialogs.get(DialogType.Prompt);
-        this.runningDialogs.delete(DialogType.Prompt);
+        const type = data?.type as DialogType ?? DialogType.Prompt;
+        const element = this.runningDialogs.get(type);
+        this.runningDialogs.delete(type);
 
         const promptSection = values.sections.get("prompt");
         if (promptSection) {
-            const text = promptSection.values.input.value as string;
-            const index = promptSection.values.input.choices?.findIndex((value) => {
-                return value === text;
-            });
+            let text = promptSection.values.input.value as string;
+            if (type === DialogType.Select) {
+                // Convert the text to an index in the choice list.
+                const index = promptSection.values.input.choices?.findIndex((value) => {
+                    return value === text;
+                }) ?? -1;
+
+                if (index > -1) {
+                    text = String(index + 1);
+                }
+            }
 
             const response: IDialogResponse = {
                 type: data?.type as DialogType,
                 closure,
                 values: {
-                    input: String(index! + 1),
+                    input: text,
                 },
                 data,
             };
