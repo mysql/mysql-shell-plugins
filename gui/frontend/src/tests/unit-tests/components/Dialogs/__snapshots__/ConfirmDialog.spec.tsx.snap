@@ -25,11 +25,11 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
       <Container
         orientation="column"
       >
+        
         <Container
           className="description"
           orientation="column"
         />
-        
       </Container>
     }
     onClose={[Function]}
@@ -72,6 +72,20 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
       >
         Confirm you are a spy!
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -159,6 +173,20 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
       >
         Confirm you are a spy!
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -171,12 +199,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
         class="msg container fixedScrollbar"
         style="flex-direction: column;"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar description"
-          style="flex-direction: column;"
-        />
         <label
           __self="[object Object]"
           __source="[object Object]"
@@ -186,6 +208,12 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
         >
           Answer The Question
         </label>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar description"
+          style="flex-direction: column;"
+        />
       </div>
     </div>
     <div
@@ -260,6 +288,20 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
       >
         Resistance is futile
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -272,13 +314,13 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
         class="msg container fixedScrollbar"
         style="flex-direction: column;"
       >
+        
         <div
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar description"
           style="flex-direction: column;"
         />
-        
       </div>
     </div>
     <div

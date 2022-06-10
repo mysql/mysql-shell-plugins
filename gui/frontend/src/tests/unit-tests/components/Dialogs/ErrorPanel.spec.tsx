@@ -78,8 +78,8 @@ describe("Error Panel Tests", (): void => {
 
         // Close the dialog using the close button.
         const buttons = portals[0].getElementsByClassName("button");
-        expect(buttons).toHaveLength(1);
-        (buttons[0] as HTMLButtonElement).click();
+        expect(buttons).toHaveLength(2);
+        (buttons[1] as HTMLButtonElement).click();
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

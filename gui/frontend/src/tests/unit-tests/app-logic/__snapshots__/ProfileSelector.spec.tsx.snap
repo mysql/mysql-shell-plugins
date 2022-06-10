@@ -100,11 +100,11 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           <Container
             orientation="column"
           >
+            
             <Container
               className="description"
               orientation="column"
             />
-            
           </Container>
         }
         onClose={[Function]}

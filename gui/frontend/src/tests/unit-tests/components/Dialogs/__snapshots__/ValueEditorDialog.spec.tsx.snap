@@ -30,6 +30,20 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
       >
         Select Value
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -199,6 +213,20 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
       >
         Select Value
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -452,6 +480,20 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
       >
         Select Value
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -705,6 +747,20 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
       >
         Select Value
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -947,6 +1003,20 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
       >
         Enter a name for the new theme
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -1064,6 +1134,20 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
       >
         Select Value
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -1181,6 +1265,20 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
       >
         Select Value
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -1665,6 +1763,20 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
       >
         Select Value
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"

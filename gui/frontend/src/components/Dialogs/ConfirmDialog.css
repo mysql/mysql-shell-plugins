@@ -38,6 +38,8 @@
 
 .msg.confirmDialog .description {
     margin-bottom: 20px;
+    font-size: 0.9em;
+    color: var(--text-dimmedForeground);
 }
 
 .msg.confirmDialog .footer {
@@ -45,5 +47,5 @@
 }
 
 .msg.confirmDialog #dialogMessage {
-    color: var(--text-dimmedForeground);
+    margin-bottom: 8px;
 }

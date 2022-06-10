@@ -30,6 +30,20 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
       >
         MySQL REST Service
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -329,6 +343,20 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
       >
         MySQL REST Service
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -572,6 +600,20 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
       >
         Feedback Requested
       </label>
+      <button
+        __self="[object Object]"
+        __source="[object Object]"
+        class="msg button imageOnly"
+        id="closeButton"
+        tabindex="0"
+      >
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </button>
     </div>
     <div
       __self="[object Object]"
@@ -743,11 +785,11 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         <Container
           orientation="column"
         >
+          
           <Container
             className="description"
             orientation="column"
           />
-          
         </Container>
       }
       onClose={[Function]}

@@ -91,12 +91,12 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
 
             dialogContent =
                 <Container orientation={Orientation.TopDown}>
+                    {message && <Label id="dialogMessage" caption={message as string} />}
                     <Container
                         orientation={Orientation.TopDown}
                         className="description">
                         {descriptionLabels}
                     </Container>
-                    {message && <Label id="dialogMessage" caption={message as string} />}
                 </Container>;
         }
 

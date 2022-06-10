@@ -109,11 +109,11 @@ describe("Param Dialog Tests", (): void => {
         expect(component.state().value).toBe("XYZ");
 
         const buttons = portals[0].getElementsByClassName("button");
-        expect(buttons).toHaveLength(2);
-        expect(buttons[0].id).toBe("ok");
-        expect(buttons[1].id).toBe("cancel");
+        expect(buttons).toHaveLength(3);
+        expect(buttons[1].id).toBe("ok");
+        expect(buttons[2].id).toBe("cancel");
 
-        (buttons[0] as HTMLButtonElement).click();
+        (buttons[1] as HTMLButtonElement).click();
         expect(spyOnClose).toHaveBeenCalledTimes(1);
         expect(spyOnClose).toHaveBeenCalledWith(false, { name: "ABC", value: "XYZ" });
         await nextProcessTick();

@@ -131,11 +131,11 @@ describe("Confirm Dialog Tests", (): void => {
         let portals = document.getElementsByClassName("portal");
         let buttons = portals[0].getElementsByClassName("button");
 
-        expect(buttons).toHaveLength(2);
-        expect(buttons[0].id).toBe("accept");
-        expect(buttons[1].id).toBe("refuse");
+        expect(buttons).toHaveLength(3);
+        expect(buttons[0].id).toBe("closeButton");
+        expect(buttons[1].id).toBe("accept");
 
-        (buttons[0] as HTMLButtonElement).click();
+        (buttons[1] as HTMLButtonElement).click();
         expect(spyOnClose).toHaveBeenCalledTimes(1);
         expect(spyOnClose).toHaveBeenCalledWith(DialogResponseClosure.Accept, { brain: "Lorem Ipsum" });
 
@@ -153,11 +153,11 @@ describe("Confirm Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         buttons = portals[0].getElementsByClassName("button");
 
-        expect(buttons).toHaveLength(2);
-        expect(buttons[0].id).toBe("accept");
-        expect(buttons[1].id).toBe("refuse");
+        expect(buttons).toHaveLength(3);
+        expect(buttons[0].id).toBe("closeButton");
+        expect(buttons[1].id).toBe("accept");
 
-        (buttons[1] as HTMLButtonElement).click();
+        (buttons[2] as HTMLButtonElement).click();
         expect(spyOnClose).toHaveBeenCalledTimes(2);
         expect(spyOnClose).toHaveBeenCalledWith(DialogResponseClosure.Decline, { brain: "Dolor Sit" });
 

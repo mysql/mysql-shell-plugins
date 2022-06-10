@@ -2097,7 +2097,7 @@ describe("DB Editor", () => {
                     .findElement(By.css("textarea"))
                     .sendKeys("select actor from sakila.actor");
 
-                await selectCurrentEditor(driver, "Standard Console", "shell");
+                await selectCurrentEditor(driver, "Default Notebook", "shell");
 
                 expect(
                     (await driver
@@ -2116,7 +2116,7 @@ describe("DB Editor", () => {
 
                 expect(
                     await driver.findElement(By.css("#documentSelector label")).getText(),
-                ).toBe("Standard Console");
+                ).toBe("Default Notebook");
             } catch (e) {
                 testFailed = true;
                 throw e;
