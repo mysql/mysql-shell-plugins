@@ -51,7 +51,6 @@
 }
 
 .msg.dialog > .title {
-    flex: 0 0 24px;
     padding: 8px;
 }
 
@@ -63,7 +62,16 @@
     background: var(--icon-foreground);
     width: 21px;
     height: 21px;
-    margin-right: 4px;
+    margin-right: 0;
+}
+
+.msg.dialog .title #closeButton {
+    background: transparent;
+    border: none;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin-left: auto;
 }
 
 .msg.dialog > .header {
@@ -79,7 +87,7 @@
 
 .msg.dialog > .content {
     flex: 15 1 auto;
-    margin: 16px 0;
+    margin: 0;
     padding: 16px;
     overflow: auto;
     white-space: nowrap;

@@ -84,6 +84,7 @@ export class Dialog extends Component<IDialogProperties> {
                     header={header}
                     content={content}
                     actions={actions}
+                    onCloseClick={this.handleCloseClick}
                 >
                     {children}
                 </DialogContent>
@@ -116,4 +117,7 @@ export class Dialog extends Component<IDialogProperties> {
         onOpen?.(this.mergedProps);
     };
 
+    private handleCloseClick = (): void => {
+        this.close(true);
+    };
 }

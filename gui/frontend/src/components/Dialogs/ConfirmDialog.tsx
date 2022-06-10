@@ -174,13 +174,9 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
             }
         }
 
-        this.dialogRef.current?.close(closure === DialogResponseClosure.Decline);
+        this.dialogRef.current?.close(false);
 
-        // Trigger onClose only if not cancelled, because we have to handle that specific situation in handleClose
-        // (which is also triggered for closing via the escape key).
-        if (closure !== DialogResponseClosure.Decline) {
-            onClose?.(closure, values);
-        }
+        onClose?.(closure, values);
     };
 
     private handleClose = (cancelled: boolean): void => {
@@ -188,7 +184,7 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
             const { onClose } = this.mergedProps;
             const { values } = this.state;
 
-            onClose?.(DialogResponseClosure.Decline, values);
+            onClose?.(DialogResponseClosure.Cancel, values);
         }
     };
 
