@@ -313,7 +313,7 @@ def get_required_locations(include_keychain):
             cert_locations.append(locations.Macos(user_home_cert))
         elif os_type == "windows" or SystemUtils.is_wsl():
             cert_locations.append(locations.Win(user_home_cert))
-        elif os_type in ["debian", "fedora", "suse opensuse"]:
+        elif os_type in ["debian", "fedora", "suse opensuse", "arch"]:
             cert_locations.append(locations.Nss_db_cert(user_home_cert))
 
             # Add deprecated certificates for a successful uninstall

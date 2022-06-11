@@ -286,7 +286,7 @@ describe("MySQL Shell for VS Code", () => {
                 throw new Error(String(e.stack));
             } finally {
                 if (prc!) {
-                    prc.kill();
+                    prc!.kill();
                 }
             }
         });

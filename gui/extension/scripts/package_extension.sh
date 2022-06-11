@@ -47,7 +47,7 @@ function validate_url(){
 }
 
 # Function that tries to download the MySQL Shell macOS package for an unknow macosVersion
-# Usage: download_shell_mac_pkg 8.0.28 arm64 packaging/mysql-shell/darwin-arm64.tar.gz
+# Usage: download_shell_mac_pkg 8.0.29 arm64 packaging/mysql-shell/darwin-arm64.tar.gz
 function download_shell_mac_pkg(){
     if [[ $# < 4 ]]; then
         macos_ver=11
@@ -98,8 +98,8 @@ if [ -z "${SHELL_VERSION}" ] && [ ! -d "packaging" ]; then
     echo "Setting up the packaging resources..."
     mkdir -p packaging/mysql-shell
 
-    read -p "Which version of MySQL Shell should be used [8.0.28]? " SHELL_VERSION
-    SHELL_VERSION=${SHELL_VERSION:-8.0.28}
+    read -p "Which version of MySQL Shell should be used [8.0.29]? " SHELL_VERSION
+    SHELL_VERSION=${SHELL_VERSION:-8.0.29}
 
     echo "Downloading MySQL Shell $SHELL_VERSION packages..."
 
