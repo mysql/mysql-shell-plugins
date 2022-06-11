@@ -1,12 +1,26 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.3.0+8.0.29
+
+### Fixes
+
+- Fixed certificate deployment in ArchLinux
+- Turned password saving prompts into Yes/No like prompts.
+
+### Additions
+
+- Upgraded shell to 8.0.29
+- Added support for Select Prompts introduced in Shell 8.0.29
+- Added support for Confirm Prompts introduced in Shell 8.0.29
+- Added option to cancel Prompt Dialogs
+
 ## Changes in 1.2.2+8.0.28
 
 ### Fixes
 
 - Simplified certificate deployment in WSL
 
-## Changes in 1.2.21+8.0.28
+## Changes in 1.2.1+8.0.28
 
 ### Additions
 
