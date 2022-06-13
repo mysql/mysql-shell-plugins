@@ -113,7 +113,7 @@ exports[`Error Panel Tests Show Panel 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -213,7 +213,7 @@ Line 2
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"

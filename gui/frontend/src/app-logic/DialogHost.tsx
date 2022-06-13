@@ -241,6 +241,7 @@ export class DialogHost extends Component {
             value: defaultValue === undefined ? "" : choices[defaultValue - 1], // One-based value.
             span: 8,
             choices,
+            options: [DialogValueOption.AutoFocus],
         };
 
         this.promptDialogRef.current?.show(

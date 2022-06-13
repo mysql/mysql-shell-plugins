@@ -110,7 +110,7 @@ export class ScopeSelector extends Component<IScopeSelectorProperties, IScopeSel
                     tags={customTags}
                     orientation={Orientation.TopDown}
                 />
-                <div className="footer verticalCenterContent unselectable">
+                <div className="footer verticalCenterContent">
                     <ValueEditDialog
                         ref={this.newScopeDialogRef}
                         onValidate={this.validateScopeName}

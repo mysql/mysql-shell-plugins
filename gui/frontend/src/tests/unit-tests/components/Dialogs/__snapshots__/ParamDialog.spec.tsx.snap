@@ -246,7 +246,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -421,7 +421,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
