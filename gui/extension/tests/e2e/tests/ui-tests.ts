@@ -154,10 +154,10 @@ describe("MySQL Shell for VS Code", () => {
             addContext(this, { title: "Failure", value: `../${imgPath}` });
 
             const codeLines = (await thisFile).toString().split("\n");
-            for(let i=0; i<= codeLines.length-1; i++) {
+            for (let i = 0; i <= codeLines.length - 1; i++) {
                 if (codeLines[i].indexOf(testName) !== -1) {
-                    if (codeLines[i-1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
-                        const bugLink = codeLines[i-1].replace("// bug: ", "").trim();
+                    if (codeLines[i - 1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
+                        const bugLink = codeLines[i - 1].replace("// bug: ", "").trim();
                         addContext(this, `---->  HAS A BUG  <----- : ${bugLink}"`);
                     }
                 }
@@ -230,7 +230,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const editorView = new EditorView();
             const editor = await editorView.openEditor("SQL Connections");
-            expect(await editor.getTitle()).to.equals("SQL Connections");
+            expect(await editor.getTitle()).to.equal("SQL Connections");
 
             await driver.switchTo().frame(0);
             await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
@@ -238,13 +238,13 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(
                 await driver.findElement(By.id("title")).getText(),
-            ).to.equals("MySQL Shell - SQL Notebook");
+            ).to.equal("MySQL Shell - DB Editor");
 
             expect(
                 await driver
                     .findElement(By.id("contentTitle"))
                     .getText(),
-            ).to.equals("Database Connections");
+            ).to.equal("Database Connections");
 
             expect(
                 await driver
@@ -388,9 +388,9 @@ describe("MySQL Shell for VS Code", () => {
             }
         });
 
-        it("Connection Context Menu - Connect using SQL Notebook", async () => {
+        it("Connection Context Menu - Open DB Connection", async () => {
 
-            await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection", "Connect using SQL Notebook");
+            await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection", "Open DB Connection");
 
             await new EditorView().openEditor(conn.caption);
 
@@ -403,13 +403,13 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        it("Connection Context Menu - Connect using SQL Notebook in new tab", async () => {
+        it("Connection Context Menu - Open DB Connection in New Tab", async () => {
 
             await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
-                "Connect using SQL Notebook");
+                "Open DB Connection");
 
             await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
-                "Connect using SQL Notebook in New Tab");
+                "Open DB Connection in New Tab");
 
             const editorView = new EditorView();
             const editors = await editorView.getOpenEditorTitles();
@@ -556,7 +556,7 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", false);
             const item = await driver.wait(until.elementLocated(By.xpath(
                 "//div[contains(@aria-label, 'MySQL REST Service')]")),
-            5000, "MySQL REST Service tree item was not found");
+                5000, "MySQL REST Service tree item was not found");
             await driver.wait(until.elementIsVisible(item), 5000, "MySQL REST Service tree item was not visible");
 
             await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection", "Show MySQL System Schemas");
@@ -1172,7 +1172,7 @@ describe("MySQL Shell for VS Code", () => {
                 return (await textEditor.getText()).length > 0;
             }, 3000, "No text was found on file");
 
-            expect(isJson(await textEditor.getText())).to.equals(true);
+            expect(isJson(await textEditor.getText())).to.equal(true);
 
         });
 
@@ -1182,7 +1182,7 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver, "ORACLE CLOUD INFRASTRUCTURE",
                 "E2ETESTS (us-ashburn-1)", "ociProfile", "Set as New Default Config Profile");
 
-            expect(await isDefaultItem(driver, "profile", "E2ETESTS (us-ashburn-1)")).to.equals(true);
+            expect(await isDefaultItem(driver, "profile", "E2ETESTS (us-ashburn-1)")).to.equal(true);
 
             /*await toggleSection(driver, "MYSQL SHELL CONSOLES", true);
 
@@ -1204,7 +1204,7 @@ describe("MySQL Shell for VS Code", () => {
             const zoneHost = await driver.findElements(By.css(".zoneHost"));
             const result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getText();
 
-            expect(result).to.equals("E2ETESTS");*/
+            expect(result).to.equal("E2ETESTS");*/
 
         });
 
@@ -1238,7 +1238,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 5000, "No text was found inside QA Info.json");
 
             const json = await textEditor.getText();
-            expect(isJson(json)).to.equals(true);
+            expect(isJson(json)).to.equal(true);
 
             const parsed = JSON.parse(json);
             const compartmentId = parsed.id;
@@ -1271,7 +1271,7 @@ describe("MySQL Shell for VS Code", () => {
             const zoneHost = await driver.findElements(By.css(".zoneHost"));
             const result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getText();
 
-            expect(result).to.equals(compartmentId);
+            expect(result).to.equal(compartmentId);
 
         });
 
@@ -1312,7 +1312,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 5000, "No text was found inside MDSforVSCodeExtension Info.json");
 
             const json = await textEditor.getText();
-            expect(isJson(json)).to.equals(true);
+            expect(isJson(json)).to.equal(true);
 
         });
 
@@ -1348,10 +1348,10 @@ describe("MySQL Shell for VS Code", () => {
                 10000, "Connection dialog was not loaded");
 
             expect(await newConDialog.findElement(By.id("caption")).getAttribute("value"))
-                .to.equals("MDSforVSCodeExtension");
+                .to.equal("MDSforVSCodeExtension");
 
             expect(await newConDialog.findElement(By.id("description")).getAttribute("value"))
-                .to.equals("DB System used to test the MySQL Shell for VSCode Extension.");
+                .to.equal("DB System used to test the MySQL Shell for VSCode Extension.");
 
             expect(await newConDialog.findElement(By.id("hostName")).getAttribute("value"))
                 .to.match(new RegExp(/(\d+).(\d+).(\d+).(\d+)/));
@@ -1371,8 +1371,8 @@ describe("MySQL Shell for VS Code", () => {
 
                 expect(await existsTreeElement(driver, "DATABASE", "MDSforVSCodeExtension"))
                     .to.be.true;
-            //} catch (e) {
-            //    throw new Error(String(e.stack));
+                //} catch (e) {
+                //    throw new Error(String(e.stack));
             } finally {
                 await toggleSection(driver, "DATABASE", true);
                 await reloadSection(driver, "DATABASE");
@@ -1406,7 +1406,7 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", true);
             expect(await existsTreeElement(driver, "MYSQL SHELL TASKS", "Start DB System (running)")).to.be.true;
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText()).indexOf("OCI profile 'E2ETESTS' loaded.") !== -1;
                 } catch (e) {
@@ -1418,7 +1418,7 @@ describe("MySQL Shell for VS Code", () => {
             expect(await notifications[0].getMessage()).to.contain("Are you sure you want to start the DB System");
             await notifications[0].takeAction("Yes");
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText())
                         .indexOf("DB System 'MDSforVSCodeExtension' did start successfully") !== -1;
@@ -1456,7 +1456,7 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", true);
             expect(await existsTreeElement(driver, "MYSQL SHELL TASKS", "Restart DB System (running)")).to.be.true;
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText()).indexOf("OCI profile 'E2ETESTS' loaded.") !== -1;
                 } catch (e) {
@@ -1468,7 +1468,7 @@ describe("MySQL Shell for VS Code", () => {
             expect(await notifications[0].getMessage()).to.contain("Are you sure you want to restart the DB System");
             await notifications[0].takeAction("NO");
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText())
                         .indexOf("Operation cancelled") !== -1;
@@ -1505,7 +1505,7 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", true);
             expect(await existsTreeElement(driver, "MYSQL SHELL TASKS", "Stop DB System (running)")).to.be.true;
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText()).indexOf("OCI profile 'E2ETESTS' loaded.") !== -1;
                 } catch (e) {
@@ -1518,7 +1518,7 @@ describe("MySQL Shell for VS Code", () => {
             expect(await notifications[0].getMessage()).to.contain("Are you sure you want to stop the DB System");
             await notifications[0].takeAction("NO");
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText())
                         .indexOf("Operation cancelled") !== -1;
@@ -1555,7 +1555,7 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", true);
             expect(await existsTreeElement(driver, "MYSQL SHELL TASKS", "Delete DB System (running)")).to.be.true;
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText()).indexOf("OCI profile 'E2ETESTS' loaded.") !== -1;
                 } catch (e) {
@@ -1568,7 +1568,7 @@ describe("MySQL Shell for VS Code", () => {
             expect(await notifications[0].getMessage()).to.contain("Are you sure you want to delete");
             await notifications[0].takeAction("NO");
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText())
                         .indexOf("Deletion aborted") !== -1;
@@ -1609,7 +1609,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 5000, "No text was found inside Bastion4PrivateSubnetStandardVnc Info.json");
 
             const json = await textEditor.getText();
-            expect(isJson(json)).to.equals(true);
+            expect(isJson(json)).to.equal(true);
 
             const parsed = JSON.parse(json);
             const bastionId = parsed.id;
@@ -1640,7 +1640,7 @@ describe("MySQL Shell for VS Code", () => {
             const zoneHost = await driver.findElements(By.css(".zoneHost"));
             const result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getText();
 
-            expect(result).to.equals(bastionId);
+            expect(result).to.equal(bastionId);
 
         });
 
@@ -1707,7 +1707,7 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", true);
             expect(await existsTreeElement(driver, "MYSQL SHELL TASKS", "Delete Bastion (running)")).to.be.true;
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText()).indexOf("OCI profile 'E2ETESTS' loaded.") !== -1;
                 } catch (e) {
@@ -1722,7 +1722,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(await existsTreeElement(driver, "MYSQL SHELL TASKS", "Delete Bastion (error)")).to.be.true;
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     return (await outputView.getText()).indexOf("Deletion aborted") !== -1;
                 } catch (e) {
@@ -1772,12 +1772,12 @@ describe("MySQL Shell for VS Code", () => {
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
             await driver.switchTo().defaultContent();
 
-            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1") as Boolean).to.equals(true);
+            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1") as Boolean).to.equal(true);
 
             await selectContextMenuItem(driver, "MYSQL SHELL CONSOLES", "Session 1",
                 "console", "Close this MySQL Shell Console");
 
-            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1")).to.equals(false);
+            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1")).to.equal(false);
 
         });
 
@@ -1794,7 +1794,7 @@ describe("MySQL Shell for VS Code", () => {
             await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell Consoles")));
 
             expect(await driver.findElement(By.css("#shellModuleTabview h2")).getText())
-                .to.equals("MySQL Shell - GUI Console");
+                .to.equal("MySQL Shell - GUI Console");
 
             const newSession = await driver.findElement(By.id("-1"));
             await newSession.click();
@@ -1802,7 +1802,7 @@ describe("MySQL Shell for VS Code", () => {
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
             await driver.switchTo().defaultContent();
 
-            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1")).to.equals(true);
+            expect(await existsTreeElement(driver, "MYSQL SHELL CONSOLES", "Session 1")).to.equal(true);
         });
 
     });

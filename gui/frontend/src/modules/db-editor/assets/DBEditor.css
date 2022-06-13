@@ -120,7 +120,7 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar,
-.msg.connectionTabHost #sqlNotebookToolbar {
+.msg.connectionTabHost #dbEditorToolbar {
     min-height: 0;
     flex: 0 0 28px;
     margin: 0;
@@ -128,7 +128,7 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar .image,
-.msg.connectionTabHost #sqlNotebookToolbar .image {
+.msg.connectionTabHost #dbEditorToolbar .image {
     width: 24px;
     height: 24px;
 }
@@ -139,8 +139,8 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar #connectionSelector,
-.msg.connectionTabHost #sqlNotebookToolbar #connectionSelector,
-.msg.connectionTabHost #sqlNotebookToolbar #documentSelector {
+.msg.connectionTabHost #dbEditorToolbar #connectionSelector,
+.msg.connectionTabHost #dbEditorToolbar #documentSelector {
     flex: 0 0 200px;
     margin: 0 3px 0 6px;
 }
@@ -211,15 +211,21 @@
     border-radius: 0;
 }
 
-.msg.connectionTabHost #sqlNotebookToolbar #itemSaveButton{
-    width: 80px;
+.msg.connectionTabHost #dbEditorToolbar #itemSaveButton {
+    width: 60px;
     margin-left: 8px;
+}
+
+.msg.connectionTabHost #dbEditorToolbar #itemSaveButton:not(:disabled, :hover) {
+    /* Restore the normal border/background for this special button. */
+    border: 1px solid var(--button-border);
+    background: var(--button-background);
 }
 
 /* Definitions for server status. */
 .msg.image#mysqlIcon {
-    
-    margin: 0px 20px;
+
+    margin: 0 20px;
 }
 
 .msg#serverStatus h1 {
@@ -268,7 +274,7 @@
 }
 
 .msg #mysqlLogo {
-    margin: 8px 0px 8px 0px;
+    margin: 8px 0;
     width: 160px;
     height: 160px;
 }
@@ -278,13 +284,13 @@
     --thickness: 1px !important;
 }
 
-.msg.serverStatus .statusIndicator > h3, 
+.msg.serverStatus .statusIndicator > h3,
 .msg.serverStatus .statusIndicator > h1 {
-    padding-left: 0px;
+    padding-left: 0;
     padding-top: 1px;
     display: flex;
     flex-direction: column;
-    
+
 }
 
 .msg.serverStatus .statusIndicator > h3 {

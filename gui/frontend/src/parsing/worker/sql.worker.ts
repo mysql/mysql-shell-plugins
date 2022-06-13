@@ -29,7 +29,7 @@ import { MySQLParseUnit } from "../mysql/MySQLServiceTypes";
 
 import { MySQLParsingServices } from "../mysql/MySQLParsingServices";
 import { SQLiteParsingServices } from "../SQLite/SQLiteParsingServices";
-import { PrivateWorker } from "../../modules/SQLNotebook/console.worker-types";
+import { PrivateWorker } from "../../modules/db-editor/console.worker-types";
 
 const ctx = self as unknown as PrivateWorker;
 

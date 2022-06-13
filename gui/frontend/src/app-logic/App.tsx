@@ -43,11 +43,11 @@ import { ShellInterface } from "../supplement/ShellInterface";
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import { ErrorPanel } from "../components/Dialogs";
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { IEditorStatusInfo } from "../modules/SQLNotebook";
+import { IEditorStatusInfo } from "../modules/db-editor";
 import { ProfileSelector } from "./ProfileSelector";
 
 import { ShellModule } from "../modules/shell/ShellModule";
-import { DBEditorModule } from "../modules/SQLNotebook/DBEditorModule";
+import { DBEditorModule } from "../modules/db-editor/DBEditorModule";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule";
 import { MDSModule } from "../modules/mds/MDSModule";
 import { MRSModule } from "../modules/mrs/MrsModule";

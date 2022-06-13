@@ -298,7 +298,7 @@
             },
             {
                 "command": "msg.openConnection",
-                "title": "Connect using SQL Notebook",
+                "title": "Open DB Connection",
                 "icon": {
                     "dark": "images/dark/openConnection.svg",
                     "light": "images/light/openConnection.svg"
@@ -314,7 +314,7 @@
             },
             {
                 "command": "msg.openConnectionNewTab",
-                "title": "Connect using SQL Notebook in New Tab",
+                "title": "Open DB Connection in New Tab",
                 "icon": {
                     "dark": "images/dark/openConnection.svg",
                     "light": "images/light/openConnection.svg"
@@ -494,8 +494,8 @@
                 "title": "Create Statement"
             },
             {
-                "command": "msg.editInNotebook",
-                "title": "Edit File in SQL Notebook"
+                "command": "msg.editInScriptEditor",
+                "title": "Edit File in MySQL Shell"
             },
             {
                 "command": "msg.mrs.configureMySQLRestService",
@@ -663,7 +663,7 @@
             "explorer/context": [
                 {
                     "when": "resourceLangId == mysql || resourceLangId == sql",
-                    "command": "msg.editInNotebook",
+                    "command": "msg.editInScriptEditor",
                     "group": "1_msg@1"
                 }
             ],

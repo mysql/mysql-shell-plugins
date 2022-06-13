@@ -37,7 +37,7 @@ import {
     ITabviewPage, Tabview, Button, Icon, TabPosition, defaultEditorOptions, Divider, Label, Dropdown, Image,
     ProgressIndicator, IDropdownProperties,
 } from "../../components/ui";
-import { SQLNotebookTab, ISQLNotebookTabPersistentState, IOpenEditorState } from "./SQLNotebookTab";
+import { DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState } from "./DBConnectionTab";
 import { ICodeEditorModel, CodeEditor, CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
 import { Monaco } from "../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
@@ -106,7 +106,7 @@ interface IDBEditorModuleState extends IModuleState {
 export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEditorModuleState> {
 
     // The saved document state when switching tabs.
-    private connectionState: Map<string, ISQLNotebookTabPersistentState> = new Map();
+    private connectionState: Map<string, IDBConnectionTabPersistentState> = new Map();
 
     private workerPool: ExecutionWorkerPool;
 
@@ -276,7 +276,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             });
 
             toolbarInset = <>
-                <Label style={{ paddingRight: "8px" }}>SQL Notebook:</Label>
+                <Label style={{ paddingRight: "8px" }}>Editor:</Label>
                 <Dropdown
                     id="connectionSelector"
                     initialSelection={selectedEntry ?? selectedPage}
@@ -331,7 +331,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             pages.push({
                 icon: connectionsIcon,
-                caption: "Overview",
+                caption: "Connection Overview",
                 id: "connections",
                 content,
             });
@@ -375,7 +375,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 </>;
             }
 
-            const content = (<SQLNotebookTab
+            const content = (<DBConnectionTab
                 id={info.tabId}
                 showAbout={!info.suppressAbout}
                 workerPool={this.workerPool}
@@ -752,14 +752,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode, currentSchema);
 
                         const entryId = uuid();
-                        const connectionState: ISQLNotebookTabPersistentState = {
+                        const connectionState: IDBConnectionTabPersistentState = {
                             activeEntry: entryId,
                             currentSchema,
                             schemaTree: [],
                             explorerState: new Map(),
                             editors: [{
                                 id: entryId,
-                                caption: "Default Notebook",
+                                caption: "Notebook",
                                 type: EntityType.Console,
                                 state: {
                                     model,
@@ -1009,7 +1009,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const id = uuid();
             connectionState.editors.push({
                 id,
-                caption: `Console ${++this.editorCounter}`,
+                caption: `Notebook ${++this.editorCounter}`,
                 type: EntityType.Console,
                 state: {
                     model,
@@ -1057,7 +1057,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const entryId = uuid();
                     connectionState.editors.push({
                         id: entryId,
-                        caption: "Default Notebook",
+                        caption: "Notebook",
                         type: EntityType.Console,
                         state: {
                             model,
@@ -1209,7 +1209,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param script The script from which we create the editor.
      * @param content The script's content.
      */
-    private addEditorFromScript(state: ISQLNotebookTabPersistentState, script: IDBEditorScriptState,
+    private addEditorFromScript(state: IDBConnectionTabPersistentState, script: IDBEditorScriptState,
         content: string): void {
         const model = this.createEditorModel(state.backend, content, script.language, state.serverVersion,
             state.sqlMode, state.currentSchema);

@@ -27,7 +27,7 @@ import {
 import { EventType, ListenerEntry } from "../Dispatch";
 import { EditorLanguage } from "..";
 import { IShellInterface } from ".";
-import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/SQLNotebook";
+import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/db-editor";
 import { uuid } from "../../utilities/helpers";
 
 // These are predefined data categories that always exist.

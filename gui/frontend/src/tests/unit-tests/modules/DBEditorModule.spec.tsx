@@ -26,7 +26,7 @@ import React from "react";
 import { snapshotFromWrapper } from "../test-helpers";
 import Icon from "../../../assets/images/modules/module-sql.svg";
 import { DBEditorModuleId } from "../../../modules/ModuleInfo";
-import { DBEditorModule } from "../../../modules/SQLNotebook/DBEditorModule";
+import { DBEditorModule } from "../../../modules/db-editor/DBEditorModule";
 
 
 describe("DBEditor module tests", (): void => {

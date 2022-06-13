@@ -24,7 +24,7 @@
 import { mount } from "enzyme";
 import React from "react";
 import { snapshotFromWrapper } from "../test-helpers";
-import { Explorer } from "../../../modules/SQLNotebook/Explorer";
+import { Explorer } from "../../../modules/db-editor/Explorer";
 import { DBType, ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface";
 
 

@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./assets/SQLNotebook.css";
+import "./assets/DBEditor.css";
 
 import React from "react";
 import ts from "typescript";
@@ -50,7 +50,7 @@ import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
-import { SQLNotebookToolbar } from "./SQLNotebookToolbar";
+import { DBEditorToolbar } from "./DBEditorToolbar";
 import { IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
@@ -77,7 +77,7 @@ export interface IOpenEditorState extends IEntityBase {
     currentVersion: number;
 }
 
-export interface ISQLNotebookTabPersistentState {
+export interface IDBConnectionTabPersistentState {
     backend: ShellInterfaceSqlEditor;
 
     // Informations about the connected backend (where supported).
@@ -97,10 +97,10 @@ export interface ISQLNotebookTabPersistentState {
     explorerWidth: number;
 }
 
-export interface ISQLNotebookTabProperties extends IComponentProperties {
+export interface IDBConnectionTabProperties extends IComponentProperties {
     connectionId: number;
     dbType: DBType;
-    savedState: ISQLNotebookTabPersistentState;
+    savedState: IDBConnectionTabPersistentState;
     workerPool: ExecutionWorkerPool;
 
     // An element to render in this page's toolbar.
@@ -129,16 +129,16 @@ export interface ISQLNotebookTabProperties extends IComponentProperties {
     onExplorerMenuAction?: (id: string, itemId: string, params: unknown) => void;
 }
 
-interface ISQLNotebookTabState extends IComponentState {
+interface IDBConnectionTabState extends IComponentState {
     errorMessage?: string;
 
     backend?: ShellInterfaceSqlEditor;
 }
 
 // A tab page for a single connection (managed by the scripting module).
-export class SQLNotebookTab extends Component<ISQLNotebookTabProperties, ISQLNotebookTabState> {
+export class DBConnectionTab extends Component<IDBConnectionTabProperties, IDBConnectionTabState> {
 
-    private static aboutMessage = `Welcome to the MySQL Shell - SQL Notebook.
+    private static aboutMessage = `Welcome to the MySQL Shell - DB Editor.
 
 Press %modifier%+Enter to execute the current statement.
 
@@ -154,7 +154,7 @@ Execute \\help or \\? for help;`;
     private consoleRef = React.createRef<ScriptingConsole>();
     private standaloneRef = React.createRef<StandaloneScriptEditor>();
 
-    public constructor(props: ISQLNotebookTabProperties) {
+    public constructor(props: IDBConnectionTabProperties) {
         super(props);
 
         this.state = {
@@ -199,7 +199,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("editorEditScript", this.editorEditScript);
     }
 
-    public componentDidUpdate(prevProps: ISQLNotebookTabProperties): void {
+    public componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
         const { connectionId, savedState } = this.props;
 
         if (connectionId !== prevProps.connectionId) {
@@ -327,7 +327,7 @@ Execute \\help or \\? for help;`;
                                 }}
                                 mainAlignment={ContentAlignment.Stretch}
                             >
-                                <SQLNotebookToolbar
+                                <DBEditorToolbar
                                     inset={toolbarInset}
                                     language={language}
                                     activeEditor={savedState.activeEntry}
@@ -1016,7 +1016,7 @@ Execute \\help or \\? for help;`;
             switch (temp) {
                 case "\\about": {
                     const isMac = navigator.userAgent.includes("Macintosh");
-                    const content = SQLNotebookTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
+                    const content = DBConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
                     context?.setResult({
                         type: "text",
                         requestId: "",

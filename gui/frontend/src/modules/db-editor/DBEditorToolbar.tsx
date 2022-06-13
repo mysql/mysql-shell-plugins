@@ -45,12 +45,12 @@ import {
     Button, Component, Divider, IComponentProperties, IComponentState, Icon, Toolbar,
 } from "../../components/ui";
 import { settings } from "../../supplement/Settings/Settings";
-import { IOpenEditorState } from "./SQLNotebookTab";
+import { IOpenEditorState } from "./DBConnectionTab";
 import { requisitions } from "../../supplement/Requisitions";
 import { ExecutionContext, LoadingState } from "../../script-execution";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
-export interface ISQLNotebookToolbarProperties extends IComponentProperties {
+export interface IDBEditorToolbarProperties extends IComponentProperties {
     // An element for navigation via this toolbar (current editor, current connection etc.).
     inset?: React.ReactElement;
 
@@ -63,7 +63,7 @@ export interface ISQLNotebookToolbarProperties extends IComponentProperties {
     onSelectEditor?: (editorId: string) => void;
 }
 
-interface ISQLNotebookToolbarState extends IComponentState {
+interface IDBEditorToolbarState extends IComponentState {
     editorId: string;
     currentEditor?: IOpenEditorState;
 
@@ -75,9 +75,9 @@ interface ISQLNotebookToolbarState extends IComponentState {
     autoCommit: boolean;
 }
 
-export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties, ISQLNotebookToolbarState> {
+export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEditorToolbarState> {
 
-    public constructor(props: ISQLNotebookToolbarProperties) {
+    public constructor(props: IDBEditorToolbarProperties) {
         super(props);
 
         const currentEditor = props.editors.find((state) => {
@@ -94,7 +94,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
         };
     }
 
-    public static getDerivedStateFromProps(props: ISQLNotebookToolbarProperties): Partial<ISQLNotebookToolbarState> {
+    public static getDerivedStateFromProps(props: IDBEditorToolbarProperties): Partial<IDBEditorToolbarState> {
         const currentEditor = props.editors.find((state) => {
             return state.id === props.activeEditor;
         });
@@ -158,7 +158,7 @@ export class SQLNotebookToolbar extends Component<ISQLNotebookToolbarProperties,
 
         return (
             <Toolbar
-                id="sqlNotebookToolbar"
+                id="dbEditorToolbar"
                 dropShadow={false}
             >
                 {inset}

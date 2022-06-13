@@ -46,7 +46,7 @@ import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/S
 import { printChannelOutput, taskOutputChannel } from "./extension";
 import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
 
-import { SQLNotebookCommandHandler } from "./SQLNotebookCommandHandler";
+import { DBEditorCommandHandler } from "./DBEditorCommandHandler";
 import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler";
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
@@ -57,7 +57,7 @@ export class ExtensionHost {
     private activeProfile?: ICommShellProfile;
     private updatingSettings = false;
 
-    private dbEditorCommandHandler = new SQLNotebookCommandHandler();
+    private dbEditorCommandHandler = new DBEditorCommandHandler();
     private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
     private mrsCommandHandler = new MRSCommandHandler();
     private mdsCommandHandler = new MDSCommandHandler();
