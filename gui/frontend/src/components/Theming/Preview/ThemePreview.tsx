@@ -47,7 +47,7 @@ import { ActivityBarItem } from "../../ui/ActivityBar/ActivityBarItem";
 import { SymbolGrid } from "./SymbolGrid";
 import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor";
 import { Monaco } from "../../ui/CodeEditor";
-import { ScriptingConsole } from "../../../modules/SQLNotebook/ScriptingConsole";
+import { ScriptingConsole } from "../../../modules/db-editor/ScriptingConsole";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { MySQLConnectionScheme } from "../../../communication/MySQL";
 import { DBType } from "../../../supplement/ShellInterface";

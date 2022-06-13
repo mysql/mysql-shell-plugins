@@ -44,16 +44,16 @@ import { ChildProcess, spawn, execSync } from "child_process";
 import { platform } from "os";
 let treeSection: DefaultTreeSection;
 
-export const moreActionsContextMenu = new Map<string, Number> ([
+export const moreActionsContextMenu = new Map<string, Number>([
     ["Restart the Internal MySQL Shell Process", 1],
     ["Connect to External MySQL Shell Process", 2],
     ["Relaunch Welcome Wizard", 3],
     ["Reset MySQL Shell for VS Code Extension", 4],
 ]);
 
-export const connContextMenu = new Map<string, Number> ([
-    ["Connect using SQL Notebook", 1],
-    ["Connect using SQL Notebook in New Tab", 2],
+export const connContextMenu = new Map<string, Number>([
+    ["Open DB Connection", 1],
+    ["Open DB Connection in New Tab", 2],
     ["Open MySQL Shell GUI Console for this Connection", 3],
     ["Edit MySQL Connection", 5],
     ["Duplicate this MySQL Connection", 6],
@@ -62,44 +62,44 @@ export const connContextMenu = new Map<string, Number> ([
     ["Configure MySQL REST Service", 10],
 ]);
 
-export const schemaContextMenu = new Map<string, Number> ([
+export const schemaContextMenu = new Map<string, Number>([
     ["Copy To Clipboard", 3],
     ["Drop Schema...", 5],
 ]);
 
-export const restContextMenu = new Map<string, Number> ([
+export const restContextMenu = new Map<string, Number>([
     ["Add REST Service", 1],
 ]);
 
-export const clipBoardContextMenu = new Map<string, Number> ([
+export const clipBoardContextMenu = new Map<string, Number>([
     ["Name", 0],
     ["Create Statement", 1],
 ]);
 
-export const tableContextMenu = new Map<string, Number> ([
+export const tableContextMenu = new Map<string, Number>([
     ["Show Data...", 1],
     ["Add Table to REST Service", 2],
     ["Copy To Clipboard", 3],
     ["Drop Table...", 4],
 ]);
 
-export const viewContextMenu = new Map<string, Number> ([
+export const viewContextMenu = new Map<string, Number>([
     ["Show Data...", 1],
     ["Copy To Clipboard", 2],
     ["Drop View...", 3],
 ]);
 
-export const ociProfileContextMenu = new Map<string, Number> ([
+export const ociProfileContextMenu = new Map<string, Number>([
     ["View Config Profile Information", 1],
     ["Set as New Default Config Profile", 2],
 ]);
 
-export const ociCompartmentContextMenu = new Map<string, Number> ([
+export const ociCompartmentContextMenu = new Map<string, Number>([
     ["View Compartment Information", 1],
     ["Set as Current Compartment", 2],
 ]);
 
-export const ociDBSystemContextMenu = new Map<string, Number> ([
+export const ociDBSystemContextMenu = new Map<string, Number>([
     ["View DB System Information", 1],
     ["Create Connection with Bastion Service", 2],
     ["Start the DB System", 3],
@@ -109,7 +109,7 @@ export const ociDBSystemContextMenu = new Map<string, Number> ([
     ["Create MySQL Router Endpoint on new Compute Instace", 7],
 ]);
 
-export const ociBastionContextMenu = new Map<string, Number> ([
+export const ociBastionContextMenu = new Map<string, Number>([
     ["Get Bastion Information", 1],
     ["Set as Current Bastion", 2],
     ["Delete Bastion", 3],
@@ -148,7 +148,7 @@ export const waitForLoading = async (driver: WebDriver, sectionName: string, tim
     const sections = await leftSideBar.findElements(By.css(".split-view-view.visible"));
     let ctx: WebElement | undefined;
     for (const section of sections) {
-        if (await section.findElement(By.css("h3.title") ).getText() === sectionName) {
+        if (await section.findElement(By.css("h3.title")).getText() === sectionName) {
             ctx = section;
             break;
         }
@@ -174,7 +174,7 @@ export const isDefaultItem = async (driver: WebDriver, itemType: string,
     const el = await root.findElement(By.css(".custom-view-tree-node-item > div"));
     const backImage = await el.getCssValue("background-image");
 
-    switch(itemType) {
+    switch (itemType) {
         case "profile":
             return backImage.indexOf("ociProfileCurrent") !== -1;
         case "compartment":
@@ -219,7 +219,7 @@ export const selectContextMenuItem = async (driver: WebDriver,
             .perform();
 
         await driver.sleep(500);
-        switch(ctxMenu) {
+        switch (ctxMenu) {
             case "connection":
                 await selectItem(connContextMenu.get(ctxMenuItems[0].trim()) as Number);
                 break;
@@ -257,7 +257,7 @@ export const selectContextMenuItem = async (driver: WebDriver,
     }
 };
 
-export const isJson = (text: string):boolean => {
+export const isJson = (text: string): boolean => {
     try {
         JSON.parse(text);
 
@@ -391,7 +391,7 @@ export const startServer = async (driver: WebDriver): Promise<ChildProcess> => {
     });
 
     try {
-        await driver.wait( () => {
+        await driver.wait(() => {
             if (serverOutput.indexOf("Starting MySQL Shell GUI web server...") !== -1) {
                 return true;
             }
@@ -479,13 +479,13 @@ export const hasTreeChildren = async (driver: WebDriver, section: string,
     const parentNodeId = await parentNode.getAttribute("id");
     const parentNodeLevel = await parentNode.getAttribute("aria-level");
     const parentIds = parentNodeId.match(/list_id_(\d+)_(\d+)/);
-    const childId = `list_id_${parentIds![1]}_${Number(parentIds![2])+1}`;
+    const childId = `list_id_${parentIds![1]}_${Number(parentIds![2]) + 1}`;
     const childLevel = Number(parentNodeLevel) + 1;
 
     const childs = await driver.findElements(By.xpath(`//div[@id='${childId}' and @aria-level='${childLevel}']`));
 
     if (checkChild) {
-        for(const child of childs) {
+        for (const child of childs) {
             const name = await child.getAttribute("aria-label");
             if (name.indexOf(checkChild) !== -1) {
                 return true;
@@ -534,7 +534,7 @@ export const welcomeMySQLShell = async (): Promise<boolean> => {
     return flag;
 };
 
-export const deleteDBConnection = async (driver: WebDriver, dbName: string): Promise <void> => {
+export const deleteDBConnection = async (driver: WebDriver, dbName: string): Promise<void> => {
 
     await selectContextMenuItem(driver, "DATABASE", dbName, "connection", "Delete MySQL Connection");
 
@@ -558,7 +558,7 @@ export const deleteDBConnection = async (driver: WebDriver, dbName: string): Pro
     await driver.switchTo().defaultContent();
 };
 
-export const clearPassword = async (driver: WebDriver, dbName: string): Promise <void> => {
+export const clearPassword = async (driver: WebDriver, dbName: string): Promise<void> => {
     const el = await getTreeElement(driver, "DATABASE", dbName);
     expect(el).to.exist;
 
@@ -708,7 +708,7 @@ export const waitForSystemDialog = async (driver: WebDriver, deleteCert?: boolea
         } else {
             search = "certutil.exe";
         }
-        for(const line of lines) {
+        for (const line of lines) {
             if (line.indexOf(search) !== -1) {
                 return true;
             }
@@ -717,7 +717,7 @@ export const waitForSystemDialog = async (driver: WebDriver, deleteCert?: boolea
         return false;
     };
 
-    await driver.wait( () => {
+    await driver.wait(() => {
         return isProcessRunning(deleteCert);
     }, 10000, "system dialog was not displayed");
 };
@@ -804,7 +804,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
                 await bottomBar.openOutputView();
 
                 return true;
-            } catch(e) {
+            } catch (e) {
                 if (String(e).indexOf("StaleElementReferenceError") !== -1) {
                     return false;
                 } else {
@@ -823,7 +823,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
                     viewMenu = await titleBar.getItem("View");
 
                     return true;
-                } catch(e) {
+                } catch (e) {
                     if (String(e).indexOf("StaleElementReferenceError") !== -1) {
                         return false;
                     } else {
@@ -852,7 +852,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
                     return true;
                 }
             }
-        } catch(e) {
+        } catch (e) {
             if (String(e).indexOf("StaleElementReferenceError") !== -1) {
                 return false;
             } else {
@@ -871,7 +871,7 @@ export const isCertificateInstalled = async (driver: WebDriver): Promise<boolean
     await driver.wait(async () => {
         try {
             return (await outputView.getText()).indexOf("Certificate is") !== -1;
-        } catch(e) {
+        } catch (e) {
             return false;
         }
 

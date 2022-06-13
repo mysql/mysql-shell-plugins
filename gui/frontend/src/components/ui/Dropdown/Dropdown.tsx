@@ -137,7 +137,10 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
             // Set back the focus to the drop down, once the popup was closed.
             // This is independent of the auto focus property, because for the popup to show
             // the dropdown had to have the focus anyway.
-            this.containerRef.current.focus();
+            if (this.containerRef.current.classList.contains("manualFocus")) {
+                this.containerRef.current.classList.remove("manualFocus");
+                this.containerRef.current.focus();
+            }
         }
 
         const previousSelection = prevProps.initialSelection || prevProps.defaultId || "";
@@ -453,10 +456,6 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         // In multi selection mode changes are already saved and cannot be restored here.
         if (!multiSelect && cancelled) {
             this.restoreSelection();
-        }
-
-        if (this.containerRef.current) {
-            this.containerRef.current.classList.remove("manualFocus");
         }
     };
 

@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { ConnectionBrowser } from "../../../modules/SQLNotebook/ConnectionBrowser";
+import { ConnectionBrowser } from "../../../modules/db-editor/ConnectionBrowser";
 import { DBType, IConnectionDetails } from "../../../supplement/ShellInterface";
 import { snapshotFromWrapper } from "../test-helpers";
 

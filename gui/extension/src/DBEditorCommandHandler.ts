@@ -35,25 +35,25 @@ import {
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
-import { SQLNotebookViewProvider } from "./web-views/SQLNotebookViewProvider";
+import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
 import { IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
-import { IDBEditorScriptState } from "../../frontend/src/modules/SQLNotebook";
+import { IDBEditorScriptState } from "../../frontend/src/modules/db-editor";
 
 import { CodeBlocks } from "./CodeBlocks";
 import { uuid } from "../../frontend/src/utilities/helpers";
 
 // A class to handle all DB editor related commands and jobs.
-export class SQLNotebookCommandHandler {
+export class DBEditorCommandHandler {
     private connectionsProvider = new ConnectionsTreeDataProvider();
 
     // All open DB editor view providers.
-    private providers: SQLNotebookViewProvider[] = [];
+    private providers: DBConnectionViewProvider[] = [];
     private url?: URL;
 
     private codeBlocks = new CodeBlocks();
 
     // For each open editor a list of open scripts is held (via a mapping of script IDs and their target URI).
-    private openScripts = new Map<SQLNotebookViewProvider, Map<string, Uri>>();
+    private openScripts = new Map<DBConnectionViewProvider, Map<string, Uri>>();
 
     public setup(context: ExtensionContext): void {
         this.codeBlocks.setup(context);
@@ -204,7 +204,7 @@ export class SQLNotebookCommandHandler {
                 item.copyCreateScriptToClipboard();
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.editInNotebook", async (uri?: Uri) => {
+        context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {
                 const stat = await workspace.fs.stat(uri);
 
@@ -220,7 +220,6 @@ export class SQLNotebookCommandHandler {
 
                             if (provider) {
                                 const name = basename(uri.fsPath);
-                                const caption = connection.details.caption + " - " + name;
                                 const details: IScriptRequest = {
                                     scriptId: uuid(),
                                     name,
@@ -234,7 +233,8 @@ export class SQLNotebookCommandHandler {
                                 }
                                 scripts.set(details.scriptId, uri);
 
-                                void provider.editScriptInNotebook(caption, String(connection.details.id), details);
+                                void provider.editScriptInNotebook(connection.details.caption,
+                                    String(connection.details.id), details);
                             }
                         });
                     }
@@ -299,7 +299,7 @@ export class SQLNotebookCommandHandler {
         this.providers = [];
     }
 
-    private get currentProvider(): SQLNotebookViewProvider | undefined {
+    private get currentProvider(): DBConnectionViewProvider | undefined {
         if (this.providers.length > 0) {
             return this.providers[this.providers.length - 1];
         } else {
@@ -307,9 +307,9 @@ export class SQLNotebookCommandHandler {
         }
     }
 
-    private get newProvider(): SQLNotebookViewProvider | undefined {
+    private get newProvider(): DBConnectionViewProvider | undefined {
         if (this.url) {
-            const provider = new SQLNotebookViewProvider(this.url, (view) => {
+            const provider = new DBConnectionViewProvider(this.url, (view) => {
                 const index = this.providers.findIndex((candidate) => {
                     return candidate === view;
                 });
@@ -319,7 +319,7 @@ export class SQLNotebookCommandHandler {
                 }
 
                 // Remove also any open script entry.
-                this.openScripts.delete(view as SQLNotebookViewProvider);
+                this.openScripts.delete(view as DBConnectionViewProvider);
             });
 
             this.providers.push(provider);

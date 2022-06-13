@@ -23,14 +23,14 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { SQLNotebookToolbar } from "../../../modules/SQLNotebook/SQLNotebookToolbar";
+import { DBEditorToolbar } from "../../../modules/db-editor/DBEditorToolbar";
 import { snapshotFromWrapper } from "../test-helpers";
 
 
-describe("SQLNotebookToolbar tests", (): void => {
-    it("Test SQLNotebookToolbar instantiation", () => {
-        const component = mount<SQLNotebookToolbar>(
-            <SQLNotebookToolbar
+describe("DBEditorToolbar tests", (): void => {
+    it("Test DBEditorToolbar instantiation", () => {
+        const component = mount<DBEditorToolbar>(
+            <DBEditorToolbar
                 language={"pl"}
                 activeEditor={"DbEditor"}
                 editors={[]}

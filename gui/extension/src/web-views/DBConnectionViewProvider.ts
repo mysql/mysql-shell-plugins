@@ -27,11 +27,11 @@ import { IOpenDialogOptions, requisitions } from "../../../frontend/src/suppleme
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
-import { IDBEditorScriptState } from "../../../frontend/src/modules/SQLNotebook";
+import { IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
 import { WebviewProvider } from "./WebviewProvider";
 import { IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 
-export class SQLNotebookViewProvider extends WebviewProvider {
+export class DBConnectionViewProvider extends WebviewProvider {
 
     public constructor(url: URL, onDispose: (view: WebviewProvider) => void) {
         super(url, onDispose);

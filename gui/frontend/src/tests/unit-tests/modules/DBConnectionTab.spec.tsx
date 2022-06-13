@@ -25,19 +25,19 @@ import { mount } from "enzyme";
 import React from "react";
 import { setupShellForTests } from "../test-helpers";
 import {
-    SQLNotebookTab, IOpenEditorState, ISQLNotebookTabPersistentState,
-} from "../../../modules/SQLNotebook/SQLNotebookTab";
+    DBConnectionTab, IOpenEditorState, IDBConnectionTabPersistentState,
+} from "../../../modules/db-editor/DBConnectionTab";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { ExecutionWorkerPool } from "../../../modules/SQLNotebook/execution/ExecutionWorkerPool";
+import { ExecutionWorkerPool } from "../../../modules/db-editor/execution/ExecutionWorkerPool";
 import { DBType } from "../../../supplement/ShellInterface";
 import { CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../../components/ui/CodeEditor/CodeEditor";
-import { EntityType } from "../../../modules/SQLNotebook";
+import { EntityType } from "../../../modules/db-editor";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { Monaco } from "../../../components/ui/CodeEditor";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
 jest.mock("../../../components/ui/CodeEditor/CodeEditor");
 
-describe("SQLNotebookTab tests", (): void => {
+describe("DBConnectionTab tests", (): void => {
 
     let content = `\nprint("typescript");\n\\js\n`;
     content += `\nprint("javascript");\n\\sql\n`;
@@ -58,7 +58,7 @@ describe("SQLNotebookTab tests", (): void => {
         await launcher.exitProcess();
     });
 
-    it("Test SQLNotebookTab instantiation", () => {
+    it("Test DBConnectionTab instantiation", () => {
         const wp = new ExecutionWorkerPool();
         const eps: IEditorPersistentState = {
             viewState: null,
@@ -73,7 +73,7 @@ describe("SQLNotebookTab tests", (): void => {
             caption: "",
         };
         const backend = new ShellInterfaceSqlEditor();
-        const savedState: ISQLNotebookTabPersistentState = {
+        const savedState: IDBConnectionTabPersistentState = {
             backend,
             serverVersion: 1,
             serverEdition: "gpl",
@@ -86,8 +86,8 @@ describe("SQLNotebookTab tests", (): void => {
             currentSchema: "myDb",
             explorerWidth: 200,
         };
-        const component = mount<SQLNotebookTab>(
-            <SQLNotebookTab
+        const component = mount<DBConnectionTab>(
+            <DBConnectionTab
                 connectionId={0}
                 dbType={DBType.MySQL}
                 savedState={savedState}

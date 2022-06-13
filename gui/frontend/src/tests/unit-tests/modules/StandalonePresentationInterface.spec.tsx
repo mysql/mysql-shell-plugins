@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { StandaloneScriptEditor } from "../../../modules/SQLNotebook/StandaloneScriptEditor";
+import { StandaloneScriptEditor } from "../../../modules/db-editor/StandaloneScriptEditor";
 import { Monaco } from "../../../components/ui/CodeEditor";
 import {
     CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState,
@@ -31,7 +31,7 @@ import {
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import {
     StandalonePresentationInterface,
-} from "../../../modules/SQLNotebook/execution/StandalonePresentationInterface";
+} from "../../../modules/db-editor/execution/StandalonePresentationInterface";
 
 
 describe("Standalone presentation interface tests", (): void => {

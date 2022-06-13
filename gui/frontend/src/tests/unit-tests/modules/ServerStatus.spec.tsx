@@ -24,7 +24,7 @@
 import { mount } from "enzyme";
 import React from "react";
 import { nextRunLoop, snapshotFromWrapper } from "../test-helpers";
-import { ServerStatus } from "../../../modules/SQLNotebook/ServerStatus";
+import { ServerStatus } from "../../../modules/db-editor/ServerStatus";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface";
 
 
@@ -33,7 +33,7 @@ describe("Server status module tests", (): void => {
     it("Test ServerStatus instantiation", async () => {
         const backend = new ShellInterfaceSqlEditor();
         const component = mount<ServerStatus>(
-            <ServerStatus backend={ backend } />,
+            <ServerStatus backend={backend} />,
         );
         // Component updates.
         component.setProps({ backend });

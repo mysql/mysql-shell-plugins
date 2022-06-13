@@ -248,8 +248,8 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         </Popup>
       </Menu>
       <FrontPage
-        caption="MySQL Shell - SQL Notebook"
-        description="The SQL Notebook is a visual tool to work with databases. It can be used to create and manage databases schema objects, write SQL queries and scripts and work with table data."
+        caption="MySQL Shell - DB Editor"
+        description="The DB Editor is a visual tool for working with databases. It can be used to create and manage databases schema objects, write SQL queries and scripts, and work with table data. There are two types of editors: Notebook Editors and Script Editors."
         helpUrls={Object {}}
         onCloseGreeting={[Function]}
         showGreeting={true}
@@ -284,7 +284,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                   }
                 }
               >
-                MySQL Shell - SQL Notebook
+                MySQL Shell - DB Editor
               </h2>
             </Label>
             <Label
@@ -301,7 +301,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                   }
                 }
               >
-                The SQL Notebook is a visual tool to work with databases. It can be used to create and manage databases schema objects, write SQL queries and scripts and work with table data.
+                The DB Editor is a visual tool for working with databases. It can be used to create and manage databases schema objects, write SQL queries and scripts, and work with table data. There are two types of editors: Notebook Editors and Script Editors.
               </label>
             </Label>
             <Container

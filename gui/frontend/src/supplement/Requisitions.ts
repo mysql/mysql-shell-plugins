@@ -34,7 +34,7 @@ import {
 } from "../communication";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry } from "../modules/SQLNotebook";
+import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry } from "../modules/db-editor";
 import { RequisitionPipeline } from "./RequisitionPipeline";
 import { IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 
