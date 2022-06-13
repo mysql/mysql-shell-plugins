@@ -104,7 +104,7 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -219,7 +219,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -326,7 +326,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"

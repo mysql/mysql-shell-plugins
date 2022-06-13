@@ -715,6 +715,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                     initialSelection={entry.value.value as (string | undefined)}
                     onSelect={this.dropdownChange}
                     disabled={options?.includes(DialogValueOption.Disabled)}
+                    autoFocus={options?.includes(DialogValueOption.AutoFocus)}
                 >
                     {items}
                 </Dropdown>);

@@ -69,7 +69,7 @@ export class DialogContent extends Component<IDialogContentProperties> {
                     {header && <div className="header">{header}</div>}
                     {content && <div className="content fixedScrollbar">{content}</div>}
                     {actions &&
-                        <div className="footer verticalCenterContent unselectable">
+                        <div className="footer verticalCenterContent">
                             <Container
                                 className="leftItems"
                                 orientation={Orientation.LeftToRight}

@@ -134,7 +134,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -401,7 +401,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -668,7 +668,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -881,7 +881,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -1064,7 +1064,7 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -1195,7 +1195,7 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -1693,7 +1693,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -2191,7 +2191,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"

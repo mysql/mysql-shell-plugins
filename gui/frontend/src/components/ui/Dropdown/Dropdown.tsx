@@ -43,6 +43,8 @@ export interface IDropdownProperties extends IComponentProperties {
     multiSelect?: boolean;
     withoutArrow?: boolean;
 
+    autoFocus?: boolean;
+
     onSelect?: (selectedId: string, props: IDropdownProperties) => void;
 }
 
@@ -91,8 +93,8 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
             childArray: React.Children.toArray(props.children),
         };
 
-        this.addHandledProperties("initialSelection", "defaultId", "optional", "onSelect", "showDescription",
-            "multiSelect", "withoutArrow");
+        this.addHandledProperties("initialSelection", "defaultId", "optional", "showDescription", "multiSelect",
+            "withoutArrow", "autoFocus", "onSelect");
     }
 
     /**
@@ -120,8 +122,23 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         }
     }
 
+    public componentDidMount(): void {
+        const { autoFocus } = this.mergedProps;
+
+        if (this.containerRef.current && autoFocus) {
+            this.containerRef.current.focus();
+        }
+    }
+
     public componentDidUpdate(prevProps: IDropdownProperties): void {
         const { children, initialSelection, defaultId } = this.mergedProps;
+
+        if (!this.popupRef.current?.isOpen && this.containerRef.current) {
+            // Set back the focus to the drop down, once the popup was closed.
+            // This is independent of the auto focus property, because for the popup to show
+            // the dropdown had to have the focus anyway.
+            this.containerRef.current.focus();
+        }
 
         const previousSelection = prevProps.initialSelection || prevProps.defaultId || "";
 

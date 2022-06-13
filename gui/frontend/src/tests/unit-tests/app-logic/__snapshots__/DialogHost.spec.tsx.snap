@@ -273,7 +273,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -530,7 +530,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
@@ -661,7 +661,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
     <div
       __self="[object Object]"
       __source="[object Object]"
-      class="footer verticalCenterContent unselectable"
+      class="footer verticalCenterContent"
     >
       <div
         __self="[object Object]"
