@@ -124,6 +124,144 @@ await ws.sendAndValidate({
     }    
 ])
 
+
+await ws.sendAndValidate({
+    "request_id": ws.generateRequestId(),
+    "request": "execute",
+    "command": "gui.shell.execute",
+    "args": {
+        "command": "insert into test_user_story.categories values (1, 'あほの酒田');",
+        "module_session_id": ws.lastModuleSessionId,
+    }
+}, [
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Execution started..."
+        },
+        "request_id": ws.lastGeneratedRequestId,
+    },
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Executing..."
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {}
+    },{
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Executing..."
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "hasData": false,
+            "rows": [],
+            "executionTime": ws.ignore,
+            "affectedRowCount": 1,
+            "affectedItemsCount": 1,
+            "warningCount": 0,
+            "warningsCount": 0,
+            "warnings": [],
+            "info": "",
+            "autoIncrementValue": 1
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+    }
+])
+
+await ws.sendAndValidate({
+    "request_id": ws.generateRequestId(),
+    "request": "execute",
+    "command": "gui.shell.execute",
+    "args": {
+        "command": "select * from test_user_story.categories;",
+        "module_session_id": ws.lastModuleSessionId,
+    }
+}, [
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Execution started..."
+        },
+        "request_id": ws.lastGeneratedRequestId
+    },
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Executing..."
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "Field 1": {
+                "Name": "`categoryID`",
+                "Org_name": "`categoryID`",
+                "Catalog": "`def`",
+                "Database": "`test_user_story`",
+                "Table": "`categories`",
+                "Org_table": "`categories`",
+                "Type": "Integer",
+                "DbType": "LONG",
+                "Collation": "binary (63)",
+                "Length": "11",
+                "Decimals": "0",
+                "Flags": "NOT_NULL PRI_KEY AUTO_INCREMENT NUM PART_KEY"
+            },
+            "Field 2": {
+                "Name": "`categoryName`",
+                "Org_name": "`categoryName`",
+                "Catalog": "`def`",
+                "Database": "`test_user_story`",
+                "Table": "`categories`",
+                "Org_table": "`categories`",
+                "Type": "String",
+                "DbType": "VAR_STRING",
+                "Collation": "utf8mb4_0900_ai_ci (255)",
+                "Length": "400",
+                "Decimals": "0",
+                "Flags": "NOT_NULL NO_DEFAULT_VALUE"
+            }
+        }
+    },
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Executing..."
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "hasData": true,
+            "rows": [
+                {
+                    "categoryID": 1,
+                    "categoryName": "あほの酒田"
+                }
+            ],
+            "executionTime": ws.ignore,
+            "affectedRowCount": 0,
+            "affectedItemsCount": 0,
+            "warningCount": 0,
+            "warningsCount": 0,
+            "warnings": [],
+            "info": "",
+            "autoIncrementValue": 1
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId
+    }
+])
+
 //  Terminate
 await ws.execute("__lib/shell/_close_session.js")
 
