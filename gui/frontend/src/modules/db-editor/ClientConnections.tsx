@@ -22,12 +22,16 @@
  */
 
 import React from "react";
+import { IToolbarItems } from ".";
 
 import { Component, Container, IComponentProperties } from "../../components/ui";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
 export interface IClientConnectionsProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
+
+    // Top level toolbar items, to be integrated with page specific ones.
+    toolbarItems?: IToolbarItems;
 }
 
 export class ClientConnections extends Component<IClientConnectionsProperties> {

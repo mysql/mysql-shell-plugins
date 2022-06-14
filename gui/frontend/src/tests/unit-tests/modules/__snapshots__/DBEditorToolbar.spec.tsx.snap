@@ -34,6 +34,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           data-tooltip="Execute full script"
           disabled={false}
           imageOnly={true}
+          key="executeFullButton"
           onClick={[Function]}
         >
           <button
@@ -252,6 +253,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             </Icon>
           </button>
         </Button>
+        <div
+          className="expander"
+        />
       </div>
     </Container>
   </Toolbar>

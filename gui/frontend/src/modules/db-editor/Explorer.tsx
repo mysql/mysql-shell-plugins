@@ -246,7 +246,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
         const editorSectionState = state?.get("editorSection") ?? {};
         const schemaSectionState = state?.get("schemaSection") ?? {};
-        //const adminSectionState = state?.get("adminSection") ?? {};
+        const adminSectionState = state?.get("adminSection") ?? {};
         const scriptSectionState = state?.get("scriptSection") ?? {};
 
         const sqlMenuIcon = dbType === DBType.MySQL ? mysqlIcon : sqliteIcon;
@@ -285,7 +285,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                             minSize: 100,
                             content: schemaSectionContent,
                         },
-                        /* Temporarily disabled.
                         {
                             id: "adminSection",
                             caption: "ADMINISTRATION",
@@ -322,7 +321,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                     onClick={this.handleAccordionItemClick}
                                 />,
                             ],
-                        },*/
+                        },
                         {
                             id: "scriptSection",
                             caption: "SCRIPTS",

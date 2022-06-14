@@ -49,10 +49,12 @@ import { IOpenEditorState } from "./DBConnectionTab";
 import { requisitions } from "../../supplement/Requisitions";
 import { ExecutionContext, LoadingState } from "../../script-execution";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
+import { IToolbarItems } from ".";
 
 export interface IDBEditorToolbarProperties extends IComponentProperties {
-    // An element for navigation via this toolbar (current editor, current connection etc.).
-    inset?: React.ReactElement;
+    // Items defined by the owner(s) of this toolbar.
+    // They are combined with those created here to form the actual toolbar.
+    toolbarItems?: IToolbarItems;
 
     activeEditor: string;
     editors: IOpenEditorState[];
@@ -139,7 +141,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
     }
 
     public render(): React.ReactNode {
-        const { inset, language } = this.props;
+        const { toolbarItems, language } = this.props;
         const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
 
         const area = language === "msg" ? "block" : "script";
@@ -156,140 +158,152 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         const wordWrap = settings.get("editor.wordWrap", "off");
         const wordWrapIcon = wordWrap === "on" ? wordWrapActiveIcon : wordWrapInactiveIcon;
 
+        const leftItems = [...toolbarItems?.left ?? []];
+        leftItems.push(
+            <Button
+                key="executeFullButton"
+                data-tooltip={`Execute ${selectionText}full ${area}`}
+                imageOnly={true}
+                disabled={!canExecute}
+                onClick={
+                    () => { void requisitions.execute("editorExecuteSelectedOrAll", false); }
+                }
+            >
+                <Icon src={executeIcon} data-tooltip="inherit" />
+            </Button>);
+
+        if (language === "msg") {
+            leftItems.push(
+                <Button
+                    data-tooltip={`Execute ${selectionText}full block and create a new block`}
+                    imageOnly={true}
+                    disabled={!canExecute}
+                    onClick={
+                        () => { void requisitions.execute("editorExecuteSelectedOrAll", true); }
+                    }
+                >
+                    <Icon src={executeNewCommandIcon} data-tooltip="inherit" />
+                </Button>);
+        }
+
+        if (canExecuteSubparts) {
+            leftItems.push(
+                <Button
+                    data-tooltip="Execute the statement at the caret position"
+                    imageOnly={true}
+                    disabled={!canExecute}
+                    onClick={
+                        () => { void requisitions.execute("editorExecuteCurrent", false); }
+                    }
+                >
+                    <Icon src={executeCaretIcon} data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    data-tooltip="Execute Explain for the statement at the caret position"
+                    requestType="editorExecuteExplain"
+                    imageOnly={true}
+                    disabled
+                >
+                    <Icon src={executeExplainIcon} data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    data-tooltip="Stop execution of the current statement/script"
+                    requestType="editorStopExecution"
+                    imageOnly={true}
+                    disabled={!canStop}
+                >
+                    <Icon src={stopExecutionIcon} data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    data-tooltip="Stop execution of the current statement/script in case of errors"
+                    imageOnly={true}
+                    onClick={
+                        () => { void requisitions.execute("editorToggleStopExecutionOnError", stopOnErrors); }
+                    }
+                >
+                    <Icon src={stopOnErrorIcon} data-tooltip="inherit" />
+                </Button>);
+        }
+
+        leftItems.push(<Divider vertical={true} thickness={1} />);
+
+        if (canExecuteSubparts) {
+            leftItems.push(
+                <Button
+                    data-tooltip="Commit DB changes"
+                    requestType="editorCommit"
+                    imageOnly={true}
+                    disabled={autoCommit}
+                >
+                    <Icon src={commitIcon} data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    data-tooltip="Rollback DB changes"
+                    requestType="editorRollback"
+                    imageOnly={true}
+                    disabled={autoCommit}
+                >
+                    <Icon src={rollbackIcon} data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    data-tooltip="Auto commit DB changes"
+                    imageOnly={true}
+                    onClick={
+                        () => { void requisitions.execute("editorToggleAutoCommit", autoCommit); }
+                    }
+                >
+                    <Icon src={autoCommitIcon} data-tooltip="inherit" />
+                </Button>,
+                <Divider vertical={true} thickness={1} />);
+        }
+
+        leftItems.push(
+            <Button
+                data-tooltip="Format current block or script"
+                requestType="editorFormat"
+                imageOnly={true}
+            >
+                <Icon src={formatIcon} data-tooltip="inherit" />
+            </Button>,
+            <Divider vertical={true} thickness={1} />,
+            <Button
+                data-tooltip="Find"
+                requestType="editorFind"
+                imageOnly={true}
+            >
+                <Icon src={searchIcon} data-tooltip="inherit" />
+            </Button>,
+            <Button
+                data-tooltip="Show hidden characters"
+                imageOnly={true}
+                onClick={this.toggleHidden}
+            >
+                <Icon src={showHiddenIcon} data-tooltip="inherit" />
+            </Button>,
+            <Button
+                data-tooltip="Soft wrap lines "
+                imageOnly={true}
+                onClick={
+                    () => { void requisitions.execute("editorToggleSoftWrap", wordWrap === "on"); }
+                }
+            >
+                <Icon src={wordWrapIcon} data-tooltip="inherit" />
+            </Button>,
+        );
+
+        const rightItems = [...toolbarItems?.right ?? []];
+
         return (
             <Toolbar
                 id="dbEditorToolbar"
                 dropShadow={false}
             >
-                {inset}
-                <Button
-                    data-tooltip={`Execute ${selectionText}full ${area}`}
-                    imageOnly={true}
-                    disabled={!canExecute}
-                    onClick={
-                        () => { void requisitions.execute("editorExecuteSelectedOrAll", false); }
-                    }
-                >
-                    <Icon src={executeIcon} data-tooltip="inherit" />
-                </Button>
-                {
-                    language === "msg" && <Button
-                        data-tooltip={`Execute ${selectionText}full block and create a new block`}
-                        imageOnly={true}
-                        disabled={!canExecute}
-                        onClick={
-                            () => { void requisitions.execute("editorExecuteSelectedOrAll", true); }
-                        }
-                    >
-                        <Icon src={executeNewCommandIcon} data-tooltip="inherit" />
-                    </Button>
-                }
-                {
-                    canExecuteSubparts && <Button
-                        data-tooltip="Execute the statement at the caret position"
-                        imageOnly={true}
-                        disabled={!canExecute}
-                        onClick={
-                            () => { void requisitions.execute("editorExecuteCurrent", false); }
-                        }
-                    >
-                        <Icon src={executeCaretIcon} data-tooltip="inherit" />
-                    </Button>
-                }
-                {
-                    canExecuteSubparts && <Button
-                        data-tooltip="Execute Explain for the statement at the caret position"
-                        requestType="editorExecuteExplain"
-                        imageOnly={true}
-                        disabled
-                    >
-                        <Icon src={executeExplainIcon} data-tooltip="inherit" />
-                    </Button>
-                }
-                {
-                    canExecuteSubparts && <Button
-                        data-tooltip="Stop execution of the current statement/script"
-                        requestType="editorStopExecution"
-                        imageOnly={true}
-                        disabled={!canStop}
-                    >
-                        <Icon src={stopExecutionIcon} data-tooltip="inherit" />
-                    </Button>
-                }
-                {
-                    canExecuteSubparts && <Button
-                        data-tooltip="Stop execution of the current statement/script in case of errors"
-                        imageOnly={true}
-                        onClick={
-                            () => { void requisitions.execute("editorToggleStopExecutionOnError", stopOnErrors); }
-                        }
-                    >
-                        <Icon src={stopOnErrorIcon} data-tooltip="inherit" />
-                    </Button>
-                }
-                <Divider vertical={true} thickness={1} />
-                {
-                    canExecuteSubparts && <>
-                        <Button
-                            data-tooltip="Commit DB changes"
-                            requestType="editorCommit"
-                            imageOnly={true}
-                            disabled={autoCommit}
-                        >
-                            <Icon src={commitIcon} data-tooltip="inherit" />
-                        </Button>
-                        <Button
-                            data-tooltip="Rollback DB changes"
-                            requestType="editorRollback"
-                            imageOnly={true}
-                            disabled={autoCommit}
-                        >
-                            <Icon src={rollbackIcon} data-tooltip="inherit" />
-                        </Button>
-                        <Button
-                            data-tooltip="Auto commit DB changes"
-                            imageOnly={true}
-                            onClick={
-                                () => { void requisitions.execute("editorToggleAutoCommit", autoCommit); }
-                            }
-                        >
-                            <Icon src={autoCommitIcon} data-tooltip="inherit" />
-                        </Button>
-                        <Divider vertical={true} thickness={1} />
-                    </>
-                }
-                <Button
-                    data-tooltip="Format current block or script"
-                    requestType="editorFormat"
-                    imageOnly={true}
-                >
-                    <Icon src={formatIcon} data-tooltip="inherit" />
-                </Button>
-                <Divider vertical={true} thickness={1} />
-                <Button
-                    data-tooltip="Find"
-                    requestType="editorFind"
-                    imageOnly={true}
-                >
-                    <Icon src={searchIcon} data-tooltip="inherit" />
-                </Button>
-                <Button
-                    data-tooltip="Show hidden characters"
-                    imageOnly={true}
-                    onClick={this.toggleHidden}
-                >
-                    <Icon src={showHiddenIcon} data-tooltip="inherit" />
-                </Button>
-                <Button
-                    data-tooltip="Soft wrap lines "
-                    imageOnly={true}
-                    onClick={
-                        () => { void requisitions.execute("editorToggleSoftWrap", wordWrap === "on"); }
-                    }
-                >
-                    <Icon src={wordWrapIcon} data-tooltip="inherit" />
-                </Button>
-            </Toolbar>
+                {leftItems}
+                <div className="expander" />
+                {rightItems}
+
+
+            </Toolbar >
         );
     }
 
@@ -355,53 +369,6 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
 
     private transactionEnded = async (): Promise<boolean> => {
         await this.queryAutoCommit();
-        this.updateState();
-
-        return true;
-    };
-
-    private executeSelectedOrAll = async (commandId: string, args?: unknown[]): Promise<boolean> => {
-        switch (commandId) {
-            case "editor:toggleStopExecutionOnError": {
-                const stopOnErrors = args?.[0] ?? true;
-                settings.set("editor.stopOnErrors", !stopOnErrors);
-
-                break;
-            }
-
-            case "editor:toggleAutoCommit": {
-                const { backend } = this.props;
-
-                const autoCommit = args?.[0] ?? true;
-
-                try {
-                    await backend?.setAutoCommit(!autoCommit);
-                    await this.queryAutoCommit();
-                } catch (reason) {
-                    void requisitions.execute("showError",
-                        ["Execution Error", "Cannot Switch Auto Commit Mode.", String(reason)]);
-                }
-
-                break;
-            }
-
-            case "editor:toggleSoftWrap": {
-                const setting = args?.[0] ?? "off";
-                settings.set("editor.wordWrap", setting === "on" ? "off" : "on");
-
-                break;
-            }
-
-            case "sql:transactionChanged": {
-                await this.queryAutoCommit();
-                break;
-            }
-
-            default: {
-                break;
-            }
-        }
-
         this.updateState();
 
         return true;

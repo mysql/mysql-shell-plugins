@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,6 +37,10 @@
     overflow: hidden;
 }
 
+.msg.toolbar .expander {
+    flex-grow: 5;
+}
+
 .msg.toolbar.vibrant {
     background-color: var(--titleBar-activeBackground);
     color: var(--titleBar-activeForeground);
@@ -57,12 +61,12 @@
 }
 
 .msg.toolbar > .input {
-    min-height: 0px;
+    min-height: 0;
     max-height: auto;
-    margin: 0px 8px;
+    margin: 0 8px;
     flex: 0 0 100px;
     background: transparent;
-    border-radius: 0px;
+    border-radius: 0;
 }
 
 .msg.toolbar.vibrant > .input {

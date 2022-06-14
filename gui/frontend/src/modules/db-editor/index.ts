@@ -109,3 +109,15 @@ export const languageMap: Map<EditorLanguage, string> = new Map([
     ["mysql", "MySQL"],
     ["sql", "SQlite"],
 ]);
+
+/**
+ * Two lists of items to be added to a toolbar. The receiving page can use this as base to add it's own
+ * items, before it actually renders the toolbar.
+ */
+export interface IToolbarItems {
+    /** Left aligned items. */
+    left: React.ReactNode[];
+
+    /** Right aligned items. */
+    right: React.ReactNode[];
+}

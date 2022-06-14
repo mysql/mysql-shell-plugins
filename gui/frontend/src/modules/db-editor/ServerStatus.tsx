@@ -21,27 +21,31 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-import { ICommResultSetEvent } from "../../communication";
+import serverRunningIcon from "../../assets/images/admin/admin_info_running.svg";
+import serverStoppedIcon from "../../assets/images/admin/admin_info_stopped.svg";
+import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
 
+import { platform } from "os";
+import React from "react";
+
+import { ICommResultSetEvent } from "../../communication";
 import {
-    CheckState,
-    Component, Container, ContentAlignment, Divider, Grid, GridCell,
-    IComponentProperties, IComponentState, Image, Label, Orientation,
+    CheckState, Component, Container, ContentAlignment, Divider, Grid, GridCell, IComponentProperties, IComponentState,
+    Icon, Label, Orientation, Toolbar,
 } from "../../components/ui";
 import { EventType } from "../../supplement/Dispatch";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
-import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
-import serverRunningIcon from "../../assets/images/admin/admin_info_running.svg";
-import serverStoppedIcon from "../../assets/images/admin/admin_info_stopped.svg";
-import { platform } from "os";
+import { IToolbarItems } from ".";
 import { StatusMark } from "../../components/ui/StatusMark/StatusMark";
 
 type TriState = true | false | undefined;
 
 export interface IServerStatusProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
+
+    // Top level toolbar items, to be integrated with page specific ones.
+    toolbarItems?: IToolbarItems;
 }
 
 interface IServerFeatures {
@@ -128,7 +132,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
             serverDirectories: {},
             serverFeatures: {},
             serverAuthentication: {},
-            serverSsl : {},
+            serverSsl: {},
             firewall: {},
         };
 
@@ -142,13 +146,15 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
     public componentDidUpdate(prevProps: IServerStatusProperties, _prevState: IServerStatusState): void {
         const { backend } = this.props;
 
-        // If we reopen a connection a new backend is created then we need to refresh the page.
+        // If we reopen a connection, a new backend is created and we need to refresh the page.
         if (backend !== prevProps.backend) {
             this.updateValues();
         }
     }
 
     public render(): React.ReactNode {
+        const { toolbarItems } = this.props;
+
         const infoCells: React.ReactNode[] = [];
 
         const className = this.getEffectiveClassNames(["serverStatus"]);
@@ -159,28 +165,46 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         infoCells.push(this.serverSsl());
         infoCells.push(this.firewall());
 
-        return (
-
-            <Container
-                className={className}
-                orientation={Orientation.TopDown}
-                mainAlignment={ContentAlignment.Start}
-                crossAlignment={ContentAlignment.Center}
+        // If toolbar items are given, render a toolbar with them.
+        let toolbar: React.ReactElement | undefined;
+        if (toolbarItems) {
+            toolbar = <Toolbar
+                id="serverStatusToolbar"
+                dropShadow={false}
             >
-                <Grid columns={2} rowGap={12} columnGap={12}>
-                    <GridCell key="cellLogo" className="left">
-                        <Image src={mysqlIcon} id="mysqlLogo" />
-                    </GridCell>
-                    <GridCell
-                        orientation={Orientation.TopDown}
-                        key="cellStatusIndicator"
-                        className="right statusIndicator"
-                    >
-                        {this.serverStatusIndicator()}
-                    </GridCell>
-                    {infoCells}
-                </Grid>
+                {toolbarItems.left}
+                <div className="expander" />
+                {toolbarItems.right}
+            </Toolbar>;
+        }
 
+        return (
+            <Container
+                className="serverStatusHost"
+                orientation={Orientation.TopDown}
+            >
+                {toolbar}
+                <Container
+                    className={className}
+                    orientation={Orientation.TopDown}
+                    mainAlignment={ContentAlignment.Start}
+                    crossAlignment={ContentAlignment.Center}
+                >
+                    <Grid columns={2} rowGap={12} columnGap={12}>
+                        <GridCell key="cellLogo" className="left">
+                            <Icon src={mysqlIcon} id="mysqlLogo" />
+                        </GridCell>
+                        <GridCell
+                            orientation={Orientation.TopDown}
+                            key="cellStatusIndicator"
+                            className="right statusIndicator"
+                        >
+                            {this.serverStatusIndicator()}
+                        </GridCell>
+                        {infoCells}
+                    </Grid>
+
+                </Container>
             </Container>
         );
     }
@@ -189,9 +213,9 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         const { runStatus } = this.state;
 
         let control = <>
-            <Image id="serverStoppedIcon" src={serverStoppedIcon} width={50} />
+            <Icon id="serverStoppedIcon" src={serverStoppedIcon} />
             <h3>Server status:</h3>
-            <h1>Stopped.</h1>
+            <h1>Stopped</h1>
         </>;
 
         switch (runStatus) {
@@ -199,16 +223,16 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                 return control;
             case "running": {
                 control = <>
-                    <Image id="serverRunningIcon" src={serverRunningIcon} width={50} />
+                    <Icon id="serverRunningIcon" src={serverRunningIcon} />
                     <h3>Server status:</h3>
-                    <h1>Running...</h1>
+                    <h1>Running</h1>
                 </>;
 
                 return control;
             }
 
             default: {
-                return <></>;
+                return null;
             }
 
         }
@@ -219,7 +243,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         return (
             [<GridCell key="cell1" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                <Label caption="Main settings:" />
+                <Label caption="Main settings" />
             </GridCell>,
             <GridCell
                 key="cell2"
@@ -269,7 +293,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         return (
             [<GridCell key="cell16" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                <Label caption="Server Features:" />
+                <Label caption="Server Features" />
             </GridCell>,
             <GridCell
                 key="cell17"
@@ -333,7 +357,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         if (platform() === "win32" && process.env.JEST_WORKER_ID === undefined) {
             return <>
-                <Label caption="Windows Authentication:" />
+                <Label caption="Windows Authentication" />
                 {this.drawBoolean(serverFeatures.windowsAuth)}
             </>;
         } else {
@@ -349,7 +373,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         return (
             [<GridCell key="cell36" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                <Label caption="Server Directories:" />
+                <Label caption="Server Directories" />
             </GridCell>,
             <GridCell
                 key="cell37"
@@ -430,7 +454,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
     private firewall = (): React.ReactNode => {
         const { serverFeatures, firewall } = this.state;
 
-        if (serverFeatures.firewall === true) {
+        if (serverFeatures.firewall) {
             return (
                 [<GridCell key="cell60" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
                     <Label caption="Firewall" />
@@ -501,7 +525,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
     private drawBoolean = (value: TriState): React.ReactNode => {
         if (value === undefined) {
             return (<StatusMark statusState={CheckState.Indeterminate} text={"n/a"} />);
-        } else if (value === false) {
+        } else if (!value) {
             return (<StatusMark statusState={CheckState.Unchecked} text={"off"} />);
         } else {
             return (<StatusMark statusState={CheckState.Checked} text={"on"} />);
@@ -540,41 +564,41 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                 const logOutput = values.get("log_output") ?? "FILE";
                 serverDirectories.generalLog = values.get("general_log") !== "OFF" &&
                     logOutput !== "NONE" ? true : false;
-                serverDirectories.generalLogFile =  values.get("general_log") !== "OFF" &&
+                serverDirectories.generalLogFile = values.get("general_log") !== "OFF" &&
                     logOutput !== "NONE" ? values.get("general_log_file") ?? "n/a" : "[Stored in database]";
                 serverDirectories.errorLog = values.get("log_error") !== "OFF" ? true : false;
                 serverDirectories.errorLogValue = values.get("log_error") ?? "n/a";
 
                 serverDirectories.slowQueryLog = values.get("slow_query_log") !== "OFF" &&
                     logOutput !== "NONE" ? true : false;
-                serverDirectories.slowQueryLogValue =  values.get("slow_query_log") !== "OFF" &&
+                serverDirectories.slowQueryLogValue = values.get("slow_query_log") !== "OFF" &&
                     logOutput !== "NONE" ? values.get("slow_query_log") ?? "n/a" : "[Stored in database]";
 
                 // server features
-                serverFeatures.performanceSchema = this.checkTriState(values.get("performance_schema") ?? "");
+                serverFeatures.performanceSchema = this.checkTriState(values.get("performance_schema"));
                 serverFeatures.threadPool = this.checkTriState(
-                    values.get("thread_handling") ?? "", "loaded-dynamically",
+                    values.get("thread_handling"), "loaded-dynamically",
                 );
-                serverFeatures.auditLog = this.checkTriState(values.get("audit_log_policy") ?? "");
+                serverFeatures.auditLog = this.checkTriState(values.get("audit_log_policy"));
                 serverFeatures.auditLogValue = values.get("audit_log_policy") ?? "";
-                serverFeatures.firewall = this.checkTriState(values.get("mysql_firewall_mode") ?? "");
-                serverFeatures.firewallTrace = this.checkTriState(values.get("mysql_firewall_trace") ?? "");
-                serverFeatures.passwordValidation = this.checkTriState(values.get("mysql_firewall_mode") ?? "");
+                serverFeatures.firewall = this.checkTriState(values.get("mysql_firewall_mode"));
+                serverFeatures.firewallTrace = this.checkTriState(values.get("mysql_firewall_trace"));
+                serverFeatures.passwordValidation = this.checkTriState(values.get("mysql_firewall_mode"));
                 const firewallMode = values.get("mysql_firewall_mode");
                 serverFeatures.passwordValidationValue = firewallMode ? `(Policy: ${firewallMode})` : "";
                 serverFeatures.sslAvailability = (values.get("have_openssl") === "YES") ||
                     (values.get("have_ssl") === "YES");
 
-                const semiSyncMaster = this.checkTriState(values.get("rpl_semi_sync_master_enabled") ?? "");
-                const semiSyncSlave = this.checkTriState(values.get("rpl_semi_sync_slave_enabled") ?? "");
+                const semiSyncMaster = this.checkTriState(values.get("rpl_semi_sync_master_enabled"));
+                const semiSyncSlave = this.checkTriState(values.get("rpl_semi_sync_slave_enabled"));
                 serverFeatures.semisync = "";
                 if (semiSyncMaster || semiSyncSlave) {
                     const tmp = [];
                     if (values.get("rpl_semi_sync_master_enabled") === "master") {
-                        tmp.push ("master");
+                        tmp.push("master");
                     }
                     if (values.get("rpl_semi_sync_slave_enabled") === "slave") {
-                        tmp.push ("slave");
+                        tmp.push("slave");
                     }
                     serverFeatures.semisync = `(${tmp.join(", ")})`;
                 }
@@ -592,7 +616,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                 serverSsl.sslClrPath = values.get("ssl_crlpath") ?? "n/a";
                 serverSsl.sslKey = values.get("ssl_key") ?? "n/a";
 
-                if (serverFeatures.firewall === true) {
+                if (serverFeatures.firewall) {
                     firewall.accessDenied = values.get("Firewall_access_denied") ?? "n/a";
                     firewall.accessGranted = values.get("Firewall_access_granted") ?? "n/a";
                     firewall.accessSuspicious = values.get("Firewall_access_suspicious") ?? "n/a";
@@ -623,9 +647,9 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         backend.execute("show plugins").then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
                 const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
-                serverFeatures.memCachePlugin = this.checkTriState(values.get("daemon_memcached") ?? "", "ACTIVE");
-                serverFeatures.windowsAuth  = this.checkTriState(values.get("authentication_windows") ?? "", "ACTIVE");
-                serverFeatures.pamAuth  = this.checkTriState(values.get("authentication_pam") ?? "", "ACTIVE");
+                serverFeatures.memCachePlugin = this.checkTriState(values.get("daemon_memcached"), "ACTIVE");
+                serverFeatures.windowsAuth = this.checkTriState(values.get("authentication_windows"), "ACTIVE");
+                serverFeatures.pamAuth = this.checkTriState(values.get("authentication_pam"), "ACTIVE");
                 this.setState({ serverFeatures });
             }
         });
@@ -642,7 +666,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         return formatted;
     };
 
-    private checkTriState = (value: string, trueValue?: string): TriState => {
+    private checkTriState = (value = "", trueValue?: string): TriState => {
         if (trueValue && value === trueValue) {
             return true;
         } else if (value === "OFF" || value === "NO") {

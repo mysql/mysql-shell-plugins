@@ -62,10 +62,11 @@ import {
 import { EventType } from "../../supplement/Dispatch";
 import { DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest } from "../../app-logic/Types";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
+import { IToolbarItems } from ".";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     connections: IConnectionDetails[];
-    toolbarInset?: React.ReactElement;
+    toolbarItems?: IToolbarItems;
 
     onAddConnection: (details: IConnectionDetails) => void;
     onDropConnection: (connectionId: number) => void;
@@ -174,7 +175,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     }
 
     public render(): React.ReactNode {
-        const { connections, toolbarInset } = this.props;
+        const { connections, toolbarItems } = this.props;
         const { loading, progressMessage } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionBrowser"]);
@@ -231,14 +232,16 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         linkMap.set("Browse Tutorial >", "https://www.mysql.com");
         linkMap.set("Read Docs >", "https://www.mysql.com");
 
-        // If a toolbar inset is given, add a toolbar at the top of the page.
+        // If toolbar items are given, render a toolbar with them.
         let toolbar: React.ReactElement | undefined;
-        if (toolbarInset) {
+        if (toolbarItems) {
             toolbar = <Toolbar
                 id="connectionOverviewToolbar"
                 dropShadow={false}
             >
-                {toolbarInset}
+                {toolbarItems.left}
+                <div className="expander" />
+                {toolbarItems.right}
             </Toolbar>;
         }
 
@@ -261,7 +264,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     caption={progressMessage}
                 />
             </Container>
-        </> : <></>;
+        </> : undefined;
 
         return (
             <Container

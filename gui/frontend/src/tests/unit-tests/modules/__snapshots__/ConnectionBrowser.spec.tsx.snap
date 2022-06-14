@@ -122,7 +122,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         </Dialog>
       </ConfirmDialog>
       <ValueEditDialog
-        customFooter={<y />}
         id="connectionEditor"
         onClose={[Function]}
         onSelectTab={[Function]}
@@ -131,9 +130,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         <Dialog
           actions={
             Object {
-              "begin": Array [
-                <y />,
-              ],
+              "begin": Array [],
               "end": Array [
                 <Button
                   caption="OK"
