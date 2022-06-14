@@ -23,23 +23,27 @@ import ctypes
 import struct
 import gui_plugin.core.Logger as logger
 
-WEBSOCKET_CLOSED_BY_CLIENT=963
+WEBSOCKET_CLOSED_BY_CLIENT = 963
+
 
 class Error(Exception):
     pass
 
+
 class Word0Bits(ctypes.BigEndianStructure):
     _fields_ = [
-            ("final_fragment", ctypes.c_uint16, 1),
-            ("reserved", ctypes.c_uint16, 3),
-            ("opcode", ctypes.c_uint16, 4),
-            ("masked", ctypes.c_uint16, 1),
-            ("payload", ctypes.c_uint16, 7)
-        ]
+        ("final_fragment", ctypes.c_uint16, 1),
+        ("reserved", ctypes.c_uint16, 3),
+        ("opcode", ctypes.c_uint16, 4),
+        ("masked", ctypes.c_uint16, 1),
+        ("payload", ctypes.c_uint16, 7)
+    ]
+
 
 class Word0(ctypes.Union):
     _fields_ = [("bits", Word0Bits),
-            ("bytes", ctypes.c_uint16)]
+                ("bytes", ctypes.c_uint16)]
+
 
 class Operation(IntEnum):
     ContinuationFrame = 0x0
@@ -48,6 +52,7 @@ class Operation(IntEnum):
     Close = 0x8
     Ping = 0x9
     Pong = 0xa
+
 
 class Frame:
     def __init__(self):
@@ -92,7 +97,7 @@ class FrameReceiver(Frame):
                 self.length = struct.unpack(">q", buffer.read(8))[0]
             else:
                 self.length = self.word0.bits.payload
-        except struct.error as e: #pragma: no cover
+        except struct.error as e:  # pragma: no cover
             raise Error(f"Websocket read aborted while listening. {e}")
 
         # incomming frames must always be masked
@@ -116,15 +121,26 @@ class FrameReceiver(Frame):
         # decode the message using the masking key
         self.message = ""
 
-        for index in range(self.length):
-            self.message += chr(self.encoded_message[index] ^ self.mask_key[index % 4])
+        if self.is_control_message:
+            for index in range(self.length):
+                self.message += chr(self.encoded_message[index]
+                                    ^ self.mask_key[index % 4])
+        else:
+            # Unmasks the received buffer
+            unmasked = bytearray(b'')
+            for index in range(self.length):
+                unmasked.append(
+                    self.encoded_message[index] ^ self.mask_key[index % 4])
+
+            self.message = unmasked.decode("utf-8")
 
         if self.word0.bits.opcode == Operation.Close:
             if len(self.message) > 0:
                 self.error = struct.unpack(">H", self.message.encode()[:2])[0]
                 self.message = self.message[2:]
                 if self.error != WEBSOCKET_CLOSED_BY_CLIENT:
-                    logger.error(f"WebSocket closed by peer: Error[{self.error}]: {self.message}")
+                    logger.error(
+                        f"WebSocket closed by peer: Error[{self.error}]: {self.message}")
 
 
 class FrameSender(Frame):
@@ -163,7 +179,7 @@ class FrameSender(Frame):
                 frame_data += self.message.encode()
 
             buffer.send(frame_data)
-        except Exception: #pragma: no cover
+        except Exception:  # pragma: no cover
             if self.opcode == Operation.Close:
                 return
             else:
@@ -180,7 +196,6 @@ class Packet:
             fragment = message[:5000]
             message = message[5000:]
             self.append_text_message(fragment)
-
 
     def append(self, frame):
         # Validate type using the opcode
@@ -200,7 +215,8 @@ class Packet:
             self.frames.append(FrameSender(Operation.TextFrame, message))
         else:
             self.frames[len(self.frames) - 1].word0.bits.final_fragment = False
-            self.frames.append(FrameSender(Operation.ContinuationFrame, message))
+            self.frames.append(FrameSender(
+                Operation.ContinuationFrame, message))
 
     @property
     def message(self):

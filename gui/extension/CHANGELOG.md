@@ -1,5 +1,12 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.3.1+8.0.29
+
+### Fixes
+
+- Fixed multibyte interpretation of UTF-8 data that resulted in invalid data being inserted on the database.
+
+
 ## Changes in 1.3.0+8.0.29
 
 ### Fixes

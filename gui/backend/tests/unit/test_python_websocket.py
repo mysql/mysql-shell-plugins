@@ -62,7 +62,7 @@ def read_script(path):
     target_path = os.path.join(*path_tokens)
     target = Path(target_path)
     if target.is_file():
-        return target.read_text()
+        return target.read_text(encoding='utf-8')
     else:
         raise Exception(f"The requested test does not exist: {path} in {target}")
 

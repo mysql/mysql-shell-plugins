@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -80,7 +80,7 @@ def read_script(path):
     target_path = os.path.join(*path_tokens)
     target = Path(target_path)
     if target.is_file():
-        return target.read_text()
+        return target.read_text(encoding="utf-8")
     else:
         raise Exception(f"The requested story does not exist: {path}")
 
