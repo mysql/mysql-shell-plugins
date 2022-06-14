@@ -89,14 +89,6 @@
     flex: 1 1 auto;
 }
 
-.msg.dbModuleTabview #demoImage {
-    background-color: #1d1d1d;
-}
-
-.msg.dbModuleTabview #demoImage > .image {
-    transform: scale(0.5) translate(-50%, -50%);
-}
-
 .msg.dbModuleTabview .closeButton {
     margin-left: 4px;
     width: 16px;
@@ -120,7 +112,8 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar,
-.msg.connectionTabHost #dbEditorToolbar {
+.msg.connectionTabHost #dbEditorToolbar,
+.msg.connectionTabHost #serverStatusToolbar {
     min-height: 0;
     flex: 0 0 28px;
     margin: 0;
@@ -138,9 +131,8 @@
     white-space: nowrap;
 }
 
-.msg.connectionBrowser #connectionOverviewToolbar #connectionSelector,
-.msg.connectionTabHost #dbEditorToolbar #connectionSelector,
-.msg.connectionTabHost #dbEditorToolbar #documentSelector {
+.msg.connectionBrowser #documentSelector,
+.msg.connectionTabHost #documentSelector {
     flex: 0 0 200px;
     margin: 0 3px 0 6px;
 }
@@ -224,7 +216,6 @@
 
 /* Definitions for server status. */
 .msg.image#mysqlIcon {
-
     margin: 0 20px;
 }
 
@@ -244,10 +235,8 @@
 
 .msg.serverStatus {
     display: flex;
-    width: 100%;
-    height: 100%;
     overflow: auto;
-    margin-top: 50px;
+    margin: 20px 20px;
     color: var(--foreground);
 }
 
@@ -277,6 +266,12 @@
     margin: 8px 0;
     width: 160px;
     height: 160px;
+}
+
+.msg #serverRunningIcon,
+.msg #serverStoppedIcon {
+    width: 92px;
+    height: 92px;
 }
 
 .msg.serverStatus .divider {

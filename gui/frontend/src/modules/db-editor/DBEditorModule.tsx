@@ -44,7 +44,7 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails, ShellInterface } from "../../supplement/ShellInterface";
-import { EntityType, IDBDataEntry, IDBEditorScriptState, ISchemaTreeEntry } from ".";
+import { EntityType, IDBDataEntry, IDBEditorScriptState, ISchemaTreeEntry, IToolbarItems } from ".";
 import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
@@ -214,7 +214,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         } = this.state;
 
         // Generate the main toolbar inset based on the current display mode.
-        let toolbarInset: React.ReactElement | undefined;
+        let toolbarItems: IToolbarItems | undefined;
         if (appParameters.embedded) {
             const items: Array<React.ReactElement<typeof Dropdown.Item>> = [
                 <Dropdown.Item
@@ -267,32 +267,41 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         />
                     ));
 
-                    if (entry.id === connectionState.activeEntry && entry.type === EntityType.Script) {
-                        showSaveButton = true;
-                        needsSave = dirtyEditors.has(entry.id);
+                    if (entry.id === connectionState.activeEntry) {
+                        if (entry.type === EntityType.Script) {
+                            showSaveButton = true;
+                            needsSave = dirtyEditors.has(entry.id);
+                        }
                         selectedEntry = entry.id;
                     }
                 });
             });
 
-            toolbarInset = <>
-                <Label style={{ paddingRight: "8px" }}>Editor:</Label>
-                <Dropdown
-                    id="connectionSelector"
-                    initialSelection={selectedEntry ?? selectedPage}
-                    onSelect={this.handleSelectItem}
-                >
-                    {items}
-                </Dropdown>
-                {showSaveButton && <Button
+            toolbarItems = {
+                left: [
+                    <Label key="mainLabel" style={{ paddingRight: "8px" }}>Editor:</Label>,
+                    <Dropdown
+                        id="documentSelector"
+                        key="selector"
+                        initialSelection={selectedEntry ?? selectedPage}
+                        onSelect={this.handleSelectItem}
+                    >
+                        {items}
+                    </Dropdown>,
+                    <Divider key="firstDivider" vertical={true} thickness={1} />,
+                ],
+                right: [],
+            };
+
+            if (showSaveButton) {
+                toolbarItems.right.push(<Button
                     id="itemSaveButton"
+                    key="itemSaveButton"
                     caption="Save"
                     disabled={!needsSave}
                     onClick={this.handleEditorSave}
-                />}
-                <Divider vertical={true} thickness={1} />
-            </>;
-
+                />);
+            }
         }
 
         const pages: ITabviewPage[] = [];
@@ -322,7 +331,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         } else {
             const content = (<ConnectionBrowser
-                toolbarInset={toolbarInset}
+                toolbarItems={toolbarItems}
                 connections={connections}
                 onAddConnection={this.handleAddConnection}
                 onDropConnection={this.handleDropConnection}
@@ -340,39 +349,43 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         editorTabs.forEach((info: IDBEditorTabInfo) => {
             const connectionState = this.connectionState.get(info.tabId)!;
 
-            if (!toolbarInset) {
+            if (!toolbarItems) {
                 // If no special UI is to be rendered use an editor selection dropdown.
-                toolbarInset = <>
-                    <Label>Current Editor:</Label>
-                    <Dropdown
-                        id="documentSelector"
-                        initialSelection={connectionState.activeEntry}
-                        onSelect={this.handleEditorSelectorChange}
-                    >
-                        {
-                            connectionState.editors.map((entry) => {
-                                let picture;
-                                if (entry.state) {
-                                    const language = entry.state.model.getLanguageId() as EditorLanguage;
-                                    picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
-                                } else {
-                                    const name = pageTypeToIcon.get(entry.id) || defaultIcon;
-                                    picture = <Icon as="span" src={name} width="20px" height="20px" />;
-                                }
+                toolbarItems = {
+                    left: [
+                        <Label key="mainLabel">Editor:</Label>,
+                        <Dropdown
+                            id="documentSelector"
+                            key="documentSelector"
+                            initialSelection={connectionState.activeEntry}
+                            onSelect={this.handleEditorSelectorChange}
+                        >
+                            {
+                                connectionState.editors.map((entry) => {
+                                    let picture;
+                                    if (entry.state) {
+                                        const language = entry.state.model.getLanguageId() as EditorLanguage;
+                                        picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
+                                    } else {
+                                        const name = pageTypeToIcon.get(entry.id) || defaultIcon;
+                                        picture = <Icon as="span" src={name} width="20px" height="20px" />;
+                                    }
 
-                                return (
-                                    <Dropdown.Item
-                                        id={entry.id}
-                                        key={entry.id}
-                                        caption={entry.caption}
-                                        picture={picture}
-                                    />
-                                );
-                            })
-                        }
-                    </Dropdown>
-                    <Divider vertical={true} thickness={1} />
-                </>;
+                                    return (
+                                        <Dropdown.Item
+                                            id={entry.id}
+                                            key={entry.id}
+                                            caption={entry.caption}
+                                            picture={picture}
+                                        />
+                                    );
+                                })
+                            }
+                        </Dropdown>,
+                        <Divider key="firstDivider" vertical={true} thickness={1} />,
+                    ],
+                    right: [],
+                };
             }
 
             const content = (<DBConnectionTab
@@ -381,7 +394,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 workerPool={this.workerPool}
                 dbType={info.details.dbType}
                 connectionId={info.details.id}
-                toolbarInset={toolbarInset}
+                toolbarItems={toolbarItems}
                 savedState={connectionState}
                 showExplorer={showTabs && showExplorer}
                 onHelpCommand={this.handleHelpCommand}

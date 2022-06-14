@@ -21,19 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { IPosition, Position } from "monaco-editor";
+import React from "react";
 
+import { IDBDataEntry, IEditorStatusInfo, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Component, IComponentProperties } from "../../components/ui";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { ExecutionContext, PresentationInterface, SQLExecutionContext } from "../../script-execution";
-import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
-import { DBType } from "../../supplement/ShellInterface";
-import { requisitions } from "../../supplement/Requisitions";
-import { quote } from "../../utilities/string-helpers";
 import { EditorLanguage } from "../../supplement";
+import { requisitions } from "../../supplement/Requisitions";
 import { settings } from "../../supplement/Settings/Settings";
+import { DBType } from "../../supplement/ShellInterface";
+import { quote } from "../../utilities/string-helpers";
+import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
 
 export interface IScriptingConsoleProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
@@ -53,7 +53,8 @@ export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
     public constructor(props: IScriptingConsoleProperties) {
         super(props);
 
-        this.addHandledProperties("editorState", "dbType", "readOnly", "onScriptExecution", "onHelpCommand");
+        this.addHandledProperties("editorState", "dbType", "readOnly", "showAbout", "onScriptExecution",
+            "onHelpCommand");
     }
 
     public componentDidMount(): void {

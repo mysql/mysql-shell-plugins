@@ -41,7 +41,7 @@ import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers";
 import { ScriptingConsole } from "./ScriptingConsole";
-import { IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType } from ".";
+import { IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems } from ".";
 import { StandaloneScriptEditor } from "./StandaloneScriptEditor";
 import { IPosition } from "../../components/ui/CodeEditor";
 import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../script-execution";
@@ -103,8 +103,8 @@ export interface IDBConnectionTabProperties extends IComponentProperties {
     savedState: IDBConnectionTabPersistentState;
     workerPool: ExecutionWorkerPool;
 
-    // An element to render in this page's toolbar.
-    toolbarInset?: React.ReactElement;
+    // Top level toolbar items, to be integrated with page specific ones.
+    toolbarItems?: IToolbarItems;
 
     showExplorer?: boolean; // If false, collapse the explorer split pane.
     showAbout: boolean;
@@ -210,7 +210,7 @@ Execute \\help or \\? for help;`;
     }
 
     public render(): React.ReactNode {
-        const { toolbarInset, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout } = this.props;
+        const { toolbarItems, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout } = this.props;
         const { backend } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
@@ -230,6 +230,7 @@ Execute \\help or \\? for help;`;
         }
 
         const language = activeEditor.state?.model.getLanguageId() ?? "";
+        let addEditorToolbar = true;
         switch (activeEditor.type) {
             case EntityType.Console: {
                 document = <ScriptingConsole
@@ -256,19 +257,21 @@ Execute \\help or \\? for help;`;
             }
 
             case EntityType.Admin: {
+                // Admin pages render own toolbars, not the one for DB editors.
+                addEditorToolbar = false;
                 switch (savedState.activeEntry) {
                     case "serverStatus": {
-                        document = <ServerStatus backend={savedState.backend} />;
+                        document = <ServerStatus backend={savedState.backend} toolbarItems={toolbarItems} />;
                         break;
                     }
 
                     case "clientConnections": {
-                        document = <ClientConnections backend={savedState.backend} />;
+                        document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
                         break;
                     }
 
                     case "performanceDashboard": {
-                        document = <PerformanceDashboard backend={savedState.backend} />;
+                        document = <PerformanceDashboard backend={savedState.backend} toolbarItems={toolbarItems} />;
                         break;
                     }
 
@@ -327,14 +330,14 @@ Execute \\help or \\? for help;`;
                                 }}
                                 mainAlignment={ContentAlignment.Stretch}
                             >
-                                <DBEditorToolbar
-                                    inset={toolbarInset}
+                                {addEditorToolbar && <DBEditorToolbar
+                                    toolbarItems={toolbarItems}
                                     language={language}
                                     activeEditor={savedState.activeEntry}
                                     editors={savedState.editors}
                                     backend={backend}
                                     onSelectEditor={this.handleSelectItem}
-                                />
+                                />}
                                 {document}
                             </Container>,
                         },
