@@ -256,7 +256,7 @@ export const activate = (context: ExtensionContext): void => {
     }));
 
     context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", async (): Promise<Boolean> => {
-        await waitFor(5000, () => {
+        await waitFor(3000, () => {
             return startupCompleted;
         });
 

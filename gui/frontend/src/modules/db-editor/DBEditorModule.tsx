@@ -267,7 +267,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         />
                     ));
 
-                    if (entry.id === connectionState.activeEntry) {
+                    if (selectedPage !== "connections" && entry.id === connectionState.activeEntry) {
                         if (entry.type === EntityType.Script) {
                             showSaveButton = true;
                             needsSave = dirtyEditors.has(entry.id);
@@ -652,7 +652,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const handleOutcome = (success: boolean) => {
                         if (!success) {
                             backend.closeSession().then(() => {
-                                resolve(false);
+                                resolve(true); // Return true to indicate we handled this requisition.
                             }).catch((reason) => {
                                 reject(reason);
                             });
