@@ -117,7 +117,7 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig,
         try {
             const dialog = await driver.wait(until.elementsLocated(By.css(".errorPanel")), 500, "");
             await dialog[0].findElement(By.css("button")).click();
-        } catch(e) {
+        } catch (e) {
             //continue
         }
     }
@@ -727,10 +727,10 @@ export const addScript = async (driver: WebDriver, scriptType: string): Promise<
 export const existsScript = async (driver: WebDriver, scriptName: string, scriptType: string): Promise<boolean> => {
     const context = await driver.findElement(By.id("scriptSectionHost"));
     const items = await context.findElements(By.css("div.tabulator-row"));
-    for(const item of items) {
+    for (const item of items) {
         const label = await (await item.findElement(By.css(".schemaTreeEntry label"))).getText();
         const src = await (await item.findElement(By.css(".schemaTreeEntry img"))).getAttribute("src");
-        if( label === scriptName && src.indexOf(scriptType) !== -1) {
+        if (label === scriptName && src.indexOf(scriptType) !== -1) {
             return true;
         }
     }
@@ -835,13 +835,13 @@ export const getResultColumnName = async (driver: WebDriver, columnName: string,
                 return row;
             }
         }
-    } catch(e) {
+    } catch (e) {
         if (e instanceof Error) {
             if (e.message.indexOf("stale") === -1) {
                 throw e;
             }
         } else {
-            await getResultColumnName(driver, columnName, retry+1);
+            await getResultColumnName(driver, columnName, retry + 1);
         }
     }
 
@@ -1107,7 +1107,7 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig
     expect(service).toBe(`${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}`);
     expect(username).toBe(dbConfig.username);
 
-    expect(await title.getText()).toBe("Open MySQL Connection in Shell Session");
+    expect(await title.getText()).toBe("Open MySQL Connection");
 
     await dialog[0].findElement(By.css("input")).sendKeys(String(dbConfig.password));
     await dialog[0].findElement(By.id("ok")).click();
@@ -1127,7 +1127,7 @@ export const setConfirmDialog = async (driver: WebDriver, dbConfig: IDbConfig, v
     const yesBtn = await confirmDialog[0].findElement(By.id("accept"));
     const neverBtn = await confirmDialog[0].findElement(By.id("alternative"));
 
-    switch(value) {
+    switch (value) {
         case "yes":
             await yesBtn.click();
             break;
@@ -1318,7 +1318,7 @@ export const setDBEditorStartLang = async (driver: WebDriver, lang: string): Pro
 
 //This function checks if the Db Type drop down list is stale.
 //Because of the tests speed, sometimes we need to reload the dialog
-export const initConDialog = async (driver: WebDriver): Promise <void> => {
+export const initConDialog = async (driver: WebDriver): Promise<void> => {
     await driver
         .findElement(By.css(".connectionBrowser"))
         .findElement(By.id("-1"))
@@ -1329,7 +1329,7 @@ export const initConDialog = async (driver: WebDriver): Promise <void> => {
     await driver.wait(until.stalenessOf(dialog), 2000, "Connection dialog is still displayed");
 };
 
-export const expandCollapseSchemaMenus = async ( driver: WebDriver, menu: String, expand: boolean,
+export const expandCollapseSchemaMenus = async (driver: WebDriver, menu: String, expand: boolean,
     retries: number): Promise<void> => {
     if (retries === 3) {
         throw new Error("Max retries reached on expanding collapse");
@@ -1338,7 +1338,7 @@ export const expandCollapseSchemaMenus = async ( driver: WebDriver, menu: String
         let elToClick;
         let elToVerify;
 
-        switch(menu) {
+        switch (menu) {
             case "open editors":
                 elToClick = await driver.findElement(
                     By.id("editorSectionHost")).findElement(By.css("div.container.section label"));

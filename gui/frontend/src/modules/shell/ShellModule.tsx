@@ -424,67 +424,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
                         case EventType.DataResponse: {
                             const data = event.data;
-                            if (ShellPromptHandler.handleShellPrompt(data.result!, data.requestId!, backend)) {
-                                /*
-                                if (ShellPromptHandler.isShellPasswordResult(result)) {
-                                    // Extract the service id (and from that the user name) from the password prompt.
-                                    if (result !== undefined && result.password !== undefined) {
-                                        const passwordRequest: IServicePasswordRequest = {
-                                            requestId: event.data.requestId!,
-                                            caption: "Open MySQL Connection in Shell Session",
-                                            payload: backend,
-                                            service: "",
-                                            user: "",
-                                        };
-                                        let parts = result.password.split("'");
-                                        if (parts.length >= 3) {
-                                            const parts2 = parts[1].split("@");
-                                            passwordRequest.service = parts[1];
-                                            passwordRequest.user = parts2[0];
-                                        } else {
-                                            parts = result.password.split("ssh://");
-                                            if (parts.length >= 2) {
-                                                passwordRequest.caption = "Open SSH tunnel in Shell Session";
-                                                const parts2 = parts[1].split("@");
-                                                passwordRequest.service = `ssh://${parts[1]}`.trim();
-                                                if (passwordRequest.service.endsWith(":")) {
-                                                    passwordRequest.service = passwordRequest.service.slice(0, -1);
-                                                }
-                                                passwordRequest.user = parts2[0];
-                                            } else {
-                                                passwordRequest.caption = result.password;
-                                            }
-                                        }
-                                        void requisitions.execute("requestPassword", passwordRequest);
-                                    }
-                                } else if (ShellPromptHandler.isShellPromptResult(result)) {
-                                    if (this.promptDialogRef.current) {
-                                        const prompt = stripAnsiCode(result.prompt);
-                                        const promptSection: IDialogSection = {
-                                            values: {
-                                                input: {
-                                                    caption: prompt,
-                                                    value: "",
-                                                    span: 8,
-                                                },
-                                            },
-                                        };
-
-                                        this.promptDialogRef.current.show(
-                                            {
-                                                id: "shellPrompt",
-                                                sections: new Map<string, IDialogSection>([
-                                                    ["prompt", promptSection],
-                                                ]),
-                                            },
-                                            [],
-                                            { backgroundOpacity: 0.1 },
-                                            "",
-                                            prompt,
-                                            { backend, requestId: event.data.requestId },
-                                        );
-                                    }*/
-                            } else {
+                            if (!ShellPromptHandler.handleShellPrompt(data.result!, data.requestId!, backend)) {
                                 this.setProgressMessage(event.message ?? "Loading ...");
                             }
 

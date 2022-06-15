@@ -1809,7 +1809,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         if (user && host) {
             const passwordRequest: IServicePasswordRequest = {
                 requestId: "userInput",
-                caption: "Open MySQL Connection in Shell Session",
+                caption: "Open MySQL Connection",
                 service: `${user}@${host}:${port}`,
                 user,
             };

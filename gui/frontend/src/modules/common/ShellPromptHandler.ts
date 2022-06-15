@@ -230,7 +230,7 @@ export class ShellPromptHandler {
         payload: IDictionary, title?: string, description?: string[]): IServicePasswordRequest => {
         const passwordRequest: IServicePasswordRequest = {
             requestId,
-            caption: title ?? "Open MySQL Connection in Shell Session",
+            caption: title ?? "Open MySQL Connection",
             description,
             payload,
             service: "",

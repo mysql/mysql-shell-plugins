@@ -428,7 +428,7 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConnec
     expect(service).to.equals(`${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}`);
     expect(username).to.equals(dbConfig.username);
 
-    expect(await title.getText()).to.equals("Open MySQL Connection in Shell Session");
+    expect(await title.getText()).to.equals("Open MySQL Connection");
 
     await dialog.findElement(By.css("input")).sendKeys(dbConfig.password);
     await dialog.findElement(By.id("ok")).click();
