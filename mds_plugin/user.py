@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -940,6 +940,131 @@ def create_user_api_key(user_name=None, key_path="~/.oci/", user_id=None,
             "public_key": public_key,
             "fingerprint": fingerprint}
 
+
+@plugin_function('mds.delete.userApiKey')
+def delete_user_api_key(user_name=None, user_id=None,
+                        key_path="~/.oci/",
+                        key_file_prefix="oci_api_key",
+                        key_id=None,
+                        fingerprint=None,
+                        delete_from_disk=False,
+                        config=None,
+                        interactive=True):
+    """Deletes an API key for a user
+
+    Args:
+        user_name (str): The name of the user
+        user_id (str): The OCID of the user.
+        key_path (str): The path where the key files should be created
+        key_file_prefix (str): A key_file_prefix to use
+        key_id (str): The key identifier to delete
+        fingerprint (str): The fingerprint of the key to delete
+        delete_from_disk (bool): Wether to delete the key files from disk
+        config (dict): An OCI config object or None.
+        interactive (bool): Whether to query the user for input
+
+    Returns:
+        True if the key was delete, else False
+    """
+
+    # Get the current config
+    try:
+        if interactive or user_name is not None or user_id is not None:
+            config = configuration.get_current_config(config=config)
+    except ValueError as e:
+        print(e)
+        return False
+
+    import os.path
+    import os
+    from pathlib import Path
+
+    # Get the user object
+    user = None
+    if interactive or user_name is not None or user_id is not None:
+        user = get_user(user_name=user_name, user_id=user_id, config=config)
+
+    if user is None:
+        print("User not found.")
+        return False
+
+    fingerprint_to_delete=fingerprint
+    if fingerprint_to_delete is None:
+        keys = list_user_api_keys(user_name=user.name, interactive=interactive, return_formatted=False)
+
+        if interactive:
+            keys_formatted = list_user_api_keys(user_name=user.name, interactive=interactive, return_formatted=True)
+            print(keys_formatted)
+            selected_key = core.prompt_for_list_item(
+                item_list=keys, prompt_caption=("Please enter the name or index "
+                                                "of the key to delete: "),
+                item_name_property="key")
+
+            print(selected_key)
+
+            fingerprint_to_delete = selected_key['fingerprint']
+        elif key_id is not None:
+            for key in keys:
+                if key['id'] == key_id:
+                    fingerprint_to_delete = key['fingerprint']
+
+    if fingerprint_to_delete is None:
+        print('Invalid key fingerprint')
+        return False
+
+
+    # Create path
+    # Convert Unix path to Windows
+    key_path = os.path.abspath(os.path.expanduser(key_path))
+    Path(key_path).mkdir(parents=True, exist_ok=True)
+
+    # Create filenames for keys
+    # user_key_file_caption = f'_{user.name}' if user else ''
+    # private_key_path = os.path.join(
+    #     key_path, f"{key_file_prefix}{user_key_file_caption}.pem")
+    # public_key_path = os.path.join(
+    #     key_path, f"{key_file_prefix}{user_key_file_caption}_public.pem")
+
+    # from cryptography.hazmat.primitives import serialization
+    # from cryptography.hazmat.backends import default_backend
+
+    # with open(public_key_path, mode='r') as file:
+    #     key = file.read().encode()
+
+    # public_key = serialization.load_pem_public_key(data=key) # , backend=default_backend()
+
+    # Get the fingerprint for the key
+    # fingerprint = get_fingerprint(public_key.public_bytes(
+    #     serialization.Encoding.PEM,
+    #     serialization.PublicFormat.SubjectPublicKeyInfo
+    # ))
+
+    if delete_from_disk:
+        user_key_file_caption = f'_{user.name}' if user else ''
+        private_key_path = os.path.join(
+            key_path, f"{key_file_prefix}{user_key_file_caption}.pem")
+        public_key_path = os.path.join(
+            key_path, f"{key_file_prefix}{user_key_file_caption}_public.pem")
+        os.remove(private_key_path)
+        os.remove(public_key_path)
+
+    # Initialize the identity client
+    identity = core.get_oci_identity_client(config=config)
+
+    print(identity.list_api_keys(user.id).data)
+
+    key_uploaded = is_key_already_uploaded(identity.list_api_keys(
+                user.id).data, fingerprint_to_delete)
+
+    print(f"key uploaded: {key_uploaded}")
+
+    if not key_uploaded:
+        print("key not uploaded")
+        return False
+
+    identity.delete_api_key(user_id=user.id, fingerprint=fingerprint_to_delete)
+
+    return True
 
 @plugin_function('mds.create.group')
 def create_group(group_name=None, description=None, config=None,

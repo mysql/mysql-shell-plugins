@@ -27,6 +27,7 @@ from mds_plugin import core, configuration
 # Define plugin version
 VERSION = "0.1.15"
 
+
 @plugin_function('mds.info')
 def info():
     """Prints basic information about this plugin.
@@ -97,6 +98,7 @@ def ls(compartment_path="", compartment_id=None, config=None):
     db_sys_list = ""
     compute_list = ""
     bucket_list = ""
+    bastion_list = ""
 
     try:
         comp_list = ""
@@ -236,4 +238,3 @@ def cd(compartment_path=None, compartment_id=None,
     configuration.set_current_compartment(
         compartment_path=compartment_path, compartment_id=compartment_id,
         config=config, profile_name=profile_name, file_location=file_location)
-

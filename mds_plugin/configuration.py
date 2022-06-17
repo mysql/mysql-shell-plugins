@@ -165,7 +165,7 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
 
                 # Start wizard for new profiles
                 config = create_config(
-                    profile_name=profile_name, 
+                    profile_name=profile_name,
                     config_file_path=config_file_path)
                 if config is None:
                     return
@@ -294,7 +294,7 @@ def get_config_profile_dict_from_parser(config, profile):
     """Returns the given profile as a dict
 
     Args:
-        config (object): The configparser.ConfigParser() instance with the 
+        config (object): The configparser.ConfigParser() instance with the
             config loaded
         profile (str): The name of the profile
 
@@ -750,7 +750,7 @@ def load_profile_as_current(profile_name=None, config_file_path="~/.oci/config",
         profile_name (str): The name of the OCI profile or InstancePrincipal
             when running on a compute instance that is part of a dynamic group.
         config_file_path (str): The file path of the OCI config file
-        print_current_objects (bool): Whether to print information about current 
+        print_current_objects (bool): Whether to print information about current
             objects and core cloud functions
         interactive (bool): Whether information should be printed
 
@@ -1131,8 +1131,8 @@ def get_current_profile(profile_name=None):
 
 
 def get_current_value(
-    value_name, passthrough_value=None, config=None,
-    profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
+        value_name, passthrough_value=None, config=None,
+        profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
     """Gets the current value
 
     Either from the global config or the OCI CLI config file
@@ -1186,7 +1186,7 @@ def get_current_value(
 
 def set_current_value(value_name, value, profile_name=None,
                       cli_rc_file_path="~/.oci/oci_cli_rc"):
-    """Sets the current value for a given value_name 
+    """Sets the current value for a given value_name
 
     It is set in the global config and stored in the OCI CLI rc file
 
@@ -1316,8 +1316,8 @@ def set_current_compartment(**kwargs):
 
 @plugin_function('mds.get.currentCompartmentId', shell=True, cli=True, web=True)
 def get_current_compartment_id(
-    compartment_id=None, config=None,
-    profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
+        compartment_id=None, config=None,
+        profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
     """Gets the current compartment_id
 
     Args:
