@@ -188,7 +188,7 @@ def get_db_system_configuration(**kwargs):
             # Get the shapes
             shape_id = compute.get_shape_name(
                 shape_name=shape, compartment_id=compartment_id,
-                availability_domain=availability_domain.name, config=config,
+                availability_domain=availability_domain, config=config,
                 interactive=interactive)
             if shape_id is None or shape_id == "":
                 raise ValueError("No shape specified.")
@@ -796,7 +796,7 @@ def create_db_system(**kwargs):
     source_mysql_password = kwargs.get("source_mysql_password")
     source_local_dump_dir = kwargs.get("source_local_dump_dir")
     source_bucket = kwargs.get("source_bucket")
-    host_image_id = kwargs.get("host_image_id")
+    #host_image_id = kwargs.get("host_image_id")
     defined_tags = kwargs.get("defined_tags")
     # Conversion from Shell Dict type
     if defined_tags:
@@ -940,7 +940,7 @@ def create_db_system(**kwargs):
         subnet = network.get_subnet(
             subnet_id=subnet_id, public_subnet=False,
             compartment_id=compartment_id, config=config,
-            interactive=interactive)
+            interactive=interactive, availability_domain=availability_domain)
         if subnet is None:
             print("Operation cancelled.")
             return
@@ -959,7 +959,7 @@ def create_db_system(**kwargs):
         mysql_configuration = get_db_system_configuration(
             configuration_id=configuration_id, shape=shape_id,
             availability_domain=availability_domain,
-            compartment_id=compartment_id, config=config)
+            compartment_id=compartment_id, config=config, return_python_object=True)
         if mysql_configuration is None:
             print("Operation cancelled.")
             return
@@ -1089,8 +1089,8 @@ def create_db_system(**kwargs):
             availability_domain=availability_domain,
             subnet_id=subnet.id,
             defined_tags=defined_tags,
-            freeform_tags=freeform_tags,
-            host_image_id=host_image_id
+            freeform_tags=freeform_tags
+            # host_image_id=host_image_id
             # source=import_details
         )
 
@@ -1242,7 +1242,7 @@ def delete_db_system(**kwargs):
             # lifecycle state
             if await_completion:
                 await_lifecycle_state(
-                    db_system.id, "DELETED", "complete the deletion process", 
+                    db_system.id, "DELETED", "complete the deletion process",
                     config, interactive)
             elif interactive:
                 print(f"MySQL DB System '{db_system.display_name}' is being "
@@ -1256,6 +1256,7 @@ def delete_db_system(**kwargs):
         if raise_exceptions:
             raise
         print(f'ERROR: {e}')
+
 
 @plugin_function('mds.stop.dbSystem', shell=True, cli=True, web=True)
 def stop_db_system(**kwargs):
@@ -1395,7 +1396,6 @@ def change_lifecycle_state(**kwargs):
     else:
         raise ValueError("Unknown action given.")
 
-
     # Get the active config and compartment
     try:
         config = configuration.get_current_config(
@@ -1459,7 +1459,7 @@ def change_lifecycle_state(**kwargs):
             # lifecycle state
             if await_completion:
                 await_lifecycle_state(
-                    db_system_id, action_state, action_name, 
+                    db_system_id, action_state, action_name,
                     config, interactive)
             elif interactive:
                 print(f"MySQL DB System '{db_system.display_name}' is being "
@@ -1516,4 +1516,4 @@ def await_lifecycle_state(db_system_id, action_state, action_name, config, inter
                         "state within 4 minutes.")
     if interactive:
         print(f"DB System '{db_system.display_name}' did "
-                f"{action_name} successfully.")
+              f"{action_name} successfully.")

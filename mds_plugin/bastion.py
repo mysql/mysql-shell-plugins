@@ -162,7 +162,8 @@ def list_bastions(**kwargs):
             # Filter out all bastions that are not valid for the given DbSystem
             if valid_for_db_system_id:
                 # Just consider active bastions here
-                bastions = [b for b in bastions if b.lifecycle_state == "ACTIVE"]
+                bastions = [
+                    b for b in bastions if b.lifecycle_state == "ACTIVE"]
                 valid_bastions = []
                 db_system = mysql_database_service.get_db_system(
                     db_system_id=valid_for_db_system_id,
@@ -173,7 +174,6 @@ def list_bastions(**kwargs):
                     if bastion.target_subnet_id == db_system.subnet_id:
                         valid_bastions.append(bastion)
                 bastions = valid_bastions
-
 
             # Add the is_current field
             current_bastion_id = configuration.get_current_bastion_id(
@@ -275,7 +275,7 @@ def get_bastion(**kwargs):
                     bastion_id=bastion_id).data
                 if not bastion:
                     raise ValueError('The bastion with the given OCID '
-                        f'{bastion_id} was not found.')
+                                     f'{bastion_id} was not found.')
 
             if not bastion and (bastion_name or interactive):
                 # List the Bastion of the current compartment
@@ -299,7 +299,7 @@ def get_bastion(**kwargs):
                                 bastion_id=b.id).data
                             break
 
-                    if not interactive:
+                    if bastion is None and not interactive:
                         raise ValueError(f"Bastion {bastion_name} was not "
                                          "found in this compartment.")
 
@@ -465,7 +465,7 @@ def create_bastion(**kwargs):
                 raise ValueError("No db_system_id given. "
                                  "Operation cancelled.")
 
-            # Check if the db_system already has a Bastion set in the 
+            # Check if the db_system already has a Bastion set in the
             # freeform_tags
             # if db_system and db_system.freeform_tags.get('bastion_id'):
             #     bastion = None
@@ -508,12 +508,12 @@ def create_bastion(**kwargs):
 
                     subnet = vcn_client.get_subnet(
                         subnet_id=db_system.subnet_id).data
-                    
+
                     # Get a unique name for the new bastion, ensure it does
                     # not collide with another bastion in the compartment and
                     # that it only contains of alphanumeric characters
                     bastion_core_name = (
-                        "Bastion4" + 
+                        "Bastion4" +
                         re.sub('[\W_]+', '', subnet.display_name[:35]))
                     bastion_name = bastion_core_name
 
@@ -524,7 +524,7 @@ def create_bastion(**kwargs):
                     b_nr = 2
                     name_found = False
 
-                    # Keep increasing the trailing number till a unique name is 
+                    # Keep increasing the trailing number till a unique name is
                     # found
                     while not name_found:
                         name_found = True
@@ -574,7 +574,7 @@ def create_bastion(**kwargs):
             new_bastion = bastion_client.create_bastion(
                 create_bastion_details=bastion_details).data
 
-            # Update the db_system freeform_tags to hold the assigned bastion 
+            # Update the db_system freeform_tags to hold the assigned bastion
             # if db_system:
             #     print("Update the db_system freeform_tags to hold the assigned bastion ")
             #     db_system.freeform_tags["bastion_id"] = new_bastion.id
@@ -1238,7 +1238,6 @@ def create_session(**kwargs):
                         'Please enabled the Bastion plugin on '
                         'this instance.')
 
-
             session_details = oci.bastion.models.CreateSessionDetails(
                 bastion_id=bastion_id,
                 display_name=session_name,
@@ -1268,7 +1267,7 @@ def create_session(**kwargs):
                         s = "." * (cycles + 1)
                         if interactive:
                             print(f'Waiting for Bastion Session to become '
-                                f'active...{s}')
+                                  f'active...{s}')
                     cycles += 1
 
                 bastion_session = bastion_client.get_session(

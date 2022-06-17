@@ -464,10 +464,10 @@ def get_availability_domain(**kwargs):
         except oci.exceptions.ServiceError as e:
             if e.code == "NotAuthorizedOrNotFound":
                 error = (f'You do not have privileges to list the  '
-                    f'availabilitydomains for this compartment.\n')
+                         f'availabilitydomains for this compartment.\n')
             else:
                 error = (f'Could not list the availability domains for this '
-                    f'compartment.\n')
+                         f'compartment.\n')
             error += f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})'
             if raise_exceptions:
                 raise Exception(error)
@@ -534,11 +534,11 @@ def list_compartments(**kwargs):
 
         # List the compartments
         data = oci.pagination.list_call_get_all_results(
-                identity.list_compartments,
-                compartment_id=compartment_id,
-                access_level="ANY",
-                compartment_id_in_subtree=full_subtree,
-                limit=1000).data
+            identity.list_compartments,
+            compartment_id=compartment_id,
+            access_level="ANY",
+            compartment_id_in_subtree=full_subtree,
+            limit=1000).data
 
         current_compartment_id = configuration.get_current_compartment_id(
             profile_name=config_profile)
@@ -594,6 +594,7 @@ def get_compartment(compartment_path=None, **kwargs):
     Keyword Args:
         parent_compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
+        interactive (bool): Whether exceptions are raised
 
     Returns:
         The compartment object
@@ -601,6 +602,7 @@ def get_compartment(compartment_path=None, **kwargs):
 
     parent_compartment_id = kwargs.get("parent_compartment_id")
     config = kwargs.get("config")
+    interactive = kwargs.get("interactive")
 
     # Get the active config and compartment
     try:
@@ -624,8 +626,11 @@ def get_compartment(compartment_path=None, **kwargs):
         if compartment is not None:
             return compartment
         else:
-            print(f"The compartment with the path {compartment_path} was not "
-                  f"found.\nPlease select another compartment.\n")
+            print(
+                f"The compartment with the path {compartment_path} was not found.")
+            if not interactive:
+                return
+            print("Please select another compartment.\n")
 
     # Initialize the identity client
     identity = core.get_oci_identity_client(config=config)
@@ -743,7 +748,7 @@ def get_compartment_id(compartment_path=None, **kwargs):
 
     compartment = get_compartment(
         compartment_path=compartment_path,
-        compartment_id=kwargs.get("parent_compartment_id"),
+        parent_compartment_id=kwargs.get("parent_compartment_id"),
         config=kwargs.get("config"))
 
     return None if compartment is None else compartment.id
@@ -864,36 +869,40 @@ def delete_compartment(compartment_path=None, **kwargs):
 
         compartment = get_compartment(
             compartment_path=compartment_path, compartment_id=compartment_id,
-            config=config)
+            config=config, interactive=interactive)
         if compartment is None:
             print("Operation cancelled.")
-            return
+            return False
 
         # Initialize the identity client
         identity = core.get_oci_identity_client(config=config)
 
         # Prompt the user for specifying a compartment
-        prompt = mysqlsh.globals.shell.prompt(
-            f"Are you sure you want to delete the compartment {compartment.name} "
-            f"[yes/NO]: ",
-            {'defaultValue': 'no'}).strip().lower()
+        if interactive:
+            prompt = mysqlsh.globals.shell.prompt(
+                f"Are you sure you want to delete the compartment {compartment.name} "
+                f"[yes/NO]: ",
+                {'defaultValue': 'no'}).strip().lower()
 
-        if prompt != "yes":
-            print("Deletion aborted.\n")
-            return
+            if prompt != "yes":
+                print("Deletion aborted.\n")
+                return False
 
         identity.delete_compartment(compartment.id)
 
         print(f"Compartment {compartment.name} is being deleted.")
+
+        return True
     except oci.exceptions.ServiceError as e:
         if interactive:
             raise
         print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
-        return
+        return False
     except (ValueError, oci.exceptions.ClientError) as e:
         if interactive:
             raise
         print(f'ERROR: {e}')
+        return False
 
 
 @plugin_function('mds.update.compartment')

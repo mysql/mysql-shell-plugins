@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -150,6 +150,7 @@ def format_subnet_listing(subnets):
 
     return out
 
+
 def format_load_balancer_listing(items, current=None) -> str:
     """Formats a given list of objects in a human readable form
 
@@ -182,6 +183,7 @@ def format_load_balancer_listing(items, current=None) -> str:
         id += 1
 
     return out
+
 
 @plugin_function('mds.list.networks')
 def list_networks(**kwargs):
@@ -322,7 +324,7 @@ def get_network(**kwargs):
                         return
 
                     compartment_id = compartment.get_compartment_id(
-                        compartment_id=compartment_id, config=config)
+                        parent_compartment_id=compartment_id, config=config)
 
                     if compartment_id == None:
                         print("Operation cancelled.")
@@ -676,10 +678,10 @@ def list_load_balancers(**kwargs):
 
     interactive = kwargs.get("interactive", core.get_interactive_default())
     return_type = kwargs.get(
-        "return_type", # In interactive mode, default to formatted str return
+        "return_type",  # In interactive mode, default to formatted str return
         core.RETURN_STR if interactive else core.RETURN_DICT)
     raise_exceptions = kwargs.get(
-        "raise_exceptions", # On internal call (RETURN_OBJ), raise exceptions
+        "raise_exceptions",  # On internal call (RETURN_OBJ), raise exceptions
         True if return_type == core.RETURN_OBJ else not interactive)
 
     try:
