@@ -1510,7 +1510,7 @@ describe("DB Editor", () => {
                     .toBe(dbConfig.caption);
 
                 await expandCollapseSchemaMenus(driver, "open editors", false, 0);
-                await expandCollapseSchemaMenus(driver, "admin", false, 0);
+                //await expandCollapseSchemaMenus(driver, "admin", false, 0);
                 await expandCollapseSchemaMenus(driver, "scripts", false, 0);
 
                 const sakila = await getSchemaObject(driver, "Schema", "sakila");
@@ -1980,7 +1980,7 @@ describe("DB Editor", () => {
                     "'Schemas' is still collapsed",
                 );
 
-                await expandCollapseSchemaMenus(driver, "admin", false, 0);
+                /*await expandCollapseSchemaMenus(driver, "admin", false, 0);
 
                 await driver.wait(
                     async () => {
@@ -2008,7 +2008,7 @@ describe("DB Editor", () => {
                     },
                     2000,
                     "'Administration' is still collapsed",
-                );
+                );*/
 
                 await expandCollapseSchemaMenus(driver, "scripts", false, 0);
 
@@ -2097,7 +2097,7 @@ describe("DB Editor", () => {
                     .findElement(By.css("textarea"))
                     .sendKeys("select actor from sakila.actor");
 
-                await selectCurrentEditor(driver, "Default Notebook", "shell");
+                await selectCurrentEditor(driver, "Notebook", "shell");
 
                 expect(
                     (await driver
@@ -2116,7 +2116,7 @@ describe("DB Editor", () => {
 
                 expect(
                     await driver.findElement(By.css("#documentSelector label")).getText(),
-                ).toBe("Default Notebook");
+                ).toBe("Notebook");
             } catch (e) {
                 testFailed = true;
                 throw e;
