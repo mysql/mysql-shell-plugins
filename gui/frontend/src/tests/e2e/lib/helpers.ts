@@ -987,12 +987,18 @@ export const toggleExplorerHost = async (driver: WebDriver, action: string): Pro
     }
 };
 
-export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action: string): Promise<void> => {
+export const toggleUiColorsMenu = async (driver: WebDriver, menu: string,
+    action: string, scroll?: boolean): Promise<void> => {
     const isTabOpened = async (tab: WebElement) => {
         return (await tab.getAttribute("class")).includes("expanded");
     };
 
     const themeTabView = await driver.findElement(By.id("themeTabview"));
+
+    if (scroll) {
+        await driver.executeScript("arguments[0].scrollBy(0,500)",
+            await driver.findElement(By.css("#themeTabview .tabulator-tableholder")));
+    }
 
     await driver.wait(async () => {
         const els = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
@@ -1004,7 +1010,7 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
         } catch (e) {
             return false;
         }
-    }, 2000, "Elements are stale");
+    }, 5000, "Elements are stale");
 
     const toggle = async () => {
         const uiColorsItems = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
@@ -1014,7 +1020,11 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
                     await uiColorsItems[i].findElement(By.css("label")));
                 if (action === "open") {
                     if (!(await isTabOpened(uiColorsItems[i]))) {
-                        await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
+                        await driver.wait(async () => {
+                            await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
+
+                            return isTabOpened(uiColorsItems[i]);
+                        }, 3000, `${menu} did not open`);
                     }
                 } else {
                     if (await isTabOpened(uiColorsItems[i])) {
@@ -1039,14 +1049,25 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string, action
     }
 };
 
-export const setThemeEditorColors = async (driver: WebDriver, optionId: string,
-    detail: string, value: string): Promise<void> => {
+export const setThemeEditorColors = async (driver: WebDriver, sectionColors: string ,optionId: string,
+    detail: string, value: string, scroll?: boolean): Promise<void> => {
 
-    await driver.wait(async () => {
-        await driver.findElement(By.id(optionId)).click();
+    await toggleUiColorsMenu(driver, sectionColors, "open", scroll);
 
-        return (await driver.findElements(By.css(".colorPopup"))).length > 0;
-    }, 3000, "Color Pallete was not opened");
+    const openColorPad = async () => {
+        await driver.wait(async () => {
+            await driver.findElement(By.id(optionId)).click();
+
+            return (await driver.findElements(By.css(".colorPopup"))).length > 0;
+        }, 3000, "Color Pallete was not opened");
+    };
+
+    try {
+        await openColorPad();
+    } catch(e) {
+        await toggleUiColorsMenu(driver, sectionColors, "open", scroll);
+        await openColorPad();
+    }
 
     const colorPopup = await driver.findElement(By.css(".colorPopup"));
     await colorPopup.findElement(By.id(detail)).clear();
@@ -1070,20 +1091,6 @@ export const rgbToHex = (r: string, g: string, b: string): string => {
         componentToHex(parseInt(g, 10)) + componentToHex(parseInt(b, 10));
 
     return result.toUpperCase();
-};
-
-export const hslToHex = (h: number, s: number, l: number): string => {
-    l /= 100;
-    const a = s * Math.min(l, 1 - l) / 100;
-    const f = (n: number) => {
-        const k = (n + h / 30) % 12;
-        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-
-        return Math.round(255 * color).toString(16)
-            .padStart(2, "0");   // convert to Hex and prefix "0" if needed
-    };
-
-    return `#${f(0)}${f(8)}${f(4)}`;
 };
 
 export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig): Promise<void> => {
@@ -1329,10 +1336,10 @@ export const initConDialog = async (driver: WebDriver): Promise<void> => {
     await driver.wait(until.stalenessOf(dialog), 2000, "Connection dialog is still displayed");
 };
 
-export const expandCollapseSchemaMenus = async (driver: WebDriver, menu: String, expand: boolean,
+export const expandCollapseSchemaMenus = async (driver: WebDriver, menu: string, expand: boolean,
     retries: number): Promise<void> => {
     if (retries === 3) {
-        throw new Error("Max retries reached on expanding collapse");
+        throw new Error(`Max retries reached on expanding collapse '${menu}'`);
     }
     try {
         let elToClick;
@@ -1393,4 +1400,14 @@ export const expandCollapseSchemaMenus = async (driver: WebDriver, menu: String,
         console.error(e);
         await expandCollapseSchemaMenus(driver, menu, expand, retries + 1);
     }
+};
+
+export const getColorPadCss = async (driver: WebDriver, position: number): Promise<string> => {
+    const colors = await driver.findElements(By.css("#colorPadCell > div"));
+    await colors[position].click();
+    const colorPopup = await driver.findElement(By.css(".colorPopup"));
+    const value = await colorPopup.findElement(By.id("hexValueInput")).getAttribute("value");
+    await colorPopup.findElement(By.id("hexValueInput")).sendKeys(Key.ESCAPE);
+
+    return value;
 };
