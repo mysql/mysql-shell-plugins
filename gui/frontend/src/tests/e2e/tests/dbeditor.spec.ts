@@ -101,24 +101,6 @@ const dbConfig1: IDbConfig = {
     portX: "",
 };
 
-const dbConfig3: IDbConfig = {
-    dbType: "MySQL",
-    caption: "conn",
-    description: "random connection",
-    hostname: process.env.DBHOSTNAME,
-    protocol: "mysql",
-    port: process.env.DBPORT,
-    username: process.env.DBUSERNAME3,
-    password: process.env.DBUSERNAME3,
-    schema: "sakila",
-    showAdvanced: false,
-    sslMode: "Disable",
-    compression: "",
-    timeout: "",
-    attributes: "",
-    portX: "",
-};
-
 describe("DB Editor", () => {
     let driver: WebDriver;
     let testFailed = false;
@@ -466,43 +448,6 @@ describe("DB Editor", () => {
 
             expect(await (await getSelectedConnectionTab(driver)).getText())
                 .toBe(dbConfig1.caption);
-
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Confirm dialog - Never save password", async () => {
-        try {
-            await driver.findElement(By.id("gui.sqleditor")).click();
-            dbConfig3.caption += String(new Date().valueOf());
-            await createDBconnection(driver, dbConfig3, false, true);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await getDB(driver, dbConfig3.caption),
-            );
-
-            await setDBEditorPassword(driver, dbConfig3);
-
-            await setConfirmDialog(driver, dbConfig3, "never");
-
-            expect(await (await getSelectedConnectionTab(driver)).getText())
-                .toBe(dbConfig3.caption);
-
-            await closeDBconnection(driver, dbConfig3.caption);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await getDB(driver, dbConfig3.caption),
-            );
-
-            await setDBEditorPassword(driver, dbConfig3);
-
-            expect(await (await getSelectedConnectionTab(driver)).getText())
-                .toBe(dbConfig3.caption);
-
 
         } catch (e) {
             testFailed = true;
