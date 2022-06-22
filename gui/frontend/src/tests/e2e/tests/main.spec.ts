@@ -537,7 +537,7 @@ describe("Main pages", () => {
         it("Drag and drop - Color Pad to Base colors", async () => {
             try {
 
-                const colors = await driver.findElements(By.css("#colorPadCell > div"));
+                let colors = await driver.findElements(By.css("#colorPadCell > div"));
 
                 const uiColors = await driver.findElement(By.id("uiColors"));
                 const uiColorsClasses = (await uiColors.getAttribute("class")).split(" ");
@@ -572,8 +572,13 @@ describe("Main pages", () => {
 
                 await toggleUiColorsMenu(driver, "Base Colors", "open");
 
-                const foreground = await driver.findElement(By.css("#--foreground > div"));
+                let foreground = await driver.findElement(By.css("#--foreground > div"));
+                colors = await driver.findElements(By.css("#colorPadCell > div"));
                 await driver.executeScript(dragAndDrop, colors[1], foreground);
+                await driver.wait(until.stalenessOf(foreground), 3000, "foreground did not became stale");
+
+                await toggleUiColorsMenu(driver, "Base Colors", "open");
+                foreground = await driver.findElement(By.css("#--foreground > div"));
 
                 await foreground.click();
                 colorPopup = await driver.findElement(By.css(".colorPopup"));
@@ -605,7 +610,6 @@ describe("Main pages", () => {
                 }
 
                 await toggleUiColorsMenu(driver, "Base Colors", "open");
-                await driver.sleep(2000);
 
                 const focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
                 await focusBorder.click();
@@ -630,15 +634,27 @@ describe("Main pages", () => {
 
                 expect(colorPad0).toBe(refColor);
 
-                await toggleUiColorsMenu(driver, "Base Colors", "open");
+                await driver.wait(async() => {
+                    try {
+                        await toggleUiColorsMenu(driver, "Base Colors", "open");
+                        const foreground = await driver.findElement(By.css("#--foreground > div"));
+                        await foreground.click();
 
-                const foreground = await driver.findElement(By.css("#--foreground > div"));
-                await foreground.click();
+                        return (await driver.findElements(By.css(".colorPopup"))).length > 0;
+                    } catch (e) {
+                        return false;
+                    }
+
+                }, 3000, "Color pad was not opened");
+
                 colorPopup = await driver.findElement(By.css(".colorPopup"));
                 const foregroundColor = await (await colorPopup.findElement(By.id("hexValueInput")))
                     .getAttribute("value");
 
                 await colorPopup.findElement(By.id("hexValueInput")).sendKeys(Key.ESCAPE);
+
+                await toggleUiColorsMenu(driver, "Base Colors", "open");
+                const foreground = await driver.findElement(By.css("#--foreground > div"));
 
                 await driver.executeScript(dragAndDrop, foreground, colors[1]);
 
@@ -741,16 +757,12 @@ describe("Main pages", () => {
                 }
 
                 await toggleUiColorsMenu(driver, "Popup Colors", "open");
-
                 await driver.findElement(By.id("--popup-border")).click();
-
                 let element = await driver.findElement(By.css(".colorPopup"));
                 let elStyle = await getElementStyle(driver, element, "borderColor");
-
                 await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
                 await setThemeEditorColors(driver, "Popup Colors", "--popup-border", "luminanceInput", "84");
-
                 await driver.findElement(By.id("--popup-border")).click();
                 element = await driver.findElement(By.css(".colorPopup"));
 
@@ -759,12 +771,9 @@ describe("Main pages", () => {
                 await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
                 await toggleUiColorsMenu(driver, "Popup Colors", "open");
-
                 await driver.findElement(By.id("--popup-border")).click();
-
                 element = await driver.findElement(By.css(".colorPopup"));
                 elStyle = await getElementStyle(driver, element, "backgroundColor");
-
                 await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
                 await setThemeEditorColors(driver, "Popup Colors", "--popup-background", "luminanceInput", "84");
