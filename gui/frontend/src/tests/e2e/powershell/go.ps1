@@ -182,19 +182,9 @@ try{
     Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\results.log" -RedirectStandardError "$env:WORKSPACE\resultsErr.log"
     writeMsg "DONE"
 
-    #CHECK RESULTS
-    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsErr.log" | Select-String -Pattern "(\d+) failed" | % { $_.Matches.Groups[0].Value })
-    $hasPassedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsErr.log" | Select-String -Pattern "(\d+) passed" | % { $_.Matches.Groups[0].Value })
-
-    if( $hasFailedTests -or (!$hasFailedTests -and !$hasPassedTests) ){
-        $screenshots = Join-Path $basePath "src" "tests" "e2e" "screenshots" 
-        if( Test-Path $screenshots ){
-            $files = Get-ChildItem -Path $screenshots
-            writeMsg "Adding screenshots to html-report ($($files.Length))" "-NoNewLine"
-            Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-report" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\addScreenshots.log" -RedirectStandardError "$env:WORKSPACE\addScreenshotsErr.log"
-            writeMsg "DONE"
-        }
-    }
+    writeMsg "Running post actions" "-NoNewLine"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-report" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\postActions.log" -RedirectStandardError "$env:WORKSPACE\postActionsErr.log"
+    writeMsg "DONE"
 
     #CHECK RESULTS
     $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsErr.log" | Select-String -Pattern "(\d+) failed" | % { $_.Matches.Groups[0].Value })
