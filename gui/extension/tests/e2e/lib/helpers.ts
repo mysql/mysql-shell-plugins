@@ -42,6 +42,7 @@ import { expect } from "chai";
 import { keyboard, Key } from "@nut-tree/nut-js";
 import { ChildProcess, spawn, execSync } from "child_process";
 import { platform } from "os";
+import { resolve } from "path";
 let treeSection: DefaultTreeSection;
 
 export const moreActionsContextMenu = new Map<string, Number>([
@@ -211,6 +212,7 @@ export const selectContextMenuItem = async (driver: WebDriver,
         if (ctxMenuItems.length > 1) {
             await (await menu?.getItem(ctxMenuItems[1].trim()))!.select();
         }
+
     } else if (platform() === "darwin") {
         const el = await getTreeElement(driver, section, treeItem);
         await driver.actions()
@@ -295,10 +297,33 @@ export const getLeftSectionButton = async (driver: WebDriver,
 export const selectMoreActionsItem = async (driver: WebDriver,
     section: string, item: string): Promise<void> => {
 
+    const sec = await getLeftSection(driver, section);
+    await sec.click();
+
     const moreActionsBtn = await getLeftSectionButton(driver, section, "More Actions...");
-    await moreActionsBtn?.click();
-    await driver.sleep(500);
-    await selectItem(moreActionsContextMenu.get(item) as Number);
+    await moreActionsBtn.click();
+
+    await driver.wait(async () => {
+        const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+        shadowRoot.querySelector("span[aria-label='${item}']")`);
+
+        return el !== undefined;
+    }, 2000,
+    "More Actions Context menu was not displayed");
+
+    const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+            shadowRoot.querySelector("span[aria-label='${item}']")`);
+
+    await driver.wait(async () => {
+        try {
+            await el.click();
+        } catch(e) {
+            if (String(e).indexOf("StaleElementReferenceError") !== -1) {
+                return true;
+            }
+        }
+
+    }, 3000 ,"More Actions context menu is still displayed");
 };
 
 export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConnection): Promise<void> => {
@@ -604,6 +629,7 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
     const prevBlocks = await driver.findElements(By.css(".zoneHost"));
     await textArea.sendKeys(cmd);
     await textArea.sendKeys(key.ENTER);
+
     await pressEnter(driver);
 
     if (!timeout) {
@@ -694,7 +720,7 @@ export const waitForSystemDialog = async (driver: WebDriver, deleteCert?: boolea
         }
     })();
 
-    const isProcessRunning = (deleteCert?: boolean): boolean => {
+    const isProcessRunning = (deleteCert?: boolean): Promise<boolean> => {
         const result = execSync(String(cmd));
         const lines = String(result).split("\n");
         let search = "";
@@ -710,14 +736,14 @@ export const waitForSystemDialog = async (driver: WebDriver, deleteCert?: boolea
         }
         for (const line of lines) {
             if (line.indexOf(search) !== -1) {
-                return true;
+                return new Promise((resolve) => { resolve(true); });
             }
         }
 
-        return false;
+        return new Promise((resolve) => { resolve(false); });
     };
 
-    await driver.wait(() => {
+    await driver.wait(async () => {
         return isProcessRunning(deleteCert);
     }, 10000, "system dialog was not displayed");
 };

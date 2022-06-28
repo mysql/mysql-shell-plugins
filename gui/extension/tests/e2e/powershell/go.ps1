@@ -70,6 +70,11 @@ try{
     else{
         writeMsg "DONE"
     }
+
+    writeMsg "Removing Plugin database..." "-NoNewLine"
+    $dbLocation = Join-Path $HOME, "AppData", "Roaming", "MySQL", "mysqlsh-gui", "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"
+    Remove-Item -Path $dbLocation -Force
+    writeMsg "DONE"
 	
 	writeMsg "Setup noproxy..." "-NoNewLine"
     $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
