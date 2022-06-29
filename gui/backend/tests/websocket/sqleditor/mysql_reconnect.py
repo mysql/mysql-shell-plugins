@@ -154,21 +154,23 @@ ws.sendAndValidate({
             "request_state": { "type": "PENDING", "msg": "Execution started..." }
         },
         {
-            "request_state": {"type": "OK", "msg": "Full result set consisting of 2 rows transferred."},
+            "request_state": {"type": "OK", "msg": ""},
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [[ws.ignore, ws.ignore], [ws.ignore, ws.ignore]],
-            "columns": [
-                {"name": "Id", "type": "UINTEGER", "length": ws.ignore},
-                {"name": "STATE", "type": "STRING", "length": 256}
-            ],
-            "done": True,
-            "total_row_count": 2,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [[ws.ignore, ws.ignore]],
+                "columns": [
+                    {"name": "Id", "type": "UINTEGER", "length": ws.ignore},
+                    {"name": "STATE", "type": "STRING", "length": 256}
+                ],
+                "done": True,
+                "total_row_count": ws.matchRegexp("\\d+"),
+                "execution_time": ws.ignore
+            }
         }
     ]
 )
 
-for row in ws.lastResponse["rows"]:
+for row in ws.lastResponse["result"]["rows"]:
     if row[1] == "executing":
         user_session_id1 = row[0]
     else:
@@ -190,12 +192,14 @@ ws.sendAndValidate({
             "request_state": { "type": "PENDING", "msg": "Execution started..." }
         },
         {
-            "request_state": {
-                "type": "ERROR",
-                "msg": "ClassicSession.run_sql: Query execution was interrupted",
-                "source": "MYSQL",
-                "code": 1317,
-                "sqlstate": None
+            "result": {
+                "request_state": {
+                    "type": "ERROR",
+                    "msg": "ClassicSession.run_sql: Query execution was interrupted",
+                    "source": "MYSQL",
+                    "code": 1317,
+                    "sqlstate": None
+                }
             },
             "request_id": ws.lastGeneratedRequestId
         }
@@ -218,12 +222,14 @@ ws.sendAndValidate({
             "request_state": { "type": "PENDING", "msg": "Execution started..." }
         },
         {
-            "request_state": {
-                "type": "ERROR",
-                "msg": "ClassicSession.run_sql: Lost connection to MySQL server during query",
-                "source": "MYSQL",
-                "code": 2013,
-                "sqlstate": None
+            "result": {
+                "request_state": {
+                    "type": "ERROR",
+                    "msg": "ClassicSession.run_sql: Lost connection to MySQL server during query",
+                    "source": "MYSQL",
+                    "code": 2013,
+                    "sqlstate": None
+                }
             },
             "request_id": ws.lastGeneratedRequestId
         }
@@ -269,13 +275,15 @@ ws.sendAndValidate({
             "request_state": { "type": "PENDING", "msg": "Execution started..." }
         },
         {
-            "request_state": {"type": "OK", "msg": "Full result set consisting of 1 row transferred."},
+            "request_state": {"type": "OK", "msg": ""},
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [[1]],
-            "columns": [{"name": "result", "type": "INTEGER", "length": ws.ignore}],
-            "done": True,
-            "total_row_count": 1,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [[1]],
+                "columns": [{"name": "result", "type": "INTEGER", "length": ws.ignore}],
+                "done": True,
+                "total_row_count": 1,
+                "execution_time": ws.ignore
+            }
         }
     ]
 )
@@ -296,21 +304,23 @@ ws.sendAndValidate({
             "request_state": { "type": "PENDING", "msg": "Execution started..." }
         },
         {
-            "request_state": {"type": "OK", "msg": "Full result set consisting of 2 rows transferred."},
+            "request_state": {"type": "OK", "msg": ""},
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [[ws.ignore, ws.ignore], [ws.ignore, ws.ignore]],
-            "columns": [
-                {"name": "Id", "type": "UINTEGER", "length": ws.ignore},
-                {"name": "STATE", "type": "STRING", "length": 256}
-            ],
-            "done": True,
-            "total_row_count": 2,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [[ws.ignore, ws.ignore]],
+                "columns": [
+                    {"name": "Id", "type": "UINTEGER", "length": ws.ignore},
+                    {"name": "STATE", "type": "STRING", "length": 256}
+                ],
+                "done": True,
+                "total_row_count": ws.matchRegexp("\\d+"),
+                "execution_time": ws.ignore
+            }
         }
     ]
 )
 
-for row in ws.lastResponse["rows"]:
+for row in ws.lastResponse["result"]["rows"]:
     if row[1] == "executing":
         user_session_id2 = row[0]
     else:
@@ -336,12 +346,14 @@ ws.sendAndValidate({
             "request_state": { "type": "PENDING", "msg": "Execution started..." }
         },
         {
-            "request_state": {"type": "OK", "msg": "Full result set consisting of 0 rows transferred."},
+            "request_state": {"type": "OK", "msg": ""},
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [],
-            "done": True,
-            "total_row_count": 0,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [],
+                "done": True,
+                "total_row_count": 0,
+                "execution_time": ws.ignore
+            }
         }
     ]
 )
@@ -385,21 +397,23 @@ ws.sendAndValidate({
             "request_state": { "type": "PENDING", "msg": "Execution started..." }
         },
         {
-            "request_state": {"type": "OK", "msg": "Full result set consisting of 2 rows transferred."},
+            "request_state": {"type": "OK", "msg": ""},
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [[ws.ignore, ws.ignore], [ws.ignore, ws.ignore]],
-            "columns": [
-                {"name": "Id", "type": "UINTEGER", "length": ws.ignore},
-                {"name": "STATE", "type": "STRING", "length": 256}
-            ],
-            "done": True,
-            "total_row_count": 2,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [[ws.ignore, ws.ignore]],
+                "columns": [
+                    {"name": "Id", "type": "UINTEGER", "length": ws.ignore},
+                    {"name": "STATE", "type": "STRING", "length": 256}
+                ],
+                "done": True,
+                "total_row_count": ws.matchRegexp("\\d+"),
+                "execution_time": ws.ignore
+            }
         }
     ]
 )
 
-for row in ws.lastResponse["rows"]:
+for row in ws.lastResponse["result"]["rows"]:
     if row[1] == "executing":
         user_session_id3 = row[0]
     else:
@@ -407,4 +421,4 @@ for row in ws.lastResponse["rows"]:
 
 
 assert user_session_id3 == user_session_id2
-assert service_session_id3 > service_session_id2
+#assert service_session_id3 > service_session_id2

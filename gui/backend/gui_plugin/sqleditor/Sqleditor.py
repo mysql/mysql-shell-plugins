@@ -20,8 +20,8 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-from gui_plugin.core.Protocols import Response
 from gui_plugin.sqleditor.SqleditorModuleSession import SqleditorModuleSession
+from gui_plugin.db import backend
 
 
 @plugin_function('gui.sqleditor.isGuiModuleBackend', web=True)
@@ -103,14 +103,13 @@ def reconnect(module_session):
     module_session.reconnect()
 
 
-@plugin_function('gui.sqleditor.execute', shell=False, web=True)
-def execute(sql, module_session, request_id, params=None, options=None):
+@plugin_function('gui.sqleditor.execute', shell=True, web=True)
+def execute(session, sql, params=None, options=None):
     """Executes the given SQL.
 
     Args:
+        session (object): The session used to execute the operation
         sql (str): The sql command to execute.
-        module_session (object): The module session object the function should operate on
-        request_id (str): The request_id of the command.
         params (list): The parameters for the sql command.
         options (dict): A dictionary that holds additional options, e.g.
             {"row_packet_size": -1}
@@ -121,8 +120,8 @@ def execute(sql, module_session, request_id, params=None, options=None):
     Returns:
         A dict holding the result message
     """
-    module_session.execute(sql=sql, request_id=request_id, params=params,
-                           options=options)
+    session = backend.get_db_session(session)
+    return session.execute(sql=sql, params=params, options=options)
 
 
 @plugin_function('gui.sqleditor.killQuery', shell=False, web=True)
@@ -138,60 +137,59 @@ def kill_query(module_session):
     module_session.kill_query()
 
 
-@plugin_function('gui.sqleditor.getCurrentSchema', shell=False, web=True)
-def get_current_schema(module_session, request_id):
+@plugin_function('gui.sqleditor.getCurrentSchema', shell=True, web=True)
+def get_current_schema(session):
     """Requests the current schema for this module.
 
     Args:
-        module_session (object): The module session object where to get the current schema from
-        request_id (str): The request_id of the command.
+        session (object): The session used to execute the operation
 
     Returns:
         Nothing
     """
-    module_session.get_current_schema(request_id=request_id)
+    session = backend.get_db_session(session)
+    return session.get_current_schema()
 
 
-@plugin_function('gui.sqleditor.setCurrentSchema', shell=False, web=True)
-def set_current_schema(module_session, request_id, schema_name):
+@plugin_function('gui.sqleditor.setCurrentSchema', shell=True, web=True)
+def set_current_schema(session, schema_name):
     """Requests to change the current schema for this module.
 
     Args:
-        module_session (object): The module session object where to update the current schema
-        request_id (str): The request_id of the command.
+        session (object): The session used to execute the operation
         schema_name (str): The name of the schema to use
 
     Returns:
         Nothing
     """
-    module_session.set_current_schema(
-        request_id=request_id, schema_name=schema_name)
+    session = backend.get_db_session(session)
+    session.set_current_schema(schema_name=schema_name)
 
 
-@plugin_function('gui.sqleditor.getAutoCommit', shell=False, web=True)
-def get_auto_commit(module_session, request_id):
+@plugin_function('gui.sqleditor.getAutoCommit', shell=True, web=True)
+def get_auto_commit(session):
     """Requests the auto-commit status for this module.
 
     Args:
-        module_session (object): The module session object where to get the current schema from
-        request_id (str): The request_id of the command.
+        session (object): The session used to execute the operation
 
     Returns:
         Nothing
     """
-    module_session.get_auto_commit(request_id=request_id)
+    session = backend.get_db_session(session)
+    return session.get_auto_commit()
 
 
-@plugin_function('gui.sqleditor.setAutoCommit', shell=False, web=True)
-def set_auto_commit(module_session, request_id, state):
+@plugin_function('gui.sqleditor.setAutoCommit', shell=True, web=True)
+def set_auto_commit(session, state):
     """Requests to change the auto-commit status for this module.
 
     Args:
-        module_session (object): The module session object where to update the current schema
-        request_id (str): The request_id of the command.
+        session (object): The session used to execute the operation
         state (bool): The auto-commit state to set for the module session
 
     Returns:
         Nothing
     """
-    module_session.set_auto_commit(request_id=request_id, state=state)
+    session = backend.get_db_session(session)
+    return session.set_auto_commit(state=state)

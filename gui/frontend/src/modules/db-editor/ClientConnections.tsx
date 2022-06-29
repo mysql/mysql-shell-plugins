@@ -581,7 +581,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         return new Promise((resolve, reject) => {
             backend.execute("select @@performance_schema").then((event: ICommResultSetEvent) => {
                 if (event.eventType === EventType.FinalResponse) {
-                    if (event.data.rows?.[0]) {
+                    if (event.data.result.rows?.[0]) {
                         resolve(true);
                     } else {
                         resolve(true);
@@ -623,8 +623,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         backend.execute(query).then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                this.columns = generateColumnInfo(DBType.MySQL, event.data.columns);
-                const rows = convertRows(this.columns, event.data.rows);
+                this.columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
+                const rows = convertRows(this.columns, event.data.result.rows);
                 const resultSet = {
                     head: {
                         requestId: event.data.requestId ?? "",
@@ -806,8 +806,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             ` WHERE processlist_id = ${id} ORDER BY ORDINAL_POSITION`;
         backend.execute(query).then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                this.attrColumns = generateColumnInfo(DBType.MySQL, event.data.columns);
-                const rows = convertRows(this.attrColumns, event.data.rows);
+                this.attrColumns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
+                const rows = convertRows(this.attrColumns, event.data.result.rows);
                 const resultSet = {
                     head: {
                         requestId: event.data.requestId ?? "",
@@ -831,8 +831,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         const query = `SELECT * FROM performance_schema.metadata_locks WHERE owner_thread_id = ${id}`;
         backend.execute(query).then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.columns);
-                const rows = convertRows(columns, event.data.rows);
+                const columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
+                const rows = convertRows(columns, event.data.result.rows);
                 const statusField = columns.find((x) => { return x.title === "LOCK_STATUS"; });
                 const typeField = columns.find((x) => { return x.title === "OBJECT_TYPE"; });
                 const schemaField = columns.find((x) => { return x.title === "OBJECT_SCHEMA"; });
@@ -880,8 +880,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             `WHERE ${subQuery} AND LOCK_STATUS = 'GRANTED'`;
         backend.execute(query).then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.columns);
-                const rows = convertRows(columns, event.data.rows);
+                const columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
+                const rows = convertRows(columns, event.data.result.rows);
                 const owners: string[] = [];
                 rows.forEach((item) => {
                     owners.push(item.ownerThreadId as string);
@@ -900,7 +900,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         });
     };
 
-    private generateGrantedLocksInfo = (subQuery: string,  type: string, duration: string,
+    private generateGrantedLocksInfo = (subQuery: string, type: string, duration: string,
         objectName: string): void => {
         const { backend } = this.props;
 
@@ -908,8 +908,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             `FROM performance_schema.metadata_locks WHERE ${subQuery} AND LOCK_STATUS = 'PENDING'`;
         backend.execute(query).then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.columns);
-                const rows = convertRows(columns, event.data.rows);
+                const columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
+                const rows = convertRows(columns, event.data.result.rows);
                 rows.unshift({ threadId: objectName, type, duration });
 
                 const resultSet = {

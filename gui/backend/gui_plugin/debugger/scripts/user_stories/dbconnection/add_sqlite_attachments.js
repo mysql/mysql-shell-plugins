@@ -180,25 +180,27 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "OK",
-            "msg": "Full result set consisting of 3 rows transferred."
+            "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "columns": [{"name": "seq", "type": "int"},
-                    {"name": "name", "type": "str"},
-                    {"name": "file", "type": "str"}],
-        "rows": ws.matchList([
-            [
-                0, 'main', ws.ignore
-            ],
-            [
-                2, "schema2", ws.ignore
-            ],
-            [
-                3, "schema3", ws.ignore
-            ]
-        ]),
-        "total_row_count": 3,
-        "execution_time": ws.ignore
+        "result": {
+            "columns": [{"name": "seq", "type": "int"},
+                        {"name": "name", "type": "str"},
+                        {"name": "file", "type": "str"}],
+            "rows": ws.matchList([
+                [
+                    0, 'main', ws.ignore
+                ],
+                [
+                    2, "schema2", ws.ignore
+                ],
+                [
+                    3, "schema3", ws.ignore
+                ]
+            ]),
+            "total_row_count": 3,
+            "execution_time": ws.ignore
+        }
     }
 ])
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,18 +20,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import uuid
-
-
-def cancellable(func):
-    def wrapper(self, *args, **kwargs):
-        # We have to ignore functions that not contains request_id
-        # like "--init--" in Shell module
-        if 'request_id' in kwargs:
-            self.web_session.register_module_request(
-                kwargs['request_id'], self.module_session_id)
-        return func(self, *args, **kwargs)
-    return wrapper
-
+from gui_plugin.core.Context import get_context
 
 class ModuleSession():
     def __init__(self, web_session):

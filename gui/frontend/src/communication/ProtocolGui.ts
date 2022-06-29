@@ -77,6 +77,16 @@ export enum ShellAPIGui {
     GuiShellExecute = "gui.shell.execute",
     GuiShellComplete = "gui.shell.complete",
     GuiShellKillTask = "gui.shell.kill_task",
+    GuiDbGetObjectsTypes = "gui.db.get_objects_types",
+    GuiDbGetCatalogObjectNames = "gui.db.get_catalog_object_names",
+    GuiDbGetSchemaObjectNames = "gui.db.get_schema_object_names",
+    GuiDbGetTableObjectNames = "gui.db.get_table_object_names",
+    GuiDbGetCatalogObject = "gui.db.get_catalog_object",
+    GuiDbGetSchemaObject = "gui.db.get_schema_object",
+    GuiDbGetTableObject = "gui.db.get_table_object",
+    GuiDbStartSession = "gui.db.start_session",
+    GuiDbCloseSession = "gui.db.close_session",
+    GuiDbReconnect = "gui.db.reconnect",
     GuiSqleditorIsGuiModuleBackend = "gui.sqleditor.is_gui_module_backend",
     GuiSqleditorGetGuiModuleDisplayInfo = "gui.sqleditor.get_gui_module_display_info",
     GuiSqleditorStartSession = "gui.sqleditor.start_session",
@@ -135,16 +145,6 @@ export enum ShellAPIGui {
     GuiModulesGetUserGroupDataTree = "gui.modules.get_user_group_data_tree",
     GuiModulesGetProfileTreeIdentifiers = "gui.modules.get_profile_tree_identifiers",
     GuiModulesMoveData = "gui.modules.move_data",
-    GuiDbGetObjectsTypes = "gui.db.get_objects_types",
-    GuiDbGetCatalogObjectNames = "gui.db.get_catalog_object_names",
-    GuiDbGetSchemaObjectNames = "gui.db.get_schema_object_names",
-    GuiDbGetTableObjectNames = "gui.db.get_table_object_names",
-    GuiDbGetCatalogObject = "gui.db.get_catalog_object",
-    GuiDbGetSchemaObject = "gui.db.get_schema_object",
-    GuiDbGetTableObject = "gui.db.get_table_object",
-    GuiDbStartSession = "gui.db.start_session",
-    GuiDbCloseSession = "gui.db.close_session",
-    GuiDbReconnect = "gui.db.reconnect",
     GuiInfo = "gui.info",
     GuiVersion = "gui.version",
     //  End auto generated API names
@@ -828,6 +828,216 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
+     * Returns the database objects supported by a DBMS
+     *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
+     *
+     * @returns object: The list of the database objects
+     */
+    public static getRequestDbGetObjectsTypes(moduleSessionId: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetObjectsTypes,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                },
+            });
+    }
+
+    /**
+     * Returns the names of the existing objects of the given     type. If a filter is provided, only the names matching the given filter will be returned.
+     *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
+     * @param type the catalog object type
+     * @param filter object filter
+     *
+     * @returns object: The list of names
+     */
+    public static getRequestDbGetCatalogObjectNames(moduleSessionId: string, type: string, filter = "%"): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetCatalogObjectNames,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                    type,
+                    filter,
+                },
+            });
+    }
+
+    /**
+     * Returns the names of the existing objects of the given type in the given     schema that match the provided filter.
+     *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
+     * @param type the schema object type
+     * @param schemaName schema name
+     * @param filter object filter
+     * @param routineType type of the routine ['procedure'|'function']
+     *
+     * @returns object: The list of names
+     */
+    public static getRequestDbGetSchemaObjectNames(moduleSessionId: string, type: string, schemaName: string, filter = "%", routineType?: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetSchemaObjectNames,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                    type,
+                    schema_name: schemaName,
+                    filter,
+                    routine_type: routineType,
+                },
+            });
+    }
+
+    /**
+     * Returns the names of the existing objects of the given type in the given     table that match the provided filter.
+     *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
+     * @param type the table object type
+     * @param schemaName schema name
+     * @param tableName table name
+     * @param filter object filter
+     *
+     * @returns object: The list of names
+     */
+    public static getRequestDbGetTableObjectNames(moduleSessionId: string, type: string, schemaName: string, tableName: string, filter = "%"): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetTableObjectNames,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                    type,
+                    schema_name: schemaName,
+                    table_name: tableName,
+                    filter,
+                },
+            });
+    }
+
+    /**
+     * Returns a JSON representation of the object matching the given type and name.
+     *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
+     * @param type the catalog object type
+     * @param name object name
+     *
+     * @returns object: The catalog object
+     */
+    public static getRequestDbGetCatalogObject(moduleSessionId: string, type: string, name: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetCatalogObject,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                    type,
+                    name,
+                },
+            });
+    }
+
+    /**
+     * Returns a JSON representation of the schema object matching the given type, schema and name.
+     *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
+     * @param type the database object type
+     * @param schemaName schema name
+     * @param name object name
+     *
+     * @returns object: The database object
+     */
+    public static getRequestDbGetSchemaObject(moduleSessionId: string, type: string, schemaName: string, name: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetSchemaObject,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                    type,
+                    schema_name: schemaName,
+                    name,
+                },
+            });
+    }
+
+    /**
+     * Returns a JSON representation of the table object matching the given type, schema, table and name.
+     *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
+     * @param type the database object type
+     * @param schemaName schema name
+     * @param tableName table name
+     * @param name object name
+     *
+     * @returns object: The database object
+     */
+    public static getRequestDbGetTableObject(moduleSessionId: string, type: string, schemaName: string, tableName: string, name: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetTableObject,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                    type,
+                    schema_name: schemaName,
+                    table_name: tableName,
+                    name,
+                },
+            });
+    }
+
+    /**
+     * Starts a DB Session
+     *
+     * @param connection The id of the db_connection or connection information
+     * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
+     *
+     * @returns A dict holding the result message
+     */
+    public static getRequestDbStartSession(connection: IShellDbConnection | number, password?: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbStartSession,
+            {
+                args: {
+                    connection: typeof connection === "number" ? connection : convertCamelToSnakeCase(connection),
+                    password,
+                },
+            });
+    }
+
+    /**
+     * Closes the DB Session
+     *
+     * @param moduleSessionId The string id for the module session object that should be closed
+     *
+     * @returns A dict holding the result message
+     */
+    public static getRequestDbCloseSession(moduleSessionId: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbCloseSession,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                },
+            });
+    }
+
+    /**
+     * Reconnects the DB Session
+     *
+     * @param moduleSessionId The session where the session will be reconnected
+     *
+     * @returns A dict holding the result message and the connection information     when available.
+     */
+    public static getRequestDbReconnect(moduleSessionId: string): IShellRequest {
+
+        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbReconnect,
+            {
+                args: {
+                    module_session_id: moduleSessionId,
+                },
+            });
+    }
+
+    /**
      * Indicates whether this module is a GUI backend module
      *
      * @returns True
@@ -924,14 +1134,14 @@ export class ProtocolGui extends Protocol {
     /**
      * Executes the given SQL.
      *
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      * @param sql The sql command to execute.
-     * @param moduleSessionId The string id for the module session object the function should operate on
      * @param params The parameters for the sql command.
      * @param options A dictionary that holds additional options, e.g. {"row_packet_size": -1}
      *
      * @returns A dict holding the result message
      */
-    public static getRequestSqleditorExecute(sql: string, moduleSessionId: string, params?: unknown[], options?: IShellQueryOptions): IShellRequest {
+    public static getRequestSqleditorExecute(moduleSessionId: string, sql: string, params?: unknown[], options?: IShellQueryOptions): IShellRequest {
 
         let optionsToUse;
         if (options) {
@@ -943,8 +1153,8 @@ export class ProtocolGui extends Protocol {
         return Protocol.getRequestCommandExecute(ShellAPIGui.GuiSqleditorExecute,
             {
                 args: {
-                    sql,
                     module_session_id: moduleSessionId,
+                    sql,
                     params,
                     options: optionsToUse,
                 },
@@ -971,7 +1181,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Requests the current schema for this module.
      *
-     * @param moduleSessionId The string id for the module session object where to get the current schema from
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      *
      * @returns Nothing
      */
@@ -988,7 +1198,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Requests to change the current schema for this module.
      *
-     * @param moduleSessionId The string id for the module session object where to update the current schema
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      * @param schemaName The name of the schema to use
      *
      * @returns Nothing
@@ -1007,7 +1217,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Requests the auto-commit status for this module.
      *
-     * @param moduleSessionId The string id for the module session object where to get the current schema from
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      *
      * @returns Nothing
      */
@@ -1024,7 +1234,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Requests to change the auto-commit status for this module.
      *
-     * @param moduleSessionId The string id for the module session object where to update the current schema
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      * @param state The auto-commit state to set for the module session
      *
      * @returns Nothing
@@ -1896,216 +2106,6 @@ export class ProtocolGui extends Protocol {
                     link_id: linkId,
                     source_path: sourcePath,
                     target_path: targetPath,
-                },
-            });
-    }
-
-    /**
-     * Returns the database objects supported by a DBMS
-     *
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
-     *
-     * @returns object: The list of the database objects
-     */
-    public static getRequestDbGetObjectsTypes(moduleSessionId: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetObjectsTypes,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                },
-            });
-    }
-
-    /**
-     * Returns the names of the existing objects of the given     type. If a filter is provided, only the names matching the given filter will be returned.
-     *
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
-     * @param type the catalog object type
-     * @param filter object filter
-     *
-     * @returns object: The list of names
-     */
-    public static getRequestDbGetCatalogObjectNames(moduleSessionId: string, type: string, filter = "%"): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetCatalogObjectNames,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                    type,
-                    filter,
-                },
-            });
-    }
-
-    /**
-     * Returns the names of the existing objects of the given type in the given     schema that match the provided filter.
-     *
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
-     * @param type the schema object type
-     * @param schemaName schema name
-     * @param filter object filter
-     * @param routineType type of the routine ['procedure'|'function']
-     *
-     * @returns object: The list of names
-     */
-    public static getRequestDbGetSchemaObjectNames(moduleSessionId: string, type: string, schemaName: string, filter = "%", routineType?: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetSchemaObjectNames,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                    type,
-                    schema_name: schemaName,
-                    filter,
-                    routine_type: routineType,
-                },
-            });
-    }
-
-    /**
-     * Returns the names of the existing objects of the given type in the given     table that match the provided filter.
-     *
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
-     * @param type the table object type
-     * @param schemaName schema name
-     * @param tableName table name
-     * @param filter object filter
-     *
-     * @returns object: The list of names
-     */
-    public static getRequestDbGetTableObjectNames(moduleSessionId: string, type: string, schemaName: string, tableName: string, filter = "%"): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetTableObjectNames,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                    type,
-                    schema_name: schemaName,
-                    table_name: tableName,
-                    filter,
-                },
-            });
-    }
-
-    /**
-     * Returns a JSON representation of the object matching the given type and name.
-     *
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
-     * @param type the catalog object type
-     * @param name object name
-     *
-     * @returns object: The catalog object
-     */
-    public static getRequestDbGetCatalogObject(moduleSessionId: string, type: string, name: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetCatalogObject,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                    type,
-                    name,
-                },
-            });
-    }
-
-    /**
-     * Returns a JSON representation of the schema object matching the given type, schema and name.
-     *
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
-     * @param type the database object type
-     * @param schemaName schema name
-     * @param name object name
-     *
-     * @returns object: The database object
-     */
-    public static getRequestDbGetSchemaObject(moduleSessionId: string, type: string, schemaName: string, name: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetSchemaObject,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                    type,
-                    schema_name: schemaName,
-                    name,
-                },
-            });
-    }
-
-    /**
-     * Returns a JSON representation of the table object matching the given type, schema, table and name.
-     *
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
-     * @param type the database object type
-     * @param schemaName schema name
-     * @param tableName table name
-     * @param name object name
-     *
-     * @returns object: The database object
-     */
-    public static getRequestDbGetTableObject(moduleSessionId: string, type: string, schemaName: string, tableName: string, name: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbGetTableObject,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                    type,
-                    schema_name: schemaName,
-                    table_name: tableName,
-                    name,
-                },
-            });
-    }
-
-    /**
-     * Starts a DB Session
-     *
-     * @param connection The id of the db_connection or connection information
-     * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
-     *
-     * @returns A dict holding the result message
-     */
-    public static getRequestDbStartSession(connection: IShellDbConnection | number, password?: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbStartSession,
-            {
-                args: {
-                    connection: typeof connection === "number" ? connection : convertCamelToSnakeCase(connection),
-                    password,
-                },
-            });
-    }
-
-    /**
-     * Closes the DB Session
-     *
-     * @param moduleSessionId The string id for the module session object that should be closed
-     *
-     * @returns A dict holding the result message
-     */
-    public static getRequestDbCloseSession(moduleSessionId: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbCloseSession,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
-                },
-            });
-    }
-
-    /**
-     * Reconnects the DB Session
-     *
-     * @param moduleSessionId The session where the session will be reconnected
-     *
-     * @returns A dict holding the result message and the connection information     when available.
-     */
-    public static getRequestDbReconnect(moduleSessionId: string): IShellRequest {
-
-        return Protocol.getRequestCommandExecute(ShellAPIGui.GuiDbReconnect,
-            {
-                args: {
-                    module_session_id: moduleSessionId,
                 },
             });
     }

@@ -25,7 +25,7 @@ import * as React from "react";
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
-    IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, DBDataType, IExecutionInfo,
+    IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, IExecutionInfo, uriPattern,
 } from "../../app-logic/Types";
 
 import {
@@ -469,38 +469,37 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             columns.push(...generateColumnInfo(
                                 context.language === "mysql" ? DBType.MySQL : DBType.Sqlite, rawColumns, true));
                         } else if (this.isShellShellRowData(result)) {
-                            // Some APIs return rows, which are not result sets (have no keys). Print them
-                            // as simple results.
-                            if (result.rows.length === 0 || typeof result.rows[0] !== "object") {
-                                let text = "";
-                                if (result.rows.length > 0) {
-                                    text = "[\n";
-                                    result.rows.forEach((value) => {
-                                        text += `\t${String(value)}\n`;
-                                    });
-                                    text += "]";
-                                }
-                                if (text !== "") {
-                                    text += "\n";
-                                }
+                            // If we have column info at this point then we got SQL mode results (show the result grid).
+                            // Otherwise display the result as JSON text.
+                            if (!result.hasData || columns.length === 0) {
                                 const resultText = result.warningCount > 0 ?
                                     `finished with warnings (${result.warningCount})` : "OK";
-                                text += `Query ${resultText}, ${result.affectedRowCount ?? 0} row affected ` +
-                                    `(${result.executionTime})`;
+                                const info = `Query ${resultText}, ${result.affectedRowCount || result.rows.length} ` +
+                                    `rows affected (${result.executionTime})`;
 
-                                addResultData({
-                                    type: "text",
-                                    requestId: event.data.requestId,
-                                    text: [{
-                                        type: MessageType.Info,
-                                        index,
-                                        content: text,
-                                        language: "xml",
-                                    }],
-                                    executionInfo: { text: "OK" },
-                                });
+                                // If we have data show it as result otherwise only the execution info.
+                                if (result.hasData) {
+                                    const content = JSON.stringify(result.rows, undefined, "\t") + "\n";
+
+                                    addResultData({
+                                        type: "text",
+                                        requestId: event.data.requestId,
+                                        text: [{
+                                            type: MessageType.Info,
+                                            index,
+                                            content,
+                                            language: "json",
+                                        }],
+                                        executionInfo: { type: MessageType.Response, text: info },
+                                    });
+                                } else {
+                                    addResultData({
+                                        type: "text",
+                                        requestId: event.data.requestId,
+                                        executionInfo: { type: MessageType.Info, text: info },
+                                    });
+                                }
                             } else {
-
                                 const rowString = result.rows.length === 1 ? "row" : "rows";
                                 const status = {
                                     type: MessageType.Info,
@@ -517,21 +516,6 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 result.rows.forEach((value) => {
                                     flattenObject(value as IDictionary);
                                 });
-
-                                // XXX: temporary workaround: create generic columns from data.
-                                // Column info should actually be return in the columns meta data response above.
-                                if (columns.length === 0 && result.rows.length > 0) {
-                                    const row = result.rows[0] as object;
-                                    Object.keys(row).forEach((value, index) => {
-                                        columns.push({
-                                            title: value,
-                                            field: String(index),
-                                            dataType: {
-                                                type: DBDataType.String,
-                                            },
-                                        });
-                                    });
-                                }
 
                                 const rows = convertRows(columns, result.rows);
 
@@ -747,7 +731,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             }
 
 
-                            // Prompt needs to be updated the first time a descriptio
+                            // Prompt needs to be updated the first time a descriptor comes in.
                             let refreshRequired = !savedState.promptDescriptor
                                 || newSessionRequired
                                 || (hadOpenSession !== needsOpenSession);
@@ -912,21 +896,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         const { savedState } = this.props;
 
         if (savedState.lastCommand) {
-            // Expression to handle URI strings defined as [mysql[x]://]user[:password]@host[:port]
-            // Considering the URI notation as specified in RFC3986
-            // Grouping positions return:
-            // 0 - Full Match
-            // 2 - Scheme
-            // 4 - User
-            // 6 - Password
-            // 8 - Host
-            // 9 - Port
-            // eslint-disable-next-line max-len
-            const uriRegexp = /((mysql(x)?):\/\/)?([\w\.\-~!$&'\(\)\*\+,;=%]+)(:([\w\.\-~!$&'\(\)\*\+,;=%]*))?(@)([\w\.\-~!$&'\(\)\*\+,;=]+)(:(\d+))?/g;
-            const matches = [...savedState.lastCommand.matchAll(uriRegexp)];
+            const matches = [...savedState.lastCommand.matchAll(uriPattern)];
 
             // Tests for the mandatory fields in case password is present in the URI
-            if (matches && matches[0][4] && matches[0][6] && matches[0][8]) {
+            if (matches[0] && matches[0][4] && matches[0][6] && matches[0][8]) {
                 // At this point, we know the connection string has a valid URI inside
                 // However, the password might be percent encoded
                 return decodeURIComponent(matches[0][6]);

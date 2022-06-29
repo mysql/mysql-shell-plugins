@@ -114,15 +114,17 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "OK",
-            "msg": "Full result set consisting of 1 row transferred."
+            "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "columns": [{"name": "seq", "type": "int"},
-                    {"name": "name", "type": "str"},
-                    {"name": "file", "type": "str"}],
-        "rows": ws.ignore,
-        "total_row_count": 1,
-        "execution_time": ws.ignore
+        "result": {
+            "columns": [{"name": "seq", "type": "int"},
+                        {"name": "name", "type": "str"},
+                        {"name": "file", "type": "str"}],
+            "rows": ws.ignore,
+            "total_row_count": 1,
+            "execution_time": ws.ignore
+        }
     }
 ])
 

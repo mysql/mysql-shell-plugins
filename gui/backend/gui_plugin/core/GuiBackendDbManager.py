@@ -133,7 +133,7 @@ class BackendSqliteDbManager(BackendDbManager):
         session_id = f"BackendDB-" + \
             "anonymous" if self._web_session is None else self._web_session.session_uuid
         return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options,
-                                       None, True, None, None, None, None, None, None)
+                                       None, True, None, None, None, None, None)
 
     def current_database_exist(self):
         return path.isfile(self._connection_options["db_file"])

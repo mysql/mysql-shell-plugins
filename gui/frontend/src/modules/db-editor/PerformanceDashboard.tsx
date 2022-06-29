@@ -994,7 +994,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
                         "\"InnoDB\".\"LSN_checkpoint\"' FROM performance_schema.log_status")
                         .then((event: ICommResultSetEvent) => {
                             if (event.eventType === EventType.FinalResponse && event.data.rows) {
-                                const row = event.data.rows?.[0] as number[];
+                                const row = event.data.result.rows?.[0] as number[];
                                 this.updateData(variables, row[0]);
                             }
                         }).catch(() => {

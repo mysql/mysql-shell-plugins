@@ -86,10 +86,12 @@ export interface IAddConnectionData extends IGenericResponse {
 export type IResultSetStateData = IGenericResponse;
 
 export interface IResultSetData extends IGenericResponse {
-    executionTime?: number;
-    rows?: unknown[];
-    columns?: Array<{ name: string; type: string; length: number }>;
-    totalRowCount?: number;
+    result: {
+        executionTime?: number;
+        rows?: unknown[];
+        columns?: Array<{ name: string; type: string; length: number }>;
+        totalRowCount?: number;
+    };
 }
 
 export interface IProfileListData extends IGenericResponse {

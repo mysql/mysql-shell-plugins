@@ -223,27 +223,30 @@ class DbSqliteSession(DbSession):
     def get_default_schema(self):
         return self._default_schema
 
-    def get_current_schema(self, request_id, callback=None, options=None):
-        # In SQLITE, 'main' is always the default database
-        callback("OK", "", request_id, self._current_schema)
+    def get_current_schema(self, callback=None, options=None):
+        return self._current_schema
 
     def set_active_schema(self, schema_name):
         self.conn.close()
         self._current_schema = schema_name
         self._do_open_database(False)
 
-    def set_current_schema(self, request_id, schema_name, callback=None, options=None):
+    def set_current_schema(self, schema_name, callback=None, options=None):
         if options is None:
             options = {}
         options['__new_current_schema__'] = schema_name
-        self.add_task(SqliteSetCurrentSchemaTask(self, request_id, params=[
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteSetCurrentSchemaTask(self, task_id, params=[
                       schema_name], result_callback=callback, options=options))
 
-    def get_auto_commit(self, request_id, callback=None, options=None):
-        self.add_task(SqliteGetAutoCommit(self, request_id,
+    def get_auto_commit(self, callback=None, options=None):
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteGetAutoCommit(self, task_id,
                                           result_callback=callback, options=options))
 
-    def set_auto_commit(self, request_id, state, callback=None, options=None):
+    def set_auto_commit(self, state, callback=None, options=None):
         raise MSGException(Error.CORE_FEATURE_NOT_SUPPORTED,
                            "This feature is not supported.")
 

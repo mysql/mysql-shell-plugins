@@ -163,7 +163,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             return ListenerEntry.resolve(response);
         }
 
-        const request = ProtocolGui.getRequestSqleditorExecute(sql, id, params,
+        const request = ProtocolGui.getRequestSqleditorExecute(id, sql, params,
             { rowPacketSize: settings.get("sql.rowPacketSize", 1000) });
 
         return MessageScheduler.get.sendRequest(request, { messageClass: "execute" });

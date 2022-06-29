@@ -43,6 +43,10 @@ export class ResultStatus extends Component<IResultStatusProperties> {
     public render(): React.ReactNode {
         const { executionInfo, children } = this.props;
 
+        if (!executionInfo.text && !children) {
+            return undefined;
+        }
+
         let text;
         let messageClass = "";
         if (!isNil(executionInfo.type) && executionInfo.type !== MessageType.Response) {

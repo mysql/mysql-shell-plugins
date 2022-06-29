@@ -34,6 +34,7 @@ from gui_plugin.core.Protocols import Response
 import gui_plugin.core.Logger as logger
 import gui_plugin.core.WebSocketCommon as WebSocket
 from gui_plugin.core.modules.ModuleSession import ModuleSession
+from gui_plugin.sqleditor.SqleditorModuleSession import SqleditorModuleSession
 import mysqlsh
 from contextlib import contextmanager
 from gui_plugin.users import backend as user_handler
@@ -644,12 +645,21 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     raise Exception(
                         f'The function {cmd} needs a module_session_id '
                         'argument set to a DbModuleSession.')
-                db_module_session = module_session._db_service_session
+
+                user_session_functions = ["gui.sqleditor.execute",
+                    "gui.sqleditor.default_user_schema", "gui.sqleditor.get_current_schema",
+                    "gui.sqleditor.set_current_schema", "gui.sqleditor.get_auto_commit",
+                    "gui.sqleditor.set_auto_commit"]
+                if isinstance(module_session, SqleditorModuleSession) and cmd in user_session_functions:
+                    db_module_session = module_session._db_user_session
+                else:
+                    db_module_session = module_session._db_service_session
                 if not isinstance(db_module_session, DbSession):
                     raise Exception(
                         f'The function {cmd} needs a module_session_id '
                         'argument set to a DbSession.')
 
+                self.register_module_request(request_id, kwargs['module_session_id'])
                 if found_objects[0] == 'gui':
                     kwargs.update({"session": db_module_session})
                 else:
@@ -667,6 +677,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 module_session = self.get_module_session_object(
                     kwargs['module_session_id'])
                 kwargs.update({"module_session": module_session})
+                self.register_module_request(request_id, kwargs['module_session_id'])
                 del kwargs['module_session_id']
 
             # if the function has an async_web_session argument it needs to be
@@ -689,9 +700,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 result = None
             else:
                 if cmd.startswith('gui.db.') \
-                        or cmd in ['gui.sqleditor.open_connection', 'gui.sqleditor.start_session',
-                                   'gui.sqleditor.close_session', 'gui.dbconnections.test_connection',
-                                   'gui.sqleditor.reconnect']:
+                        or cmd.startswith('gui.sqleditor.') \
+                        or cmd in ['gui.dbconnections.test_connection']:
                     thread = RequestHandler(
                         request_id, func, kwargs, self, False)
                     thread.start()
@@ -870,15 +880,6 @@ class WebSession():
     def session_active_profile_id(self):
         if self._socket_handler:
             return self._socket_handler.session_active_profile_id
-
-    def register_module_request(self, request_id, module_session_id):
-        if self._socket_handler:
-            self._socket_handler.register_module_request(
-                request_id, module_session_id)
-
-    def unregister_module_request(self, request_id):
-        if self._socket_handler:
-            self._socket_handler.unregister_module_request(request_id)
 
     def send_prompt_response(self, request_id, prompt, handler):
         if self._socket_handler:

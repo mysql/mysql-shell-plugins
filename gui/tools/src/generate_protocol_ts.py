@@ -49,7 +49,7 @@ py_parameter_override = {
         "mapping": {
             "name": "module_session_id",
             "type": "string",
-            "description": "The string id for the module session object, where the database session is taken from.",
+            "description": "The string id for the module session object, holding the database session to be used on the operation.",
         }
     },
     "module_session": {

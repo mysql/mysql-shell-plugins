@@ -248,7 +248,7 @@ describe("ProtocolGui file tests", (): void => {
             password: "my.password",
         });
 
-        result = ProtocolGui.getRequestSqleditorExecute("select 1 from dual", moduleSessionId, ["arg1"], {
+        result = ProtocolGui.getRequestSqleditorExecute(moduleSessionId, "select 1 from dual", ["arg1"], {
             rowPacketSize: 1000,
         });
         testStandardFieldsWithSession(result, ShellAPIGui.GuiSqleditorExecute, {
@@ -257,7 +257,7 @@ describe("ProtocolGui file tests", (): void => {
             options: { row_packet_size: 1000 },
         });
 
-        result = ProtocolGui.getRequestSqleditorExecute("select 1 from dual", moduleSessionId);
+        result = ProtocolGui.getRequestSqleditorExecute(moduleSessionId, "select 1 from dual");
         testStandardFieldsWithSession(result, ShellAPIGui.GuiSqleditorExecute, { sql: "select 1 from dual" });
 
         result = ProtocolGui.getRequestDbGetCatalogObjectNames(moduleSessionId, "Schema");
