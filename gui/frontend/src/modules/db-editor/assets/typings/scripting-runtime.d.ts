@@ -261,7 +261,19 @@ declare interface IGraphOptions {
     colors?: string[];
 }
 
-/** The entry point for graph rendering. */
+/** The entry point for general graph rendering. */
 declare class Graph {
-    public render(options: IGraphOptions): void;
+    public static render(options: IGraphOptions): void;
+}
+
+declare enum PieGraphLayout {
+    MediumPie,
+    MediumDonut,
+    LargePie,
+    LargeDonut,
+}
+
+/** A simplified graph class specifically for Pie graphs. */
+declare class PieGraph {
+    public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string }): void;
 }

@@ -24,7 +24,7 @@
 import "./assets/DBEditor.css";
 
 import React from "react";
-import ts from "typescript";
+import ts, { ScriptTarget } from "typescript";
 import { isNil } from "lodash";
 import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
 
@@ -1053,6 +1053,7 @@ Execute \\help or \\? for help;`;
         }
 
         if (runExecution) {
+            context.setResult();
             switch (context.language) {
                 case "javascript": {
                     workerPool.runTask({ api: ScriptingApi.Request, code: context.code, contextId: context.id })
@@ -1064,7 +1065,12 @@ Execute \\help or \\? for help;`;
                 case "typescript": {
                     workerPool.runTask({
                         api: ScriptingApi.Request,
-                        code: ts.transpile(context.code),
+                        code: ts.transpile(context.code,
+                            {
+                                alwaysStrict: true,
+                                target: ScriptTarget.ES2020,
+                                inlineSourceMap: true,
+                            }),
                         contextId: context.id,
                     }).then(this.handleTaskResult);
 

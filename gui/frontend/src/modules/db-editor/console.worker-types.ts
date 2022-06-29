@@ -30,11 +30,14 @@ export class PrivateWorker /*extends Worker*/ {
     public currentTaskId?: number;
     public pendingRequests: Map<string, (res: unknown) => void>;
 
+    // Holds the inline source map, if one was found in the code to executed.
+    public sourceMap: string;
+
     public postContextMessage: (taskId: number, message: IConsoleWorkerResultData) => void;
 
     // Functions from Worker.
     public postMessage: (data: unknown, origin?: string) => void;
-    public addEventListener: (message: string, callback: (event: MessageEvent) => void) => void;
+    public addEventListener: <T extends Event>(message: string, callback: (event: T) => void) => void;
 }
 
 // API ids used in the communication between the scripting tab and its worker instance.
@@ -93,3 +96,10 @@ export interface IConsoleWorkerEnvironment {
     contextId: string;
 }
 
+// Same definition as in scripting-runtime.d.ts (modify in sync!).
+export enum PieGraphLayout {
+    MediumPie,
+    MediumDonut,
+    LargePie,
+    LargeDonut,
+}
