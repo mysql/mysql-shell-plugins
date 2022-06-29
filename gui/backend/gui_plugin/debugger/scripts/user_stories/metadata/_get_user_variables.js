@@ -20,7 +20,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": "Full result set consisting of 0 rows transferred."
+            "msg": ""
         }
     }
 ])

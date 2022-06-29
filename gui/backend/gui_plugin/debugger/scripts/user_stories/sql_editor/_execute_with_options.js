@@ -13,10 +13,12 @@ await ws.sendAndValidate(
                 "msg": ws.ignore
             },
             "request_id": ws.lastGeneratedRequestId,
-            "columns": [{'name': 'SCHEMA_NAME', 'type': 'STRING'}],
-            "rows": ws.matchList([['mysql'], ['information_schema'], ['performance_schema']], 0),
-            "total_row_count": ws.matchRegexp("\\d+"),
-            "execution_time": ws.ignore
+            "result": {
+                "columns": [{'name': 'SCHEMA_NAME', 'type': 'STRING'}],
+                "rows": ws.matchList([['mysql'], ['information_schema'], ['performance_schema']], 0),
+                "total_row_count": ws.matchRegexp("\\d+"),
+                "execution_time": ws.ignore
+            }
         }
     ]
 )
@@ -33,10 +35,12 @@ await ws.sendAndValidate(
                 "msg": ws.ignore
             },
             "request_id": ws.lastGeneratedRequestId,
-            "columns": [{'name': 'SCHEMA_NAME', 'type': 'STRING'}],
-            "rows": ws.matchList([['mysql'], ['information_schema'], ['performance_schema']], 0),
-            "total_row_count": ws.matchRegexp("\\d+"),
-            "execution_time": ws.ignore
+            "result": {
+                "columns": [{'name': 'SCHEMA_NAME', 'type': 'STRING'}],
+                "rows": ws.matchList([['mysql'], ['information_schema'], ['performance_schema']], 0),
+                "total_row_count": ws.matchRegexp("\\d+"),
+                "execution_time": ws.ignore
+            }
         }
     ]
 )

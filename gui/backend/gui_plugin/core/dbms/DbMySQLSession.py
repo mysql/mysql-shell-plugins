@@ -260,21 +260,41 @@ class DbMysqlSession(DbSession):
     def get_default_schema(self):
         return self._connection_options['schema'] if 'schema' in self._connection_options else ''
 
-    def get_current_schema(self, request_id, callback=None, options=None):
-        self.add_task(MySQLOneFieldTask(self, request_id,
-                                        "SELECT DATABASE()", result_callback=callback, options=options))
+    def get_current_schema(self, callback=None, options=None):
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLOneFieldTask(self, task_id=task_id,
+                                            sql="SELECT DATABASE()", result_callback=callback, options=options))
+        else:
+            return self.execute("SELECT DATABASE()")
 
-    def set_current_schema(self, request_id, schema_name, callback=None, options=None):
-        self.add_task(DbExecuteTask(self, request_id,
-                                    f"USE {schema_name}", result_callback=callback, options=options))
+    def set_current_schema(self, schema_name, callback=None, options=None):
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(DbExecuteTask(self, task_id=task_id,
+                                        sql=f"USE {schema_name}", result_callback=callback, options=options))
+        else:
+            return self.execute(f"USE {schema_name}")
 
-    def get_auto_commit(self, request_id, callback=None, options=None):
-        self.add_task(MySQLOneFieldTask(self, request_id,
-                                        "SELECT @@AUTOCOMMIT", result_callback=callback, options=options))
+    def get_auto_commit(self, callback=None, options=None):
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLOneFieldTask(self, task_id=task_id,
+                                            sql="SELECT @@AUTOCOMMIT", result_callback=callback, options=options))
+        else:
+            return self.execute("SELECT @@AUTOCOMMIT")
 
-    def set_auto_commit(self, request_id, state, callback=None, options=None):
-        self.add_task(DbExecuteTask(self, request_id,
-                                    f"SET AUTOCOMMIT={1 if state == True else 0}", result_callback=callback, options=options))
+    def set_auto_commit(self, state, callback=None, options=None):
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(DbExecuteTask(self, task_id=task_id,
+                                        sql=f"SET AUTOCOMMIT={state}", result_callback=callback, options=options))
+        else:
+            self.execute("SET AUTOCOMMIT=?", (state,))
 
     def get_objects_types(self):
         return self._supported_types

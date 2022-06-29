@@ -188,12 +188,14 @@
 }
 
 /* Messages embedded in a result status have a different background, so they must fill the entire status. */
-.msg.resultHost .resultStatus.containsMessage {
+.msg.resultHost .resultStatus.containsMessage,
+.zoneHost .resultStatus.containsMessage {
     padding-left: 0;
     padding-right: 0;
 }
 
-.msg.resultHost .resultStatus {
+.msg.resultHost .resultStatus,
+.zoneHost .resultStatus {
     color: var(--resultStatus-foreground);
     background-color: var(--resultStatus-background);
 
@@ -202,6 +204,8 @@
 
     padding: 0 4px;
     overflow: hidden;
+
+    align-items: center;
 }
 
 .msg.resultHost .resultView .label {

@@ -641,6 +641,7 @@ Execute \\help or \\? for help;`;
                 }
 
                 const requestId = event.data.requestId!;
+                const result = event.data.result;
 
                 switch (event.eventType) {
                     case EventType.ErrorResponse: {
@@ -715,8 +716,8 @@ Execute \\help or \\? for help;`;
 
                     case EventType.DataResponse: {
                         const { dbType } = this.props;
-                        const columns = generateColumnInfo(dbType, event.data.columns);
-                        const rows = convertRows(columns, event.data.rows);
+                        const columns = generateColumnInfo(dbType, result.columns);
+                        const rows = convertRows(columns, result.rows);
 
                         void ApplicationDB.db.add("dbModuleResultData", {
                             tabId: id!,
@@ -745,14 +746,14 @@ Execute \\help or \\? for help;`;
                         this.inspectQuery(context, sql);
 
                         let hasMoreRows = false;
-                        let rowCount = event.data.totalRowCount ?? 0;
+                        let rowCount = result.totalRowCount ?? 0;
                         if (explicitPaging) {
                             // We added 1 to the total count for the LIMIT clause to allow determining if
                             // more pages are available. That's why we have to decrement the row count for display.
                             const pageSize = settings.get("sql.limitRowCount", 1000);
                             if (pageSize < rowCount) {
                                 --rowCount;
-                                event.data.rows?.pop();
+                                result.rows?.pop();
 
                                 hasMoreRows = true;
                             }
@@ -760,7 +761,7 @@ Execute \\help or \\? for help;`;
 
                         const status: IExecutionInfo = {
                             text: event.data.requestState.type + ", " + formatWithNumber("record", rowCount) +
-                                " retrieved in " + formatTime(event.data.executionTime),
+                                " retrieved in " + formatTime(result.executionTime),
                         };
 
                         if (rowCount === 0) {
@@ -768,8 +769,8 @@ Execute \\help or \\? for help;`;
                             status.type = MessageType.Response;
                         }
 
-                        const columns = generateColumnInfo(dbType, event.data.columns);
-                        const rows = convertRows(columns, event.data.rows);
+                        const columns = generateColumnInfo(dbType, result.columns);
+                        const rows = convertRows(columns, result.rows);
 
                         void ApplicationDB.db.add("dbModuleResultData", {
                             tabId: id!,
@@ -789,7 +790,7 @@ Execute \\help or \\? for help;`;
                             columns,
                             hasMoreRows,
                             currentPage,
-                            totalRowCount: event.data.totalRowCount ?? 0,
+                            totalRowCount: result.totalRowCount ?? 0,
                             executionInfo: status,
                         });
 
@@ -1149,8 +1150,9 @@ Execute \\help or \\? for help;`;
         try {
             switch (data.api) {
                 case ScriptingApi.QueryStatus: {
-                    const result = data.result as IResultSetData;
-                    const status = `${result.requestState.type}, ` +
+                    const resultSetData = data.result as IResultSetData;
+                    const result = resultSetData.result;
+                    const status = `${resultSetData.requestState.type}, ` +
                         `${formatWithNumber("record", result.totalRowCount || 0)} retrieved in ` +
                         `${formatTime(result.executionTime)}`;
 
@@ -1215,23 +1217,25 @@ Execute \\help or \\? for help;`;
                         // Make sure the task we are running currently on, stays assigned to this loop.
                         workerPool.retainTask(taskId);
 
-                        let columns: Array<{ name: string; type: string }>;
-                        let result: Array<Record<string, unknown>> = [];
+                        let columns: Array<{ name: string; type: string; length: number }>;
+                        let rows: Array<Record<string, unknown>> = [];
 
                         backend.execute(data.code!, data.params as string[])
                             .then((event: ICommResultSetEvent): void => {
+                                const result = event.data.result;
+
                                 switch (event.eventType) {
                                     case EventType.DataResponse:
                                     case EventType.FinalResponse: {
                                         if (event.data) {
                                             // First result holds column information
-                                            if (event.data.columns) {
-                                                columns = event.data.columns;
-                                                result = [];
+                                            if (result.columns) {
+                                                columns = result.columns;
+                                                rows = [];
                                             }
 
                                             if (event.data.rows) {
-                                                for (const row of event.data.rows) {
+                                                for (const row of result.rows ?? []) {
                                                     // Convert rows to objects.
                                                     const rowForRes: Record<string, unknown> = {};
                                                     if (Array.isArray(row)) {
@@ -1239,7 +1243,7 @@ Execute \\help or \\? for help;`;
                                                             rowForRes[columns[i].name] = row[i];
                                                         }
                                                     }
-                                                    result.push(rowForRes);
+                                                    rows.push(rowForRes);
                                                 }
                                             }
                                         }
@@ -1250,7 +1254,7 @@ Execute \\help or \\? for help;`;
                                             // true, the task is implicitly released and freed.
                                             workerPool.continueTask(taskId, {
                                                 api: ScriptingApi.Request,
-                                                result,
+                                                result: rows,
                                                 contextId: data.contextId,
                                                 final: true,
                                             });
@@ -1525,9 +1529,10 @@ Execute \\help or \\? for help;`;
                 if (type) {
                     backend?.execute(`show create ${type} ${qualifier}\`${data.caption}\``)
                         .then((event: ICommResultSetEvent) => {
-                            if (event.data?.rows && event.data.rows.length > 0) {
+                            const result = event.data.result;
+                            if (result.rows && result.rows.length > 0) {
                                 // Returns one row with 2 columns.
-                                const row = event.data.rows[0] as string[];
+                                const row = result.rows[0] as string[];
                                 if (row.length > index) {
                                     requisitions.writeToClipboard(row[index]);
                                 }

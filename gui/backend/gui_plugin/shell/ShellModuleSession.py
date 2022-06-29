@@ -21,7 +21,7 @@
 
 from gui_plugin.core.Protocols import Response
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-from gui_plugin.core.modules import ModuleSession, cancellable
+from gui_plugin.core.modules import ModuleSession
 from gui_plugin.core.BaseTask import CommandTask
 import subprocess
 import threading
@@ -296,7 +296,6 @@ class ShellModuleSession(ModuleSession):
 
         super().close()
 
-    @cancellable
     def execute(self, command: str, request_id=None, callback=None, options=None):
         if callback is None:
             callback = self._handle_api_response
@@ -313,7 +312,6 @@ class ShellModuleSession(ModuleSession):
         self._request_queue.put(ShellCommandTask(
             request_id, command, result_callback=callback, options=options))
 
-    @cancellable
     def complete(self, data: str, offset=None, request_id=None, callback=None, options=None):
         if callback is None:
             callback = self._handle_api_response

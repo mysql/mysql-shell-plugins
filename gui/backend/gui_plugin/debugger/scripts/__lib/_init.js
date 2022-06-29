@@ -438,24 +438,28 @@ Object.freeze(responses.ok.default)
 responses.ok.sqlZeroRows = Object({
     "request_state": {
         "type": "OK",
-        "msg": "Full result set consisting of 0 rows transferred."
+        "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId,
-    "rows": ws.ignore,
-    "total_row_count": 0,
-    "execution_time": ws.ignore
+    "result": {
+        "rows": ws.ignore,
+        "total_row_count": 0,
+        "execution_time": ws.ignore
+    }
 })
 Object.freeze(responses.ok.sqlZeroRows)
 
 responses.ok.oneRowTransferred = Object({
     "request_state": {
         "type": "OK",
-        "msg": "Full result set consisting of 1 row transferred."
+        "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId,
-    "rows": ws.ignore,
-    "total_row_count": 1,
-    "execution_time": ws.ignore
+    "result": {
+        "rows": ws.ignore,
+        "total_row_count": 1,
+        "execution_time": ws.ignore
+    }
 })
 Object.freeze(responses.ok.oneRowTransferred)
 

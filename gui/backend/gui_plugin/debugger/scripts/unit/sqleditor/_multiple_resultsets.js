@@ -40,51 +40,59 @@ await ws.sendAndValidate(
         {
             "request_state": {
                 "type": "OK",
-                "msg": "Full result set consisting of 1 row transferred."
+                "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [["column1", "column2"]],
-            "columns": [{"name": "colA", "type": "STRING"}, {"name": "colB", "type": "STRING"}],
-            "total_row_count": 1,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [["column1", "column2"]],
+                "columns": [{"name": "colA", "type": "STRING"}, {"name": "colB", "type": "STRING"}],
+                "total_row_count": 1,
+                "execution_time": ws.ignore
+            }
         },
         {
             "request_state": {
                 "type": "OK",
-                "msg": "Full result set consisting of 1 row transferred."
+                "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [["column1", "column2", "column3"]],
-            "columns": [{"name": "col1", "type": "STRING"},
-                        {"name": "col2", "type": "STRING"},
-                        {"name": "col3", "type": "STRING"}],
-            "total_row_count": 1,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [["column1", "column2", "column3"]],
+                "columns": [{"name": "col1", "type": "STRING"},
+                            {"name": "col2", "type": "STRING"},
+                            {"name": "col3", "type": "STRING"}],
+                "total_row_count": 1,
+                "execution_time": ws.ignore
+            }
         },
         {
             "request_state": {
                 "type": "OK",
-                "msg": "Full result set consisting of 1 row transferred."
+                "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [["column1", "column2", "column3", "column4"]],
-            "columns": [{"name": "col1A", "type": "STRING"},
-                        {"name": "col2B", "type": "STRING"},
-                        {"name": "col3C", "type": "STRING"},
-                        {"name": "col4D", "type": "STRING"}],
-            "total_row_count": 1,
-            "execution_time": ws.ignore
+            "result": {
+                "rows": [["column1", "column2", "column3", "column4"]],
+                "columns": [{"name": "col1A", "type": "STRING"},
+                            {"name": "col2B", "type": "STRING"},
+                            {"name": "col3C", "type": "STRING"},
+                            {"name": "col4D", "type": "STRING"}],
+                "total_row_count": 1,
+                "execution_time": ws.ignore
+            }
         },
         {
             "request_state": {
                 "type": "OK",
-                "msg": "Full result set consisting of 0 rows transferred."
+                "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
-            "rows": [],
-            "total_row_count": 0,
-            "execution_time": ws.ignore,
-            "done": 1
+            "result": {
+                "rows": [],
+                "total_row_count": 0,
+                "execution_time": ws.ignore,
+                "done": 1
+            }
         }
     ]
 )

@@ -284,6 +284,15 @@ DESCRIPTION
       MySQL Shell GUI module
 
 FUNCTIONS
+      execute(session, sql[, params][, options])
+            Executes the given SQL.
+
+      get_auto_commit(session)
+            Requests the auto-commit status for this module.
+
+      get_current_schema(session)
+            Requests the current schema for this module.
+
       get_gui_module_display_info()
             Returns display information about the module
 
@@ -291,7 +300,13 @@ FUNCTIONS
             Provides help about this object and it's members
 
       is_gui_module_backend()
-            Indicates whether this module is a GUI backend module'''
+            Indicates whether this module is a GUI backend module
+
+      set_auto_commit(session, state)
+            Requests to change the auto-commit status for this module.
+
+      set_current_schema(session, schema_name)
+            Requests to change the current schema for this module.'''
 
     assert help_text == mysqlsh.globals.gui.sqleditor.help() # pylint: disable=no-member
     info = mysqlsh.globals.gui.sqleditor.get_gui_module_display_info() # pylint: disable=no-member

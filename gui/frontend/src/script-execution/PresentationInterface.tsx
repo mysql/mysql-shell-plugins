@@ -448,13 +448,12 @@ export class PresentationInterface {
                 }
 
                 if (this.resultData.type === "resultSets") {
-                    // If we have results currently then add the text (which must be an error) to the output list
-                    // and remove the affected tab.
+                    // If we have results currently then add the text to the output list and remove the affected tab.
                     if (data.text) {
                         this.resultData.output?.push(...data.text);
                     } else {
                         this.resultData.output?.push({
-                            type: MessageType.Error,
+                            type: data.executionInfo?.type ?? MessageType.Error,
                             requestId: data.requestId,
                             content: data.executionInfo?.text ?? "<no info>",
                             language: "ansi",
@@ -526,7 +525,7 @@ export class PresentationInterface {
             }
         }
 
-        return false;
+        return true;
     }
 
     /**

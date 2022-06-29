@@ -1756,7 +1756,7 @@ export class ProtocolMrs extends Protocol {
      * Lists the schemas that are currently offered via MRS
      *
      * @param path The path to use.
-     * @param moduleSessionId The string id for the module session object, where the database session is taken from.
+     * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      *
      * @returns None
      */

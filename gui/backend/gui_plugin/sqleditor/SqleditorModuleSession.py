@@ -22,7 +22,6 @@
 from gui_plugin.core.DbSession import DbSessionFactory
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.modules.DbModuleSession import check_service_database_session
-from gui_plugin.core.modules.ModuleSession import cancellable
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Protocols import Response
@@ -84,50 +83,14 @@ class SqleditorModuleSession(DbModuleSession):
         })
         self.send_command_response(self._current_request_id, data)
 
-    @cancellable
-    @check_user_database_session
-    def execute(self, sql, request_id, params=None, options=None):
-        self._db_user_session.execute(sql=sql, request_id=request_id,
-                                      params=params,
-                                      callback=self._handle_db_response,
-                                      options=options)
-
     @check_user_database_session
     def default_user_schema(self):
         return self._db_user_session.get_default_schema()
-
-    @cancellable
-    @check_user_database_session
-    def get_current_schema(self, request_id, options=None):
-        return self._db_user_session.get_current_schema(request_id, callback=self._handle_api_response,
-                                                        options=options)
-
-    @cancellable
-    @check_user_database_session
-    def set_current_schema(self, request_id, schema_name, options=None):
-        return self._db_user_session.set_current_schema(request_id=request_id, schema_name=schema_name,
-                                                        callback=self._handle_api_response,
-                                                        options=options)
-
-    @cancellable
-    @check_user_database_session
-    def get_auto_commit(self, request_id, options=None):
-        return self._db_user_session.get_auto_commit(request_id=request_id, callback=self._handle_api_response,
-                                                     options=options)
-
-    @cancellable
-    @check_user_database_session
-    def set_auto_commit(self, request_id, state, options=None):
-        return self._db_user_session.set_auto_commit(request_id=request_id, state=state, callback=self._handle_api_response,
-                                                     options=options)
 
     @check_user_database_session
     @check_service_database_session
     def kill_query(self):
         self._db_service_session.kill_query(self._db_user_session)
-
-    def cancel_request(self, request_id):
-        self._db_service_session.cancel_request(request_id)
 
     def cancel_request(self, request_id):
         self._db_service_session.cancel_request(request_id)

@@ -95,12 +95,14 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "OK",
-            "msg": "Full result set consisting of 0 rows transferred."
+            "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "rows": ws.ignore,
-        "total_row_count": 0,
-        "execution_time": ws.ignore
+        "result": {
+            "rows": ws.ignore,
+            "total_row_count": 0,
+            "execution_time": ws.ignore
+        }
     }
 ])
 
@@ -152,12 +154,14 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "OK",
-            "msg": "Full result set consisting of 0 rows transferred."
+            "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "rows": ws.ignore,
-        "total_row_count": 0,
-        "execution_time": ws.ignore
+        "result": {
+            "rows": ws.ignore,
+            "total_row_count": 0,
+            "execution_time": ws.ignore
+        }
     }
 ])
 

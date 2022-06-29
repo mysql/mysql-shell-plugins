@@ -25,11 +25,7 @@ from gui_plugin.core import DbSession
 
 def get_db_session(session: object) -> object:
     if session is None:
-        import mysqlsh
-        session = getattr(mysqlsh.globals, "session", None)
-
-    if session is None:
-        raise Error.Error.MSGException(Error.CORE_INVALID_PARAMETER,
+        raise Error.MSGException(Error.CORE_INVALID_PARAMETER,
                                        "Session required for this operation.")
 
     if not isinstance(session, DbSession.DbSession):

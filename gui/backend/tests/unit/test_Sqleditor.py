@@ -101,21 +101,22 @@ class TestSqleditor:
         params._web_session.register_callback(
             callback_schemas.request_id, callback_schemas)
 
-        sqleditor.execute(sql="SELECT SLEEP(3)", module_session=params._module_session,
-                          request_id=callback_request1.request_id)
-        sqleditor.get_current_schema(module_session=params._module_session,
-                                     request_id=callback_schemas.request_id)
-
+        params._web_session.request_id = callback_schemas.request_id
+        sqleditor.execute(sql="SELECT SLEEP(3)", session=params._module_session._db_user_session)
         callback_schemas.join_and_validate()
+        params._web_session.request_id = callback_request1.request_id
+        sqleditor.get_current_schema(session=params._module_session._db_user_session)
         callback_request1.join_and_validate()
+
+        params._web_session.request_id = None
 
     def test_close_session(self, params):
         request_id1 = str(uuid.uuid1())
         sqleditor.close_session(params._module_session)
 
         with pytest.raises(MSGException) as e:
-            sqleditor.execute("SELECT SLEEP(1)", params._module_session, request_id1)
-        assert e.value.args[0] == "Error[MSG-1200]: The database session needs to be opened before SQL can be executed."
+            sqleditor.execute(session=params._module_session._db_user_session, sql="SELECT SLEEP(1)")
+        assert e.value.args[0] == "Error[MSG-1012]: Session required for this operation."
 
         @backend_callback(1)
         def open_connection_cb(msg_type, msg, request_id, values):
@@ -144,8 +145,9 @@ class TestSqleditor:
         params._web_session.register_callback(
             callback_sleep.request_id, callback_sleep)
 
-        sqleditor.execute("SELECT SLEEP(3)",
-                          params._module_session, callback_sleep.request_id)
+        params._web_session.request_id = callback_sleep.request_id
+        sqleditor.execute(session=params._module_session._db_user_session,
+                          sql="SELECT SLEEP(3)")
         # since kill works in a different session (service session)
         # it might happen that we try to kill a query that is still not running.
         # so avoid that, just wait a bit. there's plenty of time to kill it.
@@ -154,6 +156,8 @@ class TestSqleditor:
         sqleditor.kill_query(params._module_session)
 
         callback_sleep.join_and_validate()
+
+        params._web_session.request_id = None
 
     def test_execute_query_with_params(self, params):
         @backend_callback_with_pending()
@@ -166,7 +170,10 @@ class TestSqleditor:
         params._web_session.register_callback(
             callback_execute.request_id, callback_execute)
 
+        params._web_session.request_id = callback_execute.request_id
         result = sqleditor.execute(
-            "SHOW DATABASES LIKE ?", params._module_session, callback_execute.request_id, ['mysql'])
+            session=params._module_session._db_user_session,
+            sql="SHOW DATABASES LIKE ?", params=['mysql'])
 
         callback_execute.join_and_validate()
+        params._web_session.request_id = None

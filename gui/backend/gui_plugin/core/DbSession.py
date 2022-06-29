@@ -336,10 +336,10 @@ class DbSession(threading.Thread):
             return copy.copy(self._rows_affected)
         return None
 
-    def get_current_schema(self, request_id, callback=None, options=None):    # pragma: no cover
+    def get_current_schema(self, callback=None, options=None):    # pragma: no cover
         raise NotImplementedError()
 
-    def set_current_schema(self, request_id, schema_name, callback=None, options=None):  # pragma: no cover
+    def set_current_schema(self, schema_name, callback=None, options=None):  # pragma: no cover
         raise NotImplementedError()
 
     def kill_query(self, user_session):  # pragma: no cover

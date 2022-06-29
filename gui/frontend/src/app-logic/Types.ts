@@ -33,8 +33,10 @@ export interface IDictionary {
     [key: string]: unknown;
 }
 
-// Types of columns in a table column definition, which we support in the application.
-// Also used for column affinities in SQLite (instead of column types).
+/**
+ * Types of columns in a table column definition, which we support in the application.
+ * Also used for column affinities in SQLite(instead of column types).
+ */
 export enum DBDataType {
     Unknown,
 
@@ -103,7 +105,9 @@ export enum DBDataType {
     Set,
 }
 
-// Describes the number of parameters for a DB data type. It doesn't say anything about the parameter types, though.
+/**
+ * Describes the number of parameters for a DB data type. It doesn't say anything about the parameter types, though.
+ */
 export enum ParameterFormatType {
     None = 0,
     One = 1,            // (n)
@@ -115,13 +119,27 @@ export enum ParameterFormatType {
     List = 10,          // (m, n, o, p ...)
 }
 
+/**
+ * Expression to handle URI strings defined as [mysql[x]://]user[:password]@host[:port]
+ * Considering the URI notation as specified in RFC3986
+ * Grouping positions return:
+ * 0 - Full Match
+ * 2 - Scheme
+ * 4 - User
+ * 6 - Password
+ * 8 - Host
+ * 9 - Port
+ */
+// eslint-disable-next-line max-len
+export const uriPattern = /((mysql(x)?):\/\/)?([\w.\-~!$&'()*+,;=%]+)(:([\w.\-~!$&'()*+,;=%]*))?(@)([\w.\-~!$&'()*+,;=]+)(:(\d+))?/g;
+
 export interface IDBCharacterSet {
     collations: string[];
     defaultCollation: string;
     description: string;
 }
 
-// Describes a data type in a database.
+/** Describes a data type in a database. */
 export interface IDBDataTypeDetails {
     type: DBDataType;
 
@@ -164,16 +182,23 @@ export interface IExecutionInfo {
 // Types for requesting a specific dialog and sending back the entered values.
 
 export enum DialogType {
-    Prompt,     // A simple prompt value dialog, requesting a single value from the user.
-    Confirm,    // Confirm a question (yes, no, alt).
-    Select,     // Select one entry from a list.
-    MrsService, // A dialog to create or edit an MRS service.
+    /** A simple prompt value dialog, requesting a single value from the user. */
+    Prompt,
+
+    /** Confirm a question (yes, no, alt). */
+    Confirm,
+
+    /** Select one entry from a list. */
+    Select,
+
+    /** A dialog to create or edit an MRS service. */
+    MrsService,
+
+    /** A dialog to create or edit an MRS schema. */
     MrsSchema,
 }
 
-/**
- * A set of values that describe a single modal dialog request.
- */
+/** A set of values that describe a single modal dialog request. */
 export interface IDialogRequest extends IDictionary {
     type: DialogType;
 
@@ -196,9 +221,7 @@ export interface IDialogRequest extends IDictionary {
     data?: IDictionary;
 }
 
-/**
- * What decision made the user to close a dialog.
- */
+/** What decision made the user to close a dialog. */
 export enum DialogResponseClosure {
     Accept,
     Decline,

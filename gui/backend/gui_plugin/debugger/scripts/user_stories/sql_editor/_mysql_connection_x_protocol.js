@@ -29,14 +29,16 @@ await ws.sendAndValidate({
             "msg": ws.ignore
         },
         "request_id": ws.lastGeneratedRequestId,
-        "columns": [{"name": "CATALOG_NAME", "type": "STRING"},
-                    {"name": "SCHEMA_NAME", "type": "STRING"},
-                    {"name": "DEFAULT_CHARACTER_SET_NAME", "type": "STRING"},
-                    {"name": "DEFAULT_COLLATION_NAME", "type": "STRING"},
-                    {"name": "SQL_PATH", "type": "BYTES"}],
-        "rows": ws.ignore,
-        "total_row_count": ws.matchRegexp("\\d+"),
-        "execution_time": ws.ignore,
-        "done": 1
+        "result": {
+            "columns": [{"name": "CATALOG_NAME", "type": "STRING"},
+                        {"name": "SCHEMA_NAME", "type": "STRING"},
+                        {"name": "DEFAULT_CHARACTER_SET_NAME", "type": "STRING"},
+                        {"name": "DEFAULT_COLLATION_NAME", "type": "STRING"},
+                        {"name": "SQL_PATH", "type": "BYTES"}],
+            "rows": ws.ignore,
+            "total_row_count": ws.matchRegexp("\\d+"),
+            "execution_time": ws.ignore,
+            "done": 1
+        }
     }
 ])
