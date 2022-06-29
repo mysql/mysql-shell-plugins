@@ -24,18 +24,17 @@
 import { IConsoleWorkerEnvironment, ScriptingApi } from "../console.worker-types";
 
 export class GraphProxy {
-    public constructor(private env: IConsoleWorkerEnvironment) { }
+    public static env?: IConsoleWorkerEnvironment;
 
-    public render(options: IGraphOptions): void {
-        this.env.worker.postMessage({
-            taskId: this.env.taskId,
+    public static render(options: IGraphOptions): void {
+        GraphProxy.env?.worker.postMessage({
+            taskId: GraphProxy.env.taskId,
             data: {
                 api: ScriptingApi.Graph,
                 options,
-                contextId: this.env.contextId,
+                contextId: GraphProxy.env.contextId,
                 final: true,
             },
         });
-
     }
 }

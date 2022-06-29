@@ -21,10 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable max-classes-per-file */
+
 import { IConsoleWorkerEnvironment } from "../console.worker-types";
 import { runSqlImpl, runSqlIterativeImpl } from "./query";
 import { GraphProxy } from "./GraphProxy";
 import { printImpl } from "./simple-functions";
+import { PieGraphProxy } from "./PieGraphProxy";
 
 /**
  * This function is the outer execution environment for JS/TS evaluation in SQL Notebooks.
@@ -34,8 +37,7 @@ import { printImpl } from "./simple-functions";
  *
  * @returns whatever the evaluation returned.
  */
-export const execute = (env: IConsoleWorkerEnvironment, code: string): unknown => {
-
+export const execute = async (env: IConsoleWorkerEnvironment, code: string): Promise<unknown> => {
     /* eslint-disable @typescript-eslint/no-unused-vars */
 
     // APIs which are directly available in user code.
@@ -43,14 +45,17 @@ export const execute = (env: IConsoleWorkerEnvironment, code: string): unknown =
     const runSqlIterative = runSqlIterativeImpl.bind(undefined, env);
     const runSql = runSqlImpl.bind(undefined, env);
 
-    class Graph extends GraphProxy {
-        public constructor() {
-            super(env);
-        }
-    }
+    class Graph extends GraphProxy { }
+    GraphProxy.env = env;
+
+    class PieGraph extends PieGraphProxy { }
+    PieGraphProxy.env = env;
+
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { PieGraphLayout } = await import("../console.worker-types");
 
     /* eslint-enable @typescript-eslint/no-unused-vars */
 
     // eslint-disable-next-line no-eval
-    return eval(code);
+    return Promise.resolve(eval(code));
 };
