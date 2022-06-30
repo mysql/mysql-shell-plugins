@@ -23,13 +23,12 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { StandaloneScriptEditor } from "../../../modules/db-editor/StandaloneScriptEditor";
+import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor";
 import { Monaco } from "../../../components/ui/CodeEditor";
 import { CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 
-
-describe("Standalone script editor tests", (): void => {
+describe("Script editor tests", (): void => {
 
     let content = `\nprint("typescript");\n\\js\n`;
     content += `\nprint("javascript");\n\\sql\n`;
@@ -40,14 +39,14 @@ describe("Standalone script editor tests", (): void => {
     model.editorMode = CodeEditorMode.Standard;
     model.setValue(content);
 
-    it("Standalone script editor instantiation", () => {
+    it("Script editor instantiation", () => {
         const eps: IEditorPersistentState = {
             viewState: null,
             model,
             options: {},
         };
-        const component = mount<StandaloneScriptEditor>(
-            <StandaloneScriptEditor
+        const component = mount<ScriptEditor>(
+            <ScriptEditor
                 editorState={eps}
             />,
         );

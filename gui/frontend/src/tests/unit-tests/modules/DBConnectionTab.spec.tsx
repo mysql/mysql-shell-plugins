@@ -68,7 +68,7 @@ describe("DBConnectionTab tests", (): void => {
         const edState: IOpenEditorState = {
             state: eps,
             currentVersion: 0,
-            type: EntityType.Console,
+            type: EntityType.Notebook,
             id: "SQLEditor",
             caption: "",
         };

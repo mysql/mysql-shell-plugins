@@ -35,7 +35,7 @@ import { DBType } from "../../supplement/ShellInterface";
 import { quote } from "../../utilities/string-helpers";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
 
-export interface IScriptingConsoleProperties extends IComponentProperties {
+export interface INotebookProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
     dbType: DBType;
     readOnly?: boolean;
@@ -46,11 +46,11 @@ export interface IScriptingConsoleProperties extends IComponentProperties {
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
 
-export class ScriptingConsole extends Component<IScriptingConsoleProperties> {
+export class Notebook extends Component<INotebookProperties> {
 
     private editorRef = React.createRef<CodeEditor>();
 
-    public constructor(props: IScriptingConsoleProperties) {
+    public constructor(props: INotebookProperties) {
         super(props);
 
         this.addHandledProperties("editorState", "dbType", "readOnly", "showAbout", "onScriptExecution",

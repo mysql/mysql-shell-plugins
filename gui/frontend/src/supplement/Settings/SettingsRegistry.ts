@@ -25,9 +25,9 @@ import { IRequestTypeMap } from "../Requisitions";
 
 // Contains descriptions for all settings used in the application.
 
-export type SettingValueType = "string" | "boolean" | "number" | "list" | "choice" | "object" | "action";
+type SettingValueType = "string" | "boolean" | "number" | "list" | "choice" | "object" | "action";
 
-export interface ISettingParameters {
+interface ISettingParameters {
     members?: string[];
     choices?: Array<[string, string, string]>;
     range?: [number, number];
@@ -336,6 +336,17 @@ export const registerSettings = (): void => {
                 ["TypeScript", "typescript", "Supported only in DB editors"],
                 ["Python", "python", "Supported only in shell session editors"],
                 ["SQL", "sql", "Supported in all code editors"],
+            ],
+        });
+    registerSetting(
+        "dbEditor.defaultEditor",
+        "Default Editor",
+        "Select the type of the first editor when opening a DB connection.",
+        "choice", "notebook", false,
+        {
+            choices: [
+                ["Notebook", "notebook", "A multi language editor with embedded results"],
+                ["MySQL Script", "script", "A single language script editor (MySQL)"],
             ],
         });
     registerSetting(

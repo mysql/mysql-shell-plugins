@@ -23,9 +23,10 @@
 
 import { CommonWrapper, ReactWrapper } from "enzyme";
 import toJson, { Json } from "enzyme-to-json";
-import { existsSync, mkdirSync, rmSync, symlinkSync } from "fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from "fs";
 import keyboardKey from "keyboard-key";
 import path from "path";
+import os from "os";
 
 import {
     CommunicationEvents, ICommAuthenticationEvent, ICommErrorEvent, ICommWebSessionEvent,
@@ -553,16 +554,12 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
  */
 export const setupShellForTests = (testId: string, showOutput: boolean, handleEvents = true,
     logLevel?: LogLevel): Promise<MySQLShellLauncher> => {
-    const targetDir = testId + "-shell-test";
+    // Create a test folder name with a random part, in the system's temp folder.
+    const targetDir = mkdtempSync(path.join(os.tmpdir(), "msg-unit-tests"));
 
     return new Promise((resolve, reject) => {
         try {
-            // Clean up a left-over user dir, if there's one.
-            if (existsSync(targetDir)) {
-                rmSync(targetDir, { recursive: true, force: true });
-            }
-
-            // Now create that folder again and add links to the shell plugins.
+            // Create that folder and add links to the shell plugins.
             mkdirSync(targetDir + "/plugins", { recursive: true });
             symlinkSync(path.resolve("../../../../backend/gui_plugin"), targetDir + "/plugins/gui_plugin");
             symlinkSync(path.resolve("../../../../../mrs_plugin"), targetDir + "/plugins/mrs_plugin");

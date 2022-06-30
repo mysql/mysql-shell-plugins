@@ -26,13 +26,13 @@ import React from "react";
 import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { EditorLanguage } from "../../../supplement";
-import { StandaloneScriptEditor } from "../StandaloneScriptEditor";
+import { ScriptEditor } from "../ScriptEditor";
 
 // Handling of UI related tasks in a code editor for standalone contexts.
 export class StandalonePresentationInterface extends PresentationInterface {
 
     public constructor(
-        private host: StandaloneScriptEditor,
+        private host: ScriptEditor,
         editor: CodeEditor,
         language: EditorLanguage,
         private target: React.RefObject<HTMLDivElement>) {

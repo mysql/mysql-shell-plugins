@@ -40,9 +40,9 @@ import {
 import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers";
-import { ScriptingConsole } from "./ScriptingConsole";
+import { Notebook } from "./Notebook";
 import { IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems } from ".";
-import { StandaloneScriptEditor } from "./StandaloneScriptEditor";
+import { ScriptEditor } from "./ScriptEditor";
 import { IPosition } from "../../components/ui/CodeEditor";
 import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
@@ -151,8 +151,8 @@ Execute \\help or \\? for help;`;
     // Timers to throttle UI updates for incoming result data.
     private resultTimers = new Map<string, IResultTimer>();
 
-    private consoleRef = React.createRef<ScriptingConsole>();
-    private standaloneRef = React.createRef<StandaloneScriptEditor>();
+    private consoleRef = React.createRef<Notebook>();
+    private standaloneRef = React.createRef<ScriptEditor>();
 
     public constructor(props: IDBConnectionTabProperties) {
         super(props);
@@ -232,8 +232,8 @@ Execute \\help or \\? for help;`;
         const language = activeEditor.state?.model.getLanguageId() ?? "";
         let addEditorToolbar = true;
         switch (activeEditor.type) {
-            case EntityType.Console: {
-                document = <ScriptingConsole
+            case EntityType.Notebook: {
+                document = <Notebook
                     ref={this.consoleRef}
                     editorState={activeEditor.state!}
                     dbType={dbType}
@@ -245,7 +245,7 @@ Execute \\help or \\? for help;`;
             }
 
             case EntityType.Script: {
-                document = <StandaloneScriptEditor
+                document = <ScriptEditor
                     id={savedState.activeEntry}
                     ref={this.standaloneRef}
                     editorState={activeEditor.state!}

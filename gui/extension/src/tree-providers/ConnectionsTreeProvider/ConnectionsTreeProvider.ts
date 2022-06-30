@@ -125,7 +125,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             if (this.useDedicatedSchemaSubtree) {
                 const items = [];
                 if (element.entry.details.dbType === DBType.MySQL) {
-                    items.push(new AdminTreeItem("MySQL Administration", "", element.entry, true));
+                    //items.push(new AdminTreeItem("MySQL Administration", "", element.entry, true));
                 }
 
                 items.push(new SchemaListTreeItem("Schemas", "", element.entry, true));
@@ -415,7 +415,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             if (entry.backend) {
                 const schemaList: TreeItem[] = [];
                 if (entry.details.dbType === DBType.MySQL) {
-                    schemaList.push(new AdminTreeItem("MySQL Administration", "", entry, true));
+                    //schemaList.push(new AdminTreeItem("MySQL Administration", "", entry, true));
                 }
 
                 entry.backend.getCatalogObjects("Schema").then((schemas) => {

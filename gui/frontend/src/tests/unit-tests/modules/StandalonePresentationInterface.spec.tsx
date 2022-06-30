@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { StandaloneScriptEditor } from "../../../modules/db-editor/StandaloneScriptEditor";
+import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor";
 import { Monaco } from "../../../components/ui/CodeEditor";
 import {
     CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState,
@@ -32,7 +32,6 @@ import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import {
     StandalonePresentationInterface,
 } from "../../../modules/db-editor/execution/StandalonePresentationInterface";
-
 
 describe("Standalone presentation interface tests", (): void => {
 
@@ -52,13 +51,13 @@ describe("Standalone presentation interface tests", (): void => {
             model,
             options: {},
         };
-        const component = mount<StandaloneScriptEditor>(
-            <StandaloneScriptEditor
+        const component = mount<ScriptEditor>(
+            <ScriptEditor
                 editorState={eps}
             />,
         );
         const spi = new StandalonePresentationInterface(
-            new StandaloneScriptEditor({ editorState: eps }),
+            new ScriptEditor({ editorState: eps }),
             new CodeEditor({ allowSoftWrap: true }),
             "sql",
             innerRef,

@@ -204,8 +204,13 @@
 }
 
 .msg.connectionTabHost #dbEditorToolbar #itemSaveButton {
-    width: 60px;
-    margin-left: 8px;
+    margin: 0 8px;
+    padding: 10px;
+}
+
+.msg.connectionTabHost #dbEditorToolbar #itemSaveButton > .icon {
+    width: 20px;
+    height: 20px;
 }
 
 .msg.connectionTabHost #dbEditorToolbar #itemSaveButton:not(:disabled, :hover) {
