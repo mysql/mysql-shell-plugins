@@ -34,27 +34,27 @@ import { requisitions } from "../../supplement/Requisitions";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { EditorLanguage } from "../../supplement";
 
-export interface IStandaloneScriptEditorProperties extends IComponentProperties {
+export interface IScriptEditorProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
 
     onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>, position?: IPosition) => void;
     onEdit?: (id?: string) => void;
 }
 
-interface IStandaloneScriptEditorState extends IComponentState {
+interface IScriptEditorState extends IComponentState {
     // These two fields are set via setState in the StandalonePresentationInterface.
     showResultPane: boolean;
     maximizeResultPane: boolean;
 }
 
-export class StandaloneScriptEditor extends Component<IStandaloneScriptEditorProperties, IStandaloneScriptEditorState> {
+export class ScriptEditor extends Component<IScriptEditorProperties, IScriptEditorState> {
 
     private editorRef = React.createRef<CodeEditor>();
     private resultRef = React.createRef<HTMLDivElement>();
 
     private presentationInterface?: PresentationInterface;
 
-    public constructor(props: IStandaloneScriptEditorProperties) {
+    public constructor(props: IScriptEditorProperties) {
         super(props);
 
         this.state = {

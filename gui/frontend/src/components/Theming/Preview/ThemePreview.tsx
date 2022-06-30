@@ -47,7 +47,7 @@ import { ActivityBarItem } from "../../ui/ActivityBar/ActivityBarItem";
 import { SymbolGrid } from "./SymbolGrid";
 import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor";
 import { Monaco } from "../../ui/CodeEditor";
-import { ScriptingConsole } from "../../../modules/db-editor/ScriptingConsole";
+import { Notebook } from "../../../modules/db-editor/Notebook";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { MySQLConnectionScheme } from "../../../communication/MySQL";
 import { DBType } from "../../../supplement/ShellInterface";
@@ -489,7 +489,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                     orientation={Orientation.TopDown}
                     style={{ height: "600px" }}
                 >
-                    <ScriptingConsole
+                    <Notebook
                         editorState={this.editorState}
                         dbType={DBType.MySQL}
                         readOnly={true}

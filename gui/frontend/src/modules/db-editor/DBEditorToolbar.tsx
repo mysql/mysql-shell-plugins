@@ -217,6 +217,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 <Button
                     data-tooltip="Stop execution of the current statement/script in case of errors"
                     imageOnly={true}
+                    disabled
                     onClick={
                         () => { void requisitions.execute("editorToggleStopExecutionOnError", stopOnErrors); }
                     }

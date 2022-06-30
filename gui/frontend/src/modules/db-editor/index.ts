@@ -25,7 +25,7 @@ import { EditorLanguage } from "../../supplement";
 
 // The of an entry in trees etc.
 export enum EntityType {
-    Console,
+    Notebook,
     Script,
     Folder,
     Admin,

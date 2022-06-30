@@ -26,7 +26,8 @@ import defaultIcon from "../../assets/images/file-icons/default.svg";
 import moduleIcon from "../../assets/images/modules/module-sql.svg";
 import scriptingIcon from "../../assets/images/scripting.svg";
 import connectionsIcon from "../../assets/images/connections.svg";
-import closeButton from "../../assets/images/close2.svg";
+import closeIcon from "../../assets/images/close2.svg";
+import exportIcon from "../../assets/images/export.svg";
 
 import React from "react";
 
@@ -297,10 +298,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 toolbarItems.right.push(<Button
                     id="itemSaveButton"
                     key="itemSaveButton"
-                    caption="Save"
+                    imageOnly={true}
+                    data-tooltip="Save the content of this editor"
                     disabled={!needsSave}
                     onClick={this.handleEditorSave}
-                />);
+                >
+                    <Icon src={exportIcon} data-tooltip="inherit" />
+                </Button>);
             }
         }
 
@@ -421,7 +425,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         className="closeButton"
                         round={true}
                         onClick={this.handleCloseTab}>
-                        <Icon src={closeButton} />
+                        <Icon src={closeIcon} />
                     </Button>
                 ),
             });
@@ -762,9 +766,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             : settings.get("editor.dbVersion", 80024);
                         const serverEdition = info.edition ?? "";
 
-                        const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode, currentSchema);
-
                         const entryId = uuid();
+                        const useNotebook = settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+
+                        const model = this.createEditorModel(backend, "", useNotebook ? "msg" : "mysql", serverVersion,
+                            sqlMode, currentSchema);
                         const connectionState: IDBConnectionTabPersistentState = {
                             activeEntry: entryId,
                             currentSchema,
@@ -772,8 +778,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             explorerState: new Map(),
                             editors: [{
                                 id: entryId,
-                                caption: "Notebook",
-                                type: EntityType.Console,
+                                caption: useNotebook ? "Notebook" : "Script",
+                                type: useNotebook ? EntityType.Notebook : EntityType.Script,
                                 state: {
                                     model,
                                     viewState: null,
@@ -1023,7 +1029,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             connectionState.editors.push({
                 id,
                 caption: `Notebook ${++this.editorCounter}`,
-                type: EntityType.Console,
+                type: EntityType.Notebook,
                 state: {
                     model,
                     viewState: null,
@@ -1064,14 +1070,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                 if (connectionState.editors.length === 0) {
                     // Add the default editor, if the user just removed the last editor.
-                    const model = this.createEditorModel(connectionState.backend, "", "msg",
+                    const useNotebook = settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+                    const model = this.createEditorModel(connectionState.backend, "", useNotebook ? "msg" : "mysql",
                         connectionState.serverVersion, connectionState.sqlMode, connectionState.currentSchema);
 
                     const entryId = uuid();
                     connectionState.editors.push({
                         id: entryId,
-                        caption: "Notebook",
-                        type: EntityType.Console,
+                        caption: useNotebook ? "Notebook" : "Script",
+                        type: useNotebook ? EntityType.Notebook : EntityType.Script,
                         state: {
                             model,
                             viewState: null,
