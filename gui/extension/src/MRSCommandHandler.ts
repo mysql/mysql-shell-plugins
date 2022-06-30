@@ -223,6 +223,7 @@ export class MRSCommandHandler {
             : "Enter Configuration Values for the New MySQL REST Service";
 
         const request = {
+            id: "mrsServiceDialog",
             type: DialogType.MrsService,
             title,
             parameters: { protocols: ["HTTPS", "HTTP"] },
@@ -314,6 +315,7 @@ export class MRSCommandHandler {
                 : "Enter Configuration Values for the New MySQL REST Schema";
 
             const request = {
+                id: "mrsSchemaDialog",
                 type: DialogType.MrsSchema,
                 title,
                 parameters: { services: event.data?.result },

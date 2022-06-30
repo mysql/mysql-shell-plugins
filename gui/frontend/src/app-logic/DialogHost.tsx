@@ -172,7 +172,7 @@ export class DialogHost extends Component {
                 title: request.title ?? "Feedback Requested",
                 description: request.description,
             },
-            { ...request.data, type: request.type },
+            { id: request.id, ...request.data, type: request.type },
         );
     };
 
@@ -203,7 +203,7 @@ export class DialogHost extends Component {
             },
             request.parameters?.title as string,
             request.description,
-            { ...request.data, type: request.type },
+            { id: request.id, ...request.data, type: request.type },
         );
     };
 
@@ -255,7 +255,7 @@ export class DialogHost extends Component {
                 options: { backgroundOpacity: 0.5 },
                 title: request.title ?? "Feedback Requested",
             },
-            { ...request.data, type: request.type },
+            { id: request.id, ...request.data, type: request.type },
         );
     };
 
@@ -264,6 +264,7 @@ export class DialogHost extends Component {
         this.runningDialogs.delete(type);
 
         const response: IDialogResponse = {
+            id: data?.id as string ?? "",
             type,
             closure,
             data,
@@ -299,6 +300,7 @@ export class DialogHost extends Component {
 
             const response: IDialogResponse = {
                 type: data?.type as DialogType,
+                id: data?.id as string ?? "",
                 closure,
                 values: {
                     input: text,

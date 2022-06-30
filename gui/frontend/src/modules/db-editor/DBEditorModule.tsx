@@ -1285,7 +1285,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private handleEditorRename = (id: string, editorId: string, newCaption: string): void => {
         const connectionState = this.connectionState.get(id);
-        if (connectionState) {
+        if (newCaption && connectionState) {
             let needsUpdate = false;
             const editor = connectionState.editors.find((candidate: IOpenEditorState) => {
                 return candidate.id === editorId;
@@ -1358,15 +1358,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
             }
 
-            connectionState.activeEntry = id;
-
             // Add a data record for the new script.
             const category = ShellInterface.modules.scriptTypeFromLanguage(editorLanguage);
             if (category) {
                 ShellInterface.modules.addData(caption, "", category, "scripts", "")
                     .then((event: ICommModuleAddDataEvent) => {
                         if (event.data) {
-                            const moduleDataId = event.data.result;
+                            const dbDataId = event.data.result;
                             const scriptId = uuid();
                             connectionState.editors.push({
                                 id: scriptId,
@@ -1385,8 +1383,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 type: EntityType.Script,
                                 caption,
                                 language: editorLanguage,
-                                dbDataId: moduleDataId,
+                                dbDataId,
+                                folderId: 1, // TODO: determine the real folder ID.
                             } as IDBEditorScriptState);
+
+                            connectionState.activeEntry = scriptId;
 
                             this.forceUpdate();
                         }
