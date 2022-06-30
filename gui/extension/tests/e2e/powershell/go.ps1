@@ -72,7 +72,7 @@ try{
     }
 
     writeMsg "Removing Plugin database..." "-NoNewLine"
-    $dbLocation = Join-Path $HOME, "AppData", "Roaming", "MySQL", "mysqlsh-gui", "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"
+    $dbLocation = Join-Path $HOME "AppData" "Roaming" "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
     Remove-Item -Path $dbLocation -Force
     writeMsg "DONE"
 	
