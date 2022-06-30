@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -149,13 +149,13 @@ export class MenuItem extends Component<IMenuItemProperties> {
     };
 
     private handleItemMouseEnter = (e: React.MouseEvent): void => {
-        const { subMenuShowOnClick, onMouseEnter } = this.mergedProps;
+        const { subMenuShowOnClick, disabled, onMouseEnter } = this.mergedProps;
 
         const element = e.currentTarget as HTMLElement;
         element.classList.add("active");
 
         // If this item has a submenu then open it.
-        if (!subMenuShowOnClick) {
+        if (!disabled && !subMenuShowOnClick) {
             this.menuRef.current?.open(element.getBoundingClientRect(), false);
         }
 

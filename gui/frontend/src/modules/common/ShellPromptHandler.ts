@@ -79,6 +79,7 @@ export class ShellPromptHandler {
                         type: DialogType.Confirm,
                         title: result.title,
                         description: result.description,
+                        id: "shellConfirm",
                         parameters: {
                             title: result.title,
                             prompt: result.prompt,
@@ -99,6 +100,7 @@ export class ShellPromptHandler {
                         type: DialogType.Select,
                         title: result.title,
                         description: result.description,
+                        id: "shellSelect",
                         parameters: {
                             prompt: result.prompt,
                             default: result.defaultValue,
@@ -119,7 +121,7 @@ export class ShellPromptHandler {
                 default: {
                     const dialogRequest: IDialogRequest = {
                         type: DialogType.Prompt,
-                        id: requestId,
+                        id: "shellText",
                         title: result.title,
                         description: result.description,
                         values: {
@@ -168,6 +170,10 @@ export class ShellPromptHandler {
     };
 
     public static handleDialogResponse = (response: IDialogResponse): Promise<boolean> => {
+        if (response.id !== "shellConfirm" && response.id !== "shellSelect" && response.id !== "shellText") {
+            return Promise.resolve(false);
+        }
+
         return new Promise((resolve) => {
             const backend = response.data?.backend as IPromptReplyBackend;
             const requestId = response.data?.requestId as string;

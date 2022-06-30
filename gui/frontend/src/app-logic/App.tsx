@@ -52,6 +52,7 @@ import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModu
 import { MDSModule } from "../modules/mds/MDSModule";
 import { MRSModule } from "../modules/mrs/MrsModule";
 import { ApplicationDB } from "./ApplicationDB";
+import { IDialogResponse } from "./Types";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -126,6 +127,9 @@ export class App extends React.Component<{}, IAppState> {
             ],
         };
 
+        // Register early to ensure this handler is called last.
+        requisitions.register("dialogResponse", this.dialogResponse);
+
         ListenerEntry.createByClass("serverResponse", { persistent: true }).catch((errorEvent: ICommErrorEvent) => {
             void requisitions.execute("showError",
                 ["Backend Error", errorEvent.message]);
@@ -191,6 +195,7 @@ export class App extends React.Component<{}, IAppState> {
             requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
             requisitions.unregister("editorInfoUpdated", this.editorInfoUpdated);
             requisitions.unregister("themeChanged", this.themeChanged);
+            requisitions.unregister("dialogResponse", this.dialogResponse);
         });
     }
 
@@ -349,4 +354,16 @@ export class App extends React.Component<{}, IAppState> {
             });
         });
     }
+
+    private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
+        if (appParameters.embedded) {
+            // Forward all dialog responses.
+            const result = requisitions.executeRemote("dialogResponse", response);
+
+            return Promise.resolve(result);
+        }
+
+        return Promise.resolve(false);
+    };
+
 }

@@ -173,8 +173,8 @@ export enum DialogType {
 export interface IDialogRequest extends IDictionary {
     type: DialogType;
 
-    /** An optional id to identify the invocation. */
-    id?: string;
+    /** An id to identify the invocation. */
+    id: string;
 
     /** Optionally used to set a customized dialog title (where supported). */
     title?: string;
@@ -205,6 +205,7 @@ export enum DialogResponseClosure {
 }
 
 export interface IDialogResponse extends IDictionary {
+    id: string;
     type: DialogType;
     closure: DialogResponseClosure;
 

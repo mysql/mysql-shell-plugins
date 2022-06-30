@@ -372,7 +372,9 @@ export class RequisitionHub {
             });
 
             if (index === -1) {
-                list.push(callback);
+                // Push to the head to make later registrations get notifications sooner than earlier registrations.
+                // Usually, the later a handler is registered, the more specialized it is.
+                list.unshift(callback);
             }
         }
     };
@@ -461,9 +463,11 @@ export class RequisitionHub {
      *
      * @param requestType The request type for which to execute the registered callbacks.
      * @param parameter The value required for the callbacks.
+     *
+     * @returns True if a remote target exists which was the requisition to, otherwise false.
      */
     public executeRemote = <K extends keyof IRequestTypeMap>(requestType: K,
-        parameter: IRequisitionCallbackValues<K>): void => {
+        parameter: IRequisitionCallbackValues<K>): boolean => {
 
         if (this.remoteTarget) {
             const message: IEmbeddedMessage = {
@@ -473,7 +477,11 @@ export class RequisitionHub {
             };
 
             this.remoteTarget.postMessage(message, "*");
+
+            return true;
         }
+
+        return false;
     };
 
     /**

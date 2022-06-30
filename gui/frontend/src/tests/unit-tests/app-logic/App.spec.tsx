@@ -56,10 +56,14 @@ describe("Application tests", () => {
         launcher = await setupShellForTests("Application", false, false);
         expect(currentConnection.isConnected).toBe(false);
 
+        expect(requisitions.registrations("dialogResponse")).toBe(1);
+
         app = mount(
             <App />,
         );
         await started();
+
+        expect(requisitions.registrations("dialogResponse")).toBe(2);
     });
 
     afterAll(async () => {

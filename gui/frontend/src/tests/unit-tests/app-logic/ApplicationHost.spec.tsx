@@ -76,7 +76,6 @@ describe("Application host tests", () => {
 
         expect(requisitions.registrations("showAbout")).toBe(1);
         expect(requisitions.registrations("showPreferences")).toBe(1);
-        expect(requisitions.registrations("dialogResponse")).toBe(2);
         expect(requisitions.registrations("showModule")).toBe(1);
 
         await requisitions.execute("showAbout", undefined);
@@ -88,7 +87,6 @@ describe("Application host tests", () => {
         component.unmount();
         expect(requisitions.registrations("showAbout")).toBe(0);
         expect(requisitions.registrations("showPreferences")).toBe(0);
-        expect(requisitions.registrations("dialogResponse")).toBe(1);
         expect(requisitions.registrations("showModule")).toBe(0);
     });
 
@@ -350,6 +348,7 @@ describe("Application host tests", () => {
 
         const data: IDialogResponse = {
             type: DialogType.Prompt,
+            id: "appHostSpec",
             closure: DialogResponseClosure.Accept,
         };
         let result = await requisitions.execute("dialogResponse", data);
@@ -363,7 +362,7 @@ describe("Application host tests", () => {
         await nextRunLoop();
 
         result = await requisitions.execute("dialogResponse", data);
-        expect(result).toBe(true);
+        expect(result).toBe(false);
         await nextRunLoop();
 
         result = await requisitions.execute("showModule", DBEditorModuleId);

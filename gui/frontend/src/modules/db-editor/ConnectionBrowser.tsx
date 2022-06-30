@@ -60,7 +60,9 @@ import {
     IMdsProfileData, IMySQLDbSystem, IShellResultType,
 } from "../../communication";
 import { EventType } from "../../supplement/Dispatch";
-import { DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest } from "../../app-logic/Types";
+import {
+    DialogResponseClosure, DialogType, IDialogResponse, IDictionary, IServicePasswordRequest,
+} from "../../app-logic/Types";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { IToolbarItems } from ".";
 
@@ -161,7 +163,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         requisitions.register("removeConnection", this.removeConnection);
         requisitions.register("duplicateConnection", this.duplicateConnection);
         requisitions.register("acceptPassword", this.acceptPassword);
-
+        requisitions.register("dialogResponse", this.dialogResponse);
     }
 
     public componentWillUnmount(): void {
@@ -172,6 +174,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         requisitions.unregister("removeConnection", this.removeConnection);
         requisitions.unregister("duplicateConnection", this.duplicateConnection);
         requisitions.unregister("acceptPassword", this.acceptPassword);
+        requisitions.unregister("dialogResponse", this.dialogResponse);
     }
 
     public render(): React.ReactNode {
@@ -306,14 +309,14 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     <MenuItem id="edit" caption="Edit Connection…" icon={editIcon} />
                     <MenuItem id="duplicate" caption="Duplicate Connection…" icon={cloneIcon} />
                     <MenuItem caption="-" />
-                    <MenuItem id="shareConnection" caption="Share Connection" icon={cloneIcon}>
+                    <MenuItem id="shareConnection" caption="Share Connection" icon={cloneIcon} disabled >
                         <MenuItem id="shareWithUser" caption="With User..." icon={cloneIcon} />
                         <MenuItem caption="-" />
                         <MenuItem id="profile1" caption="Profile 1" icon={cloneIcon} />
                         <MenuItem id="profile2" caption="Profile 2" icon={cloneIcon} />
                         <MenuItem id="profile3" caption="Profile 3" icon={cloneIcon} />
                     </MenuItem>
-                    <MenuItem id="copyConnection" caption="Copy Connection to Profile" icon={cloneIcon}>
+                    <MenuItem id="copyConnection" caption="Copy Connection to Profile" icon={cloneIcon} disabled >
                         <MenuItem id="profile1" caption="Profile 1" icon={cloneIcon} />
                     </MenuItem>
                     <MenuItem caption="-" />
@@ -379,7 +382,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         const details = connections.find((candidate) => { return candidate.id === connectionId; });
         if (details) {
             this.doHandleTileAction("remove", details, undefined);
-            requisitions.executeRemote("refreshConnections", undefined);
 
             return Promise.resolve(true);
         }
@@ -567,6 +569,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 if (details) {
                     this.confirmTileRemoval(details);
                 }
+
                 break;
             }
 
@@ -592,6 +595,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         setImmediate(() => {
             void requisitions.execute("showDialog", {
                 type: DialogType.Confirm,
+                id: "deleteConnection",
                 parameters: {
                     prompt: `You are about to remove the connection "${connection.caption}" from the list.`,
                     refuse: "Cancel",
@@ -626,18 +630,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             );
         }
 
-    };
-
-    private handleConnectionRemoval = (closure: DialogResponseClosure, values?: IDictionary): void => {
-        if (closure === DialogResponseClosure.Accept) {
-            const { onDropConnection } = this.props;
-
-            if (values) {
-                const details = values.connection as IConnectionDetails;
-                onDropConnection(details.id);
-                requisitions.executeRemote("refreshConnections", undefined);
-            }
-        }
     };
 
     private handleCreateNewBastion = (closure: DialogResponseClosure, values?: IDictionary): void => {
@@ -2017,4 +2009,21 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     private hideProgress = (): void => {
         this.setState({ loading: false, progressMessage: "" });
     };
+
+    private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
+        if (response.id === "deleteConnection") {
+            const details = response.data?.connection as IConnectionDetails;
+            if (details && response.closure === DialogResponseClosure.Accept) {
+                const { onDropConnection } = this.props;
+
+                onDropConnection(details.id);
+                requisitions.executeRemote("refreshConnections", undefined);
+            }
+
+            return Promise.resolve(true);
+        }
+
+        return Promise.resolve(false);
+    };
+
 }

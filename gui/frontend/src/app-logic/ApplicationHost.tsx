@@ -39,7 +39,6 @@ import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor";
 import { DialogHost } from "./DialogHost";
 
 import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger";
-import { IDialogResponse } from "./Types";
 
 interface IApplicationHostProperties extends IComponentProperties {
     toggleOptions: () => void;
@@ -72,7 +71,6 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
 
         requisitions.register("showAbout", this.showAbout);
         requisitions.register("showPreferences", this.showPreferences);
-        requisitions.register("dialogResponse", this.dialogResponse);
         requisitions.register("showModule", this.showModule);
     }
 
@@ -92,7 +90,6 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
     public componentWillUnmount(): void {
         requisitions.unregister("showAbout", this.showAbout);
         requisitions.unregister("showPreferences", this.showPreferences);
-        requisitions.unregister("dialogResponse", this.dialogResponse);
         requisitions.unregister("showModule", this.showModule);
     }
 
@@ -231,12 +228,6 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
                 resolve(true);
             });
         });
-    };
-
-    private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
-        requisitions.executeRemote("dialogResponse", response);
-
-        return Promise.resolve(true);
     };
 
     private showModule = (module: string): Promise<boolean> => {
