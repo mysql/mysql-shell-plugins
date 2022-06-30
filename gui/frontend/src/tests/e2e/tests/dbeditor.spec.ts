@@ -2614,8 +2614,7 @@ describe("DB Editor", () => {
                             }
                         ]
                     }
-                    const graph = new Graph();
-                    graph.render(options);
+                    Graph.render(options);
                 }
                 `);
 
