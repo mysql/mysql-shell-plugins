@@ -88,8 +88,6 @@
     overflow: hidden;
 
     user-select: none;
-
-    font-size: 1.1em;
 }
 
 .msg.treeGrid.tabulator .tabulator-header.tabulator-header-hidden {
@@ -104,7 +102,6 @@
     padding: 0 9px 0 10px;
 
     position: relative;
-    box-sizing: border-box;
 
     border-right: 1px solid var(--list-gridColor);
     background-color: var(--list-headerBackground);
@@ -123,9 +120,8 @@
 /* hold content of column header */
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col .tabulator-col-content {
     flex: 1 1 auto;
-
-    box-sizing: border-content;
     position: relative;
+
     padding: 4px;
 }
 
@@ -147,7 +143,6 @@
 
 /* hold title of column header */
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
-    box-sizing: border-box;
     width: 100%;
 
     white-space: nowrap;
@@ -158,17 +153,14 @@
 
 /* element to hold title editor */
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-title-editor {
-    box-sizing: border-box;
     width: 100%;
 
     border: 1px solid var(--foreground);
 
-    padding: 1px;
-
     background: #fff;
+    color: var(--foreground);
 
     font-size: 1em;
-    color: var(--foreground);
 }
 
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-header-menu-button+.tabulator-title-editor {
@@ -205,6 +197,20 @@
     margin-right: -1px;
 }
 
+.msg.treeGrid.tabulator .tabulator-col-resize-handle {
+    position: relative;
+    display: inline-block;
+    width: 6px;
+    margin-left: -3px;
+    margin-right: -3px;
+    z-index: 10;
+    vertical-align: middle;
+}
+
+.msg.treeGrid.tabulator .tabulator-col-resize-handle {
+    cursor: ew-resize;
+}
+
 /* hide left resize handle on first column */
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col:first-child .tabulator-col-resize-handle.prev {
     display: none;
@@ -213,8 +219,8 @@
 /* header filter containing element */
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col .tabulator-header-filter {
     position: relative;
-    box-sizing: border-box;
     margin-top: 2px;
+
     width: 100%;
     text-align: center;
 }
@@ -324,7 +330,6 @@
 }
 
 .msg.treeGrid.tabulator .tabulator-header .tabulator-calcs-holder {
-    box-sizing: border-box;
     min-width: 600%;
 
     border-top: 2px solid var(--headerSeparatorColor);
@@ -358,7 +363,6 @@
 
 /* Default placeholder element. */
 .msg.treeGrid.tabulator .tabulator-tableholder .tabulator-placeholder {
-    box-sizing: border-box;
     display: flex;
     align-items: center;
 
@@ -423,28 +427,6 @@
     border-top: 2px solid var(--headerSeparatorColor);
 }
 
-/* Column resize handles. Hide them except for the header, as they have a huge performance impact. */
-.msg.treeGrid.tabulator .tabulator-col-resize-handle {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-}
-
-.msg.treeGrid.tabulator .tabulator-col-resize-handle.prev {
-    left: 0;
-    right: auto;
-}
-
-.msg.treeGrid.tabulator .tabulator-row .tabulator-col-resize-handle {
-    display: none;
-}
-
-.msg.treeGrid.tabulator .tabulator-col-resize-handle:hover {
-    cursor: ew-resize;
-}
-
 /* footer element */
 .msg.treeGrid.tabulator .tabulator-footer {
     padding: 5px 10px;
@@ -463,7 +445,6 @@
 }
 
 .msg.treeGrid.tabulator .tabulator-footer .tabulator-calcs-holder {
-    box-sizing: border-box;
     width: calc(100% + 20px);
     margin: -5px -10px 5px -10px;
 
@@ -596,7 +577,6 @@
 .msg.treeGrid.tabulator .tabulator-row {
     position: relative;
 
-    box-sizing: border-box;
     min-height: calc(1em + (var(--headerMargin) * 2));
 
     margin-bottom: 0;
@@ -684,8 +664,6 @@
 }
 
 .msg.treeGrid.tabulator .tabulator-row .tabulator-responsive-collapse {
-    box-sizing: border-box;
-
     padding: 5px;
 
     border-top: 1px solid var(--list-gridColor);
@@ -712,10 +690,10 @@
 /* cell element */
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell {
     display: inline-block;
-    box-sizing: border-box;
+
+    padding: 4px 4px;
 
     position: relative;
-    padding: 4px 4px;
     vertical-align: middle;
     white-space: nowrap;
     overflow: hidden;
@@ -891,7 +869,6 @@
 
     color: var(--rowBackgroundColor);
     font-weight: bold;
-    font-size: 1.1em;
 }
 
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-responsive-collapse-toggle:hover {
@@ -920,14 +897,14 @@
 
 /* row grouping element */
 .msg.treeGrid.tabulator .tabulator-row.tabulator-group {
-    box-sizing: border-box;
+    padding: 5px 5px 5px 10px;
+
     border-bottom: 2px solid var(--foreground);
     border-top: 2px solid var(--foreground);
-    padding: 5px;
-    padding-left: 10px;
     background: lighten(var(--foreground), 20%);
+
     font-weight: bold;
-    color: fff;
+    color: #fff;
     margin-bottom: 2px;
 
     min-width: 100%;
@@ -992,7 +969,6 @@
 .msg.treeGrid.tabulator .tabulator-menu {
     position: absolute;
     display: inline-block;
-    box-sizing: border-box;
 
     background: var(--rowBackgroundColor);
     border: 1px solid var(--list-gridColor);
@@ -1008,12 +984,10 @@
 
 .msg.treeGrid.tabulator .tabulator-menu .tabulator-menu-item {
     position: relative;
-    box-sizing: border-box;
 
     padding: 5px 10px;
 
     user-select: none;
-
 }
 
 .msg.treeGrid.tabulator .tabulator-menu .tabulator-menu-item.tabulator-menu-item-disabled {
@@ -1055,7 +1029,6 @@
 .msg.treeGrid.tabulator .tabulator-edit-select-list {
     position: absolute;
     display: inline-block;
-    box-sizing: border-box;
 
     max-height: 200px;
 
@@ -1163,24 +1136,6 @@
     border-right: 2px solid var(--list-gridColor);
 }
 
-.msg.treeGrid.tabulator .tabulator.tabulator-rtl .tabulator-row .tabulator-cell .tabulator-data-tree-control {
-    margin-right: initial;
-    margin-left: 5px;
-}
-
-/* column resize handles */
-.msg.treeGrid.tabulator .tabulator.tabulator-rtl .tabulator-col-resize-handle {
-    position: absolute;
-    left: 0;
-    right: auto;
-
-}
-
-.msg.treeGrid.tabulator .tabulator.tabulator-rtl .tabulator-col-resize-handle.prev {
-    right: 0;
-    left: auto;
-}
-
 /* Table print styling */
 .msg.treeGrid.tabulator .tabulator-print-fullscreen {
     position: absolute;
@@ -1203,11 +1158,10 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) {
 
 /* row grouping element */
 body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group {
+    padding: 5px;
 
-    box-sizing: border-box;
     border-bottom: 2px solid var(--foreground);
     border-top: 2px solid var(--foreground);
-    padding: 5px;
     padding-left: 10px;
     background: lighten(var(--foreground), 20%);
     font-weight: bold;

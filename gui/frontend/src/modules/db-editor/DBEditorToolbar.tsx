@@ -25,7 +25,7 @@ import autoCommitActiveIcon from "../../assets/images/toolbar/auto-commit-active
 import autoCommitInactiveIcon from "../../assets/images/toolbar/auto-commit-inactive.svg";
 import commitIcon from "../../assets/images/toolbar/commit.svg";
 import executeCaretIcon from "../../assets/images/toolbar/execute-caret.svg";
-import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
+//import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
 import executeNewCommandIcon from "../../assets/images/toolbar/execute-new-cmd.svg";
 import executeIcon from "../../assets/images/toolbar/execute.svg";
 import formatIcon from "../../assets/images/toolbar/format.svg";
@@ -34,8 +34,8 @@ import searchIcon from "../../assets/images/toolbar/search.svg";
 import showHiddenActiveIcon from "../../assets/images/toolbar/show-hidden-active.svg";
 import showHiddenInactiveIcon from "../../assets/images/toolbar/show-hidden-inactive.svg";
 import stopExecutionIcon from "../../assets/images/toolbar/stop-execution.svg";
-import stopOnErrorActiveIcon from "../../assets/images/toolbar/stop-on-error-active.svg";
-import stopOnErrorInactiveIcon from "../../assets/images/toolbar/stop-on-error-inactive.svg";
+//import stopOnErrorActiveIcon from "../../assets/images/toolbar/stop-on-error-active.svg";
+//import stopOnErrorInactiveIcon from "../../assets/images/toolbar/stop-on-error-inactive.svg";
 import wordWrapActiveIcon from "../../assets/images/toolbar/word-wrap-active.svg";
 import wordWrapInactiveIcon from "../../assets/images/toolbar/word-wrap-inactive.svg";
 
@@ -147,8 +147,8 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "selection or " : "";
 
-        const stopOnErrors = settings.get("editor.stopOnErrors", true);
-        const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
+        //const stopOnErrors = settings.get("editor.stopOnErrors", true);
+        //const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
 
         const autoCommitIcon = autoCommit ? autoCommitActiveIcon : autoCommitInactiveIcon;
 
@@ -198,14 +198,14 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 >
                     <Icon src={executeCaretIcon} data-tooltip="inherit" />
                 </Button>,
-                <Button
+                /*<Button
                     data-tooltip="Execute Explain for the statement at the caret position"
                     requestType="editorExecuteExplain"
                     imageOnly={true}
                     disabled
                 >
                     <Icon src={executeExplainIcon} data-tooltip="inherit" />
-                </Button>,
+                </Button>,*/
                 <Button
                     data-tooltip="Stop execution of the current statement/script"
                     requestType="editorStopExecution"
@@ -214,7 +214,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 >
                     <Icon src={stopExecutionIcon} data-tooltip="inherit" />
                 </Button>,
-                <Button
+                /*<Button
                     data-tooltip="Stop execution of the current statement/script in case of errors"
                     imageOnly={true}
                     disabled
@@ -223,7 +223,8 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                     }
                 >
                     <Icon src={stopOnErrorIcon} data-tooltip="inherit" />
-                </Button>);
+                </Button>*/
+            );
         }
 
         leftItems.push(<Divider vertical={true} thickness={1} />);

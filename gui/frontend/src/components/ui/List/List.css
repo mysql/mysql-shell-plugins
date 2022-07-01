@@ -37,6 +37,7 @@ ul.msg.list {
 
 .msg.treeGrid.tabulator.dynamicList .tabulator-cell .stretch {
     width: 100%;
+    font-size: 0.9em;
 }
 
 .msg.treeGrid.tabulator.dynamicList {

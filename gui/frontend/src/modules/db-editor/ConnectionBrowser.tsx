@@ -841,27 +841,27 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     .catch((_reason) => {
                         // Do nothing
                     });
-            } else {
-                // Activate the SSH/MDS contexts as needed
-                const contexts: string[] = [dbTypeName];
-                if (details?.useSSH) {
-                    contexts.push("useSSH");
-                }
-                if (details?.useMDS) {
-                    contexts.push("useMDS");
-                }
-                this.editorRef.current.show(
-                    this.generateEditorConfig(details),
-                    {
-                        contexts,
-                        title: editorHeading,
-                        description: editorDescription,
-                    },
-                    {
-                        createNew: newConnection,
-                        details,
-                    });
             }
+
+            // Activate the SSH/MDS contexts as needed
+            const contexts: string[] = [dbTypeName];
+            if (details?.useSSH) {
+                contexts.push("useSSH");
+            }
+            if (details?.useMDS) {
+                contexts.push("useMDS");
+            }
+            this.editorRef.current.show(
+                this.generateEditorConfig(details),
+                {
+                    contexts,
+                    title: editorHeading,
+                    description: editorDescription,
+                },
+                {
+                    createNew: newConnection,
+                    details,
+                });
         }
     };
 
@@ -1347,7 +1347,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                             this.getProfileNames().then((profiles) => {
                                 this.fillProfileDropdown(profiles);
                             }).catch((reason) => {
-                                void requisitions.execute("showError", ["Error when loading OCI profiles",
+                                void requisitions.execute("showError", ["Error while loading OCI profiles",
                                     String(reason.message)]);
                             });
                         }

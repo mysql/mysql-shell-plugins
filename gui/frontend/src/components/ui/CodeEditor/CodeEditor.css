@@ -35,7 +35,6 @@
 
 .msg.codeEditor .zoneHost {
     z-index: 2;
-    box-sizing: border-box;
     padding-right: 16px;
 }
 
@@ -53,7 +52,6 @@
     height: 100%;
 
     padding: 4px 4px 0 0;
-    box-sizing: inherit;
 }
 
 .msg.codeEditor .zoneHost > .renderTarget > .resultText {

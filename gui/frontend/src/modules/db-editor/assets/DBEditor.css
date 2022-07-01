@@ -53,10 +53,6 @@
     padding-left: 1px;
 }
 
-.msg.connectionTabHost .scriptingExplorer .tabulator-col-resize-handle {
-    pointer-events: none;
-}
-
 .msg.connectionTabHost .scriptingExplorer .input {
     margin-left: 40px;
 }
