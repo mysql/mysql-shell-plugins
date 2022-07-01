@@ -819,7 +819,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 const compartmentId = details.options["compartment-id"] as string;
                 delete details.options["compartment-id"];
 
-                // We have only profileName and mds database id, but no bastion id
+                // We have only profileName and mds database id, but no bastion id.
                 this.liveUpdateFields.profileName = profileName;
                 this.liveUpdateFields.dbSystemId = dbSystemId;
 
@@ -841,33 +841,43 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     .catch((_reason) => {
                         // Do nothing
                     });
-            }
+            } else {
+                // A connection dialog without MySQL DB system id.
+                // Activate the SSH/MDS contexts as needed
+                const contexts: string[] = [dbTypeName];
+                if (details?.useSSH) {
+                    contexts.push("useSSH");
+                }
 
-            // Activate the SSH/MDS contexts as needed
-            const contexts: string[] = [dbTypeName];
-            if (details?.useSSH) {
-                contexts.push("useSSH");
+                if (details?.useMDS) {
+                    contexts.push("useMDS");
+                }
+
+                this.editorRef.current.show(
+                    this.generateEditorConfig(details),
+                    {
+                        contexts,
+                        title: editorHeading,
+                        description: editorDescription,
+                    },
+                    {
+                        createNew: newConnection,
+                        details,
+                    });
             }
-            if (details?.useMDS) {
-                contexts.push("useMDS");
-            }
-            this.editorRef.current.show(
-                this.generateEditorConfig(details),
-                {
-                    contexts,
-                    title: editorHeading,
-                    description: editorDescription,
-                },
-                {
-                    createNew: newConnection,
-                    details,
-                });
         }
     };
 
     private loadMdsAdditionalDataAndShowConnectionDlg = ((dbTypeName: string, newConnection: boolean,
         details?: IConnectionDetails): void => {
         const contexts: string[] = [dbTypeName];
+        if (details?.useMDS) {
+            contexts.push("useMDS");
+        }
+
+        if (details?.useSSH) {
+            contexts.push("useSSH");
+        }
 
         this.beginValueUpdating("Loading...", "bastionName");
         this.beginValueUpdating("Loading...", "mysqlDbSystemName");
