@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -210,7 +210,7 @@ export class MySQLErrorListener implements ANTLRErrorListener<Token> {
                     // Due to the fact that MySQL defines a number of keywords as possible identifiers, we get all those
                     // whenever an identifier is actually required, bloating so the expected set with irrelevant
                     // elements. Hence we check for the identifier entry and assume we *only* want an identifier.
-                    // This gives an unprecise result if both certain keywords *and* an identifier are expected.
+                    // This gives an imprecise result if both certain keywords *and* an identifier are expected.
                     if (expected.contains(MySQLLexer.IDENTIFIER)) {
                         expectedText = "an identifier";
                     } else {
@@ -240,7 +240,9 @@ export class MySQLErrorListener implements ANTLRErrorListener<Token> {
                     } else {
                         message = wrongText + " is not valid at this position";
 
-                        if (expectedText.length > 0) { message += ", expecting " + expectedText; }
+                        if (expectedText.length > 0) {
+                            message += ", expecting " + expectedText;
+                        }
                     }
                 } else if (e instanceof FailedPredicateException) {
                     // For cases like "... | a ({condition}? b)", but not "... | a ({condition}? b)?".

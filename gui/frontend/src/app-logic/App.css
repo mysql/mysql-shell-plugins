@@ -40,6 +40,10 @@
     src: url(../assets/fonts/MySQL.ttf) format("truetype");
 }
 
+* {
+    box-sizing: border-box;
+}
+
 html,
 body {
     min-height: 100vh;
@@ -194,7 +198,6 @@ html.themeSwitch *:after {
 .msg .fixedScrollbar::-webkit-scrollbar-corner {
     background-color: var(--scrollbarSlider-shadow);
 }
-
 
 /* Some browser specific rules. */
 
