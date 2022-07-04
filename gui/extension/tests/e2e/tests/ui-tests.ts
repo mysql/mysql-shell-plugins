@@ -207,8 +207,7 @@ describe("MySQL Shell for VS Code", () => {
             await edView.closeAllEditors();
         });
 
-        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34237038
-        it.skip("Create and delete a Database connection", async () => {
+        it("Create and delete a Database connection", async () => {
             let flag = false;
             try {
                 await toggleSection(driver, "ORACLE CLOUD INFRASTRUCTURE", false);
@@ -454,8 +453,7 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34237038
-        it.skip("Connection Context Menu - Edit MySQL connection", async () => {
+        it("Connection Context Menu - Edit MySQL connection", async () => {
             const aux = conn.caption;
             try {
                 conn.caption = `toEdit${String(new Date().valueOf())}`;
@@ -503,8 +501,7 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34237038
-        it.skip("Connection Context Menu - Duplicate this MySQL connection", async () => {
+        it("Connection Context Menu - Duplicate this MySQL connection", async () => {
 
             await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
                 "Duplicate this MySQL Connection");
@@ -1316,8 +1313,7 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34237038
-        it.skip("Create connection with Bastion Service", async () => {
+        it("Create connection with Bastion Service", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
