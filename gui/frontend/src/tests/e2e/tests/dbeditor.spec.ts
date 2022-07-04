@@ -713,8 +713,7 @@ describe("DB Editor", () => {
 
     });
 
-    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34237038
-    xit("Remove a database connection", async () => {
+    it("Remove a database connection", async () => {
         try {
 
             dbConfig.caption += String(new Date().valueOf());
