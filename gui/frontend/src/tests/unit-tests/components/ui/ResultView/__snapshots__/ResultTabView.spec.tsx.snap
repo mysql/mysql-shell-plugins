@@ -47,6 +47,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                 orientation="column"
               >
                 <Container
+                  className="labelHost"
                   orientation="row"
                 >
                   <Label
@@ -55,6 +56,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   />
                 </Container>
                 <Container
+                  className="labelHost"
                   orientation="row"
                 >
                   <Label
@@ -146,10 +148,11 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     }
                   >
                     <Container
+                      className="labelHost"
                       orientation="row"
                     >
                       <div
-                        className="msg container fixedScrollbar"
+                        className="msg container fixedScrollbar labelHost"
                         style={
                           Object {
                             "alignItems": undefined,
@@ -180,10 +183,11 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       </div>
                     </Container>
                     <Container
+                      className="labelHost"
                       orientation="row"
                     >
                       <div
-                        className="msg container fixedScrollbar"
+                        className="msg container fixedScrollbar labelHost"
                         style={
                           Object {
                             "alignItems": undefined,
@@ -449,6 +453,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                 orientation="column"
               >
                 <Container
+                  className="labelHost"
                   orientation="row"
                 >
                   <Label

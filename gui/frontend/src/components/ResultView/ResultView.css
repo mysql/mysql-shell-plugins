@@ -74,6 +74,10 @@
     margin-right: 4px;
 }
 
+.msg.resultHost .resultTabview .outputHost > .labelHost {
+    min-height: 1.3em;
+}
+
 .msg.resultHost .resultView .tabulator {
     flex: 1 1 auto;
 }

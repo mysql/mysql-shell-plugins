@@ -160,7 +160,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                 // However, do not add that if there's only a single output entry and no result set.
                 const addIndexLabel = entry.index !== undefined && (sets.length > 1 || resultSets?.sets.length > 0);
                 labels.push(
-                    <Container orientation={Orientation.LeftToRight}>
+                    <Container className="labelHost" orientation={Orientation.LeftToRight}>
                         {
                             addIndexLabel && <Label className="cmdIndex" caption={`#${entry.index! + 1}: `} />
                         }

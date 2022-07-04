@@ -76,7 +76,7 @@ export class ResultView extends Component<IResultViewProperties> {
         const className = this.getEffectiveClassNames(["resultView"]);
 
         const options: ITreeGridOptions = {
-            layout: "fitColumns",
+            layout: "fitData",
             verticalGridLines: true,
             horizontalGridLines: true,
             alternatingRowBackgrounds: false,

@@ -789,7 +789,7 @@ exports[`Result View Tests Render with Columns 1`] = `
           Object {
             "alternatingRowBackgrounds": false,
             "horizontalGridLines": true,
-            "layout": "fitColumns",
+            "layout": "fitData",
             "resizableRows": true,
             "selectionType": 3,
             "verticalGridLines": true,
@@ -947,7 +947,7 @@ exports[`Result View Tests Standard Rendering 1`] = `
           Object {
             "alternatingRowBackgrounds": false,
             "horizontalGridLines": true,
-            "layout": "fitColumns",
+            "layout": "fitData",
             "resizableRows": true,
             "selectionType": 3,
             "verticalGridLines": true,

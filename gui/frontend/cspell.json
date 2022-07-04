@@ -74,6 +74,7 @@
         "varbinary",
         "varchar",
         "VARCHARACTER",
+        "webdriver",
         "webroot",
         "whitespaces",
         "ZEROFILL"
