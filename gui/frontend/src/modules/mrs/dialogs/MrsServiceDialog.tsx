@@ -109,7 +109,7 @@ export class MrsServiceDialog extends ValueDialogBase {
 
         mainSection.values.enabled = {
             caption: "Enabled",
-            value: request.values?.enabled === 1 || request.values?.enabled === undefined,
+            value: request.values?.enabled as boolean || request.values?.enabled === undefined,
             span: 4,
             options: [
                 DialogValueOption.Grouped,

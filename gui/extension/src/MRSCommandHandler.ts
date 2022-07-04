@@ -22,7 +22,7 @@
  */
 
 import { commands, ExtensionContext, window } from "vscode";
-import { DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
+import { DialogResponseClosure, DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
 import {
     ICommErrorEvent, ICommMrsServiceEvent, ICommSimpleResultEvent, IMrsSchemaData, IMrsServiceData,
 } from "../../frontend/src/communication";
@@ -229,6 +229,7 @@ export class MRSCommandHandler {
             parameters: { protocols: ["HTTPS", "HTTP"] },
             values: {
                 serviceName: service?.urlContextRoot ?? "/mrs",
+                hostName: service?.urlHostName,
                 protocols: service?.urlProtocol ?? "HTTPS,HTTP",
                 isDefault: !service || service.isDefault === 1,
                 enabled: !service || service.enabled === 1,
@@ -238,17 +239,17 @@ export class MRSCommandHandler {
 
         void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
             // The request was not sent at all (e.g. there was already one running).
-            if (!response || !response.accepted) {
+            if (!response || response.closure !== DialogResponseClosure.Accept) {
                 return;
             }
 
-            if (response.values) {
-                const urlContextRoot = response.values.serviceName as string;
-                const protocols = (response.values.protocols as string[]).join(",");
-                const hostName = response.values.hostName as string;
-                const comments = response.values.comments as string;
-                const isDefault = response.values.isDefault as boolean;
-                const enabled = response.values.enabled as boolean;
+            if (response.data) {
+                const urlContextRoot = response.data.serviceName as string;
+                const protocols = (response.data.protocols as string[]).join(",");
+                const hostName = response.data.hostName as string;
+                const comments = response.data.comments as string;
+                const isDefault = response.data.isDefault as boolean;
+                const enabled = response.data.enabled as boolean;
 
                 if (!service) {
                     backend.mrs.addService(urlContextRoot, protocols, hostName, isDefault, comments, enabled)
@@ -332,17 +333,17 @@ export class MRSCommandHandler {
 
             void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
                 // The request was not sent at all (e.g. there was already one running).
-                if (!response || !response.accepted) {
+                if (!response || response.closure !== DialogResponseClosure.Accept) {
                     return;
                 }
 
-                if (response.values) {
-                    const serviceId = response.values.serviceId as number;
-                    const name = response.values.name as string;
-                    const requestPath = response.values.requestPath as string;
-                    const requiresAuth = response.values.requiresAuth as boolean;
-                    const itemsPerPage = response.values.itemsPerPage as number;
-                    const comments = response.values.comments as string;
+                if (response.data) {
+                    const serviceId = response.data.serviceId as number;
+                    const name = response.data.name as string;
+                    const requestPath = response.data.requestPath as string;
+                    const requiresAuth = response.data.requiresAuth as boolean;
+                    const itemsPerPage = response.data.itemsPerPage as number;
+                    const comments = response.data.comments as string;
 
                     if (!schema) {
                         backend.mrs.addSchema(name, requestPath, requiresAuth, serviceId, itemsPerPage, comments)
