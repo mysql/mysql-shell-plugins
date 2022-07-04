@@ -101,9 +101,9 @@ try{
     else{
         writeMsg "SKIPPED"
     }
-    
     ##COPY OCI .PEM FILES
     $ociPath = Join-Path $env:userprofile ".oci"
+    writeMsg "User profile path is: $ociPath"
     if ( !(Test-Path -Path $ociPath) ){
         writeMsg "Creating .oci folder..." "-NoNewLine"
         New-Item -Path $env:userprofile -Name ".oci" -ItemType "directory" -Force
@@ -113,22 +113,20 @@ try{
     $childs = Get-ChildItem -Path $ociPath
     if ($childs.count -eq 0){
         $itemsPath = Join-Path $basePath "tests" "e2e" "oci_files"
-        Get-ChildItem -Path $itemsPath | % { 
-            $origin = Join-Path $itemsPath $_
+        Get-ChildItem -Path $itemsPath | % {
             writeMsg "Copying $_ file to .oci folder..." "-NoNewLine"
-            Copy-Item -Path $origin $ociPath
+            Copy-Item -Path $_ $ociPath
             writeMsg "DONE"
         }
     }
-    
     ####DOWNLOAD EXTENSION ######
     if(!$env:EXTENSION_PUSH_ID){
         $env:EXTENSION_PUSH_ID = "latest"
     }
 
-    $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content     
+    $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
     $bundles = $bundles | ConvertFrom-Json
-    $extension = ($bundles.builds | Where-Object { 
+    $extension = ($bundles.builds | Where-Object {
         $_.product -eq "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--win32-x64" 
         }).artifacts | Where-Object {
             $_.name -like "mysql-shell-for-vs-code-win32-x64"

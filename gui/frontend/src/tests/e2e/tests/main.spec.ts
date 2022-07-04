@@ -778,6 +778,8 @@ describe("Main pages", () => {
 
                 await setThemeEditorColors(driver, "Popup Colors", "--popup-background", "luminanceInput", "84");
 
+                await toggleUiColorsMenu(driver, "Popup Colors", "open");
+
                 await driver.findElement(By.id("--popup-background")).click();
                 element = await driver.findElement(By.css(".colorPopup"));
 
