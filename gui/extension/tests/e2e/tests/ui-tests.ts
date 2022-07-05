@@ -37,7 +37,6 @@ import {
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
-import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import addContext from "mochawesome/addContext";
 
 import fs from "fs/promises";
@@ -660,7 +659,7 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         // bug:  https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33945767
-        it.skip("Schema Context Menu - Drop Schema", async () => {
+        it("Schema Context Menu - Drop Schema", async () => {
 
             const random = String(new Date().valueOf());
             const testSchema = `testschema${random}`;
@@ -821,7 +820,7 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         // bug:  https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33945767
-        it.skip("Table Context Menu - Drop Table", async () => {
+        it("Table Context Menu - Drop Table", async () => {
 
             const random = String(new Date().valueOf());
             const testTable = `testtable${random}`;
@@ -1012,7 +1011,7 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         // bug:  https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33945767
-        it.skip("View Context Menu - Drop View", async () => {
+        it("View Context Menu - Drop View", async () => {
             await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
                 "Open MySQL Shell GUI Console for this Connection");
 
@@ -1089,7 +1088,7 @@ describe("MySQL Shell for VS Code", () => {
 
     });
 
-    describe("ORACLE CLOUD INFRASTRUCTURE tests", () => {
+    describe.skip("ORACLE CLOUD INFRASTRUCTURE tests", () => {
 
         before(async () => {
             if (platform() === "win32") {

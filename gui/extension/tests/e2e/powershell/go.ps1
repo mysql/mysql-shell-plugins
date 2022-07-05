@@ -287,7 +287,7 @@ try{
     }
     
     #CHECK RESULTS
-    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsErr.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
+    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\results.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
 
     if( $hasFailedTests -and ( [int]$hasFailedTests -gt 0 ) ){
         writeMsg "There are failed tests."

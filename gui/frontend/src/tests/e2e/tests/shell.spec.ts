@@ -595,7 +595,7 @@ describe("MySQL Shell Sessions", () => {
     });
 
     // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34241454
-    xit("Change schemas using menu", async () => {
+    it("Change schemas using menu", async () => {
         try {
             const editor = await driver.findElement(By.id("shellEditorHost"));
 
