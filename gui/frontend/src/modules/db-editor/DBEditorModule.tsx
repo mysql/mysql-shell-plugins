@@ -50,7 +50,7 @@ import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Exp
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import {
-    ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommModuleDataContentEvent,
+    ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommDbDataContentEvent,
     ICommOpenConnectionEvent, ICommResultSetEvent, IShellResultType, IResultSetData,
 } from "../../communication";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
@@ -1143,7 +1143,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         // Defer the current entry update to the moment when script data has been loaded.
                         updateCurrentEntry = false;
                         ShellInterface.modules.getDataContent(script.dbDataId)
-                            .then((event: ICommModuleDataContentEvent) => {
+                            .then((event: ICommDbDataContentEvent) => {
                                 if (event.data) {
                                     this.addEditorFromScript(connectionState, script, event.data.result);
 

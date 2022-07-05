@@ -35,7 +35,7 @@ import {
 import { DBType, ShellInterface, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import {
-    ICommResultSetEvent, ICommErrorEvent, IResultSetData, ICommModuleDataContentEvent,
+    ICommResultSetEvent, ICommErrorEvent, IResultSetData, ICommDbDataContentEvent,
 } from "../../communication";
 import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
@@ -442,7 +442,7 @@ Execute \\help or \\? for help;`;
     private editorInsertUserScript = (data: { language: EditorLanguage; resourceId: number }): Promise<boolean> => {
         return new Promise((resolve, reject) => {
             ShellInterface.modules.getDataContent(data.resourceId)
-                .then((event: ICommModuleDataContentEvent) => {
+                .then((event: ICommDbDataContentEvent) => {
                     const content = event.data?.result ?? "";
                     if (this.consoleRef.current) {
                         this.consoleRef.current.insertScriptText(data.language, content);
