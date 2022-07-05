@@ -909,6 +909,8 @@ export const isCertificateInstalled = async (driver: WebDriver): Promise<boolean
         flag = false;
     } else if (text.indexOf("Mode: Single user") !== -1) {
         flag = true;
+    } else if (text.indexOf("Certificate is installed") !== -1) {
+        flag = true;    
     } else {
         console.error(text);
         throw new Error("Could not verify certificate installation");

@@ -1243,7 +1243,7 @@ describe("DB Editor", () => {
         });
 
         //bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34259236
-        xit("Connection toolbar buttons - Autocommit DB Changes", async () => {
+        it("Connection toolbar buttons - Autocommit DB Changes", async () => {
             try {
 
                 await driver.findElement(By.id("gui.sqleditor")).click();
@@ -2144,7 +2144,7 @@ describe("DB Editor", () => {
         });
 
         // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34179455
-        xit("Using Math_random on js_py blocks", async () => {
+        it("Using Math_random on js_py blocks", async () => {
             try {
                 await driver.findElement(By.id("gui.sqleditor")).click();
 
