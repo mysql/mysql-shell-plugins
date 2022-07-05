@@ -23,6 +23,7 @@
 
 import { IDispatchEvent, DispatchEvents, EventType } from "../supplement/Dispatch";
 import { IShellDictionary, IShellRequest } from ".";
+import { IDictionary } from "../app-logic/Types";
 
 export interface IResponseDictionary {
     [key: string]: unknown;
@@ -298,7 +299,8 @@ export type IShellResultType =
     | IShellSimpleResult
     | IShellDocumentData
     | IShellRowData
-    | IShellColumnsMetaData;
+    | IShellColumnsMetaData
+    | IDictionary; // Any other structured data.
 
 export interface IShellResponse extends IGenericResponse {
     result?: IShellResultType;
@@ -310,7 +312,7 @@ export interface IShellModuleDataCategoriesEntry {
     parentCategoryId?: number;
 }
 
-export interface IShellModuleDataCategoriesData extends IResponseDictionary {
+export interface IShellDbDataCategoriesData extends IResponseDictionary {
     result: IShellModuleDataCategoriesEntry[];
 }
 
@@ -328,7 +330,7 @@ export interface IShellModuleData extends IResponseDictionary {
     result: IShellModuleDataEntry[];
 }
 
-export interface IShellModuleDataContentData extends IResponseDictionary {
+export interface IShellDbDataContentData extends IResponseDictionary {
     result: string;
 }
 
@@ -485,10 +487,10 @@ export type ICommDebuggerScriptsEvent = IDispatchEvent<IDebuggerScriptListData>;
 export type ICommScriptContentEvent = IDispatchEvent<IScriptContentData>;
 export type ICommObjectNamesEvent = IDispatchEvent<IObjectNamesData>;
 
-export type ICommListDataCategoriesEvent = IDispatchEvent<IShellModuleDataCategoriesData>;
+export type ICommListDataCategoriesEvent = IDispatchEvent<IShellDbDataCategoriesData>;
 export type ICommModuleAddDataEvent = IDispatchEvent<IShellModuleAddData>;
 export type ICommModuleDataEvent = IDispatchEvent<IShellModuleData>;
-export type ICommModuleDataContentEvent = IDispatchEvent<IShellModuleDataContentData>;
+export type ICommDbDataContentEvent = IDispatchEvent<IShellDbDataContentData>;
 export type ICommProfileTreeIdentifiersEvent = IDispatchEvent<IDBDataTreeIdentifiers>;
 export type ICommDataTreeContentEvent = IDispatchEvent<IDBDataTreeContent>;
 

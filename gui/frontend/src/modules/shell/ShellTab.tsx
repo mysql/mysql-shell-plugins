@@ -49,6 +49,7 @@ import { ShellPrompt } from "./ShellPrompt";
 import { unquote } from "../../utilities/string-helpers";
 import { MySQLConnectionScheme } from "../../communication/MySQL";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
+import { ResultTextLanguage } from "../../components/ResultView";
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
@@ -672,11 +673,19 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 } else {
                                     // If no specialized result then print as is.
                                     const executionInfo: IExecutionInfo = {
-                                        text: JSON.stringify(event.data.requestState, undefined, "\t"),
+                                        text: result ? "" : JSON.stringify(event.data.requestState, undefined, "\t"),
                                     };
+
+                                    const text = !result ? [] : [{
+                                        type: MessageType.Info,
+                                        index,
+                                        content: JSON.stringify(result, undefined, "\t"),
+                                        language: "json" as ResultTextLanguage,
+                                    }];
+
                                     addResultData({
                                         type: "text",
-                                        text: [],
+                                        text,
                                         executionInfo,
                                     });
                                 }
