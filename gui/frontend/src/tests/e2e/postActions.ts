@@ -38,7 +38,6 @@ const profilesFile = fs.readFileSync(join(baseDir, "tests", "profiles.spec.ts"))
 const dbEditorFile = fs.readFileSync(join(baseDir, "tests", "dbeditor.spec.ts"));
 const shellFile = fs.readFileSync(join(baseDir, "tests", "shell.spec.ts"));
 const loginFile = fs.readFileSync(join(baseDir, "tests", "login.spec.ts"));
-const pendingDivs = document.querySelectorAll("div.pending");
 
 if (fs.existsSync(join(baseDir, "screenshots"))) {
     const files = fs.readdirSync(join(baseDir, "screenshots"));
@@ -67,11 +66,12 @@ if (fs.existsSync(join(baseDir, "screenshots"))) {
     console.log("There are no screenshots to attach.");
 }
 
+const refDivs = document.querySelectorAll("div.failed, div.pending");
 //Mark bugs on skipped tests
-for (let i=0; i <= pendingDivs.length-1; i++) {
-    const suite = pendingDivs[i].querySelector(".test-suitename")!.textContent;
-    const title = pendingDivs[i].querySelector(".test-title")!.textContent;
-    if (!pendingDivs[i].querySelector("a") || !pendingDivs[i].querySelector("b")) {
+for (let i=0; i <= refDivs.length-1; i++) {
+    const suite = refDivs[i].querySelector(".test-suitename")!.textContent;
+    const title = refDivs[i].querySelector(".test-title")!.textContent;
+    if (!refDivs[i].querySelector("a") || !refDivs[i].querySelector("b")) {
         let codeLines: string[] = [];
         switch(true) {
             case (/Profiles/).test(String(suite)):
@@ -98,7 +98,7 @@ for (let i=0; i <= pendingDivs.length-1; i++) {
             if (codeLines[y].indexOf(String(title)) !== -1) {
                 const breakLine1 = document.createElement("br");
                 const breakLine2 = document.createElement("br");
-                if (!pendingDivs[i].querySelector("a")) {
+                if (!refDivs[i].querySelector("a")) {
                     if (codeLines[y-1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
                         text = codeLines[y-1].match(/bug:(.*)/)![1].trim();
                         const htmlEl = document.createElement("a");
@@ -106,39 +106,39 @@ for (let i=0; i <= pendingDivs.length-1; i++) {
                         htmlEl.text = "---->  HAS A BUG  <-----";
                         htmlEl.target = "_blank";
 
-                        pendingDivs[i]
+                        refDivs[i]
                             .insertBefore(breakLine1,
-                                pendingDivs[i].firstChild);
+                                refDivs[i].firstChild);
 
-                        pendingDivs[i]
+                        refDivs[i]
                             .insertBefore(breakLine2,
-                                pendingDivs[i].firstChild);
+                                refDivs[i].firstChild);
 
-                        pendingDivs[i]
+                        refDivs[i]
                             .insertBefore(htmlEl,
-                                pendingDivs[i].firstChild);
+                                refDivs[i].firstChild);
 
                         console.log(`Marked '${String(title)}' with existing bug`);
                         break;
                     }
                 }
-                if (!pendingDivs[i].querySelector("b")) {
+                if (!refDivs[i].querySelector("b")) {
                     if (codeLines[y-1].indexOf("reason:") !== -1) {
                         text = codeLines[y-1].match(/reason:(.*)/)![1].trim();
                         const htmlEl = document.createElement("b");
                         htmlEl.textContent = `Skipped Reason: ${text}`;
 
-                        pendingDivs[i]
+                        refDivs[i]
                             .insertBefore(breakLine1,
-                                pendingDivs[i].firstChild);
+                                refDivs[i].firstChild);
 
-                        pendingDivs[i]
+                        refDivs[i]
                             .insertBefore(breakLine2,
-                                pendingDivs[i].firstChild);
+                                refDivs[i].firstChild);
 
-                        pendingDivs[i]
+                        refDivs[i]
                             .insertBefore(htmlEl,
-                                pendingDivs[i].firstChild);
+                                refDivs[i].firstChild);
 
                         console.log(`Marked '${String(title)}' with skipped reason`);
                         break;
