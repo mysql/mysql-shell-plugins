@@ -852,7 +852,6 @@ describe("DB Editor", () => {
             expect(await resultHeaderRows[1].getText()).toBe("db_type");
             expect(await resultHeaderRows[2].getText()).toBe("caption");
             expect(await resultHeaderRows[3].getText()).toBe("description");
-            expect(await resultHeaderRows[4].getText()).toBe("options");
         } catch (e) {
             testFailed = true;
             throw e;
