@@ -452,9 +452,11 @@ export class MDSCommandHandler {
      * @param text The text to show, interpreted as JSON.
      */
     private showNewJsonDocument(title: string, text: string) {
-        const setting: Uri = Uri.parse(`untitled:${homedir()}/${title}`);
+        const path = `${homedir()}/${title}`;
+        const scheme = existsSync(path) ? "file" : "untitled";
+        const uri = Uri.parse(`${scheme}:${path}`);
 
-        workspace.openTextDocument(setting).then((doc: TextDocument) => {
+        workspace.openTextDocument(uri).then((doc: TextDocument) => {
             void window.showTextDocument(doc, 1, false).then((editor) => {
                 void editor.edit((edit) => {
                     const firstLine = doc.lineAt(0);
@@ -468,8 +470,7 @@ export class MDSCommandHandler {
                 void languages.setTextDocumentLanguage(doc, "json");
             });
         }, (error) => {
-            console.error(error);
-            debugger;
+            void window.showErrorMessage(`Error while showing the document: ${String(error)}`);
         });
     }
 
