@@ -23,9 +23,9 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { DBEditorToolbar } from "../../../modules/db-editor/DBEditorToolbar";
-import { snapshotFromWrapper } from "../test-helpers";
 
+import { DBEditorToolbar } from "../../../../modules/db-editor/DBEditorToolbar";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("DBEditorToolbar tests", (): void => {
     it("Test DBEditorToolbar instantiation", () => {

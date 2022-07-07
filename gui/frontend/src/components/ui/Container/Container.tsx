@@ -33,6 +33,8 @@ export enum ContentAlignment {
     Center = "center",
     End = "flex-end",
     Stretch = "stretch",
+    SpaceBetween = "space-between",
+    SpaceEvenly = "space-evenly",
 }
 
 export enum ContentWrap {

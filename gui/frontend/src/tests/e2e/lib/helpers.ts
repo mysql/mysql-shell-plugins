@@ -220,7 +220,7 @@ export const getResultStatus = async (driver: WebDriver, blockNbr: number, isSel
             }
             if (results.length > 0) {
                 if ((await results[0].findElements(By.css(".message.info"))).length > 0) {
-                    //if languange has been changed...
+                    //if language has been changed...
                     results.shift();
                 }
             } else {
@@ -1049,7 +1049,7 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string,
     }
 };
 
-export const setThemeEditorColors = async (driver: WebDriver, sectionColors: string ,optionId: string,
+export const setThemeEditorColors = async (driver: WebDriver, sectionColors: string, optionId: string,
     detail: string, value: string, scroll?: boolean): Promise<void> => {
 
     await toggleUiColorsMenu(driver, sectionColors, "open", scroll);
@@ -1064,7 +1064,7 @@ export const setThemeEditorColors = async (driver: WebDriver, sectionColors: str
 
     try {
         await openColorPad();
-    } catch(e) {
+    } catch (e) {
         await toggleUiColorsMenu(driver, sectionColors, "open", scroll);
         await openColorPad();
     }

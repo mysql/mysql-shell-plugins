@@ -41,7 +41,9 @@ import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers";
 import { Notebook } from "./Notebook";
-import { IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems } from ".";
+import {
+    IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems, ISavedGraphData,
+} from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IPosition } from "../../components/ui/CodeEditor";
 import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../script-execution";
@@ -55,8 +57,7 @@ import { IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
-    convertRows,
-    EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
+    convertRows, EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
 } from "../../supplement";
 import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
@@ -95,6 +96,9 @@ export interface IDBConnectionTabPersistentState {
 
     // The size to be used for the explorer pane.
     explorerWidth: number;
+
+    /** Cached data/settings for the performance dashboard. */
+    graphData: ISavedGraphData;
 }
 
 export interface IDBConnectionTabProperties extends IComponentProperties {
@@ -124,8 +128,9 @@ export interface IDBConnectionTabProperties extends IComponentProperties {
     onSaveSchemaTree?: (id: string, schemaTree: ISchemaTreeEntry[]) => void;
     onSaveExplorerState?: (id: string, state: Map<string, IExplorerSectionState>) => void;
 
-    onExplorerResize?: (id: string, size: number) => void;
+    onGraphDataChange?: (id: string, data: ISavedGraphData) => void;
 
+    onExplorerResize?: (id: string, size: number) => void;
     onExplorerMenuAction?: (id: string, itemId: string, params: unknown) => void;
 }
 
@@ -271,7 +276,12 @@ Execute \\help or \\? for help;`;
                     }
 
                     case "performanceDashboard": {
-                        document = <PerformanceDashboard backend={savedState.backend} toolbarItems={toolbarItems} />;
+                        document = <PerformanceDashboard
+                            backend={savedState.backend}
+                            toolbarItems={toolbarItems}
+                            graphData={savedState.graphData}
+                            onGraphDataChange={this.handleGraphDataChange}
+                        />;
                         break;
                     }
 
@@ -1536,6 +1546,12 @@ Execute \\help or \\? for help;`;
 
             onExplorerResize?.(id, first.size);
         }
+    };
+
+    private handleGraphDataChange = (data: ISavedGraphData): void => {
+        const { id, onGraphDataChange } = this.props;
+
+        onGraphDataChange?.(id!, data);
     };
 
 }

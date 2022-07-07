@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-450,-161)">
+        <g id="Menu">
+        </g>
+        <g id="Expand">
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+        </g>
+        <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit">
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error">
+        </g>
+        <g id="Execute-Explain" serif:id="Execute Explain">
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+        <g id="Kill-Connection-2" serif:id="Kill Connection 2">
+        </g>
+        <g id="Sleeping-Connections" serif:id="Sleeping Connections">
+        </g>
+        <g id="Kill-Connection" serif:id="Kill Connection">
+        </g>
+        <g id="Kill-Query" serif:id="Kill Query">
+        </g>
+        <g id="Show-Details" serif:id="Show Details">
+        </g>
+        <g transform="matrix(1,0,0,1,-2,1)">
+            <g id="Infos">
+                <path d="M463.513,162C468.211,162 472.025,165.814 472.025,170.513C472.025,175.211 468.211,179.025 463.513,179.025C458.814,179.025 455,175.211 455,170.513C455,165.814 458.814,162 463.513,162ZM464.718,168.856C464.711,169.021 464.699,169.257 464.684,169.562C464.585,171.314 464.536,172.547 464.536,173.262L464.536,173.955C464.536,174.461 464.619,174.779 464.787,174.909C464.954,175.04 465.282,175.106 465.769,175.106L466.122,175.093L466.122,175.537C465.476,175.511 464.954,175.493 464.559,175.485C464.163,175.476 463.828,175.472 463.554,175.472C463.311,175.472 463,175.476 462.624,175.485C462.247,175.493 461.682,175.511 460.929,175.537L460.929,175.079L461.214,175.079C462.158,175.079 462.633,174.548 462.641,173.484L462.641,173.125L462.698,171.065C462.705,170.887 462.709,170.767 462.709,170.706C462.709,170.353 462.65,170.12 462.532,170.006C462.414,169.893 462.199,169.836 461.887,169.836C461.827,169.836 461.737,169.84 461.619,169.846C461.501,169.853 461.374,169.86 461.237,169.869L461.123,169.457C461.724,169.392 462.323,169.309 462.92,169.209C463.518,169.108 464.117,168.991 464.718,168.856ZM463.482,165.546L464.346,165.608C464.559,165.7 464.909,166.049 464.948,166.173C465.017,166.392 464.956,166.505 464.956,166.606C464.956,166.706 464.9,166.962 464.82,167.034C464.74,167.105 464.658,167.331 464.437,167.427L463.486,167.568L462.624,167.41C462.404,167.31 462.306,167.015 462.207,166.93C462.108,166.845 462.059,166.755 462.059,166.659C462.059,166.563 462.068,166.473 462.036,166.376C461.906,165.981 462.485,165.72 462.721,165.619L463.482,165.546Z" style="fill:rgb(34,34,36);"/>
+            </g>
+        </g>
+        <g id="Background-Threads" serif:id="Background Threads">
+        </g>
+        <g id="Minimize">
+        </g>
+        <g id="Maximize">
+        </g>
+    </g>
+</svg>

@@ -121,3 +121,27 @@ export interface IToolbarItems {
     /** Right aligned items. */
     right: React.ReactNode[];
 }
+
+/** Predefined color schemes in graphs. */
+export type ColorScheme = "classic" | "delectable" | "trello" | "brewing" | "light" | "lively" | "grays";
+
+/** Cached data for the performance dashboard. */
+export interface ISavedGraphData {
+    /** The currently selected graph color scheme (default: classic). */
+    activeColorScheme: ColorScheme;
+
+    /** The currently selected display interval in line graphs. */
+    displayInterval: number;
+
+    /** The timestamp when this snapshot was taken. */
+    timestamp: number;
+
+    /** Last read values from the server (for computing differences). */
+    currentValues: Map<string, number>;
+
+    /** Computed values for labels and pie graphs.  */
+    computedValues: { [key: string]: number };
+
+    /** Stored data per line graph. */
+    series: Map<string, IXYDatum[]>;
+}

@@ -70,6 +70,16 @@ declare function runSqlIterative(code: string, callback?: (res: IResultSetData) 
  */
 declare function runSql(code: string, callback?: (res: IDataRecord[]) => void, params?: unknown): void;
 
+// ---------- Graph Structures ----------
+
+declare interface ITooltipOptions {
+    /** Generates the tooltip for the value at the given index. Return an empty string to hide the tooltip. */
+    format: (datum: IXYDatum | IPieDatum, index?: number, data?: Array<IXYDatum | IPieDatum>) => string;
+
+    /** Pins the tooltip to this position, if given (default: tooltip moves with the mouse). */
+    position?: { left: number; top: number };
+}
+
 declare interface IBaseGraphEntry {
     /** The series type. */
     type: string;
@@ -81,6 +91,14 @@ declare interface IBaseGraphEntry {
 
     /** A local color palette for a single series. */
     colors?: string[];
+
+    /**
+     * Determines the used coordinate ranges. For best results this should correspond to the viewport settings
+     * of the target SVG element (default: 400, 300)
+     */
+    size?: { width: number; height: number };
+
+    tooltip?: ITooltipOptions;
 }
 
 declare interface IPieDatum {
@@ -122,12 +140,25 @@ declare interface IPieGraphConfiguration extends IBaseGraphEntry {
      */
     padRadius?: number;
 
+    /** When true then value labels with lines are rendered (default: true). */
+    showValues?: boolean;
+
+    /** A CSS value that specifies an angle around which to rotate the graph. */
+    rotation?: string;
+
     data?: IPieDatum[];
 }
 
+/** A single point in a two-dimensional graph. */
 declare interface IXYDatum {
+    /** The value on the x axis. */
     xValue: number | Date;
-    yValue: number;
+
+    /** The associated y value. Can be undefined to defined a gap. */
+    yValue?: number;
+
+    /** A value to assign a datum to a group of values. Use this to define XY graphs with an additional dimension. */
+    group?: string;
 }
 
 declare type DatumDataType = string | number | Date;
@@ -151,47 +182,80 @@ declare type IJsonGraphData = IJsonGraphEntry[];
  */
 declare type IGraphData = ITabularGraphData | IJsonGraphData;
 
+/**
+ * Determines the look of the generated curve in a line graph.
+ */
+declare type LineGraphCurve =
+    /** Cubic basis spline curve. */
+    "Basis"
+
+    /** Straightened cubic basis spline curve. */
+    | "Bundle"
+
+    /** Polyline curve. */
+    | "Linear"
+
+    /** A cubic spline. */
+    | "Natural"
+
+    /** Stepwise curve (midpoint). */
+    | "Step"
+
+    /** Stepwise curve (start x). */
+    | "StepBefore"
+
+    /** Stepwise curve (end x). */
+    | "StepAfter"
+    ;
+
+
 declare interface ILineGraphConfiguration extends IBaseGraphEntry {
     type: "line";
 
-    // The x axis value title for a given datum.
+    /** The x axis value title for a given datum. */
     xTitle?: (datum: IXYDatum, index: number, data: IXYDatum[]) => string;
 
-    // The top margin, in pixels (default: 20).
+    /** The top margin, in pixels (default: 20). */
     marginTop?: number;
 
-    // The right margin, in pixels (default: 30).
+    /** The right margin, in pixels (default: 30). */
     marginRight?: number;
 
-    // The bottom margin, in pixels (default: 30).
+    /** The bottom margin, in pixels (default: 30). */
     marginBottom?: number;
 
-    // The left margin, in pixels (default: 40).
+    /** The left margin, in pixels (default: 40). */
     marginLeft?: number;
 
-    // Minimum and maximum X value.
-    xDomain?: [number, number] | [Date, Date];
-
-    // Minimum and maximum Y value.
-    yDomain?: [number, number];
-
-    // CSS Line color (default: "currentColor").
-    strokeColor?: string;
-
-    // Width of the line in pixels (default: 1.5).
+    /** Width of the line in pixels (default: 1.5). */
     strokeWidth?: number;
 
-    // The join type of line segments (default: "round").
+    /** The join type of line segments (default: "round"). */
     strokeLinejoin?: string;
 
-    // The line cap of line segments (defaultL "round").
+    /** The line cap of line segments (defaultL "round"). */
     strokeLinecap?: string;
 
-    // A format specifier string for the y-axis,
-    yFormat?: string;
+    /** Minimum and maximum X value. */
+    xDomain?: [number, number] | [Date, Date];
 
-    // A label for the y-axis.
+    /** Number of x axis tick marks (default: width / 80) */
+    xTickCount?: number;
+
+    /** Minimum and maximum Y value. */
+    yDomain?: [number, number];
+
+    /** Number of y axis tick marks (default: height / 40) */
+    yTickCount?: number;
+
+    /** A format specifier string for the y-axis, */
+    yFormat?: string | ((value: d3.NumberValue) => string);
+
+    /** A label for the y-axis. */
     yLabel?: string;
+
+    /** The type of curve to draw (default: Basis) */
+    curve?: LineGraphCurve;
 
     data?: IXYDatum[];
 }
@@ -236,17 +300,13 @@ declare interface IBarGraphConfiguration extends IBaseGraphEntry {
 declare type IGraphConfiguration = IPieGraphConfiguration | ILineGraphConfiguration | IBarGraphConfiguration;
 
 /** Alignment of content within its parent container. */
-declare enum IGraphAlignment {
-    Start,
-    Middle,
-    End,
-}
+declare type GraphAlignment = "Start" | "Middle" | "End";
 
 /** Description of a caption in a graph (titles, legend labels, data labels etc.). */
 declare interface IGraphLabel {
     text: string;
-    horizontalAlignment?: IGraphAlignment;
-    verticalAlignment?: IGraphAlignment;
+    horizontalAlignment?: GraphAlignment;
+    verticalAlignment?: GraphAlignment;
 }
 
 /** The top level interface for a graph host, which can contain multiple graphs. */
@@ -259,6 +319,8 @@ declare interface IGraphOptions {
 
     /** The global color palette. */
     colors?: string[];
+
+    viewport?: { left: number; top: number; width: number; height: number };
 }
 
 /** The entry point for general graph rendering. */

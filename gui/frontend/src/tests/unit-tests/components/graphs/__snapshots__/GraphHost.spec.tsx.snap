@@ -6,6 +6,10 @@ exports[`GraphHost Tests Base Rendering 1`] = `
 >
   <svg
     className="msg graphHost"
+    height="100%"
+    preserveAspectRatio="xMinYMin"
+    viewBox="0 0 400 300"
+    width="100%"
   />
 </GraphHost>
 `;
@@ -50,6 +54,10 @@ exports[`GraphHost Tests Render Combinations 1`] = `
 >
   <svg
     className="msg graphHost"
+    height="100%"
+    preserveAspectRatio="xMinYMin"
+    viewBox="0 0 400 300"
+    width="100%"
   />
 </GraphHost>
 `;

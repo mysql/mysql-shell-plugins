@@ -59,6 +59,9 @@ export interface ITreeGridMenuEntry {
 
 // Options to fine tune the behavior/look of the tree beyond the component properties.
 export interface ITreeGridOptions {
+    // The field name in the tree data, which uniquely identifies a record/row (default: "id")
+    index?: string;
+
     // The field name in the tree data, which contains child node data (default: children).
     childKey?: string;
 
@@ -399,6 +402,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         const result: Tabulator.Options = {
             debugInvalidOptions: appParameters.inDevelopment,
 
+            index: options?.index ?? "id",
             columns,
             data: tableData,
 

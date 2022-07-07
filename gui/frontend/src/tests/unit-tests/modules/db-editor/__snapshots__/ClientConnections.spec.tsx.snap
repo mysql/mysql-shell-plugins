@@ -1,0 +1,1429 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Client connections module tests Test ClientConnections instantiation: ClientConnections1 1`] = `
+<ClientConnections
+  backend={
+    Object {
+      "mds": Object {},
+      "moduleSessionLookupId": "",
+      "mrs": Object {
+        "moduleSessionLookupId": "",
+      },
+    }
+  }
+>
+  <Container
+    className="msg clientConnections"
+    mainAlignment="flex-start"
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar clientConnections"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <Toolbar
+        dropShadow={false}
+        id="clientConnectionToolbar"
+        vibrant={false}
+      >
+        <Container
+          className="msg toolbar verticalCenterContent"
+          crossAlignment="center"
+          id="clientConnectionToolbar"
+          orientation="row"
+        >
+          <div
+            className="msg container fixedScrollbar toolbar verticalCenterContent"
+            id="clientConnectionToolbar"
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <Label
+              key="mainLabel"
+            >
+              <label
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                Refresh Rate:
+              </label>
+            </Label>
+            <Dropdown
+              id="refreshSelector"
+              initialSelection="5"
+              key="selector"
+              multiSelect={false}
+              onSelect={[Function]}
+              optional={false}
+              showDescription={false}
+              withoutArrow={false}
+            >
+              <Container
+                className="msg dropdown"
+                crossAlignment="center"
+                id="refreshSelector"
+                innerRef={
+                  Object {
+                    "current": Object {
+                      "l": Object {
+                        "clickfalse": [Function],
+                        "keydownfalse": [Function],
+                      },
+                    },
+                  }
+                }
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                orientation="row"
+                tabIndex={0}
+              >
+                <div
+                  className="msg container fixedScrollbar dropdown"
+                  id="refreshSelector"
+                  onClick={[Function]}
+                  onKeyDown={[Function]}
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "flexWrap": undefined,
+                      "justifyContent": undefined,
+                    }
+                  }
+                  tabIndex={0}
+                >
+                  <Label
+                    className="ellipsis"
+                  >
+                    <label
+                      className="msg label ellipsis"
+                      data-tooltip="expand"
+                      style={
+                        Object {
+                          "textAlign": undefined,
+                        }
+                      }
+                    >
+                      5 seconds
+                    </label>
+                  </Label>
+                </div>
+              </Container>
+              <Popup
+                className="dropdownList"
+                id="refreshSelectorPopup"
+                innerRef={
+                  Object {
+                    "current": null,
+                  }
+                }
+                onClose={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="bottom-end"
+                showArrow={false}
+              >
+                <Portal
+                  id="refreshSelectorPopup"
+                  onClose={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Dropdown>
+            <Button
+              data-tooltip="Hide sleeping connections"
+              imageOnly={true}
+              key="hideSleepConn"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Hide sleeping connections"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-sleeping-conns-active.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Hide background threads"
+              imageOnly={true}
+              key="hideBkgThreads"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Hide background threads"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-background-threads-active.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-background-threads-active.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-background-threads-active.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Don't load full thread info"
+              imageOnly={true}
+              key="noFullInfo"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Don't load full thread info"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-info-inactive.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-info-inactive.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-info-inactive.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Show/Hide Details"
+              imageOnly={true}
+              key="showDetails"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Show/Hide Details"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-show-details-inactive.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-show-details-inactive.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-show-details-inactive.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Kill Query"
+              disabled={true}
+              imageOnly={true}
+              key="killQuery"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Kill Query"
+                disabled={true}
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-kill-query.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-kill-query.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-kill-query.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Kill Connection"
+              disabled={true}
+              imageOnly={true}
+              key="killCOnnection"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Kill Connection"
+                disabled={true}
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-kill-connection.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-kill-connection.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-kill-connection.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <div
+              className="expander"
+            />
+          </div>
+        </Container>
+      </Toolbar>
+      <Container
+        id="contentHost"
+        orientation="column"
+      >
+        <div
+          className="msg container fixedScrollbar"
+          id="contentHost"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "column",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Grid
+            columnGap={12}
+            columns={2}
+            rowGap={12}
+          >
+            <div
+              className="msg grid"
+              style={
+                Object {
+                  "columnGap": "12px",
+                  "gridTemplateColumns": "repeat(2, 1fr)",
+                  "rowGap": "12px",
+                }
+              }
+            >
+              <GridCell
+                className="left"
+                key="cellLogo"
+              >
+                <Container
+                  className="msg gridCell left"
+                  orientation="row"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell left"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "row",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Icon
+                      disabled={false}
+                      id="mysqlLogo"
+                      src="mysql-logo.svg"
+                    >
+                      <div
+                        className="msg icon"
+                        id="mysqlLogo"
+                        style={
+                          Object {
+                            "WebkitMaskImage": "url(mysql-logo.svg)",
+                            "backgroundColor": undefined,
+                            "height": undefined,
+                            "maskImage": "url(mysql-logo.svg)",
+                            "width": undefined,
+                          }
+                        }
+                      />
+                    </Icon>
+                  </div>
+                </Container>
+              </GridCell>
+              <GridCell
+                className="right"
+                key="serverInfo"
+                orientation="column"
+              >
+                <Container
+                  className="msg gridCell right"
+                  orientation="column"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell right"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "column",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Label
+                      as="h1"
+                    >
+                      <h1
+                        className="msg label"
+                        data-tooltip="expand"
+                        style={
+                          Object {
+                            "textAlign": undefined,
+                          }
+                        }
+                      >
+                        Client Connections
+                      </h1>
+                    </Label>
+                    <Label
+                      as="h2"
+                    >
+                      <h2
+                        className="msg label"
+                        data-tooltip="expand"
+                        style={
+                          Object {
+                            "textAlign": undefined,
+                          }
+                        }
+                      />
+                    </Label>
+                  </div>
+                </Container>
+              </GridCell>
+            </div>
+          </Grid>
+          <Container
+            crossAlignment="flex-start"
+            id="connectionProps"
+            orientation="row"
+            wrap="wrap"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="connectionProps"
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                  "flexWrap": "wrap",
+                  "justifyContent": undefined,
+                }
+              }
+            >
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Connected: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Running: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Created: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Cached: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Rejected (over limit): 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Total Connections: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Connection Limit: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Aborted Clients: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Aborted Connections: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Errors: 
+                </label>
+              </Label>
+            </div>
+          </Container>
+          <Container
+            id="connectionList"
+            orientation="row"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="connectionList"
+              style={
+                Object {
+                  "alignItems": undefined,
+                  "flexDirection": "row",
+                  "flexWrap": undefined,
+                  "justifyContent": undefined,
+                }
+              }
+            />
+          </Container>
+        </div>
+      </Container>
+    </div>
+  </Container>
+</ClientConnections>
+`;
+
+exports[`Client connections module tests Test ClientConnections instantiation: ClientConnections2 1`] = `
+<ClientConnections
+  backend={
+    Object {
+      "mds": Object {},
+      "moduleSessionLookupId": "",
+      "mrs": Object {
+        "moduleSessionLookupId": "",
+      },
+    }
+  }
+>
+  <Container
+    className="msg clientConnections"
+    mainAlignment="flex-start"
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar clientConnections"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <Toolbar
+        dropShadow={false}
+        id="clientConnectionToolbar"
+        vibrant={false}
+      >
+        <Container
+          className="msg toolbar verticalCenterContent"
+          crossAlignment="center"
+          id="clientConnectionToolbar"
+          orientation="row"
+        >
+          <div
+            className="msg container fixedScrollbar toolbar verticalCenterContent"
+            id="clientConnectionToolbar"
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <Label
+              key="mainLabel"
+            >
+              <label
+                className="msg label"
+                data-tooltip="expand"
+                style={
+                  Object {
+                    "textAlign": undefined,
+                  }
+                }
+              >
+                Refresh Rate:
+              </label>
+            </Label>
+            <Dropdown
+              id="refreshSelector"
+              initialSelection="5"
+              key="selector"
+              multiSelect={false}
+              onSelect={[Function]}
+              optional={false}
+              showDescription={false}
+              withoutArrow={false}
+            >
+              <Container
+                className="msg dropdown"
+                crossAlignment="center"
+                id="refreshSelector"
+                innerRef={
+                  Object {
+                    "current": Object {
+                      "l": Object {
+                        "clickfalse": [Function],
+                        "keydownfalse": [Function],
+                      },
+                    },
+                  }
+                }
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                orientation="row"
+                tabIndex={0}
+              >
+                <div
+                  className="msg container fixedScrollbar dropdown"
+                  id="refreshSelector"
+                  onClick={[Function]}
+                  onKeyDown={[Function]}
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "flexWrap": undefined,
+                      "justifyContent": undefined,
+                    }
+                  }
+                  tabIndex={0}
+                >
+                  <Label
+                    className="ellipsis"
+                  >
+                    <label
+                      className="msg label ellipsis"
+                      data-tooltip="expand"
+                      style={
+                        Object {
+                          "textAlign": undefined,
+                        }
+                      }
+                    >
+                      5 seconds
+                    </label>
+                  </Label>
+                </div>
+              </Container>
+              <Popup
+                className="dropdownList"
+                id="refreshSelectorPopup"
+                innerRef={
+                  Object {
+                    "current": null,
+                  }
+                }
+                onClose={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="bottom-end"
+                showArrow={false}
+              >
+                <Portal
+                  id="refreshSelectorPopup"
+                  onClose={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Dropdown>
+            <Button
+              data-tooltip="Hide sleeping connections"
+              imageOnly={true}
+              key="hideSleepConn"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Hide sleeping connections"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-sleeping-conns-active.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Hide background threads"
+              imageOnly={true}
+              key="hideBkgThreads"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Hide background threads"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-background-threads-active.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-background-threads-active.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-background-threads-active.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Don't load full thread info"
+              imageOnly={true}
+              key="noFullInfo"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Don't load full thread info"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-info-inactive.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-info-inactive.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-info-inactive.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Show/Hide Details"
+              imageOnly={true}
+              key="showDetails"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Show/Hide Details"
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-show-details-inactive.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-show-details-inactive.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-show-details-inactive.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Kill Query"
+              disabled={true}
+              imageOnly={true}
+              key="killQuery"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Kill Query"
+                disabled={true}
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-kill-query.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-kill-query.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-kill-query.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <Button
+              data-tooltip="Kill Connection"
+              disabled={true}
+              imageOnly={true}
+              key="killCOnnection"
+              onClick={[Function]}
+            >
+              <button
+                className="msg button imageOnly"
+                data-tooltip="Kill Connection"
+                disabled={true}
+                onClick={[Function]}
+                onMouseDown={[Function]}
+                style={
+                  Object {
+                    "flexDirection": undefined,
+                  }
+                }
+                tabIndex={0}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-kill-connection.svg"
+                >
+                  <div
+                    className="msg icon"
+                    data-tooltip="inherit"
+                    style={
+                      Object {
+                        "WebkitMaskImage": "url(toolbar-kill-connection.svg)",
+                        "backgroundColor": undefined,
+                        "height": undefined,
+                        "maskImage": "url(toolbar-kill-connection.svg)",
+                        "width": undefined,
+                      }
+                    }
+                  />
+                </Icon>
+              </button>
+            </Button>
+            <div
+              className="expander"
+            />
+          </div>
+        </Container>
+      </Toolbar>
+      <Container
+        id="contentHost"
+        orientation="column"
+      >
+        <div
+          className="msg container fixedScrollbar"
+          id="contentHost"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "column",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Grid
+            columnGap={12}
+            columns={2}
+            rowGap={12}
+          >
+            <div
+              className="msg grid"
+              style={
+                Object {
+                  "columnGap": "12px",
+                  "gridTemplateColumns": "repeat(2, 1fr)",
+                  "rowGap": "12px",
+                }
+              }
+            >
+              <GridCell
+                className="left"
+                key="cellLogo"
+              >
+                <Container
+                  className="msg gridCell left"
+                  orientation="row"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell left"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "row",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Icon
+                      disabled={false}
+                      id="mysqlLogo"
+                      src="mysql-logo.svg"
+                    >
+                      <div
+                        className="msg icon"
+                        id="mysqlLogo"
+                        style={
+                          Object {
+                            "WebkitMaskImage": "url(mysql-logo.svg)",
+                            "backgroundColor": undefined,
+                            "height": undefined,
+                            "maskImage": "url(mysql-logo.svg)",
+                            "width": undefined,
+                          }
+                        }
+                      />
+                    </Icon>
+                  </div>
+                </Container>
+              </GridCell>
+              <GridCell
+                className="right"
+                key="serverInfo"
+                orientation="column"
+              >
+                <Container
+                  className="msg gridCell right"
+                  orientation="column"
+                  style={Object {}}
+                >
+                  <div
+                    className="msg container fixedScrollbar gridCell right"
+                    style={
+                      Object {
+                        "alignItems": undefined,
+                        "flexDirection": "column",
+                        "flexWrap": undefined,
+                        "justifyContent": undefined,
+                      }
+                    }
+                  >
+                    <Label
+                      as="h1"
+                    >
+                      <h1
+                        className="msg label"
+                        data-tooltip="expand"
+                        style={
+                          Object {
+                            "textAlign": undefined,
+                          }
+                        }
+                      >
+                        Client Connections
+                      </h1>
+                    </Label>
+                    <Label
+                      as="h2"
+                    >
+                      <h2
+                        className="msg label"
+                        data-tooltip="expand"
+                        style={
+                          Object {
+                            "textAlign": undefined,
+                          }
+                        }
+                      />
+                    </Label>
+                  </div>
+                </Container>
+              </GridCell>
+            </div>
+          </Grid>
+          <Container
+            crossAlignment="flex-start"
+            id="connectionProps"
+            orientation="row"
+            wrap="wrap"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="connectionProps"
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                  "flexWrap": "wrap",
+                  "justifyContent": undefined,
+                }
+              }
+            >
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Connected: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Running: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Created: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Threads Cached: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Rejected (over limit): 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Total Connections: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Connection Limit: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Aborted Clients: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Aborted Connections: 
+                </label>
+              </Label>
+              <Label
+                key="mainLabel"
+              >
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Errors: 
+                </label>
+              </Label>
+            </div>
+          </Container>
+          <Container
+            id="connectionList"
+            orientation="row"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="connectionList"
+              style={
+                Object {
+                  "alignItems": undefined,
+                  "flexDirection": "row",
+                  "flexWrap": undefined,
+                  "justifyContent": undefined,
+                }
+              }
+            />
+          </Container>
+        </div>
+      </Container>
+    </div>
+  </Container>
+</ClientConnections>
+`;

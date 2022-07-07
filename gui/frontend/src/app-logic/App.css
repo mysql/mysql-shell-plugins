@@ -93,6 +93,13 @@ pre {
     align-items: center;
 }
 
+.centerContent {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
 .ellipsis {
     overflow: hidden;
     text-overflow: ellipsis;

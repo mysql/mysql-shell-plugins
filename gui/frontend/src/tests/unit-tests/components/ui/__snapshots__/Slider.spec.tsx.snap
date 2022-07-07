@@ -1,0 +1,80 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Slider component tests Standard Rendering 1`] = `
+<Slider
+  disabled={false}
+  handleSize={20}
+  id="slider1"
+  value={0.3}
+  vertical={false}
+>
+  <div
+    className="msg slider"
+    disabled={false}
+    id="slider1"
+    onPointerDown={[Function]}
+    onPointerUp={[Function]}
+  >
+    <Container
+      className="body"
+      orientation="row"
+    >
+      <div
+        className="msg container fixedScrollbar body"
+        style={
+          Object {
+            "alignItems": undefined,
+            "flexDirection": "row",
+            "flexWrap": undefined,
+            "justifyContent": undefined,
+          }
+        }
+      >
+        <div
+          className="handle"
+        />
+      </div>
+    </Container>
+  </div>
+</Slider>
+`;
+
+exports[`Slider component tests Value Change 1`] = `
+<Slider
+  disabled={false}
+  handleSize={20}
+  id="slider1"
+  onChange={[MockFunction]}
+  value={0.3}
+  vertical={false}
+>
+  <div
+    className="msg slider"
+    disabled={false}
+    id="slider1"
+    onPointerDown={[Function]}
+    onPointerUp={[Function]}
+  >
+    <Container
+      className="body"
+      orientation="row"
+    >
+      <div
+        className="msg container fixedScrollbar body"
+        style={
+          Object {
+            "alignItems": undefined,
+            "flexDirection": "row",
+            "flexWrap": undefined,
+            "justifyContent": undefined,
+          }
+        }
+      >
+        <div
+          className="handle"
+        />
+      </div>
+    </Container>
+  </div>
+</Slider>
+`;

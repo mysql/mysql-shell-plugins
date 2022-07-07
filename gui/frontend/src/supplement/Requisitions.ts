@@ -211,6 +211,7 @@ export interface IRequestTypeMap {
 
     // For unit tests only.
     "testButtonClick": SimpleCallback;
+
 }
 
 // A function that can be use to send messages between host and client parts in embedded scenarios.

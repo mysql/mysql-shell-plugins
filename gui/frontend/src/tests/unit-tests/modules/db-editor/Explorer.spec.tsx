@@ -23,30 +23,29 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { nextRunLoop, snapshotFromWrapper } from "../test-helpers";
-import { ServerStatus } from "../../../modules/db-editor/ServerStatus";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface";
 
+import { snapshotFromWrapper } from "../../test-helpers";
+import { Explorer } from "../../../../modules/db-editor/Explorer";
+import { DBType, ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
 
-describe("Server status module tests", (): void => {
+describe("Explorer tests", (): void => {
 
-    it("Test ServerStatus instantiation", async () => {
-        const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ServerStatus>(
-            <ServerStatus backend={backend} />,
+    it("Explorer instantiation", () => {
+        const component = mount<Explorer>(
+            <Explorer
+                schemaTree={[]}
+                editors={[]}
+                scripts={[]}
+                selectedEntry={""}
+                markedSchema={""}
+                backend={new ShellInterfaceSqlEditor()}
+                dbType={DBType.MySQL}
+            ></Explorer>,
         );
-        // Component updates.
-        component.setProps({ backend });
-        await nextRunLoop();
-
-        expect(snapshotFromWrapper(component)).toMatchSnapshot("ServerStatus1");
-
-        backend.closeSession().catch(() => {
-            throw new Error("Close session failed");
-        });
-        await nextRunLoop();
-        expect(snapshotFromWrapper(component)).toMatchSnapshot("ServerStatus2");
-
+        const props = component.props();
+        expect(props.schemaTree).toEqual([]);
+        expect(props.dbType).toEqual(DBType.MySQL);
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
         component.unmount();
     });
 
