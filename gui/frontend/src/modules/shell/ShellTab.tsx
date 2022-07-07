@@ -174,15 +174,18 @@ Execute \\help or \\? for help; \\quit to close the session.`;
      *
      * @param context The context containing the code to be executed.
      * @param params Additional named parameters.
+     *
+     * @returns True if something was actually executed, false otherwise.
      */
-    private handleExecution = (context: ExecutionContext, params?: Array<[string, string]>): void => {
+    private handleExecution = async (context: ExecutionContext, params?: Array<[string, string]>): Promise<boolean> => {
         const { savedState } = this.props;
 
         const command = context.code.trim();
+        if (command.length === 0) {
+            return Promise.resolve(false);
+        }
 
         // First check for special commands.
-        let runExecution = true;
-
         const parts = command.split(" ");
         if (parts.length > 0) {
             const temp = parts[0].toLowerCase();
@@ -200,7 +203,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         onQuit(id ?? "");
                     });
 
-                    return;
+                    return Promise.resolve(true);
                 }
 
                 case "\\about": {
@@ -212,7 +215,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         text: [{ type: MessageType.Info, content, language: "ansi" }],
                     });
 
-                    return;
+                    return Promise.resolve(true);
                 }
 
                 case "\\js": {
@@ -237,27 +240,30 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     if (language !== this.currentLanguage) {
                         const languageSwitch = ShellTab.languageMap.get(context.language);
                         if (languageSwitch) {
-                            runExecution = false; // We do it here.
-                            savedState.backend.execute(languageSwitch).then((event: ICommShellEvent) => {
-                                if (event.eventType === EventType.FinalResponse) {
-                                    this.currentLanguage = language;
-                                    void this.processCommand(command, context, params);
-                                }
-                            }).catch((event) => {
-                                void requisitions.execute("showError",
-                                    ["Shell Language Switch Error", String(event.message)]);
+                            return new Promise((resolve) => {
+                                savedState.backend.execute(languageSwitch).then((event: ICommShellEvent) => {
+                                    if (event.eventType === EventType.FinalResponse) {
+                                        this.currentLanguage = language;
+                                        void this.processCommand(command, context, params).then(() => {
+                                            resolve(true);
+                                        });
+                                    }
+                                }).catch((event) => {
+                                    void requisitions.execute("showError",
+                                        ["Shell Language Switch Error", String(event.message)]);
+
+                                    resolve(false);
+                                });
                             });
                         }
                     }
-
-                    break;
                 }
             }
         }
 
-        if (runExecution) {
-            void this.processCommand(command, context, params);
-        }
+        await this.processCommand(command, context, params);
+
+        return Promise.resolve(true);
     };
 
     /**

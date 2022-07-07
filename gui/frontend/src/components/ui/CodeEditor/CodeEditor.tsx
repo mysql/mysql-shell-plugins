@@ -135,7 +135,8 @@ interface ICodeEditorProperties extends IComponentProperties {
     font?: IFontSettings;
     scrollbar?: Monaco.IEditorScrollbarOptions;
 
-    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>, position?: IPosition) => void;
+    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
+        position?: IPosition) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
     onCursorChange?: (position: Position) => void;
     onOptionsChanged?: () => void;
@@ -1107,19 +1108,21 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                             position = block.toLocal(position);
                         }
 
-                        onScriptExecution?.(block, undefined, position);
-                        if (advance) {
-                            this.prepareNextExecutionBlock(index);
-                        } else {
-                            editor.revealLine(block.endLine + 1, Monaco.ScrollType.Smooth);
-                            if (block.endLine + 1 < model.getLineCount()) {
-                                editor.revealLine(block.endLine + 1, Monaco.ScrollType.Smooth);
-                            } else {
-                                editor.setScrollPosition(
-                                    { scrollTop: editor.getScrollHeight()/* - editor.getLayoutInfo().height * 1.5*/ },
-                                    Monaco.ScrollType.Smooth);
+                        void onScriptExecution?.(block, undefined, position).then((executed) => {
+                            if (executed) {
+                                if (advance) {
+                                    this.prepareNextExecutionBlock(index);
+                                } else {
+                                    editor.revealLine(block.endLine + 1, Monaco.ScrollType.Smooth);
+                                    if (block.endLine + 1 < model.getLineCount()) {
+                                        editor.revealLine(block.endLine + 1, Monaco.ScrollType.Smooth);
+                                    } else {
+                                        editor.setScrollPosition({ scrollTop: editor.getScrollHeight() },
+                                            Monaco.ScrollType.Smooth);
+                                    }
+                                }
                             }
-                        }
+                        });
                     }
                 }
             }

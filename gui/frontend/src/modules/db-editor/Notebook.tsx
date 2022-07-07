@@ -42,7 +42,7 @@ export interface INotebookProperties extends IComponentProperties {
     showAbout: boolean; // If true then show the about info text on first mount.
 
     onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
-        source?: IPosition | string) => void;
+        source?: IPosition | string) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
 
@@ -170,10 +170,13 @@ export class Notebook extends Component<INotebookProperties> {
                 currentBlock.linkId = linkId;
 
                 const { onScriptExecution } = this.props;
-                onScriptExecution?.(currentBlock, params, sql);
+                void onScriptExecution?.(currentBlock, params, sql).then((executed) => {
+                    if (executed && this.editorRef.current) {
+                        this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
+                        this.editorRef.current.focus();
+                    }
+                });
 
-                this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
-                this.editorRef.current.focus();
             }
         }
     }
@@ -206,12 +209,12 @@ export class Notebook extends Component<INotebookProperties> {
 
 
                             const { onScriptExecution } = this.props;
-                            onScriptExecution?.(currentBlock);
+                            void onScriptExecution?.(currentBlock).then(() => {
+                                this.editorRef.current?.prepareNextExecutionBlock(-1, lastBlock?.language);
+                                this.editorRef.current?.focus();
 
-                            this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
-                            this.editorRef.current.focus();
-
-                            resolve(true); // For the outer promise, which is a pending requisition call.
+                                resolve(true); // For the outer promise, which is a pending requisition call.
+                            });
 
                             return Promise.resolve(true);
                         }
