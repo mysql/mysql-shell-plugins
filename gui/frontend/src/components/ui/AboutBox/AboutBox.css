@@ -68,6 +68,8 @@
     font-size: 25pt;
     height: 39px;
     font-weight: 100;
+
+    overflow: hidden;
 }
 
 .msg.aboutBox #headingSubLabel {
@@ -92,10 +94,10 @@
     flex-direction: row;
     justify-content: center;
     font-size: 11pt;
-    font-weight: 100;
     padding-top: 10px;
     padding-bottom: 30px;
     white-space: nowrap;
+    overflow: hidden;
 }
 
 .msg.aboutBox #aboutBoxLinks a {
