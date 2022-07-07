@@ -37,11 +37,11 @@ import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
 } from "../../frontend/src/utilities/MySQLShellLauncher";
 
-import { currentConnection } from "../../frontend/src/communication";
 import { ExtensionHost } from "./ExtensionHost";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
 import { waitFor } from "../../frontend/src/utilities/helpers";
+import { MessageScheduler } from "../../frontend/src/communication";
 
 export let taskOutputChannel: OutputChannel;
 export let statusBarItem: StatusBarItem;
@@ -140,7 +140,7 @@ export const activate = (context: ExtensionContext): void => {
         void window.showWarningMessage(restartMessage, "Restart MySQL Shell", "Cancel").then(async (choice) => {
             if (choice === "Restart MySQL Shell") {
                 host.closeAllTabs();
-                currentConnection.disconnect();
+                MessageScheduler.get.disconnect();
                 await shellLauncher.exitProcess();
                 webSession.clearSessionData();
 
@@ -158,7 +158,7 @@ export const activate = (context: ExtensionContext): void => {
                 "connect to a local MySQL Shell",
         }).then(async (value) => {
             host.closeAllTabs();
-            currentConnection.disconnect();
+            MessageScheduler.get.disconnect();
             await shellLauncher.exitProcess();
             webSession.clearSessionData();
 
@@ -302,7 +302,7 @@ export const activate = (context: ExtensionContext): void => {
 
 export const deactivate = (): void => {
     requisitions.unregister();
-    currentConnection.disconnect();
+    MessageScheduler.get.disconnect();
     void shellLauncher.exitProcess();
 };
 

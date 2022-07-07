@@ -28,8 +28,8 @@ import React from "react";
 import { ApplicationHost } from "./ApplicationHost";
 import { ModuleRegistry } from "../modules/ModuleRegistry";
 import {
-    ICommErrorEvent, ICommWebSessionEvent, ICommAuthenticationEvent, currentConnection,
-    ICommShellProfile, ICommModuleListEvent,
+    ICommErrorEvent, ICommWebSessionEvent, ICommAuthenticationEvent, ICommShellProfile, ICommModuleListEvent,
+    MessageScheduler,
 } from "../communication";
 import { ListenerEntry, eventFilterNoRequests, EventType } from "../supplement/Dispatch";
 import { LoginPage } from "../components/Login/LoginPage";
@@ -189,7 +189,7 @@ export class App extends React.Component<{}, IAppState> {
         window.addEventListener("beforeunload", () => {
             void requisitions.execute("applicationWillFinish", undefined);
 
-            currentConnection.disconnect();
+            MessageScheduler.get.disconnect();
             void ApplicationDB.cleanUp();
 
             requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
@@ -202,7 +202,7 @@ export class App extends React.Component<{}, IAppState> {
     public componentDidMount(): void {
         /* istanbul ignore next */
         if (!appParameters.testsRunning) {
-            void currentConnection.connect(new URL(window.location.href), "");
+            void MessageScheduler.get.connect(new URL(window.location.href), "");
         }
 
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);

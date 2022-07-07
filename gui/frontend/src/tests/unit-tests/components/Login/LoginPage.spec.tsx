@@ -30,16 +30,16 @@ import {
 import { LoginPage } from "../../../../components/Login/LoginPage";
 import keyboardKey from "keyboard-key";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { currentConnection } from "../../../../communication";
 import { ShellInterface } from "../../../../supplement/ShellInterface";
 import { EventType, IDispatchEvent, ListenerEntry } from "../../../../supplement/Dispatch";
+import { MessageScheduler } from "../../../../communication";
 
 describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;
 
     beforeAll(async () => {
         launcher = await setupShellForTests("LoginPage", false, true, "DEBUG2");
-        expect(currentConnection.isConnected).toBe(true);
+        expect(MessageScheduler.get.isConnected).toBe(true);
     });
 
     afterAll(async () => {

@@ -32,6 +32,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
     >
       <text
         dy=".35em"
+        fill="currentColor"
         text-anchor="start"
         transform="translate(330,-292.2835737772481)"
       >
@@ -39,6 +40,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
       </text>
       <text
         dy=".35em"
+        fill="currentColor"
         text-anchor="start"
         transform="translate(330,168.74999999999994)"
       >
@@ -46,6 +48,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
       </text>
       <text
         dy=".35em"
+        fill="currentColor"
         text-anchor="end"
         transform="translate(-330,4.133182947122317e-14)"
       >
@@ -99,6 +102,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
     >
       <text
         dy=".35em"
+        fill="currentColor"
         text-anchor="start"
         transform="translate(330,-292.2835737772481)"
       >
@@ -106,6 +110,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
       </text>
       <text
         dy=".35em"
+        fill="currentColor"
         text-anchor="start"
         transform="translate(330,168.74999999999994)"
       >
@@ -113,6 +118,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
       </text>
       <text
         dy=".35em"
+        fill="currentColor"
         text-anchor="end"
         transform="translate(-330,4.133182947122317e-14)"
       >

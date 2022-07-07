@@ -27,9 +27,9 @@ import { join } from "path";
 import * as net from "net";
 
 import { platform, homedir } from "os";
-import { currentConnection } from "../communication";
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import { uuid } from "./helpers";
+import { MessageScheduler } from "../communication";
 
 export type ShellOutputCallback = (output: string) => void;
 export type ShellErrorCallback = (error: Error) => void;
@@ -313,7 +313,7 @@ export class MySQLShellLauncher {
             try {
                 // For external targets we don't pass on a shell config dir, as we probably cannot access it
                 // anyway (unless the target is on localhost).
-                currentConnection.connect(new URL(target), "").then(() => {
+                MessageScheduler.get.connect(new URL(target), "").then(() => {
                     this.launchDetails.port = Number(url.port);
                     this.launchDetails.singleUserToken = url.searchParams.get("token") ?? "";
 
@@ -346,7 +346,8 @@ export class MySQLShellLauncher {
                             `?token=${this.launchDetails.singleUserToken}`);
 
                         // Connect with a copy of the URL, because the URL will be modified in the connect() call.
-                        currentConnection.connect(new URL(url.href), MySQLShellLauncher.getShellUserConfigDir(rootPath))
+                        MessageScheduler.get.connect(new URL(url.href),
+                            MySQLShellLauncher.getShellUserConfigDir(rootPath))
                             .then(() => {
                                 void requisitions.execute("connectedToUrl", url);
                             }).catch(/* istanbul ignore next */(reason) => {

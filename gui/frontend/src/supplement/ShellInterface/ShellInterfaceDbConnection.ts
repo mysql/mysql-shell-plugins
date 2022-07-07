@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ProtocolGui, currentConnection, IShellDbConnection, IShellDictionary } from "../../communication";
+import { ProtocolGui, IShellDbConnection, IShellDictionary, MessageScheduler } from "../../communication";
 import { ListenerEntry } from "../Dispatch";
 import { IConnectionDetails, IShellInterface } from ".";
 import { convertCamelToSnakeCase } from "../../utilities/helpers";
@@ -48,7 +48,7 @@ export class ShellInterfaceDbConnection implements IShellInterface {
             options: convertCamelToSnakeCase(connection.options) as IShellDictionary,
         };
 
-        return currentConnection.sendRequest(
+        return MessageScheduler.get.sendRequest(
             ProtocolGui.getRequestDbconnectionsAddDbConnection(profileId, conn, folderPath),
             { messageClass: "addDbConnection" });
     }
@@ -69,7 +69,7 @@ export class ShellInterfaceDbConnection implements IShellInterface {
             options: convertCamelToSnakeCase(connection.options) as IShellDictionary,
         };
 
-        return currentConnection.sendRequest(
+        return MessageScheduler.get.sendRequest(
             ProtocolGui.getRequestDbconnectionsUpdateDbConnection(profileId, connection.id, conn),
             { messageClass: "updateDbConnection" });
     }
@@ -83,7 +83,7 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      * @returns A listener for the response.
      */
     public removeDbConnection(profileId: number, connectionId: number): ListenerEntry {
-        return currentConnection.sendRequest(
+        return MessageScheduler.get.sendRequest(
             ProtocolGui.getRequestDbconnectionsRemoveDbConnection(profileId, connectionId),
             { messageClass: "removeDbConnection" });
     }
@@ -97,7 +97,7 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      * @returns A listener for the response.
      */
     public listDbConnections(profileId: number, folderPath: string): ListenerEntry {
-        return currentConnection.sendRequest(
+        return MessageScheduler.get.sendRequest(
             ProtocolGui.getRequestDbconnectionsListDbConnections(profileId, folderPath),
             { messageClass: "listDbConnections" });
     }
@@ -110,7 +110,7 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      * @returns A listener for the response.
      */
     public getDbConnection(connectionId: number): ListenerEntry {
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbConnection(connectionId),
+        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbConnection(connectionId),
             { messageClass: "getDbConnection" });
     }
 }

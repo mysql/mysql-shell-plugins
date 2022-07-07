@@ -175,6 +175,7 @@ export class PieGraphRenderer {
         label.enter()
             .append<IPieTextElement>("text")
             .attr("dy", ".35em")
+            .attr("fill", "currentColor")
             .text((d) => {
                 return d.data.name ?? this.format(d.data.value);
             })

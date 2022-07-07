@@ -23,7 +23,8 @@
 
 import { IBackendInformation, IShellInterface } from ".";
 import {
-    currentConnection, ICommDbTypesEvent, ICommErrorEvent, ICommShellInformationEvent, ICommSimpleResultEvent,
+    ICommDbTypesEvent, ICommErrorEvent, ICommShellInformationEvent, ICommSimpleResultEvent,
+    MessageScheduler,
     ProtocolGui, ShellAPIGui,
 } from "../../communication";
 
@@ -43,7 +44,7 @@ export class ShellInterfaceCore implements IShellInterface {
         return new Promise((resolve) => {
             const request = ProtocolGui.getRequestCoreGetBackendInformation();
 
-            currentConnection.sendRequest(request, { messageClass: "getBackendInformation" })
+            MessageScheduler.get.sendRequest(request, { messageClass: "getBackendInformation" })
                 .then((event: ICommShellInformationEvent) => {
                     // istanbul ignore if
                     if (!event.data) {
@@ -68,7 +69,7 @@ export class ShellInterfaceCore implements IShellInterface {
     public getLogLevel(): Promise<string> {
         return new Promise((resolve, reject) => {
             const request = ProtocolGui.getRequestCoreGetLogLevel();
-            currentConnection.sendRequest(request, { messageClass: "getLogLevel" })
+            MessageScheduler.get.sendRequest(request, { messageClass: "getLogLevel" })
                 .then((event: ICommSimpleResultEvent) => {
                     resolve(event.data?.result as string);
                 }).catch(/* istanbul ignore next */(errorEvent) => {
@@ -81,7 +82,7 @@ export class ShellInterfaceCore implements IShellInterface {
     public setLogLevel(level: string): Promise<void> {
         return new Promise((resolve, reject) => {
             const request = ProtocolGui.getRequestCoreSetLogLevel(level);
-            currentConnection.sendRequest(request, { messageClass: "getLogLevel" })
+            MessageScheduler.get.sendRequest(request, { messageClass: "getLogLevel" })
                 .then(() => {
                     resolve();
                 }).catch(/* istanbul ignore next */(errorEvent) => {
@@ -97,7 +98,7 @@ export class ShellInterfaceCore implements IShellInterface {
         return new Promise((resolve) => {
             const result: string[] = [];
             const context = { messageClass: ShellAPIGui.GuiDbconnectionsGetDbTypes };
-            currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbTypes(), context)
+            MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbTypes(), context)
                 .then((event: ICommDbTypesEvent) => {
                     // istanbul ignore else
                     if (event.data) {
@@ -122,7 +123,7 @@ export class ShellInterfaceCore implements IShellInterface {
     public validatePath(path: string): Promise<boolean> {
         return new Promise((resolve) => {
             const request = ProtocolGui.getRequestCoreValidatePath(path);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreValidatePath })
+            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreValidatePath })
                 .then((event: IDispatchEvent) => {
                     // istanbul ignore else
                     if (event.eventType === EventType.FinalResponse) {
@@ -145,7 +146,7 @@ export class ShellInterfaceCore implements IShellInterface {
     public createDatabaseFile(path: string): Promise<void> {
         return new Promise((resolve, reject) => {
             const request = ProtocolGui.getRequestCoreCreateFile(path);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreCreateFile })
+            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreCreateFile })
                 .then((event: IDispatchEvent) => {
                     // istanbul ignore else
                     if (event.eventType === EventType.FinalResponse) {

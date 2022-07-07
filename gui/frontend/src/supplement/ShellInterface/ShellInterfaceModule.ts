@@ -22,7 +22,7 @@
  */
 
 import {
-    ProtocolGui, currentConnection, ICommModuleDataEvent, ICommDataTreeContentEvent, IDBDataTreeEntry,
+    ProtocolGui, ICommModuleDataEvent, ICommDataTreeContentEvent, IDBDataTreeEntry, MessageScheduler,
 } from "../../communication";
 import { EventType, ListenerEntry } from "../Dispatch";
 import { EditorLanguage } from "..";
@@ -82,7 +82,7 @@ export class ShellInterfaceModule implements IShellInterface {
         const request = ProtocolGui.getRequestModulesAddData(caption, content, dataCategoryId,
             treeIdentifier, folderPath, profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "addData" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "addData" });
     }
 
     /**
@@ -96,7 +96,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public listData(folderId: number, dataCategoryId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesListData(folderId, dataCategoryId);
 
-        return currentConnection.sendRequest(request, { messageClass: "listData" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listData" });
     }
 
     /**
@@ -109,7 +109,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public getDataContent(dataId: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesGetDataContent(dataId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getDataContent" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getDataContent" });
     }
 
     /**
@@ -123,7 +123,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public createProfileDataTree(treeIdentifier: string, profileId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesCreateProfileDataTree(treeIdentifier, profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "createProfileDataTree" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "createProfileDataTree" });
     }
 
     /**
@@ -137,7 +137,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public getProfileDataTree(treeIdentifier: string, profileId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesGetProfileDataTree(treeIdentifier, profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getProfileDataTree" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getProfileDataTree" });
     }
 
     /**
@@ -151,7 +151,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public createUserGroupDataTree(treeIdentifier: string, userGroupId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesCreateUserGroupDataTree(treeIdentifier, userGroupId);
 
-        return currentConnection.sendRequest(request, { messageClass: "createUserGroupDataTree" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "createUserGroupDataTree" });
     }
 
     /**
@@ -165,7 +165,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public getUserGroupDataTree(treeIdentifier: string, userGroupId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesGetUserGroupDataTree(treeIdentifier, userGroupId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getUserGroupDataTree" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getUserGroupDataTree" });
     }
 
     /**
@@ -178,7 +178,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public getProfileDataTreeIdentifiers(profileId?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesGetProfileTreeIdentifiers(profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getProfileDataTreeIdentifiers" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getProfileDataTreeIdentifiers" });
     }
 
     /**
@@ -197,7 +197,7 @@ export class ShellInterfaceModule implements IShellInterface {
         const request = ProtocolGui.getRequestModulesShareDataToUserGroup(id, userGroupId, readOnly,
             treeIdentifier, folderPath);
 
-        return currentConnection.sendRequest(request, { messageClass: "shareDataToUserGroup" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "shareDataToUserGroup" });
     }
 
     /**
@@ -216,7 +216,7 @@ export class ShellInterfaceModule implements IShellInterface {
         const request = ProtocolGui.getRequestModulesAddDataToProfile(id, profileId, readOnly,
             treeIdentifier, folderPath);
 
-        return currentConnection.sendRequest(request, { messageClass: "addDataToProfile" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "addDataToProfile" });
     }
 
     /**
@@ -231,7 +231,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public updateData(id: number, caption?: string, content?: string): ListenerEntry {
         const request = ProtocolGui.getRequestModulesUpdateData(id, caption, content);
 
-        return currentConnection.sendRequest(request, { messageClass: "updateData" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "updateData" });
     }
 
     /**
@@ -245,7 +245,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public deleteData(id: number, folderId: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesDeleteData(id, folderId);
 
-        return currentConnection.sendRequest(request, { messageClass: "deleteData" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "deleteData" });
     }
 
     /**
@@ -258,7 +258,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public listDataCategories(parentID?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesListDataCategories(parentID);
 
-        return currentConnection.sendRequest(request, { messageClass: "listDataCategories" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listDataCategories" });
     }
 
     /**
@@ -272,7 +272,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public addDataCategory(category: string, parent?: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesAddDataCategory(category, parent);
 
-        return currentConnection.sendRequest(request, { messageClass: "addDataCategory" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "addDataCategory" });
     }
 
     /**
@@ -285,7 +285,7 @@ export class ShellInterfaceModule implements IShellInterface {
     public removeDataCategory(categoryId: number): ListenerEntry {
         const request = ProtocolGui.getRequestModulesRemoveDataCategory(categoryId);
 
-        return currentConnection.sendRequest(request, { messageClass: "removeDataCategory" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "removeDataCategory" });
     }
 
     /**
