@@ -36,7 +36,8 @@ import { settings } from "../../supplement/Settings/Settings";
 export interface IShellConsoleProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
 
-    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>, position?: IPosition) => void;
+    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
+        position?: IPosition) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
 

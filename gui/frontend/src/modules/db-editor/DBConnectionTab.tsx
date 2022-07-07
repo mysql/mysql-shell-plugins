@@ -1004,16 +1004,21 @@ Execute \\help or \\? for help;`;
      * @param context The context containing the code to be executed.
      * @param params Additional named parameters to be used in SQL queries.
      * @param source An optional caret position to provide the execute-at-position feature or a query to execute.
+     *
+     * @returns True if something was actually executed, false otherwise.
      */
-    private handleExecution = (context: ExecutionContext, params?: Array<[string, string]>,
-        source?: IPosition | string): void => {
+    private handleExecution = async (context: ExecutionContext, params?: Array<[string, string]>,
+        source?: IPosition | string): Promise<boolean> => {
         const { workerPool } = this.props;
-        this.runningContexts.set(context.id, context);
 
         const command = context.code.trim();
-        const parts = command.split(" ");
-        let runExecution = true;
+        if (command.length === 0) {
+            return Promise.resolve(false);
+        }
 
+        this.runningContexts.set(context.id, context);
+
+        const parts = command.split(" ");
         if (parts.length > 0) {
             const temp = parts[0].toLowerCase();
             switch (temp) {
@@ -1025,9 +1030,8 @@ Execute \\help or \\? for help;`;
                         requestId: "",
                         text: [{ type: MessageType.Info, content, language: "ansi" }],
                     });
-                    runExecution = false;
 
-                    break;
+                    return Promise.resolve(true);
                 }
 
                 case "\\reconnect": {
@@ -1040,24 +1044,26 @@ Execute \\help or \\? for help;`;
                             language: "ansi",
                         }],
                     });
-                    void this.reconnect(context);
-                    runExecution = false;
+                    await this.reconnect(context);
 
-                    break;
+                    return Promise.resolve(true);
                 }
 
-                default: {
-                    break;
-                }
+                default:
             }
         }
 
-        if (runExecution) {
-            context.setResult();
+        context.setResult();
+
+        return new Promise((resolve) => {
             switch (context.language) {
                 case "javascript": {
                     workerPool.runTask({ api: ScriptingApi.Request, code: context.code, contextId: context.id })
-                        .then(this.handleTaskResult);
+                        .then((taskId: number, data: IConsoleWorkerResultData) => {
+                            this.handleTaskResult(taskId, data);
+
+                            resolve(true);
+                        });
 
                     break;
                 }
@@ -1072,21 +1078,32 @@ Execute \\help or \\? for help;`;
                                 inlineSourceMap: true,
                             }),
                         contextId: context.id,
-                    }).then(this.handleTaskResult);
+                    }).then((taskId: number, data: IConsoleWorkerResultData) => {
+                        this.handleTaskResult(taskId, data);
+
+                        resolve(true);
+                    });
 
                     break;
                 }
 
                 case "sql":
                 case "mysql": {
-                    void this.runSQLCode(context as SQLExecutionContext, params, source);
+                    void this.runSQLCode(context as SQLExecutionContext, params, source).then(() => {
+                        resolve(true);
+                    });
+
                     break;
                 }
 
-                default:
+                default: {
+                    resolve(true);
+
                     break;
+                }
             }
-        }
+
+        });
     };
 
     private handleEdit = (editorId?: string): void => {

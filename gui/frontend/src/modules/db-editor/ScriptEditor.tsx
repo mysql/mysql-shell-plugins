@@ -37,7 +37,8 @@ import { EditorLanguage } from "../../supplement";
 export interface IScriptEditorProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
 
-    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>, position?: IPosition) => void;
+    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
+        position?: IPosition) => Promise<boolean>;
     onEdit?: (id?: string) => void;
 }
 
