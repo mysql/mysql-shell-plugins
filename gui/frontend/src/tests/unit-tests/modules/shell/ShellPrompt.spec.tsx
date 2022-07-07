@@ -23,31 +23,46 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { IModuleProperties } from "../../../modules/ModuleBase";
-import { snapshotFromWrapper } from "../test-helpers";
-import Icon from "../../../assets/images/modules/module-shell.svg";
-import { ShellModule } from "../../../modules/shell/ShellModule";
-import { ShellModuleId } from "../../../modules/ModuleInfo";
 
+import { ShellPrompt } from "../../../../modules/shell/ShellPrompt";
+import { snapshotFromWrapper } from "../../test-helpers";
 
-describe("Shell module tests", (): void => {
+describe("Shell prompt tests", (): void => {
 
-    it("Test ShellModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
-        const component = mount<IModuleProperties>(
-            <ShellModule
-                innerRef={innerRef}
+    it("Test ShellPrompt instantiation", () => {
+        const component = mount<ShellPrompt>(
+            <ShellPrompt
+                values={{}} getSchemas={jest.fn()}
             />,
         );
         const props = component.props();
-        expect(props.innerRef).toEqual(innerRef);
-        expect(ShellModule.info).toStrictEqual({
-            id: ShellModuleId,
-            caption: "Shell",
-            icon: Icon,
-        });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(props.values).toEqual({});
         component.unmount();
     });
 
+    it("ShellPrompt output test", () => {
+        const values = {
+            promptDescriptor: {
+                host: "localhost",
+                port: 3366,
+                schema: "myDb",
+                isProduction: true,
+                ssl: "yes",
+                socket: "socket1",
+                session: "classic",
+                mode: "readonly",
+            },
+        };
+
+        const component = mount<ShellPrompt>(
+            <ShellPrompt
+                values={values} getSchemas={jest.fn()}
+            />,
+        );
+
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component.state().values).toBe(values);
+
+        component.unmount();
+    });
 });

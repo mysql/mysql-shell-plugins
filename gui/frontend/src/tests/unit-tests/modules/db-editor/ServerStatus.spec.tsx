@@ -23,30 +23,30 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { InnoDBClusterModule } from "../../../modules/innodb-cluster/InnoDBClusterModule";
-import { IModuleProperties } from "../../../modules/ModuleBase";
-import { InnoDBClusterModuleId } from "../../../modules/ModuleInfo";
-import { snapshotFromWrapper } from "../test-helpers";
-import Icon from "../../../assets/images/modules/module-cluster.svg";
 
+import { nextRunLoop, snapshotFromWrapper } from "../../test-helpers";
+import { ServerStatus } from "../../../../modules/db-editor/ServerStatus";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
 
-describe("InnoDb cluster module tests", (): void => {
+describe("Server status module tests", (): void => {
 
-    it("Test InnoDBClusterModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
-        const component = mount<IModuleProperties>(
-            <InnoDBClusterModule
-                innerRef={innerRef}
-            />,
+    it("Test ServerStatus instantiation", async () => {
+        const backend = new ShellInterfaceSqlEditor();
+        const component = mount<ServerStatus>(
+            <ServerStatus backend={backend} />,
         );
-        const props = component.props();
-        expect(props.innerRef).toEqual(innerRef);
-        expect(InnoDBClusterModule.info).toStrictEqual({
-            id: InnoDBClusterModuleId,
-            caption: "InnoDB",
-            icon: Icon,
+        // Component updates.
+        component.setProps({ backend });
+        await nextRunLoop();
+
+        expect(snapshotFromWrapper(component)).toMatchSnapshot("ServerStatus1");
+
+        backend.closeSession().catch(() => {
+            throw new Error("Close session failed");
         });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        await nextRunLoop();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot("ServerStatus2");
+
         component.unmount();
     });
 

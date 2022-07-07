@@ -44,112 +44,141 @@ interface IPiePolylineElement extends SVGPolylineElement {
 }
 
 export class PieGraphRenderer {
-    private pieGenerator = d3.pie<IPieDatum>().value((point) => {
-        return point.value;
-    }).sort(null);
-
     private colors: d3.ScaleOrdinal<string, string>;
     private format: (n: number) => string;
+
+    private tooltipElement: d3.Selection<SVGGElement, IPieDatum, null, undefined>;
+    private tooltip?: ITooltipOptions;
+
+    private data: IPieDatum[];
 
     public constructor() {
         this.colors = d3.scaleOrdinal(d3.schemeCategory10);
         this.format = d3.format(".2f");
     }
 
-    public render(target: SVGElement, entry: IPieGraphConfiguration, index: number): void {
-        if (!entry.data) {
+    public render(target: SVGElement, config: IPieGraphConfiguration, index: number): void {
+        if (!config.data) {
             return;
         }
 
-        const rootId = entry.id ?? `pieChart${index}`;
+        this.tooltip = config.tooltip;
+        this.data = config.data;
+
+        const width = config.size?.width ?? 400;
+        const height = config.size?.height ?? 300;
+        const innerRadius = config.radius?.[0] ?? 0;
+        const outerRadius = config.radius?.[1] ?? 300;
+        const rotation = config.rotation ?? "0";
+
+        const rootId = config.id ?? `pieChart${index}`;
 
         const svg = d3.select<SVGElement, IPieDatum>(target);
         let root = svg.select<SVGGElement>(`#${rootId}`);
 
-        let slices: PieChartSelection;
+        let sliceGroup: PieChartSelection;
         let labels: PieChartSelection;
         let lines: PieChartSelection;
         if (root.empty()) {
-            root = svg.append("g").attr("id", rootId).style("transform", "translate(50%, 50%)");
-            slices = root.append<SVGGElement>("g").attr("class", "slices");
+            const translate = `translate(${width / 2}px, ${height / 2}px)`;
+            const rotate = `rotate(${rotation})`;
+            root = svg.append("g").attr("id", rootId).style("transform", `${translate} ${rotate}`);
+            sliceGroup = root.append<SVGGElement>("g").attr("class", "slices");
             labels = root.append("g").attr("class", "labels");
             lines = root.append("g").attr("class", "lines");
         } else {
-            slices = root.select<SVGGElement>(".slices");
+            sliceGroup = root.select<SVGGElement>(".slices");
             labels = root.select(".labels");
             lines = root.select(".lines");
         }
 
         // Note: this is all user supplied data from the scripting interface, so do proper sanity checks.
-        const data = entry.data.length <= 100 ? entry.data : entry.data.slice(0, 100);
+        const data = config.data.length <= 100 ? config.data : config.data.slice(0, 100);
 
-        const pieData = this.pieGenerator(data);
+        const pieGenerator = d3.pie<IPieDatum>().value((point) => {
+            return point.value;
+        }).sort(null);
+
+        const pieData = pieGenerator(data);
 
         const key = (node: d3.PieArcDatum<IPieDatum>): string => {
             return node.data.name ?? "";
         };
 
-        const innerRadius = entry.radius?.[0] ?? 0;
-        const outerRadius = entry.radius?.[1] ?? 300;
         const sliceArcGenerator = d3
             .arc<d3.PieArcDatum<IPieDatum>>()
             .innerRadius(innerRadius)
             .outerRadius(outerRadius);
 
-        if (entry.borderRadius !== undefined) {
-            sliceArcGenerator.cornerRadius(entry.borderRadius);
+        if (config.borderRadius !== undefined) {
+            sliceArcGenerator.cornerRadius(config.borderRadius);
         }
 
-        if (entry.startAngle !== undefined) {
-            sliceArcGenerator.startAngle(entry.startAngle);
+        if (config.startAngle !== undefined) {
+            sliceArcGenerator.startAngle(config.startAngle);
         }
 
-        if (entry.endAngle !== undefined) {
-            sliceArcGenerator.endAngle(entry.endAngle);
+        if (config.endAngle !== undefined) {
+            sliceArcGenerator.endAngle(config.endAngle);
         }
 
-        if (entry.padAngle !== undefined) {
-            sliceArcGenerator.padAngle(entry.padAngle);
+        if (config.padAngle !== undefined) {
+            sliceArcGenerator.padAngle(config.padAngle);
         }
 
-        if (entry.padRadius !== undefined) {
-            sliceArcGenerator.padRadius(entry.padRadius);
+        if (config.padRadius !== undefined) {
+            sliceArcGenerator.padRadius(config.padRadius);
         }
-
-        const textArcGenerator = d3
-            .arc<d3.PieArcDatum<IPieDatum>>()
-            .innerRadius(outerRadius * 0.75)
-            .outerRadius(outerRadius * 1.5);
 
         // Pie slices.
-        const slice = slices.selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("path.slice")
-            .data(pieData, key);
+        const slicePaths = sliceGroup.selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("path").data(pieData);
 
-        const path = slice.enter()
+        slicePaths.style("fill", (datum, index) => {
+            return config.colors
+                ? config.colors[index]
+                : this.colors(datum.data.name ?? index.toString());
+        });
+
+        const path = slicePaths.enter()
             .insert<IPiePathElement>("path")
-            .style("fill", (datum, index) => {
-                return entry.colors
-                    ? entry.colors[index]
-                    : this.colors(datum.data.name ?? index.toString());
-            })
             .attr("class", "slice")
             .attr("d", (datum, index, group) => {
                 const element = group[index];
                 element.previous = datum;
 
                 return sliceArcGenerator(datum);
+            })
+            .on("mouseover", function (event, datum) {
+                if (config.tooltip) {
+                    const text = config.tooltip.format(datum.data);
+                    this.setAttribute("data-tooltip", text);
+
+                    return;
+                }
+
+                let text = "";
+                if (datum.data.name) {
+                    text = `${datum.data.name}: `;
+                }
+
+                if (Number.isInteger(datum.data.value)) {
+                    text += `${datum.data.value}`;
+                } else {
+                    text += `${datum.data.value.toFixed(2)}`;
+                }
+                this.setAttribute("data-tooltip", text);
             });
 
-        if (entry.borderWidth !== undefined) {
-            path.style("stroke-width", entry.borderWidth);
+        if (config.borderWidth !== undefined) {
+            path.style("stroke-width", config.borderWidth);
         }
 
-        if (entry.borderColor !== undefined) {
-            path.style("stroke", entry.borderColor);
+        if (config.borderColor !== undefined) {
+            path.style("stroke", config.borderColor);
         }
 
         /* istanbul ignore next */
-        slice.transition().duration(500)
+        slicePaths.transition().duration(500)
             .attrTween("d", (datum, index, group) => {
                 const element = group[index];
                 const interpolate = d3.interpolate(element.previous, datum);
@@ -158,107 +187,115 @@ export class PieGraphRenderer {
                 return (t: number): string => {
                     return sliceArcGenerator(interpolate(t)) ?? "";
                 };
-            });
+            })
+            .ease(d3.easeCubicOut);
 
-        slice.exit().remove();
+        slicePaths.exit().remove();
 
         // Text labels.
-        const textOffset = outerRadius + 30;
-        const midAngle = (d: d3.PieArcDatum<IPieDatum>): number => {
-            return d.startAngle + (d.endAngle - d.startAngle) / 2;
-        };
+        if (config.showValues ?? true) {
+            const textArcGenerator = d3
+                .arc<d3.PieArcDatum<IPieDatum>>()
+                .innerRadius(outerRadius * 0.75)
+                .outerRadius(outerRadius * 1.5);
 
-        const label = labels
-            .selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("text")
-            .data(pieData, key);
+            const textOffset = outerRadius + 30;
+            const midAngle = (d: d3.PieArcDatum<IPieDatum>): number => {
+                return d.startAngle + (d.endAngle - d.startAngle) / 2;
+            };
 
-        label.enter()
-            .append<IPieTextElement>("text")
-            .attr("dy", ".35em")
-            .attr("fill", "currentColor")
-            .text((d) => {
-                return d.data.name ?? this.format(d.data.value);
-            })
-            .attr("transform", (datum, index, group) => {
-                const element = group[index];
-                element.previous = datum;
+            const label = labels
+                .selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("text")
+                .data(pieData, key);
 
-                const pos = textArcGenerator.centroid(datum);
-                pos[0] = textOffset * (midAngle(datum) < Math.PI ? 1 : -1);
+            label.enter()
+                .append<IPieTextElement>("text")
+                .attr("fill", "currentColor")
+                .attr("dy", ".35em")
+                .text((d) => {
+                    return d.data.name ?? this.format(d.data.value);
+                })
+                .attr("transform", (datum, index, group) => {
+                    const element = group[index];
+                    element.previous = datum;
 
-                return `translate(${pos[0]},${pos[1]})`;
-            })
-            .attr("text-anchor", (datum, index, group) => {
-                const element = group[index];
-                element.previous = datum;
-
-                return midAngle(datum) < Math.PI ? "start" : "end";
-            });
-
-        // Testing note: animations cannot be played with mock DOM.
-        /* istanbul ignore next */
-        label.transition().duration(500)
-            .attrTween("transform", (datum, index, group) => {
-                const element = group[index];
-                const interpolate = d3.interpolate(element.previous, datum);
-                element.previous = interpolate(0);
-
-                return (t): string => {
-                    const d2 = interpolate(t);
-                    const pos = textArcGenerator.centroid(d2);
-                    pos[0] = textOffset * (midAngle(d2) < Math.PI ? 1 : -1);
+                    const pos = textArcGenerator.centroid(datum);
+                    pos[0] = textOffset * (midAngle(datum) < Math.PI ? 1 : -1);
 
                     return `translate(${pos[0]},${pos[1]})`;
-                };
-            })
-            .styleTween("text-anchor", (datum, index, group) => {
-                const element = group[index];
-                const interpolate = d3.interpolate(element.previous, datum);
-                element.previous = interpolate(0);
+                })
+                .attr("text-anchor", (datum, index, group) => {
+                    const element = group[index];
+                    element.previous = datum;
 
-                return (t): string => {
-                    const d2 = interpolate(t);
+                    return midAngle(datum) < Math.PI ? "start" : "end";
+                });
 
-                    return midAngle(d2) < Math.PI ? "start" : "end";
-                };
-            });
+            // Testing note: animations cannot be played with mock DOM.
+            /* istanbul ignore next */
+            label.transition().duration(500)
+                .attrTween("transform", (datum, index, group) => {
+                    const element = group[index];
+                    const interpolate = d3.interpolate(element.previous, datum);
+                    element.previous = interpolate(0);
 
-        label.exit().remove();
+                    return (t): string => {
+                        const d2 = interpolate(t);
+                        const pos = textArcGenerator.centroid(d2);
+                        pos[0] = textOffset * (midAngle(d2) < Math.PI ? 1 : -1);
 
-        // Slice to text poly lines.
-        const polyline = lines
-            .selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("polyline")
-            .data(pieData, key);
+                        return `translate(${pos[0]},${pos[1]})`;
+                    };
+                })
+                .styleTween("text-anchor", (datum, index, group) => {
+                    const element = group[index];
+                    const interpolate = d3.interpolate(element.previous, datum);
+                    element.previous = interpolate(0);
 
-        polyline.enter()
-            .append<IPiePolylineElement>("polyline")
-            .attr("points", (datum, index, group) => {
-                const element = group[index];
-                element.previous = datum;
+                    return (t): string => {
+                        const d2 = interpolate(t);
 
-                const pos = textArcGenerator.centroid(datum);
-                const x = textOffset * 0.95 * (midAngle(datum) < Math.PI ? 1 : -1);
+                        return midAngle(d2) < Math.PI ? "start" : "end";
+                    };
+                });
 
-                return [sliceArcGenerator.centroid(datum), pos, [x, pos[1]]].toString();
-            });
+            label.exit().remove();
 
-        /* istanbul ignore next */
-        polyline.transition().duration(500)
-            .attrTween("points", (datum, index, group) => {
-                const element = group[index];
-                const interpolate = d3.interpolate(element.previous, datum);
-                element.previous = interpolate(0);
+            // Slice to text poly lines.
+            const polyline = lines
+                .selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("polyline")
+                .data(pieData, key);
 
-                return (t): string => {
-                    const d2 = interpolate(t);
-                    const pos = textArcGenerator.centroid(d2);
-                    const x = textOffset * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+            polyline.enter()
+                .append<IPiePolylineElement>("polyline")
+                .attr("points", (datum, index, group) => {
+                    const element = group[index];
+                    element.previous = datum;
 
-                    return [sliceArcGenerator.centroid(d2), pos, [x, pos[1]]].toString();
-                };
-            });
+                    const pos = textArcGenerator.centroid(datum);
+                    const x = textOffset * 0.95 * (midAngle(datum) < Math.PI ? 1 : -1);
 
-        polyline.exit().remove();
+                    return [sliceArcGenerator.centroid(datum), pos, [x, pos[1]]].toString();
+                });
+
+            /* istanbul ignore next */
+            polyline.transition().duration(500)
+                .attrTween("points", (datum, index, group) => {
+                    const element = group[index];
+                    const interpolate = d3.interpolate(element.previous, datum);
+                    element.previous = interpolate(0);
+
+                    return (t): string => {
+                        const d2 = interpolate(t);
+                        const pos = textArcGenerator.centroid(d2);
+                        const x = textOffset * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+
+                        return [sliceArcGenerator.centroid(d2), pos, [x, pos[1]]].toString();
+                    };
+                });
+
+            polyline.exit().remove();
+        }
     }
 
 }

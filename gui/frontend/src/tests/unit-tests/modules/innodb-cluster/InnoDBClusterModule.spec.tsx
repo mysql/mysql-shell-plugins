@@ -21,45 +21,35 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import icon from "../../../../assets/images/modules/module-cluster.svg";
+
 import { mount } from "enzyme";
 import React from "react";
-import { ShellPrompt } from "../../../modules/shell/ShellPrompt";
-import { snapshotFromWrapper } from "../test-helpers";
+
+import { InnoDBClusterModule } from "../../../../modules/innodb-cluster/InnoDBClusterModule";
+import { IModuleProperties } from "../../../../modules/ModuleBase";
+import { InnoDBClusterModuleId } from "../../../../modules/ModuleInfo";
+import { snapshotFromWrapper } from "../../test-helpers";
 
 
-describe("Shell prompt tests", (): void => {
+describe("InnoDb cluster module tests", (): void => {
 
-    it("Test ShellPrompt instantiation", () => {
-        const component = mount<ShellPrompt>(
-            <ShellPrompt
-                values={{}} getSchemas={jest.fn()}
+    it("Test InnoDBClusterModule instantiation", () => {
+        const innerRef = React.createRef<HTMLButtonElement>();
+        const component = mount<IModuleProperties>(
+            <InnoDBClusterModule
+                innerRef={innerRef}
             />,
         );
         const props = component.props();
-        expect(props.values).toEqual({});
+        expect(props.innerRef).toEqual(innerRef);
+        expect(InnoDBClusterModule.info).toStrictEqual({
+            id: InnoDBClusterModuleId,
+            caption: "InnoDB",
+            icon,
+        });
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
         component.unmount();
     });
 
-    it("ShellPrompt output test", () => {
-        const values = {
-            promptDescriptor: {
-                host: "localhost",
-                port: 3366,
-                schema: "myDb",
-                isProduction: true,
-                ssl: "yes",
-                socket: "socket1",
-                session: "classic",
-                mode: "readonly",
-            },
-        };
-        const component = mount<ShellPrompt>(
-            <ShellPrompt
-                values={values} getSchemas={jest.fn()}
-            />,
-        );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
-        expect(component.state().values).toBe(values);
-        component.unmount();
-    });
 });

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-450,-128)">
+        <g id="Menu">
+        </g>
+        <g id="Expand">
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+        </g>
+        <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit">
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error">
+        </g>
+        <g id="Execute-Explain" serif:id="Execute Explain">
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+        <g id="Kill-Connection-2" serif:id="Kill Connection 2">
+        </g>
+        <g id="Sleeping-Connections" serif:id="Sleeping Connections">
+        </g>
+        <g id="Kill-Connection" serif:id="Kill Connection">
+        </g>
+        <g id="Kill-Query" serif:id="Kill Query">
+        </g>
+        <g id="Show-Details" serif:id="Show Details">
+        </g>
+        <g id="Infos" transform="matrix(1,0,0,1,-2,0)">
+            <g transform="matrix(1.13501,0,0,1.13501,-61.4294,-17.5513)">
+                <path d="M462.5,130C466.639,130 470,133.361 470,137.5C470,141.639 466.639,145 462.5,145C458.361,145 455,141.639 455,137.5C455,133.361 458.361,130 462.5,130ZM462.5,131.226C465.963,131.226 468.774,134.037 468.774,137.5C468.774,140.963 465.963,143.774 462.5,143.774C459.037,143.774 456.226,140.963 456.226,137.5C456.226,134.037 459.037,131.226 462.5,131.226Z" style="fill:rgb(34,34,36);"/>
+            </g>
+            <g transform="matrix(1.94821,0,0,1.11574,-477.155,-9.48829)">
+                <path d="M483.457,131.163C483.453,131.311 483.447,131.522 483.439,131.795C483.388,133.366 483.363,134.471 483.363,135.112L483.363,135.733C483.363,136.186 483.406,136.471 483.492,136.588C483.578,136.706 483.746,136.764 483.996,136.764C484.019,136.764 484.05,136.762 484.089,136.758C484.128,136.754 484.158,136.752 484.177,136.752L484.177,137.151C483.845,137.127 483.578,137.112 483.375,137.104C483.171,137.096 483,137.092 482.859,137.092C482.734,137.092 482.575,137.096 482.381,137.104C482.188,137.112 481.898,137.127 481.511,137.151L481.511,136.741L481.658,136.741C482.142,136.741 482.386,136.264 482.39,135.311L482.39,134.989L482.414,133.542C482.414,133.436 482.416,133.303 482.419,133.143C482.423,132.983 482.425,132.875 482.425,132.821C482.425,132.504 482.395,132.295 482.334,132.194C482.274,132.092 482.164,132.042 482.003,132.042C481.972,132.042 481.926,132.044 481.866,132.05C481.805,132.056 481.74,132.063 481.669,132.071L481.611,131.702C481.919,131.643 482.227,131.569 482.534,131.479C482.84,131.389 483.148,131.284 483.457,131.163ZM482.822,128.196L483.265,128.252C483.375,128.334 483.554,128.647 483.574,128.758C483.61,128.955 483.578,129.056 483.578,129.146C483.578,129.236 483.55,129.465 483.509,129.53C483.468,129.594 483.426,129.797 483.312,129.882L482.824,130.008L482.382,129.867C482.268,129.777 482.218,129.513 482.167,129.437C482.117,129.361 482.091,129.28 482.091,129.194C482.091,129.108 482.096,129.027 482.08,128.94C482.013,128.586 482.31,128.352 482.431,128.262L482.822,128.196Z" style="fill-rule:nonzero;"/>
+            </g>
+        </g>
+        <g id="Background-Threads" serif:id="Background Threads">
+        </g>
+        <g id="Minimize">
+        </g>
+        <g id="Maximize">
+        </g>
+    </g>
+</svg>

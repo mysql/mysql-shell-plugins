@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { EventType, ListenerEntry } from "../Dispatch";
+import { EventType, IDispatchEvent, ListenerEntry } from "../Dispatch";
 import {
     ProtocolGui, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ICommSimpleResultEvent,
-    ShellPromptResponseType, IPromptReplyBackend, MessageScheduler,
+    ShellPromptResponseType, IPromptReplyBackend, MessageScheduler, IGenericResponse,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
@@ -152,7 +152,15 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
     public execute(sql: string, params?: string[]): ListenerEntry {
         const id = this.moduleSessionId;
         if (!id) {
-            return ListenerEntry.resolve();
+            const response: IDispatchEvent<IGenericResponse> = {
+                id: "",
+                eventType: EventType.ErrorResponse,
+                message: "No open session",
+                context: { messageClass: "execute" },
+                data: { requestState: { type: "ERROR", msg: "" } },
+            };
+
+            return ListenerEntry.resolve(response);
         }
 
         const request = ProtocolGui.getRequestSqleditorExecute(sql, id, params,

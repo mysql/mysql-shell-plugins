@@ -207,7 +207,6 @@
 .msg#shellModuleTabview .shellPrompt {
     height: 21px;
     align-items: stretch;
-    padding: 4px 0 4px 4px;
 
     font-family: "SourceCodePro+Powerline+Awesome+MySQL", sans-serif;
     font-size: 1em;

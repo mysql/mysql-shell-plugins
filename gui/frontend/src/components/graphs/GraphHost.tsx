@@ -54,12 +54,24 @@ export class GraphHost extends Component<IGraphHostProps> {
     }
 
     public render(): React.ReactNode {
+        const { id, options } = this.mergedProps;
+
         const className = this.getEffectiveClassNames(["graphHost"]);
+        const left = options.viewport?.left ?? 0;
+        const top = options.viewport?.top ?? 0;
+        const width = options.viewport?.width ?? 400;
+        const height = options.viewport?.height ?? 300;
+
 
         return (
             <svg
                 ref={this.svgRef}
+                id={id}
                 className={className}
+                width={"100%"}
+                height={"100%"}
+                viewBox={`${left} ${top} ${width} ${height}`}
+                preserveAspectRatio="xMinYMin"
             />
         );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,7 @@ import React from "react";
 import { Component, IComponentProperties, Container, Orientation, PointerEventType } from "..";
 import { clampValue } from "../../../utilities/helpers";
 
-interface ISliderProperties extends IComponentProperties {
+export interface ISliderProperties extends IComponentProperties {
     value: number;
     vertical?: boolean;
     handleSize?: number;
@@ -57,7 +57,7 @@ export class Slider extends Component<ISliderProperties> {
     public set value(newValue: number) {
         const { onChange } = this.mergedProps;
 
-        newValue = clampValue(newValue, 0 , 1);
+        newValue = clampValue(newValue, 0, 1);
         this.setState({ currentValue: newValue });
 
         if (this.sliderRef?.current) {

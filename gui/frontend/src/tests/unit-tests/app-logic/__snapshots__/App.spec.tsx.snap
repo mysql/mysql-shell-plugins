@@ -390,7 +390,7 @@ exports[`Application tests Application readiness 1`] = `
       </Dialog>
     </ErrorPanel>
     <TooltipProvider
-      showDelay={500}
+      showDelay={200}
     />
     <Statusbar
       items={

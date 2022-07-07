@@ -30,6 +30,7 @@ import "jest-canvas-mock";
 jest.setTimeout(10000);
 
 Enzyme.configure({ adapter: new Adapter() });
+jest.setTimeout(10000);
 
 Object.defineProperty(window, "matchMedia", {
     writable: true,

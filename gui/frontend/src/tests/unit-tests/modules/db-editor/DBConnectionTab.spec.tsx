@@ -23,19 +23,23 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { setupShellForTests } from "../test-helpers";
+
+import { setupShellForTests } from "../../test-helpers";
 import {
     DBConnectionTab, IOpenEditorState, IDBConnectionTabPersistentState,
-} from "../../../modules/db-editor/DBConnectionTab";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { ExecutionWorkerPool } from "../../../modules/db-editor/execution/ExecutionWorkerPool";
-import { DBType } from "../../../supplement/ShellInterface";
-import { CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../../components/ui/CodeEditor/CodeEditor";
-import { EntityType } from "../../../modules/db-editor";
-import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
-import { Monaco } from "../../../components/ui/CodeEditor";
-import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
-jest.mock("../../../components/ui/CodeEditor/CodeEditor");
+} from "../../../../modules/db-editor/DBConnectionTab";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool";
+import { DBType } from "../../../../supplement/ShellInterface";
+import {
+    CodeEditorMode, ICodeEditorModel, IEditorPersistentState,
+} from "../../../../components/ui/CodeEditor/CodeEditor";
+import { EntityType } from "../../../../modules/db-editor";
+import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts";
+import { Monaco } from "../../../../components/ui/CodeEditor";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
+
+jest.mock("../../../../components/ui/CodeEditor/CodeEditor");
 
 describe("DBConnectionTab tests", (): void => {
 
@@ -65,6 +69,7 @@ describe("DBConnectionTab tests", (): void => {
             model,
             options: {},
         };
+
         const edState: IOpenEditorState = {
             state: eps,
             currentVersion: 0,
@@ -72,6 +77,7 @@ describe("DBConnectionTab tests", (): void => {
             id: "SQLEditor",
             caption: "",
         };
+
         const backend = new ShellInterfaceSqlEditor();
         const savedState: IDBConnectionTabPersistentState = {
             backend,
@@ -85,7 +91,16 @@ describe("DBConnectionTab tests", (): void => {
             activeEntry: "SQLEditor",
             currentSchema: "myDb",
             explorerWidth: 200,
+            graphData: {
+                timestamp: new Date().getTime(),
+                activeColorScheme: "grays",
+                displayInterval: 300,
+                currentValues: new Map(),
+                computedValues: {},
+                series: new Map(),
+            },
         };
+
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
                 connectionId={0}
@@ -95,11 +110,13 @@ describe("DBConnectionTab tests", (): void => {
                 showAbout={false}
             />,
         );
+
         const props = component.props();
         expect(props.connectionId).toEqual(0);
         expect(props.dbType).toEqual(DBType.MySQL);
         expect(props.savedState).toEqual(savedState);
         expect(props.workerPool).toEqual(wp);
+
         component.unmount();
     });
 

@@ -45,7 +45,7 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails, ShellInterface } from "../../supplement/ShellInterface";
-import { EntityType, IDBDataEntry, IDBEditorScriptState, ISchemaTreeEntry, IToolbarItems } from ".";
+import { EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems } from ".";
 import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
@@ -299,13 +299,22 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     id="itemSaveButton"
                     key="itemSaveButton"
                     imageOnly={true}
-                    data-tooltip="Save the content of this editor"
                     disabled={!needsSave}
+                    data-tooltip="Save this Editor"
                     onClick={this.handleEditorSave}
                 >
                     <Icon src={exportIcon} data-tooltip="inherit" />
                 </Button>);
             }
+            toolbarItems.right.push(<Button
+                id="itemCloseButton"
+                key="itemCloseButton"
+                imageOnly
+                data-tooltip="Close this Editor"
+                onClick={this.handleEditorClose}
+            >
+                <Icon src={closeIcon} data-tooltip="inherit" />
+            </Button>);
         }
 
         const pages: ITabviewPage[] = [];
@@ -412,6 +421,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 onSaveExplorerState={this.handleSaveExplorerState}
                 onExplorerResize={this.handleExplorerResize}
                 onExplorerMenuAction={this.handleExplorerMenuAction}
+                onGraphDataChange={this.handleGraphDataChange}
             />);
 
             pages.push({
@@ -794,6 +804,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             sqlMode,
 
                             explorerWidth: -1,
+
+                            graphData: {
+                                timestamp: 0,
+                                activeColorScheme: "classic",
+                                displayInterval: 50,
+                                currentValues: new Map(),
+                                computedValues: {},
+                                series: new Map(),
+                            },
                         };
 
                         this.connectionState.set(tabId, connectionState);
@@ -989,7 +1008,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 this.saveEditorIfNeeded(state);
             }
         }
+    };
 
+    private handleEditorClose = (): void => {
+        const { selectedPage } = this.state;
+
+        const connectionState = this.connectionState.get(selectedPage);
+        if (connectionState) {
+            this.handleRemoveEditor(selectedPage, connectionState.activeEntry);
+        }
     };
 
     private handleSelectTab = (id: string): void => {
@@ -1441,6 +1468,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
             }
         }
+    };
+
+    private handleGraphDataChange = (id: string, data: ISavedGraphData) => {
+        const connectionState = this.connectionState.get(id);
+        if (connectionState) {
+            connectionState.graphData = data;
+        }
+
+        this.forceUpdate();
     };
 
     /**

@@ -23,29 +23,38 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { snapshotFromWrapper } from "../test-helpers";
-import Icon from "../../../assets/images/modules/module-sql.svg";
-import { DBEditorModuleId } from "../../../modules/ModuleInfo";
-import { DBEditorModule } from "../../../modules/db-editor/DBEditorModule";
 
+import { ISavedGraphData } from "../../../../modules/db-editor";
+import { PerformanceDashboard } from "../../../../modules/db-editor/PerformanceDashboard";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
 
-describe("DBEditor module tests", (): void => {
+describe("PerformanceDashboard Tests", (): void => {
 
-    it("Test DBEditorModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
-        const component = mount<DBEditorModule>(
-            <DBEditorModule
-                innerRef={innerRef}
+    it("Test PerformanceDashboard instantiation", () => {
+        const backend = new ShellInterfaceSqlEditor();
+        const graphData: ISavedGraphData = {
+            timestamp: new Date().getTime(),
+            activeColorScheme: "grays",
+            displayInterval: 300,
+            currentValues: new Map(),
+            computedValues: {},
+            series: new Map(),
+        };
+
+        const component = mount<PerformanceDashboard>(
+            <PerformanceDashboard
+                backend={backend}
+                graphData={graphData}
             />,
         );
+
+        // Note: we cannot do snapshot testing here, because graph data contains always changing timestamps.
+
         const props = component.props();
-        expect(props.innerRef).toEqual(innerRef);
-        expect(DBEditorModule.info).toStrictEqual({
-            id: DBEditorModuleId,
-            caption: "DB Editor",
-            icon: Icon,
-        });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(props.graphData.displayInterval).toBe(300);
+        expect(props.graphData.series.size).toBe(6);
+        expect(Object.values(props.graphData.computedValues).length).toBeGreaterThan(35);
+
         component.unmount();
     });
 

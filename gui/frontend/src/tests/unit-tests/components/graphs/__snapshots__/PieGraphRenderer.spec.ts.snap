@@ -6,7 +6,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
 <svg>
   <g
     id="pieChart0"
-    style="transform: translate(50%, 50%);"
+    style="transform: translate(200px, 150px) rotate(0);"
   >
     <g
       class="slices"
@@ -14,17 +14,14 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
       <path
         class="slice"
         d="M1.8369701987210297e-14,-300A300,300,0,0,1,259.8076211353316,-150L0,0Z"
-        style="fill: #1f77b4;"
       />
       <path
         class="slice"
         d="M259.8076211353316,-150A300,300,0,0,1,1.8369701987210297e-14,300L0,0Z"
-        style="fill: #ff7f0e;"
       />
       <path
         class="slice"
         d="M1.8369701987210297e-14,300A300,300,0,1,1,-5.510910596163089e-14,-300L0,0Z"
-        style="fill: #2ca02c;"
       />
     </g>
     <g
@@ -76,7 +73,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
 <svg>
   <g
     id="pieChart0"
-    style="transform: translate(50%, 50%);"
+    style="transform: translate(200px, 150px) rotate(0);"
   >
     <g
       class="slices"
@@ -84,17 +81,17 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
       <path
         class="slice"
         d="M1.8369701987210297e-14,-300A300,300,0,0,1,259.8076211353316,-150L0,0Z"
-        style="fill: #1f77b4;"
+        style="fill: white;"
       />
       <path
         class="slice"
-        d="M0.7071067811865452,-294.9447896339044A5,5,0,0,1,5.803837404596486,-299.94385386498755A300,300,0,0,1,5.803837404596456,299.94385386498755A5,5,0,0,1,0.7071067811865452,294.9447896339044L0.707106781186547,13.871875582924412A5,5,0,0,1,3.8047378541243635,9.24791705528294A10,10,0,0,0,3.8047378541243653,-9.247917055282942A5,5,0,0,1,0.707106781186547,-13.871875582924412Z"
-        style="fill: silver; stroke-width: 10; stroke: red;"
+        d="M259.8076211353316,-150A300,300,0,0,1,1.8369701987210297e-14,300L0,0Z"
+        style="fill: silver;"
       />
       <path
         class="slice"
-        d="M0.7071067811865452,-294.9447896339044A5,5,0,0,1,5.803837404596486,-299.94385386498755A300,300,0,0,1,5.803837404596456,299.94385386498755A5,5,0,0,1,0.7071067811865452,294.9447896339044L0.707106781186547,13.871875582924412A5,5,0,0,1,3.8047378541243635,9.24791705528294A10,10,0,0,0,3.8047378541243653,-9.247917055282942A5,5,0,0,1,0.707106781186547,-13.871875582924412Z"
-        style="fill: gray; stroke-width: 10; stroke: red;"
+        d="M1.8369701987210297e-14,300A300,300,0,1,1,-5.510910596163089e-14,-300L0,0Z"
+        style="fill: gray;"
       />
     </g>
     <g

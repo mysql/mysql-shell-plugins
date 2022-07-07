@@ -21,30 +21,33 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import icon from "../../../../assets/images/modules/module-shell.svg";
+
 import { mount } from "enzyme";
 import React from "react";
-import { snapshotFromWrapper } from "../test-helpers";
-import { Explorer } from "../../../modules/db-editor/Explorer";
-import { DBType, ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface";
+
+import { IModuleProperties } from "../../../../modules/ModuleBase";
+import { snapshotFromWrapper } from "../../test-helpers";
+import { ShellModule } from "../../../../modules/shell/ShellModule";
+import { ShellModuleId } from "../../../../modules/ModuleInfo";
 
 
-describe("Explorer tests", (): void => {
+describe("Shell module tests", (): void => {
 
-    it("Explorer instantiation", () => {
-        const component = mount<Explorer>(
-            <Explorer
-                schemaTree={[]}
-                editors={[]}
-                scripts={[]}
-                selectedEntry={""}
-                markedSchema={""}
-                backend={new ShellInterfaceSqlEditor()}
-                dbType={DBType.MySQL}
-            ></Explorer>,
+    it("Test ShellModule instantiation", () => {
+        const innerRef = React.createRef<HTMLButtonElement>();
+        const component = mount<IModuleProperties>(
+            <ShellModule
+                innerRef={innerRef}
+            />,
         );
         const props = component.props();
-        expect(props.schemaTree).toEqual([]);
-        expect(props.dbType).toEqual(DBType.MySQL);
+        expect(props.innerRef).toEqual(innerRef);
+        expect(ShellModule.info).toStrictEqual({
+            id: ShellModuleId,
+            caption: "Shell",
+            icon,
+        });
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
         component.unmount();
     });

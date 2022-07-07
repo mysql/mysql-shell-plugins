@@ -234,7 +234,7 @@ export class App extends React.Component<{}, IAppState> {
                 {content}
 
                 <ErrorPanel />
-                <TooltipProvider showDelay={500} />
+                <TooltipProvider showDelay={200} />
 
                 {!appParameters.embedded && (
                     <>

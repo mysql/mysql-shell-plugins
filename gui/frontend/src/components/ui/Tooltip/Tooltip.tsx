@@ -62,7 +62,7 @@ export class TooltipProvider extends Component<ITooltipProviderProperties, ITool
     }
 
     public componentDidMount(): void {
-        document.addEventListener("mouseover", this.elementMouseOver); // Mouse enter doesn't work here.
+        document.body.addEventListener("mouseover", this.elementMouseOver, false); // Mouse enter doesn't work here.
         document.body.addEventListener("keyup", this.handleDocumentKeyUp);
     }
 
@@ -71,7 +71,7 @@ export class TooltipProvider extends Component<ITooltipProviderProperties, ITool
         clearTimeout(this.tooltipTimer);
 
         document.body.removeEventListener("keyup", this.handleDocumentKeyUp);
-        document.removeEventListener("mouseover", this.elementMouseOver);
+        document.body.removeEventListener("mouseover", this.elementMouseOver);
     }
 
     public componentDidUpdate(): void {
@@ -150,7 +150,7 @@ export class TooltipProvider extends Component<ITooltipProviderProperties, ITool
         clearTimeout(this.tooltipTimer);
 
         let target = e.target as HTMLElement;
-        if (target.classList.contains("tooltip")) {
+        if (target.classList && target.classList.contains("tooltip")) {
             return;
         }
 

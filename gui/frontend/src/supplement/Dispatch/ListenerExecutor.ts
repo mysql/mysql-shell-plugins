@@ -167,7 +167,7 @@ export class ListenerExecutor implements IListenerThenable {
      * @param source The source which determines the type of possible callback types.
      * @returns a list with the possible callback types that can be used to process this event.
      */
-    private callBackTypesForSource(source: ListenerEventSource): Set<CallbackType> {
+    private callBackTypesForSource(source?: ListenerEventSource): Set<CallbackType> {
         if (!source) {
             return new Set();
         }

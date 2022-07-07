@@ -23,30 +23,30 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { IModuleProperties } from "../../../modules/ModuleBase";
-import { MDSModuleId } from "../../../modules/ModuleInfo";
-import { snapshotFromWrapper } from "../test-helpers";
-import Icon from "../../../assets/images/modules/module-mds.svg";
-import { MDSModule } from "../../../modules/mds/MDSModule";
 
+import { nextRunLoop, snapshotFromWrapper } from "../../test-helpers";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
+import { ClientConnections } from "../../../../modules/db-editor/ClientConnections";
 
-describe("MDS module tests", (): void => {
+describe("Client connections module tests", (): void => {
 
-    it("Test MDSModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
-        const component = mount<IModuleProperties>(
-            <MDSModule
-                innerRef={innerRef}
-            />,
+    it("Test ClientConnections instantiation", async () => {
+        const backend = new ShellInterfaceSqlEditor();
+        const component = mount<ClientConnections>(
+            <ClientConnections backend={backend} />,
         );
-        const props = component.props();
-        expect(props.innerRef).toEqual(innerRef);
-        expect(MDSModule.info).toStrictEqual({
-            id: MDSModuleId,
-            caption: "MDS",
-            icon: Icon,
+        // Component updates.
+        component.setProps({ backend });
+        await nextRunLoop();
+
+        expect(snapshotFromWrapper(component)).toMatchSnapshot("ClientConnections1");
+
+        backend.closeSession().catch(() => {
+            throw new Error("Close session failed");
         });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        await nextRunLoop();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot("ClientConnections2");
+
         component.unmount();
     });
 
