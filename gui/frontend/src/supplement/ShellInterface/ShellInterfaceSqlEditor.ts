@@ -23,8 +23,8 @@
 
 import { EventType, ListenerEntry } from "../Dispatch";
 import {
-    ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ICommSimpleResultEvent,
-    ShellPromptResponseType, IPromptReplyBackend,
+    ProtocolGui, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ICommSimpleResultEvent,
+    ShellPromptResponseType, IPromptReplyBackend, MessageScheduler,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
@@ -63,7 +63,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             }
 
             const request = ProtocolGui.getRequestSqleditorStartSession();
-            const listener = currentConnection.sendRequest(request,
+            const listener = MessageScheduler.get.sendRequest(request,
                 { messageClass: ShellAPIGui.GuiSqleditorStartSession });
 
             listener.then((event: ICommStartSessionEvent) => {
@@ -90,7 +90,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 resolve();
             } else {
                 const request = ProtocolGui.getRequestSqleditorCloseSession(id);
-                currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorCloseSession })
+                MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorCloseSession })
                     .then(() => {
                         webSession.setModuleSessionId(this.moduleSessionLookupId);
                         resolve();
@@ -109,7 +109,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
     public getGuiModuleDisplayInfo(): ListenerEntry {
         const request = ProtocolGui.getRequestSqleditorGetGuiModuleDisplayInfo();
 
-        return currentConnection.sendRequest(request, { messageClass: "getModuleDisplayInfo" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getModuleDisplayInfo" });
     }
 
     /**
@@ -120,7 +120,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
     public isGuiModuleBackend(): ListenerEntry {
         const request = ProtocolGui.getRequestSqleditorIsGuiModuleBackend();
 
-        return currentConnection.sendRequest(request, { messageClass: "isGuiModuleBackend" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "isGuiModuleBackend" });
     }
 
     /**
@@ -138,7 +138,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
         const request = ProtocolGui.getRequestSqleditorOpenConnection(dbConnectionId, id);
 
-        return currentConnection.sendRequest(request, { messageClass: "openConnection" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "openConnection" });
     }
 
     /**
@@ -158,7 +158,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
         const request = ProtocolGui.getRequestSqleditorExecute(sql, id, params,
             { rowPacketSize: settings.get("sql.rowPacketSize", 1000) });
 
-        return currentConnection.sendRequest(request, { messageClass: "execute" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "execute" });
     }
 
     /**
@@ -174,7 +174,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
         const request = ProtocolGui.getRequestSqleditorReconnect(id);
 
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorReconnect });
+        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorReconnect });
     }
 
     /**
@@ -190,7 +190,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
         const request = ProtocolGui.getRequestSqleditorKillQuery(id);
 
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorKillQuery });
+        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorKillQuery });
     }
 
     /**
@@ -209,7 +209,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             }
 
             const request = ProtocolGui.getRequestSqleditorSetAutoCommit(id, value);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetAutoCommit })
+            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetAutoCommit })
                 .then((event: ICommSimpleResultEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve();
@@ -234,7 +234,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             }
 
             const request = ProtocolGui.getRequestSqleditorGetAutoCommit(id);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetAutoCommit })
+            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetAutoCommit })
                 .then((event: ICommSimpleResultEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve((event.data?.result as number) !== 0);
@@ -259,7 +259,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             }
 
             const request = ProtocolGui.getRequestSqleditorGetCurrentSchema(id);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetCurrentSchema })
+            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorGetCurrentSchema })
                 .then((event: ICommSimpleResultEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve(event.data ? event.data.result as string : "");
@@ -285,7 +285,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             }
 
             const request = ProtocolGui.getRequestSqleditorSetCurrentSchema(id, schema);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetCurrentSchema })
+            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiSqleditorSetCurrentSchema })
                 .then((event: ICommSimpleResultEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
                         resolve();
@@ -313,6 +313,6 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
         const request = ProtocolGui.getRequestPromptReply(requestId, type, reply, id);
 
-        return currentConnection.sendRequest(request, { messageClass: "sendReply" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "sendReply" });
     }
 }

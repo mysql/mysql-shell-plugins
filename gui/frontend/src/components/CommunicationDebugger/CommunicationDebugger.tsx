@@ -36,9 +36,7 @@ import {
 } from "../ui";
 
 import { ListenerEntry, EventType, IDispatchEvent } from "../../supplement/Dispatch";
-import {
-    currentConnection, ICommScriptContentEvent, ICommDebuggerScriptsEvent, ProtocolGui,
-} from "../../communication";
+import { ICommScriptContentEvent, ICommDebuggerScriptsEvent, ProtocolGui, MessageScheduler } from "../../communication";
 import { ICodeEditorOptions, Monaco } from "../ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { convertCamelToSnakeCase, sleep, strictEval } from "../../utilities/helpers";
@@ -46,6 +44,7 @@ import { requisitions } from "../../supplement/Requisitions";
 import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor";
 import { IDictionary } from "../../app-logic/Types";
 import { EditorLanguage } from "../../supplement";
+import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment";
 
 /* eslint import/no-webpack-loader-syntax: off */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -93,6 +92,8 @@ interface ICommunicationDebuggerState extends IComponentState {
 
 export class CommunicationDebugger extends Component<ICommunicationDebuggerProperties, ICommunicationDebuggerState> {
 
+    private environment: CommunicationDebuggerEnvironment;
+
     private messageOutputRef = React.createRef<CodeEditor>();
     private inputRef = React.createRef<CodeEditor>();
     private scriptTreeRef = React.createRef<TreeGrid>();
@@ -127,12 +128,11 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         this.outputState = this.createEditorState("");
         this.inputState = this.createEditorState("");
 
-        // Inject the map of loaded scripts into the debugger connection.
-        currentConnection.scripts = this.scriptContent;
+        this.environment = new CommunicationDebuggerEnvironment(this.scriptContent);
     }
 
     public componentDidMount(): void {
-        if (currentConnection.isConnected) {
+        if (MessageScheduler.get.isConnected) {
             this.loadScripts();
         }
     }
@@ -463,7 +463,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     };
 
     private loadScripts(): void {
-        currentConnection.sendRequest(ProtocolGui.getRequestDebuggerGetScripts(), { messageClass: "getScripts" })
+        MessageScheduler.get.sendRequest(ProtocolGui.getRequestDebuggerGetScripts(), { messageClass: "getScripts" })
             .then((event: ICommDebuggerScriptsEvent) => {
                 const scripts: IScriptTreeEntry[] = [];
 
@@ -530,7 +530,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
                     resolve(entry);
                 } else {
                     let code;
-                    currentConnection.sendRequest(ProtocolGui.getRequestDebuggerGetScriptContent(path),
+                    MessageScheduler.get.sendRequest(ProtocolGui.getRequestDebuggerGetScriptContent(path),
                         { messageClass: "" })
                         .then((event: ICommScriptContentEvent) => {
                             code = event.data?.script;
@@ -613,9 +613,9 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         const model = models.find((candidate) => { return candidate.id === props.id; });
 
         if (model) {
-            // Temporarily make the web socket known globally.
+            // Temporarily make the environment known globally.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).ws = currentConnection;
+            (window as any).ws = this.environment;
 
             const code = model.getValue();
             void this.loadReferencedScripts(code, new Set<string>()).then(() => {
@@ -667,23 +667,23 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     };
 
     private connect = (): void => {
-        if (currentConnection.isConnected) {
+        if (MessageScheduler.get.isConnected) {
             this.printOutput("/* ERROR: You are already connected */\n\n", OutputType.Error);
         } else {
-            void currentConnection.connect(new URL(window.location.href), "");
+            void MessageScheduler.get.connect(new URL(window.location.href), "");
         }
     };
 
     private disconnect = (): void => {
-        if (currentConnection.isConnected) {
-            currentConnection.disconnect();
+        if (MessageScheduler.get.isConnected) {
+            MessageScheduler.get.disconnect();
         } else {
             this.printOutput("/* ERROR: There's no connection open */\n\n", OutputType.Error);
         }
     };
 
     private clearContext = (): void => {
-        currentConnection.clearState();
+        MessageScheduler.get.clearState();
     };
 
     /**

@@ -26,7 +26,7 @@ import React from "react";
 
 import { App } from "../../../app-logic/App";
 import { IStatusbarInfo } from "../../../app-logic/Types";
-import { currentConnection } from "../../../communication";
+import { MessageScheduler } from "../../../communication";
 import { IEditorStatusInfo } from "../../../modules/db-editor";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { waitFor } from "../../../utilities/helpers";
@@ -54,7 +54,7 @@ describe("Application tests", () => {
     beforeAll(async () => {
         // No automatic login takes place here, like in other tests. The app will trigger the login.
         launcher = await setupShellForTests("Application", false, false);
-        expect(currentConnection.isConnected).toBe(false);
+        expect(MessageScheduler.get.isConnected).toBe(false);
 
         expect(requisitions.registrations("dialogResponse")).toBe(1);
 
@@ -70,8 +70,8 @@ describe("Application tests", () => {
         const event = new Event("beforeunload");
         expect(window.dispatchEvent(event)).toBe(true);
 
-        currentConnection.disconnect();
-        expect(currentConnection.isConnected).toBe(false);
+        MessageScheduler.get.disconnect();
+        expect(MessageScheduler.get.isConnected).toBe(false);
 
         app.unmount();
 

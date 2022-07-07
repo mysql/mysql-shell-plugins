@@ -23,7 +23,7 @@
 
 import { IShellInterface } from ".";
 import {
-    ProtocolGui, ICommAuthenticationEvent, currentConnection, ShellAPIGui, ICommShellProfile,
+    ProtocolGui, ICommAuthenticationEvent, ShellAPIGui, ICommShellProfile, MessageScheduler,
 } from "../../communication";
 import { ListenerEntry } from "../Dispatch";
 import { webSession } from "../WebSession";
@@ -43,7 +43,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public authenticate(username: string, password: string): ListenerEntry {
         const request = ProtocolGui.getRequestUsersAuthenticate(username, password);
 
-        const listener = currentConnection.sendRequest(request, { messageClass: "authenticate" });
+        const listener = MessageScheduler.get.sendRequest(request, { messageClass: "authenticate" });
         listener.then((event: ICommAuthenticationEvent) => {
             webSession.userName = username;
             if (event.data) {
@@ -69,7 +69,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public createUser(user: string, password: string, role: string): ListenerEntry {
         const request = ProtocolGui.getRequestUsersCreateUser(user, password, role);
 
-        return currentConnection.sendRequest(request, { messageClass: "createUser" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "createUser" });
     }
 
     /**
@@ -82,7 +82,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public getDefaultProfile(userId: number): ListenerEntry {
         const request = ProtocolGui.getRequestUsersGetDefaultProfile(userId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getDefaultProfile" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getDefaultProfile" });
     }
 
     /**
@@ -95,7 +95,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public getGuiModuleList(userId: number): ListenerEntry {
         const request = ProtocolGui.getRequestUsersGetGuiModuleList(userId);
 
-        return currentConnection.sendRequest(request, { messageClass: "getGuiModuleList" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getGuiModuleList" });
     }
 
     /**
@@ -108,7 +108,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public getProfile(profileId: number): ListenerEntry {
         const request = ProtocolGui.getRequestUsersGetProfile(profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersGetProfile });
+        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersGetProfile });
     }
 
     /**
@@ -121,7 +121,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public updateProfile(profile: ICommShellProfile): ListenerEntry {
         const request = ProtocolGui.getRequestUsersUpdateProfile(profile);
 
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersUpdateProfile });
+        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersUpdateProfile });
     }
 
     /**
@@ -134,7 +134,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public addProfile(profile: ICommShellProfile): ListenerEntry {
         const request = ProtocolGui.getRequestUsersAddProfile(profile.userId, profile);
 
-        return currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersAddProfile });
+        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersAddProfile });
     }
 
     /**
@@ -148,7 +148,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public grantRole(username: string, role: string): ListenerEntry {
         const request = ProtocolGui.getRequestUsersGrantRole(username, role);
 
-        return currentConnection.sendRequest(request, { messageClass: "grantRole" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "grantRole" });
     }
 
     /**
@@ -161,7 +161,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public listProfiles(userId: number): ListenerEntry {
         const request = ProtocolGui.getRequestUsersListProfiles(userId);
 
-        return currentConnection.sendRequest(request, { messageClass: "listProfiles" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listProfiles" });
     }
 
     /**
@@ -174,7 +174,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public listRolePrivileges(role: string): ListenerEntry {
         const request = ProtocolGui.getRequestUsersListRolePrivileges(role);
 
-        return currentConnection.sendRequest(request, { messageClass: "listRoleProfiles" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listRoleProfiles" });
     }
 
     /**
@@ -185,7 +185,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public listRoles(): ListenerEntry {
         const request = ProtocolGui.getRequestUsersListRoles();
 
-        return currentConnection.sendRequest(request, { messageClass: "listRoles" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listRoles" });
     }
 
     /**
@@ -198,7 +198,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public listUserPrivileges(username: string): ListenerEntry {
         const request = ProtocolGui.getRequestUsersListUserPrivileges(username);
 
-        return currentConnection.sendRequest(request, { messageClass: "listUserPrivileges" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listUserPrivileges" });
     }
 
     /**
@@ -211,7 +211,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public listUserRoles(username: string): ListenerEntry {
         const request = ProtocolGui.getRequestUsersListUserRoles(username);
 
-        return currentConnection.sendRequest(request, { messageClass: "listUserRoles" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listUserRoles" });
     }
 
     /**
@@ -222,7 +222,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public listUsers(): ListenerEntry {
         const request = ProtocolGui.getRequestUsersListUsers();
 
-        return currentConnection.sendRequest(request, { messageClass: "listUsers" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listUsers" });
     }
 
     /**
@@ -236,7 +236,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public setDefaultProfile(userId: number, profileId: number): ListenerEntry {
         const request = ProtocolGui.getRequestUsersSetDefaultProfile(userId, profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "setDefaultProfile" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "setDefaultProfile" });
     }
 
     /**
@@ -249,7 +249,7 @@ export class ShellInterfaceUser implements IShellInterface {
     public setCurrentProfile(profileId: number): ListenerEntry {
         const request = ProtocolGui.getRequestUsersSetCurrentProfile(profileId);
 
-        return currentConnection.sendRequest(request, { messageClass: "setCurrentProfile" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "setCurrentProfile" });
     }
 
     /**
@@ -261,7 +261,7 @@ export class ShellInterfaceUser implements IShellInterface {
      * @returns A listener for the response.
      */
     public storePassword(url: string, password: string): ListenerEntry {
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsSetCredential(url, password),
+        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsSetCredential(url, password),
             { messageClass: "storePassword" });
     }
 
@@ -273,7 +273,7 @@ export class ShellInterfaceUser implements IShellInterface {
      * @returns A listener for the response.
      */
     public clearPassword(url: string): ListenerEntry {
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsDeleteCredential(url),
+        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsDeleteCredential(url),
             { messageClass: "clearPassword" });
     }
 
@@ -283,7 +283,7 @@ export class ShellInterfaceUser implements IShellInterface {
      * @returns A listener for the response.
      */
     public listCredentials(): ListenerEntry {
-        return currentConnection.sendRequest(ProtocolGui.getRequestDbconnectionsListCredentials(),
+        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsListCredentials(),
             { messageClass: "clearPassword" });
     }
 

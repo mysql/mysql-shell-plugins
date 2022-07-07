@@ -23,8 +23,9 @@
 
 import { EventType, ListenerEntry } from "../Dispatch";
 import {
-    ProtocolGui, currentConnection, ICommErrorEvent, ICommStartSessionEvent, ShellPromptResponseType,
+    ProtocolGui, ICommErrorEvent, ICommStartSessionEvent, ShellPromptResponseType,
     IPromptReplyBackend,
+    MessageScheduler,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { IShellInterface } from ".";
@@ -74,7 +75,7 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
         }
 
         const request = ProtocolGui.getRequestShellStartSession(dbConnectionId);
-        const listener = currentConnection.sendRequest(request, { messageClass: "startShellModuleSession" });
+        const listener = MessageScheduler.get.sendRequest(request, { messageClass: "startShellModuleSession" });
 
         listener.then((event: ICommStartSessionEvent) => {
             if (event.data && event.eventType === EventType.DataResponse && event.data.moduleSessionId) {
@@ -96,7 +97,7 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
         const sessionId = this.moduleSessionId;
         if (sessionId) {
             const request = ProtocolGui.getRequestShellCloseSession(sessionId);
-            const listener = currentConnection.sendRequest(request, { messageClass: "closeModuleSession" });
+            const listener = MessageScheduler.get.sendRequest(request, { messageClass: "closeModuleSession" });
 
             listener.then(() => {
                 webSession.setModuleSessionId(this.moduleSessionLookupId);
@@ -125,7 +126,7 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
 
         const request = ProtocolGui.getRequestShellExecute(command, id);
 
-        return currentConnection.sendRequest(request, { messageClass: "execute" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "execute" });
     }
 
     /**
@@ -145,7 +146,7 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
 
         const request = ProtocolGui.getRequestPromptReply(requestId, type, reply, id);
 
-        return currentConnection.sendRequest(request, { messageClass: "sendReply" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "sendReply" });
     }
 
     /**
@@ -164,7 +165,7 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
 
         const request = ProtocolGui.getRequestShellComplete(text, offset, id);
 
-        return currentConnection.sendRequest(request, { messageClass: "getCompletionItems" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getCompletionItems" });
     }
 
     private get moduleSessionId(): string | undefined {

@@ -26,9 +26,10 @@ import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
 import {
-    currentConnection, ICommOciBastionsEvent, ICommOciCompartmentEvent, ICommOciComputeInstanceEvent,
+    ICommOciBastionsEvent, ICommOciCompartmentEvent, ICommOciComputeInstanceEvent,
     ICommMdsConfigProfileEvent, ICommOciMySQLDbSystemListEvent, IMdsProfileData, ICompartment,
     ICommOciLoadBalancersEvent,
+    MessageScheduler,
 } from "../../../../frontend/src/communication";
 
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
@@ -78,7 +79,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
     }
 
     public getChildren(element?: TreeItem): ProviderResult<TreeItem[]> {
-        if (currentConnection.isConnected) {
+        if (MessageScheduler.get.isConnected) {
             if (!element) {
                 return this.listConfigProfiles();
             }
@@ -97,8 +98,10 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                         this.listLoadBalancers(element.profile, element.compartment),
                     ]).then(([compartmentItems, databaseItems, computeInstanceItems,
                         bastionHostItems, loadBalancerItems]) => {
-                        resolve([...compartmentItems, ...databaseItems, ...computeInstanceItems,
-                            ...bastionHostItems, ...loadBalancerItems]);
+                        resolve([
+                            ...compartmentItems, ...databaseItems, ...computeInstanceItems,
+                            ...bastionHostItems, ...loadBalancerItems,
+                        ]);
                     }).catch((reason) => {
                         reject(reason);
                     });

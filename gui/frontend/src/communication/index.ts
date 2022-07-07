@@ -28,7 +28,7 @@ export * from "./ProtocolGui";
 export * from "./ProtocolMds";
 export * from "./ProtocolMrs";
 
-export * from "./ClientConnection";
+export * from "./MessageScheduler";
 export * from "./GeneralEvents";
 export * from "./OciEvents";
 export * from "./Oci";
@@ -39,7 +39,7 @@ export * from "./Oci";
 export type IEmbeddedSourceType =
     "app" | // The app itself.
     "host"  // The host where the app is embedded.
-;
+    ;
 
 export interface IEmbeddedMessage {
     source: IEmbeddedSourceType;

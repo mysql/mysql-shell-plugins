@@ -22,9 +22,7 @@
  */
 
 import { ListenerEntry } from "../Dispatch";
-import {
-    ProtocolMrs, currentConnection,
-} from "../../communication";
+import { MessageScheduler, ProtocolMrs } from "../../communication";
 import { webSession } from "../WebSession";
 
 export class ShellInterfaceMrs {
@@ -35,7 +33,7 @@ export class ShellInterfaceMrs {
     public listServices(): ListenerEntry {
         const request = ProtocolMrs.getRequestListServices({ moduleSessionId: this.moduleSessionId });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsListServices" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListServices" });
     }
 
     public addService(urlContextRoot: string, urlProtocol: string, urlHostName: string, isDefault?: boolean,
@@ -47,7 +45,7 @@ export class ShellInterfaceMrs {
             comments,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsAddService" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddService" });
     }
 
     public updateService(serviceId: number, urlContextRoot: string, urlHostName: string): ListenerEntry {
@@ -58,13 +56,13 @@ export class ShellInterfaceMrs {
             urlHostName,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsUpdateService" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsUpdateService" });
     }
 
     public deleteService(serviceId?: number): ListenerEntry {
         const request = ProtocolMrs.getRequestDeleteService({ moduleSessionId: this.moduleSessionId, serviceId });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsDeleteService" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsDeleteService" });
     }
 
     public setDefaultService(serviceId: number): ListenerEntry {
@@ -73,13 +71,13 @@ export class ShellInterfaceMrs {
             serviceId,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsSetDefaultService" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsSetDefaultService" });
     }
 
     public listSchemas(serviceId: number): ListenerEntry {
         const request = ProtocolMrs.getRequestListSchemas({ serviceId, moduleSessionId: this.moduleSessionId });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsListSchemas" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListSchemas" });
     }
 
     public deleteSchema(schemaId: number, serviceId: number): ListenerEntry {
@@ -89,7 +87,7 @@ export class ShellInterfaceMrs {
             serviceId,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsDeleteSchema" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsDeleteSchema" });
     }
 
     public addSchema(schemaName: string, requestPath: string,
@@ -104,7 +102,7 @@ export class ShellInterfaceMrs {
             comments,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsAddSchema" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddSchema" });
     }
 
     public updateSchema(schemaId: number, schemaName: string, requestPath: string,
@@ -120,7 +118,7 @@ export class ShellInterfaceMrs {
             raiseExceptions,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsUpdateSchema" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsUpdateSchema" });
     }
 
     public addDbObject(dbObjectName: string, dbObjectType: string, schemaName: string, autoAddSchema: boolean,
@@ -144,13 +142,13 @@ export class ShellInterfaceMrs {
             comments,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsAddService" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddService" });
     }
 
     public listDbObjects(schemaId: number): ListenerEntry {
         const request = ProtocolMrs.getRequestListDbObjects(schemaId, { moduleSessionId: this.moduleSessionId });
 
-        return currentConnection.sendRequest(request, { messageClass: "mrsListDbObjects" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListDbObjects" });
     }
 
     private get moduleSessionId(): string | undefined {

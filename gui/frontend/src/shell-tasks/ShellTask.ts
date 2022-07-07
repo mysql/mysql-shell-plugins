@@ -24,7 +24,7 @@
 import { isNil } from "lodash";
 import { IDictionary } from "../app-logic/Types";
 import {
-    currentConnection, ICommShellEvent, ICommStartSessionEvent, IShellFeedbackRequest, IShellResultType, ProtocolGui,
+    ICommShellEvent, ICommStartSessionEvent, IShellFeedbackRequest, IShellResultType, MessageScheduler, ProtocolGui,
     ShellPromptResponseType,
 } from "../communication";
 import { EventType } from "../supplement/Dispatch";
@@ -70,7 +70,7 @@ export class ShellTask {
 
             const request = ProtocolGui.getRequestShellStartSession(dbConnectionId, shellArgs);
 
-            currentConnection.sendRequest(request, { messageClass: "executeShellCommand" })
+            MessageScheduler.get.sendRequest(request, { messageClass: "executeShellCommand" })
                 .then((event: ICommStartSessionEvent | ICommShellEvent) => {
                     if (!event.data) {
                         return;

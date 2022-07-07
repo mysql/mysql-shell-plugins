@@ -23,7 +23,7 @@
 
 import { ListenerEntry } from "../Dispatch";
 import {
-    ProtocolMds, currentConnection, IShellSetCurrentCompartmentKwargs, IShellSetCurrentBastionKwargs,
+    ProtocolMds, IShellSetCurrentCompartmentKwargs, IShellSetCurrentBastionKwargs, MessageScheduler,
 } from "../../communication";
 
 export class ShellInterfaceMds {
@@ -31,55 +31,55 @@ export class ShellInterfaceMds {
     public getMdsConfigProfiles(configFilePath?: string): ListenerEntry {
         const request = ProtocolMds.getRequestListConfigProfiles({ configFilePath });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsConfigProfiles" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsConfigProfiles" });
     }
 
     public setDefaultConfigProfile(profile: string): ListenerEntry {
         const request = ProtocolMds.getRequestSetDefaultConfigProfile(profile);
 
-        return currentConnection.sendRequest(request, { messageClass: "setMdsDefaultConfigProfile" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "setMdsDefaultConfigProfile" });
     }
 
     public getMdsCompartments(configProfile: string, compartmentId?: string): ListenerEntry {
         const request = ProtocolMds.getRequestListCompartments({ configProfile, compartmentId });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsCompartments" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsCompartments" });
     }
 
     public getMdsMySQLDbSystems(configProfile: string, compartmentId: string): ListenerEntry {
         const request = ProtocolMds.getRequestListDbSystems({ configProfile, compartmentId });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsMySQLDbSystems" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsMySQLDbSystems" });
     }
 
     public getMdsMySQLDbSystem(configProfile: string, dbSystemId: string): ListenerEntry {
         const request = ProtocolMds.getRequestGetDbSystem({ configProfile, dbSystemId });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsMySQLDbSystem" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsMySQLDbSystem" });
     }
 
     public getMdsComputeInstances(configProfile: string, compartmentId: string): ListenerEntry {
         const request = ProtocolMds.getRequestListComputeInstances({ configProfile, compartmentId });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsComputeInstances" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsComputeInstances" });
     }
 
     public getMdsBastions(configProfile: string, compartmentId: string, validForDbSystemId?: string): ListenerEntry {
         const request = ProtocolMds.getRequestListBastions({ configProfile, compartmentId, validForDbSystemId });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsBastions" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsBastions" });
     }
 
     public getMdsBastion(configProfile: string, bastionId: string): ListenerEntry {
         const request = ProtocolMds.getRequestGetBastion({ configProfile, bastionId, raiseExceptions: true });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsBastion" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsBastion" });
     }
 
     public createBastion(configProfile: string, dbSystemId: string, awaitActiveState?: boolean): ListenerEntry {
         const request = ProtocolMds.getRequestCreateBastion({ configProfile, dbSystemId, awaitActiveState });
 
-        return currentConnection.sendRequest(request, { messageClass: "createBastion" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "createBastion" });
     }
 
     public createBastionSession(
@@ -93,7 +93,7 @@ export class ShellInterfaceMds {
             awaitCreation,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "createBastionSession" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "createBastionSession" });
     }
 
     public listLoadBalancers(configProfile: string, compartmentId: string): ListenerEntry {
@@ -102,18 +102,18 @@ export class ShellInterfaceMds {
             compartmentId,
         });
 
-        return currentConnection.sendRequest(request, { messageClass: "getMdsLoadBalancers" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsLoadBalancers" });
     }
 
     public setCurrentCompartment(parameters?: IShellSetCurrentCompartmentKwargs): ListenerEntry {
         const request = ProtocolMds.getRequestSetCurrentCompartment(parameters);
 
-        return currentConnection.sendRequest(request, { messageClass: "setCurrentCompartment" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "setCurrentCompartment" });
     }
 
     public setCurrentBastion(parameters?: IShellSetCurrentBastionKwargs): ListenerEntry {
         const request = ProtocolMds.getRequestSetCurrentBastion(parameters);
 
-        return currentConnection.sendRequest(request, { messageClass: "setCurrentBastion" });
+        return MessageScheduler.get.sendRequest(request, { messageClass: "setCurrentBastion" });
     }
 }

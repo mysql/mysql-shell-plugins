@@ -23,7 +23,8 @@
 
 import { IShellInterface } from ".";
 import {
-    currentConnection, ICommErrorEvent, ICommObjectNamesEvent, ICommStartSessionEvent, IShellDbConnection,
+    ICommErrorEvent, ICommObjectNamesEvent, ICommStartSessionEvent, IShellDbConnection,
+    MessageScheduler,
     ProtocolGui, ShellAPIGui,
 } from "../../communication";
 import { EventType } from "../Dispatch";
@@ -55,7 +56,7 @@ export class ShellInterfaceDb implements IShellInterface {
 
         return new Promise((resolve, reject) => {
             const request = ProtocolGui.getRequestDbStartSession(connection);
-            const listener = currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbStartSession });
+            const listener = MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbStartSession });
             listener.then((event: ICommStartSessionEvent) => {
                 // istanbul ignore else
                 if (event.eventType === EventType.FinalResponse) {
@@ -84,7 +85,7 @@ export class ShellInterfaceDb implements IShellInterface {
                 resolve();
             } else {
                 const request = ProtocolGui.getRequestDbCloseSession(id);
-                currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbCloseSession }).then(() => {
+                MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbCloseSession }).then(() => {
                     webSession.setModuleSessionId(this.moduleSessionLookupId);
                     resolve();
                 }).catch(/* istanbul ignore next */(event: ICommErrorEvent) => {
@@ -111,7 +112,7 @@ export class ShellInterfaceDb implements IShellInterface {
             } else {
                 const names: string[] = [];
                 const request = ProtocolGui.getRequestDbGetCatalogObjectNames(id, type, filter);
-                currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetCatalogObjectNames })
+                MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetCatalogObjectNames })
                     .then((event: ICommObjectNamesEvent) => {
                         if (event.data?.result) {
                             names.push(...event.data.result);
@@ -147,7 +148,7 @@ export class ShellInterfaceDb implements IShellInterface {
 
             const names: string[] = [];
             const request = ProtocolGui.getRequestDbGetSchemaObjectNames(id, type, schema, filter, routineType);
-            currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetSchemaObjectNames })
+            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetSchemaObjectNames })
                 .then((event: ICommObjectNamesEvent) => {
                     if (event.data?.result) {
                         names.push(...event.data.result);
@@ -181,7 +182,7 @@ export class ShellInterfaceDb implements IShellInterface {
                 const request = ProtocolGui.getRequestDbGetTableObjectNames(id, type, schema, table, filter);
 
                 const names: string[] = [];
-                currentConnection.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetTableObjectNames })
+                MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetTableObjectNames })
                     .then((event: ICommObjectNamesEvent) => {
                         if (event.data?.result) {
                             names.push(...event.data.result);

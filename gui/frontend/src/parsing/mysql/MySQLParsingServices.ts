@@ -76,13 +76,13 @@ export class MySQLParsingServices {
         this.globalSymbols = new DBSymbolTable("globals", { allowDuplicateSymbols: true });
 
         void import("./data/system-variables.json").then((systemVariables) => {
-            for (const [key, value] of Object.entries(systemVariables)) {
+            for (const [key, value] of Object.entries(systemVariables.default)) {
                 this.globalSymbols.addNewSymbolOfType(SystemVariableSymbol, undefined, key.toLowerCase(), value);
             }
         });
 
         void import("./data/system-functions.json").then((systemFunctions) => {
-            for (const [key, value] of Object.entries(systemFunctions)) {
+            for (const [key, value] of Object.entries(systemFunctions.default)) {
                 this.globalSymbols.addNewSymbolOfType(SystemFunctionSymbol, undefined, key.toLowerCase(), value);
             }
         });
