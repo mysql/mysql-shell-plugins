@@ -37,7 +37,7 @@ import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
 import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
 import { IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
-import { IDBEditorScriptState } from "../../frontend/src/modules/db-editor";
+import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-editor";
 
 import { CodeBlocks } from "./CodeBlocks";
 import { uuid } from "../../frontend/src/utilities/helpers";
@@ -97,19 +97,19 @@ export class DBEditorCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.showServerStatus",
             (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(caption, String(id), "serverStatus");
+                void provider?.showPageSection(caption, String(id), uuid(), EntityType.Status);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showClientConnections",
             (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(caption, String(id), "clientConnections");
+                void provider?.showPageSection(caption, String(id), uuid(), EntityType.Connections);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showPerformanceDashboard",
             (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(caption, String(id), "performanceDashboard");
+                void provider?.showPageSection(caption, String(id), uuid(), EntityType.Dashboard);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.insertScript", (item: ScriptTreeItem) => {

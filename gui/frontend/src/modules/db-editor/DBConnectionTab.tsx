@@ -261,33 +261,29 @@ Execute \\help or \\? for help;`;
                 break;
             }
 
-            case EntityType.Admin: {
+            case EntityType.Status: {
                 // Admin pages render own toolbars, not the one for DB editors.
                 addEditorToolbar = false;
-                switch (savedState.activeEntry) {
-                    case "serverStatus": {
-                        document = <ServerStatus backend={savedState.backend} toolbarItems={toolbarItems} />;
-                        break;
-                    }
+                document = <ServerStatus backend={savedState.backend} toolbarItems={toolbarItems} />;
 
-                    case "clientConnections": {
-                        document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
-                        break;
-                    }
+                break;
+            }
 
-                    case "performanceDashboard": {
-                        document = <PerformanceDashboard
-                            backend={savedState.backend}
-                            toolbarItems={toolbarItems}
-                            graphData={savedState.graphData}
-                            onGraphDataChange={this.handleGraphDataChange}
-                        />;
-                        break;
-                    }
+            case EntityType.Connections: {
+                addEditorToolbar = false;
+                document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
 
-                    default:
+                break;
+            }
 
-                }
+            case EntityType.Dashboard: {
+                addEditorToolbar = false;
+                document = <PerformanceDashboard
+                    backend={savedState.backend}
+                    toolbarItems={toolbarItems}
+                    graphData={savedState.graphData}
+                    onGraphDataChange={this.handleGraphDataChange}
+                />;
 
                 break;
             }
@@ -346,7 +342,6 @@ Execute \\help or \\? for help;`;
                                     activeEditor={savedState.activeEntry}
                                     editors={savedState.editors}
                                     backend={backend}
-                                    onSelectEditor={this.handleSelectItem}
                                 />}
                                 {document}
                             </Container>,
@@ -470,8 +465,8 @@ Execute \\help or \\? for help;`;
         });
     };
 
-    private showPageSection = (section: string): Promise<boolean> => {
-        this.handleSelectItem(section);
+    private showPageSection = (data: { id: string; type: EntityType }): Promise<boolean> => {
+        this.handleSelectItem(data.id, data.type);
 
         return Promise.resolve(true);
     };
@@ -1367,10 +1362,30 @@ Execute \\help or \\? for help;`;
         }
     };
 
-    private handleSelectItem = (itemId: string): void => {
+    private handleSelectItem = (itemId: string, type: EntityType): void => {
         const { id, onSelectItem } = this.props;
 
-        onSelectItem?.(id!, itemId);
+        let name: string | undefined;
+        switch (type) {
+            case EntityType.Connections: {
+                name = "clientConnections";
+                break;
+            }
+
+            case EntityType.Status: {
+                name = "serverStatus";
+                break;
+            }
+
+            case EntityType.Dashboard: {
+                name = "performanceDashboard";
+                break;
+            }
+
+            default:
+        }
+
+        onSelectItem?.(id!, itemId, name);
     };
 
     private handleCloseEditor = (editorId: string): void => {

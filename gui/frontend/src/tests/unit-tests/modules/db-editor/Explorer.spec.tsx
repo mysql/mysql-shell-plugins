@@ -24,7 +24,6 @@
 import { mount } from "enzyme";
 import React from "react";
 
-import { snapshotFromWrapper } from "../../test-helpers";
 import { Explorer } from "../../../../modules/db-editor/Explorer";
 import { DBType, ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
 
@@ -45,7 +44,9 @@ describe("Explorer tests", (): void => {
         const props = component.props();
         expect(props.schemaTree).toEqual([]);
         expect(props.dbType).toEqual(DBType.MySQL);
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        // We cannot use snapshots here, because some IDs are randomly generated.
+
         component.unmount();
     });
 

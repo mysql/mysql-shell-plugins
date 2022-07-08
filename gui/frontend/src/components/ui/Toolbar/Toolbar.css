@@ -29,7 +29,7 @@
     min-width: 60px;
     min-height: 20px;
 
-    padding: 6px;
+    padding: 0 8px;
 
     justify-content: stretch;
     font-size: 0.9em;
@@ -74,7 +74,7 @@
 }
 
 .msg.toolbar .icon {
-    flex: 0 0 24px;
+    flex: 0 0 20px;
     background-color: var(--icon-foreground);
 }
 

@@ -61,8 +61,6 @@ export interface IDBEditorToolbarProperties extends IComponentProperties {
     language: string;            // The main language of the editor.
 
     backend?: ShellInterfaceSqlEditor;
-
-    onSelectEditor?: (editorId: string) => void;
 }
 
 interface IDBEditorToolbarState extends IComponentState {
