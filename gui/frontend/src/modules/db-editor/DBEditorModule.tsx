@@ -27,7 +27,7 @@ import moduleIcon from "../../assets/images/modules/module-sql.svg";
 import scriptingIcon from "../../assets/images/scripting.svg";
 import connectionsIcon from "../../assets/images/connections.svg";
 import closeIcon from "../../assets/images/close2.svg";
-import exportIcon from "../../assets/images/export.svg";
+import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
 
 import React from "react";
 
@@ -252,7 +252,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         const language = entry.state.model.getLanguageId() as EditorLanguage;
                         picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
                     } else {
-                        const name = pageTypeToIcon.get(entry.id) || defaultIcon;
+                        const name = pageTypeToIcon.get(entry.type) || defaultIcon;
                         picture = <Icon as="span" src={name} width="20px" height="20px" />;
                     }
 
@@ -285,7 +285,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         id="documentSelector"
                         key="selector"
                         initialSelection={selectedEntry ?? selectedPage}
-                        onSelect={this.handleSelectItem}
+                        onSelect={this.handleSelectTabOrEntry}
                     >
                         {items}
                     </Dropdown>,
@@ -303,15 +303,16 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     data-tooltip="Save this Editor"
                     onClick={this.handleEditorSave}
                 >
-                    <Icon src={exportIcon} data-tooltip="inherit" />
+                    <Icon src={saveIcon} data-tooltip="inherit" />
                 </Button>);
             }
+
             toolbarItems.right.push(<Button
                 id="itemCloseButton"
                 key="itemCloseButton"
                 imageOnly
                 data-tooltip="Close this Editor"
-                onClick={this.handleEditorClose}
+                onClick={this.handleCloseButtonClick}
             >
                 <Icon src={closeIcon} data-tooltip="inherit" />
             </Button>);
@@ -380,7 +381,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                         const language = entry.state.model.getLanguageId() as EditorLanguage;
                                         picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
                                     } else {
-                                        const name = pageTypeToIcon.get(entry.id) || defaultIcon;
+                                        const name = pageTypeToIcon.get(entry.type) || defaultIcon;
                                         picture = <Icon as="span" src={name} width="20px" height="20px" />;
                                     }
 
@@ -971,7 +972,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return Promise.resolve(true);
     }
 
-    private handleSelectItem = (id: string, props: IDropdownProperties): void => {
+    private handleSelectTabOrEntry = (id: string, props: IDropdownProperties): void => {
         const list = React.Children.toArray(props.children);
         const item = list.find((entry) => {
             // eslint-disable-next-line dot-notation
@@ -1010,12 +1011,41 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private handleEditorClose = (): void => {
+    private handleCloseButtonClick = (): void => {
         const { selectedPage } = this.state;
 
         const connectionState = this.connectionState.get(selectedPage);
         if (connectionState) {
-            this.handleRemoveEditor(selectedPage, connectionState.activeEntry);
+            // Removing an editor via the close button triggers a different behavior compared to normal close.
+            // The close button is only visible when running in the VS Code extension and does not cause a default
+            // editor to be created but instead triggers closing the connection (and ultimately the webview tab)
+            // if the last editor (and last connection) is closed this way.
+            const index = connectionState.editors.findIndex((editor: IOpenEditorState) => {
+                return editor.id === connectionState.activeEntry;
+            });
+
+            if (index > -1) {
+                // Make sure any pending change is sent to the backend, if that editor represents a stored script.
+                this.saveEditorIfNeeded(connectionState.editors[index]);
+
+                // Select another editor.
+                if (index > 0) {
+                    connectionState.activeEntry = connectionState.editors[index - 1].id;
+                } else {
+                    if (index < connectionState.editors.length - 1) {
+                        connectionState.activeEntry = connectionState.editors[index + 1].id;
+                    }
+                }
+
+                connectionState.editors.splice(index, 1);
+
+                if (connectionState.editors.length === 0) {
+                    // No editor left over -> close the connection.
+                    void this.removeTab(selectedPage);
+                } else {
+                    this.forceUpdate();
+                }
+            }
         }
     };
 
@@ -1134,7 +1164,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * The central method to deal with selection changes in the notebook explorer and requests to open editors/pages
      * for specific pages, which includes admin pages and external or broken out scripts.
      *
-     * @param id The editor of the notebook sending this event.
+     * @param id The id of the notebook sending this event.
      * @param entryId The unique ID of the item that will be (or is already) selected.
      * @param name An optional display name for broken out and external scripts.
      * @param content The SQL code of such scripts.
@@ -1160,7 +1190,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             if (!newEditor) {
                 // If no open editor exists, try to find a script with that id and open that.
-
                 const script = connectionState.scripts.find((candidate: IDBDataEntry) => {
                     return candidate.id === entryId;
                 }) as IDBEditorScriptState;
@@ -1187,12 +1216,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     }
                 } else {
                     // Must be an administration page or an external script then.
-                    switch (entryId) {
+                    switch (name) {
                         case "serverStatus": {
                             connectionState.editors.push({
-                                id: "serverStatus",
+                                id: entryId,
                                 caption: "Server Status",
-                                type: EntityType.Admin,
+                                type: EntityType.Status,
                                 currentVersion: 0,
                             });
 
@@ -1201,9 +1230,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                         case "clientConnections": {
                             connectionState.editors.push({
-                                id: "clientConnections",
+                                id: entryId,
                                 caption: "Client Connections",
-                                type: EntityType.Admin,
+                                type: EntityType.Connections,
                                 currentVersion: 0,
                             });
 
@@ -1212,9 +1241,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                         case "performanceDashboard": {
                             connectionState.editors.push({
-                                id: "performanceDashboard",
+                                id: entryId,
                                 caption: "Performance Dashboard",
-                                type: EntityType.Admin,
+                                type: EntityType.Dashboard,
                                 currentVersion: 0,
                             });
 

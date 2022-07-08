@@ -23,12 +23,14 @@
 
 import { EditorLanguage } from "../../supplement";
 
-// The of an entry in trees etc.
+/** The of an entry in trees etc. */
 export enum EntityType {
     Notebook,
     Script,
     Folder,
-    Admin,
+    Status,
+    Connections,
+    Dashboard,
 }
 
 export enum SchemaTreeType {

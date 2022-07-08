@@ -34,9 +34,9 @@ describe("DBEditorToolbar tests", (): void => {
                 language={"pl"}
                 activeEditor={"DbEditor"}
                 editors={[]}
-                onSelectEditor={jest.fn()}
             />,
         );
+
         const props = component.props();
         expect(props.language).toEqual("pl");
         expect(props.activeEditor).toEqual("DbEditor");

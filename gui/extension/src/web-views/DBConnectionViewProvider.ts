@@ -27,7 +27,7 @@ import { IOpenDialogOptions, requisitions } from "../../../frontend/src/suppleme
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
-import { IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
+import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
 import { WebviewProvider } from "./WebviewProvider";
 import { IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 
@@ -57,15 +57,16 @@ export class DBConnectionViewProvider extends WebviewProvider {
      *
      * @param caption The title of the webview tab.
      * @param page The page to open in the webview tab (if not already done).
-     * @param section The section to display.
+     * @param id The unique ID of the section to show.
+     * @param type The type of the section.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public showPageSection(caption: string, page: string, section: string): Promise<boolean> {
+    public showPageSection(caption: string, page: string, id: string, type: EntityType): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
-            { requestType: "showPageSection", parameter: section },
+            { requestType: "showPageSection", parameter: { type, id } },
         ], caption, "newConnection");
     }
 

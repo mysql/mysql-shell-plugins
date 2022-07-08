@@ -34,7 +34,7 @@ import {
 } from "../communication";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry } from "../modules/db-editor";
+import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
 import { RequisitionPipeline } from "./RequisitionPipeline";
 import { IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 
@@ -180,7 +180,7 @@ export interface IRequestTypeMap {
     "showPreferences": SimpleCallback;
     "showModule": (module: string) => Promise<boolean>;
     "showPage": (data: { module: string; page: string }) => Promise<boolean>;
-    "showPageSection": (section: string) => Promise<boolean>;
+    "showPageSection": (data: { type: EntityType; id: string }) => Promise<boolean>;
 
     "showDialog": (request: IDialogRequest) => Promise<boolean>;
     "dialogResponse": (response: IDialogResponse) => Promise<boolean>;

@@ -109,17 +109,22 @@
 
 .msg.connectionBrowser #connectionOverviewToolbar,
 .msg.connectionTabHost #dbEditorToolbar,
-.msg.connectionTabHost #serverStatusToolbar {
+.msg.connectionTabHost #serverStatusToolbar,
+.msg.connectionTabHost #clientConnectionToolbar,
+.msg.connectionTabHost #dashboardToolbar {
     min-height: 0;
-    flex: 0 0 28px;
+    flex: 0 0 32px;
     margin: 0;
-    padding: 4px 8px;
+    padding: 2px 8px;
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar .image,
-.msg.connectionTabHost #dbEditorToolbar .image {
-    width: 24px;
-    height: 24px;
+.msg.connectionTabHost #dbEditorToolbar .image,
+.msg.connectionTabHost #serverStatusToolbar .image,
+.msg.connectionTabHost #clientConnectionToolbar .image,
+msg.connectionTabHost #dashboardToolbar .image {
+    width: 20px;
+    height: 20px;
 }
 
 .msg.connectionBrowser .toolbar > .label,
@@ -199,9 +204,9 @@
     border-radius: 0;
 }
 
-.msg.connectionTabHost #itemSaveButton {
-    width: 60px;
-    margin-left: 8px;
+.msg.connectionTabHost #itemSaveButton .icon {
+    width: 16px;
+    height: 16px;
 }
 
 .msg.connectionTabHost #itemCloseButton {
@@ -209,14 +214,8 @@
 }
 
 .msg.connectionTabHost #itemCloseButton .icon {
-    width: 10px;
-    height: 10px;
-}
-
-.msg.connectionTabHost #itemSaveButton:not(:disabled, :hover) {
-    /* Restore the normal border/background for this special button. */
-    border: 1px solid var(--button-border);
-    background: var(--button-background);
+    width: 16px;
+    height: 16px;
 }
 
 /* Definitions for server status. */
@@ -509,5 +508,5 @@
     padding: 5px;
     font-style: normal;
     font-weight: bold;
-    
+
 }

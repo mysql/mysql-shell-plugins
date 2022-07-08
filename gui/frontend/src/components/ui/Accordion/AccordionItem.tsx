@@ -26,12 +26,15 @@ import keyboardKey from "keyboard-key";
 
 import { IComponentProperties, Component, Container, Image, Label, Icon, Codicon } from "..";
 import { ContentAlignment } from "../Container/Container";
+import { IDictionary } from "../../../app-logic/Types";
 
 export interface IAccordionItemProperties extends IComponentProperties {
     caption: string;
     picture?: string | Codicon | React.ReactElement<Icon | Image>;
     active?: boolean;
     closable?: boolean;
+
+    payload?: IDictionary;
 
     onClose?: (e: React.SyntheticEvent, itemId?: string) => void;
 }

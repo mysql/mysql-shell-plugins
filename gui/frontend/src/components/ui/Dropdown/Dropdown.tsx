@@ -443,7 +443,7 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
 
         if (this.containerRef.current && this.listRef.current) {
             const bounds = this.containerRef.current.getBoundingClientRect();
-            this.listRef.current.style.width = convertPropValue(bounds.width - 2)!;
+            this.listRef.current.style.width = convertPropValue(bounds.width)!;
 
             this.containerRef.current.classList.add("manualFocus");
             this.listRef.current.classList.add("manualFocus");

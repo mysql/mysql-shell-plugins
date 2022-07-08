@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,7 @@
     min-height: 22px;
     min-width: 80px;
 
-    padding: 1px 3px;
+    padding: 2px 4px;
 
     background-color: var(--dropdown-background);
     border: 1px solid var(--dropdown-border);
@@ -40,8 +40,8 @@
 }
 
 .msg.dropdown > .container > .icon {
-    margin-right: 4px;
-    height: 24px;
+    height: 20px;
+    width: 20px;
 }
 
 .msg.dropdown > .container > .label {
@@ -59,7 +59,7 @@
     text-align: center;
     border: none;
     margin: 0;
-    margin-left: 0px;
+    margin-left: 0;
     min-width: auto;
 }
 
@@ -78,7 +78,7 @@
 .msg.dropdown:not(.multiSelect) > .label {
     display: inline-block;
     appearance: none;
-    margin: 0px 8px 0px 8px;
+    margin: 0 8px;
 
     color: var(--dropdown-foreground);
     background-color: transparent;
@@ -118,12 +118,12 @@
     background-color: var(--dropdown-listBackground);
     border: 1px solid transparent;
 
-    font-size: 0.9rem;
+    font-size: 0.9em;
 }
 
 .msg.dropdownList > .dropdownItem {
-    padding: 4px;
     cursor: pointer;
+    padding: 2px 4px;
 }
 
 .msg.dropdownList > .dropdownItem > .checkbox {
@@ -132,10 +132,9 @@
 
 .msg.dropdownList > .dropdownItem .image,
 .msg.dropdownList > .dropdownItem .icon {
-    margin-right: 4px;
-
     width: 20px;
     height: 20px;
+    margin-right: 0;
 }
 
 .msg.dropdownList > .dropdownItem#empty {
@@ -160,7 +159,7 @@
 
 .msg.dropdownList > .dropdownDivider {
     background-color: var(--menu-separatorBackground);
-    margin: 2px 0px;
+    margin: 2px 0;
 }
 
 .msg.dropdownList > .dropdownDescription{

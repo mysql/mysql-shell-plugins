@@ -72,7 +72,7 @@ import { isNil } from "lodash";
 import {
     Accordion, Component, IComponentProperties, Label, Icon, IComponentState, Input, SelectionType,
     IAccordionProperties, Menu, ComponentPlacement, IMenuItemProperties, MenuItem, TreeGrid, ITreeGridOptions, Image,
-    Tabulator, TabulatorProxy,
+    Tabulator, TabulatorProxy, IAccordionItemProperties,
 } from "../../components/ui";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
@@ -81,6 +81,7 @@ import { ICommErrorEvent } from "../../communication";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { EditorLanguage } from "../../supplement";
+import { uuid } from "../../utilities/helpers";
 
 /** Lookup for icons for a specific document type. */
 export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
@@ -97,10 +98,10 @@ export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
 ]);
 
 /** Lookup for icons for special pages. */
-export const pageTypeToIcon: Map<string, string> = new Map([
-    ["serverStatus", adminServerStatusIcon],
-    ["clientConnections", clientConnectionsIcon],
-    ["performanceDashboard", adminPerformanceDashboardIcon],
+export const pageTypeToIcon: Map<EntityType, string> = new Map([
+    [EntityType.Status, adminServerStatusIcon],
+    [EntityType.Connections, clientConnectionsIcon],
+    [EntityType.Dashboard, adminPerformanceDashboardIcon],
 ]);
 
 export interface IExplorerSectionState {
@@ -122,7 +123,7 @@ export interface IExplorerProperties extends IComponentProperties {
     // The state of each accordion item.
     state?: Map<string, IExplorerSectionState>;
 
-    onSelectItem?: (id: string) => void;
+    onSelectItem?: (id: string, type: EntityType) => void;
     onCloseItem?: (id: string) => void;
     onAddItem?: () => string | undefined;
     onChangeItem?: (id: string, newCaption: string) => void;
@@ -296,21 +297,23 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                             content: [
                                 <Accordion.Item
                                     key="serverStatus"
-                                    id="serverStatus"
+                                    id={uuid()}
                                     caption="Server Status"
                                     picture={<Icon as="span" src={adminServerStatusIcon} width="20px" height="20px" />}
+                                    payload={{ type: EntityType.Status }}
                                     onClick={this.handleAccordionItemClick}
                                 />,
                                 <Accordion.Item
                                     key="clientConnections"
-                                    id="clientConnections"
+                                    id={uuid()}
                                     caption="Client Connections"
                                     picture={<Icon as="span" src={clientConnectionsIcon} width="20px" height="20px" />}
+                                    payload={{ type: EntityType.Connections }}
                                     onClick={this.handleAccordionItemClick}
                                 />,
                                 <Accordion.Item
                                     key="performanceDashboard"
-                                    id="performanceDashboard"
+                                    id={uuid()}
                                     caption="Performance Dashboard"
                                     picture={<Icon
                                         as="span"
@@ -318,6 +321,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                         width="20px"
                                         height="20px"
                                     />}
+                                    payload={{ type: EntityType.Dashboard }}
                                     onClick={this.handleAccordionItemClick}
                                 />,
                             ],
@@ -1010,8 +1014,10 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     private handleAccordionItemClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
         const { onSelectItem } = this.props;
 
+        //let type = EntityType.
         if (props.id) {
-            onSelectItem?.(props.id);
+            const itemProps = props as IAccordionItemProperties;
+            onSelectItem?.(props.id, itemProps.payload?.type as EntityType);
         }
     };
 
@@ -1020,7 +1026,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
         const data = cell.getData() as IDBDataEntry;
         if (data.type === EntityType.Script && data.id) {
-            onSelectItem?.(data.id);
+            onSelectItem?.(data.id, EntityType.Script);
         }
     };
 
@@ -1159,7 +1165,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     const language = entry.state.model.getLanguageId() as EditorLanguage;
                     icon = documentTypeToIcon.get(language) || defaultIcon;
                 } else {
-                    const name = pageTypeToIcon.get(entry.id) || defaultIcon;
+                    const name = pageTypeToIcon.get(entry.type) || defaultIcon;
                     icon = <Icon as="span" src={name} width="20px" height="20px" />;
                 }
 
@@ -1171,6 +1177,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                         active={entry.id === selectedEntry}
                         picture={icon}
                         closable={true}
+                        payload={{ type: entry.type }}
                         onClose={this.handleEditorClose}
                         onClick={this.handleAccordionItemClick}
                         onKeyPress={this.handleKeyPress}

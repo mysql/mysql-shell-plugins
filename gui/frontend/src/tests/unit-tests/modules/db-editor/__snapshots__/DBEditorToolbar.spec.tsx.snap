@@ -5,7 +5,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
   activeEditor="DbEditor"
   editors={Array []}
   language="pl"
-  onSelectEditor={[MockFunction]}
 >
   <Toolbar
     dropShadow={false}
