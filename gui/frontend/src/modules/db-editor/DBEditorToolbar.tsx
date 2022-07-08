@@ -21,23 +21,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import autoCommitActiveIcon from "../../assets/images/toolbar/auto-commit-active.svg";
-import autoCommitInactiveIcon from "../../assets/images/toolbar/auto-commit-inactive.svg";
-import commitIcon from "../../assets/images/toolbar/commit.svg";
-import executeCaretIcon from "../../assets/images/toolbar/execute-caret.svg";
+import autoCommitActiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-active.svg";
+import autoCommitInactiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-inactive.svg";
+import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
+import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
 //import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
-import executeNewCommandIcon from "../../assets/images/toolbar/execute-new-cmd.svg";
-import executeIcon from "../../assets/images/toolbar/execute.svg";
-import formatIcon from "../../assets/images/toolbar/format.svg";
-import rollbackIcon from "../../assets/images/toolbar/rollback.svg";
-import searchIcon from "../../assets/images/toolbar/search.svg";
-import showHiddenActiveIcon from "../../assets/images/toolbar/show-hidden-active.svg";
-import showHiddenInactiveIcon from "../../assets/images/toolbar/show-hidden-inactive.svg";
-import stopExecutionIcon from "../../assets/images/toolbar/stop-execution.svg";
+import executeNewCommandIcon from "../../assets/images/toolbar/toolbar-execute_and_new_cmd.svg";
+import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
+import formatIcon from "../../assets/images/toolbar/toolbar-format.svg";
+import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
+import searchIcon from "../../assets/images/toolbar/toolbar-search.svg";
+import showHiddenActiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-active.svg";
+import showHiddenInactiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-inactive.svg";
+import stopExecutionIcon from "../../assets/images/toolbar/toolbar-stop_execution.svg";
 //import stopOnErrorActiveIcon from "../../assets/images/toolbar/stop-on-error-active.svg";
 //import stopOnErrorInactiveIcon from "../../assets/images/toolbar/stop-on-error-inactive.svg";
-import wordWrapActiveIcon from "../../assets/images/toolbar/word-wrap-active.svg";
-import wordWrapInactiveIcon from "../../assets/images/toolbar/word-wrap-inactive.svg";
+import wordWrapActiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-active.svg";
+import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
 
 import React from "react";
 

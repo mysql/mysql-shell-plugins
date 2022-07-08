@@ -21,13 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import gridIcon from "../../assets/images/toolbar/grid.svg";
-import commitIcon from "../../assets/images/toolbar/commit.svg";
-import rollbackIcon from "../../assets/images/toolbar/rollback.svg";
-import expandIcon from "../../assets/images/toolbar/expand.svg";
-import menuIcon from "../../assets/images/toolbar/menu.svg";
-import previousPageIcon from "../../assets/images/toolbar/page-previous.svg";
-import nextPageIcon from "../../assets/images/toolbar/page-next.svg";
+import gridIcon from "../../assets/images/toolbar/toolbar-grid.svg";
+import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
+import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
+import expandIcon from "../../assets/images/toolbar/toolbar-expand.svg";
+import menuIcon from "../../assets/images/toolbar/toolbar-menu.svg";
+import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
+import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
 
 import React from "react";
 
