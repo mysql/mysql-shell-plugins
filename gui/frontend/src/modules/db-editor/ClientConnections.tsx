@@ -24,16 +24,16 @@
 import nullIcon from "../../assets/images/null.svg";
 import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
 
-import hideSleepConnectionsActiveIcon from "../../assets/images/toolbar/toolbar-sleeping-conns-active.svg";
-import hideSleepConnectionsInactiveIcon from "../../assets/images/toolbar/toolbar-sleeping-conns-inactive.svg";
+import hideSleepConnectionsActiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-active.svg";
+import hideSleepConnectionsInactiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-inactive.svg";
 import noFullInfoActiveIcon from "../../assets/images/toolbar/toolbar-info-active.svg";
 import noFullInfoInactiveIcon from "../../assets/images/toolbar/toolbar-info-inactive.svg";
-import hideBackgroundThreadsActiveIcon from "../../assets/images/toolbar/toolbar-background-threads-active.svg";
-import hideBackgroundThreadsInactiveIcon from "../../assets/images/toolbar/toolbar-background-threads-inactive.svg";
-import showDetailsActiveIcon from "../../assets/images/toolbar/toolbar-show-details-active.svg";
-import showDetailsInactiveIcon from "../../assets/images/toolbar/toolbar-show-details-inactive.svg";
-import killConnectionIcon from "../../assets/images/toolbar/toolbar-kill-connection.svg";
-import killQueryIcon from "../../assets/images/toolbar/toolbar-kill-query.svg";
+import hideBackgroundThreadsActiveIcon from "../../assets/images/toolbar/toolbar-background_threads-active.svg";
+import hideBackgroundThreadsInactiveIcon from "../../assets/images/toolbar/toolbar-background_threads-inactive.svg";
+import showDetailsActiveIcon from "../../assets/images/toolbar/toolbar-show_details-active.svg";
+import showDetailsInactiveIcon from "../../assets/images/toolbar/toolbar-show_details-inactive.svg";
+import killConnectionIcon from "../../assets/images/toolbar/toolbar-kill_connection.svg";
+import killQueryIcon from "../../assets/images/toolbar/toolbar-kill_query.svg";
 
 
 import React from "react";

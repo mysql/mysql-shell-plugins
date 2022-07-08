@@ -170,17 +170,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-sleeping-conns-active.svg"
+                  src="toolbar-sleeping_conns-active.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "WebkitMaskImage": "url(toolbar-sleeping_conns-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "maskImage": "url(toolbar-sleeping_conns-active.svg)",
                         "width": undefined,
                       }
                     }
@@ -209,17 +209,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-background-threads-active.svg"
+                  src="toolbar-background_threads-active.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-background-threads-active.svg)",
+                        "WebkitMaskImage": "url(toolbar-background_threads-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-background-threads-active.svg)",
+                        "maskImage": "url(toolbar-background_threads-active.svg)",
                         "width": undefined,
                       }
                     }
@@ -287,17 +287,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-show-details-inactive.svg"
+                  src="toolbar-show_details-inactive.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-show-details-inactive.svg)",
+                        "WebkitMaskImage": "url(toolbar-show_details-inactive.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-show-details-inactive.svg)",
+                        "maskImage": "url(toolbar-show_details-inactive.svg)",
                         "width": undefined,
                       }
                     }
@@ -328,17 +328,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-kill-query.svg"
+                  src="toolbar-kill_query.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-kill-query.svg)",
+                        "WebkitMaskImage": "url(toolbar-kill_query.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-kill-query.svg)",
+                        "maskImage": "url(toolbar-kill_query.svg)",
                         "width": undefined,
                       }
                     }
@@ -369,17 +369,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-kill-connection.svg"
+                  src="toolbar-kill_connection.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-kill-connection.svg)",
+                        "WebkitMaskImage": "url(toolbar-kill_connection.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-kill-connection.svg)",
+                        "maskImage": "url(toolbar-kill_connection.svg)",
                         "width": undefined,
                       }
                     }
@@ -884,17 +884,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-sleeping-conns-active.svg"
+                  src="toolbar-sleeping_conns-active.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "WebkitMaskImage": "url(toolbar-sleeping_conns-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-sleeping-conns-active.svg)",
+                        "maskImage": "url(toolbar-sleeping_conns-active.svg)",
                         "width": undefined,
                       }
                     }
@@ -923,17 +923,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-background-threads-active.svg"
+                  src="toolbar-background_threads-active.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-background-threads-active.svg)",
+                        "WebkitMaskImage": "url(toolbar-background_threads-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-background-threads-active.svg)",
+                        "maskImage": "url(toolbar-background_threads-active.svg)",
                         "width": undefined,
                       }
                     }
@@ -1001,17 +1001,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-show-details-inactive.svg"
+                  src="toolbar-show_details-inactive.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-show-details-inactive.svg)",
+                        "WebkitMaskImage": "url(toolbar-show_details-inactive.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-show-details-inactive.svg)",
+                        "maskImage": "url(toolbar-show_details-inactive.svg)",
                         "width": undefined,
                       }
                     }
@@ -1042,17 +1042,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-kill-query.svg"
+                  src="toolbar-kill_query.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-kill-query.svg)",
+                        "WebkitMaskImage": "url(toolbar-kill_query.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-kill-query.svg)",
+                        "maskImage": "url(toolbar-kill_query.svg)",
                         "width": undefined,
                       }
                     }
@@ -1083,17 +1083,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-kill-connection.svg"
+                  src="toolbar-kill_connection.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       Object {
-                        "WebkitMaskImage": "url(toolbar-kill-connection.svg)",
+                        "WebkitMaskImage": "url(toolbar-kill_connection.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(toolbar-kill-connection.svg)",
+                        "maskImage": "url(toolbar-kill_connection.svg)",
                         "width": undefined,
                       }
                     }

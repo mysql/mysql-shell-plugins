@@ -53,17 +53,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="execute.svg"
+              src="toolbar-execute.svg"
             >
               <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   Object {
-                    "WebkitMaskImage": "url(execute.svg)",
+                    "WebkitMaskImage": "url(toolbar-execute.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(execute.svg)",
+                    "maskImage": "url(toolbar-execute.svg)",
                     "width": undefined,
                   }
                 }
@@ -106,17 +106,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="format.svg"
+              src="toolbar-format.svg"
             >
               <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   Object {
-                    "WebkitMaskImage": "url(format.svg)",
+                    "WebkitMaskImage": "url(toolbar-format.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(format.svg)",
+                    "maskImage": "url(toolbar-format.svg)",
                     "width": undefined,
                   }
                 }
@@ -159,17 +159,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="search.svg"
+              src="toolbar-search.svg"
             >
               <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   Object {
-                    "WebkitMaskImage": "url(search.svg)",
+                    "WebkitMaskImage": "url(toolbar-search.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(search.svg)",
+                    "maskImage": "url(toolbar-search.svg)",
                     "width": undefined,
                   }
                 }
@@ -197,17 +197,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="show-hidden-inactive.svg"
+              src="toolbar-show_hidden-inactive.svg"
             >
               <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   Object {
-                    "WebkitMaskImage": "url(show-hidden-inactive.svg)",
+                    "WebkitMaskImage": "url(toolbar-show_hidden-inactive.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(show-hidden-inactive.svg)",
+                    "maskImage": "url(toolbar-show_hidden-inactive.svg)",
                     "width": undefined,
                   }
                 }
@@ -235,17 +235,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="word-wrap-inactive.svg"
+              src="toolbar-word_wrap-inactive.svg"
             >
               <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   Object {
-                    "WebkitMaskImage": "url(word-wrap-inactive.svg)",
+                    "WebkitMaskImage": "url(toolbar-word_wrap-inactive.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(word-wrap-inactive.svg)",
+                    "maskImage": "url(toolbar-word_wrap-inactive.svg)",
                     "width": undefined,
                   }
                 }

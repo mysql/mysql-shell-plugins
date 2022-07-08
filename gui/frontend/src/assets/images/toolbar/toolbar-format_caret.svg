@@ -1,22 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 46 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g transform="matrix(1,0,0,1,-1369,-65)">
-        <g id="Menu">
-        </g>
-        <g transform="matrix(0.998995,0,0,1,-664.523,-1682)">
-            <g id="Expand">
-            </g>
-        </g>
-        <g id="Grid">
-        </g>
-        <g id="Word-Wrap" serif:id="Word Wrap">
-        </g>
-        <g id="Special-Chars" serif:id="Special Chars">
-        </g>
-        <g id="Search">
-        </g>
-        <g id="SQL-Beautifier" serif:id="SQL Beautifier" transform="matrix(1.13743,0,0,1.13743,144.652,-213.04)">
+<svg width="100%" height="100%" viewBox="0 0 23 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-698,-59)">
+        <g id="SQL-Beautifier" serif:id="SQL Beautifier" transform="matrix(0.568714,0,0,0.568713,85.8262,-80.0201)">
             <g id="Broom" transform="matrix(0.707107,0.707107,-0.707107,0.707107,508.806,-699.908)">
                 <g id="Brush">
                     <path id="Shape-276-copy-5" serif:id="Shape 276 copy 5" d="M1102.01,261.201L1105,261.125C1105,261.125 1104.54,271.532 1102.58,275.594C1099.33,275.594 1103.1,275.866 1098.97,275.866C1101.43,269.723 1102.01,261.201 1102.01,261.201Z" style="fill:rgb(34,34,36);"/>
@@ -33,34 +19,6 @@
             <g transform="matrix(0.879177,0,0,0.879178,-67.3911,138.066)">
                 <path d="M1340,138L1340,154L1338,154L1338,157L1346,157L1346,154L1344,154L1344,138L1346,138L1346,135L1338,135L1338,138L1340,138Z" style="fill:rgb(34,34,36);"/>
             </g>
-        </g>
-        <g transform="matrix(0.804283,0.804282,-0.804283,0.804282,653.382,-1009.13)">
-            <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
-                <g id="Broom1" serif:id="Broom">
-                    <g id="Brush1" serif:id="Brush">
-                    </g>
-                    <g id="Handle1" serif:id="Handle">
-                    </g>
-                </g>
-            </g>
-        </g>
-        <g id="Auto-Commit" serif:id="Auto Commit" transform="matrix(1,0,0,1,524,-2050)">
-            <g id="Auto-Commit1" serif:id="Auto Commit">
-            </g>
-        </g>
-        <g id="Stop-on-Error" serif:id="Stop on Error" transform="matrix(1,0,0,1,260,-2050)">
-            <g id="Stop-on-Error1" serif:id="Stop on Error">
-            </g>
-        </g>
-        <g transform="matrix(1,0,0,1,83,-174)">
-            <g id="Execute-Explain" serif:id="Execute Explain">
-                <g id="Search1" serif:id="Search">
-                </g>
-            </g>
-        </g>
-        <g id="Execute-Current" serif:id="Execute Current">
-        </g>
-        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
         </g>
     </g>
 </svg>
