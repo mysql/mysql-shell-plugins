@@ -198,6 +198,7 @@ export interface IRequestTypeMap {
 
     "connectedToUrl": (url?: URL) => Promise<boolean>;
     "refreshSessions": (sessions: IShellSessionDetails[]) => Promise<boolean>;
+    "closeInstance": () => Promise<boolean>;
 
     "dbFileDropped": (fileName: string) => Promise<boolean>;
 

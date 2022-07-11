@@ -213,6 +213,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
             this.requisitions.register("editorSaveScript", this.editorSaveScript);
+            this.requisitions.register("closeInstance", this.closeInstance);
         }
     }
 
@@ -234,6 +235,12 @@ export class DBConnectionViewProvider extends WebviewProvider {
     private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
         // Ditto.
         return requisitions.execute("editorSaveScript", details);
+    };
+
+    private closeInstance = (): Promise<boolean> => {
+        this.close();
+
+        return Promise.resolve(true);
     };
 
     private showOpenDialog = (options: IOpenDialogOptions): Promise<boolean> => {

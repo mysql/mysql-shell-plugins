@@ -44,16 +44,9 @@ interface IPiePolylineElement extends SVGPolylineElement {
 }
 
 export class PieGraphRenderer {
-    private colors: d3.ScaleOrdinal<string, string>;
     private format: (n: number) => string;
 
-    private tooltipElement: d3.Selection<SVGGElement, IPieDatum, null, undefined>;
-    private tooltip?: ITooltipOptions;
-
-    private data: IPieDatum[];
-
     public constructor() {
-        this.colors = d3.scaleOrdinal(d3.schemeCategory10);
         this.format = d3.format(".2f");
     }
 
@@ -62,10 +55,6 @@ export class PieGraphRenderer {
             return;
         }
 
-        this.tooltip = config.tooltip;
-        this.data = config.data;
-
-        const width = config.size?.width ?? 400;
         const height = config.size?.height ?? 300;
         const innerRadius = config.radius?.[0] ?? 0;
         const outerRadius = config.radius?.[1] ?? 300;
@@ -74,13 +63,15 @@ export class PieGraphRenderer {
         const rootId = config.id ?? `pieChart${index}`;
 
         const svg = d3.select<SVGElement, IPieDatum>(target);
+        const hostRect = svg.node()!.getBoundingClientRect();
+
         let root = svg.select<SVGGElement>(`#${rootId}`);
 
         let sliceGroup: PieChartSelection;
         let labels: PieChartSelection;
         let lines: PieChartSelection;
         if (root.empty()) {
-            const translate = `translate(${width / 2}px, ${height / 2}px)`;
+            const translate = `translate(${hostRect.width / 2}px, ${height / 2}px)`;
             const rotate = `rotate(${rotation})`;
             root = svg.append("g").attr("id", rootId).style("transform", `${translate} ${rotate}`);
             sliceGroup = root.append<SVGGElement>("g").attr("class", "slices");
@@ -133,15 +124,12 @@ export class PieGraphRenderer {
         // Pie slices.
         const slicePaths = sliceGroup.selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("path").data(pieData);
 
-        slicePaths.style("fill", (datum, index) => {
-            return config.colors
-                ? config.colors[index]
-                : this.colors(datum.data.name ?? index.toString());
-        });
-
         const path = slicePaths.enter()
             .insert<IPiePathElement>("path")
             .attr("class", "slice")
+            .style("fill", (_, index) => {
+                return config.colors ? config.colors[index] : d3.schemeCategory10[index % 10];
+            })
             .attr("d", (datum, index, group) => {
                 const element = group[index];
                 element.previous = datum;
@@ -162,7 +150,7 @@ export class PieGraphRenderer {
                 }
 
                 if (Number.isInteger(datum.data.value)) {
-                    text += `${datum.data.value}`;
+                    text += `${datum.data.value.toLocaleString()}`;
                 } else {
                     text += `${datum.data.value.toFixed(2)}`;
                 }
