@@ -38,7 +38,6 @@ import {
 
 import { before, after, afterEach } from "mocha";
 import addContext from "mochawesome/addContext";
-
 import fs from "fs/promises";
 
 import { expect } from "chai";
@@ -60,8 +59,6 @@ import {
     initTree,
     existsTreeElement,
     waitForExtensionChannel,
-    //installCertificate,
-    //waitForShell,
     reloadVSCode,
     isCertificateInstalled,
     isJson,
@@ -69,15 +66,12 @@ import {
     hasTreeChildren,
     waitForLoading,
     reloadSection,
-    //waitForSystemDialog,
-    //writePassword,
+    postActions,
 } from "../lib/helpers";
 
 import { ChildProcess } from "child_process";
 import { homedir, platform } from "os";
 import { join } from "path";
-
-const thisFile = fs.readFile(join("tests", "e2e", "tests", "ui-tests.ts"));
 
 describe("MySQL Shell for VS Code", () => {
     let browser: VSBrowser;
@@ -106,89 +100,45 @@ describe("MySQL Shell for VS Code", () => {
         password: String(process.env.DBPASSWORD),
     };
 
-    before(async () => {
-        browser = VSBrowser.instance;
-        await browser.waitForWorkbench();
-        driver = browser.driver;
-        await driver.manage().timeouts().implicitlyWait(5000);
+    before(async function () {
+        try {
+            browser = VSBrowser.instance;
+            await browser.waitForWorkbench();
+            driver = browser.driver;
+            await driver.manage().timeouts().implicitlyWait(5000);
 
-        await driver.wait(async () => {
-            const activityBar = new ActivityBar();
-            const controls = await activityBar.getViewControls();
-            for (const control of controls) {
-                if (await control.getTitle() === "MySQL Shell for VSCode") {
-                    await control.openView();
+            await driver.wait(async () => {
+                const activityBar = new ActivityBar();
+                const controls = await activityBar.getViewControls();
+                for (const control of controls) {
+                    if (await control.getTitle() === "MySQL Shell for VSCode") {
+                        await control.openView();
 
-                    return true;
+                        return true;
+                    }
                 }
-            }
-        }, 10000, "Could not find MySQL Shell for VSCode on Activity Bar");
+            }, 10000, "Could not find MySQL Shell for VSCode on Activity Bar");
 
-        await waitForExtensionChannel(driver);
-        await reloadVSCode(driver);
-        await waitForExtensionChannel(driver);
-
-        if (!(await isCertificateInstalled(driver))) {
-            throw new Error("Please install the certificate");
-            /*const notifications = await new Workbench().getNotifications();
-            expect(await notifications[0].getMessage()).to.contain("The MySQL Shell for VSCode extension cannot run");
-            await notifications[0].takeAction("Run Welcome Wizard");
-            await installCertificate(driver);
             await waitForExtensionChannel(driver);
-            await waitForShell(driver);*/
-        }
-    });
+            await reloadVSCode(driver);
+            await waitForExtensionChannel(driver);
 
-    afterEach(async function () {
-        if (this.currentTest?.state === "failed") {
+            if (!(await isCertificateInstalled(driver))) {
+                throw new Error("Please install the certificate");
+            }
+        } catch(e) {
             const img = await driver.takeScreenshot();
-            const testName = this.currentTest?.title;
             try {
                 await fs.access("tests/e2e/screenshots");
             } catch (e) {
                 await fs.mkdir("tests/e2e/screenshots");
             }
-            const imgPath = `tests/e2e/screenshots/${testName}_screenshot.png`;
+            const imgPath = `tests/e2e/screenshots/beforeAll_MySQL Shell for VS Code_screenshot.png`;
             await fs.writeFile(imgPath, img, "base64");
 
             addContext(this, { title: "Failure", value: `../${imgPath}` });
-
-            const codeLines = (await thisFile).toString().split("\n");
-            for (let i = 0; i <= codeLines.length - 1; i++) {
-                if (codeLines[i].indexOf(testName) !== -1) {
-                    if (codeLines[i - 1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
-                        const bugLink = codeLines[i - 1].replace("// bug: ", "").trim();
-                        addContext(this, `---->  HAS A BUG  <----- : ${bugLink}"`);
-                    }
-                }
-            }
+            throw new Error(String(e.stack));
         }
-    });
-
-    after(async () => {
-
-        /*await selectMoreActionsItem(driver, "DATABASE", "Reset MySQL Shell for VS Code Extension");
-        let notifications = await new Workbench().getNotifications();
-        expect(await notifications[0].getMessage())
-            .to.contain("This will completely reset the MySQL Shell for VS Code extension by deleting");
-
-        const buttons = await notifications[0].getActions();
-        for (const button of buttons) {
-            const title = button.getTitle();
-            if (title === "Reset VS Code" || title === "Reset Extension") {
-                await notifications[0].takeAction(title);
-            }
-        }
-
-        await waitForSystemDialog(driver, true);
-        await writePassword(driver);
-
-        notifications = await new Workbench().getNotifications();
-        expect(await notifications[0].getMessage())
-            .to.contain("The MySQL Shell for VS Code extension has been reset.");
-
-        await notifications[0].takeAction("Restart VS Code");
-        await driver.sleep(2000);*/
 
     });
 
@@ -200,7 +150,9 @@ describe("MySQL Shell for VS Code", () => {
             }
         });
 
-        afterEach(async () => {
+        afterEach(async function () {
+            await postActions(driver, this);
+
             await driver.switchTo().defaultContent();
             const edView = new EditorView();
             await edView.closeAllEditors();
@@ -376,13 +328,11 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        after(async () => {
-            await deleteDBConnection(driver, conn.caption);
-        });
+        afterEach(async function () {
 
-        afterEach(async () => {
+            await postActions(driver, this);
+
             await driver.switchTo().defaultContent();
-
             await toggleSection(driver, "DATABASE", true);
             await toggleSection(driver, "ORACLE CLOUD INFRASTRUCTURE", false);
             await toggleSection(driver, "MYSQL SHELL CONSOLES", false);
@@ -495,7 +445,6 @@ describe("MySQL Shell for VS Code", () => {
                     } catch (e) { return false; }
                 }, 5000, "Database was not updated");
 
-                await deleteDBConnection(driver, edited);
             } catch (e) { throw new Error(String(e.stack)); } finally { conn.caption = aux; }
 
         });
@@ -527,8 +476,6 @@ describe("MySQL Shell for VS Code", () => {
 
                 return (await db?.findElements(By.xpath("//div[contains(@aria-label, 'Dup')]")))!.length === 1;
             }, 10000, "Duplicated database was not found");
-
-            await deleteDBConnection(driver, "Dup");
 
         });
 
@@ -1101,9 +1048,11 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", false);
         });
 
-        afterEach(async () => {
-            await driver.switchTo().defaultContent();
+        afterEach(async function () {
 
+            await postActions(driver, this);
+
+            await driver.switchTo().defaultContent();
             await toggleSection(driver, "DATABASE", false);
             await toggleSection(driver, "ORACLE CLOUD INFRASTRUCTURE", true);
             await toggleSection(driver, "MYSQL SHELL CONSOLES", false);
@@ -1137,14 +1086,10 @@ describe("MySQL Shell for VS Code", () => {
 
             const textEditor = new TextEditor();
 
-            await textEditor.setTextAtLine(await textEditor.getNumberOfLines(), `
-			[E2ETESTS]
-            user=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmyabcju2w5wlxcpq
-            fingerprint=15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80
-            tenancy=ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo5mmi2z3a
-            region=us-ashburn-1
-            key_file= ~/.oci/id_rsa_e2e.pem
-			`);
+            const editor = await driver.findElement(By.css("textarea"));
+
+            // eslint-disable-next-line max-len
+            await editor.sendKeys("[E2ETESTS]\nuser=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmyabcju2w5wlxcpq\nfingerprint=15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80\ntenancy=ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo5mmi2z3a\nregion=us-ashburn-1\nkey_file= ~/.oci/id_rsa_e2e.pem");
 
             await textEditor.save();
             await reloadSection(driver, "ORACLE CLOUD INFRASTRUCTURE");
@@ -1172,7 +1117,7 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        //has bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34062646
+        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34062646
         it("Set as New Default Config Profile", async () => {
 
             await selectContextMenuItem(driver, "ORACLE CLOUD INFRASTRUCTURE",
@@ -1208,7 +1153,7 @@ describe("MySQL Shell for VS Code", () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
 
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 80000);
 
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
 
@@ -1315,7 +1260,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Create connection with Bastion Service", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 60000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1352,27 +1297,78 @@ describe("MySQL Shell for VS Code", () => {
             expect(await newConDialog.findElement(By.id("hostName")).getAttribute("value"))
                 .to.match(new RegExp(/(\d+).(\d+).(\d+).(\d+)/));
 
-            await newConDialog.findElement(By.id("userName")).sendKeys("test");
+            await newConDialog.findElement(By.id("userName")).sendKeys("dba");
+
+            const mdsTab = await newConDialog.findElement(By.id("page3"));
+
+            expect(mdsTab).to.exist;
+
+            await mdsTab.click();
+
+            await driver.wait(async () => {
+                return await driver.findElement(By.id("mysqlDbSystemId")).getAttribute("value") !== "";
+            }, 3000, "DbSystemID field was not set");
+
+            await driver.wait(async () => {
+                return await driver.findElement(By.id("bastionId")).getAttribute("value") !== "";
+            }, 3000, "BastionID field was not set");
 
             await newConDialog.findElement(By.id("ok")).click();
 
             await driver.switchTo().defaultContent();
 
-            expect(await getDB(driver, "MDSforVSCodeExtension")).to.exist;
+            const mds = await getDB(driver, "MDSforVSCodeExtension");
+
+            expect(mds).to.exist;
 
             try {
+
+                await driver.switchTo().frame(0);
+                await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+                await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+
+                await mds.click();
+
+                const passwordDialog = await driver.wait(until.elementLocated(By.css(".visible.passwordDialog")),
+                    20000, "Password dialog not visible");
+
+                await passwordDialog.findElement(By.css("input")).sendKeys("MySQLR0cks!");
+
+                await passwordDialog.findElement(By.id("ok")).click();
+
+                const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
+                    5000, "Confirm dialog was not displayed");
+
+                await confirmDialog.findElement(By.id("refuse")).click();
+
+                const contentHost = await driver.wait(until.elementLocated(By.id("contentHost")),
+                    20000, "Content host not visible");
+
+                const textArea = await contentHost.findElement(By.css("textArea"));
+
+                await enterCmd(driver, textArea, "select version();");
+
+                const zoneHost = await driver.findElements(By.css(".zoneHost"));
+
+                const result = await zoneHost[zoneHost.length - 1]
+                    .findElement(By.css(".resultStatus label"));
+
+                expect(await result.getText()).to.contain("OK");
+
+                await driver.switchTo().defaultContent();
+
                 expect(await existsTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE",
                     "Bastion4PrivateSubnetStandardVnc"))
                     .to.be.true;
 
                 expect(await existsTreeElement(driver, "DATABASE", "MDSforVSCodeExtension"))
                     .to.be.true;
-                //} catch (e) {
-                //    throw new Error(String(e.stack));
+            } catch(e) {
+                throw new Error(String(e.stack));
             } finally {
+                await driver.switchTo().defaultContent();
                 await toggleSection(driver, "DATABASE", true);
                 await reloadSection(driver, "DATABASE");
-                await deleteDBConnection(driver, "MDSforVSCodeExtension");
                 await toggleSection(driver, "DATABASE", false);
             }
         });
@@ -1744,7 +1740,10 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver, "MYSQL SHELL TASKS", false);
         });
 
-        afterEach(async () => {
+        afterEach(async function () {
+
+            await postActions(driver, this);
+
             await driver.switchTo().defaultContent();
             const edView = new EditorView();
             const editors = await edView.getOpenEditorTitles();

@@ -37,12 +37,15 @@ import {
     OutputView,
     TitleBarItem,
 } from "vscode-extension-tester";
-
 import { expect } from "chai";
 import { keyboard, Key } from "@nut-tree/nut-js";
 import { ChildProcess, spawn, execSync } from "child_process";
 import { platform } from "os";
-import { resolve } from "path";
+import addContext from "mochawesome/addContext";
+import fs from "fs/promises";
+import { join } from "path";
+
+const uiTestsFile = fs.readFile(join("tests", "e2e", "tests", "ui-tests.ts"));
 let treeSection: DefaultTreeSection;
 
 export const moreActionsContextMenu = new Map<string, Number>([
@@ -910,7 +913,7 @@ export const isCertificateInstalled = async (driver: WebDriver): Promise<boolean
     } else if (text.indexOf("Mode: Single user") !== -1) {
         flag = true;
     } else if (text.indexOf("Certificate is installed") !== -1) {
-        flag = true;    
+        flag = true;
     } else {
         console.error(text);
         throw new Error("Could not verify certificate installation");
@@ -951,4 +954,30 @@ export const reloadSection = async (driver: WebDriver, sectionName: string): Pro
     }
     const reloadConnsBtn = await getLeftSectionButton(driver, sectionName, btnName);
     await reloadConnsBtn.click();
+};
+
+export const postActions = async (driver: WebDriver, testContext: Mocha.Context): Promise<void> => {
+    if (testContext.currentTest?.state === "failed") {
+        const img = await driver.takeScreenshot();
+        const testName = testContext.currentTest?.title;
+        try {
+            await fs.access("tests/e2e/screenshots");
+        } catch (e) {
+            await fs.mkdir("tests/e2e/screenshots");
+        }
+        const imgPath = `tests/e2e/screenshots/${testName}_screenshot.png`;
+        await fs.writeFile(imgPath, img, "base64");
+
+        addContext(testContext, { title: "Failure", value: `../${imgPath}` });
+
+        const codeLines = (await uiTestsFile).toString().split("\n");
+        for (let i = 0; i <= codeLines.length - 1; i++) {
+            if (codeLines[i].indexOf(testName) !== -1) {
+                if (codeLines[i - 1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
+                    const bugLink = codeLines[i - 1].replace("// bug: ", "").trim();
+                    addContext(testContext, `---->  HAS A BUG  <----- : ${bugLink}"`);
+                }
+            }
+        }
+    }
 };
