@@ -33,6 +33,7 @@
 # EXECUTE TESTS
 # STOP SELENIUM
 #THESE TASKS WILL ENSURE THAT THE ENVIRONMENT IS OK TO RUN MYSQLSHELL UI TESTS
+
 $basePath = Join-Path $env:WORKSPACE "shell-plugins" "gui" "extension"
 $testsPath = Join-Path $basePath "tests" "e2e" "tests" "ui-tests.ts"
 
@@ -101,7 +102,8 @@ try{
     else{
         writeMsg "SKIPPED"
     }
-    ##COPY OCI .PEM FILES
+
+    # COPY OCI .PEM FILES
     $ociPath = Join-Path $env:userprofile ".oci"
     writeMsg "User profile path is: $ociPath"
     if ( !(Test-Path -Path $ociPath) ){
@@ -119,7 +121,20 @@ try{
             writeMsg "DONE"
         }
     }
-    ####DOWNLOAD EXTENSION ######
+
+    # REMOVE EXISTING SSH KEY FILES
+    $sshPath = Join-Path $env:userprofile ".ssh"
+    if ( !(Test-Path -Path $sshPath) ){
+        Get-ChildItem -Path $sshPath | % {
+            if( ($_.Name -eq "id_rsa") -or ($_.Name -eq "id_rsa.pub")){
+                writeMsg "Removing $($_.Name) ..." "-NoNewLine"
+                Remove-Item -Path $_ -Force
+                writeMsg "DONE"
+            }
+        }
+    }
+
+    # DOWNLOAD EXTENSION 
     if(!$env:EXTENSION_PUSH_ID){
         $env:EXTENSION_PUSH_ID = "latest"
     }
@@ -146,7 +161,7 @@ try{
         exit 1
     }
 
-    #SETUP ENVIRONMENT
+    # SETUP ENVIRONMENT
     writeMsg "Setting up the environment..." "-NoNewLine"
     $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-setup", "$dest" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
     if($prc.ExitCode -ne 0){
@@ -156,7 +171,7 @@ try{
         writeMsg "DONE"
     }
 
-    #RERUN ?
+    # RERUN
     if($env:RERUN -eq $true){
         $path2json = Join-Path $basePath "mochawesome-report" "test-report.json"
         $json = Get-Content $path2json | Out-String | ConvertFrom-Json
@@ -196,12 +211,12 @@ try{
         writeMsg "There are NO failed tests"
     }
     
-    #EXECUTE TESTS
+    # EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
     Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\results.log" -RedirectStandardError "$env:WORKSPACE\resultsErr.log"
     writeMsg "DONE"
 
-    #REMOVE THE RE-RUNS and MERGE
+    # REMOVE THE RE-RUNS and MERGE
     if($env:RERUN -eq $true){
         writeMsg "Removing re-runs on file..." "-NoNewLine"
         $content = Get-Content $testsPath
@@ -286,12 +301,15 @@ try{
         }
     }
     
-    #CHECK RESULTS
+    # CHECK RESULTS
     $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\results.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
 
     if( $hasFailedTests -and ( [int]$hasFailedTests -gt 0 ) ){
         writeMsg "There are failed tests."
         $err = 1
+    }
+    else{
+        writeMsg "All tests passed."
     }
 }
 catch{
