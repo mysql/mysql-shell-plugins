@@ -6,7 +6,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
 <svg>
   <g
     id="pieChart0"
-    style="transform: translate(200px, 150px) rotate(0);"
+    style="transform: translate(0px, 150px) rotate(0);"
   >
     <g
       class="slices"
@@ -14,14 +14,17 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
       <path
         class="slice"
         d="M1.8369701987210297e-14,-300A300,300,0,0,1,259.8076211353316,-150L0,0Z"
+        style="fill: #1f77b4;"
       />
       <path
         class="slice"
         d="M259.8076211353316,-150A300,300,0,0,1,1.8369701987210297e-14,300L0,0Z"
+        style="fill: #ff7f0e;"
       />
       <path
         class="slice"
         d="M1.8369701987210297e-14,300A300,300,0,1,1,-5.510910596163089e-14,-300L0,0Z"
+        style="fill: #2ca02c;"
       />
     </g>
     <g
@@ -73,7 +76,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
 <svg>
   <g
     id="pieChart0"
-    style="transform: translate(200px, 150px) rotate(0);"
+    style="transform: translate(0px, 150px) rotate(0);"
   >
     <g
       class="slices"
@@ -81,17 +84,17 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
       <path
         class="slice"
         d="M1.8369701987210297e-14,-300A300,300,0,0,1,259.8076211353316,-150L0,0Z"
-        style="fill: white;"
+        style="fill: #1f77b4;"
       />
       <path
         class="slice"
         d="M259.8076211353316,-150A300,300,0,0,1,1.8369701987210297e-14,300L0,0Z"
-        style="fill: silver;"
+        style="fill: #ff7f0e;"
       />
       <path
         class="slice"
         d="M1.8369701987210297e-14,300A300,300,0,1,1,-5.510910596163089e-14,-300L0,0Z"
-        style="fill: gray;"
+        style="fill: #2ca02c;"
       />
     </g>
     <g

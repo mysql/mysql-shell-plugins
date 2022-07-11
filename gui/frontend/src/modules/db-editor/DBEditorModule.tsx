@@ -1014,6 +1014,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleCloseButtonClick = (): void => {
         const { selectedPage } = this.state;
 
+        if (selectedPage === "connections" && this.connectionState.size === 0) {
+            // Special handling for the VS Code extension. Close the webview when the user closes the overview.
+            requisitions.executeRemote("closeInstance", undefined);
+        }
+
         const connectionState = this.connectionState.get(selectedPage);
         if (connectionState) {
             // Removing an editor via the close button triggers a different behavior compared to normal close.

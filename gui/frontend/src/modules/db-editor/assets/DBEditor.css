@@ -151,6 +151,7 @@ msg.connectionTabHost #dashboardToolbar .image {
     padding-left: 5px;
 }
 
+.msg.connectionBrowser .toolbar .button,
 .msg.connectionTabHost .toolbar .button {
     flex: 0 0 auto;
 
@@ -162,6 +163,7 @@ msg.connectionTabHost #dashboardToolbar .image {
     margin: 0;
 }
 
+.msg.connectionBrowser .toolbar .button > .icon,
 .msg.connectionTabHost .toolbar .button > .icon {
     background-color: var(--titleBar-activeForeground);
 }
