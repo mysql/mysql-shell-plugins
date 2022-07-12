@@ -64,6 +64,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                     caption: "Host Name",
                     value: request.values?.hostName as string,
                     span: 8,
+                    options: [DialogValueOption.AutoFocus],
                 },
                 protocolsTitle: {
                     caption: "Supported Protocols",

@@ -27,7 +27,7 @@ import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app
 import { IMrsServiceData } from "../../../communication";
 
 import {
-    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog,
+    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, DialogValueOption,
 } from "../../../components/Dialogs";
 
 export class MrsSchemaDialog extends ValueDialogBase {
@@ -68,6 +68,7 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     caption: "Schema Name",
                     value: request.values?.name as string,
                     span: 4,
+                    options: [DialogValueOption.AutoFocus],
                 },
                 service: {
                     caption: "MRS Service",
