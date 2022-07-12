@@ -467,11 +467,21 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             // Some APIs return rows, which are not result sets (have no keys). Print them
                             // as simple results.
                             if (result.rows.length === 0 || typeof result.rows[0] !== "object") {
-                                let text = "[\n";
-                                result.rows.forEach((value) => {
-                                    text += `\t${String(value)}\n`;
-                                });
-                                text += "]";
+                                let text = "";
+                                if (result.rows.length > 0) {
+                                    text = "[\n";
+                                    result.rows.forEach((value) => {
+                                        text += `\t${String(value)}\n`;
+                                    });
+                                    text += "]";
+                                }
+                                if (text !== "") {
+                                    text += "\n";
+                                }
+                                const resultText = result.warningCount > 0 ?
+                                    `finished with warnings (${result.warningCount})` : "OK";
+                                text += `Query ${resultText}, ${result.affectedRowCount ?? 0} row affected ` +
+                                    `(${result.executionTime})`;
 
                                 addResultData({
                                     type: "text",
@@ -677,6 +687,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                         }],
                                     });
                                 } else {
+                                    // no data and pending
+                                    if (event.data.requestState.type === "PENDING" && result &&
+                                        typeof result === "object" && Object.keys(result).length === 0) {
+                                        break;
+                                    }
                                     // If no specialized result then print as is.
                                     const executionInfo: IExecutionInfo = {
                                         text: result ? "" : JSON.stringify(event.data.requestState, undefined, "\t"),
