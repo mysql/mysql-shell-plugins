@@ -105,206 +105,256 @@ describe("Result View Tests", (): void => {
     it("Render with Columns", async () => {
         const columns2: IColumnInfo[] = [
             {
-                name: "col1",
+                title: "col1",
+                field: "0",
                 dataType: { type: DBDataType.Bigint },
             },
         ];
 
         const columns1: IColumnInfo[] = [
             {
-                name: "col1",
+                title: "col1",
+                field: "0",
                 dataType: { type: DBDataType.Bigint },
             },
             {
-                name: "col2",
+                title: "col2",
+                field: "1",
                 dataType: { type: DBDataType.Unknown },
             },
             {
-                name: "col3",
+                title: "col3",
+                field: "2",
                 dataType: { type: DBDataType.TinyInt },
             },
             {
-                name: "col4",
+                title: "col4",
+                field: "3",
                 dataType: { type: DBDataType.SmallInt },
             },
             {
-                name: "col5",
+                title: "col5",
+                field: "4",
                 dataType: { type: DBDataType.MediumInt },
             },
             {
-                name: "col6",
+                title: "col6",
+                field: "5",
                 dataType: { type: DBDataType.Int },
             },
             {
-                name: "col7",
+                title: "col7",
+                field: "6",
                 dataType: { type: DBDataType.Bigint },
             },
             {
-                name: "col8",
+                title: "col8",
+                field: "7",
                 dataType: { type: DBDataType.UInteger },
             },
             {
-                name: "col9",
+                title: "col9",
+                field: "8",
                 dataType: { type: DBDataType.Float },
             },
             {
-                name: "col10",
+                title: "col10",
+                field: "9",
                 dataType: { type: DBDataType.Real },
             },
             {
-                name: "col11",
+                title: "col11",
+                field: "10",
                 dataType: { type: DBDataType.Double },
             },
             {
-                name: "col12",
+                title: "col12",
+                field: "11",
                 dataType: { type: DBDataType.Decimal },
             },
             {
-                name: "col13",
+                title: "col13",
+                field: "12",
                 dataType: { type: DBDataType.Binary },
             },
             {
-                name: "col14",
+                title: "col14",
+                field: "13",
                 dataType: { type: DBDataType.Varbinary },
             },
             {
-                name: "col15",
+                title: "col15",
+                field: "14",
                 dataType: { type: DBDataType.Char },
             },
             {
-                name: "col16",
+                title: "col16",
+                field: "15",
                 dataType: { type: DBDataType.Nchar },
             },
             {
-                name: "col17",
+                title: "col17",
+                field: "16",
                 dataType: { type: DBDataType.Varchar },
             },
             {
-                name: "col18",
+                title: "col18",
+                field: "17",
                 dataType: { type: DBDataType.Nvarchar },
             },
             {
-                name: "col19",
+                title: "col19",
+                field: "18",
                 dataType: { type: DBDataType.String },
             },
             {
-                name: "col20",
+                title: "col20",
+                field: "19",
                 dataType: { type: DBDataType.TinyText },
             },
             {
-                name: "col21",
+                title: "col21",
+                field: "20",
                 dataType: { type: DBDataType.Text },
             },
             {
-                name: "col22",
+                title: "col22",
+                field: "21",
                 dataType: { type: DBDataType.MediumText },
             },
             {
-                name: "col23",
+                title: "col23",
+                field: "22",
                 dataType: { type: DBDataType.LongText },
             },
             {
-                name: "col24",
+                title: "col24",
+                field: "23",
                 dataType: { type: DBDataType.TinyBlob },
             },
             {
-                name: "col25",
+                title: "col25",
+                field: "24",
                 dataType: { type: DBDataType.Blob },
             },
             {
-                name: "col26",
+                title: "col26",
+                field: "25",
                 dataType: { type: DBDataType.MediumBlob },
             },
             {
-                name: "col27",
+                title: "col27",
+                field: "26",
                 dataType: { type: DBDataType.LongBlob },
             },
             {
-                name: "col28",
+                title: "col28",
+                field: "27",
                 dataType: { type: DBDataType.DateTime },
             },
             {
-                name: "col29",
+                title: "col29",
+                field: "28",
                 dataType: { type: DBDataType.DateTime_f },
             },
             {
-                name: "col30",
+                title: "col30",
+                field: "29",
                 dataType: { type: DBDataType.Date },
             },
             {
-                name: "col31",
+                title: "col31",
+                field: "30",
                 dataType: { type: DBDataType.Time },
             },
             {
-                name: "col32",
+                title: "col32",
+                field: "31",
                 dataType: { type: DBDataType.Time_f },
             },
             {
-                name: "col33",
+                title: "col33",
+                field: "32",
                 dataType: { type: DBDataType.Year },
             },
             {
-                name: "col34",
+                title: "col34",
+                field: "33",
                 dataType: { type: DBDataType.Timestamp },
             },
             {
-                name: "col35",
+                title: "col35",
+                field: "34",
                 dataType: { type: DBDataType.Timestamp_f },
             },
             {
-                name: "col36",
+                title: "col36",
+                field: "35",
                 dataType: { type: DBDataType.Geometry },
             },
             {
-                name: "col37",
+                title: "col37",
+                field: "36",
                 dataType: { type: DBDataType.Point },
             },
             {
-                name: "col38",
+                title: "col38",
+                field: "37",
                 dataType: { type: DBDataType.LineString },
             },
             {
-                name: "col39",
+                title: "col39",
+                field: "38",
                 dataType: { type: DBDataType.Polygon },
             },
             {
-                name: "col40",
+                title: "col40",
+                field: "39",
                 dataType: { type: DBDataType.GeometryCollection },
             },
             {
-                name: "col41",
+                title: "col41",
+                field: "40",
                 dataType: { type: DBDataType.MultiPoint },
             },
             {
-                name: "col42",
+                title: "col42",
+                field: "41",
                 dataType: { type: DBDataType.MultiLineString },
             },
             {
-                name: "col43",
+                title: "col43",
+                field: "42",
                 dataType: { type: DBDataType.MultiPolygon },
             },
             {
-                name: "col44",
+                title: "col44",
+                field: "43",
                 dataType: { type: DBDataType.Numeric },
             },
             {
-                name: "col45",
+                title: "col45",
+                field: "44",
                 dataType: { type: DBDataType.Json },
             },
             {
-                name: "col46",
+                title: "col46",
+                field: "45",
                 dataType: { type: DBDataType.Bit },
             },
             {
-                name: "col47",
+                title: "col47",
+                field: "46",
                 dataType: { type: DBDataType.Boolean },
             },
             {
-                name: "col48",
+                title: "col48",
+                field: "47",
                 dataType: { type: DBDataType.Enum },
             },
             {
-                name: "col49",
+                title: "col49",
+                field: "48",
                 dataType: { type: DBDataType.Set },
             },
         ];
@@ -343,7 +393,7 @@ describe("Result View Tests", (): void => {
 
         // The cast to never is needed, because we are spying on a private method.
         const resizeSpy = jest.spyOn(component.instance(), "handleColumnResized" as never);
-        const column = table!.getColumn("col1");
+        const column = table!.getColumn("0");
         expect(grid.props().onColumnResized).toBeDefined();
         grid.props().onColumnResized?.(column);
 
@@ -358,19 +408,21 @@ describe("Result View Tests", (): void => {
     it("Context Menu", async () => {
         const columns: IColumnInfo[] = [
             {
-                name: "col1",
+                title: "col1",
+                field: "0",
                 dataType: { type: DBDataType.Bigint },
             },
             {
-                name: "col2",
+                title: "col2",
+                field: "1",
                 dataType: { type: DBDataType.String },
             },
         ];
 
         const rows = [
-            { col1: "42", col2: "abc" },
-            { col1: "43", col2: "def" },
-            { col1: "44", col2: "ghi" },
+            { 0: "42", 1: "abc" },
+            { 0: "43", 1: "def" },
+            { 0: "44", 1: "ghi" },
         ];
 
         const component = mount<ResultView>(

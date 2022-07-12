@@ -517,9 +517,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 // Column info should actually be return in the columns meta data response above.
                                 if (columns.length === 0 && result.rows.length > 0) {
                                     const row = result.rows[0] as object;
-                                    Object.keys(row).forEach((value) => {
+                                    Object.keys(row).forEach((value, index) => {
                                         columns.push({
-                                            name: value,
+                                            title: value,
+                                            field: String(index),
                                             dataType: {
                                                 type: DBDataType.String,
                                             },

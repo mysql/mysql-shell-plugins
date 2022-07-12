@@ -138,9 +138,13 @@ export interface IDBDataTypeDetails {
 }
 
 export interface IColumnInfo {
-    name: string;
+    /** The column's title shown in the UI. */
+    title: string;
 
-    // Note: SQLite has no column data types like other RDBMS-es. Instead we store column affinities here.
+    /** The name of the field in the data, which contains the data for this column. */
+    field: string;
+
+    /** Note: SQLite has no column data types like other RDBMS-es. Instead we store column affinities here. */
     dataType: IDBDataTypeDetails;
 }
 

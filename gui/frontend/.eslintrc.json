@@ -742,7 +742,7 @@
                     "camelCase"
                 ],
                 "filter": {
-                    "regex": "^_",
+                    "regex": "^_|^[0-9]+$",
                     "match": false
                 }
             },

@@ -64,18 +64,18 @@ describe("General Supplement Tests", (): void => {
 
         info = generateColumnInfo(DBType.MySQL, columns);
         expect(info.length).toBe(4);
-        expect(info[0]).toEqual({ name: "col1", dataType: { type: DBDataType.Unknown } });
-        expect(info[1]).toEqual({ name: "col2", dataType: { type: DBDataType.String } });
-        expect(info[2]).toEqual({ name: "col3", dataType: { type: DBDataType.Binary } });
-        expect(info[3]).toEqual({ name: "col4", dataType: { type: DBDataType.Blob } });
+        expect(info[0]).toEqual({ title: "col1", field: "0", dataType: { type: DBDataType.Unknown } });
+        expect(info[1]).toEqual({ title: "col2", field: "1", dataType: { type: DBDataType.String } });
+        expect(info[2]).toEqual({ title: "col3", field: "2", dataType: { type: DBDataType.Binary } });
+        expect(info[3]).toEqual({ title: "col4", field: "3", dataType: { type: DBDataType.Blob } });
     });
 
     it("convertRows", (): void => {
         const columns = [
-            { name: "col1", dataType: { type: DBDataType.String } },
-            { name: "col2", dataType: { type: DBDataType.Geometry } },
-            { name: "∰", dataType: { type: DBDataType.Numeric } },
-            { name: "👊🖐", dataType: { type: DBDataType.Bigint } },
+            { title: "col1", field: "0", dataType: { type: DBDataType.String } },
+            { title: "col2", field: "1", dataType: { type: DBDataType.Geometry } },
+            { title: "∰", field: "2", dataType: { type: DBDataType.Numeric } },
+            { title: "👊🖐", field: "3", dataType: { type: DBDataType.Bigint } },
         ];
 
         let converted = convertRows(columns);
@@ -91,11 +91,9 @@ describe("General Supplement Tests", (): void => {
         expect(converted.length).toBe(3);
 
         expect(converted).toEqual([
-            /* eslint-disable @typescript-eslint/naming-convention */
-            { "col1": "lorem", "col2": "ipsum", "∰": "dolor", "👊🖐": "sit" },
-            { "col1": "a", "col2": "b", "∰": "c", "👊🖐": "d" },
-            { "col1": 1, "col2": 2, "∰": 3, "👊🖐": 4 },
-            /* eslint-enable @typescript-eslint/naming-convention */
+            { 0: "lorem", 1: "ipsum", 2: "dolor", 3: "sit" },
+            { 0: "a", 1: "b", 2: "c", 3: "d" },
+            { 0: 1, 1: 2, 2: 3, 3: 4 },
         ]);
 
         const converted2 = convertRows(columns, converted);

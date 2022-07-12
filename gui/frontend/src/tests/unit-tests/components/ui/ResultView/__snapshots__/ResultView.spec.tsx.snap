@@ -10,295 +10,344 @@ exports[`Result View Tests Render with Columns 1`] = `
             "dataType": Object {
               "type": 5,
             },
-            "name": "col1",
+            "field": "0",
+            "title": "col1",
           },
           Object {
             "dataType": Object {
               "type": 0,
             },
-            "name": "col2",
+            "field": "1",
+            "title": "col2",
           },
           Object {
             "dataType": Object {
               "type": 1,
             },
-            "name": "col3",
+            "field": "2",
+            "title": "col3",
           },
           Object {
             "dataType": Object {
               "type": 2,
             },
-            "name": "col4",
+            "field": "3",
+            "title": "col4",
           },
           Object {
             "dataType": Object {
               "type": 3,
             },
-            "name": "col5",
+            "field": "4",
+            "title": "col5",
           },
           Object {
             "dataType": Object {
               "type": 4,
             },
-            "name": "col6",
+            "field": "5",
+            "title": "col6",
           },
           Object {
             "dataType": Object {
               "type": 5,
             },
-            "name": "col7",
+            "field": "6",
+            "title": "col7",
           },
           Object {
             "dataType": Object {
               "type": 6,
             },
-            "name": "col8",
+            "field": "7",
+            "title": "col8",
           },
           Object {
             "dataType": Object {
               "type": 7,
             },
-            "name": "col9",
+            "field": "8",
+            "title": "col9",
           },
           Object {
             "dataType": Object {
               "type": 8,
             },
-            "name": "col10",
+            "field": "9",
+            "title": "col10",
           },
           Object {
             "dataType": Object {
               "type": 9,
             },
-            "name": "col11",
+            "field": "10",
+            "title": "col11",
           },
           Object {
             "dataType": Object {
               "type": 10,
             },
-            "name": "col12",
+            "field": "11",
+            "title": "col12",
           },
           Object {
             "dataType": Object {
               "type": 11,
             },
-            "name": "col13",
+            "field": "12",
+            "title": "col13",
           },
           Object {
             "dataType": Object {
               "type": 12,
             },
-            "name": "col14",
+            "field": "13",
+            "title": "col14",
           },
           Object {
             "dataType": Object {
               "type": 13,
             },
-            "name": "col15",
+            "field": "14",
+            "title": "col15",
           },
           Object {
             "dataType": Object {
               "type": 14,
             },
-            "name": "col16",
+            "field": "15",
+            "title": "col16",
           },
           Object {
             "dataType": Object {
               "type": 15,
             },
-            "name": "col17",
+            "field": "16",
+            "title": "col17",
           },
           Object {
             "dataType": Object {
               "type": 16,
             },
-            "name": "col18",
+            "field": "17",
+            "title": "col18",
           },
           Object {
             "dataType": Object {
               "type": 17,
             },
-            "name": "col19",
+            "field": "18",
+            "title": "col19",
           },
           Object {
             "dataType": Object {
               "type": 18,
             },
-            "name": "col20",
+            "field": "19",
+            "title": "col20",
           },
           Object {
             "dataType": Object {
               "type": 19,
             },
-            "name": "col21",
+            "field": "20",
+            "title": "col21",
           },
           Object {
             "dataType": Object {
               "type": 20,
             },
-            "name": "col22",
+            "field": "21",
+            "title": "col22",
           },
           Object {
             "dataType": Object {
               "type": 21,
             },
-            "name": "col23",
+            "field": "22",
+            "title": "col23",
           },
           Object {
             "dataType": Object {
               "type": 22,
             },
-            "name": "col24",
+            "field": "23",
+            "title": "col24",
           },
           Object {
             "dataType": Object {
               "type": 23,
             },
-            "name": "col25",
+            "field": "24",
+            "title": "col25",
           },
           Object {
             "dataType": Object {
               "type": 24,
             },
-            "name": "col26",
+            "field": "25",
+            "title": "col26",
           },
           Object {
             "dataType": Object {
               "type": 25,
             },
-            "name": "col27",
+            "field": "26",
+            "title": "col27",
           },
           Object {
             "dataType": Object {
               "type": 26,
             },
-            "name": "col28",
+            "field": "27",
+            "title": "col28",
           },
           Object {
             "dataType": Object {
               "type": 27,
             },
-            "name": "col29",
+            "field": "28",
+            "title": "col29",
           },
           Object {
             "dataType": Object {
               "type": 28,
             },
-            "name": "col30",
+            "field": "29",
+            "title": "col30",
           },
           Object {
             "dataType": Object {
               "type": 29,
             },
-            "name": "col31",
+            "field": "30",
+            "title": "col31",
           },
           Object {
             "dataType": Object {
               "type": 30,
             },
-            "name": "col32",
+            "field": "31",
+            "title": "col32",
           },
           Object {
             "dataType": Object {
               "type": 31,
             },
-            "name": "col33",
+            "field": "32",
+            "title": "col33",
           },
           Object {
             "dataType": Object {
               "type": 32,
             },
-            "name": "col34",
+            "field": "33",
+            "title": "col34",
           },
           Object {
             "dataType": Object {
               "type": 33,
             },
-            "name": "col35",
+            "field": "34",
+            "title": "col35",
           },
           Object {
             "dataType": Object {
               "type": 34,
             },
-            "name": "col36",
+            "field": "35",
+            "title": "col36",
           },
           Object {
             "dataType": Object {
               "type": 35,
             },
-            "name": "col37",
+            "field": "36",
+            "title": "col37",
           },
           Object {
             "dataType": Object {
               "type": 36,
             },
-            "name": "col38",
+            "field": "37",
+            "title": "col38",
           },
           Object {
             "dataType": Object {
               "type": 37,
             },
-            "name": "col39",
+            "field": "38",
+            "title": "col39",
           },
           Object {
             "dataType": Object {
               "type": 38,
             },
-            "name": "col40",
+            "field": "39",
+            "title": "col40",
           },
           Object {
             "dataType": Object {
               "type": 39,
             },
-            "name": "col41",
+            "field": "40",
+            "title": "col41",
           },
           Object {
             "dataType": Object {
               "type": 40,
             },
-            "name": "col42",
+            "field": "41",
+            "title": "col42",
           },
           Object {
             "dataType": Object {
               "type": 41,
             },
-            "name": "col43",
+            "field": "42",
+            "title": "col43",
           },
           Object {
             "dataType": Object {
               "type": 42,
             },
-            "name": "col44",
+            "field": "43",
+            "title": "col44",
           },
           Object {
             "dataType": Object {
               "type": 43,
             },
-            "name": "col45",
+            "field": "44",
+            "title": "col45",
           },
           Object {
             "dataType": Object {
               "type": 44,
             },
-            "name": "col46",
+            "field": "45",
+            "title": "col46",
           },
           Object {
             "dataType": Object {
               "type": 45,
             },
-            "name": "col47",
+            "field": "46",
+            "title": "col47",
           },
           Object {
             "dataType": Object {
               "type": 46,
             },
-            "name": "col48",
+            "field": "47",
+            "title": "col48",
           },
           Object {
             "dataType": Object {
               "type": 47,
             },
-            "name": "col49",
+            "field": "48",
+            "title": "col49",
           },
         ],
         "currentPage": 0,
@@ -335,7 +384,7 @@ exports[`Result View Tests Render with Columns 1`] = `
         columns={
           Array [
             Object {
-              "field": "col1",
+              "field": "0",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -344,7 +393,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col2",
+              "field": "1",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -353,7 +402,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col3",
+              "field": "2",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -362,7 +411,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col4",
+              "field": "3",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -371,7 +420,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col5",
+              "field": "4",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -380,7 +429,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col6",
+              "field": "5",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -389,7 +438,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col7",
+              "field": "6",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -398,7 +447,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col8",
+              "field": "7",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -407,7 +456,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col9",
+              "field": "8",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -416,7 +465,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col10",
+              "field": "9",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -425,7 +474,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col11",
+              "field": "10",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -434,7 +483,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col12",
+              "field": "11",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -443,7 +492,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col13",
+              "field": "12",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 50,
@@ -452,7 +501,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col14",
+              "field": "13",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 50,
@@ -461,7 +510,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col15",
+              "field": "14",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -470,7 +519,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col16",
+              "field": "15",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -479,7 +528,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col17",
+              "field": "16",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -488,7 +537,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col18",
+              "field": "17",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -497,7 +546,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col19",
+              "field": "18",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -506,7 +555,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col20",
+              "field": "19",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -515,7 +564,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col21",
+              "field": "20",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -524,7 +573,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col22",
+              "field": "21",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -533,7 +582,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col23",
+              "field": "22",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -542,7 +591,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col24",
+              "field": "23",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 50,
@@ -551,7 +600,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col25",
+              "field": "24",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 50,
@@ -560,7 +609,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col26",
+              "field": "25",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 50,
@@ -569,7 +618,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col27",
+              "field": "26",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 50,
@@ -578,7 +627,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col28",
+              "field": "27",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -587,7 +636,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col29",
+              "field": "28",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -596,7 +645,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col30",
+              "field": "29",
               "formatter": "plaintext",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -605,7 +654,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col31",
+              "field": "30",
               "formatter": "datetime",
               "formatterParams": Object {
                 "outputFormat": "HH:mm:ss",
@@ -616,7 +665,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col32",
+              "field": "31",
               "formatter": "datetime",
               "formatterParams": Object {
                 "outputFormat": "HH:mm:ss",
@@ -627,7 +676,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col33",
+              "field": "32",
               "formatter": "datetime",
               "formatterParams": Object {
                 "outputFormat": "YYYY",
@@ -638,7 +687,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col34",
+              "field": "33",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -647,7 +696,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col35",
+              "field": "34",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -656,7 +705,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col36",
+              "field": "35",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -665,7 +714,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col37",
+              "field": "36",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -674,7 +723,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col38",
+              "field": "37",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -683,7 +732,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col39",
+              "field": "38",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -692,7 +741,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col40",
+              "field": "39",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -701,7 +750,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col41",
+              "field": "40",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -710,7 +759,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col42",
+              "field": "41",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -719,7 +768,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col43",
+              "field": "42",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -728,7 +777,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col44",
+              "field": "43",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -737,7 +786,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col45",
+              "field": "44",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -746,7 +795,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col46",
+              "field": "45",
               "formatter": "textarea",
               "formatterParams": Object {},
               "minWidth": 50,
@@ -755,7 +804,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col47",
+              "field": "46",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 50,
@@ -764,7 +813,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col48",
+              "field": "47",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
@@ -773,7 +822,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "width": undefined,
             },
             Object {
-              "field": "col49",
+              "field": "48",
               "formatter": [Function],
               "formatterParams": Object {},
               "minWidth": 150,
