@@ -506,6 +506,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                     this.setState({ connections });
                 }
+            }).catch((event) => {
+                void requisitions.execute("showError",
+                    ["Add Connection Error", "Cannot add DB connection:", String(event.message)]);
+
             });
     };
 

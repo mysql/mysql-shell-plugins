@@ -1911,6 +1911,10 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     this.connectionId = details.id;
                     this.runTest(details);
                 }
+            }).catch((event) => {
+                void requisitions.execute("showError",
+                    ["Add Connection Error", "Cannot add DB connection:", String(event.message)]);
+
             });
     };
 
