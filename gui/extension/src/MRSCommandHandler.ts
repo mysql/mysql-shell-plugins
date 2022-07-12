@@ -221,6 +221,9 @@ export class MRSCommandHandler {
         const title = service
             ? "Adjust the MySQL REST Service Configuration"
             : "Enter Configuration Values for the New MySQL REST Service";
+        const tabTitle = service
+            ? "Edit REST Service"
+            : "Add REST Service";
 
         const request = {
             id: "mrsServiceDialog",
@@ -237,7 +240,7 @@ export class MRSCommandHandler {
             },
         };
 
-        void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
+        void this.dialogManager.showDialog(request, tabTitle).then((response?: IDialogResponse) => {
             // The request was not sent at all (e.g. there was already one running).
             if (!response || response.closure !== DialogResponseClosure.Accept) {
                 return;
