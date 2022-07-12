@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,7 +29,7 @@
     align-items: stretch;
 
     margin: 10px;
-    padding: 0px 0px 0px 20px;
+    padding: 0 0 0 20px;
     width: 270px;
     height: 80px;
 
@@ -101,8 +101,8 @@
 }
 
 .msg.browserTile .label {
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
 
     text-align: left;
 
@@ -112,6 +112,9 @@
 .msg.browserTile .tileCaption {
     font-size: 1rem;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .msg.browserTile .tileDescription {
@@ -133,14 +136,14 @@
     justify-items: center;
 
     top: 0;
-    right: 0px;
-    margin: 0px;
+    right: 0;
+    margin: 0;
 
     width: 24px;
     height: 24px;
 
     border: none;
-    border-radius: 0 0px 0 4px;
+    border-radius: 0 0 0 4px;
     background: var(--browserTile-border);
 }
 
@@ -149,7 +152,7 @@
     visibility: visible;
 }
 
-.msg.browserTile #actions > #triggerEditMenu {
+.msg.browserTile #actions>#triggerEditMenu {
     flex: 1 1 auto;
 
     min-width: 0;
