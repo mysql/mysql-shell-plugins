@@ -71,10 +71,6 @@ export interface IScriptRequest {
     content: string;
 }
 
-interface IColumnNameCount {
-    [key: string]: number;
-}
-
 export { Stack } from "./Stack";
 
 export type WorkerExecutorType<T> = (
@@ -118,32 +114,7 @@ export const generateColumnInfo = (dbType: DBType,
 
     const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
 
-    // Ensure columns have unique captions by renaming the columns to `colName (2)`, `colName (3)`, ...
-    // Example: select 1 as col, 2 as col, 3 as col, 4 as name, 5 as name, 6 as 'name (2)';
-    const colDuplicates: IColumnNameCount = {};
-    for (const rawCol of rawColumns) {
-        colDuplicates[rawCol.name] = (colDuplicates[rawCol.name] ?? 0) + 1;
-        if (colDuplicates[rawCol.name] > 1) {
-            let newColName = rawCol.name + ` (${colDuplicates[rawCol.name]})`;
-
-            // Check if there is a real column with the new name. If so, continue to increase the count by one
-            let newColNameExists = true;
-            while (newColNameExists) {
-                newColNameExists = false;
-                for (const col of rawColumns) {
-                    if (col.name === newColName) {
-                        newColNameExists = true;
-                        colDuplicates[rawCol.name]++;
-                        newColName = rawCol.name + ` (${colDuplicates[rawCol.name]})`;
-                        break;
-                    }
-                }
-            }
-            rawCol.name = newColName;
-        }
-    }
-
-    return rawColumns.map((entry) => {
+    return rawColumns.map((entry, index) => {
         let type;
         if (entry.type.toLowerCase() === "bytes") {
             // For now, use length to switch between binary and blob
@@ -158,7 +129,8 @@ export const generateColumnInfo = (dbType: DBType,
         }
 
         return {
-            name: entry.name,
+            title: entry.name,
+            field: String(index),
             dataType: {
                 type,
             },
@@ -187,7 +159,7 @@ export const convertRows = (columns: IColumnInfo[], rows?: unknown[]): IDictiona
 
             const entry = value as unknown[];
             columns.forEach((column: IColumnInfo, columnIndex: number): void => {
-                row[column.name] = entry[columnIndex];
+                row[column.field] = entry[columnIndex];
             });
             convertedRows.push(row);
         });

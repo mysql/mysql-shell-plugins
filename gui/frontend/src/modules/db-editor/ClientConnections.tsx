@@ -89,21 +89,22 @@ export interface IClientConnectionsState extends IComponentState {
     waitingText: string;
 }
 
-const columnNames = [
-    { name: "PROCESSLIST_ID", title: "Id" },
-    { name: "PROCESSLIST_USER", title: "User" },
-    { name: "PROCESSLIST_HOST", title: "Host" },
-    { name: "PROCESSLIST_DB", title: "Database" },
-    { name: "PROCESSLIST_COMMAND", title: "Command" },
-    { name: "PROCESSLIST_TIME", title: "Time" },
-    { name: "PROCESSLIST_STATE", title: "State" },
-    { name: "THREAD_ID", title: "Thread ID" },
-    { name: "TYPE", title: "Type" },
-    { name: "NAME", title: "Name" },
-    { name: "PARENT_THREAD_ID", title: "Parent Thread ID" },
-    { name: "INSTRUMENTED", title: "Instrumented" },
-    { name: "PROCESSLIST_INFO", title: "Info" },
-];
+// Mapping from query field names to human readable names.
+const columnNameMap = new Map<string, string>([
+    ["PROCESSLIST_ID", "Id"],
+    ["PROCESSLIST_USER", "User"],
+    ["PROCESSLIST_HOST", "Host"],
+    ["PROCESSLIST_DB", "Database"],
+    ["PROCESSLIST_COMMAND", "Command"],
+    ["PROCESSLIST_TIME", "Time"],
+    ["PROCESSLIST_STATE", "State"],
+    ["THREAD_ID", "Thread ID"],
+    ["TYPE", "Type"],
+    ["NAME", "Name"],
+    ["PARENT_THREAD_ID", "Parent Thread ID"],
+    ["INSTRUMENTED", "Instrumented"],
+    ["PROCESSLIST_INFO", "Info"],
+]);
 
 export class ClientConnections extends Component<IClientConnectionsProperties, IClientConnectionsState> {
 
@@ -527,13 +528,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                 }
             }
 
-            const columnName = columnNames.find((item) => {
-                return item.name === info.name;
-            });
-
             return {
-                title: columnName?.title ?? info.name,
-                field: info.name,
+                title: columnNameMap.get(info.title) ?? info.title,
+                field: info.field,
                 formatter,
                 formatterParams,
                 minWidth,
@@ -595,17 +592,17 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         const { globalStatus } = this.state;
 
         const cols: string[] = [];
-        columnNames.forEach((value, _index) => {
-            if (value.name === "PROCESSLIST_USER") {
+        columnNameMap.forEach((_value, key) => {
+            if (key === "PROCESSLIST_USER") {
                 cols.push("IF (NAME = 'thread/sql/event_scheduler'," +
                     "'event_scheduler',t.PROCESSLIST_USER) PROCESSLIST_USER");
-            } else if (value.name === "INFO" && this.noFullInfo) {
+            } else if (key === "INFO" && this.noFullInfo) {
                 cols.push("SUBSTR(t.INFO, 0, 255) INFO");
             } else {
-                if (value.name === "ATTR_VALUE") {
-                    cols.push(`a.${value.name}`);
+                if (key === "ATTR_VALUE") {
+                    cols.push(`a.${key}`);
                 } else {
-                    cols.push(`t.${value.name}`);
+                    cols.push(`t.${key}`);
                 }
             }
         });

@@ -382,11 +382,11 @@ export class ResultView extends Component<IResultViewProperties> {
                 }
             }
 
-            const width = this.columnWidthCache.get(info.name);
+            const width = this.columnWidthCache.get(info.title);
 
             return {
-                title: info.name,
-                field: info.name,
+                title: info.title,
+                field: info.field,
                 formatter,
                 formatterParams,
                 //editor,
@@ -893,7 +893,8 @@ export class ResultView extends Component<IResultViewProperties> {
     // istanbul ignore next
     private stringFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
         let element;
-        if (cell.getValue() === null) {
+        const value = cell.getValue();
+        if (value === undefined || value === null) {
             const host = document.createElement("div");
             host.className = "iconHost";
 
