@@ -72,11 +72,14 @@ try{
         writeMsg "DONE"
     }
 
-    writeMsg "Removing Plugin database..." "-NoNewLine"
-    $dbLocation = Join-Path $HOME "AppData" "Roaming" "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
-    Remove-Item -Path $dbLocation -Force
-    writeMsg "DONE"
-	
+    
+    $dbLocation = Join-Path $env:userprofile "AppData" "Roaming" "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
+    if(Test-Path -Path $dbLocation){
+        writeMsg "Removing Plugin database..." "-NoNewLine"
+        Remove-Item -Path $dbLocation -Force
+        writeMsg "DONE"
+    }
+    
 	writeMsg "Setup noproxy..." "-NoNewLine"
     $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
     if($prc.ExitCode -ne 0){
@@ -124,7 +127,7 @@ try{
 
     # REMOVE EXISTING SSH KEY FILES
     $sshPath = Join-Path $env:userprofile ".ssh"
-    if ( !(Test-Path -Path $sshPath) ){
+    if ( Test-Path -Path $sshPath ){
         Get-ChildItem -Path $sshPath | % {
             if( ($_.Name -eq "id_rsa") -or ($_.Name -eq "id_rsa.pub")){
                 writeMsg "Removing $($_.Name) ..." "-NoNewLine"
@@ -169,6 +172,38 @@ try{
     }
     else{
         writeMsg "DONE"
+    }
+
+    # CREATE EMPTY CONFIG FILE (REQUIRED FOR THE TESTS TO WORK ON OCI)
+    writeMsg "Creating config file..." "-NoNewLine"
+    $configFile = Join-Path $env:userprofile ".oci" "config"
+    if(Test-Path -Path $configFile){
+        Remove-Item -Path $configFile -Force
+    }
+
+    New-Item -Path $configFile -ItemType File
+    writeMsg "DONE"
+
+    # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
+    $loaded = $false
+    $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"
+    Get-ChildItem -Path $extensionsPath | % {
+        if( ($_.Name -like "*mysql-shell-for-vs-code*") ){
+            $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
+            writeMsg "Importing OCI Library..." "-NoNewLine"
+            $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
+            if($prc.ExitCode -ne 0){
+                Throw "Error importing OCI Library"
+            }
+            else{
+                $loaded = $true
+                writeMsg "DONE"
+            }
+        }
+    }
+    
+    if($loaded -eq $false){
+        Throw "OCI Library not loaded. Maybe the extension folder was not found."
     }
 
     # RERUN

@@ -605,7 +605,6 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        // bug:  https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33945767
         it("Schema Context Menu - Drop Schema", async () => {
 
             const random = String(new Date().valueOf());
@@ -636,8 +635,8 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(driver, textArea, `create schema ${testSchema};`);
 
             const zoneHost = await driver.findElements(By.css(".zoneHost"));
-            const result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getText();
-            expect(result).to.contain("0 rows in set");
+            const result = await zoneHost[zoneHost.length - 1].findElement(By.css(".resultHost span span")).getText();
+            expect(result).to.contain("OK");
 
             await driver.switchTo().defaultContent();
 
@@ -766,7 +765,6 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        // bug:  https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33945767
         it("Table Context Menu - Drop Table", async () => {
 
             const random = String(new Date().valueOf());
@@ -810,8 +808,9 @@ describe("MySQL Shell for VS Code", () => {
             }, 7000, "New results block was not found");
 
             zoneHost = await driver.findElements(By.css(".zoneHost"));
-            result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
-            expect(result).to.contain("0 rows in set");
+            result = await zoneHost[zoneHost.length - 1]
+                .findElement(By.css(".resultHost span span")).getAttribute("innerHTML");
+            expect(result).to.contain("OK");
 
             await driver.switchTo().defaultContent();
 
@@ -957,7 +956,6 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        // bug:  https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=33945767
         it("View Context Menu - Drop View", async () => {
             await selectContextMenuItem(driver, "DATABASE", conn.caption, "connection",
                 "Open MySQL Shell GUI Console for this Connection");
@@ -996,8 +994,9 @@ describe("MySQL Shell for VS Code", () => {
             }, 7000, "New results block was not found");
 
             zoneHost = await driver.findElements(By.css(".zoneHost"));
-            result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
-            expect(result).to.contain("0 rows in set");
+            result = await zoneHost[zoneHost.length - 1]
+                .findElement(By.css(".resultHost span span")).getAttribute("innerHTML");
+            expect(result).to.contain("OK");
 
             await driver.switchTo().defaultContent();
 
@@ -1035,7 +1034,7 @@ describe("MySQL Shell for VS Code", () => {
 
     });
 
-    describe.skip("ORACLE CLOUD INFRASTRUCTURE tests", () => {
+    describe("ORACLE CLOUD INFRASTRUCTURE tests", () => {
 
         before(async () => {
             if (platform() === "win32") {
@@ -1153,7 +1152,7 @@ describe("MySQL Shell for VS Code", () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
 
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 80000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
 
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
 
@@ -1220,7 +1219,7 @@ describe("MySQL Shell for VS Code", () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
 
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
 
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
 
@@ -1260,7 +1259,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Create connection with Bastion Service", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 60000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1329,12 +1328,22 @@ describe("MySQL Shell for VS Code", () => {
 
                 await mds.click();
 
-                const passwordDialog = await driver.wait(until.elementLocated(By.css(".visible.passwordDialog")),
-                    20000, "Password dialog not visible");
+                await driver.wait(async () => {
+                    const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
+                    let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                    if(fingerprintDialog.length > 0) {
+                        await fingerprintDialog[0].findElement(By.id("accept")).click();
+                        passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                    }
+                    if(passwordDialog.length > 0) {
+                        await passwordDialog[0].findElement(By.css("input")).sendKeys("MySQLR0cks!");
+                        await passwordDialog[0].findElement(By.id("ok")).click();
 
-                await passwordDialog.findElement(By.css("input")).sendKeys("MySQLR0cks!");
+                        return true;
+                    }
 
-                await passwordDialog.findElement(By.id("ok")).click();
+                    return false;
+                }, 20000, "Dialogs were not displayed");
 
                 const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
                     5000, "Confirm dialog was not displayed");
@@ -1376,7 +1385,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Start a DB System", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1426,7 +1435,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Restart a DB System (and cancel)", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1475,7 +1484,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Stop a DB System (and cancel)", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1525,7 +1534,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Delete a DB System (and cancel)", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1575,7 +1584,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Get Bastion Information and set it as current", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1639,7 +1648,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Refresh When Bastion Reaches Active State", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 60000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
@@ -1677,7 +1686,7 @@ describe("MySQL Shell for VS Code", () => {
         it("Delete Bastion", async () => {
 
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS", true);
-            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 40000);
+            await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
             await hasTreeChildren(driver, "ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS");
             await toggleTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", "Root Compartment", true);
             await waitForLoading(driver, "ORACLE CLOUD INFRASTRUCTURE", 10000);
