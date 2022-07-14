@@ -68,6 +68,9 @@ export interface IPerformanceDashboardProperties extends IComponentProperties {
 
     graphData: ISavedGraphData;
 
+    /** A value that allows to stop collecting data after there were as many updates as given here. */
+    stopAfter?: number;
+
     onGraphDataChange?: (data: ISavedGraphData) => void;
 }
 
@@ -94,6 +97,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
     private refreshTimer: ReturnType<typeof setInterval>;
 
     private hasPSAccess = false;
+    private updates = 0;
 
     private variableNames = [
         "Bytes_received",
@@ -279,6 +283,13 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
 
     public componentDidMount(): void {
         this.refreshTimer = setInterval(() => {
+            const { stopAfter } = this.props;
+
+            ++this.updates;
+            if (stopAfter && this.updates >= stopAfter) {
+                clearInterval(this.refreshTimer);
+            }
+
             this.queryAndUpdate();
         }, PerformanceDashboard.sampleInterval);
     }
@@ -360,9 +371,10 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         let yDomain = this.findYDomainValues(incomingNetworkData, 0);
 
         const incomingGraphOptions: IGraphOptions = {
-            viewport: { left: 0, top: 0, width: 400, height: 400 },
+            viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "networkStatus1",
                     type: "line",
                     strokeWidth: 2,
                     colors: [colors[Color.Receiving]],
@@ -371,9 +383,9 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
                     yDomain,
                     yFormat: this.formatTrafficValue,
                     curve: "Linear",
-                    size: { width: 400, height: 400 },
                     yTickCount: 6,
                     tooltip: this.trafficTooltip,
+                    transformation: { x: 0, y: 0, width: 400, height: 300 },
                     data: incomingNetworkData,
                 },
             ],
@@ -382,9 +394,10 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
 
         yDomain = this.findYDomainValues(outgoingNetworkData, 0);
         const outgoingGraphOptions: IGraphOptions = {
-            viewport: { left: 0, top: 0, width: 400, height: 400 },
+            viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "networkStatus2",
                     type: "line",
                     strokeWidth: 2,
                     colors: [colors[Color.Sending]],
@@ -393,9 +406,9 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
                     yDomain,
                     yFormat: this.formatTrafficValue,
                     curve: "Linear",
-                    size: { width: 400, height: 400 },
                     yTickCount: 6,
                     tooltip: this.trafficTooltip,
+                    transformation: { x: 0, y: 0, width: 400, height: 300 },
                     data: outgoingNetworkData,
                 },
             ],
@@ -405,15 +418,16 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "networkStatus3",
                     type: "line",
                     strokeWidth: 2,
                     colors: [colors[Color.Connections]],
                     marginLeft: 80,
                     xDomain,
-                    size: { width: 400, height: 300 },
                     curve: "StepBefore",
                     yTickCount: 6,
                     tooltip: this.connectionsTooltip,
+                    transformation: { x: 0, y: 0, width: 400, height: 300 },
                     data: clientConnectionsData,
                 },
             ],
@@ -506,11 +520,12 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "sqlStatus1",
                     type: "pie",
                     radius: [60, 130],
                     showValues: false,
                     colors: [colors[Color.PieValue], colors[Color.PieNoValue]],
-                    size: { width: 400, height: 300 },
+                    transformation: { x: "50%", y: "50%", width: 400, height: 300 },
                     tooltip: this.pieTooltipPercent,
                     data: values,
                 },
@@ -521,11 +536,12 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "sqlStatus2",
                     type: "pie",
                     radius: [60, 130],
                     showValues: false,
                     colors: [colors[0], colors[1], colors[2], colors[5]],
-                    size: { width: 400, height: 300 },
+                    transformation: { x: "50%", y: "50%", width: 400, height: 300 },
                     tooltip: this.pieTooltip,
                     data: [
                         { name: "Threads Running", value: threadsRunning },
@@ -541,11 +557,12 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "sqlStatus3",
                     type: "pie",
                     radius: [60, 130],
                     showValues: false,
                     colors: [colors[0], colors[1], colors[2], colors[5], colors[3], colors[6]],
-                    size: { width: 400, height: 300 },
+                    transformation: { x: "50%", y: "50%", width: 400, height: 300 },
                     tooltip: this.pieTooltip,
                     data: [
                         { name: "Open Files", value: openFiles },
@@ -563,11 +580,12 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "sqlStatus4",
                     type: "pie",
                     radius: [60, 130],
                     showValues: false,
                     colors: [colors[0], colors[1], colors[2], colors[5], colors[3], colors[6]],
-                    size: { width: 400, height: 300 },
+                    transformation: { x: "50%", y: "50%", width: 400, height: 300 },
                     tooltip: this.pieTooltip,
                     data: [
                         { name: "Begin", value: trxBegin },
@@ -588,18 +606,19 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         ];
 
         const statementsGraphOptions: IGraphOptions = {
-            viewport: { left: 0, top: 0, width: 400, height: 400 },
+            viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "sqlStatus5",
                     type: "line",
                     strokeWidth: 2,
                     colors: [colors[Color.Select], colors[Color.DML], colors[Color.DDL]],
                     marginLeft: 80,
                     xDomain,
                     curve: "Linear",
-                    size: { width: 400, height: 400 },
                     yTickCount: 6,
                     tooltip: this.statementsTooltip,
+                    transformation: { x: 0, y: 0, width: 400, height: 300 },
                     data: sqlStatementsData,
                 },
             ],
@@ -734,12 +753,13 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "innoDBStatus1",
                     type: "pie",
                     radius: [60, 130],
                     showValues: false,
                     rotation: "0deg",
                     colors: [colors[Color.PieValue], colors[Color.PieNoValue]],
-                    size: { width: 400, height: 300 },
+                    transformation: { x: "50%", y: "50%", width: 400, height: 300 },
                     tooltip: this.pieTooltipPercent,
                     data: [
                         { name: "Buffer Pool Usage", value: innoDBBufferPoolUsage < 0 ? 0 : innoDBBufferPoolUsage },
@@ -768,11 +788,12 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "innoDBStatus2",
                     type: "pie",
                     radius: [60, 130],
                     showValues: false,
                     colors: [colors[0], colors[1], colors[3], colors[5]],
-                    size: { width: 400, height: 300 },
+                    transformation: { x: "50%", y: "50%", width: 400, height: 300 },
                     tooltip: this.pieTooltipPercent,
                     data: [
                         { name: "Checkpoint Age", value: checkpointAge < 0 ? 0 : checkpointAge },
@@ -788,12 +809,13 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "innoDBStatus3",
                     type: "pie",
                     borderRadius: 8,
                     radius: [60, 130],
                     showValues: false,
                     colors: [colors[Color.PieValue], colors[Color.PieNoValue]],
-                    size: { width: 400, height: 300 },
+                    transformation: { x: "50%", y: "50%", width: 400, height: 300 },
                     tooltip: this.pieTooltipPercent,
                     data: [
                         { name: "Disk Reads", value: innoDBBufferReadRatio < 0 ? 0 : innoDBBufferReadRatio },
@@ -810,9 +832,10 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         ];
 
         const diskWritesGraphOptions: IGraphOptions = {
-            viewport: { left: 0, top: 0, width: 400, height: 320 },
+            viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "innoDBStatus4",
                     type: "line",
                     strokeWidth: 2,
                     colors: [colors[Color.Sending]],
@@ -821,9 +844,9 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
                     yFormat: this.formatTrafficValue,
                     yDomain: this.findYDomainValues(innoDBDiskWritesData, 0),
                     curve: "Linear",
-                    size: { width: 400, height: 320 },
                     yTickCount: 6,
                     tooltip: this.trafficTooltip,
+                    transformation: { x: 0, y: 0, width: 400, height: 300 },
                     data: innoDBDiskWritesData,
                 },
             ],
@@ -833,6 +856,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
+                    id: "innoDBStatus5",
                     type: "line",
                     strokeWidth: 2,
                     colors: [colors[Color.Receiving]],
@@ -841,9 +865,9 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
                     yFormat: this.formatTrafficValue,
                     yDomain: this.findYDomainValues(innoDBDiskReadsData, 0),
                     curve: "Linear",
-                    size: { width: 400, height: 300 },
                     yTickCount: 6,
                     tooltip: this.trafficTooltip,
+                    transformation: { x: 0, y: 0, width: 400, height: 300 },
                     data: innoDBDiskReadsData,
                 },
             ],

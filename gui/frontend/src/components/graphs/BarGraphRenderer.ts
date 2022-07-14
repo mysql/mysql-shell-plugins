@@ -24,10 +24,6 @@
 import * as d3 from "d3";
 
 export class BarGraphRenderer {
-    // TODO: find a way to determine these values from the size of the container.
-    private width: number;
-    private height: number;
-
     private colors: d3.ScaleOrdinal<string, string>;
 
     private readonly dateFormatOptions: Intl.DateTimeFormatOptions = {
@@ -39,33 +35,42 @@ export class BarGraphRenderer {
 
     public constructor() {
         this.colors = d3.scaleOrdinal(d3.schemeCategory10);
-
-        this.width = 800;
-        this.height = 600;
     }
 
-    public render(target: SVGElement, entry: IBarGraphConfiguration, index: number): void {
-        if (!entry.data) {
+    public render(target: SVGSVGElement, config: IBarGraphConfiguration): void {
+        if (!config.data) {
             return;
         }
 
-        // Set defaults first.
-        const marginTop = entry.marginTop ?? 20;
-        const marginRight = entry.marginRight ?? 30;
-        const marginBottom = entry.marginBottom ?? 30;
-        const marginLeft = entry.marginLeft ?? 40;
-        const xPadding = entry.xPadding ?? 0.1;
+        const width = config.transformation?.width ?? 1200;
+        const height = config.transformation?.height ?? 900;
+        const x = config.transformation?.x ?? "0";
+        const y = config.transformation?.y ?? "0";
 
-        const rootId = entry.id ?? `barChart${index}`;
+        const marginTop = config.marginTop ?? 100;
+        const marginRight = config.marginRight ?? 0;
+        const marginBottom = config.marginBottom ?? 30;
+        const marginLeft = config.marginLeft ?? 0;
+        const xPadding = config.xPadding ?? 0.1;
 
-        const svg = d3.select<SVGElement, DatumDataType>(target);
-        let root = svg.select<SVGElement>(`#${rootId}`);
+        const hostSvg = d3.select<SVGElement, DatumDataType>(target);
+        let svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        let root;
 
         let firstRun = false;
-        if (root.empty()) {
+        if (svg.empty()) {
             firstRun = true;
-            root = svg.append<SVGElement>("g").attr("id", rootId);
+
+            svg = hostSvg.append("svg").attr("id", config.id);
+            root = svg.append<SVGGElement>("g");
+        } else {
+            root = svg.select<SVGGElement>("g");
         }
+
+        svg
+            .attr("x", `${x}`).attr("y", `${y}`)
+            .attr("overflow", "visible")
+            .attr("viewBox", `0 0 ${width} ${height}`);
 
         let xValues: DatumDataType[] = [];
         let yValues: DatumDataType[] = [];
@@ -76,16 +81,16 @@ export class BarGraphRenderer {
         //  "string" ist used.
         let yDataType = "string";
 
-        if (entry.data.length > 0) {
-            if (this.isTabularData(entry.data)) {
-                xValues = d3.map(entry.data, (datum) => {
+        if (config.data.length > 0) {
+            if (this.isTabularData(config.data)) {
+                xValues = d3.map(config.data, (datum) => {
                     return datum[0];
                 });
 
                 // Remove the first row, which contains the category descriptions.
                 xValues.shift();
 
-                yValues = d3.map(entry.data, (datum) => {
+                yValues = d3.map(config.data, (datum) => {
                     return datum[1];
                 });
 
@@ -97,17 +102,17 @@ export class BarGraphRenderer {
                 }
             } else {
                 // Derive x and y key names from the first entry.
-                const first = entry.data[0];
+                const first = config.data[0];
                 const keys = Object.keys(first);
 
                 const xKey = keys.length > 0 ? keys[0] : "";
                 const yKey = keys.length > 1 ? keys[1] : "";
 
-                xValues = d3.map(entry.data, (datum) => {
+                xValues = d3.map(config.data, (datum) => {
                     return datum[xKey];
                 });
 
-                yValues = d3.map(entry.data, (datum) => {
+                yValues = d3.map(config.data, (datum) => {
                     return datum[yKey];
                 });
 
@@ -118,7 +123,7 @@ export class BarGraphRenderer {
         }
 
         // Compute default domains, and unique the x-domain.
-        let yDomain = entry.yDomain;
+        let yDomain = config.yDomain;
         if (!yDomain) {
             const maxIndex = d3.maxIndex(yValues, (datum) => {
                 return datum;
@@ -133,7 +138,7 @@ export class BarGraphRenderer {
                 maxIndex === -1 ? yValues[yValues.length - 1] : yValues[maxIndex]];
         }
 
-        const xDomainSet = new d3.InternSet(entry.xDomain ?? xValues);
+        const xDomainSet = new d3.InternSet(config.xDomain ?? xValues);
 
         // Omit any data not present in the x-domain.
         const dataIndexes = d3.range(xValues.length).filter((i) => {
@@ -142,7 +147,7 @@ export class BarGraphRenderer {
 
         // Construct scales, axes, and formats.
         // TODO: make the scale types configurable without exposing D3 in the scripting environment.
-        const xRange = [marginLeft, this.width - marginRight];
+        const xRange = [marginLeft, width - marginRight];
         const xScaleBand = d3.scaleBand(xDomainSet, xRange).padding(xPadding);
         const xAxis = d3.axisBottom(xScaleBand);
         xAxis.tickFormat((value) => {
@@ -154,30 +159,33 @@ export class BarGraphRenderer {
             }
         });
 
-        const yRange = [this.height - marginBottom, marginTop];
+        const yRange = [height - marginBottom, marginTop];
 
         const colorGenerator = (_datum: unknown, index: number) => {
-            return entry.colors
-                ? entry.colors[index]
+            return config.colors
+                ? config.colors[index]
                 : this.colors(index.toString());
         };
 
         // Compute titles.
         let titleGenerator: (index: number) => string;
-        if (entry.xTitle) {
+        if (config.xTitle) {
             titleGenerator = (index) => {
-                return entry.xTitle!(xValues[index], index, xValues);
+                return config.xTitle!(xValues[index], index, xValues);
             };
         } else {
             //const formatValue = yScale.tickFormat(100, entry.yFormat);
             titleGenerator = (index) => {
-                return `${String(xValues[index])}\n${String(yValues[index])}`;
+                const xValue = xValues[index] ? xValues[index].toLocaleString("en") : "";
+                const yValue = yValues[index] ? yValues[index].toLocaleString("en") : "";
+
+                return `${xValue}\n${yValue}`;
             };
         }
 
-        let yAxisHost = root.select<SVGSVGElement>(".yAxis");
+        let yAxisHost = root.select<SVGGElement>(".yAxis");
         if (yAxisHost.empty()) {
-            yAxisHost = root.append<SVGSVGElement>("g")
+            yAxisHost = root.append<SVGGElement>("g")
                 .classed("yAxis", true);
         }
 
@@ -190,17 +198,13 @@ export class BarGraphRenderer {
         const bars = root.selectAll("rect")
             .data(dataIndexes)
             .join("rect")
-            .attr("fill", colorGenerator);
-
-        let titles = bars.selectAll<HTMLTitleElement, number>("title");
-        if (titles.empty()) {
-            titles = bars.append("title");
-        }
-        titles.text(titleGenerator);
+            .attr("fill", colorGenerator)
+            .attr("data-tooltip", titleGenerator)
+            ;
 
         if (yDataType === "object") {
             const yScaleBandTime = d3.scaleTime(yDomain as [Date, Date], yRange);
-            const yAxisTime = d3.axisLeft(yScaleBandTime).ticks(this.height / 40, entry.yFormat);
+            const yAxisTime = d3.axisLeft(yScaleBandTime).ticks(height / 40, config.yFormat);
 
             yAxisHost
                 .transition(commonTransition)
@@ -224,7 +228,7 @@ export class BarGraphRenderer {
                 });
         } else if (yDataType === "number") {
             const yScaleBandLinear = d3.scaleLinear(yDomain as [number, number], yRange);
-            const yAxisLinear = d3.axisLeft(yScaleBandLinear).ticks(this.height / 40, entry.yFormat);
+            const yAxisLinear = d3.axisLeft(yScaleBandLinear).ticks(height / 40, config.yFormat);
 
             yAxisHost
                 .transition(commonTransition)
@@ -247,7 +251,7 @@ export class BarGraphRenderer {
                 });
         } else {
             const yScaleBandOrdinal = d3.scaleOrdinal(yDomain, yRange);
-            const yAxisOrdinal = d3.axisLeft(yScaleBandOrdinal).ticks(this.height / 40, entry.yFormat);
+            const yAxisOrdinal = d3.axisLeft(yScaleBandOrdinal).ticks(height / 40, config.yFormat);
 
             yAxisHost
                 .transition(commonTransition)
@@ -274,13 +278,13 @@ export class BarGraphRenderer {
         if (xAxisHost.empty()) {
             xAxisHost = root.append<SVGSVGElement>("g")
                 .classed("xAxis", true)
-                .attr("transform", `translate(0,${this.height - marginBottom})`)
+                .attr("transform", `translate(0,${height - marginBottom})`)
                 .call(xAxis);
         }
 
         xAxisHost
             .transition(commonTransition)
-            .attr("transform", `translate(0,${this.height - marginBottom})`)
+            .attr("transform", `translate(0,${height - marginBottom})`)
             .call(xAxis);
 
         yAxisHost
@@ -293,20 +297,19 @@ export class BarGraphRenderer {
                     .classed("gridLine", true)
                     .attr("stroke-opacity", 0.25)
                     .attr("stroke-width", 1)
-                    .attr("x2", this.width - marginLeft - marginRight);
+                    .attr("x2", width - marginLeft - marginRight);
             });
 
         let yLabel = yAxisHost.select<SVGTextElement>(".yLabel");
         if (yLabel.empty()) {
             yLabel = yAxisHost.append("text")
                 .classed("yLabel", true)
-                .attr("y", 10)
                 .attr("fill", "currentColor")
-                .attr("text-anchor", "start");
+                .attr("text-anchor", "center");
         }
 
         yLabel
-            .text(entry.yLabel ?? "")
+            .text(config.yLabel ?? "")
             .transition(commonTransition)
             .attr("x", -marginLeft);
     }

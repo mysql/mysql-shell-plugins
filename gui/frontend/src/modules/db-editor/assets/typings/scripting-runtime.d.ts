@@ -86,17 +86,26 @@ declare interface IBaseGraphEntry {
 
     name?: string;
 
-    /** The ID used for the graph entry top level node. */
-    id?: string;
+    /**
+     * A unique ID to identify the specific graph.
+     * Note: this is also used as an HTML ID, so it must start with a letter to be valid!
+     */
+    id: string;
 
     /** A local color palette for a single series. */
     colors?: string[];
 
-    /**
-     * Determines the used coordinate ranges. For best results this should correspond to the viewport settings
-     * of the target SVG element (default: 400, 300)
-     */
-    size?: { width: number; height: number };
+    /** Specifies position and size of the single graph entry, relative to the owning viewport. */
+    transformation?: {
+        /** X position in CSS units (default 50% for pie charts, otherwise 0). */
+        x: number | string;
+
+        /** Y position in CSS units (default 50%, for pie charts, otherwise 0). */
+        y: number | string;
+
+        width: number;
+        height: number;
+    };
 
     tooltip?: ITooltipOptions;
 }
@@ -263,34 +272,34 @@ declare interface ILineGraphConfiguration extends IBaseGraphEntry {
 declare interface IBarGraphConfiguration extends IBaseGraphEntry {
     type: "bar";
 
-    // The x axis tooltip for a given datum.
+    /** The x axis tooltip for a given datum. */
     xTitle?: (datum: DatumDataType, index: number, data: DatumDataType[]) => string;
 
-    // The top margin, in pixels (default: 20).
+    /** The top margin, in pixels (default: 20). */
     marginTop?: number;
 
-    // The right margin, in pixels (default: 30).
+    /** The right margin, in pixels (default: 0). */
     marginRight?: number;
 
-    // The bottom margin, in pixels (default: 30).
+    /** The bottom margin, in pixels (default: 30). */
     marginBottom?: number;
 
-    // The left margin, in pixels (default: 40).
+    /** The left margin, in pixels (default: 0). */
     marginLeft?: number;
 
-    // Amount of x-space between bars (default: 0.1).
+    /** Amount of x-space between bars (default: 0.1). */
     xPadding?: number;
 
-    // Minimum and maximum X value.
+    /** Minimum and maximum X value. */
     xDomain?: [DatumDataType, DatumDataType];
 
-    // Minimum and maximum Y value.
+    /** Minimum and maximum Y value. */
     yDomain?: [DatumDataType, DatumDataType];
 
-    // A format specifier string for the y-axis,
+    /** A format specifier string for the y-axis, */
     yFormat?: string;
 
-    // A label for the y-axis.
+    /** A label for the y-axis. */
     yLabel?: string;
 
     data?: IGraphData;

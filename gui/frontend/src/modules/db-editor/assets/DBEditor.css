@@ -336,12 +336,6 @@ msg.connectionTabHost #dashboardToolbar .image {
     text-align: center;
 }
 
-.msg #dashboardGrid .graphHost {
-    flex-grow: 2;
-    width: initial;
-    height: 100%;
-}
-
 .msg #dashboardGrid .graphHost #yAxis .tick line:first-child,
 .msg #dashboardGrid .graphHost #xAxis .tick {
     display: none;
@@ -367,7 +361,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 
 .msg #dashboardGrid #selectGrid {
     flex: 0 0 auto;
-    margin: 0 ;
+    margin: 0;
 }
 
 .msg #dashboardGrid .placeholder {
@@ -378,7 +372,7 @@ msg.connectionTabHost #dashboardToolbar .image {
     flex: 0 0 20px;
 
     font-size: 0.9em;
-    overflow:hidden;
+    overflow: hidden;
     padding-right: 20px;
 
     font-family: "SourceCodePro+Powerline+Awesome+MySQL Regular";
@@ -465,6 +459,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 .msg.clientConnections .grid .right {
     justify-content: flex-start;
 }
+
 .msg.msg.clientConnections .toolbar {
     width: 100%;
 }
@@ -473,7 +468,7 @@ msg.connectionTabHost #dashboardToolbar .image {
     min-width: 120px;
 }
 
- .msg.msg.clientConnections .toolbar > * {
+.msg.msg.clientConnections .toolbar > * {
     margin-left: 3px;
     margin-right: 3px;
 }
@@ -483,7 +478,7 @@ msg.connectionTabHost #dashboardToolbar .image {
     margin-bottom: 20px;
 }
 
-.msg.clientConnections #connectionProps label{
+.msg.clientConnections #connectionProps label {
     padding-left: 20px;
     padding-right: 20px;
 }
@@ -494,12 +489,12 @@ msg.connectionTabHost #dashboardToolbar .image {
 }
 
 .msg.clientConnections #detailsTabView #clientConnectionDetails,
-.msg.clientConnections #detailsTabView #clientConnectionAttributes{
+.msg.clientConnections #detailsTabView #clientConnectionAttributes {
     padding: 20px;
 }
 
 
-.msg.clientConnections #locksInfoContainer label{
+.msg.clientConnections #locksInfoContainer label {
     padding: 5px;
     font-style: italic;
     font-size: 14px;

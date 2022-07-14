@@ -4,8 +4,14 @@ exports[`LineGraphRenderer Tests Base Rendering 1`] = `<svg />`;
 
 exports[`LineGraphRenderer Tests Base Rendering 2`] = `
 <svg>
-  <g
-    id="lineChart0"
+  <svg
+    height="900"
+    id="graph1"
+    overflow="visible"
+    style="pointer-events: bounding-box;"
+    width="1200"
+    x="0"
+    y="0"
   >
     <g
       fill="none"
@@ -13,17 +19,17 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,270)"
+      transform="translate(0,870)"
     >
       <path
         class="domain"
-        d="M40.5,0.5H370.5"
+        d="M40.5,0.5H1170.5"
         stroke="currentColor"
       />
       <g
         class="tick"
         opacity="1"
-        transform="translate(205.5,0)"
+        transform="translate(605.5,0)"
       >
         <line
           stroke="currentColor"
@@ -49,7 +55,7 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,145.5)"
+        transform="translate(0,445.5)"
       >
         <line
           stroke="currentColor"
@@ -58,7 +64,7 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -91,14 +97,20 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
         stroke="var(--tooltip-border)"
       />
     </g>
-  </g>
+  </svg>
 </svg>
 `;
 
 exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
 <svg>
-  <g
-    id="lineChart0"
+  <svg
+    height="900"
+    id="graph2"
+    overflow="visible"
+    style="pointer-events: bounding-box;"
+    width="1200"
+    x="0"
+    y="0"
   >
     <g
       fill="none"
@@ -106,11 +118,11 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,270)"
+      transform="translate(0,870)"
     >
       <path
         class="domain"
-        d="M40.5,0.5H370.5"
+        d="M40.5,0.5H1170.5"
         stroke="currentColor"
       />
       <g
@@ -133,7 +145,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(205.5,0)"
+        transform="translate(605.5,0)"
       >
         <line
           stroke="currentColor"
@@ -150,7 +162,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(370.5,0)"
+        transform="translate(1170.5,0)"
       >
         <line
           stroke="currentColor"
@@ -176,7 +188,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,270.5)"
+        transform="translate(0,870.5)"
       >
         <line
           stroke="currentColor"
@@ -185,7 +197,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -198,7 +210,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,228.83333333333334)"
+        transform="translate(0,842.1666666666666)"
       >
         <line
           stroke="currentColor"
@@ -207,7 +219,95 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          1
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,813.8333333333334)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          2
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,785.5)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          3
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,757.1666666666666)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          4
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,728.8333333333334)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -220,7 +320,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,187.16666666666669)"
+        transform="translate(0,700.5)"
       >
         <line
           stroke="currentColor"
@@ -229,7 +329,95 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          6
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,672.1666666666666)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          7
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,643.8333333333334)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          8
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,615.5)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          9
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,587.1666666666667)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -242,7 +430,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,145.5)"
+        transform="translate(0,558.8333333333334)"
       >
         <line
           stroke="currentColor"
@@ -251,7 +439,95 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          11
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,530.5)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          12
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,502.1666666666667)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          13
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,473.8333333333333)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          14
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,445.5)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -264,7 +540,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,103.83333333333334)"
+        transform="translate(0,417.1666666666667)"
       >
         <line
           stroke="currentColor"
@@ -273,7 +549,95 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          16
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,388.8333333333333)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          17
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,360.5)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          18
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,332.1666666666667)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          19
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,303.83333333333337)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -286,7 +650,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,62.16666666666666)"
+        transform="translate(0,275.50000000000006)"
       >
         <line
           stroke="currentColor"
@@ -295,7 +659,95 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          21
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,247.1666666666667)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          22
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,218.8333333333333)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          23
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,190.49999999999997)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          24
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,162.16666666666663)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -303,6 +755,94 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
           x="-9"
         >
           25
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,133.83333333333331)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          26
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,105.49999999999999)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          27
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,77.16666666666666)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          28
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,48.83333333333333)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="1130"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          29
         </text>
       </g>
       <g
@@ -317,7 +857,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="330"
+          x2="1130"
         />
         <text
           dy="0.32em"
@@ -342,7 +882,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       stroke-width="1.5"
     >
       <path
-        d="M40,186.66666666666669L67.5,172.7777777777778C95,158.8888888888889,150,131.11111111111111,205,103.33333333333333C260,75.55555555555556,315,47.77777777777778,342.5,33.88888888888889L370,20"
+        d="M40,586.6666666666667L134.16666666666666,539.4444444444446C228.33333333333334,492.22222222222234,416.6666666666667,397.7777777777778,605,303.33333333333337C793.3333333333334,208.8888888888889,981.6666666666666,114.44444444444446,1075.8333333333333,67.22222222222223L1170,20"
         stroke="#1f77b4"
       />
     </g>
@@ -355,14 +895,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
         stroke="var(--tooltip-border)"
       />
     </g>
-  </g>
+  </svg>
 </svg>
 `;
 
 exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
 <svg>
-  <g
-    id="lineChart0"
+  <svg
+    height="900"
+    id="graph2"
+    overflow="visible"
+    style="pointer-events: bounding-box;"
+    width="1200"
+    x="0"
+    y="0"
   >
     <g
       fill="none"
@@ -370,11 +916,11 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,-33)"
+      transform="translate(0,567)"
     >
       <path
         class="domain"
-        d="M444.5,0.5H178.5"
+        d="M444.5,0.5H978.5"
         stroke="currentColor"
       />
       <g
@@ -397,7 +943,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(391.30000000000007,0)"
+        transform="translate(551.3000000000001,0)"
       >
         <line
           stroke="currentColor"
@@ -414,7 +960,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(338.09999999999997,0)"
+        transform="translate(658.1,0)"
       >
         <line
           stroke="currentColor"
@@ -431,7 +977,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(284.90000000000003,0)"
+        transform="translate(764.9,0)"
       >
         <line
           stroke="currentColor"
@@ -448,7 +994,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(231.7,0)"
+        transform="translate(871.7,0)"
       >
         <line
           stroke="currentColor"
@@ -465,7 +1011,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(178.5,0)"
+        transform="translate(978.5,0)"
       >
         <line
           stroke="currentColor"
@@ -491,7 +1037,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-32.5)"
+        transform="translate(0,567.5)"
       >
         <line
           stroke="currentColor"
@@ -500,7 +1046,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -513,7 +1059,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-18.099999999999998)"
+        transform="translate(0,549.26)"
       >
         <line
           stroke="currentColor"
@@ -522,20 +1068,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          5.00
+          2.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-3.6999999999999993)"
+        transform="translate(0,531.02)"
       >
         <line
           stroke="currentColor"
@@ -544,7 +1090,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          4.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,512.78)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          6.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,494.53999999999996)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          8.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,476.3)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -557,7 +1169,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,10.7)"
+        transform="translate(0,458.06)"
       >
         <line
           stroke="currentColor"
@@ -566,20 +1178,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          15.00
+          12.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,25.100000000000005)"
+        transform="translate(0,439.82)"
       >
         <line
           stroke="currentColor"
@@ -588,7 +1200,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          14.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,421.5799999999999)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          16.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,403.34)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          18.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,385.1)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -601,7 +1279,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,39.5)"
+        transform="translate(0,366.86)"
       >
         <line
           stroke="currentColor"
@@ -610,20 +1288,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          25.00
+          22.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,53.89999999999999)"
+        transform="translate(0,348.62)"
       >
         <line
           stroke="currentColor"
@@ -632,7 +1310,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          24.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,330.38)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          26.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,312.14)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          28.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,293.9)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -645,7 +1389,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,68.29999999999998)"
+        transform="translate(0,275.66)"
       >
         <line
           stroke="currentColor"
@@ -654,20 +1398,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          35.00
+          32.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,82.70000000000002)"
+        transform="translate(0,257.41999999999996)"
       >
         <line
           stroke="currentColor"
@@ -676,7 +1420,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          34.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,239.18)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          36.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,220.94)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          38.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,202.7)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -689,7 +1499,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,97.10000000000001)"
+        transform="translate(0,184.46)"
       >
         <line
           stroke="currentColor"
@@ -698,14 +1508,80 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          45.00
+          42.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,166.22)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          44.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,147.98)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          46.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,129.74)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          48.00
         </text>
       </g>
       <g
@@ -720,7 +1596,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -747,7 +1623,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       stroke-width="2"
     >
       <path
-        d="M390.80000000000007,-4.199999999999999L381.9333333333334,0.6000000000000014C373.06666666666666,5.400000000000002,355.3333333333333,15.000000000000005,337.59999999999997,24.600000000000005C319.8666666666666,34.199999999999996,302.1333333333334,43.79999999999999,293.2666666666667,48.599999999999994L284.40000000000003,53.39999999999999"
+        d="M550.8000000000001,475.8L568.6,460.59999999999997C586.4000000000001,445.40000000000003,622,415,657.6,384.59999999999997C693.1999999999999,354.2,728.8000000000001,323.8,746.5999999999999,308.59999999999997L764.4,293.4"
         stroke="#00FF00"
       />
     </g>
@@ -760,14 +1636,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
         stroke="var(--tooltip-border)"
       />
     </g>
-  </g>
+  </svg>
 </svg>
 `;
 
 exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
 <svg>
-  <g
-    id="lineChart0"
+  <svg
+    height="900"
+    id="graph2"
+    overflow="visible"
+    style="pointer-events: bounding-box;"
+    width="1200"
+    x="0"
+    y="0"
   >
     <g
       fill="none"
@@ -775,17 +1657,17 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,-33)"
+      transform="translate(0,567)"
     >
       <path
         class="domain"
-        d="M444.5,0.5H178.5"
+        d="M444.5,0.5H978.5"
         stroke="currentColor"
       />
       <g
         class="tick"
         opacity="1"
-        transform="translate(311.5,0)"
+        transform="translate(711.5,0)"
       >
         <line
           stroke="currentColor"
@@ -811,7 +1693,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-32.5)"
+        transform="translate(0,567.5)"
       >
         <line
           stroke="currentColor"
@@ -820,7 +1702,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -833,7 +1715,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-18.099999999999998)"
+        transform="translate(0,549.26)"
       >
         <line
           stroke="currentColor"
@@ -842,20 +1724,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          5.00
+          2.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-3.6999999999999993)"
+        transform="translate(0,531.02)"
       >
         <line
           stroke="currentColor"
@@ -864,7 +1746,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          4.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,512.78)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          6.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,494.53999999999996)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          8.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,476.3)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -877,7 +1825,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,10.7)"
+        transform="translate(0,458.06)"
       >
         <line
           stroke="currentColor"
@@ -886,20 +1834,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          15.00
+          12.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,25.100000000000005)"
+        transform="translate(0,439.82)"
       >
         <line
           stroke="currentColor"
@@ -908,7 +1856,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          14.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,421.5799999999999)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          16.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,403.34)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          18.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,385.1)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -921,7 +1935,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,39.5)"
+        transform="translate(0,366.86)"
       >
         <line
           stroke="currentColor"
@@ -930,20 +1944,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          25.00
+          22.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,53.89999999999999)"
+        transform="translate(0,348.62)"
       >
         <line
           stroke="currentColor"
@@ -952,7 +1966,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          24.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,330.38)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          26.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,312.14)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          28.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,293.9)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -965,7 +2045,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,68.29999999999998)"
+        transform="translate(0,275.66)"
       >
         <line
           stroke="currentColor"
@@ -974,20 +2054,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          35.00
+          32.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,82.70000000000002)"
+        transform="translate(0,257.41999999999996)"
       >
         <line
           stroke="currentColor"
@@ -996,7 +2076,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          34.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,239.18)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          36.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,220.94)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          38.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,202.7)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1009,7 +2155,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,97.10000000000001)"
+        transform="translate(0,184.46)"
       >
         <line
           stroke="currentColor"
@@ -1018,14 +2164,80 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          45.00
+          42.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,166.22)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          44.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,147.98)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          46.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,129.74)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          48.00
         </text>
       </g>
       <g
@@ -1040,7 +2252,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1067,7 +2279,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       stroke-width="2"
     >
       <path
-        d="M311,87.96Z"
+        d="M711,183.96Z"
         stroke="#00FF00"
       />
     </g>
@@ -1080,14 +2292,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
         stroke="var(--tooltip-border)"
       />
     </g>
-  </g>
+  </svg>
 </svg>
 `;
 
 exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
 <svg>
-  <g
-    id="lineChart0"
+  <svg
+    height="900"
+    id="graph2"
+    overflow="visible"
+    style="pointer-events: bounding-box;"
+    width="1200"
+    x="0"
+    y="0"
   >
     <g
       fill="none"
@@ -1095,17 +2313,17 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,-33)"
+      transform="translate(0,567)"
     >
       <path
         class="domain"
-        d="M444.5,0.5H178.5"
+        d="M444.5,0.5H978.5"
         stroke="currentColor"
       />
       <g
         class="tick"
         opacity="1"
-        transform="translate(311.5,0)"
+        transform="translate(711.5,0)"
       >
         <line
           stroke="currentColor"
@@ -1131,7 +2349,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-32.5)"
+        transform="translate(0,567.5)"
       >
         <line
           stroke="currentColor"
@@ -1140,7 +2358,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1153,7 +2371,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-18.099999999999998)"
+        transform="translate(0,549.26)"
       >
         <line
           stroke="currentColor"
@@ -1162,20 +2380,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          5.00
+          2.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-3.6999999999999993)"
+        transform="translate(0,531.02)"
       >
         <line
           stroke="currentColor"
@@ -1184,7 +2402,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          4.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,512.78)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          6.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,494.53999999999996)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          8.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,476.3)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1197,7 +2481,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,10.7)"
+        transform="translate(0,458.06)"
       >
         <line
           stroke="currentColor"
@@ -1206,20 +2490,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          15.00
+          12.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,25.100000000000005)"
+        transform="translate(0,439.82)"
       >
         <line
           stroke="currentColor"
@@ -1228,7 +2512,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          14.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,421.5799999999999)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          16.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,403.34)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          18.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,385.1)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1241,7 +2591,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,39.5)"
+        transform="translate(0,366.86)"
       >
         <line
           stroke="currentColor"
@@ -1250,20 +2600,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          25.00
+          22.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,53.89999999999999)"
+        transform="translate(0,348.62)"
       >
         <line
           stroke="currentColor"
@@ -1272,7 +2622,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          24.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,330.38)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          26.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,312.14)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          28.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,293.9)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1285,7 +2701,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,68.29999999999998)"
+        transform="translate(0,275.66)"
       >
         <line
           stroke="currentColor"
@@ -1294,20 +2710,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          35.00
+          32.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,82.70000000000002)"
+        transform="translate(0,257.41999999999996)"
       >
         <line
           stroke="currentColor"
@@ -1316,7 +2732,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          34.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,239.18)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          36.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,220.94)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          38.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,202.7)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1329,7 +2811,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,97.10000000000001)"
+        transform="translate(0,184.46)"
       >
         <line
           stroke="currentColor"
@@ -1338,14 +2820,80 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          45.00
+          42.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,166.22)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          44.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,147.98)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          46.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,129.74)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          48.00
         </text>
       </g>
       <g
@@ -1360,7 +2908,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1395,14 +2943,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
         stroke="var(--tooltip-border)"
       />
     </g>
-  </g>
+  </svg>
 </svg>
 `;
 
 exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
 <svg>
-  <g
-    id="lineChart0"
+  <svg
+    height="900"
+    id="graph2"
+    overflow="visible"
+    style="pointer-events: bounding-box;"
+    width="1200"
+    x="0"
+    y="0"
   >
     <g
       fill="none"
@@ -1410,17 +2964,17 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,-33)"
+      transform="translate(0,567)"
     >
       <path
         class="domain"
-        d="M444.5,0.5H178.5"
+        d="M444.5,0.5H978.5"
         stroke="currentColor"
       />
       <g
         class="tick"
         opacity="1"
-        transform="translate(311.5,0)"
+        transform="translate(711.5,0)"
       >
         <line
           stroke="currentColor"
@@ -1446,7 +3000,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-32.5)"
+        transform="translate(0,567.5)"
       >
         <line
           stroke="currentColor"
@@ -1455,7 +3009,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1468,7 +3022,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-18.099999999999998)"
+        transform="translate(0,549.26)"
       >
         <line
           stroke="currentColor"
@@ -1477,20 +3031,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          5.00
+          2.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,-3.6999999999999993)"
+        transform="translate(0,531.02)"
       >
         <line
           stroke="currentColor"
@@ -1499,7 +3053,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          4.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,512.78)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          6.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,494.53999999999996)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          8.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,476.3)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1512,7 +3132,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,10.7)"
+        transform="translate(0,458.06)"
       >
         <line
           stroke="currentColor"
@@ -1521,20 +3141,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          15.00
+          12.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,25.100000000000005)"
+        transform="translate(0,439.82)"
       >
         <line
           stroke="currentColor"
@@ -1543,7 +3163,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          14.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,421.5799999999999)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          16.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,403.34)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          18.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,385.1)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1556,7 +3242,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,39.5)"
+        transform="translate(0,366.86)"
       >
         <line
           stroke="currentColor"
@@ -1565,20 +3251,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          25.00
+          22.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,53.89999999999999)"
+        transform="translate(0,348.62)"
       >
         <line
           stroke="currentColor"
@@ -1587,7 +3273,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          24.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,330.38)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          26.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,312.14)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          28.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,293.9)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1600,7 +3352,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,68.29999999999998)"
+        transform="translate(0,275.66)"
       >
         <line
           stroke="currentColor"
@@ -1609,20 +3361,20 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          35.00
+          32.00
         </text>
       </g>
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,82.70000000000002)"
+        transform="translate(0,257.41999999999996)"
       >
         <line
           stroke="currentColor"
@@ -1631,7 +3383,73 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          34.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,239.18)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          36.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,220.94)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          38.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,202.7)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1644,7 +3462,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,97.10000000000001)"
+        transform="translate(0,184.46)"
       >
         <line
           stroke="currentColor"
@@ -1653,14 +3471,80 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
           fill="currentColor"
           x="-9"
         >
-          45.00
+          42.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,166.22)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          44.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,147.98)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          46.00
+        </text>
+      </g>
+      <g
+        class="tick"
+        opacity="1"
+        transform="translate(0,129.74)"
+      >
+        <line
+          stroke="currentColor"
+          x2="-6"
+        />
+        <line
+          stroke="currentColor"
+          stroke-opacity="0.1"
+          x2="534"
+        />
+        <text
+          dy="0.32em"
+          fill="currentColor"
+          x="-9"
+        >
+          48.00
         </text>
       </g>
       <g
@@ -1675,7 +3559,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         <line
           stroke="currentColor"
           stroke-opacity="0.1"
-          x2="-266"
+          x2="534"
         />
         <text
           dy="0.32em"
@@ -1702,8 +3586,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       stroke-width="2"
     />
     <g
-      class="tooltip"
-      style="pointer-events: none; display: none;"
+      style="pointer-events: none;"
     >
       <path
         color="var(--tooltip-foreground"
@@ -1711,6 +3594,6 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
         stroke="var(--tooltip-border)"
       />
     </g>
-  </g>
+  </svg>
 </svg>
 `;

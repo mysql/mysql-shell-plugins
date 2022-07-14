@@ -58,7 +58,7 @@ export class PresentationInterface {
     ]);
 
     // The maximum height for the result area.
-    protected static maxHeight = 800;
+    protected static maxHeight = 600;
     protected static maxAutoHeight = {
         text: 292,
         resultSets: 292,

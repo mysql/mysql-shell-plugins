@@ -283,6 +283,7 @@ Execute \\help or \\? for help;`;
                     toolbarItems={toolbarItems}
                     graphData={savedState.graphData}
                     onGraphDataChange={this.handleGraphDataChange}
+                //stopAfter={10}
                 />;
 
                 break;

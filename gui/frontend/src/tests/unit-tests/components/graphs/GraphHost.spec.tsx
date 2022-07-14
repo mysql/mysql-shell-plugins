@@ -47,12 +47,15 @@ describe("GraphHost Tests", () => {
                     colors: ["red", "green", "blue"],
                     series: [
                         {
+                            id: "graph1",
                             type: "bar",
                         },
                         {
+                            id: "graph2",
                             type: "line",
                         },
                         {
+                            id: "graph3",
                             type: "pie",
                         },
                     ],
@@ -68,14 +71,17 @@ describe("GraphHost Tests", () => {
                 colors: ["red", "green", "blue"],
                 series: [
                     {
+                        id: "graph4",
                         type: "bar",
                         colors: ["yellow", "pink", "black"],
                     },
                     {
+                        id: "graph5",
                         type: "line",
                         colors: ["rose", "#123", "rgba(1, 1, 1, 1)"],
                     },
                     {
+                        id: "graph6",
                         type: "pie",
                         colors: ["#FFFFFF", "#FFFFFF", "#FFFFFF"],
                     },

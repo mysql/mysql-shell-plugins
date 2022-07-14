@@ -6,10 +6,8 @@ exports[`GraphHost Tests Base Rendering 1`] = `
 >
   <svg
     className="msg graphHost"
-    height="100%"
-    preserveAspectRatio="xMinYMin"
-    viewBox="0 0 400 300"
-    width="100%"
+    preserveAspectRatio="xMidYMid"
+    viewBox="0 0 1200 900"
   />
 </GraphHost>
 `;
@@ -30,6 +28,7 @@ exports[`GraphHost Tests Render Combinations 1`] = `
             "green",
             "blue",
           ],
+          "id": "graph1",
           "type": "bar",
         },
         Object {
@@ -38,6 +37,7 @@ exports[`GraphHost Tests Render Combinations 1`] = `
             "green",
             "blue",
           ],
+          "id": "graph2",
           "type": "line",
         },
         Object {
@@ -46,6 +46,7 @@ exports[`GraphHost Tests Render Combinations 1`] = `
             "green",
             "blue",
           ],
+          "id": "graph3",
           "type": "pie",
         },
       ],
@@ -54,10 +55,8 @@ exports[`GraphHost Tests Render Combinations 1`] = `
 >
   <svg
     className="msg graphHost"
-    height="100%"
-    preserveAspectRatio="xMinYMin"
-    viewBox="0 0 400 300"
-    width="100%"
+    preserveAspectRatio="xMidYMid"
+    viewBox="0 0 1200 900"
   />
 </GraphHost>
 `;

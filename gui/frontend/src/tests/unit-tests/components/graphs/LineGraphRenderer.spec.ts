@@ -32,14 +32,15 @@ describe("LineGraphRenderer Tests", () => {
         const renderer = new LineGraphRenderer();
 
         const configuration: ILineGraphConfiguration = {
+            id: "graph1",
             type: "line",
         };
 
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         expect(svg).toMatchSnapshot();
 
         configuration.data = [];
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -52,6 +53,7 @@ describe("LineGraphRenderer Tests", () => {
         const renderer = new LineGraphRenderer();
 
         const configuration: ILineGraphConfiguration = {
+            id: "graph2",
             type: "line",
             data: [
                 { xValue: 1, yValue: 10 },
@@ -59,7 +61,7 @@ describe("LineGraphRenderer Tests", () => {
                 { xValue: 3, yValue: 30 },
             ],
         };
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -80,20 +82,20 @@ describe("LineGraphRenderer Tests", () => {
         configuration.yFormat = "2.2f";
         configuration.yLabel = "Values in range";
 
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
 
         configuration.data = [{ xValue: new Date("2022-05-13"), yValue: 42 }];
         configuration.xDomain = undefined;
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
 
         configuration.data = [];
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -104,7 +106,7 @@ describe("LineGraphRenderer Tests", () => {
 
         // Without the xTitle function a different title generator is used.
         configuration.xTitle = undefined;
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         await sendPointerMoveSequence(svg, true);
