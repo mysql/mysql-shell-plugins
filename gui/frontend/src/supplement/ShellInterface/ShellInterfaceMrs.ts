@@ -22,7 +22,7 @@
  */
 
 import { ListenerEntry } from "../Dispatch";
-import { MessageScheduler, ProtocolMrs } from "../../communication";
+import { IShellDictionary, MessageScheduler, ProtocolMrs } from "../../communication";
 import { webSession } from "../WebSession";
 
 export class ShellInterfaceMrs {
@@ -48,12 +48,22 @@ export class ShellInterfaceMrs {
         return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddService" });
     }
 
-    public updateService(serviceId: number, urlContextRoot: string, urlHostName: string): ListenerEntry {
+    public updateServiceById(serviceId: number, value: IShellDictionary): ListenerEntry {
         const request = ProtocolMrs.getRequestUpdateService({
             moduleSessionId: this.moduleSessionId,
             serviceId,
-            urlContextRoot,
-            urlHostName,
+            value: JSON.stringify({
+                url_host: value.hostName,
+                url_context_root: value.urlContextRoot,
+                url_protocol: value.protocols,
+                is_default: value.isDefault,
+                enabled: value.enabled,
+                comments: value.comments,
+            }),
+            urlContextRoot: undefined,
+            urlHostName: undefined,
+            interactive: false,
+            raiseExceptions: false,
         });
 
         return MessageScheduler.get.sendRequest(request, { messageClass: "mrsUpdateService" });
@@ -105,17 +115,21 @@ export class ShellInterfaceMrs {
         return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddSchema" });
     }
 
-    public updateSchema(schemaId: number, schemaName: string, requestPath: string,
-        requiresAuth: boolean, serviceId?: number, value?: string, interactive?: boolean,
-        raiseExceptions?: boolean): ListenerEntry {
+    public updateSchemaById(schemaId: number, value: IShellDictionary): ListenerEntry {
+
         const request = ProtocolMrs.getRequestUpdateSchema({
             moduleSessionId: this.moduleSessionId,
             schemaId,
-            schemaName,
-            serviceId,
-            value,
-            interactive,
-            raiseExceptions,
+            value: JSON.stringify({
+                name: value.name,
+                request_path: value.requestPath,
+                requires_auth: value.requiresAuth,
+                enabled: value.enabled,
+                items_per_page: value.itemsPerPage,
+                comments: value.comments,
+            }),
+            interactive: false,
+            raiseExceptions: false,
         });
 
         return MessageScheduler.get.sendRequest(request, { messageClass: "mrsUpdateSchema" });

@@ -24,7 +24,7 @@
 import { commands, ExtensionContext, window } from "vscode";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
 import {
-    ICommErrorEvent, ICommMrsServiceEvent, ICommSimpleResultEvent, IMrsSchemaData, IMrsServiceData,
+    ICommErrorEvent, ICommMrsServiceEvent, ICommSimpleResultEvent, IMrsSchemaData, IMrsServiceData, IShellDictionary,
 } from "../../frontend/src/communication";
 import { EventType } from "../../frontend/src/supplement/Dispatch";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
@@ -278,8 +278,15 @@ export class MRSCommandHandler {
                         });
                 } else {
                     // Send update request.
-                    backend.mrs.updateService(
-                        service.id, urlContextRoot, hostName)
+                    backend.mrs.updateServiceById(
+                        service.id, {
+                            urlContextRoot,
+                            protocols,
+                            hostName,
+                            isDefault,
+                            enabled,
+                            comments,
+                        })
                         .then((addServiceEvent: ICommSimpleResultEvent) => {
                             switch (addServiceEvent.eventType) {
                                 case EventType.DataResponse:
@@ -327,7 +334,7 @@ export class MRSCommandHandler {
                     serviceId: schema?.serviceId,
                     name: schema?.name ?? schemaName,
                     requestPath: schema?.requestPath ?? `/${schemaName ?? ""}`,
-                    requiresAuth: schema?.requiresAuth === 1 || schema?.requiresAuth !== undefined,
+                    requiresAuth: schema?.requiresAuth === 1,
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
@@ -347,6 +354,7 @@ export class MRSCommandHandler {
                     const requiresAuth = response.data.requiresAuth as boolean;
                     const itemsPerPage = response.data.itemsPerPage as number;
                     const comments = response.data.comments as string;
+                    const enabled = response.data.enabled as boolean;
 
                     if (!schema) {
                         backend.mrs.addSchema(name, requestPath, requiresAuth, serviceId, itemsPerPage, comments)
@@ -370,9 +378,15 @@ export class MRSCommandHandler {
                                     `${errorEvent.message ?? "<unknown>"}`);
                             });
                     } else {
-                        // Send update request.
-                        backend.mrs.updateSchema(
-                            schema.id, name, requestPath, requiresAuth, serviceId)
+                        const value = {
+                            name,
+                            requestPath,
+                            requiresAuth,
+                            enabled,
+                            itemsPerPage,
+                            comments,
+                        };
+                        backend.mrs.updateSchemaById(schema.id, value)
                             .then((addSchemaEvent: ICommSimpleResultEvent) => {
                                 switch (addSchemaEvent.eventType) {
                                     case EventType.DataResponse:

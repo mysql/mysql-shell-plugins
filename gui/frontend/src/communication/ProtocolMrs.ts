@@ -812,7 +812,18 @@ export class ProtocolMrs extends Protocol {
      *
      * @param kwargs Additional options
      *
-     * @returns The result message as string
+     * @returns Not documented
+     *
+     * <b>Allowed options for value:</b>
+     *
+     *     url_context_root (str,optional): The context root for this service
+     * url_protocol (str,optional): The protocol either 'HTTP', 'HTTPS' or
+     * 'HTTP,HTTPS'     enabled (bool,optional): Whether the service should be
+     * enabled     comments (str,optional): Comments about the service
+     *
+     * <b>Returns:</b>
+     *
+     *     The result message as string
      */
     public static getRequestUpdateService(kwargs?: IShellUpdateServiceKwargs): IShellRequest {
 
@@ -1161,7 +1172,18 @@ export class ProtocolMrs extends Protocol {
      *
      * @param kwargs Additional options
      *
-     * @returns The result message as string
+     * @returns Not documented
+     *
+     * <b>Allowed options for value:</b>
+     *
+     *     schema_name (str): The name of the schema     requires_auth (bool):
+     * Whether authentication is required to access         the schema     enabled
+     * (bool): The enabled state     items_per_page (int): The number of items
+     * returned per page     comments (str): Comments for the schema
+     *
+     * <b>Returns:</b>
+     *
+     *     The result message as string
      */
     public static getRequestUpdateSchema(kwargs?: IShellUpdateSchemaKwargs): IShellRequest {
 

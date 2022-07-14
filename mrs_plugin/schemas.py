@@ -573,7 +573,7 @@ def change_schema(**kwargs):
                         schema.get("name"))
 
                 # If the request path has changed, check if the new one is valid
-                if request_path_val != schema.get("request_path"):
+                if request_path_val and request_path_val != schema.get("request_path"):
                     if (not request_path_val or
                             not request_path_val.startswith('/')):
                         raise ValueError(
@@ -650,7 +650,7 @@ def change_schema(**kwargs):
                     WHERE id = ?
                     """
                 params.insert(0, value.get("name", ""))
-                params.insert(1, request_path_val)
+                params.insert(1, request_path_val or schema.get("request_path"))
                 params.insert(
                     2, (str(value.get("requires_auth")).lower() == "true" or
                     str(value.get("requires_auth")) == "1"))
@@ -902,6 +902,14 @@ def update_schema(**kwargs):
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
+
+    Allowed options for value:
+        schema_name (str): The name of the schema
+        requires_auth (bool): Whether authentication is required to access
+            the schema
+        enabled (bool): The enabled state
+        items_per_page (int): The number of items returned per page
+        comments (str): Comments for the schema
 
     Returns:
         The result message as string

@@ -79,7 +79,7 @@ def format_service_listing(services, print_header=False):
 
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
 
     if print_header:
@@ -417,6 +417,34 @@ def get_services(**kwargs):
             print(f"Error: {str(e)}")
 
 
+def clean_service(service_id, session):
+    # Delete auth_app/auth_user and content_set/content_files related to this service
+    auth_apps = session.run_sql("""
+        SELECT *
+        FROM `mysql_rest_service_metadata`.`auth_app`
+        WHERE service_id=?""", [service_id]).fetch_all()
+    content_sets = session.run_sql("""
+        SELECT *
+        FROM `mysql_rest_service_metadata`.`auth_app`
+        WHERE service_id=?""", [service_id]).fetch_all()
+
+    for auth_app in auth_apps:
+        session.run_sql("""
+            DELETE FROM `mysql_rest_service_metadata`.`auth_user`
+            WHERE auth_app_id=?""", [auth_app.get_field("id")])
+
+    for content_set in content_sets:
+        session.run_sql("""
+            DELETE FROM `mysql_rest_service_metadata`.`content_file`
+            WHERE content_set_id=?""", [content_set.get_field("id")])
+
+    session.run_sql("""
+        DELETE FROM `mysql_rest_service_metadata`.`content_set`
+        WHERE service_id=?""", [service_id])
+    session.run_sql("""
+        DELETE FROM `mysql_rest_service_metadata`.`auth_app`
+        WHERE service_id=?""", [service_id])
+
 def change_service(**kwargs):
     """Makes a given change to a MRS service
 
@@ -443,7 +471,7 @@ def change_service(**kwargs):
     change_type = kwargs.get("change_type")
     url_context_root = kwargs.get("url_context_root")
     url_host_name = kwargs.get("url_host_name")
-    value = kwargs.get("value")
+    value = kwargs.get("value", {})
 
     session = kwargs.get("session")
 
@@ -542,10 +570,13 @@ def change_service(**kwargs):
             if change_type == SERVICE_SET_CONTEXT_ROOT:
                 url_ctx_root = value
             elif change_type == SERVICE_SET_ALL:
-                if type(value) == str: # TODO: Check why dicts cannot be used
+                if isinstance(value, str): # TODO: Check why dicts cannot be used
                     value = json.loads(value)
 
-                url_ctx_root = value.get("url_context_root")
+                if not isinstance(value, dict):
+                    raise Exception("Value is supposed to be a dictionary")
+
+                url_ctx_root = value.get("url_context_root", "/")
 
             if (change_type == SERVICE_SET_CONTEXT_ROOT or
                change_type == SERVICE_SET_ALL):
@@ -557,7 +588,7 @@ def change_service(**kwargs):
                 if service.get("url_context_root") != url_ctx_root:
                     if (not url_ctx_root or not url_ctx_root.startswith('/')):
                         raise ValueError(
-                            "The url_context_root has to start with '/'.")
+                            f"The url_context_root has to start with '/'...'{service.get('url_context_root')}' vs 'url_ctx_root' in '{value}'")
 
                     core.check_request_path(
                         url_ctx_root, session=session)
@@ -576,6 +607,7 @@ def change_service(**kwargs):
                     WHERE id = ?
                     """
             elif change_type == SERVICE_DELETE:
+                clean_service(service_id, session)
                 sql = """
                     DELETE FROM `mysql_rest_service_metadata`.`service`
                     WHERE id = ?
@@ -613,20 +645,22 @@ def change_service(**kwargs):
                 params.insert(0, value)
             elif change_type == SERVICE_SET_ALL:
                 sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service`
-                    SET enabled = ?,
-                        url_context_root = ?,
-                        url_protocol = ?,
-                        comments = ?,
-                        is_default = ?
-                    WHERE id = ?
+                    UPDATE `mysql_rest_service_metadata`.`service` service
+                    JOIN `mysql_rest_service_metadata`.`url_host` host ON host.id = service.url_host_id
+                    SET service.enabled = ?,
+                        service.url_context_root = ?,
+                        service.url_protocol = ?,
+                        service.comments = ?,
+                        service.is_default = ?,
+                        host.name = ?
+                    WHERE service.id = ?
                     """
+
                 if str(value.get("is_default")).lower() == "true":
                     res = session.run_sql("""
                         UPDATE `mysql_rest_service_metadata`.`service`
                         SET is_default = FALSE
                         """)
-
                 params.insert(
                     0, (str(value.get("enabled")).lower() == "true" or
                     str(value.get("enabled")) == "1"))
@@ -636,6 +670,7 @@ def change_service(**kwargs):
                 params.insert(
                     4, (str(value.get("is_default")).lower() == "true" or
                     str(value.get("is_default")) == "1"))
+                params.insert(5, value.get("url_host", service.get("url_host_name")))
             else:
                 raise Exception("Operation not supported")
 
@@ -860,6 +895,12 @@ def update_service(**kwargs):
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
+
+    Allowed options for value:
+        url_context_root (str,optional): The context root for this service
+        url_protocol (str,optional): The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS'
+        enabled (bool,optional): Whether the service should be enabled
+        comments (str,optional): Comments about the service
 
     Returns:
         The result message as string
