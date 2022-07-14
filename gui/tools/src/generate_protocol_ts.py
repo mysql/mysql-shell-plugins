@@ -308,20 +308,33 @@ class PythonParamToJavascript:
         if not self.has_override:
             return None
 
+        override_dependencies = []
         indent = "        " if self.required else "            "
-        inner = ""
+        inner = ["{"]
         for option in self.options:
+
             option = PythonParamToJavascript(
                 option, self.function_name, self.plugin_name)
-            inner = f"\n{indent}    {option.python_name}: {self.javascript_name}.{option.javascript_name}" if inner == "" else f"{inner},\n{indent}    {option.python_name}: {self.javascript_name}.{option.javascript_name}"
-        inner = "{" + inner + f",\n{indent}}}"
+
+            entry_name = f"{self.javascript_name}.{option.javascript_name}"
+
+            if option.python_type == "dictionary" and option.options and option.override:
+                override_dependencies.append(option.override.replace(f": {option.javascript_name}.", f": kwargs?.{option.javascript_name}?."))
+                entry_name = f"{option.javascript_name}ToUse"
+
+            inner.append(f"    {option.python_name}: {entry_name},")
+
+        inner.append("}")
 
         override = binding_parameter_override_required if self.required else binding_parameter_override_optional
         override = override.replace("{__PARAMETER__}", self.javascript_name)
         override = override.replace("{__PARAMETER__}", self.javascript_name)
-        override = override.replace("{__OVERRIDE__}", inner)
+        override = override.replace("{__OVERRIDE__}", f'\n{indent}'.join(inner))
 
-        return override
+        override_dependencies = "\n".join(override_dependencies)
+
+        return f"{override_dependencies}{override}"
+
 
     @property
     def generate_json_argument(self):
@@ -359,6 +372,20 @@ class PythonParamToJavascript:
         return preliminary_type_name
 
     @property
+    def interface_dependencies(self):
+        if not self.options:
+            return ""
+
+        dependent_interfaces = []
+
+        for option in self.options:
+            if option["type"] == "dictionary" and option["options"]:
+                op = PythonParamToJavascript(option, self.function_name, self.plugin_name)
+                dependent_interfaces.append(op.interface_definition.replace("//  End auto generated types", ""))
+
+        return "\n".join(dependent_interfaces)
+
+    @property
     def interface_definition(self):
         "Generate the javascript interface for this dictionary"
         if self.options is None:
@@ -371,7 +398,7 @@ class PythonParamToJavascript:
         interface = interface.replace("{__NAME__}", self.interface_name)
         interface = interface.replace("{__MEMBERS__}", members)
 
-        if interface in binding[self.plugin_name]:
+        if self.interface_name in binding[self.plugin_name]:
             return ""
 
         return interface
@@ -491,7 +518,7 @@ def add_to_protocol_ts(definition):
             args.append(p.generate_json_argument)
 
     doc_params = [p.documentation for p in params]
-    type_definitions = [p.interface_definition for p in params]
+    type_definitions = [f"{p.interface_dependencies}{p.interface_definition}" for p in params]
     overrides = [p.override for p in params]
 
     # Some cleanup
@@ -531,10 +558,13 @@ def add_to_protocol_ts(definition):
     binding[plugin_name] = binding[plugin_name].replace(
         "//  End auto generated API names", api_enum)
 
+
     # Generate all the interface types
     if len(type_definitions) > 0:
         binding[plugin_name] = binding[plugin_name].replace(
             "//  End auto generated types", "\n".join(type_definitions))
+
+
 
     # Generate all the methods
     binding[plugin_name] = binding[plugin_name].replace(
