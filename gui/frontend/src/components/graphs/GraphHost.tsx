@@ -59,8 +59,10 @@ export class GraphHost extends Component<IGraphHostProps> {
         const className = this.getEffectiveClassNames(["graphHost"]);
         const left = options.viewport?.left ?? 0;
         const top = options.viewport?.top ?? 0;
-        const width = options.viewport?.width ?? 400;
-        const height = options.viewport?.height ?? 300;
+
+        // Make the viewport a 3/4 re
+        const width = options.viewport?.width ?? 1200;
+        const height = options.viewport?.height ?? 900;
 
 
         return (
@@ -68,10 +70,8 @@ export class GraphHost extends Component<IGraphHostProps> {
                 ref={this.svgRef}
                 id={id}
                 className={className}
-                width={"100%"}
-                height={"100%"}
                 viewBox={`${left} ${top} ${width} ${height}`}
-                preserveAspectRatio="xMinYMin"
+                preserveAspectRatio="xMidYMid"
             />
         );
     }
@@ -81,14 +81,31 @@ export class GraphHost extends Component<IGraphHostProps> {
 
         // istanbul ignore else
         if (this.svgRef.current) {
-            options.series?.forEach((entry, index) => {
+            // Remove previously rendered graphs which are not in the current configuration.
+            const existing = this.svgRef.current.getElementsByTagName("svg");
+
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
+            for (let i = 0; i < existing.length; ++i) {
+                const element = existing.item(i);
+                if (element) {
+                    const index = options.series?.findIndex((candidate) => {
+                        return candidate.id === element.id;
+                    }) ?? -1;
+
+                    if (index === -1) {
+                        this.svgRef.current.removeChild(element);
+                    }
+                }
+            }
+
+            options.series?.forEach((entry) => {
                 switch (entry.type) {
                     case "pie": {
                         const renderer = new PieGraphRenderer();
                         if (!entry.colors) {
                             entry.colors = options.colors;
                         }
-                        renderer.render(this.svgRef.current!, entry, index);
+                        renderer.render(this.svgRef.current!, entry);
                         break;
                     }
 
@@ -97,7 +114,7 @@ export class GraphHost extends Component<IGraphHostProps> {
                         if (!entry.colors) {
                             entry.colors = options.colors;
                         }
-                        renderer.render(this.svgRef.current!, entry, index);
+                        renderer.render(this.svgRef.current!, entry);
                         break;
                     }
 
@@ -106,7 +123,7 @@ export class GraphHost extends Component<IGraphHostProps> {
                         if (!entry.colors) {
                             entry.colors = options.colors;
                         }
-                        renderer.render(this.svgRef.current!, entry, index);
+                        renderer.render(this.svgRef.current!, entry);
                         break;
                     }
 

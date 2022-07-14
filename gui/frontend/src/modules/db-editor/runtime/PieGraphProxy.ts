@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { uuid } from "../../../utilities/helpers";
 import { IConsoleWorkerEnvironment, ScriptingApi, PieGraphLayout } from "../console.worker-types";
 
 export class PieGraphProxy {
@@ -54,31 +55,32 @@ export class PieGraphProxy {
 
             switch (layout) {
                 case PieGraphLayout.LargeDonut: {
-                    radius = [100, 200];
+                    radius = [150, 300];
 
                     break;
                 }
 
                 case PieGraphLayout.MediumDonut: {
-                    radius = [80, 120];
+                    radius = [120, 200];
 
                     break;
                 }
 
                 case PieGraphLayout.LargePie: {
-                    radius = [0, 200];
+                    radius = [0, 300];
 
                     break;
                 }
 
                 default: {
-                    radius = [0, 120];
+                    radius = [0, 200];
                 }
             }
 
             const options: IGraphOptions = {
                 series: [
                     {
+                        id: "m" + uuid(), // Must start with a letter.
                         type: "pie",
                         data: pieData,
                         radius,

@@ -32,14 +32,15 @@ describe("BarGraphRenderer Tests", () => {
         const renderer = new BarGraphRenderer();
 
         const configuration: IBarGraphConfiguration = {
+            id: "graph1",
             type: "bar",
         };
 
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         expect(svg).toMatchSnapshot();
 
         configuration.data = [];
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -52,6 +53,7 @@ describe("BarGraphRenderer Tests", () => {
         const renderer = new BarGraphRenderer();
 
         const configuration: IBarGraphConfiguration = {
+            id: "graph2",
             type: "bar",
             data: [
                 { xValue: 1, yValue: 10 },
@@ -59,7 +61,7 @@ describe("BarGraphRenderer Tests", () => {
                 { xValue: 3, yValue: 30 },
             ],
         };
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -77,27 +79,27 @@ describe("BarGraphRenderer Tests", () => {
         configuration.yFormat = "2.2f";
         configuration.yLabel = "Values in range";
 
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
 
         configuration.data = [{ xValue: new Date("2022-05-13"), yValue: 42 }];
         configuration.xDomain = undefined;
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
 
         configuration.data = [];
         configuration.colors = [];
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
 
         configuration.data = [{}];
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -108,7 +110,7 @@ describe("BarGraphRenderer Tests", () => {
 
         // Without the xTitle function a different title generator is used.
         configuration.xTitle = undefined;
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         await sendPointerMoveSequence(svg, true);
@@ -123,6 +125,7 @@ describe("BarGraphRenderer Tests", () => {
         const renderer = new BarGraphRenderer();
 
         const configuration: IBarGraphConfiguration = {
+            id: "graph3",
             type: "bar",
             data: [
                 ["a", "b", "c", "d", "e"],
@@ -130,7 +133,7 @@ describe("BarGraphRenderer Tests", () => {
                 ["z"],
             ],
         };
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -148,21 +151,21 @@ describe("BarGraphRenderer Tests", () => {
         configuration.yFormat = "2.2f";
         configuration.yLabel = "Values in range";
 
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
 
         configuration.data = [{ one: 42, two: new Date("2022-05-13") }];
         configuration.xDomain = undefined;
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
 
         configuration.data = [];
         configuration.colors = ["red", "green"];
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -170,7 +173,7 @@ describe("BarGraphRenderer Tests", () => {
         // The first line in tabular data is considered holding column names.
         // So, a single record also means: empty data.
         configuration.data = [["Lorem"]];
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         expect(svg).toMatchSnapshot();
@@ -179,7 +182,7 @@ describe("BarGraphRenderer Tests", () => {
 
         // Without the xTitle function a different title generator is used.
         configuration.xTitle = undefined;
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         await nextProcessTick();
 
         await sendPointerMoveSequence(svg, true);

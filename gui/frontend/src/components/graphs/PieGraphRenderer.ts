@@ -50,38 +50,43 @@ export class PieGraphRenderer {
         this.format = d3.format(".2f");
     }
 
-    public render(target: SVGElement, config: IPieGraphConfiguration, index: number): void {
+    public render(target: SVGSVGElement, config: IPieGraphConfiguration): void {
         if (!config.data) {
             return;
         }
 
-        const height = config.size?.height ?? 300;
+        const width = config.transformation?.width ?? 1200;
+        const height = config.transformation?.height ?? 900;
+        const x = config.transformation?.x ?? "50%";
+        const y = config.transformation?.y ?? "50%";
+
         const innerRadius = config.radius?.[0] ?? 0;
-        const outerRadius = config.radius?.[1] ?? 300;
-        const rotation = config.rotation ?? "0";
+        const outerRadius = config.radius?.[1] ?? 450;
 
-        const rootId = config.id ?? `pieChart${index}`;
-
-        const svg = d3.select<SVGElement, IPieDatum>(target);
-        const hostRect = svg.node()!.getBoundingClientRect();
-
-        let root = svg.select<SVGGElement>(`#${rootId}`);
-
+        const hostSvg = d3.select<SVGElement, IPieDatum>(target);
         let sliceGroup: PieChartSelection;
         let labels: PieChartSelection;
         let lines: PieChartSelection;
-        if (root.empty()) {
-            const translate = `translate(${hostRect.width / 2}px, ${height / 2}px)`;
-            const rotate = `rotate(${rotation})`;
-            root = svg.append("g").attr("id", rootId).style("transform", `${translate} ${rotate}`);
+
+        let svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        if (svg.empty()) {
+            svg = hostSvg.append("svg").attr("id", config.id);
+
+            const root = svg.append("g");
             sliceGroup = root.append<SVGGElement>("g").attr("class", "slices");
             labels = root.append("g").attr("class", "labels");
             lines = root.append("g").attr("class", "lines");
         } else {
+            const root = svg.select<SVGGElement>("g");
             sliceGroup = root.select<SVGGElement>(".slices");
             labels = root.select(".labels");
             lines = root.select(".lines");
         }
+
+        svg
+            .attr("x", `${x}`).attr("y", `${y}`)
+            .attr("overflow", "visible")
+            .attr("viewBox", `0 0 ${width} ${height}`);
 
         // Note: this is all user supplied data from the scripting interface, so do proper sanity checks.
         const data = config.data.length <= 100 ? config.data : config.data.slice(0, 100);

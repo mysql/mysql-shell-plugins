@@ -285,21 +285,15 @@
     min-height: 0;
 }
 
-.msg .renderTarget svg {
-    padding: 4px;
-    width: calc(100% - 8px);
-    height: calc(100% - 8px);
-}
-
-.msg .renderTarget path.slice {
-    stroke-width: 2px;
-    fill: green;
+.msg .renderTarget .yLabel {
+    font-size: 3em;
+    transform: translate(50%, 50px)
 }
 
 .msg .renderTarget polyline {
-    opacity: .5;
+    opacity: .75;
     stroke: var(--editorZone-foreground);
-    stroke-width: 2px;
+    stroke-width: 1px;
     fill: none;
 }
 

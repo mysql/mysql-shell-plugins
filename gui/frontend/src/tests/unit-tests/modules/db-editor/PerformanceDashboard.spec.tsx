@@ -24,38 +24,110 @@
 import { mount } from "enzyme";
 import React from "react";
 
+import { ICommAddConnectionEvent } from "../../../../communication";
+import { MySQLConnectionScheme } from "../../../../communication/MySQL";
+
 import { ISavedGraphData } from "../../../../modules/db-editor";
 import { PerformanceDashboard } from "../../../../modules/db-editor/PerformanceDashboard";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
+import {
+    DBType, IConnectionDetails, ShellInterface, ShellInterfaceSqlEditor,
+} from "../../../../supplement/ShellInterface";
+import { webSession } from "../../../../supplement/WebSession";
+import { sleep } from "../../../../utilities/helpers";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
+import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers";
 
 describe("PerformanceDashboard Tests", (): void => {
+    let launcher: MySQLShellLauncher;
+    let credentials: ITestDbCredentials;
+    let testConnection: IConnectionDetails;
+    let backend: ShellInterfaceSqlEditor;
 
-    it("Test PerformanceDashboard instantiation", () => {
-        const backend = new ShellInterfaceSqlEditor();
-        const graphData: ISavedGraphData = {
-            timestamp: new Date().getTime(),
-            activeColorScheme: "grays",
-            displayInterval: 300,
-            currentValues: new Map(),
-            computedValues: {},
-            series: new Map(),
+    beforeAll(async () => {
+        launcher = await setupShellForTests("PerformanceDashboard", false, true, "DEBUG2");
+
+        // Create a connection for our tests.
+        credentials = getDbCredentials();
+        testConnection = {
+            id: -1,
+
+            dbType: DBType.MySQL,
+            folderPath: "",
+            caption: "PerformanceDashboard Test Connection 1",
+            description: "PerformanceDashboard Test Connection",
+            options: {
+                scheme: MySQLConnectionScheme.MySQL,
+                user: credentials.userName,
+                password: credentials.password,
+                host: credentials.host,
+                port: credentials.port,
+            },
+            useSSH: false,
+            useMDS: false,
+
         };
 
-        const component = mount<PerformanceDashboard>(
-            <PerformanceDashboard
-                backend={backend}
-                graphData={graphData}
-            />,
-        );
+        await new Promise<void>((resolve) => {
+            ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, testConnection, "")
+                .then((event: ICommAddConnectionEvent) => {
+                    if (event.data) {
+                        testConnection.id = event.data.result.dbConnectionId;
+                    }
+                    resolve();
+                });
+        });
 
-        // Note: we cannot do snapshot testing here, because graph data contains always changing timestamps.
+        backend = new ShellInterfaceSqlEditor();
+        expect(backend.id).toBe("sqlEditor");
+    });
 
-        const props = component.props();
-        expect(props.graphData.displayInterval).toBe(300);
-        expect(props.graphData.series.size).toBe(6);
-        expect(Object.values(props.graphData.computedValues).length).toBeGreaterThan(35);
+    afterAll(async () => {
+        await new Promise<void>((resolve) => {
+            ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id)
+                .then(() => {
+                    resolve();
+                });
+        });
 
-        component.unmount();
+        await sleep(2000);
+        await launcher.exitProcess();
+    });
+
+    it("Test PerformanceDashboard instantiation", async () => {
+        try {
+            await backend.startSession("dashboard1");
+
+            const graphData: ISavedGraphData = {
+                timestamp: new Date().getTime(),
+                activeColorScheme: "grays",
+                displayInterval: 300,
+                currentValues: new Map(),
+                computedValues: {},
+                series: new Map(),
+            };
+
+            const component = mount<PerformanceDashboard>(
+                <PerformanceDashboard
+                    backend={backend}
+                    graphData={graphData}
+                />,
+            );
+
+            await sleep(4000);
+
+            // Note: we cannot do snapshot testing here, because graph data contains always changing timestamps.
+
+            const props = component.props();
+            expect(props.graphData.displayInterval).toBe(300);
+            expect(props.graphData.series.size).toBe(6);
+            expect(Object.values(props.graphData.computedValues).length).toBeGreaterThan(35);
+
+            component.unmount();
+        } finally {
+            await backend.closeSession();
+        }
+
+
     });
 
 });

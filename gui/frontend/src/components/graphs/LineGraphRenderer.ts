@@ -52,7 +52,7 @@ export class LineGraphRenderer {
         this.colors = d3.scaleOrdinal(d3.schemeCategory10);
     }
 
-    public render(target: SVGElement, config: ILineGraphConfiguration, index: number): void {
+    public render(target: SVGSVGElement, config: ILineGraphConfiguration): void {
         if (!config.data) {
             return;
         }
@@ -60,10 +60,11 @@ export class LineGraphRenderer {
         this.tooltip = config.tooltip;
         this.data = config.data;
 
-        const width = config.size?.width ?? 400;
-        const height = config.size?.height ?? 300;
+        const width = config.transformation?.width ?? 1200;
+        const height = config.transformation?.height ?? 900;
+        const x = config.transformation?.x ?? "0";
+        const y = config.transformation?.y ?? "0";
 
-        // Set defaults first.
         const marginTop = config.marginTop ?? 20;
         const marginRight = config.marginRight ?? 30;
         const marginBottom = config.marginBottom ?? 30;
@@ -164,30 +165,31 @@ export class LineGraphRenderer {
             };
         }
 
-        const svg = d3.select<SVGElement, IXYDatum>(target);
-        svg
-            .on("pointerenter", this.pointerEnter)
+        const hostSvg = d3.select<SVGSVGElement, IXYDatum>(target);
+        let root = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+
+        // TODO: instead of completely replacing the graph animate it to the new values.
+        root.remove();
+        root = hostSvg.append("svg").attr("id", config.id).style("pointer-events", "bounding-box");
+
+        root.on("pointerenter", this.pointerEnter)
             .on("pointermove", this.pointerMoved)
             .on("pointerleave", this.pointerLeft)
             .on("touchstart", (event: MouseEvent) => {
                 return event.preventDefault();
             });
 
-        const rootId = config.id ?? `lineChart${index}`;
-        let root = svg.select<SVGGElement>(`#${rootId}`);
 
-        // TODO: instead of completely replacing the graph animate it to the new values.
-        root.remove();
+        root.attr("x", `${x}`)
+            .attr("y", `${y}`)
+            .attr("overflow", "visible")
+            .attr("width", width)
+            .attr("height", height);
 
-        root = svg.append("g").attr("id", rootId);
-
-        const xAxisPath = root.select("#xAxis");
-        if (xAxisPath.empty()) {
-            root.append("g")
-                .attr("transform", `translate(0,${height - marginBottom})`)
-                .attr("id", "xAxis")
-                .call(xAxis);
-        }
+        root.append("g")
+            .attr("transform", `translate(0,${height - marginBottom})`)
+            .attr("id", "xAxis")
+            .call(xAxis);
 
         root.append("g")
             .attr("transform", `translate(${marginLeft},0)`)

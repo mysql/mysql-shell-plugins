@@ -31,9 +31,10 @@ describe("PieGraphRenderer Tests", () => {
         const renderer = new PieGraphRenderer();
 
         const configuration: IPieGraphConfiguration = {
+            id: "graph1",
             type: "pie",
         };
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
 
         expect(svg).toMatchSnapshot();
     });
@@ -45,6 +46,7 @@ describe("PieGraphRenderer Tests", () => {
         const renderer = new PieGraphRenderer();
 
         const configuration: IPieGraphConfiguration = {
+            id: "graph2",
             type: "pie",
             data: [
                 { value: 1 },
@@ -52,7 +54,7 @@ describe("PieGraphRenderer Tests", () => {
                 { value: 3 },
             ],
         };
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         expect(svg).toMatchSnapshot();
 
         configuration.borderColor = "red";
@@ -65,7 +67,7 @@ describe("PieGraphRenderer Tests", () => {
         configuration.endAngle = Math.PI;
         configuration.radius = [10, 300];
 
-        renderer.render(svg, configuration, 0);
+        renderer.render(svg, configuration);
         expect(svg).toMatchSnapshot();
     });
 });
