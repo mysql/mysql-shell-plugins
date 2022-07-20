@@ -28,7 +28,9 @@ import React from "react";
 import { Button, Component, IComponentProperties, IInputChangeProperties, Input } from "../";
 import { Container, Orientation } from "../Container/Container";
 import { selectFile } from "../../../utilities/helpers";
-import { appParameters, IOpenDialogFilters, requisitions } from "../../../supplement/Requisitions";
+import {
+    appParameters, IOpenDialogFilters, IOpenFileDialogResult, requisitions,
+} from "../../../supplement/Requisitions";
 
 export enum FileSelectorEntryType {
     File,
@@ -138,11 +140,15 @@ export class FileSelector extends Component<IFileSelectorProperties> {
         );
     }
 
-    private selectFile = (values: string[]): Promise<boolean> => {
-        const { onChange } = this.mergedProps;
+    private selectFile = (openFileResult: IOpenFileDialogResult): Promise<boolean> => {
+        const { id, onChange } = this.mergedProps;
+
+        if (id !== openFileResult.resourceId) {
+            return Promise.resolve(false);
+        }
 
         // Only called in single user mode, from a native wrapper or vscode.
-        const result = values.map((value) => {
+        const result = openFileResult.path.map((value) => {
             return decodeURI(value.startsWith("file://") ? value.substring("file://".length) : value);
         });
         onChange?.(result, this.mergedProps);
@@ -152,11 +158,13 @@ export class FileSelector extends Component<IFileSelectorProperties> {
 
     private handleButtonClick = (): void => {
         const {
-            path, title, openLabel, canSelectFiles = true, canSelectFolders, filters, multiSelection = false, onChange,
+            path, title, openLabel, canSelectFiles = true, canSelectFolders, filters,
+            multiSelection = false, onChange, id,
         } = this.mergedProps;
 
         if (appParameters.embedded) {
             const options = {
+                id,
                 default: path,
                 title,
                 canSelectFiles,
