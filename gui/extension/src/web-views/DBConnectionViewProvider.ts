@@ -23,7 +23,7 @@
 
 import { Uri, window } from "vscode";
 
-import { IOpenDialogOptions, requisitions } from "../../../frontend/src/supplement/Requisitions";
+import { IOpenDialogOptions, IOpenFileDialogResult, requisitions } from "../../../frontend/src/supplement/Requisitions";
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
@@ -246,6 +246,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
     private showOpenDialog = (options: IOpenDialogOptions): Promise<boolean> => {
         return new Promise((resolve) => {
             const dialogOptions = {
+                id: options.id,
                 defaultUri: Uri.file(options.default ?? ""),
                 openLabel: options.openLabel,
                 canSelectFiles: options.canSelectFiles,
@@ -257,9 +258,13 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
             void window.showOpenDialog(dialogOptions).then((paths?: Uri[]) => {
                 if (paths) {
-                    void this.requisitions?.executeRemote("selectFile", paths.map((path) => {
-                        return path.fsPath;
-                    }));
+                    const result: IOpenFileDialogResult = {
+                        resourceId: dialogOptions.id ?? "",
+                        path: paths.map((path) => {
+                            return path.fsPath;
+                        }),
+                    };
+                    void this.requisitions?.executeRemote("selectFile", result);
                 }
 
                 resolve(true);

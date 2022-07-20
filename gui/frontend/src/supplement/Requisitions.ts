@@ -88,6 +88,9 @@ export interface IOpenDialogFilters {
 
 // This is essentially a copy of the vscode OpenDialogOptions interface.
 export interface IOpenDialogOptions {
+    // Resource Id which trigger open dialog
+    id?: string;
+
     // The resource the dialog shows when opened.
     default?: string;
 
@@ -113,6 +116,11 @@ export interface IOpenDialogOptions {
     title?: string;
 }
 
+export interface IOpenFileDialogResult {
+    resourceId: string;
+    path: string[];
+}
+
 // The map containing possible requests and their associated callback.
 // The return value in the promise determines if the request was handled or not.
 // Watch out when adding new callbacks! There must be exactly one parameter.
@@ -127,7 +135,7 @@ export interface IRequestTypeMap {
     "editorInfoUpdated": (info: IEditorStatusInfo) => Promise<boolean>;
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
     "openConnectionTab": (data: { details: IConnectionDetails; force: boolean }) => Promise<boolean>;
-    "selectFile": (path: string[]) => Promise<boolean>;
+    "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 
     "editorExecuteSelectedOrAll": (startNewBlock: boolean) => Promise<boolean>;
