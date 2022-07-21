@@ -936,51 +936,6 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell46"
-                  >
-                    <Container
-                      className="msg gridCell left"
-                      orientation="row"
-                      style={Object {}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell left"
-                        style={
-                          Object {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      >
-                        Plugins directory:
-                      </div>
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    key="cell47"
-                  >
-                    <Container
-                      className="msg gridCell"
-                      orientation="row"
-                      style={Object {}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell"
-                        style={
-                          Object {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      />
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    className="left"
                     key="cell48"
                   >
                     <Container
@@ -3381,51 +3336,6 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     key="cell45"
-                  >
-                    <Container
-                      className="msg gridCell"
-                      orientation="row"
-                      style={Object {}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell"
-                        style={
-                          Object {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      />
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    className="left"
-                    key="cell46"
-                  >
-                    <Container
-                      className="msg gridCell left"
-                      orientation="row"
-                      style={Object {}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell left"
-                        style={
-                          Object {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      >
-                        Plugins directory:
-                      </div>
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    key="cell47"
                   >
                     <Container
                       className="msg gridCell"

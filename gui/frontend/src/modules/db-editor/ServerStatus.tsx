@@ -387,10 +387,6 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                 <GridCell key="cell45">
                     {serverDirectories.tmpDirectory}
                 </GridCell>
-                <GridCell key="cell46" className="left">Plugins directory:</GridCell>
-                <GridCell key="cell47">
-                    {serverDirectories.pluginDirectory}
-                </GridCell>
                 <GridCell key="cell48" className="left">Error Log:</GridCell>
                 <GridCell key="cell49">
                     {this.drawBoolean(serverDirectories.errorLog)}
