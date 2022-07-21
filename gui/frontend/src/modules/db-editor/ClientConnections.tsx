@@ -113,6 +113,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     private gridRef = React.createRef<TreeGrid>();
     private interval = ClientConnections.sampleInterval;
     private selectedRow?: IDictionary;
+    private columns: IColumnInfo[] = [];
+    private attrColumns: IColumnInfo[] = [];
 
     private hideSleepingConnections = true;
     private noFullInfo = false;
@@ -165,6 +167,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         const className = this.getEffectiveClassNames(["clientConnections"]);
 
+        const field = this.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
+
         const options: ITreeGridOptions = {
             layout: "fitColumns",
             verticalGridLines: true,
@@ -172,7 +176,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             alternatingRowBackgrounds: true,
             selectionType: SelectionType.Single,
             resizableRows: true,
-            index: "PROCESSLIST_ID",
+            index: field?.field ?? "0",
         };
 
         const connectionProps = this.getClientConnectionInfo();
@@ -222,7 +226,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                                 options={options}
                                 columns={this.generateColumnDefinitions(resultSet.data.columns)}
                                 tableData={resultSet.data.rows}
-                                selectedIds={[this?.selectedRow?.PROCESSLIST_ID as string ?? ""]}
+                                selectedIds={[this.getSelectedRowValue("PROCESSLIST_ID")]}
                                 onRowSelected={this.handleClientConnectionTreeRowSelected}
                             />
                         }
@@ -272,31 +276,31 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         return (
             this.selectedRow && <Grid id="clientConnectionDetails" columns={2} rowGap={5} columnGap={12}>
                 <GridCell>Processlist Id</GridCell>
-                <GridCell>{(this.selectedRow.PROCESSLIST_ID as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PROCESSLIST_ID"))}</GridCell>
                 <GridCell>Thread Id </GridCell>
-                <GridCell>{(this.selectedRow.THREAD_ID as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("THREAD_ID"))}</GridCell>
                 <GridCell>Name</GridCell>
-                <GridCell>{(this.selectedRow.NAME as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("NAME"))}</GridCell>
                 <GridCell>Type</GridCell>
-                <GridCell>{(this.selectedRow.TYPE as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("TYPE"))}</GridCell>
                 <GridCell>User</GridCell>
-                <GridCell>{(this.selectedRow.PROCESSLIST_USER as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PROCESSLIST_USER"))}</GridCell>
                 <GridCell>Host</GridCell>
-                <GridCell>{(this.selectedRow.PROCESSLIST_HOST as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PROCESSLIST_HOST"))}</GridCell>
                 <GridCell>Schema</GridCell>
-                <GridCell>{(this.selectedRow.PROCESSLIST_DB as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PROCESSLIST_DB"))}</GridCell>
                 <GridCell>Command</GridCell>
-                <GridCell>{(this.selectedRow.PROCESSLIST_COMMAND as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PROCESSLIST_COMMAND"))}</GridCell>
                 <GridCell>Time</GridCell>
-                <GridCell>{(this.selectedRow.PROCESSLIST_TIME as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PROCESSLIST_TIME"))}</GridCell>
                 <GridCell>State</GridCell>
-                <GridCell>{(this.selectedRow.PROCESSLIST_STATE as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PROCESSLIST_STATE"))}</GridCell>
                 <GridCell>Role</GridCell>
-                <GridCell>{(this.selectedRow.ROLE as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("ROLE"))}</GridCell>
                 <GridCell>Instrumented</GridCell>
-                <GridCell>{(this.selectedRow.INSTRUMENTED as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("INSTRUMENTED"))}</GridCell>
                 <GridCell>Parent Thread Id</GridCell>
-                <GridCell>{(this.selectedRow.PARENT_THREAD_ID as string ?? "")}</GridCell>
+                <GridCell>{(this.getSelectedRowValue("PARENT_THREAD_ID"))}</GridCell>
             </Grid>);
     };
 
@@ -346,9 +350,11 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     private getClientConnectionAttributes = (): React.ReactNode => {
         const { attributes } = this.state;
 
+        const nameField = this.attrColumns.find((x) => { return x.title === "ATTR_NAME"; });
+        const valueField = this.attrColumns.find((x) => { return x.title === "ATTR_VALUE"; });
         const columns: Tabulator.ColumnDefinition[] = [
-            { title: "Name", field: "ATTR_NAME" },
-            { title: "Value", field: "ATTR_VALUE" },
+            { title: "Name", field: nameField?.field ?? "1" },
+            { title: "Value", field: valueField?.field ?? "2" },
         ];
 
         const options: ITreeGridOptions = {
@@ -617,8 +623,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         backend.execute(query).then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.columns);
-                const rows = convertRows(columns, event.data.rows);
+                this.columns = generateColumnInfo(DBType.MySQL, event.data.columns);
+                const rows = convertRows(this.columns, event.data.rows);
                 const resultSet = {
                     head: {
                         requestId: event.data.requestId ?? "",
@@ -627,7 +633,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                     data: {
                         requestId: event.data.requestId ?? "",
                         currentPage: 1,
-                        columns,
+                        columns: this.columns,
                         rows,
                     },
                 };
@@ -691,7 +697,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     private handleKillConnection = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
             void requisitions.execute("showError", ["Error Killing Connection",
-                `Connection ${this.selectedRow?.PROCESSLIST_ID as string} cannot be killed`]);
+                `Connection ${this.getSelectedRowValue("PROCESSLIST_ID")} cannot be killed`]);
 
             return;
         }
@@ -701,7 +707,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     private handleKillQuery = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
             void requisitions.execute("showError", ["Error Killing Query",
-                `Thread ${this.selectedRow?.THREAD_ID as string} cannot be killed`]);
+                `Thread ${this.getSelectedRowValue("THREAD_ID")} cannot be killed`]);
 
             return;
         }
@@ -734,7 +740,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
     private killConnection = (): void => {
         const { backend } = this.props;
-        const id = this.selectedRow?.PROCESSLIST_ID as string;
+        const id = this.getSelectedRowValue("PROCESSLIST_ID");
         if (id) {
             backend.execute(`KILL CONNECTION ${id}`).then((event: ICommResultSetEvent) => {
                 if (event.eventType === EventType.FinalResponse) {
@@ -749,7 +755,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
     private killQuery = (): void => {
         const { backend } = this.props;
-        const id = this.selectedRow?.PROCESSLIST_ID as string;
+        const id = this.getSelectedRowValue("PROCESSLIST_ID");
         if (id) {
             backend.execute(`KILL QUERY ${id}`).then((event: ICommResultSetEvent) => {
                 if (event.eventType === EventType.FinalResponse) {
@@ -774,10 +780,21 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         }
     };
 
+    private getSelectedRowValue = (key: string): string => {
+        if (key && this.selectedRow) {
+            const field = this.columns.find((x) => { return x.title === key; });
+            if (field) {
+                return this.selectedRow[field.field] as string ?? "";
+            }
+        }
+
+        return "";
+    };
+
     private handleClientConnectionTreeRowSelected = (row: Tabulator.RowComponent): void => {
-        const selectedOldRowId = this.selectedRow?.PROCESSLIST_ID as string ?? "";
+        const selectedOldRowId = this.getSelectedRowValue("PROCESSLIST_ID");
         this.selectedRow = row.getData() as IDictionary;
-        if (selectedOldRowId !== this.selectedRow?.PROCESSLIST_ID as string ?? "") {
+        if (selectedOldRowId !== this.getSelectedRowValue("PROCESSLIST_ID")) {
             this.setState({ selectedTab: "propsTab" });
         }
     };
@@ -789,8 +806,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             ` WHERE processlist_id = ${id} ORDER BY ORDINAL_POSITION`;
         backend.execute(query).then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.columns);
-                const rows = convertRows(columns, event.data.rows);
+                this.attrColumns = generateColumnInfo(DBType.MySQL, event.data.columns);
+                const rows = convertRows(this.attrColumns, event.data.rows);
                 const resultSet = {
                     head: {
                         requestId: event.data.requestId ?? "",
@@ -799,7 +816,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                     data: {
                         requestId: event.data.requestId ?? "",
                         currentPage: 1,
-                        columns,
+                        columns: this.attrColumns,
                         rows,
                     },
                 };
@@ -816,11 +833,18 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             if (event.eventType === EventType.FinalResponse) {
                 const columns = generateColumnInfo(DBType.MySQL, event.data.columns);
                 const rows = convertRows(columns, event.data.rows);
+                const statusField = columns.find((x) => { return x.title === "LOCK_STATUS"; });
+                const typeField = columns.find((x) => { return x.title === "OBJECT_TYPE"; });
+                const schemaField = columns.find((x) => { return x.title === "OBJECT_SCHEMA"; });
+                const nameField = columns.find((x) => { return x.title === "OBJECT_NAME"; });
+                const durationField = columns.find((x) => { return x.title === "LOCK_DURATION"; });
+
                 rows.forEach((item) => {
-                    const status = item.LOCK_STATUS as string ?? "";
-                    const type = item.OBJECT_TYPE as string ?? "";
-                    const schema = item.OBJECT_SCHEMA as string ?? "";
-                    const name = item.OBJECT_NAME as string ?? "";
+                    const status = item[statusField?.field ?? 0] as string;
+                    const type = item[typeField?.field ?? 0] as string;
+                    const schema = item[schemaField?.field ?? 0] as string;
+                    const name = item[nameField?.field ?? 3] as string;
+                    const duration = item[durationField?.field ?? 0] as string;
                     let objectName = "";
                     if (type === "GLOBAL") {
                         objectName = "<global>";
@@ -836,10 +860,10 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                     }
                     switch (status) {
                         case "PENDING":
-                            this.generatePendingLocksInfo(query, item, objectName, type);
+                            this.generatePendingLocksInfo(query, type, duration, objectName);
                             break;
                         case "GRANTED":
-                            this.generateGrantedLocksInfo(query, item, objectName);
+                            this.generateGrantedLocksInfo(query, type, duration, objectName);
                             break;
                         default:
                             break;
@@ -849,8 +873,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         });
     };
 
-    private generatePendingLocksInfo = (subQuery: string, entry: IDictionary, objectName: string,
-        type: string): void => {
+    private generatePendingLocksInfo = (subQuery: string, type: string, duration: string, objectName: string): void => {
         const { backend } = this.props;
 
         const query = `SELECT OWNER_THREAD_ID as ownerThreadId FROM performance_schema.metadata_locks` +
@@ -864,11 +887,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                     owners.push(item.ownerThreadId as string);
                 });
 
-                const lockType = entry.LOCK_TYPE as string ?? "";
-                const lockDuration = entry.LOCK_DURATION as string ?? "";
                 const waitingText = `The connection is waiting for a lock on` +
                     `\n${type.toLowerCase()} ${objectName},\nheld by thread(s) ${owners.join(", ")}.` +
-                    `\nType: ${lockType}\nDuration: ${lockDuration}`;
+                    `\nType: ${type}\nDuration: ${duration}`;
 
 
                 this.setState({ waitingText });
@@ -879,7 +900,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         });
     };
 
-    private generateGrantedLocksInfo = (subQuery: string, entry: IDictionary, objectName: string): void => {
+    private generateGrantedLocksInfo = (subQuery: string,  type: string, duration: string,
+        objectName: string): void => {
         const { backend } = this.props;
 
         const query = `SELECT OWNER_THREAD_ID as threadId, LOCK_TYPE as type, LOCK_DURATION as duration ` +
@@ -888,8 +910,6 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             if (event.eventType === EventType.FinalResponse) {
                 const columns = generateColumnInfo(DBType.MySQL, event.data.columns);
                 const rows = convertRows(columns, event.data.rows);
-                const type = entry.LOCK_TYPE as string ?? "";
-                const duration = entry.LOCK_DURATION as string ?? "";
                 rows.unshift({ threadId: objectName, type, duration });
 
                 const resultSet = {
@@ -971,13 +991,21 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
     private handleSelectTab = (id: string): void => {
         const { attributes, grantedLocks } = this.state;
-        const currentSelectedRow = this.selectedRow?.PROCESSLIST_ID as string ?? "";
-        const currentSelectedThread = this.selectedRow?.THREAD_ID as string ?? "";
-        if (id === "attrTab" && attributes?.data.rows[0].PROCESSLIST_ID as string !== currentSelectedRow) {
-            this.updateAttributes(currentSelectedRow);
+        const currentSelectedRow = this.getSelectedRowValue("PROCESSLIST_ID");
+        const currentSelectedThread = this.getSelectedRowValue("THREAD_ID");
+        if (id === "attrTab") {
+            const field = attributes?.data.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
+            if (!attributes || !field ||
+                (field && attributes?.data.rows[0][field.field] as string !== currentSelectedRow)) {
+                this.updateAttributes(currentSelectedRow);
+            }
         }
-        if (id === "locksTab" && grantedLocks?.data.rows[0]?.THREAD_ID as string !== currentSelectedThread) {
-            this.updateLocks(parseInt(currentSelectedThread, 10));
+        if (id === "locksTab") {
+            const field = grantedLocks?.data.columns.find((x) => { return x.title === "THREAD_ID"; });
+            if (!grantedLocks || !field ||
+                (field && grantedLocks?.data.rows[0][field.field] as string !== currentSelectedThread)) {
+                this.updateLocks(parseInt(currentSelectedThread, 10));
+            }
         }
         this.setState({ selectedTab: id });
     };
