@@ -511,12 +511,20 @@ Execute \\help or \\? for help;`;
 
             let index = 0;
             while (true) {
+                // Allow toggling the stop-on-error during execution.
+                const stopOnErrors = settings.get("editor.stopOnErrors", true);
                 const statement = statements.shift();
                 if (!statement) {
                     break;
                 }
 
-                await this.executeQuery(context, statement.text, index++, 0, pageSize, params);
+                try {
+                    await this.executeQuery(context, statement.text, index++, 0, pageSize, params);
+                } catch (e) {
+                    if (stopOnErrors) {
+                        break;
+                    } // Else ignore the error and continue.
+                }
             }
         }
     };
@@ -824,11 +832,9 @@ Execute \\help or \\? for help;`;
                     }).then(() => {
                         context.updateResultDisplay();
                     });
-
-                    resolve(); // No promise error at this point, as we handled the error already.
-                } else {
-                    reject(event);
                 }
+
+                reject(event.message);
             });
         });
     };
