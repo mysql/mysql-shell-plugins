@@ -34,8 +34,8 @@ import searchIcon from "../../assets/images/toolbar/toolbar-search.svg";
 import showHiddenActiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-active.svg";
 import showHiddenInactiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-inactive.svg";
 import stopExecutionIcon from "../../assets/images/toolbar/toolbar-stop_execution.svg";
-//import stopOnErrorActiveIcon from "../../assets/images/toolbar/stop-on-error-active.svg";
-//import stopOnErrorInactiveIcon from "../../assets/images/toolbar/stop-on-error-inactive.svg";
+import stopOnErrorActiveIcon from "../../assets/images/toolbar/toolbar-stop_on_error-active.svg";
+import stopOnErrorInactiveIcon from "../../assets/images/toolbar/toolbar-stop_on_error-inactive.svg";
 import wordWrapActiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-active.svg";
 import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
 
@@ -145,8 +145,8 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "selection or " : "";
 
-        //const stopOnErrors = settings.get("editor.stopOnErrors", true);
-        //const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
+        const stopOnErrors = settings.get("editor.stopOnErrors", true);
+        const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
 
         const autoCommitIcon = autoCommit ? autoCommitActiveIcon : autoCommitInactiveIcon;
 
@@ -212,16 +212,15 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 >
                     <Icon src={stopExecutionIcon} data-tooltip="inherit" />
                 </Button>,
-                /*<Button
+                <Button
                     data-tooltip="Stop execution of the current statement/script in case of errors"
                     imageOnly={true}
-                    disabled
                     onClick={
                         () => { void requisitions.execute("editorToggleStopExecutionOnError", stopOnErrors); }
                     }
                 >
                     <Icon src={stopOnErrorIcon} data-tooltip="inherit" />
-                </Button>*/
+                </Button>,
             );
         }
 
@@ -339,7 +338,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
 
     private toggleStopExecutionOnError = (active: boolean): Promise<boolean> => {
         settings.set("editor.stopOnErrors", !active);
-        this.updateState();
+        this.forceUpdate();
 
         return Promise.resolve(true);
     };
