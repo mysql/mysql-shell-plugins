@@ -132,9 +132,6 @@ export class PieGraphRenderer {
         const path = slicePaths.enter()
             .insert<IPiePathElement>("path")
             .attr("class", "slice")
-            .style("fill", (_, index) => {
-                return config.colors ? config.colors[index] : d3.schemeCategory10[index % 10];
-            })
             .attr("d", (datum, index, group) => {
                 const element = group[index];
                 element.previous = datum;
@@ -161,6 +158,10 @@ export class PieGraphRenderer {
                 }
                 this.setAttribute("data-tooltip", text);
             });
+
+        slicePaths.style("fill", (_, index) => {
+            return config.colors ? config.colors[index] : d3.schemeCategory10[index % 10];
+        });
 
         if (config.borderWidth !== undefined) {
             path.style("stroke-width", config.borderWidth);
