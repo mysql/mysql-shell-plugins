@@ -29,7 +29,7 @@ import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
 import { WebviewProvider } from "./WebviewProvider";
-import { IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
+import { INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 
 export class DBConnectionViewProvider extends WebviewProvider {
 
@@ -105,7 +105,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
     }
 
     /**
-     * Executes a full script in a webview tab.
+     * Opens a new script editor in the webview tab and loads the given content into it.
      *
      * @param caption The title of the webview tab.
      * @param page The page to open in the webview tab (if not already done).
@@ -203,6 +203,13 @@ export class DBConnectionViewProvider extends WebviewProvider {
         ], caption, "connections");
     }
 
+    public renameFile(request: IScriptRequest): Promise<boolean> {
+        // Can only be called if a connection is active. This is the bounce-back from a save request from a connection.
+        return this.runCommand("job", [
+            { requestType: "editorRenameScript", parameter: request },
+        ], "", "connections");
+    }
+
     protected requisitionsCreated(): void {
         super.requisitionsCreated();
 
@@ -213,6 +220,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
             this.requisitions.register("editorSaveScript", this.editorSaveScript);
+            this.requisitions.register("createNewScript", this.createNewScript);
             this.requisitions.register("closeInstance", this.closeInstance);
         }
     }
@@ -235,6 +243,11 @@ export class DBConnectionViewProvider extends WebviewProvider {
     private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
         // Ditto.
         return requisitions.execute("editorSaveScript", details);
+    };
+
+    private createNewScript = (details: INewScriptRequest): Promise<boolean> => {
+        // Ditto.
+        return requisitions.execute("createNewScript", details);
     };
 
     private closeInstance = (): Promise<boolean> => {

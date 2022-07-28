@@ -26,8 +26,9 @@ import "./Portal.css";
 import React, { createRef, ComponentState } from "react";
 import { createPortal } from "preact/compat";
 
-import { Component, IComponentProperties } from "../Component/Component";
 import keyboardKey from "keyboard-key";
+
+import { Component, IComponentProperties } from "../Component/Component";
 import { IDictionary } from "../../../app-logic/Types";
 import { Stack } from "../../../supplement";
 
@@ -36,10 +37,14 @@ const portalStack = new Stack<Portal>();
 
 // Options that can change on every show action.
 export interface IPortalOptions {
-    backgroundOpacity?: number;   // A value to determine translucency of the background element (0..1, default: 0.5);
+    /** A value to determine translucency of the background element (0..1, default: 0.5); */
+    backgroundOpacity?: number;
 
-    closeOnEscape?: boolean;      // If true close portal on pressing the escape key (default: true).
-    closeOnPortalClick?: boolean; // If true close portal on clicking the portal beside the target (default: true).
+    /** If true close portal on pressing the escape key (default: true). */
+    closeOnEscape?: boolean;
+
+    /** If true close portal on clicking the portal beside the target (default: false). */
+    closeOnPortalClick?: boolean;
 }
 
 export interface IPortalProperties extends IComponentProperties {

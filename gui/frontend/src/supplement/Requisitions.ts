@@ -24,7 +24,9 @@
 // eslint-disable-next-line max-classes-per-file
 import React from "react";
 
-import { EditorLanguage, IExecutionContext, IRunQueryRequest, IScriptRequest, ISqlPageRequest } from ".";
+import {
+    EditorLanguage, IExecutionContext, INewScriptRequest, IRunQueryRequest, IScriptRequest, ISqlPageRequest,
+} from ".";
 
 import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
@@ -157,6 +159,7 @@ export interface IRequestTypeMap {
     "editorRunScript": (details: IScriptRequest) => Promise<boolean>;
     "editorEditScript": (details: IScriptRequest) => Promise<boolean>;
     "editorSaveScript": (details: IScriptRequest) => Promise<boolean>;
+    "editorRenameScript": (details: IScriptRequest) => Promise<boolean>;
     "editorValidationDone": (id: string) => Promise<boolean>;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string }) => Promise<boolean>;
@@ -207,6 +210,7 @@ export interface IRequestTypeMap {
     "connectedToUrl": (url?: URL) => Promise<boolean>;
     "refreshSessions": (sessions: IShellSessionDetails[]) => Promise<boolean>;
     "closeInstance": () => Promise<boolean>;
+    "createNewScript": (request: INewScriptRequest) => Promise<boolean>;
 
     "dbFileDropped": (fileName: string) => Promise<boolean>;
 
@@ -236,9 +240,11 @@ export interface IRequestListEntry<K extends keyof IRequestTypeMap> {
     parameter: IRequisitionCallbackValues<K>;
 }
 
-// Management class for requests and messages sent between various parts of the application. It allows to schedule
-// tasks and trigger notifications to multiple subscribed receivers.
-// It uses request types which specify a single specific request in the application.
+/**
+ *  Management class for requests and messages sent between various parts of the application. It allows to schedule
+ * tasks and trigger notifications to multiple subscribed receivers.
+ *  It uses request types which specify a single specific request in the application.
+ */
 export class RequisitionHub {
 
     // A list of callbacks associated with a specific request.

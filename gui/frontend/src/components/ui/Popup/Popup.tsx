@@ -146,17 +146,4 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
             }
         }
     };
-
-    private handleTargetResize = (): void => {
-        const { placement, pinned, showArrow } = this.mergedProps;
-        const { currentTarget } = this.state;
-
-        if (this.containerRef.current && currentTarget && placement) {
-            const { left, top } = computeContentPosition(placement, this.containerRef.current, currentTarget,
-                showArrow ? 10 : 0, !pinned);
-            this.containerRef.current.style.left = `${left}px`;
-            this.containerRef.current.style.top = `${top}px`;
-        }
-    };
-
 }

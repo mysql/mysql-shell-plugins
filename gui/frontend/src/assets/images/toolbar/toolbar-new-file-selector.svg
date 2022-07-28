@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-697,-161)">
+        <g id="Menu">
+        </g>
+        <g id="Expand">
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+        </g>
+        <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit">
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error">
+        </g>
+        <g id="Execute-Explain" serif:id="Execute Explain">
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+        <g id="Kill-Connection-2" serif:id="Kill Connection 2">
+        </g>
+        <g id="Sleeping-Connections" serif:id="Sleeping Connections">
+        </g>
+        <g id="Kill-Connection" serif:id="Kill Connection">
+        </g>
+        <g id="Kill-Query" serif:id="Kill Query">
+        </g>
+        <g id="Show-Details" serif:id="Show Details">
+        </g>
+        <g id="Infos">
+        </g>
+        <g id="Background-Threads" serif:id="Background Threads">
+        </g>
+        <g id="refresh">
+        </g>
+        <g id="New-File" serif:id="New File">
+        </g>
+        <g id="New-File-Selector" serif:id="New File Selector" transform="matrix(1,0,0,1,80,1)">
+            <g transform="matrix(1,0,0,1,616,162)">
+                <path d="M9.5,1.1L12.9,4.6L13,5L13,7L12,7L12,6L8,6L8,2L3,2L3,13L7,13L7,14L2.5,14L2,13.5L2,1.5L2.5,1L9.2,1L9.5,1.1ZM9,2L9,5L11.9,5L9,2ZM13,16L12,16L12,13L9,13L9,12L12,12L12,9L13,9L13,12L16,12L16,13L13,13L13,16Z"/>
+            </g>
+            <g transform="matrix(0.712675,0.712675,-0.703443,0.703443,274.959,-426.004)">
+                <rect x="668.99" y="168.837" width="5.953" height="1.005" style="fill:rgb(34,34,36);"/>
+            </g>
+            <g transform="matrix(-0.712675,0.712675,-0.703443,-0.703443,1236.28,-187.762)">
+                <rect x="668.99" y="168.837" width="5.953" height="1.005" style="fill:rgb(34,34,36);"/>
+            </g>
+        </g>
+        <g id="Minimize">
+        </g>
+        <g id="Maximize">
+        </g>
+        <g id="Close">
+        </g>
+        <g id="load">
+        </g>
+        <g id="save">
+        </g>
+    </g>
+</svg>
