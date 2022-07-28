@@ -27,8 +27,10 @@ import { DBType } from "./ShellInterface";
 
 // Commonly used data types and functions.
 
-// These are the supported languages in the code editor.
-// This includes our mixed language (msg), which combines SQL, Python, JS and TS in one editor.
+/**
+ * These are the supported languages in the code editor.
+ * This includes our mixed language (msg), which combines SQL, Python, JS and TS in one editor.
+ */
 export type EditorLanguage = (
     "text" | "typescript" | "javascript" | "mysql" | "sql" | "python" | "json" | "markdown" | "msg" | "xml" | "ini"
 );
@@ -67,8 +69,23 @@ export interface IScriptRequest {
     /** A unique ID to identify the script in this request. */
     scriptId: string;
 
+    /** The language of the script. */
+    language: EditorLanguage;
+
     name?: string;
     content: string;
+}
+
+/** Used to request the creation of a new script in the extension. */
+export interface INewScriptRequest {
+    /** The id of the page (connection tab) to open the new script in. */
+    page: string;
+
+    /** The language to use for the new script file. */
+    language: EditorLanguage;
+
+    /** Optional content to use for the new script file. */
+    content?: string;
 }
 
 export { Stack } from "./Stack";

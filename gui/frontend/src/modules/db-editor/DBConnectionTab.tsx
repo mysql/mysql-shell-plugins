@@ -117,7 +117,7 @@ export interface IDBConnectionTabProperties extends IComponentProperties {
 
     onAddEditor?: (id: string) => string | undefined;
     onRemoveEditor?: (id: string, editorId: string) => void;
-    onSelectItem?: (id: string, editorId: string, name?: string, content?: string) => void;
+    onSelectItem?: (id: string, editorId: string, language?: EditorLanguage, name?: string, content?: string) => void;
     onEditorRename?: (id: string, editorId: string, newCaption: string) => void;
 
     // Sent when the content of a standalone editor changed (typing, pasting, undo/redo etc.).
@@ -183,6 +183,7 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.register("showPageSection", this.showPageSection);
         requisitions.register("editorEditScript", this.editorEditScript);
+        requisitions.register("editorRenameScript", this.editorRenameScript);
 
         this.consoleRef.current?.focus();
     }
@@ -202,6 +203,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.unregister("showPageSection", this.showPageSection);
         requisitions.unregister("editorEditScript", this.editorEditScript);
+        requisitions.unregister("editorRenameScript", this.editorRenameScript);
     }
 
     public componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
@@ -475,7 +477,15 @@ Execute \\help or \\? for help;`;
     private editorEditScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onSelectItem } = this.props;
 
-        onSelectItem?.(id!, details.scriptId, details.name, details.content);
+        onSelectItem?.(id!, details.scriptId, details.language, details.name, details.content);
+
+        return Promise.resolve(true);
+    };
+
+    private editorRenameScript = (details: IScriptRequest): Promise<boolean> => {
+        const { id, onEditorRename } = this.props;
+
+        onEditorRename?.(id!, details.scriptId, details.name ?? "<untitled>");
 
         return Promise.resolve(true);
     };
@@ -1392,7 +1402,7 @@ Execute \\help or \\? for help;`;
             default:
         }
 
-        onSelectItem?.(id!, itemId, name);
+        onSelectItem?.(id!, itemId, undefined, name);
     };
 
     private handleCloseEditor = (editorId: string): void => {
@@ -1410,7 +1420,7 @@ Execute \\help or \\? for help;`;
     private handleEditorRename = (editorId: string, newCaption: string): void => {
         const { id, onEditorRename } = this.props;
 
-        return onEditorRename?.(id!, editorId, newCaption);
+        onEditorRename?.(id!, editorId, newCaption);
     };
 
     private handleAddScript = (language: EditorLanguage): void => {

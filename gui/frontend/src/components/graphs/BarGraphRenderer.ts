@@ -199,8 +199,7 @@ export class BarGraphRenderer {
             .data(dataIndexes)
             .join("rect")
             .attr("fill", colorGenerator)
-            .attr("data-tooltip", titleGenerator)
-            ;
+            .attr("data-tooltip", titleGenerator);
 
         if (yDataType === "object") {
             const yScaleBandTime = d3.scaleTime(yDomain as [Date, Date], yRange);

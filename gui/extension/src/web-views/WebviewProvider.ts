@@ -102,7 +102,11 @@ export class WebviewProvider {
                     resolve(false);
                 }
             } else {
-                this.panel.title = caption ?? "<missing caption>";
+                if (caption) {
+                    // Keep the current title if no new caption is given.
+                    this.panel.title = caption;
+                }
+
                 this.panel.reveal();
                 block().then(() => {
                     resolve(true);
@@ -117,11 +121,13 @@ export class WebviewProvider {
         return new Promise((resolve) => {
             void this.prepareEditorGroup(placement).then((viewColumn) => {
                 this.panel = window.createWebviewPanel(
-                    "msg-webview", caption, viewColumn, {
+                    "msg-webview",
+                    caption,
+                    viewColumn,
+                    {
                         enableScripts: true,
                         retainContextWhenHidden: true,
-                    },
-                );
+                    });
 
                 this.panel.onDidDispose(() => { this.handleDispose(); });
 
@@ -143,7 +149,7 @@ export class WebviewProvider {
                     }
                 });
 
-                            // Insert an iframe to load the external URL from the running mysql shell server.
+                // Insert an iframe to load the external URL from the running mysql shell server.
                 this.url.searchParams.set("app", "vscode");
 
                 this.panel.webview.html = `

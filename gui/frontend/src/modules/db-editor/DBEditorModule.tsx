@@ -29,6 +29,13 @@ import connectionsIcon from "../../assets/images/connections.svg";
 import closeIcon from "../../assets/images/close2.svg";
 import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
 
+import newIcon from "../../assets/images/toolbar/toolbar-new-file-selector.svg";
+import javascriptIcon from "../../assets/images/file-icons/javascript.svg";
+import sqliteIcon from "../../assets/images/file-icons/sqlite.svg";
+import mysqlIcon from "../../assets/images/file-icons/mysql.svg";
+import typescriptIcon from "../../assets/images/file-icons/typescript.svg";
+import notebookIcon from "../../assets/images/file-icons/shell.svg";
+
 import React from "react";
 
 import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase";
@@ -36,7 +43,7 @@ import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../Mod
 import { ConnectionBrowser } from "./ConnectionBrowser";
 import {
     ITabviewPage, Tabview, Button, Icon, TabPosition, defaultEditorOptions, Divider, Label, Dropdown, Image,
-    ProgressIndicator, IDropdownProperties,
+    ProgressIndicator, IDropdownProperties, Menu, MenuItem, ComponentPlacement, IMenuItemProperties,
 } from "../../components/ui";
 import { DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState } from "./DBConnectionTab";
 import { ICodeEditorModel, CodeEditor, CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
@@ -117,6 +124,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private scriptsTree: IDBDataEntry[] = [];
 
     private pendingProgress: ReturnType<typeof setTimeout> | null;
+
+    private actionMenuRef = React.createRef<Menu>();
 
     public static get info(): IModuleInfo {
         return {
@@ -214,9 +223,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             progressMessage, dirtyEditors,
         } = this.state;
 
+        let sqlIcon = mysqlIcon;
+        const showEmbeddedContent = appParameters.embedded;
+
         // Generate the main toolbar inset based on the current display mode.
         let toolbarItems: IToolbarItems | undefined;
-        if (appParameters.embedded) {
+        if (showEmbeddedContent) {
             const items: Array<React.ReactElement<typeof Dropdown.Item>> = [
                 <Dropdown.Item
                     id="connections"
@@ -274,6 +286,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             needsSave = dirtyEditors.has(entry.id);
                         }
                         selectedEntry = entry.id;
+
+                        if (info.details.dbType === DBType.Sqlite) {
+                            sqlIcon = sqliteIcon;
+                        }
                     }
                 });
             });
@@ -289,7 +305,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     >
                         {items}
                     </Dropdown>,
-                    <Divider key="firstDivider" vertical={true} thickness={1} />,
+                    <Button key="button1" id="newMenuButton" onClick={this.newButtonClick}>
+                        <Icon key="newIcon" src={newIcon} />
+                    </Button>,
+                    <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
                 ],
                 right: [],
             };
@@ -396,7 +415,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 })
                             }
                         </Dropdown>,
-                        <Divider key="firstDivider" vertical={true} thickness={1} />,
+                        <Divider key="selectorDivider" vertical={true} thickness={1} />,
                     ],
                     right: [],
                 };
@@ -456,6 +475,20 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 pages={pages}
                 onSelectTab={this.handleSelectTab}
             />
+            {showEmbeddedContent &&
+                <Menu
+                    key="actionMenu"
+                    id="editorToolbarActionMenu"
+                    ref={this.actionMenuRef}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleNewScriptClick}
+                >
+                    <MenuItem key="item1" id="addEditor" caption="New Notebook" icon={notebookIcon} />
+                    <MenuItem key="item2" id="addSQLScript" caption="New SQL Script" icon={sqlIcon} />
+                    <MenuItem key="item3" id="addTSScript" caption="New TS Script" icon={typescriptIcon} />
+                    <MenuItem key="item4" id="addJSScript" caption="New JS Script" icon={javascriptIcon} />
+                </Menu>
+            }
         </>;
     }
 
@@ -1000,6 +1033,73 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
+    private newButtonClick = (e: React.SyntheticEvent): void => {
+        e.stopPropagation();
+
+        if (e.target instanceof HTMLElement) {
+            const rect = e.target.getBoundingClientRect();
+            this.actionMenuRef.current?.open(rect, false);
+        }
+    };
+
+    /**
+     * This menu click handler is only used in the VS Code extension to offer a quick way to add new script files
+     * or to open another notebook. Scripts created here are not stored in the user's script tree.
+     *
+     * @param e The original click event.
+     * @param props The properties of the item which was clicked.
+     *
+     * @returns Always true (to close the menu after the click).
+     */
+    private handleNewScriptClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+        const { selectedPage, editorTabs } = this.state;
+
+        const page = editorTabs.find((candidate) => {
+            return candidate.tabId === selectedPage;
+        });
+
+        if (page) {
+            switch (props.id) {
+                case "addEditor": {
+                    this.handleAddEditor(selectedPage);
+
+                    break;
+                }
+
+                case "addSQLScript": {
+                    requisitions.executeRemote("createNewScript", {
+                        page: String(page.details.id),
+                        language: page.details.dbType === DBType.MySQL ? "mysql" : "sql",
+                    });
+
+                    break;
+                }
+
+                case "addTSScript": {
+                    requisitions.executeRemote("createNewScript", {
+                        page: String(page.details.id),
+                        language: "typescript",
+                    });
+
+                    break;
+                }
+
+                case "addJSScript": {
+                    requisitions.executeRemote("createNewScript", {
+                        page: String(page.details.id),
+                        language: "javascript",
+                    });
+
+                    break;
+                }
+
+                default:
+            }
+        }
+
+        return true;
+    };
+
     private handleEditorSave = (): void => {
         const { selectedPage } = this.state;
 
@@ -1175,10 +1275,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      *
      * @param id The id of the notebook sending this event.
      * @param entryId The unique ID of the item that will be (or is already) selected.
+     * @param language The language of the external script.
      * @param name An optional display name for broken out and external scripts.
      * @param content The SQL code of such scripts.
      */
-    private handleSelectEntry = (id: string, entryId: string, name?: string, content?: string): void => {
+    private handleSelectEntry = (id: string, entryId: string, language: EditorLanguage = "mysql", name?: string,
+        content?: string): void => {
         const connectionState = this.connectionState.get(id);
         if (connectionState && connectionState.activeEntry !== entryId) {
             // if there's a current editor. Save its content, if it represents a user script.
@@ -1260,12 +1362,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         }
 
                         default: {
-                            if (content) {
+                            if (content !== undefined) {
                                 // External scripts come with their full content.
                                 const script: IDBEditorScriptState = {
                                     id: entryId,
                                     caption: name ?? "Script",
-                                    language: "mysql",
+                                    language,
                                     dbDataId: -1,
                                     folderId: -1,
                                     type: EntityType.Script,
@@ -1334,6 +1436,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const details: IScriptRequest = {
                         scriptId: editor.id,
                         content,
+                        language: model.getLanguageId() as EditorLanguage,
                     };
                     requisitions.executeRemote("editorSaveScript", details);
                 }
@@ -1389,7 +1492,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private handleAddScript = (id: string, language: EditorLanguage, dialect: DBType): void => {
+    private handleAddScript = (id: string, language: EditorLanguage, dialect?: DBType): void => {
         let editorLanguage = language;
         if (editorLanguage === "sql") {
             // Determine the actual language dialect to use here.

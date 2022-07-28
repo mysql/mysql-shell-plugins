@@ -505,5 +505,8 @@ msg.connectionTabHost #dashboardToolbar .image {
     padding: 5px;
     font-style: normal;
     font-weight: bold;
+}
 
+.msg#editorToolbarActionMenu .popup {
+    min-width: auto;
 }

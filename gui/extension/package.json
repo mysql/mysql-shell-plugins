@@ -499,6 +499,10 @@
                 "title": "Load Dump from Disk"
             },
             {
+                "command": "msg.loadScriptFromDisk",
+                "title": "Load Script from Disk"
+            },
+            {
                 "command": "msg.copyNameToClipboard",
                 "title": "Name"
             },
@@ -697,13 +701,18 @@
             "editor/context": [
                 {
                     "when": "resourceLangId == mysql || resourceLangId == sql",
+                    "command": "msg.editInScriptEditor",
+                    "group": "1_msg@1"
+                },
+                {
+                    "when": "resourceLangId == mysql || resourceLangId == sql",
                     "command": "msg.executeSelectedSqlFromEditor",
-                    "group": "navigation"
+                    "group": "1_msg@2"
                 },
                 {
                     "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript",
                     "command": "msg.executeEmbeddedSqlFromEditor",
-                    "group": "msg@1"
+                    "group": "1_msg@1"
                 }
             ],
             "view/title": [
@@ -821,9 +830,14 @@
                     "group": "4_msg@1"
                 },
                 {
+                    "command": "msg.loadScriptFromDisk",
+                    "when": "view == msg.connections",
+                    "group": "5_msg@1"
+                },
+                {
                     "command": "msg.loadDumpFromDisk",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
-                    "group": "5_msg@1"
+                    "group": "5_msg@2"
                 },
                 {
                     "command": "msg.mrs.configureMySQLRestService",

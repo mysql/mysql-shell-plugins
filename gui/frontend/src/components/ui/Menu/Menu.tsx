@@ -33,13 +33,20 @@ import {
 import { IPortalOptions } from "../Portal/Portal";
 
 export interface IMenuProperties extends IPopupProperties {
-    title?: string;            // Not used in the menu itself, but as the menu item title in a menu bar.
-    icon?: string;             // Ditto.
-    orientation?: Orientation; // Vertical for normal menus, horizontal for menubars.
+    /** Not used in the menu itself, but as the menu item title in a menu bar. */
+    title?: string;
 
-    // Called for all menu item clicks (even for nested items). Return true to close this menu afterwards.
+    /** Not used in the menu itself, but as the menu item icon in a menu bar. */
+    icon?: string;
+
+    /** Vertical for normal menus, horizontal for menubars. */
+    orientation?: Orientation;
+
+    /** Called for all menu item clicks (even for nested items). Return true to close this menu afterwards. */
     onItemClick?: (e: React.MouseEvent, props: IMenuItemProperties, payload: unknown) => boolean;
-    onMenuBack?: () => void; // Called if the user decided to go back to the previous menu (if there's one).
+
+    /** Called if the user decided to go back to the previous menu (if there's one). */
+    onMenuBack?: () => void;
 }
 
 interface IMenuState extends IComponentState {

@@ -324,8 +324,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                         <Label>Linear indeterminate</Label>
                         <ProgressIndicator
                             linear={true}
-                            indicatorWidth={180}
-                            indicatorHeight={5} />
+                            indicatorWidth={180} />
                     </GridCell>
                     <GridCell orientation={Orientation.TopDown}>
                         <Label>Circular determinate (33%)</Label>

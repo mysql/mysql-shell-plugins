@@ -39,7 +39,8 @@
     flex: auto;
 }
 
-.msg.dropdown > .container > .icon {
+.msg.dropdown > .container > .icon,
+.msg.dropdown > .container > .image {
     height: 20px;
     width: 20px;
 }
@@ -162,7 +163,7 @@
     margin: 2px 0;
 }
 
-.msg.dropdownList > .dropdownDescription{
+.msg.dropdownList > .dropdownDescription {
     min-height: 15px;
     margin: 4px;
 }

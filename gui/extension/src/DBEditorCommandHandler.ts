@@ -28,6 +28,7 @@ import { window, commands, ExtensionContext, TextEditor, workspace, Uri } from "
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 
 import {
+    ConnectionMySQLTreeItem,
     ConnectionsTreeBaseItem,
     ConnectionsTreeDataProvider, ConnectionTreeItem, IConnectionEntry, SchemaEventTreeItem, SchemaMySQLTreeItem,
     SchemaRoutineTreeItem, SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem,
@@ -36,11 +37,12 @@ import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
 import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
-import { IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
+import { EditorLanguage, INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
 import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-editor";
 
 import { CodeBlocks } from "./CodeBlocks";
 import { uuid } from "../../frontend/src/utilities/helpers";
+import { DBType } from "../../frontend/src/supplement/ShellInterface";
 
 // A class to handle all DB editor related commands and jobs.
 export class DBEditorCommandHandler {
@@ -62,6 +64,7 @@ export class DBEditorCommandHandler {
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("editorRunQuery", this.editorRunQuery);
         requisitions.register("editorSaveScript", this.editorSaveScript);
+        requisitions.register("createNewScript", this.editorCreateNewScript);
 
         context.subscriptions.push(commands.registerCommand("msg.refreshConnections", () => {
             void requisitions.execute("refreshConnections", undefined);
@@ -224,6 +227,7 @@ export class DBEditorCommandHandler {
                                     scriptId: uuid(),
                                     name,
                                     content,
+                                    language: "sql", // TODO: derive language from URI.
                                 };
 
                                 let scripts = this.openScripts.get(provider);
@@ -241,6 +245,82 @@ export class DBEditorCommandHandler {
                 }
             }
         }));
+
+        context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk",
+            (item?: ConnectionMySQLTreeItem) => {
+                if (item) {
+                    void window.showOpenDialog({
+                        title: "Select the script file to load to MySQL Shell",
+                        openLabel: "Select Script File",
+                        canSelectFiles: true,
+                        canSelectFolders: false,
+                        canSelectMany: false,
+                        filters: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            SQL: ["sql", "mysql"], TypeScript: ["ts"], JavaScript: ["js"],
+                        },
+                    }).then(async (value) => {
+                        if (value && value.length === 1) {
+                            const uri = value[0];
+                            const stat = await workspace.fs.stat(uri);
+
+                            if (stat.size >= 10000000) {
+                                await window.showInformationMessage(`The file "${uri.fsPath}" ` +
+                                    `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                            } else {
+                                await workspace.fs.readFile(uri).then((value) => {
+                                    const content = value.toString();
+                                    const provider = this.currentProvider;
+
+                                    if (provider) {
+                                        let language: EditorLanguage = "mysql";
+                                        const name = basename(uri.fsPath);
+                                        const ext = name.substring(name.lastIndexOf(".") ?? 0);
+                                        switch (ext) {
+                                            case ".ts": {
+                                                language = "typescript";
+                                                break;
+                                            }
+
+                                            case ".js": {
+                                                language = "javascript";
+                                                break;
+                                            }
+
+                                            case ".sql": {
+                                                if (item.entry.details.dbType === DBType.Sqlite) {
+                                                    language = "sql";
+                                                }
+
+                                                break;
+                                            }
+
+                                            default:
+                                        }
+
+                                        const details: IScriptRequest = {
+                                            scriptId: uuid(),
+                                            name,
+                                            content,
+                                            language,
+                                        };
+
+                                        let scripts = this.openScripts.get(provider);
+                                        if (!scripts) {
+                                            scripts = new Map();
+                                            this.openScripts.set(provider, scripts);
+                                        }
+                                        scripts.set(details.scriptId, uri);
+
+                                        void provider.editScriptInNotebook(item.entry.details.caption,
+                                            String(item.entry.details.id), details);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
             (item?: OciDbSystemTreeItem) => {
@@ -276,6 +356,7 @@ export class DBEditorCommandHandler {
                         return provider.runScript(connection.details.caption, String(connection.details.id), {
                             scriptId: uuid(),
                             content: sql,
+                            language: "sql",
                         });
                     }
                 }
@@ -365,13 +446,90 @@ export class DBEditorCommandHandler {
             if (scripts) {
                 const uri = scripts.get(details.scriptId);
                 if (uri) {
-                    const buffer = Buffer.from(details.content, "utf-8");
-                    void workspace.fs.writeFile(uri, buffer);
+                    if (uri.scheme === "untitled") {
+                        // The user has to select a target file.
+                        const filters: { [key: string]: string[] } = {};
+
+                        switch (details.language) {
+                            case "mysql": {
+                                filters.SQL = ["mysql", "sql"];
+                                break;
+                            }
+
+                            case "sql": {
+                                filters.SQL = ["sql"];
+                                break;
+                            }
+
+                            case "typescript": {
+                                filters.TypeScript = ["ts"];
+                                break;
+                            }
+
+                            case "javascript": {
+                                filters.JavaScript = ["js"];
+                                break;
+                            }
+
+                            default:
+                        }
+
+                        void window.showSaveDialog({
+                            title: "Save Script File",
+                            filters,
+                        }).then((value: Uri) => {
+                            if (value) {
+                                scripts.set(details.scriptId, value);
+                                void provider.renameFile({
+                                    scriptId: details.scriptId,
+                                    name: basename(value.fsPath),
+                                    language: details.language,
+                                    content: details.content,
+                                });
+
+                                const buffer = Buffer.from(details.content, "utf-8");
+                                void workspace.fs.writeFile(value, buffer);
+                            }
+                        });
+                    } else {
+                        const buffer = Buffer.from(details.content, "utf-8");
+                        void workspace.fs.writeFile(uri, buffer);
+                    }
                 }
             }
         }
 
         return Promise.resolve(true);
+    };
+
+    private editorCreateNewScript = (request: INewScriptRequest): Promise<boolean> => {
+        return new Promise((resolve) => {
+            void workspace.openTextDocument({ language: request.language, content: request.content })
+                .then((document) => {
+                    const provider = this.currentProvider;
+
+                    if (provider) {
+                        const name = basename(document.fileName);
+                        const details: IScriptRequest = {
+                            scriptId: uuid(),
+                            name,
+                            content: document.getText(),
+                            language: request.language,
+                        };
+
+                        let scripts = this.openScripts.get(provider);
+                        if (!scripts) {
+                            scripts = new Map();
+                            this.openScripts.set(provider, scripts);
+                        }
+                        scripts.set(details.scriptId, document.uri);
+
+                        void provider.editScriptInNotebook("", request.page, details);
+                    }
+
+                    resolve(true);
+                });
+        });
     };
 
     /**
