@@ -831,7 +831,7 @@
                 },
                 {
                     "command": "msg.loadScriptFromDisk",
-                    "when": "view == msg.connections",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
                     "group": "5_msg@1"
                 },
                 {
