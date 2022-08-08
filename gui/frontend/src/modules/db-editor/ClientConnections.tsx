@@ -119,6 +119,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     private hideSleepingConnections = true;
     private noFullInfo = false;
     private hideBackgroundThreads = true;
+    private gotPerformanceSchema = false;
 
     public constructor(props: IClientConnectionsProperties) {
         super(props);
@@ -136,7 +137,17 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             waitingText: "This connection is not waiting for any locks.",
         };
 
-        this.updateValues();
+        this.checkIsPsAvailable()
+            .then((val: boolean) => {
+                if (val) {
+                    this.gotPerformanceSchema = true;
+                    this.updateValues();
+                }
+            })
+            .catch((error) => {
+                void requisitions.execute("showError",
+                    ["Loading Error", "Cannot load performance schema:", String(error)]);
+            });
         this.addHandledProperties("backend");
     }
 
@@ -562,17 +573,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
 
     private updateValues = (): void => {
-
-        this.checkIsPsAvailable()
-            .then((val: boolean) => {
-                if (val) {
-                    this.updateProcessList();
-                }
-            })
-            .catch((error) => {
-                void requisitions.execute("showError",
-                    ["Loading Error", "Cannot load performance schema:", String(error)]);
-            });
+        if (this.gotPerformanceSchema) {
+            this.updateProcessList();
+        }
     };
 
     private checkIsPsAvailable = (): Promise<boolean> => {
@@ -584,7 +587,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                     if (event.data.result.rows?.[0]) {
                         resolve(true);
                     } else {
-                        resolve(true);
+                        resolve(false);
                     }
                 }
             }).catch(() => {
@@ -595,7 +598,18 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
     private updateProcessList = (): void => {
         const { backend } = this.props;
-        const { globalStatus } = this.state;
+        const { globalStatus, version } = this.state;
+
+        if (!version) {
+            backend.execute("show variables where VARIABLE_NAME like '%version_comment%'")
+                .then((event: ICommResultSetEvent) => {
+                    if (event.eventType === EventType.FinalResponse) {
+                        const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
+                        const value = `${values.get("version_comment") ?? "none"}`;
+                        this.setState({ version: value });
+                    }
+                });
+        }
 
         const cols: string[] = [];
         columnNameMap.forEach((_value, key) => {
@@ -641,16 +655,6 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                 this.setState({ resultSet, gotResponse: true });
             }
         });
-
-        backend.execute("show variables where VARIABLE_NAME like '%version_comment%'")
-            .then((event: ICommResultSetEvent) => {
-                if (event.eventType === EventType.FinalResponse) {
-                    const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
-                    const version = `${values.get("version_comment") ?? "none"}`;
-
-                    this.setState({ version });
-                }
-            });
 
         backend.execute("show global status").then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
