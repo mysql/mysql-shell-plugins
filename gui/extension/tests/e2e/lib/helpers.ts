@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import {
+    VSBrowser,
     WebDriver,
     WebElement,
     By,
@@ -36,6 +37,7 @@ import {
     TitleBar,
     OutputView,
     TitleBarItem,
+    Key as selKey,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { keyboard, Key } from "@nut-tree/nut-js";
@@ -129,6 +131,30 @@ export interface IDbConnection {
     schema: string;
     password: string;
 }
+
+export const getDriver = async (): Promise<WebDriver | undefined> => {
+    let browser: VSBrowser;
+    let driver: WebDriver;
+
+    let counter = 0;
+    while(counter <= 10) {
+        try {
+            browser = VSBrowser.instance;
+            await browser.waitForWorkbench();
+            driver = browser.driver;
+            await driver.manage().timeouts().implicitlyWait(5000);
+
+            return driver;
+        } catch(e) {
+            if (e instanceof Error) {
+                if (e.message.indexOf("target frame detached") === -1) {
+                    throw new Error(String(e.stack));
+                }
+                counter++;
+            }
+        }
+    }
+};
 
 export const getLeftSection = async (driver: WebDriver, name: string): Promise<WebElement> => {
     // eslint-disable-next-line no-useless-escape
@@ -277,6 +303,7 @@ export const isJson = (text: string): boolean => {
 export const getLeftSectionButton = async (driver: WebDriver,
     sectionName: string,
     buttonName: string): Promise<WebElement> => {
+
     const section = await getLeftSection(driver, sectionName);
     expect(section).to.exist;
     await section.click();
@@ -373,10 +400,14 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConnect
     await driver.switchTo().defaultContent();
 };
 
-export const getDB = async (driver: WebDriver, name: string): Promise<WebElement> => {
-    await driver.switchTo().frame(0);
-    await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+export const getDB = async (driver: WebDriver, name: string, useFrame = true): Promise<WebElement> => {
+
+    if (useFrame) {
+        await driver.switchTo().frame(0);
+        await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+        await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+    }
+
     const db = await driver.wait(async () => {
         const hosts = await driver.findElements(By.css("#tilesHost button"));
         for (const host of hosts) {
@@ -393,7 +424,9 @@ export const getDB = async (driver: WebDriver, name: string): Promise<WebElement
         return undefined;
     }, 5000, "No DB was found");
 
-    await driver.switchTo().defaultContent();
+    if (useFrame) {
+        await driver.switchTo().defaultContent();
+    }
 
     return db!;
 };
@@ -433,10 +466,6 @@ export const startServer = async (driver: WebDriver): Promise<ChildProcess> => {
 };
 
 export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConnection): Promise<void> => {
-    await driver.switchTo().frame(0);
-    await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id("frame\\:" + dbConfig.caption)));
-
     const dialog = await driver.wait(until.elementLocated(
         By.css(".passwordDialog")), 10000, "No password dialog was found");
     const title = await dialog.findElement(By.css(".title .label"));
@@ -460,14 +489,10 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConnec
 
     await dialog.findElement(By.css("input")).sendKeys(dbConfig.password);
     await dialog.findElement(By.id("ok")).click();
-    await driver.switchTo().defaultContent();
 };
 
 export const setFeedbackRequested = async (driver: WebDriver,
     dbConfig: IDbConnection, value: string): Promise<void> => {
-    await driver.switchTo().frame(0);
-    await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id("frame\\:" + dbConfig.caption)));
 
     const feedbackDialog = await driver.wait(until.elementLocated(
         By.css(".valueEditDialog")), 5000, "Feedback Requested dialog was not found");
@@ -481,7 +506,6 @@ export const setFeedbackRequested = async (driver: WebDriver,
 
     await feedbackDialog.findElement(By.css("input")).sendKeys(value);
     await feedbackDialog.findElement(By.id("ok")).click();
-    await driver.switchTo().defaultContent();
 };
 
 export const toggleTreeElement = async (driver: WebDriver, section: string,
@@ -498,7 +522,7 @@ export const toggleTreeElement = async (driver: WebDriver, section: string,
 
             return true;
         }
-    }, 3000, `${section} > ${el} was not toggled`);
+    }, 5000, `${section} > ${el} was not toggled`);
 };
 
 export const hasTreeChildren = async (driver: WebDriver, section: string,
@@ -648,26 +672,13 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
     }
 };
 
-const existsAboutInformation = async (driver: WebDriver): Promise<boolean> => {
-    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-    const span = await zoneHosts[0].findElements(By.css("span"));
-    let flag = false;
-    if (span.length > 0) {
-        if ((await span[0].getText()).indexOf("Welcome") !== -1) {
-            flag = true;
-        }
-    }
-
-    return flag;
-};
-
-export const getOutput = async (driver: WebDriver, blockNbr: number): Promise<string> => {
+export const getOutput = async (driver: WebDriver, penultimate?: boolean): Promise<string> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     let context;
-    if (await existsAboutInformation(driver)) {
-        context = zoneHosts[blockNbr]; //first element is the about information
+    if (penultimate) {
+        context = zoneHosts[zoneHosts.length - 2];
     } else {
-        context = zoneHosts[blockNbr - 1];
+        context = zoneHosts[zoneHosts.length - 1];
     }
 
     let items = await context.findElements(By.css("label"));
@@ -677,7 +688,7 @@ export const getOutput = async (driver: WebDriver, blockNbr: number): Promise<st
     if (items.length > 0) {
         text = await items[0].getText();
     } else if (otherItems.length > 0) {
-        text = await otherItems[0].getText();
+        text = await otherItems[otherItems.length - 1].getText();
     } else {
         items = await context.findElements(By.css(".info"));
         text = await items[0].getText();
@@ -693,7 +704,7 @@ export const setEditorLanguage = async (driver: WebDriver, language: string): Pr
 
     const textArea = await contentHost.findElement(By.css("textarea"));
     await enterCmd(driver, textArea, "\\" + language.replace("my", ""));
-    const result = await getOutput(driver, 1);
+    const result = await getOutput(driver);
     switch (language) {
         case "sql":
             expect(result).to.contain("Switching to SQL mode");
@@ -904,7 +915,7 @@ export const isCertificateInstalled = async (driver: WebDriver): Promise<boolean
             return false;
         }
 
-    }, 20000, "Could not retrieve the logs to verify certificate installation");
+    }, 30000, "Could not retrieve the logs to verify certificate installation");
 
     const text = await outputView.getText();
     let flag: boolean;
@@ -979,5 +990,342 @@ export const postActions = async (driver: WebDriver, testContext: Mocha.Context)
                 }
             }
         }
+    }
+};
+
+export const isDBConnectionSuccessful = async (driver: WebDriver, connection: string): Promise<boolean> => {
+    await driver.switchTo().defaultContent();
+    const edView = new EditorView();
+    const editors = await edView.getOpenEditorTitles();
+    expect(editors).to.include(connection);
+
+    await driver.switchTo().frame(0);
+    await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
+    await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+
+    expect(await driver.findElement(By.css(".zoneHost"))).to.exist;
+
+    return true;
+};
+
+export const closeDBconnection = async (driver: WebDriver, name: string): Promise<void> => {
+    await driver.switchTo().defaultContent();
+    const edView = new EditorView();
+    const editors = await edView.getOpenEditorTitles();
+    for(const editor of editors) {
+        if (editor === name) {
+            await edView.closeEditor(editor);
+            break;
+        }
+    }
+};
+
+export const setConfirmDialog = async (driver: WebDriver, dbConfig: IDbConnection, value: string): Promise<void> => {
+
+    await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
+        500, "No confirm dialog was found");
+
+    const confirmDialog = await driver.findElement(By.css(".confirmDialog"));
+
+    expect(await confirmDialog.findElement(By.css(".title label")).getText()).to.equals("Confirm");
+
+    expect(await confirmDialog.findElement(By.id("dialogMessage")).getText())
+        .to.contain(
+            `Save password for '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}'?`);
+
+    const noBtn = await confirmDialog.findElement(By.id("refuse"));
+    const yesBtn = await confirmDialog.findElement(By.id("accept"));
+    const neverBtn = await confirmDialog.findElement(By.id("alternative"));
+
+    switch (value) {
+        case "yes":
+            await yesBtn.click();
+            break;
+        case "no":
+            await noBtn.click();
+            break;
+        case "never":
+            await neverBtn.click();
+            break;
+        default:
+            break;
+    }
+};
+
+export const selectDatabaseType = async (driver: WebDriver, value: string): Promise<void> => {
+    await driver.findElement(By.id("databaseType")).click();
+    const dropDownList = await driver.findElement(By.css(".dropdownList"));
+    const els = await dropDownList.findElements(By.css("div"));
+    if (els.length > 0) {
+        await dropDownList.findElement(By.id(value)).click();
+    }
+};
+
+export const getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
+    const buttons = await driver.findElements(By.css("#contentHost button"));
+    for (const btn of buttons) {
+        if ((await btn.getAttribute("data-tooltip")) === button) {
+            return btn;
+        }
+    }
+
+    return undefined;
+};
+
+export const writeSQL = async (driver: WebDriver, sql: string): Promise<void> => {
+    const textArea = await driver.findElement(By.css("textarea"));
+    await textArea.sendKeys(sql);
+    try {
+        await driver.wait(until.elementLocated(By.css("div.contents")), 500, "none");
+    } catch (e) {
+        return;
+    }
+    await textArea.sendKeys(selKey.ENTER);
+};
+
+export const findInSelection = async (el: WebElement, flag: boolean): Promise<void> => {
+    const actions = await el.findElements(By.css(".find-actions div"));
+    for (const action of actions) {
+        if ((await action.getAttribute("title")).indexOf("Find in selection") !== -1) {
+            const checked = await action.getAttribute("aria-checked");
+            if (checked === "true") {
+                if (!flag) {
+                    await action.click();
+                }
+            } else {
+                if (flag) {
+                    await action.click();
+                }
+            }
+
+            return;
+        }
+    }
+};
+
+export const expandFinderReplace = async (el: WebElement, flag: boolean): Promise<void> => {
+    const divs = await el.findElements(By.css("div"));
+    for (const div of divs) {
+        if ((await div.getAttribute("title")) === "Toggle Replace") {
+            const expanded = await div.getAttribute("aria-expanded");
+            if (flag) {
+                if (expanded === "false") {
+                    await div.click();
+                }
+            } else {
+                if (expanded === "true") {
+                    await div.click();
+                }
+            }
+        }
+    }
+};
+
+export const replacerGetButton = async (el: WebElement, button: string): Promise<WebElement | undefined> => {
+    const replaceActions = await el.findElements(
+        By.css(".replace-actions div"),
+    );
+    for (const action of replaceActions) {
+        if ((await action.getAttribute("title")).indexOf(button) !== -1) {
+            return action;
+        }
+    }
+};
+
+export const closeFinder = async (el: WebElement): Promise<void> => {
+    const actions = await el.findElements(By.css(".find-actions div"));
+    for (const action of actions) {
+        if ((await action.getAttribute("title")).indexOf("Close") !== -1) {
+            await action.click();
+        }
+    }
+};
+
+export const getResultTab = async (driver: WebDriver, tabName: string): Promise<WebElement | undefined> => {
+    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+    const tabs = await zoneHosts[zoneHosts.length-1].findElements(By.css(".resultHost .tabArea div"));
+
+    for (const tab of tabs) {
+        if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
+            await tab.getAttribute("id") !== "selectorItemstepUp") {
+            if (await (await tab.findElement(By.css("label"))).getText() === tabName) {
+
+                return tab;
+            }
+        }
+    }
+};
+
+export const getResultColumnName = async (driver: WebDriver, columnName: string,
+    retry?: number): Promise<WebElement | undefined> => {
+    if (!retry) {
+        retry = 0;
+    } else {
+        if (retry === 2) {
+            throw new Error("Max retries for getting column name was reached");
+        }
+    }
+    try {
+        const resultHosts = await driver.findElements(By.css(".resultHost"));
+        const resultSet = await resultHosts[resultHosts.length-1].findElement(
+            By.css(".tabulator-headers"),
+        );
+
+        const resultHeaderRows = await resultSet.findElements(
+            By.css(".tabulator-col-title"),
+        );
+
+        for (const row of resultHeaderRows) {
+            if (await row.getText() === columnName) {
+                return row;
+            }
+        }
+    } catch (e) {
+        if (e instanceof Error) {
+            if (e.message.indexOf("stale") === -1) {
+                throw e;
+            }
+        } else {
+            await getResultColumnName(driver, columnName, retry + 1);
+        }
+    }
+};
+
+const getEditorLanguage = async (driver: WebDriver): Promise<string> => {
+    const editors = await driver.findElements(By.css(".editorPromptFirst"));
+    const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
+
+    return editorClasses[2].replace("my", "");
+};
+
+export const setDBEditorLanguage = async (driver: WebDriver, language: string): Promise<void> => {
+    const curLang = await getEditorLanguage(driver);
+    if (curLang !== language) {
+        const contentHost = await driver.findElement(By.id("contentHost"));
+        const textArea = await contentHost.findElement(By.css("textarea"));
+        await enterCmd(driver, textArea, "\\" + language.replace("my", ""));
+        const results = await driver.findElements(By.css(".message.info"));
+        switch (language) {
+            case "sql":
+                expect(await results[results.length-1].getText()).equals("Switched to MySQL mode");
+                break;
+            case "js":
+                expect(await results[results.length-1].getText()).equals("Switched to JavaScript mode");
+                break;
+            case "ts":
+                expect(await results[results.length-1].getText()).equals("Switched to TypeScript mode");
+                break;
+            default:
+                break;
+        }
+    }
+};
+
+export const getResultStatus = async (driver: WebDriver, isSelect?: boolean): Promise<string> => {
+    let results: WebElement[] | undefined;
+    let obj = "";
+    if (isSelect) {
+        obj = "label";
+    } else {
+        obj = "span";
+    }
+    await driver.wait(
+        async (driver) => {
+            results = await driver.findElements(By.css(".zoneHost"));
+            const about = await results[0].findElement(By.css("span"));
+            //first element is usually the about info
+            if ((await about.getText()).indexOf("Welcome") !== -1) {
+                results.shift();
+            }
+            if (results.length > 0) {
+                if ((await results[0].findElements(By.css(".message.info"))).length > 0) {
+                    //if language has been changed...
+                    results.shift();
+                }
+            } else {
+                return false;
+            }
+
+            return results[results.length - 1] !== undefined;
+        },
+        10000,
+        `Result Status is undefined`,
+    );
+
+    const block = await results![results!.length - 1].findElement(By.css(obj));
+
+    return block.getAttribute("innerHTML");
+};
+
+export const clickContextMenuItem = async (driver:WebDriver, refEl: WebElement, item: string): Promise<void> => {
+
+    await driver.wait(async () => {
+        await refEl.click();
+        await driver.actions().click(Button.RIGHT).perform();
+
+        try {
+            const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+            shadowRoot.querySelector("span[aria-label='${item}']")`);
+
+            return el !== undefined;
+        } catch(e) {
+            return false;
+        }
+
+    }, 5000,
+    "Context menu was not displayed");
+
+    const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+            shadowRoot.querySelector("span[aria-label='${item}']")`);
+
+    await driver.wait(async () => {
+        try {
+            await el.click();
+        } catch(e) {
+            if (String(e).indexOf("StaleElementReferenceError") !== -1) {
+                return true;
+            }
+        }
+
+    }, 3000 ,"Context menu is still displayed");
+};
+
+export const getGraphHost = async (driver: WebDriver): Promise<WebElement> => {
+    const resultHosts = await driver.findElements(By.css(".zoneHost"));
+    const lastResult = resultHosts[resultHosts.length - 1];
+
+    return driver.wait(async () => {
+        return lastResult.findElement(By.css(".graphHost"));
+    }, 10000, "Pie Chart was not displayed");
+};
+
+export const hasNewPrompt = async (driver: WebDriver): Promise<boolean | undefined> => {
+    let text: String;
+    try {
+        const prompts = await driver.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+        const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
+        text = await lastPrompt.getText();
+    } catch(e) {
+        if (String(e).indexOf("StaleElementReferenceError") === -1) {
+            throw new Error(String(e.stack));
+        } else {
+            await driver.sleep(500);
+            const prompts = await driver.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+            const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
+            text = await lastPrompt.getText();
+        }
+    }
+
+    return String(text).length === 0;
+};
+
+export const getLastQueryResultId = async (driver: WebDriver): Promise<number> => {
+    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+    if(zoneHosts.length > 0) {
+        const zones = await driver.findElements(By.css(".zoneHost"));
+
+        return parseInt((await zones[zones.length-1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
+    } else {
+        return 0;
     }
 };

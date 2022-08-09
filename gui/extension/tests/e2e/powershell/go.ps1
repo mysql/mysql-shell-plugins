@@ -142,6 +142,8 @@ try{
         $env:EXTENSION_PUSH_ID = "latest"
     }
 
+    writeMsg("EXTENSION_PUSH_ID: $env:EXTENSION_PUSH_ID")
+    writeMsg("EXTENSION_BRANCH: $env:EXTENSION_BRANCH")
     $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
     $bundles = $bundles | ConvertFrom-Json
     $extension = ($bundles.builds | Where-Object {
