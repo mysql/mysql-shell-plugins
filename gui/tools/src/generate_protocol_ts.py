@@ -182,9 +182,11 @@ method_enums = {
 
 
 class PythonParamToJavascript:
-    def __init__(self, param, function_name, plugin_name):
+    def __init__(self, param, function_name, plugin_name, is_option=False):
         self.function_name = function_name
         self.plugin_name = plugin_name
+        self.is_option = is_option
+        self.is_required = param.get("required", False)
 
         self.python_name = param['name']
 
@@ -264,13 +266,17 @@ class PythonParamToJavascript:
     @property
     def javascript_type(self):
         "The type name in javascript"
+        optional_type = ""
+        if self.is_option and self.is_required:
+            optional_type = " | undefined"
+
         override = self.get_js_override(self.python_name, self.python_type)
 
         if not override is None and "type" in override:
-            return override["type"]
+            return override["type"] + optional_type
 
         if self.python_type in ["integer", "float"]:
-            return "number"
+            return "number" + optional_type
         if self.python_type in ["dictionary"]:
             if self.options is not None and len(self.options) > 0:
                 return self.interface_name
@@ -278,15 +284,15 @@ class PythonParamToJavascript:
             if not "IShellDictionary" in plugin_imports[self.plugin_name]:
                 plugin_imports[self.plugin_name].append("IShellDictionary")
 
-            return "IShellDictionary"
+            return "IShellDictionary" + optional_type
         if self.python_type in ["bool"]:
-            return "boolean"
+            return "boolean" + optional_type
         if self.python_type in ["array"]:
-            return "unknown[]"
+            return "unknown[]" + optional_type
         if self.python_type in ["string"]:
-            return "string"
+            return "string" + optional_type
         if self.python_type in ["object"]:
-            return "object"
+            return "object" + optional_type
         raise Exception("Documentation type is invalid: " + self.python_type)
 
     @property
@@ -376,7 +382,7 @@ class PythonParamToJavascript:
     def get_interface_parameter(self, option):
         "Generate the parameter when defining the new javascript interface"
         param = PythonParamToJavascript(
-            option, self.function_name, self.plugin_name)
+            option, self.function_name, self.plugin_name, is_option=True)
         separator = ":" if 'required' in option else "?:"
 
         return f"{param.javascript_name}{separator} {param.javascript_type};"
