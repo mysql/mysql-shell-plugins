@@ -309,7 +309,7 @@ export const getLeftSectionButton = async (driver: WebDriver,
     await section.click();
 
     let btn: WebElement | undefined;
-    const buttons = await section.findElements(By.css(".actions a"));
+    const buttons = await section.findElements(By.css(".actions li"));
     for (const button of buttons) {
         const title = await button.getAttribute("title");
         if (title === buttonName) {
