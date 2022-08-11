@@ -462,7 +462,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 };
                             });
                             columns.push(...generateColumnInfo(
-                                context.language === "mysql" ? DBType.MySQL : DBType.Sqlite, rawColumns));
+                                context.language === "mysql" ? DBType.MySQL : DBType.Sqlite, rawColumns, true));
                         } else if (this.isShellShellRowData(result)) {
                             // Some APIs return rows, which are not result sets (have no keys). Print them
                             // as simple results.
