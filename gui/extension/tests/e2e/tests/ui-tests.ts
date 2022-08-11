@@ -605,7 +605,6 @@ describe("MySQL Shell for VS Code", () => {
             await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
             await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
 
-            await setEditorLanguage(driver!, "sql");
             editor = await driver!.findElement(By.id("shellEditorHost"));
 
             await driver!.executeScript(
@@ -765,7 +764,6 @@ describe("MySQL Shell for VS Code", () => {
             await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
             await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
 
-            await setEditorLanguage(driver!, "sql");
             editor = await driver!.findElement(By.id("shellEditorHost"));
 
             await driver!.executeScript(
@@ -956,7 +954,6 @@ describe("MySQL Shell for VS Code", () => {
             await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
             await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
 
-            await setEditorLanguage(driver!, "sql");
             editor = await driver!.findElement(By.id("shellEditorHost"));
 
             await driver!.executeScript(
@@ -1294,7 +1291,13 @@ describe("MySQL Shell for VS Code", () => {
                 }
             }
 
-            const sqlite = join(homedir(), ".mysqlsh-gui", "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3");
+            let sqlite = "";
+            if (platform() === "darwin") {
+                sqlite = join(homedir(), ".mysqlsh-gui", "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3");
+            } else {
+                sqlite = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui",
+                    "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3");
+            }
 
             await dbPath!.sendKeys(sqlite);
             await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
