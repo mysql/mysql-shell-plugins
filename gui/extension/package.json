@@ -135,7 +135,7 @@
                 },
                 "msg.editor.dbVersion": {
                     "type": "string",
-                    "default": "8.0.29",
+                    "default": "8.0.30",
                     "description": "The default version to be used for MySQL language support, if no version is available."
                 },
                 "msg.editor.sqlMode": {

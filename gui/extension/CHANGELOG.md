@@ -1,10 +1,16 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.3.2+8.0.29
+## Changes in 1.3.2+8.0.30
 
 ### Fixes
 
+- Improved PieGraph result rendering.
+- Fixed deletion of database connections.
+- Fixed load of SQL connections in github codespaces.
+
 ### Additions
+
+- Upgraded shell to 8.0.30
 
 ## Changes in 1.3.1+8.0.29
 
