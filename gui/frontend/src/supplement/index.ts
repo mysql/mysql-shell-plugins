@@ -120,11 +120,12 @@ export type ValueType<T> = T extends string
  *
  * @param dbType Determines for which DB type the conversion happens (MySQL, SQLite and so on).
  * @param rawColumns Column info as returned by the backend.
+ * @param useName Use column name not index.
  *
  * @returns A list of columns with RDBMS-agnostic details.
  */
-export const generateColumnInfo = (dbType: DBType,
-    rawColumns?: Array<{ name: string; type: string; length: number }>): IColumnInfo[] => {
+export const generateColumnInfo = (dbType: DBType, rawColumns?: Array<{ name: string; type: string; length: number }>,
+    useName?: boolean): IColumnInfo[] => {
     if (!rawColumns) {
         return [];
     }
@@ -147,7 +148,7 @@ export const generateColumnInfo = (dbType: DBType,
 
         return {
             title: entry.name,
-            field: String(index),
+            field: useName ? entry.name : String(index),
             dataType: {
                 type,
             },
