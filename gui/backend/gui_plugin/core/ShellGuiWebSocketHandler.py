@@ -650,10 +650,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         f'The function {cmd} needs a module_session_id '
                         'argument set to a DbSession.')
 
-                if cmd.startswith('gui.db.'):
+                if found_objects[0] == 'gui':
                     kwargs.update({"session": db_module_session})
                 else:
                     kwargs.update({"session": db_module_session.session})
+
                 del kwargs['module_session_id']
 
             module_session = None
@@ -689,8 +690,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             else:
                 if cmd.startswith('gui.db.') \
                         or cmd in ['gui.sqleditor.open_connection', 'gui.sqleditor.start_session',
-                                    'gui.sqleditor.close_session', 'gui.dbconnections.test_connection',
-                                    'gui.sqleditor.reconnect']:
+                                   'gui.sqleditor.close_session', 'gui.dbconnections.test_connection',
+                                   'gui.sqleditor.reconnect']:
                     thread = RequestHandler(
                         request_id, func, kwargs, self, False)
                     thread.start()
