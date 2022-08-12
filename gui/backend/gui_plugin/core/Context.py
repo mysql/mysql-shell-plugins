@@ -20,8 +20,10 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import threading
+from typing import Union
 
-def get_context() -> threading.local | None:
+
+def get_context() -> Union[threading.local, None]:
     current_thread = threading.current_thread()
     if hasattr(current_thread, "get_context"):
         return current_thread.get_context()
