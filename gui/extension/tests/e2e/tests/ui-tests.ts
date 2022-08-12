@@ -354,6 +354,7 @@ describe("MySQL Shell for VS Code", () => {
             await postActions(driver!, this);
 
             await driver!.switchTo().defaultContent();
+            await toggleTreeElement(driver!, "DATABASE", conn.caption, false);
             await toggleSection(driver!, "DATABASE", true);
             await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", false);
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", false);
@@ -1303,20 +1304,21 @@ describe("MySQL Shell for VS Code", () => {
             await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
             await newConDialog.findElement(By.id("ok")).click();
 
-            const conn = await getDB(driver!, conName, false);
-            expect(conn).to.exist;
-            expect(await conn.findElement(By.css(".tileDescription")).getText()).to.equals(
+            const sqliteConn = await getDB(driver!, conName, false);
+            expect(sqliteConn).to.exist;
+            expect(await sqliteConn.findElement(By.css(".tileDescription")).getText()).to.equals(
                 "Local Sqlite connection",
             );
 
             await driver!.executeScript(
                 "arguments[0].click();",
-                conn,
+                sqliteConn,
             );
 
             expect(await isDBConnectionSuccessful(driver!, conName)).to.be.true;
 
             await driver!.switchTo().defaultContent();
+            await toggleTreeElement(driver!, "DATABASE", conn.caption, true);
             await toggleTreeElement(driver!, "DATABASE", conName, true);
             await toggleTreeElement(driver!, "DATABASE", "main", true);
             await toggleTreeElement(driver!, "DATABASE", "Tables", true);
@@ -1416,7 +1418,6 @@ describe("MySQL Shell for VS Code", () => {
             expect( await resultHost.findElement(By.xpath("//div[contains(text(), 'TLS_AES_256')]")) ).to.exist;
         });
 
-
     });
 
     describe("DB Editor tests - SQL", () => {
@@ -1500,6 +1501,67 @@ describe("MySQL Shell for VS Code", () => {
             expect(items[0]).to.contain("testing");
             expect(items[1]).to.contain("testing");
             expect(items[2]).to.contain("testing");
+
+        });
+
+        it("Using a DELIMITER", async () => {
+
+            await setDBEditorLanguage(driver!, "sql");
+
+            let text = `
+                DELIMITER $$
+                    select 2 $$
+                select 1
+                `;
+
+            text = text.trim();
+            await writeSQL(driver!, text);
+
+            await driver!.wait(async () => {
+                return (await driver!.findElements(By.css(".statementStart"))).length > 1;
+            }, 5000, "No blue dots were found");
+
+            const lines = await driver!.findElements(By
+                .css("#contentHost .editorHost div.margin-view-overlays > div"));
+
+            expect(await lines[lines.length-1].findElement(By.css(".statementStart"))).to.exist;
+            expect(await lines[lines.length-2].findElement(By.css(".statementStart"))).to.exist;
+            expect(await lines[lines.length-3].findElement(By.css(".statementStart"))).to.exist;
+
+            const contentHost = await driver!.findElement(By.id("contentHost"));
+            const textArea = await contentHost.findElement(By.css("textarea"));
+            await textArea.sendKeys(Key.ARROW_UP);
+            await textArea.sendKeys(Key.ARROW_UP);
+            await textArea.sendKeys(Key.ENTER);
+
+            await driver!.wait(async () => {
+                return (await driver!.findElements(
+                    By.css("#contentHost .editorHost div.margin-view-overlays > div"))).length > lines.length;
+            }, 10000, "A new line was not found");
+
+            await driver!.wait(async () => {
+                try {
+                    const lines = await driver!.findElements(
+                        By.css("#contentHost .editorHost div.margin-view-overlays > div"));
+
+                    return (await lines[lines.length-2].findElements(By.css(".statementStart"))).length === 0;
+                } catch (e) {
+                    return false;
+                }
+            }, 5000, "Line 2 has the statement start");
+
+            await textArea.sendKeys("select 1");
+
+            await driver!.wait(async () => {
+                try {
+                    const lines = await driver!.findElements(
+                        By.css("#contentHost .editorHost div.margin-view-overlays > div"));
+
+                    return (await lines[lines.length-2].findElements(By.css(".statementStart"))).length > 0;
+                } catch (e) {
+                    return false;
+                }
+            }, 5000, "Line 2 does not have the statement start");
 
         });
 
@@ -1827,68 +1889,9 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        it("Using a DELIMITER", async () => {
+        it("Multi-line comments", async () => {
 
             await setDBEditorLanguage(driver!, "sql");
-
-            let text = `
-                DELIMITER $$
-                    select 2 $$
-                select 1
-                `;
-
-            text = text.trim();
-            await writeSQL(driver!, text);
-
-            await driver!.wait(async () => {
-                return (await driver!.findElements(By.css(".statementStart"))).length > 1;
-            }, 5000, "No blue dots were found");
-
-            const lines = await driver!.findElements(By
-                .css("#contentHost .editorHost div.margin-view-overlays > div"));
-
-            expect(await lines[lines.length-1].findElement(By.css(".statementStart"))).to.exist;
-            expect(await lines[lines.length-2].findElement(By.css(".statementStart"))).to.exist;
-            expect(await lines[lines.length-3].findElement(By.css(".statementStart"))).to.exist;
-
-            const contentHost = await driver!.findElement(By.id("contentHost"));
-            const textArea = await contentHost.findElement(By.css("textarea"));
-            await textArea.sendKeys(Key.ARROW_UP);
-            await textArea.sendKeys(Key.ARROW_UP);
-            await textArea.sendKeys(Key.ENTER);
-
-            await driver!.wait(async () => {
-                return (await driver!.findElements(
-                    By.css("#contentHost .editorHost div.margin-view-overlays > div"))).length > lines.length;
-            }, 2000, "A new line was not found");
-
-            await driver!.wait(async () => {
-                try {
-                    const lines = await driver!.findElements(
-                        By.css("#contentHost .editorHost div.margin-view-overlays > div"));
-
-                    return (await lines[lines.length-2].findElements(By.css(".statementStart"))).length === 0;
-                } catch (e) {
-                    return false;
-                }
-            }, 5000, "Line 2 has the statement start");
-
-            await textArea.sendKeys("select 1");
-
-            await driver!.wait(async () => {
-                try {
-                    const lines = await driver!.findElements(
-                        By.css("#contentHost .editorHost div.margin-view-overlays > div"));
-
-                    return (await lines[lines.length-2].findElements(By.css(".statementStart"))).length > 0;
-                } catch (e) {
-                    return false;
-                }
-            }, 5000, "Line 2 does not have the statement start");
-
-        });
-
-        it("Multi-line comments", async () => {
 
             const contentHost = await driver!.findElement(By.id("contentHost"));
 

@@ -39,6 +39,8 @@ import {
     setDBEditorPassword,
     setConfirmDialog,
     IDbConfig,
+    cleanEditor,
+    isValueOnDataSet,
 } from "../lib/helpers";
 
 const dbConfig: IDbConfig = {
@@ -74,16 +76,6 @@ describe("MySQL Shell Sessions", () => {
             await waitForHomePage(driver);
         }
         await setStartLanguage(driver, "Shell Session", "javascript");
-    });
-
-    beforeEach(async () => {
-        try {
-            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage(driver);
-        } catch (e) {
-            await driver.navigate().refresh();
-            await waitForHomePage(driver);
-        }
         await driver.findElement(By.id("gui.shell")).click();
         await openShellSession(driver);
     });
@@ -101,6 +93,10 @@ describe("MySQL Shell Sessions", () => {
             }
             await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
         }
+
+        const textArea = await driver.findElement(By.css("textArea"));
+        await enterCmd(driver, textArea, `\\d`);
+        await cleanEditor(driver);
     });
 
     afterAll(async () => {
@@ -127,8 +123,7 @@ describe("MySQL Shell Sessions", () => {
             expect(await shellGetSession(driver, "1")).toBeUndefined();
             await closeSession(driver, "2");
             expect(await shellGetSession(driver, "2")).toBeUndefined();
-            await closeSession(driver, "3");
-            expect(await shellGetSession(driver, "3")).toBeUndefined();
+            await openShellSession(driver, 3);
         } catch(e) {
             testFailed = true;
             throw e;
@@ -166,9 +161,6 @@ describe("MySQL Shell Sessions", () => {
                 `Default schema set to \`${String(dbConfig.schema)}\`.`,
             );
 
-            await enterCmd(driver, textArea, "\\q");
-
-            expect((await driver.findElements(By.id("session_1"))).length).toBe(0);
         } catch(e) {
             testFailed = true;
             throw e;
@@ -207,10 +199,6 @@ describe("MySQL Shell Sessions", () => {
             expect(result).toContain(
                 `Default schema set to \`${String(dbConfig.schema)}\`.`,
             );
-
-            await enterCmd(driver, textArea, "\\q");
-
-            expect((await driver.findElements(By.id("session_1"))).length).toBe(0);
         } catch(e) {
             testFailed = true;
             throw e;
@@ -278,9 +266,6 @@ describe("MySQL Shell Sessions", () => {
             expect(result).toContain("\\warning");
             expect(result).toContain("\\watch");
 
-            await closeSession(driver, "1");
-
-            expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
             throw e;
@@ -314,9 +299,6 @@ describe("MySQL Shell Sessions", () => {
 
             expect(await shellGetTech(editor)).toBe("javascript");
 
-            await closeSession(driver, "1");
-
-            expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
             throw e;
@@ -371,9 +353,6 @@ describe("MySQL Shell Sessions", () => {
                 new RegExp(/(\d+) rows in set/),
             );
 
-            await closeSession(driver, "1");
-
-            expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
             throw e;
@@ -425,9 +404,6 @@ describe("MySQL Shell Sessions", () => {
 
             expect(result).toContain(`"TCP_PORT":"${String(dbConfig.portX)}"`);
 
-            await closeSession(driver, "1");
-
-            expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
             throw e;
@@ -480,9 +456,6 @@ describe("MySQL Shell Sessions", () => {
 
             expect(result).toContain("&lt;Session&gt;");
 
-            await closeSession(driver, "1");
-
-            expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
             throw e;
@@ -548,9 +521,6 @@ describe("MySQL Shell Sessions", () => {
                 new RegExp(/Average throughput: (\d+).(\d+)(\d+) KB/),
             );
 
-            await closeSession(driver, "1");
-
-            expect(await shellGetSession(driver, "1")).toBeUndefined();
         } catch(e) {
             testFailed = true;
             throw e;
@@ -648,4 +618,42 @@ describe("MySQL Shell Sessions", () => {
             throw e;
         }
     });
+
+    it("Check query result content", async () => {
+        const editor = await driver.findElement(By.id("shellEditorHost"));
+
+        await driver.executeScript(
+            "arguments[0].click();",
+            await editor.findElement(By.css(".current-line")),
+        );
+
+        const textArea = await editor.findElement(By.css("textArea"));
+
+        await enterCmd(
+            driver,
+            textArea,
+                // eslint-disable-next-line max-len
+            `shell.connect('${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}')`);
+
+        const result = await shellGetResult(driver);
+
+        expect(result).toContain(
+                // eslint-disable-next-line max-len
+            `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}'`);
+
+        expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+
+        expect(result).toContain(
+            `Default schema \`${String(dbConfig.schema)}\` accessible through db`,
+        );
+
+        await enterCmd(driver, textArea, "\\sql");
+
+        await enterCmd(driver, textArea, "SHOW DATABASES;");
+
+        expect(await isValueOnDataSet(driver, "sakila")).toBe(true);
+
+        expect(await isValueOnDataSet(driver, "world_x_cst")).toBe(true);
+    });
+
 });
