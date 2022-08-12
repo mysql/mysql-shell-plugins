@@ -955,7 +955,7 @@ describe("DB Editor - Managing Connections", () => {
 
 });
 
-fdescribe("DB Editor - Core Tests", () => {
+describe("DB Editor - Core Tests", () => {
 
     let driver: WebDriver;
     let testFailed = false;
@@ -1039,17 +1039,8 @@ fdescribe("DB Editor - Core Tests", () => {
             await spans[spans.length - 1].click();
             await driver!.actions().keyUp(Key.ALT).perform();
 
-            /*await driver!.actions().sendKeys(Key.BACK_SPACE).perform();
-            await driver!.sleep(300);
-            await driver!.actions().sendKeys(Key.BACK_SPACE).perform();
-            await driver!.sleep(300);
-            await driver!.actions().sendKeys(Key.BACK_SPACE).perform();*/
             const ctx = await driver.findElement(By.css(".lines-content"));
             expect((await ctx.findElements(By.css(".current-line"))).length).toBe(3);
-
-            /*expect(await getPromptTextLine(driver, "last-2")).toBe("select * from sakila.ac;");
-            expect(await getPromptTextLine(driver, "last-1")).toBe("select * from sakila.addr;");
-            expect(await getPromptTextLine(driver, "last")).toBe("select * from sakila.ci");*/
 
             const textArea = await driver.findElement(By.css("textarea"));
             await textArea.sendKeys("testing");
@@ -1858,7 +1849,7 @@ fdescribe("DB Editor - Core Tests", () => {
             await driver!.wait(async () => {
                 return (await driver!.findElements(
                     By.css("#contentHost .editorHost div.margin-view-overlays > div"))).length > lines.length;
-            }, 2000, "A new line was not found");
+            }, 5000, "A new line was not found");
 
             await driver!.wait(async () => {
                 try {

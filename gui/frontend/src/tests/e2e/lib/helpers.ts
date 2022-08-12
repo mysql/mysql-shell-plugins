@@ -271,8 +271,19 @@ export const setStartLanguage = async (driver: WebDriver, section: string, value
     await driver.findElement(By.id(value)).click();
 };
 
-export const openShellSession = async (driver: WebDriver): Promise<void> => {
-    await driver.findElement(By.id("-1")).click();
+export const openShellSession = async (driver: WebDriver, id?: Number): Promise<void> => {
+    if (id) {
+        const buttons = await driver.findElements(By.css("#tilesHost button"));
+        for(const button of buttons) {
+            if ( (await button.getAttribute("id")) === String(id) ) {
+                await button.click();
+                break;
+            }
+        }
+    } else {
+        await driver.findElement(By.id("-1")).click();
+    }
+
     await driver.wait(
         until.elementLocated(By.id("shellEditorHost")),
         15000,
@@ -397,7 +408,7 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
     }
     await pressEnter(driver);
 
-    if (cmd !== "\\q") {
+    if (cmd !== "\\q" && cmd !== "\\d") {
         await driver.wait(async () => {
             const blocks = await driver.findElements(By.css(".zoneHost"));
 
@@ -1066,6 +1077,53 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string,
     }
 };
 
+export const isUiColorsMenuExpanded = async(driver: WebDriver,
+    menuName: string, scroll?: boolean): Promise<boolean | undefined> => {
+    const isTabOpened = async (tab: WebElement) => {
+        return (await tab.getAttribute("class")).includes("expanded");
+    };
+
+    const check = async () => {
+        const themeTabView = await driver.findElement(By.id("themeTabview"));
+        const scrollBar = await driver.findElement(By.css("#themeTabview .tabulator-tableholder"));
+        if (scroll) {
+            await driver.executeScript("arguments[0].scrollBy(0,500)", scrollBar);
+        }
+        const uiColorsItems = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
+        for (let i = 0; i <= uiColorsItems.length - 1; i++) {
+            if (await uiColorsItems[i].findElement(By.css("label")).getText() === menuName) { //base colors
+                await driver.executeScript("arguments[0].scrollIntoView(true)",
+                    await uiColorsItems[i].findElement(By.css("label")));
+
+                return isTabOpened(uiColorsItems[i]);
+            }
+        }
+        const scrollPosition: number = await driver.executeScript("return arguments[0].scrollTop", scrollBar);
+        if (scrollPosition === 0) {
+            return false;
+        } else {
+            throw new Error(`Could not find the menu with name ${menuName}`);
+        }
+    };
+
+    try {
+        const result = await check();
+
+        return result;
+    } catch (e) {
+        if (e instanceof Error) {
+            if (e.message.indexOf("StaleElementReferenceError") === -1) {
+                const result = await check();
+
+                return result;
+            } else {
+                throw e;
+            }
+        }
+    }
+
+};
+
 export const setThemeEditorColors = async (driver: WebDriver, sectionColors: string, optionId: string,
     detail: string, value: string, scroll?: boolean): Promise<void> => {
 
@@ -1090,6 +1148,10 @@ export const setThemeEditorColors = async (driver: WebDriver, sectionColors: str
     await colorPopup.findElement(By.id(detail)).clear();
     await colorPopup.findElement(By.id(detail)).sendKeys(value);
     await colorPopup.findElement(By.id(detail)).sendKeys(Key.ESCAPE);
+
+    await driver.wait(async () => {
+        return !(await isUiColorsMenuExpanded(driver, sectionColors, scroll));
+    }, 7000, `${sectionColors} menu is not collapsed`);
 };
 
 export const getElementStyle = async (driver: WebDriver, element: WebElement, style: string): Promise<void> => {
@@ -1407,7 +1469,7 @@ export const expandCollapseSchemaMenus = async (driver: WebDriver, menu: string,
         }
     } catch (e) {
         await driver.sleep(1000);
-        console.error(e);
+        console.log(e);
         await expandCollapseSchemaMenus(driver, menu, expand, retries + 1);
     }
 };
@@ -1487,3 +1549,15 @@ export const getLastQueryResultId = async (driver: WebDriver): Promise<number> =
     }
 };
 
+export const isValueOnDataSet = async (driver: WebDriver, value: String): Promise<boolean> => {
+    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+    const cells = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".zoneHost .tabulator-cell"));
+    for (const cell of cells) {
+        const text = await cell.getText();
+        if (text === value) {
+            return true;
+        }
+    }
+
+    return false;
+};
