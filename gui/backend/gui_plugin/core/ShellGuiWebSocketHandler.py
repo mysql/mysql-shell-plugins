@@ -650,7 +650,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         f'The function {cmd} needs a module_session_id '
                         'argument set to a DbSession.')
 
-                kwargs.update({"session": db_module_session})
+                if cmd.startswith('gui.db.'):
+                    kwargs.update({"session": db_module_session})
+                else:
+                    kwargs.update({"session": db_module_session.session})
                 del kwargs['module_session_id']
 
             module_session = None
