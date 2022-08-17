@@ -90,6 +90,15 @@ import {
     hasNewPrompt,
     getLastQueryResultId,
     getDriver,
+    switchToFrame,
+    shellGetResult,
+    shellGetResultTable,
+    cleanEditor,
+    shellGetTech,
+    shellGetTotalRows,
+    shellGetLangResult,
+    isValueOnDataSet,
+    reloadConnection,
 } from "../lib/helpers";
 
 import { ChildProcess } from "child_process";
@@ -108,8 +117,17 @@ describe("MySQL Shell for VS Code", () => {
     if (!process.env.DBPASSWORD) {
         throw new Error("Please define the environment variable DBPASSWORD");
     }
+    if (!process.env.DBSHELLUSERNAME) {
+        throw new Error("Please define the environment variable DBSHELLUSERNAME");
+    }
+    if (!process.env.DBSHELLPASSWORD) {
+        throw new Error("Please define the environment variable DBSHELLPASSWORD");
+    }
     if (!process.env.DBPORT) {
         throw new Error("Please define the environment variable DBPORT");
+    }
+    if (!process.env.DBPORTX) {
+        throw new Error("Please define the environment variable DBPORTX");
     }
     if (!process.env.SSLCERTSPATH) {
         throw new Error("Please define the environment variable SSLCERTSPATH");
@@ -117,12 +135,24 @@ describe("MySQL Shell for VS Code", () => {
 
     const conn: IDbConnection = {
         caption: "conn",
-        description: "Local connection to local server",
+        description: "Local connection",
         hostname: String(process.env.DBHOSTNAME),
         username: String(process.env.DBUSERNAME),
         port: Number(process.env.DBPORT),
+        portX: Number(process.env.DBPORTX),
         schema: "sakila",
         password: String(process.env.DBPASSWORD),
+    };
+
+    const shellConn: IDbConnection = {
+        caption: "shellConn",
+        description: "Local connection for shell",
+        hostname: String(process.env.DBHOSTNAME),
+        username: String(process.env.DBSHELLUSERNAME),
+        port: Number(process.env.DBPORT),
+        portX: Number(process.env.DBPORTX),
+        schema: "sakila",
+        password: String(process.env.DBSHELLPASSWORD),
     };
 
     before(async function () {
@@ -210,9 +240,7 @@ describe("MySQL Shell for VS Code", () => {
             const editor = await editorView.openEditor("SQL Connections");
             expect(await editor.getTitle()).to.equal("SQL Connections");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+            await switchToFrame(driver!, "SQL Connections");
 
             expect(
                 await driver!.findElement(By.id("title")).getText(),
@@ -373,9 +401,8 @@ describe("MySQL Shell for VS Code", () => {
 
             await new EditorView().openEditor(conn.caption);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:" + conn.caption)));
+            await switchToFrame(driver!, conn.caption);
+
             const item = await driver!.findElement(By.css(".zoneHost"));
             expect(item).to.exist;
             await driver!.switchTo().defaultContent();
@@ -410,9 +437,8 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+
             const item = await driver!.wait(until
                 .elementLocated(By.css("code > span")), 10000, "MySQL Shell Console was not loaded");
             expect(await item.getText()).to.contain("Welcome to the MySQL Shell - GUI Console");
@@ -440,9 +466,7 @@ describe("MySQL Shell for VS Code", () => {
                 const editors = await editorView.getOpenEditorTitles();
                 expect(editors.includes("SQL Connections")).to.be.true;
 
-                await driver!.switchTo().frame(0);
-                await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-                await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+                await switchToFrame(driver!, "SQL Connections");
 
                 const newConDialog = await driver!.findElement(By.css(".valueEditDialog"));
                 await driver!.wait(async () => {
@@ -480,9 +504,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await editorView.getOpenEditorTitles();
             expect(editors.includes("SQL Connections")).to.be.true;
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+            await switchToFrame(driver!, "SQL Connections");
 
             const dialog = await driver!.wait(until.elementLocated(
                 By.css(".valueEditDialog")), 5000, "Connection dialog was not found");
@@ -565,9 +587,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await setEditorLanguage(driver!, "sql");
             let editor = await driver!.findElement(By.id("shellEditorHost"));
@@ -577,9 +597,8 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver!, "DATABASE", conn.schema, "schema",
                 "Copy To Clipboard -> Name");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+
             await driver!.executeScript(
                 "arguments[0].click();",
                 await editor.findElement(By.css(".current-line")),
@@ -602,9 +621,7 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver!, "DATABASE", conn.schema, "schema",
                 "Copy To Clipboard -> Create Statement");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             editor = await driver!.findElement(By.id("shellEditorHost"));
 
@@ -634,16 +651,13 @@ describe("MySQL Shell for VS Code", () => {
 
             await toggleTreeElement(driver!, "DATABASE", conn.caption, true);
 
-
             await selectContextMenuItem(driver!, "DATABASE", conn.caption, "connection",
                 "Open MySQL Shell GUI Console for this Connection");
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await setEditorLanguage(driver!, "sql");
             const editor = await driver!.findElement(By.id("shellEditorHost"));
@@ -662,7 +676,11 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver!.switchTo().defaultContent();
 
-            await reloadSection(driver!, "DATABASE");
+            await driver?.wait(async () => {
+                await reloadConnection(driver!, conn.caption);
+
+                return existsTreeElement(driver!, "DATABASE", testSchema);
+            }, 5000, `${testSchema} was not found`);
 
             await selectContextMenuItem(driver!, "DATABASE", testSchema, "schema", "Drop Schema...");
 
@@ -701,9 +719,7 @@ describe("MySQL Shell for VS Code", () => {
             const activeTab = await ed.getActiveTab();
             expect(await activeTab!.getTitle()).equals(conn.caption);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:" + conn.caption)));
+            await switchToFrame(driver!, conn.caption);
 
             const resultHost = await driver!.wait(until.elementLocated(
                 By.css(".resultHost")), 20000, "query results were not found");
@@ -724,9 +740,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await setEditorLanguage(driver!, "sql");
             let editor = await driver!.findElement(By.id("shellEditorHost"));
@@ -736,9 +750,8 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver!, "DATABASE", "actor", "table",
                 "Copy To Clipboard -> Name");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+
             await driver!.executeScript(
                 "arguments[0].click();",
                 await editor.findElement(By.css(".current-line")),
@@ -761,9 +774,7 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver!, "DATABASE", "actor", "table",
                 "Copy To Clipboard -> Create Statement");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             editor = await driver!.findElement(By.id("shellEditorHost"));
 
@@ -801,9 +812,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await setEditorLanguage(driver!, "sql");
             const editor = await driver!.findElement(By.id("shellEditorHost"));
@@ -835,8 +844,11 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver!.switchTo().defaultContent();
 
-            await reloadSection(driver!, "DATABASE");
+            await driver?.wait(async () => {
+                await reloadConnection(driver!, conn.caption);
 
+                return existsTreeElement(driver!, "DATABASE", testTable);
+            }, 5000, `${testTable} was not found`);
 
             await selectContextMenuItem(driver!, "DATABASE", testTable, "table", "Drop Table...");
 
@@ -892,9 +904,7 @@ describe("MySQL Shell for VS Code", () => {
             const activeTab = await ed.getActiveTab();
             expect(await activeTab!.getTitle()).equals(conn.caption);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:" + conn.caption)));
+            await switchToFrame(driver!, conn.caption);
 
             const resultHost = await driver!.wait(until.elementLocated(
                 By.css(".resultHost")), 20000, "query results were not found");
@@ -914,9 +924,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await setEditorLanguage(driver!, "sql");
             let editor = await driver!.findElement(By.id("shellEditorHost"));
@@ -926,9 +934,8 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver!, "DATABASE", "test_view", "view",
                 "Copy To Clipboard -> Name");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+
             await driver!.executeScript(
                 "arguments[0].click();",
                 await editor.findElement(By.css(".current-line")),
@@ -951,9 +958,7 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver!, "DATABASE", "test_view", "view",
                 "Copy To Clipboard -> Create Statement");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             editor = await driver!.findElement(By.id("shellEditorHost"));
 
@@ -980,12 +985,14 @@ describe("MySQL Shell for VS Code", () => {
             await selectContextMenuItem(driver!, "DATABASE", conn.caption, "connection",
                 "Open MySQL Shell GUI Console for this Connection");
 
+            await toggleTreeElement(driver!, "DATABASE", conn.caption, true);
+            await toggleTreeElement(driver!, "DATABASE", conn.schema, true);
+            await toggleTreeElement(driver!, "DATABASE", "Views", true);
+
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await setEditorLanguage(driver!, "sql");
             const editor = await driver!.findElement(By.id("shellEditorHost"));
@@ -1020,7 +1027,11 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver!.switchTo().defaultContent();
 
-            await reloadSection(driver!, "DATABASE");
+            await driver?.wait(async () => {
+                await reloadConnection(driver!, conn.caption);
+
+                return existsTreeElement(driver!, "DATABASE", testView);
+            }, 5000, `${testView} was not found`);
 
             await toggleTreeElement(driver!, "DATABASE", conn.caption, true);
             await toggleTreeElement(driver!, "DATABASE", conn.schema, true);
@@ -1074,9 +1085,7 @@ describe("MySQL Shell for VS Code", () => {
         beforeEach(async () => {
             const openConnBrw = await getLeftSectionButton(driver!, "DATABASE", "Open the DB Connection Browser");
             await openConnBrw?.click();
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+            await switchToFrame(driver!, "SQL Connections");
         });
 
         afterEach(async function () {
@@ -1127,9 +1136,7 @@ describe("MySQL Shell for VS Code", () => {
             const openConnBrw = await getLeftSectionButton(driver!, "DATABASE", "Open the DB Connection Browser");
             await openConnBrw?.click();
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+            await switchToFrame(driver!, "SQL Connections");
 
             host = await getDB(driver!, conn.caption, false);
 
@@ -1180,9 +1187,7 @@ describe("MySQL Shell for VS Code", () => {
             const openConnBrw = await getLeftSectionButton(driver!, "DATABASE", "Open the DB Connection Browser");
             await openConnBrw?.click();
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+            await switchToFrame(driver!, "SQL Connections");
 
             await driver!.executeScript(
                 "arguments[0].click();",
@@ -1326,9 +1331,7 @@ describe("MySQL Shell for VS Code", () => {
 
             await selectContextMenuItem(driver!, "DATABASE", "db_connection", "table", "Show Data...");
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+            await switchToFrame(driver!, "SQL Connections");
 
             const result = await driver!.findElement(By.css(".zoneHost label.label"));
             expect(await result.getText()).to.contain("OK");
@@ -1420,7 +1423,7 @@ describe("MySQL Shell for VS Code", () => {
 
     });
 
-    describe("DB Editor tests - SQL", () => {
+    describe("DATABASE - DB Editor tests", () => {
 
         before(async () => {
             if (platform() === "win32") {
@@ -1437,9 +1440,7 @@ describe("MySQL Shell for VS Code", () => {
             const openConnBrw = await getLeftSectionButton(driver!, "DATABASE", "Open the DB Connection Browser");
             await openConnBrw?.click();
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+            await switchToFrame(driver!, "SQL Connections");
 
             await driver!.executeScript(
                 "arguments[0].click();",
@@ -2095,9 +2096,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
 
@@ -2162,9 +2161,7 @@ describe("MySQL Shell for VS Code", () => {
             editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
@@ -2285,9 +2282,7 @@ describe("MySQL Shell for VS Code", () => {
 
             try {
 
-                await driver!.switchTo().frame(0);
-                await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-                await driver!.switchTo().frame(await driver!.findElement(By.id("frame:SQL Connections")));
+                await switchToFrame(driver!, "SQL Connections");
 
                 await mds.click();
 
@@ -2592,9 +2587,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
@@ -2699,7 +2692,7 @@ describe("MySQL Shell for VS Code", () => {
 
     });
 
-    describe("MYSQL SHELL CONSOLES toolbar action tests", () => {
+    describe("MYSQL SHELL CONSOLES - Toolbar action tests", () => {
 
         before(async () => {
             if (platform() === "win32") {
@@ -2732,9 +2725,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
             await driver!.switchTo().defaultContent();
@@ -2756,9 +2747,7 @@ describe("MySQL Shell for VS Code", () => {
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await driver!.switchTo().frame(0);
-            await driver!.switchTo().frame(await driver!.findElement(By.id("active-frame")));
-            await driver!.switchTo().frame(await driver!.findElement(By.id("frame:MySQL Shell Consoles")));
+            await switchToFrame(driver!, "MySQL Shell Consoles");
 
             expect(await driver!.findElement(By.css("#shellModuleTabview h2")).getText())
                 .to.equal("MySQL Shell - GUI Console");
@@ -2770,6 +2759,664 @@ describe("MySQL Shell for VS Code", () => {
             await driver!.switchTo().defaultContent();
 
             expect(await existsTreeElement(driver!, "MYSQL SHELL CONSOLES", "Session 1")).to.equal(true);
+        });
+
+    });
+
+    describe("MYSQL SHELL CONSOLES - Shell tests", () => {
+
+        before(async () => {
+            if (platform() === "win32") {
+                await initTree("MYSQL SHELL CONSOLES");
+            }
+
+            await toggleSection(driver!, "DATABASE", false);
+            await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", false);
+            await toggleSection(driver!, "MYSQL SHELL CONSOLES", true);
+            await toggleSection(driver!, "MYSQL SHELL TASKS", false);
+
+            const btn = await getLeftSectionButton(driver!, "MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+            await btn.click();
+
+            const editors = await new EditorView().getOpenEditorTitles();
+            expect(editors).to.include.members(["MySQL Shell Consoles"]);
+
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+
+            await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+        });
+
+        afterEach(async function () {
+
+            await postActions(driver!, this);
+
+            const textArea = await driver!.findElement(By.css("textArea"));
+            await enterCmd(driver!, textArea, `\\d`);
+            await cleanEditor(driver!);
+
+        });
+
+        it("Open multiple sessions", async () => {
+
+            await driver?.switchTo().defaultContent();
+
+            const btn = await getLeftSectionButton(driver!, "MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+            await btn.click();
+
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+            await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+
+            await driver!.switchTo().defaultContent();
+            expect(await existsTreeElement(driver!, "MYSQL SHELL CONSOLES", "Session 2") as Boolean).to.equal(true);
+
+            await btn.click();
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+            await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+            await driver!.switchTo().defaultContent();
+            expect(await existsTreeElement(driver!, "MYSQL SHELL CONSOLES", "Session 3") as Boolean).to.equal(true);
+
+            //SESSION1
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+            let editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            let textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`,
+            );
+
+            let result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            );
+
+            editor = await driver!.findElement(By.id("shellEditorHost"));
+            textArea = await editor.findElement(By.css("textArea"));
+            await enterCmd(driver!, textArea, "db.actor.select()");
+
+            expect(await shellGetResultTable(driver!)).to.exist;
+
+            //SESSION2
+            await driver!.switchTo().defaultContent();
+            const session2 = await getTreeElement(driver!, "MYSQL SHELL CONSOLES", "Session 2");
+            await session2.click();
+
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+            editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`,
+            );
+
+            result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            );
+
+            editor = await driver!.findElement(By.id("shellEditorHost"));
+            textArea = await editor.findElement(By.css("textArea"));
+            await enterCmd(driver!, textArea, "db.category.select()");
+
+            expect(await shellGetResultTable(driver!)).to.exist;
+
+            //SESSION3
+            await driver!.switchTo().defaultContent();
+            const session3 = await getTreeElement(driver!, "MYSQL SHELL CONSOLES", "Session 3");
+            await session3.click();
+
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+
+            editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`,
+            );
+
+            result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            );
+
+            editor = await driver!.findElement(By.id("shellEditorHost"));
+            textArea = await editor.findElement(By.css("textArea"));
+            await enterCmd(driver!, textArea, "db.city.select()");
+
+            expect(await shellGetResultTable(driver!)).to.exist;
+
+            await driver!.switchTo().defaultContent();
+
+            await selectContextMenuItem(driver!, "MYSQL SHELL CONSOLES", "Session 2",
+                "console", "Close this MySQL Shell Console");
+
+            await selectContextMenuItem(driver!, "MYSQL SHELL CONSOLES", "Session 3",
+                "console", "Close this MySQL Shell Console");
+
+            await switchToFrame(driver!, "MySQL Shell Consoles");
+        });
+
+        it("Connect to host", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}`,
+            );
+
+            const result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}'`,
+            );
+
+            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+
+            expect(result).to.contain(
+                `Default schema set to \`${String(conn.schema)}\`.`,
+            );
+
+        });
+
+        it("Connect to host without password", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `\\c ${String(shellConn.username)}@${String(shellConn.hostname)}:${String(shellConn.port)}/${String(shellConn.schema)}`);
+
+            await setDBEditorPassword(driver!, shellConn);
+
+            await setConfirmDialog(driver!, shellConn, "no");
+
+            const result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(shellConn.username)}@${String(shellConn.hostname)}:${String(shellConn.port)}/${String(shellConn.schema)}'`);
+
+            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+
+            expect(result).to.contain(
+                `Default schema set to \`${String(shellConn.schema)}\`.`,
+            );
+
+        });
+
+        it("Verify help command", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}`);
+
+            let result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}'`,
+            );
+
+            expect(result).to.contain(
+                `Default schema set to \`${String(conn.schema)}\`.`,
+            );
+
+            await enterCmd(driver!, textArea, "\\h");
+
+            result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                "The Shell Help is organized in categories and topics.",
+            );
+
+            expect(result).to.contain("SHELL COMMANDS");
+            expect(result).to.contain("\\connect");
+            expect(result).to.contain("\\disconnect");
+            expect(result).to.contain("\\edit");
+            expect(result).to.contain("\\exit");
+            expect(result).to.contain("\\help");
+            expect(result).to.contain("\\history");
+            expect(result).to.contain("\\js");
+            expect(result).to.contain("\\nopager");
+            expect(result).to.contain("\\nowarnings");
+            expect(result).to.contain("\\option");
+            expect(result).to.contain("\\pager");
+            expect(result).to.contain("\\py");
+            expect(result).to.contain("\\quit");
+            expect(result).to.contain("\\reconnect");
+            expect(result).to.contain("\\rehash");
+            expect(result).to.contain("\\show");
+            expect(result).to.contain("\\source");
+            expect(result).to.contain("\\sql");
+            expect(result).to.contain("\\status");
+            expect(result).to.contain("\\system");
+            expect(result).to.contain("\\use");
+            expect(result).to.contain("\\warning");
+            expect(result).to.contain("\\watch");
+
+
+        });
+
+        it("Switch session language - javascript python", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(driver!, textArea, "\\py");
+
+            let result = await shellGetResult(driver!);
+
+            expect(result).equals("Switching to Python mode...");
+
+            expect(await shellGetTech(editor)).equals("python");
+
+            await enterCmd(driver!, textArea, "\\js");
+
+            result = await shellGetResult(driver!);
+
+            expect(result).equals("Switching to JavaScript mode...");
+
+            expect(await shellGetTech(editor)).equals("javascript");
+
+        });
+
+        it("Using db global variable", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`);
+
+            const result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            );
+
+            expect(result).to.contain("(X protocol)");
+
+            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+
+            expect(result).to.contain(
+                `Default schema \`${String(conn.schema)}\` accessible through db.`,
+            );
+
+            await enterCmd(driver!, textArea, "db.actor.select()");
+
+            expect(await shellGetResultTable(driver!)).to.exist;
+
+            expect(await shellGetTotalRows(driver!)).to.match(
+                new RegExp(/(\d+) rows in set/),
+            );
+
+            await enterCmd(driver!, textArea, "db.category.select()");
+
+            expect(await shellGetResultTable(driver!)).to.exist;
+
+            expect(await shellGetTotalRows(driver!)).to.match(
+                new RegExp(/(\d+) rows in set/),
+            );
+
+        });
+
+        it("Using shell global variable", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `shell.connect('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}')`);
+
+            let result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`);
+
+            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+
+            expect(result).to.contain(
+                `Default schema \`${String(conn.schema)}\` accessible through db`,
+            );
+
+            await enterCmd(driver!, textArea, "shell.status()");
+
+            result = await shellGetResult(driver!);
+
+            expect(result).to.match(
+                new RegExp(/MySQL Shell version (\d+).(\d+).(\d+)/),
+            );
+
+            expect(result).to.contain(`"CONNECTION":"${String(conn.hostname)} via TCP/IP"`);
+
+            expect(result).to.contain(`"CURRENT_SCHEMA":"${String(conn.schema)}"`);
+
+            expect(result).to.match(new RegExp(`"CURRENT_USER":"${String(conn.username)}`));
+
+            expect(result).to.contain(`"TCP_PORT":"${String(conn.portX)}"`);
+
+        });
+
+        it("Using mysql mysqlx global variable", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            const cmd = `mysql.getClassicSession('${String(conn.username)}:${String(conn.password)}
+                @${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}')`;
+
+            await enterCmd(driver!, textArea, cmd.replace(/ /g,""));
+
+            let result = await shellGetResult(driver!);
+
+            expect(result).to.contain("&lt;ClassicSession&gt;");
+
+            await enterCmd(driver!, textArea, "shell.disconnect()");
+
+            result = await shellGetResult(driver!);
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `mysql.getSession('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}')`);
+
+            result = await shellGetResult(driver!);
+
+            expect(result).to.contain("&lt;ClassicSession&gt;");
+
+            await enterCmd(driver!, textArea, "shell.disconnect()");
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `mysqlx.getSession('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}')`);
+
+            result = await shellGetResult(driver!);
+
+            expect(result).to.contain("&lt;Session&gt;");
+
+
+        });
+
+        it("Using util global variable", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}`);
+
+            let result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}'`);
+
+            await enterCmd(
+                driver!,
+                textArea,
+                'util.exportTable("actor", "test.txt")',
+            );
+
+            await driver!.wait(
+                async () => {
+                    return (
+                        (await shellGetResult(driver!)).indexOf(
+                            "The dump can be loaded using",
+                        ) !== -1
+                    );
+                },
+                10000,
+                "Export operation was not done in time",
+            );
+
+            result = await shellGetResult(driver!);
+
+            expect(result).to.contain("Running data dump using 1 thread.");
+
+            expect(result).to.match(
+                new RegExp(/Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/),
+            );
+
+            expect(result).to.match(new RegExp(/Data size: (\d+).(\d+)(\d+) KB/));
+
+            expect(result).to.match(new RegExp(/Rows written: (\d+)/));
+
+            expect(result).to.match(new RegExp(/Bytes written: (\d+).(\d+)(\d+) KB/));
+
+            expect(result).to.match(
+                new RegExp(/Average throughput: (\d+).(\d+)(\d+) KB/),
+            );
+
+        });
+
+        it("Verify collections - json format", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/world_x_cst`);
+
+            const result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/world_x_cst'`);
+
+            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+
+            expect(result).to.contain(
+                "Default schema `world_x_cst` accessible through db.",
+            );
+
+            await enterCmd(driver!, textArea, "db.countryinfo.find()");
+            expect(await shellGetLangResult(driver!)).equals("json");
+
+        });
+
+        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34241454
+        it("Change schemas using menu", async () => {
+
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                // eslint-disable-next-line max-len
+                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}`);
+
+            let result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}`);
+
+            expect(result).to.contain("No default schema selected");
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const schemaLabel = await driver!.findElement(By.id("schema")).getText();
+            expect(schemaLabel.substring(1).trim()).equals("no schema selected");
+
+            await driver!.findElement(By.id("schema")).click();
+            let menuItems = await driver!.findElements(By.css(".shellPromptSchemaMenu .menuItem .label"));
+            const schema1 = (await menuItems[0].getText()).substring(1).trim();
+            const schema2 = (await menuItems[1].getText()).substring(1).trim();
+            await menuItems[0].click();
+            await driver!.sleep(1000);
+            result = await shellGetResult(driver!);
+            expect(result).equals("Default schema `" + schema1 + "` accessible through db.");
+
+            await driver!.findElement(By.id("schema")).click();
+            menuItems = await driver!.findElements(By.css(".shellPromptSchemaMenu .menuItem .label"));
+            await menuItems[1].click();
+            await driver!.sleep(1000);
+            result = await shellGetResult(driver!);
+            expect(result).equals("Default schema `" + schema2 + "` accessible through db.");
+
+        });
+
+        it("Check query result content", async () => {
+            const editor = await driver!.findElement(By.id("shellEditorHost"));
+
+            await driver!.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+                driver!,
+                textArea,
+                    // eslint-disable-next-line max-len
+                `shell.connect('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}')`);
+
+            const result = await shellGetResult(driver!);
+
+            expect(result).to.contain(
+                    // eslint-disable-next-line max-len
+                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`);
+
+            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+
+            expect(result).to.contain(
+                `Default schema \`${String(conn.schema)}\` accessible through db`,
+            );
+
+            await enterCmd(driver!, textArea, "\\sql");
+
+            await enterCmd(driver!, textArea, "SHOW DATABASES;");
+
+            expect(await isValueOnDataSet(driver!, "sakila")).equals(true);
+
+            expect(await isValueOnDataSet(driver!, "world_x_cst")).equals(true);
         });
 
     });

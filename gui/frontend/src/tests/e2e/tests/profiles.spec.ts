@@ -52,7 +52,7 @@ describe("Profiles", () => {
     });
 
     afterEach(async () => {
-        if(testFailed) {
+        if (testFailed) {
             testFailed = false;
             const img = await driver.takeScreenshot();
             const testName: string = expect.getState().currentTestName
