@@ -809,13 +809,13 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
 
 class WebSession():
-    def __init__(self, shell_gui_web_socket_hander):
-        self._socket_handler = shell_gui_web_socket_hander
+    def __init__(self, shell_gui_web_socket_handler):
+        self._socket_handler = shell_gui_web_socket_handler
         self._db = None
 
     @property
     def db(self):
-        # if the db object has not yet been initialized for this websession
+        # if the db object has not yet been initialized for this web session
         if not self._db:
             # open the database connection for this thread
             self._db = self._socket_handler.db

@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IGenericResponse, IShellRequest, Protocol } from "../../communication";
+import { IGenericResponse, IShellRequest, Protocol, ICommStartSessionEvent } from "../../communication";
 import { IDictionary } from "../../app-logic/Types";
-import { dispatcher, DispatchEvents, EventType, IDispatchEvent } from "../../supplement/Dispatch";
+import { dispatcher, DispatchEvents, EventType } from "../../supplement/Dispatch";
 import { convertCamelToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../../utilities/helpers";
 import { MessageScheduler } from "../../communication/MessageScheduler";
 
@@ -192,15 +192,15 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
             let failed = false;
 
             MessageScheduler.get.sendRequest(request, { messageClass: "debuggerValidate" })
-                .then((event: IDispatchEvent) => {
+                .then((event: ICommStartSessionEvent) => {
                     // Ignore any extraneous responses.
                     if (currentIndex < expected.length) {
                         this.lastReceivedResponse = convertCamelToSnakeCase(event.data as object) as IGenericResponse;
                         failed = failed ||
                             !this.validateResponse(this.lastReceivedResponse, expected[currentIndex], currentIndex++);
 
-                        if (event.data.moduleSessionId) {
-                            this.lastReceivedModuleSessionId = event.data.moduleSessionId as string;
+                        if (event.data.result.moduleSessionId) {
+                            this.lastReceivedModuleSessionId = event.data.result.moduleSessionId;
                         }
                     }
                 }).catch((event) => {

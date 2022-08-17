@@ -121,6 +121,7 @@ export interface ISimpleResultData extends IGenericResponse {
 
 export interface IShellPromptValues {
     promptDescriptor?: {
+        user?: string;
         host?: string;
         port?: number;
         schema?: string;

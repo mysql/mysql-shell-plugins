@@ -70,6 +70,9 @@ export interface IShellTabPersistentState extends IShellPromptValues {
     lastPassword?: string;
     lastHost?: string;
     lastPort?: number;
+
+    // Last executed statement
+    lastCommand?: string;
 }
 
 export interface IShellTabProperties extends IComponentProperties {
@@ -324,6 +327,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         params?: Array<[string, string]>): Promise<void> {
         const { savedState } = this.props;
         const columns: IColumnInfo[] = [];
+
+        savedState.lastCommand = command;
 
         return new Promise((resolve, reject) => {
             savedState.backend.execute(command).then((event: ICommShellEvent) => {
@@ -719,21 +724,73 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
                     case EventType.FinalResponse: {
                         if (result && this.hasPromptDescriptor(result)) {
-                            // Check if a new connection was opened.
-                            let newConnection = !savedState.promptDescriptor;
-                            if (!newConnection) {
-                                const existing = savedState.promptDescriptor;
-                                newConnection = (existing?.host !== result.promptDescriptor?.host)
-                                    || (existing?.port !== result.promptDescriptor?.port);
+                            // A descriptor change occurs when any of the following change types occur:
+                            // 1) Changes involving an active session update:
+                            //    1.1) A new active shell session was established
+                            //    1.2) The active shell session got disconnected
+                            // 2) Changes not involving changes on the active session:
+                            //   2.1) The active schema changed
+                            //   2.2) The Shell Console mode changed
+                            const hadOpenSession = savedState.dbSession !== undefined;
+                            const needsOpenSession = (result.promptDescriptor?.host !== undefined)
+                                || (result.promptDescriptor?.socket !== undefined);
+
+                            const existing = savedState.promptDescriptor;
+                            let newSessionRequired = (!hadOpenSession && needsOpenSession);
+                            if (!newSessionRequired) {
+                                newSessionRequired = (existing?.user !== result.promptDescriptor?.user)
+                                    || (existing?.host !== result.promptDescriptor?.host)
+                                    || (existing?.port !== result.promptDescriptor?.port)
+                                    || (existing?.socket !== result.promptDescriptor?.socket)
+                                    || (existing?.ssl !== result.promptDescriptor?.ssl)
+                                    || (existing?.session !== result.promptDescriptor?.session);
                             }
+
+
+                            // Prompt needs to be updated the first time a descriptio
+                            let refreshRequired = !savedState.promptDescriptor
+                                || newSessionRequired
+                                || (hadOpenSession !== needsOpenSession);
+
+                            if (!refreshRequired) {
+                                refreshRequired = (existing?.isProduction !== result.promptDescriptor?.isProduction)
+                                    || (existing?.mode !== result.promptDescriptor?.mode)
+                                    || (existing?.schema !== result.promptDescriptor?.schema);
+                            }
+
                             savedState.promptDescriptor = result.promptDescriptor;
 
-                            if (newConnection) {
-                                void this.openDbSession().then(() => {
-                                    void requisitions.execute("updateShellPrompt", result);
+                            if (hadOpenSession && !needsOpenSession) {
+                                // 1.2) There was an active session and got closed
+                                this.closeDbSession("");
+                                void requisitions.execute("updateShellPrompt", result);
+                                resolve();
 
+                            } else if (newSessionRequired) {
+                                // A new session will be created, however if password is not available, it attempts to
+                                // get it from the last executed command (common case when password is given in the
+                                // connection string)
+                                if (savedState.lastPassword === undefined) {
+                                    savedState.lastPassword = this.getPasswordFromLastCommand();
+                                }
+
+                                // Only trigger the creation of the Session if the password was defined (even if empty)
+                                // otherwise the start session will be requiring shell prompt handling
+                                if (savedState.lastPassword !== undefined) {
+                                    // 1.1) The active session got created or updated
+                                    void this.openDbSession().then(() => {
+                                        void requisitions.execute("updateShellPrompt", result);
+
+                                        resolve();
+                                    });
+                                } else {
+                                    void requisitions.execute("updateShellPrompt", result);
                                     resolve();
-                                });
+                                }
+                            } else if (refreshRequired) {
+                                // 2) Changes not related to a session update were detected
+                                void requisitions.execute("updateShellPrompt", result);
+                                resolve();
                             } else {
                                 resolve();
                             }
@@ -787,12 +844,22 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         if (connectionString) {
             connectionString = unquote(connectionString);
             try {
+                // Check if the protocol has been supplied. If not, add it
+                const matchProtocol = connectionString.toLowerCase().match(/^(mysql(x)?:\/\/)/);
+                if (!matchProtocol?.[0]) {
+                    connectionString = "http://" + connectionString;
+                } else {
+                    connectionString.replace("mysql://", "http://");
+                    // cSpell:ignore mysqlx
+                    connectionString.replace("mysqlx://", "http://");
+                }
+
                 const url = new URL(connectionString);
 
-                savedState.lastUserName = url.username;
-                savedState.lastHost = url.host;
-                savedState.lastPassword = url.password;
-                savedState.lastPort = parseInt(url.port, 10);
+                savedState.lastUserName = (url.username === "") ? undefined : url.username;
+                savedState.lastHost = url.hostname;
+                savedState.lastPassword = (url.password === "") ? undefined : url.password;
+                savedState.lastPort = (url.port === "") ? undefined : parseInt(url.port, 10);
             } catch (e) {
                 // Ignore invalid connection strings.
             }
@@ -839,6 +906,31 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         savedState.lastPassword = data.password;
 
         return Promise.resolve(false);
+    };
+
+    private getPasswordFromLastCommand = (): string | undefined => {
+        const { savedState } = this.props;
+
+        if (savedState.lastCommand) {
+            // Expression to handle URI strings defined as [mysql[x]://]user[:password]@host[:port]
+            // Grouping positions return:
+            // 0 - Full Match
+            // 2 - Scheme
+            // 4 - User
+            // 6 - Password
+            // 8 - Host
+            // 9 - Port
+            const uriRegexp = /((mysql(x)?):\/\/)?(\w+)(:(\w*))?(@)(\w+)(:(\d+))?/g;
+            const matches = [...savedState.lastCommand.matchAll(uriRegexp)];
+
+            if (matches && matches[0][4] && matches[0][8]) {
+                // If password is defined it will be returned (even if it is defined as empty)
+                // otherwise undefined will be returned
+                return matches[0][6];
+            }
+        }
+
+        return undefined;
     };
 
     private listSchemas = (): Promise<string[]> => {
