@@ -37,7 +37,7 @@ def format_bastion_listing(items, current=None) -> str:
         current (str): OCID of the current item
 
     Returns:
-       The db_systems formated as str
+       The db_systems formatted as str
     """
 
     # If a single db_system was given, wrap it in a list
@@ -66,7 +66,7 @@ def format_session_listing(items, current=None) -> str:
         current (str): OCID of the current item
 
     Returns:
-       The db_systems formated as str
+       The db_systems formatted as str
     """
 
     # If a single db_system was given, wrap it in a list
@@ -407,7 +407,7 @@ def create_bastion(**kwargs):
     await_active_state = kwargs.get("await_active_state", False)
 
     compartment_id = kwargs.get("compartment_id")
-    config = kwargs.get("bastionconfigname")
+    config = kwargs.get("config")
     config_profile = kwargs.get("config_profile")
     ignore_current = kwargs.get("ignore_current", False)
 
@@ -501,39 +501,10 @@ def create_bastion(**kwargs):
 
             if not bastion_name:
                 if db_system:
-                    import re
-
-                    vcn_client = core.get_oci_virtual_network_client(
-                        config=config)
-
-                    subnet = vcn_client.get_subnet(
-                        subnet_id=db_system.subnet_id).data
-
-                    # Get a unique name for the new bastion, ensure it does
-                    # not collide with another bastion in the compartment and
-                    # that it only contains of alphanumeric characters
-                    bastion_core_name = (
-                        "Bastion4" +
-                        re.sub('[\W_]+', '', subnet.display_name[:35]))
-                    bastion_name = bastion_core_name
-
-                    bastions = list_bastions(
-                        compartment_id=compartment_id,
-                        config=config, interactive=False,
-                        return_type="OBJ", raise_exceptions=True)
-                    b_nr = 2
-                    name_found = False
-
-                    # Keep increasing the trailing number till a unique name is
-                    # found
-                    while not name_found:
-                        name_found = True
-                        for b in bastions:
-                            if b.name == bastion_name:
-                                bastion_name = f'{bastion_core_name}{b_nr}'
-                                name_found = False
-                                b_nr += 1
-                                break
+                    from datetime import datetime
+                    bastion_name = (
+                        "Bastion" + 
+                        datetime.now().strftime("%y%m%d%H%M"))
 
                 elif interactive:
                     bastion_name = core.prompt(
@@ -1027,7 +998,7 @@ def create_session(**kwargs):
     await_creation = kwargs.get("await_creation")
 
     compartment_id = kwargs.get("compartment_id")
-    config = kwargs.get("bastionconfigname")
+    config = kwargs.get("config")
     config_profile = kwargs.get("config_profile")
     ignore_current = kwargs.get("ignore_current", False)
     fallback_to_any_in_compartment = kwargs.get(
@@ -1227,6 +1198,7 @@ def create_session(**kwargs):
             if session_type == "MANAGED_SSH":
                 # Check if Bastion Plugin is already enabled
                 ia_client = core.get_oci_instance_agent_client(config)
+                # cSpell:ignore instanceagent
                 bastion_plugin = ia_client.get_instance_agent_plugin(
                     instanceagent_id=target_id,
                     compartment_id=compartment_id,

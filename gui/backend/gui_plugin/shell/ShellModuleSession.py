@@ -36,6 +36,8 @@ from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 import os.path
 from gui_plugin.core.lib.OciUtils import BastionHandler
+import gui_plugin.core.Logger as logger
+from gui_plugin.core import Filtering
 
 
 def remove_dict_useless_items(data):
@@ -225,6 +227,9 @@ class ShellModuleSession(ModuleSession):
                         "text": "{ \"prompt_descriptor\": { "
                     },
                     {
+                        "text": "\"user\": \"%user%\", "
+                    },
+                    {
                         "text": "\"host\": \"%host%\", \"port\": \"%port%\", \"socket\": \"%socket%\", "
                     },
                     {
@@ -374,6 +379,14 @@ class ShellModuleSession(ModuleSession):
                     elif 'prompt' in reply_json:
                         # request for a client prompt
                         prompt_event = threading.Event()
+
+                        if 'type' in reply_json and reply_json['type'] == 'password':
+                            logger.add_filter({
+                                "type": "key",
+                                "key": "reply",
+                                "expire": Filtering.FilterExpire.OnUse
+                            })
+
                         self.send_prompt_response(
                             self._pending_request.task_id, reply_json, lambda: prompt_event.set())
 
