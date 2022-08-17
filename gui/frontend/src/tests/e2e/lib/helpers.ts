@@ -274,7 +274,7 @@ export const setStartLanguage = async (driver: WebDriver, section: string, value
 export const openShellSession = async (driver: WebDriver, id?: Number): Promise<void> => {
     if (id) {
         const buttons = await driver.findElements(By.css("#tilesHost button"));
-        for(const button of buttons) {
+        for (const button of buttons) {
             if ( (await button.getAttribute("id")) === String(id) ) {
                 await button.click();
                 break;
@@ -1243,7 +1243,7 @@ export const clickDBEditorContextItem = async (driver: WebDriver, itemName: stri
 
     const menuItems = await shadowRoot.findElements(By.css("a.action-menu-item"));
 
-    for(const menuItem of menuItems) {
+    for (const menuItem of menuItems) {
         const item = await menuItem.findElement(By.css("span.action-label"));
         const text = await item.getText();
         if (text === itemName) {
@@ -1540,7 +1540,7 @@ export const clickLastDBEditorPrompt = async (driver:WebDriver): Promise<void> =
 
 export const getLastQueryResultId = async (driver: WebDriver): Promise<number> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-    if(zoneHosts.length > 0) {
+    if (zoneHosts.length > 0) {
         const zones = await driver.findElements(By.css(".zoneHost"));
 
         return parseInt((await zones[zones.length-1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);

@@ -144,14 +144,21 @@ try{
 
     writeMsg("EXTENSION_PUSH_ID: $env:EXTENSION_PUSH_ID")
     writeMsg("EXTENSION_BRANCH: $env:EXTENSION_BRANCH")
+    writeMsg("URL: http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/")
     $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
     $bundles = $bundles | ConvertFrom-Json
+    writeMsg "Bundles info:"
+    writeMsg $bundles
+    
     $extension = ($bundles.builds | Where-Object {
         $_.product -eq "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--win32-x64" 
         }).artifacts | Where-Object {
             $_.name -like "mysql-shell-for-vs-code-win32-x64"
         }
 
+    writeMsg "Extension info:"
+    writeMsg $extension
+    writeMsg "End"
     if($extension){
         $extension | ForEach-Object { 
             $extensionItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
