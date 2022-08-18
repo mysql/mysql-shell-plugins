@@ -164,10 +164,10 @@ export interface IShellCoreInstallShellWebCertificateKwargs {
 
 
 export interface IShellDbConnection {
-    dbType: string;
-    caption: string;
-    description: string;
-    options: IShellDictionary;
+    dbType: string | null;
+    caption: string | null;
+    description: string | null;
+    options: IShellDictionary | null;
 }
 
 
@@ -177,17 +177,17 @@ export interface IShellQueryOptions {
 
 
 export interface IShellUsersUpdateProfileProfile {
-    id: number;
-    name: string;
-    description: string;
-    options: IShellDictionary;
+    id: number | null;
+    name: string | null;
+    description: string | null;
+    options: IShellDictionary | null;
 }
 
 
 export interface IShellUsersAddProfileProfile {
-    name: string;
-    description: string;
-    options: IShellDictionary;
+    name: string | null;
+    description: string | null;
+    options: IShellDictionary | null;
 }
 
 //  End auto generated types

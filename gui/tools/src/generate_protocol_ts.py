@@ -161,9 +161,9 @@ binding_method = """/**
     //  End auto generated content"""
 
 binding_parameter_override_optional = """
-        let {__PARAMETER__}ToUse;
+        let {__PARAMETER_NAME__}ToUse;
         if ({__PARAMETER__}) {
-            {__PARAMETER__}ToUse = {__OVERRIDE__};
+            {__PARAMETER_NAME__}ToUse = {__OVERRIDE__};
         }
 """
 
@@ -182,7 +182,7 @@ method_enums = {
 
 
 class PythonParamToJavascript:
-    def __init__(self, param, function_name, plugin_name, is_option=False):
+    def __init__(self, param, function_name, plugin_name, is_option=False, parent:"PythonParamToJavascript"=None):
         self.function_name = function_name
         self.plugin_name = plugin_name
         self.is_option = is_option
@@ -215,6 +215,8 @@ class PythonParamToJavascript:
 
         self.required = param['required'] == "True" if 'required' in param else True
         self.options = None
+
+        self.parent = parent
 
         if 'options' in param:
             self.options = param['options']
@@ -268,7 +270,7 @@ class PythonParamToJavascript:
         "The type name in javascript"
         optional_type = ""
         if self.is_option and self.is_required:
-            optional_type = " | undefined"
+            optional_type = " | null"
 
         override = self.get_js_override(self.python_name, self.python_type)
 
@@ -326,6 +328,10 @@ class PythonParamToJavascript:
         return True
 
     @property
+    def parent_is_dict(self):
+        return self.parent and self.parent.python_type == "dictionary"
+
+    @property
     def override(self):
         "Generate the override (object recreation to comply with the specified structure and keys)"
         if not self.has_override:
@@ -337,7 +343,7 @@ class PythonParamToJavascript:
         for option in self.options:
 
             option = PythonParamToJavascript(
-                option, self.function_name, self.plugin_name)
+                option, self.function_name, self.plugin_name, True, self)
 
             entry_name = f"{self.javascript_name}.{option.javascript_name}"
 
@@ -350,8 +356,8 @@ class PythonParamToJavascript:
         inner.append("}")
 
         override = binding_parameter_override_required if self.required else binding_parameter_override_optional
-        override = override.replace("{__PARAMETER__}", self.javascript_name)
-        override = override.replace("{__PARAMETER__}", self.javascript_name)
+        override = override.replace("{__PARAMETER_NAME__}", self.javascript_name)
+        override = override.replace("{__PARAMETER__}", f"kwargs?.{self.javascript_name}" if self.parent_is_dict else self.javascript_name)
         override = override.replace("{__OVERRIDE__}", f'\n{indent}'.join(inner))
 
         override_dependencies = "\n".join(override_dependencies)
@@ -382,7 +388,7 @@ class PythonParamToJavascript:
     def get_interface_parameter(self, option):
         "Generate the parameter when defining the new javascript interface"
         param = PythonParamToJavascript(
-            option, self.function_name, self.plugin_name, is_option=True)
+            option, self.function_name, self.plugin_name, is_option=True, parent=self)
         separator = ":" if 'required' in option else "?:"
 
         return f"{param.javascript_name}{separator} {param.javascript_type};"
@@ -407,7 +413,7 @@ class PythonParamToJavascript:
 
         for option in self.options:
             if option["type"] == "dictionary" and option["options"]:
-                op = PythonParamToJavascript(option, self.function_name, self.plugin_name)
+                op = PythonParamToJavascript(option, self.function_name, self.plugin_name, True, self)
                 dependent_interfaces.append(op.interface_definition.replace("//  End auto generated types", ""))
 
         return "\n".join(dependent_interfaces)
