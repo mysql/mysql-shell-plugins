@@ -913,6 +913,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
         if (savedState.lastCommand) {
             // Expression to handle URI strings defined as [mysql[x]://]user[:password]@host[:port]
+            // Considering the URI notation as specified in RFC3986
             // Grouping positions return:
             // 0 - Full Match
             // 2 - Scheme
@@ -920,13 +921,15 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             // 6 - Password
             // 8 - Host
             // 9 - Port
-            const uriRegexp = /((mysql(x)?):\/\/)?(\w+)(:(\w*))?(@)(\w+)(:(\d+))?/g;
+            // eslint-disable-next-line max-len
+            const uriRegexp = /((mysql(x)?):\/\/)?([\w\.\-~!$&'\(\)\*\+,;=%]+)(:([\w\.\-~!$&'\(\)\*\+,;=%]*))?(@)([\w\.\-~!$&'\(\)\*\+,;=]+)(:(\d+))?/g;
             const matches = [...savedState.lastCommand.matchAll(uriRegexp)];
 
-            if (matches && matches[0][4] && matches[0][8]) {
-                // If password is defined it will be returned (even if it is defined as empty)
-                // otherwise undefined will be returned
-                return matches[0][6];
+            // Tests for the mandatory fields in case password is present in the URI
+            if (matches && matches[0][4] && matches[0][6] && matches[0][8]) {
+                // At this point, we know the connection string has a valid URI inside
+                // However, the password might be percent encoded
+                return decodeURIComponent(matches[0][6]);
             }
         }
 
