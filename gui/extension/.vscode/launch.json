@@ -15,7 +15,7 @@
             ],
             "preLaunchTask": "tsc: extension",
             "trace": false,
-            "smartStep": true
+            "smartStep": true,
         },
         {
             "name": "Debug UI Tests",
