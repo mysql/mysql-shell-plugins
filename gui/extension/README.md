@@ -32,7 +32,7 @@ To file a bug report, select the following menu item or go to [bugs.mysql.com](h
 | Ubuntu             | 20.04, 22.04      |
 | Ubuntu-WSL2        | 20.04             |
 | Kubuntu            | 21.10             |
-| RedHat/OEL         | 7, 8              |
+| RedHat/EL          | 7, 8              |
 | Fedora             | 35                |
 | Raspberry Pi OS    | January 28th 2022 |
 
