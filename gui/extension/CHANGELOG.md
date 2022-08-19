@@ -4,11 +4,8 @@
 
 ### Fixes
 
--
-
-### Additions
-
--
+- Fixed open_session error after creating a connection in Shell Console.
+- Fixed naming to be timestamp based to guarantee uniqueness.
 
 ## Changes in 1.3.2+8.0.30
 
