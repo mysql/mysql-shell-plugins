@@ -157,6 +157,20 @@ export const getDriver = async (): Promise<WebDriver | undefined> => {
     }
 };
 
+export const waitForWelcomePage = async (driver: WebDriver): Promise<void> => {
+    await driver.wait(async () => {
+        const editor = new EditorView();
+        const titles = await editor.getOpenEditorTitles();
+
+        return titles.includes("Welcome to MySQL Shell");
+    }, 5000, "Welcome page was not loaded");
+
+    await driver.wait(until.ableToSwitchToFrame(0), 5000, "frame 0 not loaded");
+    await driver.wait(until.ableToSwitchToFrame(By.id("active-frame")), 5000, "frame 'active-frame not loaded'");
+    await driver.findElement(By.id("nextBtn"));
+    await driver.switchTo().defaultContent();
+};
+
 export const getLeftSection = async (driver: WebDriver, name: string): Promise<WebElement> => {
     // eslint-disable-next-line no-useless-escape
     const leftSideBar = await driver.findElement(By.id("workbench\.view\.extension\.msg-view"));
@@ -827,60 +841,22 @@ export const waitForShell = async (driver: WebDriver): Promise<void> => {
     await bottomBar.toggle(false);
 };
 
-const isBottomBarVisible = async (driver: WebDriver): Promise<boolean> => {
-    const bottomBar = await driver.findElement(By.id("workbench.parts.panel"));
-    const parentNode = await driver.executeScript("return arguments[0].parentNode", bottomBar);
-    const parentNodeClasses = await (parentNode as WebElement).getAttribute("class");
-    const arrayClass = parentNodeClasses.split(" ");
-    if (arrayClass.includes("visible")) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
 export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> => {
 
-    if (platform() === "darwin") {
-        await driver.wait(async () => {
-            try {
-                const bottomBar = new BottomBarPanel();
-                await bottomBar.openOutputView();
+    await driver.wait(async () => {
+        try {
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.openOutputView();
 
-                return true;
-            } catch (e) {
-                if (String(e).indexOf("StaleElementReferenceError") !== -1) {
-                    return false;
-                } else {
-                    throw e;
-                }
+            return true;
+        } catch (e) {
+            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                return false;
+            } else {
+                throw e;
             }
-        }, 3000, "bottomBar still stale");
-
-    } else {
-        if (!(await isBottomBarVisible(driver))) {
-            let titleBar: TitleBar;
-            let viewMenu: TitleBarItem | undefined;
-            await driver.wait(async () => {
-                try {
-                    titleBar = new TitleBar();
-                    viewMenu = await titleBar.getItem("View");
-
-                    return true;
-                } catch (e) {
-                    if (String(e).indexOf("StaleElementReferenceError") !== -1) {
-                        return false;
-                    } else {
-                        throw e;
-                    }
-                }
-            }, 3000, "bottomBar still stale");
-
-            const contexMenu = await viewMenu?.select();
-            const outputItem = await contexMenu?.getItem("Output");
-            await outputItem?.click();
         }
-    }
+    }, 3000, "bottomBar still stale");
 
     await driver.wait(async () => {
         try {
@@ -1090,15 +1066,17 @@ export const getToolbarButton = async (driver: WebDriver, button: string): Promi
     return undefined;
 };
 
-export const writeSQL = async (driver: WebDriver, sql: string): Promise<void> => {
+export const writeSQL = async (driver: WebDriver, sql: string, dealWithBox?: boolean): Promise<void> => {
     const textArea = await driver.findElement(By.css("textarea"));
     await textArea.sendKeys(sql);
-    try {
-        await driver.wait(until.elementLocated(By.css("div.contents")), 500, "none");
-    } catch (e) {
-        return;
+    if (dealWithBox) {
+        try {
+            await driver.wait(until.elementLocated(By.css("div.contents")), 500, "none");
+        } catch (e) {
+            return;
+        }
+        await textArea.sendKeys(selKey.ENTER);
     }
-    await textArea.sendKeys(selKey.ENTER);
 };
 
 export const findInSelection = async (el: WebElement, flag: boolean): Promise<void> => {
@@ -1194,7 +1172,8 @@ export const getResultColumnName = async (driver: WebDriver, columnName: string,
         );
 
         for (const row of resultHeaderRows) {
-            if (await row.getText() === columnName) {
+            const rowText = await row.getAttribute("innerHTML");
+            if (rowText === columnName) {
                 return row;
             }
         }
@@ -1474,6 +1453,21 @@ export const shellGetLangResult = async (driver: WebDriver): Promise<string> => 
     return dataLang;
 };
 
+export const isValueOnJsonResult = async (driver: WebDriver, value: string): Promise<boolean> => {
+    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+    const zoneHost = zoneHosts[zoneHosts.length - 1];
+    const spans = await zoneHost.findElements(By.css("label > span > span"));
+
+    for (const span of spans) {
+        const spanText = await span.getText();
+        if (spanText.indexOf(value) !== -1) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 export const isValueOnDataSet = async (driver: WebDriver, value: String): Promise<boolean> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     const cells = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".zoneHost .tabulator-cell"));
@@ -1485,4 +1479,16 @@ export const isValueOnDataSet = async (driver: WebDriver, value: String): Promis
     }
 
     return false;
+};
+
+export const getShellServerTabStatus = async (driver: WebDriver): Promise<string> => {
+    const server = await driver.findElement(By.id("server"));
+
+    return server.getAttribute("data-tooltip");
+};
+
+export const getShellSchemaTabStatus = async (driver: WebDriver): Promise<string> => {
+    const schema = await driver.findElement(By.id("schema"));
+
+    return schema.getAttribute("innerHTML");
 };

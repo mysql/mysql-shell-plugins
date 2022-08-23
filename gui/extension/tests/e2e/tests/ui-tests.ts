@@ -99,6 +99,10 @@ import {
     shellGetLangResult,
     isValueOnDataSet,
     reloadConnection,
+    getShellServerTabStatus,
+    getShellSchemaTabStatus,
+    waitForWelcomePage,
+    isValueOnJsonResult,
 } from "../lib/helpers";
 
 import { ChildProcess } from "child_process";
@@ -170,6 +174,7 @@ describe("MySQL Shell for VS Code", () => {
                 }
             }, 10000, "Could not find MySQL Shell for VSCode on Activity Bar");
 
+            await waitForWelcomePage(driver!);
             await waitForExtensionChannel(driver!);
             await reloadVSCode(driver!);
             await waitForExtensionChannel(driver!);
@@ -441,7 +446,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const item = await driver!.wait(until
                 .elementLocated(By.css("code > span")), 10000, "MySQL Shell Console was not loaded");
-            expect(await item.getText()).to.contain("Welcome to the MySQL Shell - GUI Console");
+            expect(await item.getText()).to.include("Welcome to the MySQL Shell - GUI Console");
             await driver!.switchTo().defaultContent();
 
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", true);
@@ -614,7 +619,7 @@ describe("MySQL Shell for VS Code", () => {
             }
 
             let textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.contain(conn.schema);
+            expect(textAreaValue).to.include(conn.schema);
 
             await driver!.switchTo().defaultContent();
 
@@ -638,7 +643,7 @@ describe("MySQL Shell for VS Code", () => {
 
             textArea = await editor.findElement(By.css("textarea"));
             textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.contain("CREATE DATABASE");
+            expect(textAreaValue).to.include("CREATE DATABASE");
 
             await driver!.switchTo().defaultContent();
 
@@ -672,7 +677,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const zoneHost = await driver!.findElements(By.css(".zoneHost"));
             const result = await zoneHost[zoneHost.length - 1].findElement(By.css(".resultHost span span")).getText();
-            expect(result).to.contain("OK");
+            expect(result).to.include("OK");
 
             await driver!.switchTo().defaultContent();
 
@@ -725,7 +730,7 @@ describe("MySQL Shell for VS Code", () => {
                 By.css(".resultHost")), 20000, "query results were not found");
 
             const resultStatus = await resultHost.findElement(By.css(".resultStatus label"));
-            expect(await resultStatus.getText()).to.match(new RegExp(/OK, (\d+) records/));
+            expect(await resultStatus.getText()).to.match(/OK, (\d+) records/);
 
         });
 
@@ -767,7 +772,7 @@ describe("MySQL Shell for VS Code", () => {
             }
 
             let textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.contain("actor");
+            expect(textAreaValue).to.include("actor");
 
             await driver!.switchTo().defaultContent();
 
@@ -791,7 +796,7 @@ describe("MySQL Shell for VS Code", () => {
 
             textArea = await editor.findElement(By.css("textarea"));
             textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.contain("idx_actor_last_name");
+            expect(textAreaValue).to.include("idx_actor_last_name");
 
             await driver!.switchTo().defaultContent();
 
@@ -827,7 +832,7 @@ describe("MySQL Shell for VS Code", () => {
 
             let zoneHost = await driver!.findElements(By.css(".zoneHost"));
             let result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
-            expect(result).to.contain(`Default schema set to \`${conn.schema}\`.`);
+            expect(result).to.include(`Default schema set to \`${conn.schema}\`.`);
 
             const prevZoneHosts = await driver!.findElements(By.css(".zoneHost"));
 
@@ -840,7 +845,7 @@ describe("MySQL Shell for VS Code", () => {
             zoneHost = await driver!.findElements(By.css(".zoneHost"));
             result = await zoneHost[zoneHost.length - 1]
                 .findElement(By.css(".resultHost span span")).getAttribute("innerHTML");
-            expect(result).to.contain("OK");
+            expect(result).to.include("OK");
 
             await driver!.switchTo().defaultContent();
 
@@ -910,7 +915,7 @@ describe("MySQL Shell for VS Code", () => {
                 By.css(".resultHost")), 20000, "query results were not found");
 
             const resultStatus = await resultHost.findElement(By.css(".resultStatus label"));
-            expect(await resultStatus.getText()).to.match(new RegExp(/OK, (\d+) records/));
+            expect(await resultStatus.getText()).to.match(/OK, (\d+) records/);
         });
 
         it("View Context Menu - Copy name and create statement to clipboard", async () => {
@@ -951,7 +956,7 @@ describe("MySQL Shell for VS Code", () => {
             }
 
             let textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.contain("test_view");
+            expect(textAreaValue).to.include("test_view");
 
             await driver!.switchTo().defaultContent();
 
@@ -975,7 +980,7 @@ describe("MySQL Shell for VS Code", () => {
 
             textArea = await editor.findElement(By.css("textarea"));
             textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.contain("DEFINER VIEW");
+            expect(textAreaValue).to.include("DEFINER VIEW");
 
             await driver!.switchTo().defaultContent();
 
@@ -1007,7 +1012,7 @@ describe("MySQL Shell for VS Code", () => {
 
             let zoneHost = await driver!.findElements(By.css(".zoneHost"));
             let result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
-            expect(result).to.contain(`Default schema set to \`${conn.schema}\`.`);
+            expect(result).to.include(`Default schema set to \`${conn.schema}\`.`);
 
             const random = String(new Date().valueOf());
             const testView = `testview${random}`;
@@ -1023,7 +1028,7 @@ describe("MySQL Shell for VS Code", () => {
             zoneHost = await driver!.findElements(By.css(".zoneHost"));
             result = await zoneHost[zoneHost.length - 1]
                 .findElement(By.css(".resultHost span span")).getAttribute("innerHTML");
-            expect(result).to.contain("OK");
+            expect(result).to.include("OK");
 
             await driver!.switchTo().defaultContent();
 
@@ -1334,7 +1339,7 @@ describe("MySQL Shell for VS Code", () => {
             await switchToFrame(driver!, "SQL Connections");
 
             const result = await driver!.findElement(By.css(".zoneHost label.label"));
-            expect(await result.getText()).to.contain("OK");
+            expect(await result.getText()).to.include("OK");
         });
 
         it("Connect to MySQL database using SSL", async () => {
@@ -1363,15 +1368,15 @@ describe("MySQL Shell for VS Code", () => {
 
             await newConDialog
                 .findElement(By.id("hostName"))
-                .sendKeys(String(conn.hostname));
+                .sendKeys(conn.hostname);
 
             await newConDialog
                 .findElement(By.id("userName"))
-                .sendKeys(String(conn.username));
+                .sendKeys(conn.username);
 
             await newConDialog
                 .findElement(By.id("defaultSchema"))
-                .sendKeys(String(conn.schema));
+                .sendKeys(conn.schema);
 
             await newConDialog.findElement(By.id("page1")).click();
             await newConDialog.findElement(By.id("sslMode")).click();
@@ -1416,7 +1421,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const resultHost = await driver!.findElement(By.css(".resultHost"));
             const result = await resultHost.findElement(By.css(".resultStatus label"));
-            expect(await result.getText()).to.contain("1 record retrieved");
+            expect(await result.getText()).to.include("1 record retrieved");
 
             expect( await resultHost.findElement(By.xpath("//div[contains(text(), 'TLS_AES_256')]")) ).to.exist;
         });
@@ -1499,9 +1504,9 @@ describe("MySQL Shell for VS Code", () => {
 
             items = (await textArea.getAttribute("value")).split("\n");
             items.shift();
-            expect(items[0]).to.contain("testing");
-            expect(items[1]).to.contain("testing");
-            expect(items[2]).to.contain("testing");
+            expect(items[0]).to.include("testing");
+            expect(items[1]).to.include("testing");
+            expect(items[2]).to.include("testing");
 
         });
 
@@ -1522,8 +1527,16 @@ describe("MySQL Shell for VS Code", () => {
                 return (await driver!.findElements(By.css(".statementStart"))).length > 1;
             }, 5000, "No blue dots were found");
 
-            const lines = await driver!.findElements(By
+            let lines = await driver!.findElements(By
                 .css("#contentHost .editorHost div.margin-view-overlays > div"));
+
+            try {
+                await lines[lines.length-1].findElement(By.css(".statementStart"));
+            } catch (e) {
+                //continue, may be stale
+                lines = await driver!.findElements(By
+                    .css("#contentHost .editorHost div.margin-view-overlays > div"));
+            }
 
             expect(await lines[lines.length-1].findElement(By.css(".statementStart"))).to.exist;
             expect(await lines[lines.length-2].findElement(By.css(".statementStart"))).to.exist;
@@ -1581,7 +1594,7 @@ describe("MySQL Shell for VS Code", () => {
                 return (await getLastQueryResultId(driver!)) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await getResultStatus(driver!, true)).to.match(new RegExp(/(\d+) record/));
+            expect(await getResultStatus(driver!, true)).to.match(/(\d+) record/);
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
@@ -1600,24 +1613,19 @@ describe("MySQL Shell for VS Code", () => {
                 return (await driver!.findElements(By.css(".statementStart"))).length >= 3;
             }, 5000, "Statement start (blue dot) was not found on all lines");
 
-            await textArea.sendKeys(Key.ARROW_UP);
-            await textArea.sendKeys(Key.ARROW_LEFT);
-            await textArea.sendKeys(Key.ARROW_LEFT);
-            await textArea.sendKeys(Key.ARROW_LEFT);
+            const lines = await driver!.findElements(By.css("#contentHost .editorHost .view-line"));
+            await lines[lines.length-2].click();
 
             let lastId = await getLastQueryResultId(driver!);
             let execCaret = await getToolbarButton(driver!, "Execute the statement at the caret position");
             await execCaret?.click();
-            await driver!.wait(async() => {
-                return (await getLastQueryResultId(driver!)) > lastId;
+            await driver!.wait(async(driver) => {
+                return (await getLastQueryResultId(driver)) > lastId;
             }, 3000, "No new results block was displayed");
 
             expect(await getResultColumnName(driver!, "address_id", 3)).to.exist;
 
-            await textArea.sendKeys(Key.ARROW_UP);
-            await textArea.sendKeys(Key.ARROW_LEFT);
-            await textArea.sendKeys(Key.ARROW_LEFT);
-            await textArea.sendKeys(Key.ARROW_LEFT);
+            await lines[lines.length-3].click();
 
             lastId = await getLastQueryResultId(driver!);
             execCaret = await getToolbarButton(driver!, "Execute the statement at the caret position");
@@ -1629,8 +1637,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(await getResultColumnName(driver!, "actor_id", 3)).to.exist;
 
-            await textArea.sendKeys(Key.ARROW_DOWN);
-            await textArea.sendKeys(Key.ARROW_DOWN);
+            await lines[lines.length-1].click();
 
             lastId = await getLastQueryResultId(driver!);
             execCaret = await getToolbarButton(driver!, "Execute the statement at the caret position");
@@ -1651,7 +1658,7 @@ describe("MySQL Shell for VS Code", () => {
             const resultHosts = await driver!.findElements(By.css(".resultHost"));
             const lastResult = resultHosts[resultHosts.length-1];
             const result = await lastResult.findElement(By.css(".resultStatus label"));
-            expect(await result.getText()).to.contain("1 record retrieved");
+            expect(await result.getText()).to.include("1 record retrieved");
 
             const zoneHosts = await driver!.findElements(By.css(".zoneHost"));
             expect( await (await zoneHosts[zoneHosts.length-1].findElement(By.css(".tabulator-cell"))).getText() )
@@ -1686,7 +1693,7 @@ describe("MySQL Shell for VS Code", () => {
             let resultHosts = await driver!.findElements(By.css(".resultHost"));
             let lastResult = resultHosts[resultHosts.length-1];
             let result = await lastResult.findElement(By.css(".resultText span"));
-            expect(await result.getText()).to.contain("OK");
+            expect(await result.getText()).to.include("OK");
 
             await rollBackBtn!.click();
 
@@ -1695,7 +1702,7 @@ describe("MySQL Shell for VS Code", () => {
             resultHosts = await driver!.findElements(By.css(".resultHost"));
             lastResult = resultHosts[resultHosts.length-1];
             result = await lastResult.findElement(By.css(".resultText span"));
-            expect(await result.getAttribute("innerHTML")).to.contain("OK, 0 records retrieved");
+            expect(await result.getAttribute("innerHTML")).to.include("OK, 0 records retrieved");
 
             await enterCmd(driver!, textArea,
                 `INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}`);
@@ -1703,7 +1710,7 @@ describe("MySQL Shell for VS Code", () => {
             resultHosts = await driver!.findElements(By.css(".resultHost"));
             lastResult = resultHosts[resultHosts.length-1];
             result = await lastResult.findElement(By.css(".resultText span"));
-            expect(await result.getAttribute("innerHTML")).to.contain("OK");
+            expect(await result.getAttribute("innerHTML")).to.include("OK");
 
             await commitBtn!.click();
 
@@ -1712,7 +1719,7 @@ describe("MySQL Shell for VS Code", () => {
             resultHosts = await driver!.findElements(By.css(".resultHost"));
             lastResult = resultHosts[resultHosts.length-1];
             result = await lastResult.findElement(By.css(".resultStatus label"));
-            expect(await result.getAttribute("innerHTML")).to.contain("OK, 1 record retrieved");
+            expect(await result.getAttribute("innerHTML")).to.include("OK, 1 record retrieved");
 
             await autoCommit!.click();
 
@@ -1747,7 +1754,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(
                 await finder.findElement(By.css(".matchesCount")).getText(),
-            ).to.match(new RegExp(/1 of (\d+)/));
+            ).to.match(/1 of (\d+)/);
 
             await driver!.wait(
                 until.elementsLocated(By.css(".cdr.findMatch")),
@@ -1767,7 +1774,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(
                 await contentHost.findElement(By.css("textarea")).getAttribute("value"),
-            ).to.contain("import from tester xpto xpto");
+            ).to.include("import from tester xpto xpto");
 
             await replacer.findElement(By.css("textarea")).clear();
 
@@ -1777,7 +1784,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(
                 await contentHost.findElement(By.css("textarea")).getAttribute("value"),
-            ).to.contain("import from tester testing testing");
+            ).to.include("import from tester testing testing");
 
             await closeFinder(finder);
 
@@ -1792,7 +1799,9 @@ describe("MySQL Shell for VS Code", () => {
 
             await enterCmd(driver!, textArea, "select * from sakila.actor;select * from sakila.address;");
 
-            const result1 = await getResultTab(driver!, "Result #1");
+            const result1 = await driver?.wait(async () => {
+                return getResultTab(driver!, "Result #1");
+            }, 5000, "Result #1 was not found");
 
             const result2 = await getResultTab(driver!, "Result #2");
 
@@ -1840,7 +1849,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const result2 = await getOutput(driver!);
 
-            expect(result2).to.match(new RegExp(/(\d+).(\d+)/));
+            expect(result2).to.match(/(\d+).(\d+)/);
 
             await enterCmd(driver!, textArea, "\\typescript");
 
@@ -1850,7 +1859,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const result4 = await getOutput(driver!);
 
-            expect(result4).to.match(new RegExp(/(\d+).(\d+)/));
+            expect(result4).to.match(/(\d+).(\d+)/);
 
             await textArea.sendKeys(Key.ARROW_UP);
 
@@ -1872,7 +1881,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const otherResult = await getOutput(driver!, true);
 
-            expect(otherResult).to.match(new RegExp(/(\d+).(\d+)/));
+            expect(otherResult).to.match(/(\d+).(\d+)/);
 
             expect(otherResult !== result2).equals(true);
 
@@ -1884,7 +1893,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const otherResult1 = await getOutput(driver!);
 
-            expect(otherResult1).to.match(new RegExp(/(\d+).(\d+)/));
+            expect(otherResult1).to.match(/(\d+).(\d+)/);
 
             expect(otherResult1 !== result4).equals(true);
 
@@ -1917,15 +1926,13 @@ describe("MySQL Shell for VS Code", () => {
 
             await enterCmd(driver!, textArea, `/*!${serverVer} select * from actor;*/`);
 
-            expect(await getResultStatus(driver!, true)).to.match(
-                new RegExp(/OK, (\d+) records retrieved/),
-            );
+            expect(await getResultStatus(driver!, true)).to.match(/OK, (\d+) records retrieved/);
 
             const higherServer = parseInt(serverVer, 10) + 1;
 
             await enterCmd(driver!, textArea, `/*!${higherServer} select * from actor;*/`);
 
-            expect(await getResultStatus(driver!)).to.contain(
+            expect(await getResultStatus(driver!)).to.include(
                 "OK, 0 records retrieved",
             );
 
@@ -1933,7 +1940,7 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Context Menu - Execute", async () => {
 
-            await writeSQL(driver!, "select * from sakila.actor");
+            await writeSQL(driver!, "select * from sakila.actor", true);
             const textArea = await driver!.findElement(By.css("textarea"));
 
             let lastId = await getLastQueryResultId(driver!);
@@ -1943,9 +1950,7 @@ describe("MySQL Shell for VS Code", () => {
                 return (await getLastQueryResultId(driver!)) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await getResultStatus(driver!, true)).to.match(
-                new RegExp(/OK, (\d+) records retrieved/),
-            );
+            expect(await getResultStatus(driver!, true)).to.match(/OK, (\d+) records retrieved/);
 
             expect(await hasNewPrompt(driver!)).to.be.false;
 
@@ -1957,9 +1962,7 @@ describe("MySQL Shell for VS Code", () => {
                 return (await getLastQueryResultId(driver!)) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await getResultStatus(driver!, true)).to.match(
-                new RegExp(/OK, (\d+) records retrieved/),
-            );
+            expect(await getResultStatus(driver!, true)).to.match(/OK, (\d+) records retrieved/);
 
             expect(await hasNewPrompt(driver!)).to.be.true;
 
@@ -2016,6 +2019,10 @@ describe("MySQL Shell for VS Code", () => {
             await postActions(driver!, this);
 
             await driver!.switchTo().defaultContent();
+
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
+
             await toggleSection(driver!, "DATABASE", false);
             await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", true);
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", false);
@@ -2254,7 +2261,7 @@ describe("MySQL Shell for VS Code", () => {
                 .to.equal("DB System used to test the MySQL Shell for VSCode Extension.");
 
             expect(await newConDialog.findElement(By.id("hostName")).getAttribute("value"))
-                .to.match(new RegExp(/(\d+).(\d+).(\d+).(\d+)/));
+                .to.match(/(\d+).(\d+).(\d+).(\d+)/);
 
             await newConDialog.findElement(By.id("userName")).sendKeys("dba");
 
@@ -2301,7 +2308,7 @@ describe("MySQL Shell for VS Code", () => {
                     }
 
                     return false;
-                }, 20000, "Dialogs were not displayed");
+                }, 30000, "Dialogs were not displayed");
 
                 const confirmDialog = await driver!.wait(until.elementLocated(By.css(".visible.confirmDialog")),
                     5000, "Confirm dialog was not displayed");
@@ -2320,7 +2327,7 @@ describe("MySQL Shell for VS Code", () => {
                 const result = await zoneHost[zoneHost.length - 1]
                     .findElement(By.css(".resultStatus label"));
 
-                expect(await result.getText()).to.contain("OK");
+                expect(await result.getText()).to.include("OK");
 
                 await driver!.switchTo().defaultContent();
 
@@ -2374,7 +2381,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 30000, "No logs were found to check that E2ETESTS profile was loaded");
 
             const notifications = await new Workbench().getNotifications();
-            expect(await notifications[0].getMessage()).to.contain("Are you sure you want to start the DB System");
+            expect(await notifications[0].getMessage()).to.include("Are you sure you want to start the DB System");
             await notifications[0].takeAction("Yes");
 
             await driver!.wait(async () => {
@@ -2424,7 +2431,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 50000, "No logs were found to check that E2ETESTS profile was loaded");
 
             const notifications = await new Workbench().getNotifications();
-            expect(await notifications[0].getMessage()).to.contain("Are you sure you want to restart the DB System");
+            expect(await notifications[0].getMessage()).to.include("Are you sure you want to restart the DB System");
             await notifications[0].takeAction("NO");
 
             await driver!.wait(async () => {
@@ -2474,7 +2481,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 50000, "No logs were found to check that E2ETESTS profile was loaded");
 
             const notifications = await new Workbench().getNotifications();
-            expect(await notifications[0].getMessage()).to.contain("Are you sure you want to stop the DB System");
+            expect(await notifications[0].getMessage()).to.include("Are you sure you want to stop the DB System");
             await notifications[0].takeAction("NO");
 
             await driver!.wait(async () => {
@@ -2524,7 +2531,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 50000, "No logs were found to check that E2ETESTS profile was loaded");
 
             const notifications = await new Workbench().getNotifications();
-            expect(await notifications[0].getMessage()).to.contain("Are you sure you want to delete");
+            expect(await notifications[0].getMessage()).to.include("Are you sure you want to delete");
             await notifications[0].takeAction("NO");
 
             await driver!.wait(async () => {
@@ -2615,10 +2622,12 @@ describe("MySQL Shell for VS Code", () => {
             await hasTreeChildren(driver!, "ORACLE CLOUD INFRASTRUCTURE",
                 "MySQLShellTesting", "Bastion4PrivateSubnetStandardVnc");
 
-            await toggleSection(driver!, "MYSQL SHELL TASKS", true);
+            await toggleSection(driver!, "MYSQL SHELL TASKS", false);
 
             await selectContextMenuItem(driver!, "ORACLE CLOUD INFRASTRUCTURE",
                 "Bastion4PrivateSubnetStandardVnc", "ociBastion", "Refresh When Bastion Reaches Active State");
+
+            await toggleSection(driver!, "MYSQL SHELL TASKS", true);
 
             expect(await existsTreeElement(driver!,
                 "MYSQL SHELL TASKS", "Refresh Bastion (running)")).to.be.true;
@@ -2674,7 +2683,7 @@ describe("MySQL Shell for VS Code", () => {
             }, 50000, "No logs were found to check that E2ETESTS profile was loaded");
 
             const notifications = await new Workbench().getNotifications();
-            expect(await notifications[0].getMessage()).to.contain("Are you sure you want to delete");
+            expect(await notifications[0].getMessage()).to.include("Are you sure you want to delete");
             await notifications[0].takeAction("NO");
 
             expect(await existsTreeElement(driver!, "MYSQL SHELL TASKS", "Delete Bastion (error)")).to.be.true;
@@ -2784,6 +2793,7 @@ describe("MySQL Shell for VS Code", () => {
             await switchToFrame(driver!, "MySQL Shell Consoles");
 
             await driver!.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+
         });
 
         afterEach(async function () {
@@ -2792,6 +2802,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const textArea = await driver!.findElement(By.css("textArea"));
             await enterCmd(driver!, textArea, `\\d`);
+            expect(await getShellServerTabStatus(driver!)).equals("The session is not connected to a MySQL server");
             await cleanEditor(driver!);
 
         });
@@ -2829,16 +2840,20 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`,
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}`,
             );
 
             let result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/${conn.schema}'`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
             editor = await driver!.findElement(By.id("shellEditorHost"));
             textArea = await editor.findElement(By.css("textArea"));
@@ -2864,16 +2879,20 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`,
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}`,
             );
 
             result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/${conn.schema}'`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
             editor = await driver!.findElement(By.id("shellEditorHost"));
             textArea = await editor.findElement(By.css("textArea"));
@@ -2900,16 +2919,20 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`,
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}`,
             );
 
             result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/${conn.schema}'`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
             editor = await driver!.findElement(By.id("shellEditorHost"));
             textArea = await editor.findElement(By.css("textArea"));
@@ -2942,22 +2965,26 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}`,
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.port}/${conn.schema}`,
             );
 
             const result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}'`,
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.port}/${conn.schema}'`,
             );
 
-            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+            expect(result).to.match(/Server version: (\d+).(\d+).(\d+)/);
 
-            expect(result).to.contain(
-                `Default schema set to \`${String(conn.schema)}\`.`,
+            expect(result).to.include(
+                `Default schema set to \`${conn.schema}\`.`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
         });
 
@@ -2971,12 +2998,13 @@ describe("MySQL Shell for VS Code", () => {
             );
 
             const textArea = await editor.findElement(By.css("textArea"));
+            let uri = `\\c ${String(shellConn.username)}@${String(shellConn.hostname)}:`;
+            uri += `${String(shellConn.port)}/${String(shellConn.schema)}`;
 
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `\\c ${String(shellConn.username)}@${String(shellConn.hostname)}:${String(shellConn.port)}/${String(shellConn.schema)}`);
+                uri);
 
             await setDBEditorPassword(driver!, shellConn);
 
@@ -2984,15 +3012,22 @@ describe("MySQL Shell for VS Code", () => {
 
             const result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(shellConn.username)}@${String(shellConn.hostname)}:${String(shellConn.port)}/${String(shellConn.schema)}'`);
+            uri = `Creating a session to '${String(shellConn.username)}@${String(shellConn.hostname)}:`;
+            uri += `${String(shellConn.port)}/${String(shellConn.schema)}'`;
 
-            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+            expect(result).to.include(uri);
 
-            expect(result).to.contain(
+            expect(result).to.match(/Server version: (\d+).(\d+).(\d+)/);
+
+            expect(result).to.include(
                 `Default schema set to \`${String(shellConn.schema)}\`.`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
         });
 
@@ -3010,52 +3045,56 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}`);
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.port}/${conn.schema}`);
 
             let result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}'`,
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.port}/${conn.schema}'`,
             );
 
-            expect(result).to.contain(
-                `Default schema set to \`${String(conn.schema)}\`.`,
+            expect(result).to.include(
+                `Default schema set to \`${conn.schema}\`.`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
             await enterCmd(driver!, textArea, "\\h");
 
             result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
+            expect(result).to.include(
                 "The Shell Help is organized in categories and topics.",
             );
 
-            expect(result).to.contain("SHELL COMMANDS");
-            expect(result).to.contain("\\connect");
-            expect(result).to.contain("\\disconnect");
-            expect(result).to.contain("\\edit");
-            expect(result).to.contain("\\exit");
-            expect(result).to.contain("\\help");
-            expect(result).to.contain("\\history");
-            expect(result).to.contain("\\js");
-            expect(result).to.contain("\\nopager");
-            expect(result).to.contain("\\nowarnings");
-            expect(result).to.contain("\\option");
-            expect(result).to.contain("\\pager");
-            expect(result).to.contain("\\py");
-            expect(result).to.contain("\\quit");
-            expect(result).to.contain("\\reconnect");
-            expect(result).to.contain("\\rehash");
-            expect(result).to.contain("\\show");
-            expect(result).to.contain("\\source");
-            expect(result).to.contain("\\sql");
-            expect(result).to.contain("\\status");
-            expect(result).to.contain("\\system");
-            expect(result).to.contain("\\use");
-            expect(result).to.contain("\\warning");
-            expect(result).to.contain("\\watch");
+            expect(result).to.include("SHELL COMMANDS");
+            expect(result).to.include("\\connect");
+            expect(result).to.include("\\disconnect");
+            expect(result).to.include("\\edit");
+            expect(result).to.include("\\exit");
+            expect(result).to.include("\\help");
+            expect(result).to.include("\\history");
+            expect(result).to.include("\\js");
+            expect(result).to.include("\\nopager");
+            expect(result).to.include("\\nowarnings");
+            expect(result).to.include("\\option");
+            expect(result).to.include("\\pager");
+            expect(result).to.include("\\py");
+            expect(result).to.include("\\quit");
+            expect(result).to.include("\\reconnect");
+            expect(result).to.include("\\rehash");
+            expect(result).to.include("\\show");
+            expect(result).to.include("\\source");
+            expect(result).to.include("\\sql");
+            expect(result).to.include("\\status");
+            expect(result).to.include("\\system");
+            expect(result).to.include("\\use");
+            expect(result).to.include("\\warning");
+            expect(result).to.include("\\watch");
 
 
         });
@@ -3103,39 +3142,39 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}`);
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}`);
 
             const result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`,
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/${conn.schema}'`,
             );
 
-            expect(result).to.contain("(X protocol)");
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
 
-            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
-            expect(result).to.contain(
-                `Default schema \`${String(conn.schema)}\` accessible through db.`,
+            expect(result).to.include("(X protocol)");
+
+            expect(result).to.match(/Server version: (\d+).(\d+).(\d+)/);
+
+            expect(result).to.include(
+                `Default schema \`${conn.schema}\` accessible through db.`,
             );
 
             await enterCmd(driver!, textArea, "db.actor.select()");
 
             expect(await shellGetResultTable(driver!)).to.exist;
 
-            expect(await shellGetTotalRows(driver!)).to.match(
-                new RegExp(/(\d+) rows in set/),
-            );
+            expect(await shellGetTotalRows(driver!)).to.match(/(\d+) rows in set/);
 
             await enterCmd(driver!, textArea, "db.category.select()");
 
             expect(await shellGetResultTable(driver!)).to.exist;
 
-            expect(await shellGetTotalRows(driver!)).to.match(
-                new RegExp(/(\d+) rows in set/),
-            );
+            expect(await shellGetTotalRows(driver!)).to.match(/(\d+) rows in set/);
 
         });
 
@@ -3153,36 +3192,38 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `shell.connect('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}')`);
+                `shell.connect('${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}')`);
 
             let result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`);
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/${conn.schema}'`);
 
-            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+            expect(result).to.match(/Server version: (\d+).(\d+).(\d+)/);
 
-            expect(result).to.contain(
-                `Default schema \`${String(conn.schema)}\` accessible through db`,
+            expect(result).to.include(
+                `Default schema \`${conn.schema}\` accessible through db`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
             await enterCmd(driver!, textArea, "shell.status()");
 
             result = await shellGetResult(driver!);
 
-            expect(result).to.match(
-                new RegExp(/MySQL Shell version (\d+).(\d+).(\d+)/),
-            );
+            expect(result).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
-            expect(result).to.contain(`"CONNECTION":"${String(conn.hostname)} via TCP/IP"`);
+            expect(result).to.include(`"CONNECTION":"${conn.hostname} via TCP/IP"`);
 
-            expect(result).to.contain(`"CURRENT_SCHEMA":"${String(conn.schema)}"`);
+            expect(result).to.include(`"CURRENT_SCHEMA":"${conn.schema}"`);
 
-            expect(result).to.match(new RegExp(`"CURRENT_USER":"${String(conn.username)}`));
+            expect(result).to.include(`"CURRENT_USER":"${conn.username}@${conn.hostname}"`);
 
-            expect(result).to.contain(`"TCP_PORT":"${String(conn.portX)}"`);
+            expect(result).to.include(`"TCP_PORT":"${conn.portX}"`);
 
         });
 
@@ -3197,14 +3238,14 @@ describe("MySQL Shell for VS Code", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            const cmd = `mysql.getClassicSession('${String(conn.username)}:${String(conn.password)}
-                @${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}')`;
+            const cmd = `mysql.getClassicSession('${conn.username}:${conn.password}
+                @${conn.hostname}:${conn.port}/${conn.schema}')`;
 
             await enterCmd(driver!, textArea, cmd.replace(/ /g,""));
 
             let result = await shellGetResult(driver!);
 
-            expect(result).to.contain("&lt;ClassicSession&gt;");
+            expect(result).to.include("&lt;ClassicSession&gt;");
 
             await enterCmd(driver!, textArea, "shell.disconnect()");
 
@@ -3213,25 +3254,22 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `mysql.getSession('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}')`);
+                `mysql.getSession('${conn.username}:${conn.password}@${conn.hostname}:${conn.port}/${conn.schema}')`);
 
             result = await shellGetResult(driver!);
 
-            expect(result).to.contain("&lt;ClassicSession&gt;");
+            expect(result).to.include("&lt;ClassicSession&gt;");
 
             await enterCmd(driver!, textArea, "shell.disconnect()");
 
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `mysqlx.getSession('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}')`);
+                `mysqlx.getSession('${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}')`);
 
             result = await shellGetResult(driver!);
 
-            expect(result).to.contain("&lt;Session&gt;");
-
+            expect(result).to.include("&lt;Session&gt;");
 
         });
 
@@ -3249,14 +3287,18 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}`);
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.port}/${conn.schema}`);
 
             let result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.port)}/${String(conn.schema)}'`);
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.port}/${conn.schema}'`);
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
             await enterCmd(
                 driver!,
@@ -3278,21 +3320,17 @@ describe("MySQL Shell for VS Code", () => {
 
             result = await shellGetResult(driver!);
 
-            expect(result).to.contain("Running data dump using 1 thread.");
+            expect(result).to.include("Running data dump using 1 thread.");
 
-            expect(result).to.match(
-                new RegExp(/Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/),
-            );
+            expect(result).to.match(/Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/);
 
-            expect(result).to.match(new RegExp(/Data size: (\d+).(\d+)(\d+) KB/));
+            expect(result).to.match(/Data size: (\d+).(\d+)(\d+) KB/);
 
-            expect(result).to.match(new RegExp(/Rows written: (\d+)/));
+            expect(result).to.match(/Rows written: (\d+)/);
 
-            expect(result).to.match(new RegExp(/Bytes written: (\d+).(\d+)(\d+) KB/));
+            expect(result).to.match(/Bytes written: (\d+).(\d+)(\d+) KB/);
 
-            expect(result).to.match(
-                new RegExp(/Average throughput: (\d+).(\d+)(\d+) KB/),
-            );
+            expect(result).to.match(/Average throughput: (\d+).(\d+)(\d+) KB/);
 
         });
 
@@ -3310,27 +3348,33 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/world_x_cst`);
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/world_x_cst`);
 
             const result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/world_x_cst'`);
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/world_x_cst'`);
 
-            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+            expect(result).to.match(/Server version: (\d+).(\d+).(\d+)/);
 
-            expect(result).to.contain(
+            expect(result).to.include(
                 "Default schema `world_x_cst` accessible through db.",
             );
 
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include("world_x_cst");
+
             await enterCmd(driver!, textArea, "db.countryinfo.find()");
+
             expect(await shellGetLangResult(driver!)).equals("json");
+
+            expect(await isValueOnJsonResult(driver!, "Yugoslavia")).to.be.true;
 
         });
 
-        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34241454
         it("Change schemas using menu", async () => {
 
             const editor = await driver!.findElement(By.id("shellEditorHost"));
@@ -3345,16 +3389,20 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}`);
+                `\\c ${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}`);
 
             let result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}`);
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}`);
 
-            expect(result).to.contain("No default schema selected");
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include("no schema selected");
+
+            expect(result).to.include("No default schema selected");
 
             await driver!.executeScript(
                 "arguments[0].click();",
@@ -3382,6 +3430,7 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
+        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34518305
         it("Check query result content", async () => {
             const editor = await driver!.findElement(By.id("shellEditorHost"));
 
@@ -3395,20 +3444,24 @@ describe("MySQL Shell for VS Code", () => {
             await enterCmd(
                 driver!,
                 textArea,
-                    // eslint-disable-next-line max-len
-                `shell.connect('${String(conn.username)}:${String(conn.password)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}')`);
+                `shell.connect('${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}')`);
 
             const result = await shellGetResult(driver!);
 
-            expect(result).to.contain(
-                    // eslint-disable-next-line max-len
-                `Creating a session to '${String(conn.username)}@${String(conn.hostname)}:${String(conn.portX)}/${String(conn.schema)}'`);
+            expect(result).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/${conn.schema}'`);
 
-            expect(result).to.match(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+            expect(result).to.match(/Server version: (\d+).(\d+).(\d+)/);
 
-            expect(result).to.contain(
-                `Default schema \`${String(conn.schema)}\` accessible through db`,
+            expect(result).to.include(
+                `Default schema \`${conn.schema}\` accessible through db`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .to.include(conn.schema);
 
             await enterCmd(driver!, textArea, "\\sql");
 
@@ -3417,6 +3470,14 @@ describe("MySQL Shell for VS Code", () => {
             expect(await isValueOnDataSet(driver!, "sakila")).equals(true);
 
             expect(await isValueOnDataSet(driver!, "world_x_cst")).equals(true);
+
+            await enterCmd(driver!, textArea, "\\js");
+
+            await enterCmd(driver!, textArea, "db.actor.select()");
+
+            expect(await shellGetLangResult(driver!)).equals("json");
+
+            expect(await isValueOnJsonResult(driver!, "PENELOPE")).to.be.true;
         });
 
     });
