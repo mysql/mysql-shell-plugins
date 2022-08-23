@@ -41,17 +41,20 @@ import {
     IDbConfig,
     cleanEditor,
     isValueOnDataSet,
+    getShellServerTabStatus,
+    getShellSchemaTabStatus,
+    isValueOnJsonResult,
 } from "../lib/helpers";
 
 const dbConfig: IDbConfig = {
     dbType: "MySQL",
     caption: "ClientQA test",
     description: "my connection",
-    hostname: process.env.DBHOSTNAME,
+    hostname: String(process.env.DBHOSTNAME),
     protocol: "mysql",
-    port: process.env.DBPORT,
-    username: process.env.DBUSERNAMESHELL,
-    password: process.env.DBPASSWORDSHELL,
+    port: String(process.env.DBPORT),
+    username: String(process.env.DBUSERNAMESHELL),
+    password: String(process.env.DBPASSWORDSHELL),
     schema: "sakila",
     showAdvanced: false,
     sslMode: "Disable",
@@ -96,6 +99,7 @@ describe("MySQL Shell Sessions", () => {
 
         const textArea = await driver.findElement(By.css("textArea"));
         await enterCmd(driver, textArea, `\\d`);
+        expect(await getShellServerTabStatus(driver!)).toBe("The session is not connected to a MySQL server");
         await cleanEditor(driver);
     });
 
@@ -141,25 +145,32 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
+            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.port}/${dbConfig.schema}`;
+
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}`,
+                uri,
             );
 
             const result = await shellGetResult(driver);
 
             expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}'`,
+                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}'`,
             );
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema set to \`${String(dbConfig.schema)}\`.`,
+                `Default schema set to \`${dbConfig.schema}\`.`,
             );
+
+            expect(await getShellServerTabStatus(driver))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver))
+                .toContain(dbConfig.schema);
 
         } catch(e) {
             testFailed = true;
@@ -181,8 +192,7 @@ describe("MySQL Shell Sessions", () => {
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}`);
+                `\\c ${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}`);
 
             await setDBEditorPassword(driver, dbConfig);
 
@@ -190,15 +200,23 @@ describe("MySQL Shell Sessions", () => {
 
             const result = await shellGetResult(driver);
 
-            expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}'`);
+            let uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.port}/${dbConfig.schema}'`;
+
+            expect(result).toContain(uri);
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema set to \`${String(dbConfig.schema)}\`.`,
+                `Default schema set to \`${dbConfig.schema}\`.`,
             );
+
+            expect(await getShellServerTabStatus(driver))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver))
+                .toContain(dbConfig.schema);
+
         } catch(e) {
             testFailed = true;
             throw e;
@@ -216,22 +234,29 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
+            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.port}/${dbConfig.schema}`;
+
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}`);
+                uri);
 
             let result = await shellGetResult(driver);
 
             expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}'`,
+                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}'`,
             );
 
             expect(result).toContain(
-                `Default schema set to \`${String(dbConfig.schema)}\`.`,
+                `Default schema set to \`${dbConfig.schema}\`.`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .toContain(dbConfig.schema);
 
             await enterCmd(driver, textArea, "\\h");
 
@@ -316,26 +341,34 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
+            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.portX}/${dbConfig.schema}`;
+
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}`);
+                uri);
 
             const result = await shellGetResult(driver);
 
-            expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}'`,
-            );
+            uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.portX}/${dbConfig.schema}'`;
+
+            expect(result).toContain(uri);
 
             expect(result).toContain("(X protocol)");
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema \`${String(dbConfig.schema)}\` accessible through db.`,
+                `Default schema \`${dbConfig.schema}\` accessible through db.`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .toContain(dbConfig.schema);
 
             await enterCmd(driver, textArea, "db.actor.select()");
 
@@ -370,23 +403,32 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
+            let uri = `shell.connect('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.portX}/${dbConfig.schema}')`;
+
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `shell.connect('${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}')`);
+                uri);
 
             let result = await shellGetResult(driver);
 
-            expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}'`);
+            uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.portX}/${dbConfig.schema}'`;
+
+            expect(result).toContain(uri);
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema \`${String(dbConfig.schema)}\` accessible through db`,
+                `Default schema \`${dbConfig.schema}\` accessible through db`,
             );
+
+            expect(await getShellServerTabStatus(driver!))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .toContain(dbConfig.schema);
 
             await enterCmd(driver, textArea, "shell.status()");
 
@@ -396,13 +438,13 @@ describe("MySQL Shell Sessions", () => {
                 new RegExp(/MySQL Shell version (\d+).(\d+).(\d+)/),
             );
 
-            expect(result).toContain(`"CONNECTION":"${String(dbConfig.hostname)} via TCP/IP"`);
+            expect(result).toContain(`"CONNECTION":"${dbConfig.hostname} via TCP/IP"`);
 
-            expect(result).toContain(`"CURRENT_SCHEMA":"${String(dbConfig.schema)}"`);
+            expect(result).toContain(`"CURRENT_SCHEMA":"${dbConfig.schema}"`);
 
-            expect(result).toMatch(new RegExp(`"CURRENT_USER":"${String(dbConfig.username)}`));
+            expect(result).toMatch(new RegExp(`"CURRENT_USER":"${dbConfig.username}`));
 
-            expect(result).toContain(`"TCP_PORT":"${String(dbConfig.portX)}"`);
+            expect(result).toContain(`"TCP_PORT":"${dbConfig.portX}"`);
 
         } catch(e) {
             testFailed = true;
@@ -421,8 +463,8 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            const cmd = `mysql.getClassicSession('${String(dbConfig.username)}:${String(dbConfig.password)}
-            @${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}')`;
+            const cmd = `mysql.getClassicSession('${dbConfig.username}:${dbConfig.password}
+            @${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}')`;
 
             await enterCmd(driver, textArea, cmd.replace(/ /g,""));
 
@@ -434,11 +476,13 @@ describe("MySQL Shell Sessions", () => {
 
             result = await shellGetResult(driver);
 
+            let uri = `mysql.getSession('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.port}/${dbConfig.schema}')`;
+
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `mysql.getSession('${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}')`);
+                uri);
 
             result = await shellGetResult(driver);
 
@@ -446,11 +490,13 @@ describe("MySQL Shell Sessions", () => {
 
             await enterCmd(driver, textArea, "shell.disconnect()");
 
+            uri = `mysqlx.getSession('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.portX}/${dbConfig.schema}')`;
+
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `mysqlx.getSession('${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}')`);
+                uri);
 
             result = await shellGetResult(driver);
 
@@ -473,17 +519,27 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
+            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.port}/${dbConfig.schema}`;
+
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}`);
+                uri);
 
             let result = await shellGetResult(driver);
 
+            uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
+            uri += `${dbConfig.port}/${dbConfig.schema}'`;
+
             expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}/${String(dbConfig.schema)}'`);
+                uri);
+
+            expect(await getShellServerTabStatus(driver))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
+
+            expect(await getShellSchemaTabStatus(driver!))
+                .toContain(dbConfig.schema);
 
             await enterCmd(
                 driver,
@@ -541,14 +597,12 @@ describe("MySQL Shell Sessions", () => {
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/world_x_cst`);
+                `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:${dbConfig.portX}/world_x_cst`);
 
             const result = await shellGetResult(driver);
 
             expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/world_x_cst'`);
+                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.portX}/world_x_cst'`);
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
@@ -556,15 +610,21 @@ describe("MySQL Shell Sessions", () => {
                 "Default schema `world_x_cst` accessible through db.",
             );
 
+            expect(await getShellServerTabStatus(driver))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver))
+                .toContain("world_x_cst");
+
             await enterCmd(driver, textArea, "db.countryinfo.find()");
             expect(await shellGetLangResult(driver)).toBe("json");
+
         } catch(e) {
             testFailed = true;
             throw e;
         }
     });
 
-    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34241454
     it("Change schemas using menu", async () => {
         try {
             const editor = await driver.findElement(By.id("shellEditorHost"));
@@ -579,16 +639,20 @@ describe("MySQL Shell Sessions", () => {
             await enterCmd(
                 driver,
                 textArea,
-                // eslint-disable-next-line max-len
-                `\\c ${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}`);
+                `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:${dbConfig.portX}`);
 
             let result = await shellGetResult(driver);
 
             expect(result).toContain(
-                // eslint-disable-next-line max-len
-                `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}`);
+                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.portX}`);
 
             expect(result).toContain("No default schema selected");
+
+            expect(await getShellServerTabStatus(driver))
+                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus(driver))
+                .toContain("no schema selected");
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -619,6 +683,7 @@ describe("MySQL Shell Sessions", () => {
         }
     });
 
+    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34518305
     it("Check query result content", async () => {
         const editor = await driver.findElement(By.id("shellEditorHost"));
 
@@ -629,23 +694,30 @@ describe("MySQL Shell Sessions", () => {
 
         const textArea = await editor.findElement(By.css("textArea"));
 
+        let uri = `shell.connect('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
+        uri += `${dbConfig.portX}/${dbConfig.schema}')`;
+
         await enterCmd(
             driver,
             textArea,
-                // eslint-disable-next-line max-len
-            `shell.connect('${String(dbConfig.username)}:${String(dbConfig.password)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}')`);
+            uri);
 
         const result = await shellGetResult(driver);
 
         expect(result).toContain(
-                // eslint-disable-next-line max-len
-            `Creating a session to '${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.portX)}/${String(dbConfig.schema)}'`);
+            `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.portX}/${dbConfig.schema}'`);
 
         expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
         expect(result).toContain(
-            `Default schema \`${String(dbConfig.schema)}\` accessible through db`,
+            `Default schema \`${dbConfig.schema}\` accessible through db`,
         );
+
+        expect(await getShellServerTabStatus(driver!))
+            .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+
+        expect(await getShellSchemaTabStatus(driver!))
+            .toContain(dbConfig.schema);
 
         await enterCmd(driver, textArea, "\\sql");
 
@@ -654,6 +726,14 @@ describe("MySQL Shell Sessions", () => {
         expect(await isValueOnDataSet(driver, "sakila")).toBe(true);
 
         expect(await isValueOnDataSet(driver, "world_x_cst")).toBe(true);
+
+        await enterCmd(driver, textArea, "\\js");
+
+        await enterCmd(driver, textArea, "db.actor.select()");
+
+        expect(await shellGetLangResult(driver)).toBe("json");
+
+        expect(await isValueOnJsonResult(driver, "PENELOPE")).toBe(true);
     });
 
 });

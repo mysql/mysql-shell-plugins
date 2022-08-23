@@ -72,12 +72,12 @@ export interface IDbConfig {
     dbType: string;
     caption: string;
     description: string;
-    hostname: string | undefined;
+    hostname: string;
     protocol: string;
-    port: string | undefined;
-    username: string | undefined;
-    password: string | undefined;
-    schema: string | undefined;
+    port: string;
+    username: string;
+    password: string;
+    schema: string;
     showAdvanced: boolean;
     sslMode: string;
     compression: string;
@@ -1555,6 +1555,33 @@ export const isValueOnDataSet = async (driver: WebDriver, value: String): Promis
     for (const cell of cells) {
         const text = await cell.getText();
         if (text === value) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+export const getShellServerTabStatus = async (driver: WebDriver): Promise<string> => {
+    const server = await driver.findElement(By.id("server"));
+
+    return server.getAttribute("data-tooltip");
+};
+
+export const getShellSchemaTabStatus = async (driver: WebDriver): Promise<string> => {
+    const schema = await driver.findElement(By.id("schema"));
+
+    return schema.getAttribute("innerHTML");
+};
+
+export const isValueOnJsonResult = async (driver: WebDriver, value: string): Promise<boolean> => {
+    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+    const zoneHost = zoneHosts[zoneHosts.length - 1];
+    const spans = await zoneHost.findElements(By.css("label > span > span"));
+
+    for (const span of spans) {
+        const spanText = await span.getText();
+        if (spanText.indexOf(value) !== -1) {
             return true;
         }
     }
