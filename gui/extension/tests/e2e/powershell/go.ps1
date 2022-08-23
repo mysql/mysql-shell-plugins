@@ -215,6 +215,15 @@ try{
         Throw "OCI Library not loaded. Maybe the extension folder was not found."
     }
 
+    # RUN OCI TESTS ?
+    if ($env:RUN_OCI_TESTS -eq $false){
+        $content = Get-Content $testsPath
+        writeMsg "Marking OCI tests to be skipped..." "-NoNewLine"
+        $content = $content.replace("describe(`"ORACLE CLOUD INFRASTRUCTURE tests`", () => {", "describe.skip(`"ORACLE CLOUD INFRASTRUCTURE tests`", () => {") 
+        Set-Content -Path $testsPath -Value $content
+        writeMsg "DONE"
+    }
+
     # RERUN
     if($env:RERUN -eq $true){
         $path2json = Join-Path $basePath "mochawesome-report" "test-report.json"
