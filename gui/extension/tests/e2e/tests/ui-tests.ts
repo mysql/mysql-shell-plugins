@@ -1464,6 +1464,11 @@ describe("MySQL Shell for VS Code", () => {
 
         after(async () => {
             await driver!.switchTo().defaultContent();
+            const edView = new EditorView();
+            const editors = await edView.getOpenEditorTitles();
+            for (const editor of editors) {
+                await edView.closeEditor(editor);
+            }
         });
 
         it("Multi-cursor", async () => {
@@ -2859,7 +2864,9 @@ describe("MySQL Shell for VS Code", () => {
             textArea = await editor.findElement(By.css("textArea"));
             await enterCmd(driver!, textArea, "db.actor.select()");
 
-            expect(await shellGetResultTable(driver!)).to.exist;
+            expect(await shellGetLangResult(driver!)).equals("json");
+
+            expect(await isValueOnJsonResult(driver!, "PENELOPE")).to.be.true;
 
             //SESSION2
             await driver!.switchTo().defaultContent();
@@ -2898,7 +2905,9 @@ describe("MySQL Shell for VS Code", () => {
             textArea = await editor.findElement(By.css("textArea"));
             await enterCmd(driver!, textArea, "db.category.select()");
 
-            expect(await shellGetResultTable(driver!)).to.exist;
+            expect(await shellGetLangResult(driver!)).equals("json");
+
+            expect(await isValueOnJsonResult(driver!, "Action")).to.be.true;
 
             //SESSION3
             await driver!.switchTo().defaultContent();
@@ -2938,7 +2947,9 @@ describe("MySQL Shell for VS Code", () => {
             textArea = await editor.findElement(By.css("textArea"));
             await enterCmd(driver!, textArea, "db.city.select()");
 
-            expect(await shellGetResultTable(driver!)).to.exist;
+            expect(await shellGetLangResult(driver!)).equals("json");
+
+            expect(await isValueOnJsonResult(driver!, "Abha")).to.be.true;
 
             await driver!.switchTo().defaultContent();
 
@@ -3166,13 +3177,17 @@ describe("MySQL Shell for VS Code", () => {
 
             await enterCmd(driver!, textArea, "db.actor.select()");
 
-            expect(await shellGetResultTable(driver!)).to.exist;
+            expect(await shellGetLangResult(driver!)).equals("json");
+
+            expect(await isValueOnJsonResult(driver!, "PENELOPE")).to.be.true;
 
             expect(await shellGetTotalRows(driver!)).to.match(/(\d+) rows in set/);
 
             await enterCmd(driver!, textArea, "db.category.select()");
 
-            expect(await shellGetResultTable(driver!)).to.exist;
+            expect(await shellGetLangResult(driver!)).equals("json");
+
+            expect(await isValueOnJsonResult(driver!, "Action")).to.be.true;
 
             expect(await shellGetTotalRows(driver!)).to.match(/(\d+) rows in set/);
 
