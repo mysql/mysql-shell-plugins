@@ -98,7 +98,7 @@ class DbMysqlSession(DbSession):
     def on_shell_print_error(self, text):
         sys.real_stderr.write(text)
 
-    def _open_database(self, notify_success=True):
+    def _do_open_database(self, notify_success=True):
         shell = mysqlsh.globals.shell
 
         self._shell_ctx = shell.create_context({"printDelegate": lambda x: self.on_shell_print(x),
@@ -114,7 +114,8 @@ class DbMysqlSession(DbSession):
             lambda message: self._message_callback('PENDING', message))
 
         # Database ping interval of 60 seconds
-        self._ping_interval = 60
+        if self._ping_interval is None:
+            self._ping_interval = 60
 
         # Restore the MDS connection options required to create the new bastion
         missing = self._connection_options_backup.keys() - self._connection_options.keys()

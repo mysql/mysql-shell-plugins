@@ -149,7 +149,7 @@ class DbSqliteSession(DbSession):
             raise MSGException(Error.DB_INVALID_OPTIONS,
                                "The 'db_file' option was not set for the '%s' database." % db_name)
 
-    def _open_database(self, notify_success=True):
+    def _do_open_database(self, notify_success=True):
         try:
             self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=5, factory=SqliteConnection,
                                         isolation_level=None, check_same_thread=False)
@@ -176,7 +176,7 @@ class DbSqliteSession(DbSession):
     def _reconnect(self, auto_reconnect=False):
         logger.debug3(f"Reconnecting {self._id}...")
         self._close_database(False)
-        self._open_database(auto_reconnect is False)
+        self._do_open_database(auto_reconnect is False)
 
     def _close_database(self, finalize):
         self.conn.close()
@@ -230,7 +230,7 @@ class DbSqliteSession(DbSession):
     def set_active_schema(self, schema_name):
         self.conn.close()
         self._current_schema = schema_name
-        self._open_database(False)
+        self._do_open_database(False)
 
     def set_current_schema(self, request_id, schema_name, callback=None, options=None):
         if options is None:

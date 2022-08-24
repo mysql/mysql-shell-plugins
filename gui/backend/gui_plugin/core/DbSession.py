@@ -139,9 +139,8 @@ class DbSession(threading.Thread):
         self.thread_error = None
         self._opened = False
         self._db_pinger = None
+        self._ping_interval = ping_interval
         self._task_state_cb = task_state_cb
-        if not ping_interval is None:
-            self._db_pinger = DbPingHandler(self, ping_interval)
 
     @property
     def threaded(self):
@@ -182,6 +181,15 @@ class DbSession(threading.Thread):
         self._init_complete.set()
 
     def _open_database(self, notify_success=True):
+        # Opens the database
+        self._do_open_database(notify_success=notify_success)
+
+        # Starts the db pinger if needed
+        if self._ping_interval is not None and self._ping_interval > 0:
+            self._db_pinger = DbPingHandler(self, self._ping_interval)
+
+        
+    def _do_open_database(self, notify_success=True):
         raise NotImplementedError()
 
     def _close_database(self, finalize):
