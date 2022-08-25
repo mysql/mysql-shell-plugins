@@ -1122,7 +1122,7 @@
         "e2e-tests-local-setup": "extest setup-tests -s tests/e2e/test-resources -e tests/e2e/test-resources/test-extension -t stable",
         "e2e-tests-local": "tsc -p tests/e2e/ && extest run-tests -s tests/e2e/test-resources -e tests/e2e/test-resources/test-extension -t stable -f ./tests/e2e/output/tests/*.js",
         "e2e-tests": "tsc -p tests/e2e/ && extest run-tests -u -s tests/e2e/test-resources ./tests/e2e/output/tests/*.js",
-        "e2e-report": "marge mochawesome-report/test-report.json",
+        "e2e-report": "marge mochawesome-report/test-report.json -t",
         "test": "node ./output/extension/src/test/runTest.js"
     }
 }

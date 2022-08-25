@@ -406,6 +406,7 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
     } else {
         await textArea.sendKeys(Key.ENTER);
     }
+
     await pressEnter(driver);
 
     if (cmd !== "\\q" && cmd !== "\\d") {
@@ -439,7 +440,7 @@ export const shellGetTotalRows = async (driver: WebDriver): Promise<string> => {
     const zoneHost = zoneHosts[zoneHosts.length - 1];
 
     return zoneHost
-        .findElement(By.css(".resultStatus .info"))
+        .findElement(By.css(".resultStatus label.msg.label"))
         .getText();
 };
 

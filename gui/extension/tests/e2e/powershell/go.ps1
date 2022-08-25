@@ -345,7 +345,7 @@ try{
 
         writeMsg "DONE"
         writeMsg "Generating new report..." "-NoNewLine"
-        $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-report" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\newReport.log" -RedirectStandardError "$env:WORKSPACE\newReportErr.log"
+        $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-report", "`"Test Report for BRANCH: $env:EXTENSION_BRANCH`"" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\newReport.log" -RedirectStandardError "$env:WORKSPACE\newReportErr.log"
         if($prc.ExitCode -ne 0){
             Throw "Error generating new report"
         }

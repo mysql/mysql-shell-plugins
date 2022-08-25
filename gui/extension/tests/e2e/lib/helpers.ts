@@ -1439,7 +1439,7 @@ export const shellGetTotalRows = async (driver: WebDriver): Promise<string> => {
     const zoneHost = zoneHosts[zoneHosts.length - 1];
 
     return zoneHost
-        .findElement(By.css(".resultStatus .info"))
+        .findElement(By.css(".resultStatus label.msg.label"))
         .getText();
 };
 

@@ -33,7 +33,6 @@ import {
     enterCmd,
     shellGetResult,
     shellGetTech,
-    shellGetResultTable,
     shellGetTotalRows,
     shellGetLangResult,
     setDBEditorPassword,
@@ -99,6 +98,9 @@ describe("MySQL Shell Sessions", () => {
 
         const textArea = await driver.findElement(By.css("textArea"));
         await enterCmd(driver, textArea, `\\d`);
+        await driver.wait(async () => {
+            return (await driver.findElements(By.css(".shellPromptItem"))).length === 1;
+        }, 2000, "There are still more than 1 tab after disconnect");
         expect(await getShellServerTabStatus(driver!)).toBe("The session is not connected to a MySQL server");
         await cleanEditor(driver);
     });
@@ -370,21 +372,21 @@ describe("MySQL Shell Sessions", () => {
             expect(await getShellSchemaTabStatus(driver!))
                 .toContain(dbConfig.schema);
 
-            await enterCmd(driver, textArea, "db.actor.select()");
+            await enterCmd(driver!, textArea, "db.actor.select()");
 
-            expect(await shellGetResultTable(driver)).toBeDefined();
+            expect(await shellGetLangResult(driver!)).toBe("json");
 
-            expect(await shellGetTotalRows(driver)).toMatch(
-                new RegExp(/(\d+) rows in set/),
-            );
+            expect(await isValueOnJsonResult(driver!, "PENELOPE")).toBe(true);
 
-            await enterCmd(driver, textArea, "db.category.select()");
+            expect(await shellGetTotalRows(driver!)).toMatch(/Query OK, (\d+) rows affected/);
 
-            expect(await shellGetResultTable(driver)).toBeDefined();
+            await enterCmd(driver!, textArea, "db.category.select()");
 
-            expect(await shellGetTotalRows(driver)).toMatch(
-                new RegExp(/(\d+) rows in set/),
-            );
+            expect(await shellGetLangResult(driver!)).toBe("json");
+
+            expect(await isValueOnJsonResult(driver!, "Action")).toBe(true);
+
+            expect(await shellGetTotalRows(driver!)).toMatch(/Query OK, (\d+) rows affected/);
 
         } catch(e) {
             testFailed = true;
@@ -683,7 +685,6 @@ describe("MySQL Shell Sessions", () => {
         }
     });
 
-    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34518305
     it("Check query result content", async () => {
         const editor = await driver.findElement(By.id("shellEditorHost"));
 
@@ -725,15 +726,15 @@ describe("MySQL Shell Sessions", () => {
 
         expect(await isValueOnDataSet(driver, "sakila")).toBe(true);
 
-        expect(await isValueOnDataSet(driver, "world_x_cst")).toBe(true);
+        expect(await isValueOnDataSet(driver, "mysql")).toBe(true);
 
         await enterCmd(driver, textArea, "\\js");
 
         await enterCmd(driver, textArea, "db.actor.select()");
 
-        expect(await shellGetLangResult(driver)).toBe("json");
+        expect(await shellGetLangResult(driver!)).toBe("json");
 
-        expect(await isValueOnJsonResult(driver, "PENELOPE")).toBe(true);
+        expect(await isValueOnJsonResult(driver!, "PENELOPE")).toBe(true);
     });
 
 });
