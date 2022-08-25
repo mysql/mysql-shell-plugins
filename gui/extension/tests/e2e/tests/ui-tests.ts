@@ -675,8 +675,7 @@ describe("MySQL Shell for VS Code", () => {
             const textArea = await editor.findElement(By.css("textArea"));
             await enterCmd(driver!, textArea, `create schema ${testSchema};`);
 
-            const zoneHost = await driver!.findElements(By.css(".zoneHost"));
-            const result = await zoneHost[zoneHost.length - 1].findElement(By.css(".resultHost span span")).getText();
+            const result = await shellGetResult(driver!);
             expect(result).to.include("OK");
 
             await driver!.switchTo().defaultContent();
@@ -830,7 +829,7 @@ describe("MySQL Shell for VS Code", () => {
             const textArea = await editor.findElement(By.css("textArea"));
             await enterCmd(driver!, textArea, `use ${conn.schema};`);
 
-            let zoneHost = await driver!.findElements(By.css(".zoneHost"));
+            const zoneHost = await driver!.findElements(By.css(".zoneHost"));
             let result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
             expect(result).to.include(`Default schema set to \`${conn.schema}\`.`);
 
@@ -842,9 +841,7 @@ describe("MySQL Shell for VS Code", () => {
                 return (await driver!.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
             }, 7000, "New results block was not found");
 
-            zoneHost = await driver!.findElements(By.css(".zoneHost"));
-            result = await zoneHost[zoneHost.length - 1]
-                .findElement(By.css(".resultHost span span")).getAttribute("innerHTML");
+            result = await shellGetResult(driver!);
             expect(result).to.include("OK");
 
             await driver!.switchTo().defaultContent();
@@ -1010,7 +1007,7 @@ describe("MySQL Shell for VS Code", () => {
             const textArea = await editor.findElement(By.css("textArea"));
             await enterCmd(driver!, textArea, `use ${conn.schema};`);
 
-            let zoneHost = await driver!.findElements(By.css(".zoneHost"));
+            const zoneHost = await driver!.findElements(By.css(".zoneHost"));
             let result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
             expect(result).to.include(`Default schema set to \`${conn.schema}\`.`);
 
@@ -1025,9 +1022,7 @@ describe("MySQL Shell for VS Code", () => {
                 return (await driver!.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
             }, 7000, "New results block was not found");
 
-            zoneHost = await driver!.findElements(By.css(".zoneHost"));
-            result = await zoneHost[zoneHost.length - 1]
-                .findElement(By.css(".resultHost span span")).getAttribute("innerHTML");
+            result = await shellGetResult(driver!);
             expect(result).to.include("OK");
 
             await driver!.switchTo().defaultContent();
@@ -3181,7 +3176,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(await isValueOnJsonResult(driver!, "PENELOPE")).to.be.true;
 
-            expect(await shellGetTotalRows(driver!)).to.match(/(\d+) rows in set/);
+            expect(await shellGetTotalRows(driver!)).to.match(/Query OK, (\d+) rows affected/);
 
             await enterCmd(driver!, textArea, "db.category.select()");
 
@@ -3189,7 +3184,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(await isValueOnJsonResult(driver!, "Action")).to.be.true;
 
-            expect(await shellGetTotalRows(driver!)).to.match(/(\d+) rows in set/);
+            expect(await shellGetTotalRows(driver!)).to.match(/Query OK, (\d+) rows affected/);
 
         });
 
@@ -3445,7 +3440,6 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34518305
         it("Check query result content", async () => {
             const editor = await driver!.findElement(By.id("shellEditorHost"));
 
@@ -3484,7 +3478,7 @@ describe("MySQL Shell for VS Code", () => {
 
             expect(await isValueOnDataSet(driver!, "sakila")).equals(true);
 
-            expect(await isValueOnDataSet(driver!, "world_x_cst")).equals(true);
+            expect(await isValueOnDataSet(driver!, "mysql")).equals(true);
 
             await enterCmd(driver!, textArea, "\\js");
 
