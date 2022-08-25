@@ -30,7 +30,9 @@ import { PredictionMode } from "antlr4ts/atn/PredictionMode";
 import { XPath } from "antlr4ts/tree/xpath";
 
 import { MySQLLexer } from "./generated/MySQLLexer";
-import { MySQLParser, QueryContext, QueryExpressionContext, SubqueryContext } from "./generated/MySQLParser";
+import {
+    MySQLParser, QueryContext, QueryExpressionContext, QuerySpecificationContext, SubqueryContext,
+} from "./generated/MySQLParser";
 import { MySQLErrorListener } from "./MySQLErrorListener";
 import { MySQLParseUnit } from "./MySQLServiceTypes";
 import {
@@ -616,20 +618,22 @@ export class MySQLParsingServices {
     }
 
     /**
-     * Parses the query to see if there's already a top-level limit clause. If none was found, the query is
-     * rewritten to include a limit clause with the given values.
+     * Parses the query to see if it is valid and applies a number of transformations, depending on the parameters:
+     * - If there's no top-level limit clause, then one is added.
+     * - If indicated adds an optimizer hint to use the secondary engine (usually HeatWave).
      *
      * @param query The query to check and modify.
      * @param serverVersion The version of MySQL to use for checking.
      * @param sqlMode The current SQL mode in the server.
      * @param offset The limit offset to add.
      * @param count The row count value to add.
+     * @param forceSecondaryEngine Add the optimizer hint.
      *
      * @returns The rewritten query if the original query is error free and contained no top-level LIMIT clause.
      *          Otherwise the original query is returned.
      */
-    public checkAndApplyLimits(query: string, serverVersion: number, sqlMode: string, offset: number,
-        count: number): [string, boolean] {
+    public preprocessStatement(query: string, serverVersion: number, sqlMode: string, offset: number,
+        count: number, forceSecondaryEngine?: boolean): [string, boolean] {
 
         this.applyServerDetails(serverVersion, sqlMode);
         const tree = this.startParsing(query, false, MySQLParseUnit.Generic);
@@ -638,6 +642,8 @@ export class MySQLParsingServices {
         }
 
         const rewriter = new TokenStreamRewriter(this.tokenStream);
+
+        // LIMIT clause.
         const expressions = XPath.findAll(tree, "/query/simpleStatement//queryExpression", this.parser);
         let changed = false;
         if (expressions.size > 0) {
@@ -664,6 +670,18 @@ export class MySQLParsingServices {
                     rewriter.insertAfter(context.stop, ` LIMIT ${offset}, ${count}`);
                     changed = true;
                 }
+            }
+        }
+
+        // Optimizer hint.
+        if (forceSecondaryEngine) {
+            const specification = XPath.findAll(tree, "/query/simpleStatement//queryExpression/queryExpressionBody/" +
+                "queryPrimary/querySpecification", this.parser);
+
+            if (specification.size > 0) {
+                const context = specification.values().next().value as QuerySpecificationContext;
+                rewriter.insertAfter(context.SELECT_SYMBOL().symbol, " /*+ SET_VAR(use_secondary_engine = FORCED) */");
+                changed = true;
             }
         }
 

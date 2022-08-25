@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -351,7 +351,7 @@ def return_oci_object(oci_object, return_formatted=False,
         format_function (func): The function to format the OCI object
 
     Returns:
-       Either the object data formated as a string or the object itself
+       Either the object data formatted as a string or the object itself
     """
 
     import oci.util
@@ -378,7 +378,7 @@ def oci_object(oci_object, return_type=RETURN_DICT, format_function=None,
         format_function (func): The function to format the OCI object
 
     Returns:
-       Either the object data formated as a string or the object itself
+       Either the object data formatted as a string or the object itself
     """
 
     import oci.util

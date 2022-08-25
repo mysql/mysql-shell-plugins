@@ -22,7 +22,7 @@
  */
 
 import React from "react";
-import { IPosition, Position } from "monaco-editor";
+import { Position } from "monaco-editor";
 
 import { Component, IComponentProperties } from "../../components/ui";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
@@ -32,12 +32,12 @@ import { IEditorStatusInfo } from "../db-editor";
 import { EmbeddedPresentationInterface } from "../db-editor/execution/EmbeddedPresentationInterface";
 import { EditorLanguage } from "../../supplement";
 import { settings } from "../../supplement/Settings/Settings";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 
 export interface IShellConsoleProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
 
-    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
-        position?: IPosition) => Promise<boolean>;
+    onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
 

@@ -39,6 +39,9 @@ import {
     OciConfigProfileTreeItem, OciCompartmentTreeItem, OciDbSystemTreeItem, OciComputeInstanceTreeItem,
     OciBastionTreeItem, OciLoadBalancerTreeItem,
 } from ".";
+import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem";
+import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem";
+import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem";
 
 // An interface for the compartment cache
 interface IConfigProfileCompartments {
@@ -106,6 +109,15 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                         reject(reason);
                     });
                 });
+            }
+
+            if (element instanceof OciDbSystemHWTreeItem) {
+                if (element.dbSystem.heatWaveCluster
+                    && element.dbSystem.heatWaveCluster.lifecycleState !== "DELETED" ) {
+                    return [new OciHWClusterTreeItem(element.profile, element.compartment, element.dbSystem)];
+                } else {
+                    return [];
+                }
             }
         }
     }
@@ -190,7 +202,11 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                     if (event.eventType === EventType.FinalResponse) {
                         if (event.data) {
                             event.data.result.forEach((dbSystem) => {
-                                items.push(new OciDbSystemTreeItem(profile, compartment, dbSystem));
+                                if (dbSystem.heatWaveCluster === null) {
+                                    items.push(new OciDbSystemStandaloneTreeItem(profile, compartment, dbSystem));
+                                } else {
+                                    items.push(new OciDbSystemHWTreeItem(profile, compartment, dbSystem));
+                                }
                             });
                         }
 

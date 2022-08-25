@@ -27,6 +27,9 @@ from mysqlsh.plugin_manager import plugin_function
 DB_SYSTEM_ACTION_START = 1
 DB_SYSTEM_ACTION_STOP = 2
 DB_SYSTEM_ACTION_RESTART = 3
+HW_CLUSTER_ACTION_START = 4
+HW_CLUSTER_ACTION_STOP = 5
+HW_CLUSTER_ACTION_RESTART = 6
 
 
 def format_db_systems(items, current=None) -> str:
@@ -37,7 +40,7 @@ def format_db_systems(items, current=None) -> str:
         current (str): OCID of the current item
 
     Returns:
-       The db_systems formated as str
+       The db_systems formatted as str
     """
 
     # If a single db_system was given, wrap it in a list
@@ -66,7 +69,7 @@ def format_db_system_config(items) -> str:
         items: Either a list of objects or a single object
 
     Returns:
-       The objects formated as str
+       The objects formatted as str
     """
 
     # If a single db_system was given, wrap it in a list
@@ -82,6 +85,34 @@ def format_db_system_config(items) -> str:
                 core.fixed_len(i.description, 35, ' ', True) +
                 core.fixed_len(i.shape_name, 20, ' ') +
                 core.fixed_len(i.lifecycle_state, 11, '\n'))
+        id += 1
+
+    return out
+
+
+def format_mysql_shapes(items) -> str:
+    """Formats a given list of objects in a human readable form
+
+    Args:
+        items: Either a list of objects or a single object
+
+    Returns:
+       The objects formatted as str
+    """
+    # If a single db_system was given, wrap it in a list
+    if not type(items) is list:
+        items = [items]
+
+    # return objects in READABLE text output
+    out = (core.fixed_len('Shape Name', 32, ' ') + 
+        core.fixed_len('CPU Count', 12, ' ', align_right=True) +
+        core.fixed_len('Memory Size', 12, '\n', align_right=True))
+    id = 1
+    for i in items:
+        out += (f"{id:>4} " +
+                core.fixed_len(i.name, 32, ' ', True) +
+                core.fixed_len(str(i.cpu_core_count), 12, ' ', align_right=True) +
+                core.fixed_len(str(i.memory_size_in_gbs) + ' GB', 12, '\n',  align_right=True))
         id += 1
 
     return out
@@ -373,11 +404,160 @@ def get_validated_mysql_password(password_caption, print_password_rules=True):
         return password
 
 
+@plugin_function('mds.list.dbSystemShapes', shell=True, cli=True, web=True)
+def list_db_system_shapes(**kwargs):
+    """Lists Shapes available for MySQL DB Systems
+
+    Lists all shapes of a given compartment.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        is_supported_for (str): Either DBSYSTEM (default), HEATWAVECLUSTER or "DBSYSTEM, HEATWAVECLUSTER"
+        availability_domain (str): The name of the availability_domain to use
+        compartment_id (str): OCID of the parent compartment.
+        config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If set to true exceptions are raised
+        return_formatted (bool): If set to true, a list object is returned.
+        return_python_object (bool): Used for internal plugin calls
+
+    Returns:
+        A list of DB Systems
+    """
+
+    is_supported_for = kwargs.get("is_supported_for", "DBSYSTEM")
+    availability_domain = kwargs.get("availability_domain")
+
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+    return_formatted = kwargs.get("return_formatted", interactive)
+    return_python_object = kwargs.get("return_python_object", False)
+
+    import oci.mysql
+
+    # Get the active config and compartment
+    try:
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile)
+        compartment_id = configuration.get_current_compartment_id(
+            compartment_id=compartment_id, config=config)
+
+        support_list = []
+        if 'DBSYSTEM' in is_supported_for:
+            support_list.append('DBSYSTEM')
+        if 'HEATWAVECLUSTER' in is_supported_for:
+            support_list.append('HEATWAVECLUSTER')
+
+        # Initialize the DbSystem client
+        mds_client = core.get_oci_mds_client(config=config)
+
+        # List the DbSystems of the current compartment
+        data = mds_client.list_shapes(compartment_id=compartment_id,
+            is_supported_for=support_list,
+            availability_domain=availability_domain).data
+
+        return core.return_oci_object(
+            oci_object=data,
+            return_python_object=return_python_object,
+            return_formatted=return_formatted,
+            format_function=format_mysql_shapes)
+
+    except oci.exceptions.ServiceError as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
+    except (ValueError, oci.exceptions.ClientError) as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {e}')
+
+
+@plugin_function('mds.get.dbSystemShape')
+def get_db_system_shape(**kwargs):
+    """Gets a certain shape specified by name
+
+    The shape is specific for the given compartment and availability_domain
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        is_supported_for (str): Either DBSYSTEM (default), HEATWAVECLUSTER or "DBSYSTEM, HEATWAVECLUSTER"
+        availability_domain (str): The name of the availability_domain to use
+        compartment_id (str): OCID of the parent compartment.
+        config (dict): An OCI config object or None
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If true exceptions are raised
+        return_formatted (bool): If true a human readable string is returned
+        return_python_object (bool): Used for internal plugin calls
+
+    Returns:
+        An shape object or None
+    """
+
+    is_supported_for = kwargs.get("is_supported_for", "DBSYSTEM")
+    availability_domain = kwargs.get("availability_domain")
+
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+    return_formatted = kwargs.get("return_formatted", interactive)
+    return_python_object = kwargs.get("return_python_object", False)
+
+    try:
+        # Get the active config and compartment
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
+        compartment_id = configuration.get_current_compartment_id(
+            compartment_id=compartment_id, config=config)
+
+        # Get the list of available shapes
+        shapes = list_db_system_shapes(
+            is_supported_for=is_supported_for,
+            availability_domain=availability_domain,
+            compartment_id=compartment_id,
+            config=config, interactive=interactive,
+            raise_exceptions=True,
+            return_python_object=True)
+
+        if not shapes:
+            raise Exception("No shapes found.")
+
+        # Let the user choose from the list
+        shape = core.prompt_for_list_item(
+            item_list=shapes,
+            prompt_caption="Please enter the name or index of the shape: ",
+            item_name_property="name",
+            print_list=True)
+
+        return core.return_oci_object(
+            oci_object=shape,
+            return_formatted=return_formatted,
+            return_python_object=return_python_object,
+            format_function=format_mysql_shapes)
+    except Exception as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {str(e)}')
+
+
 @plugin_function('mds.list.dbSystems', shell=True, cli=True, web=True)
 def list_db_systems(**kwargs):
     """Lists MySQL DB Systems
 
-    Lists all users of a given compartment.
+    Lists all DB Systems of a given compartment.
 
     Args:
         **kwargs: Optional parameters
@@ -1317,7 +1497,7 @@ def start_db_system(**kwargs):
 
 
 @plugin_function('mds.restart.dbSystem', shell=True, cli=True, web=True)
-def start_db_system(**kwargs):
+def restart_db_system(**kwargs):
     """Restarts the DbSystem with the given id
 
     If no id is given, it will prompt the user for the id.
@@ -1343,6 +1523,93 @@ def start_db_system(**kwargs):
     """
 
     change_lifecycle_state(**kwargs, action=DB_SYSTEM_ACTION_RESTART)
+
+
+@plugin_function('mds.stop.heatWaveCluster', shell=True, cli=True, web=True)
+def stop_hw_cluster(**kwargs):
+    """Stops the HeatWave cluster with the given DBSystem id
+
+    If no id is given, it will prompt the user for the id.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        db_system_name (str): The name of the DB System.
+        db_system_id (str): OCID of the DbSystem.
+        await_completion (bool): Whether to wait till the DbSystem reaches
+            the desired lifecycle state
+        ignore_current (bool): Whether to not default to the current bastion.
+        compartment_id (str): OCID of the parent compartment
+        config (dict): An OCI config object or None
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If true exceptions are raised
+
+
+    Returns:
+       None
+    """
+
+    change_lifecycle_state(**kwargs, action=HW_CLUSTER_ACTION_STOP)
+
+
+@plugin_function('mds.start.heatWaveCluster', shell=True, cli=True, web=True)
+def start_hw_cluster(**kwargs):
+    """Starts the HeatWave cluster with the given DBSystem id
+
+    If no id is given, it will prompt the user for the id.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        db_system_name (str): The name of the DB System.
+        db_system_id (str): OCID of the DbSystem.
+        await_completion (bool): Whether to wait till the DbSystem reaches
+            the desired lifecycle state
+        ignore_current (bool): Whether to not default to the current bastion.
+        compartment_id (str): OCID of the parent compartment
+        config (dict): An OCI config object or None
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If true exceptions are raised
+
+
+    Returns:
+       None
+    """
+
+    change_lifecycle_state(**kwargs, action=HW_CLUSTER_ACTION_START)
+
+
+@plugin_function('mds.restart.heatWaveCluster', shell=True, cli=True, web=True)
+def restart_hw_cluster(**kwargs):
+    """Restarts the HeatWave cluster with the given DBSystem id
+
+    If no id is given, it will prompt the user for the id.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        db_system_name (str): The name of the DB System.
+        db_system_id (str): OCID of the DbSystem.
+        await_completion (bool): Whether to wait till the DbSystem reaches
+            the desired lifecycle state
+        ignore_current (bool): Whether to not default to the current bastion.
+        compartment_id (str): OCID of the parent compartment
+        config (dict): An OCI config object or None
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If true exceptions are raised
+
+
+    Returns:
+       None
+    """
+
+    change_lifecycle_state(**kwargs, action=HW_CLUSTER_ACTION_RESTART)
 
 
 def change_lifecycle_state(**kwargs):
@@ -1384,17 +1651,23 @@ def change_lifecycle_state(**kwargs):
 
     action = kwargs.get("action")
 
-    if action == DB_SYSTEM_ACTION_START:
+    if action == DB_SYSTEM_ACTION_START or action == HW_CLUSTER_ACTION_START:
         action_name = "start"
         action_state = "ACTIVE"
-    elif action == DB_SYSTEM_ACTION_STOP:
+    elif action == DB_SYSTEM_ACTION_STOP or action == HW_CLUSTER_ACTION_STOP:
         action_name = "stop"
         action_state = "INACTIVE"
-    elif action == DB_SYSTEM_ACTION_RESTART:
+    elif action == DB_SYSTEM_ACTION_RESTART or action == HW_CLUSTER_ACTION_RESTART:
         action_name = "restart"
         action_state = "ACTIVE"
     else:
         raise ValueError("Unknown action given.")
+
+    db_system_action = (
+        action == DB_SYSTEM_ACTION_START or action == DB_SYSTEM_ACTION_STOP or action == DB_SYSTEM_ACTION_RESTART
+    )
+
+    action_obj = "DB System" if db_system_action else "HeatWave Cluster"
 
     # Get the active config and compartment
     try:
@@ -1426,7 +1699,7 @@ def change_lifecycle_state(**kwargs):
             if interactive:
                 # Prompt the user for specifying a compartment
                 prompt = mysqlsh.globals.shell.prompt(
-                    f"Are you sure you want to {action_name} the DB System "
+                    f"Are you sure you want to {action_name} the {action_obj} "
                     f"{db_system.display_name} [yes/NO]: ",
                     {'defaultValue': 'no'}).strip().lower()
 
@@ -1454,16 +1727,32 @@ def change_lifecycle_state(**kwargs):
                     oci.mysql.models.RestartDbSystemDetails(
                         shutdown_type="IMMEDIATE"
                     ))
+            elif action == HW_CLUSTER_ACTION_STOP:
+                # Stop the HW Cluster
+                db_sys.stop_heat_wave_cluster(db_system_id)
+            elif action == HW_CLUSTER_ACTION_START:
+                # Start the HW Cluster
+                db_sys.start_heat_wave_cluster(db_system_id)
+            elif action == HW_CLUSTER_ACTION_RESTART:
+                # Restart the HW Cluster
+                db_sys.restart_heat_wave_cluster(db_system_id)
 
             # If the function should wait till the bastion reaches the correct
             # lifecycle state
+            
             if await_completion:
-                await_lifecycle_state(
-                    db_system_id, action_state, action_name,
-                    config, interactive)
+                if db_system_action:
+                    await_lifecycle_state(
+                        db_system_id, action_state, action_name,
+                        config, interactive)
+                else:
+                    await_hw_cluster_lifecycle_state(
+                        db_system_id, action_state, action_name,
+                        config, interactive)
             elif interactive:
-                print(f"MySQL DB System '{db_system.display_name}' is being "
-                      f"{action_name}{'p' if action_name == 'stop' else ''}ed.")
+                print(f"MySQL {action_obj} '{db_system.display_name}' is being "
+                    f"{action_name}{'p' if action_name == 'stop' else ''}ed.")
+
         except oci.exceptions.ServiceError as e:
             if interactive:
                 raise
@@ -1498,7 +1787,7 @@ def await_lifecycle_state(db_system_id, action_state, action_name, config, inter
 
     # Wait for the lifecycle to reach desired state
     cycles = 0
-    while cycles < 48:
+    while cycles < 120:
         db_system = db_sys.get_db_system(
             db_system_id=db_system_id).data
         if db_system.lifecycle_state == action_state:
@@ -1513,7 +1802,418 @@ def await_lifecycle_state(db_system_id, action_state, action_name, config, inter
 
     if db_system.lifecycle_state != action_state:
         raise Exception("The DB System did not reach the correct "
-                        "state within 4 minutes.")
+                        "state within 10 minutes.")
     if interactive:
         print(f"DB System '{db_system.display_name}' did "
               f"{action_name} successfully.")
+
+
+def await_hw_cluster_lifecycle_state(db_system_id, action_state, action_name, config, interactive):
+    """Waits of the db_system to reach the desired lifecycle state
+
+    Args:
+        db_system_id (str): OCID of the DbSystem.
+        action_state (str): The lifecycle state to reach
+        action_name (str): The name of the action to be performed
+        config (dict): An OCI config object or None
+        interactive (bool): Indicates whether to execute in interactive mode
+
+    Returns:
+       None
+    """
+    import time
+
+    # Get DbSystem Client
+    db_sys = core.get_oci_db_system_client(config=config)
+
+    if interactive:
+        print(f'Waiting for HeatWave Cluster to {action_name}...')
+
+    # Wait for the lifecycle to reach desired state
+    cycles = 0
+    while cycles < 240:
+        db_system = db_sys.get_db_system(
+            db_system_id=db_system_id).data
+        if db_system.heat_wave_cluster and db_system.heat_wave_cluster.lifecycle_state == action_state:
+            break
+        else:
+            time.sleep(5)
+            s = "." * (cycles + 1)
+            if interactive:
+                print(f'Waiting for HeatWave Cluster to {action_name}...{s}')
+        cycles += 1
+
+    if (not db_system.heat_wave_cluster) or db_system.heat_wave_cluster.lifecycle_state != action_state:
+        raise Exception("The HeatWave Cluster did not reach the correct "
+                        "state within 20 minutes.")
+    if interactive:
+        print(f"The HeatWave Cluster of DB System '{db_system.display_name}' did "
+              f"{action_name} successfully.")
+
+
+@plugin_function('mds.create.heatWaveCluster', shell=True, cli=True, web=True)
+def create_hw_cluster(**kwargs):
+    """Adds a HeatWave cluster to the DbSystem with the given id
+
+    If no id is given, it will prompt the user for the id.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        db_system_name (str): The name of the DB System.
+        db_system_id (str): OCID of the DbSystem.
+        ignore_current (bool): Whether to not default to the current DB System.
+        cluster_size (int): The size of the cluster
+        shape_name (str): The name of the shape to use
+        await_completion (bool): Whether to wait till the DbSystem reaches
+            the desired lifecycle state
+        compartment_id (str): OCID of the parent compartment.
+        config (dict): An OCI config object or None
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If true exceptions are raised
+
+
+    Returns:
+       None
+    """
+
+    db_system_name = kwargs.get("db_system_name")
+    db_system_id = kwargs.get("db_system_id")
+    ignore_current = kwargs.get("ignore_current", False)
+
+    cluster_size = kwargs.get("cluster_size")
+    shape_name = kwargs.get("shape_name")
+
+    await_completion = kwargs.get("await_completion", False)
+
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    # Get the active config and compartment
+    try:
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
+        compartment_id = configuration.get_current_compartment_id(
+            compartment_id=compartment_id, config=config)
+        current_db_system_id = configuration.get_current_db_system_id(
+            config=config)
+        if (not ignore_current and db_system_name is None
+                and db_system_id is None and current_db_system_id):
+            db_system_id = current_db_system_id
+
+        import oci.identity
+        import oci.mysql
+        import mysqlsh
+        import json
+
+        try:
+            # Get the db_system based on input params
+            db_system = get_db_system(
+                db_system_name=db_system_name, db_system_id=db_system_id,
+                compartment_id=compartment_id, config=config,
+                interactive=interactive, raise_exceptions=True,
+                return_python_object=True)
+            if db_system is None:
+                if db_system_name or db_system_id:
+                    raise ValueError("DB System not found.")
+                else:
+                    raise Exception("Cancelling operation.")
+
+            if not cluster_size and interactive:
+                # Prompt the user for the new values
+                cluster_size = mysqlsh.globals.shell.prompt(
+                    f"Please enter the number of nodes for the HeatWave cluster "
+                    f"(1 - 64): ",
+                    {'defaultValue': '1'}).strip()
+            if cluster_size is None:
+                raise ValueError("The cluster_size was not specified.")
+            if cluster_size == "":
+                cluster_size = '1'
+
+            try:
+                cluster_size = int(cluster_size)
+            except:
+                raise ValueError(f"'{cluster_size}' is not a valid number.")
+
+            if cluster_size < 1 or cluster_size > 64:
+                raise ValueError(f"The cluster size must be between 1 and 64. A size of {cluster_size} was given.")
+
+            if not shape_name and interactive:
+                shape = get_db_system_shape(
+                    is_supported_for="HEATWAVECLUSTER", 
+                    compartment_id=db_system.compartment_id,
+                    config=config, config_profile=config_profile,
+                    interactive=True,
+                    raise_exceptions=True,
+                    return_python_object=True)
+
+                if shape:
+                    shape_name = shape.name
+            if not shape:
+                raise ValueError("No shape name given.")
+
+            # Initialize the DbSystem client
+            db_sys = core.get_oci_db_system_client(config=config)
+
+            details = oci.mysql.models.AddHeatWaveClusterDetails(
+                cluster_size=cluster_size,
+                shape_name=shape_name,
+            )
+            db_sys.add_heat_wave_cluster(db_system.id, add_heat_wave_cluster_details=details)
+
+            if await_completion:
+                await_hw_cluster_lifecycle_state(db_system_id=db_system.id, action_state='ACTIVE',
+                    action_name="start", config=config, interactive=interactive)
+            elif interactive:
+                print(f"The HeatWave Cluster of the MySQL DB System '{db_system.display_name}' is being "
+                      "created.")
+                
+        except oci.exceptions.ServiceError as e:
+            if raise_exceptions:
+                raise
+            print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
+    except (ValueError, oci.exceptions.ClientError) as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {e}')
+
+
+@plugin_function('mds.update.heatWaveCluster', shell=True, cli=True, web=True)
+def update_hw_cluster(**kwargs):
+    """Update the HeatWave cluster for a DbSystem with the given id
+
+    If no id is given, it will prompt the user for the id.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        db_system_name (str): The name of the DB System.
+        db_system_id (str): OCID of the DbSystem.
+        ignore_current (bool): Whether to not default to the current DB System.
+        cluster_size (int): The size of the cluster
+        shape_name (str): The name of the shape to use
+        await_completion (bool): Whether to wait till the DbSystem reaches
+            the desired lifecycle state
+        compartment_id (str): OCID of the parent compartment.
+        config (dict): An OCI config object or None
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If true exceptions are raised
+
+
+    Returns:
+       None
+    """
+
+    db_system_name = kwargs.get("db_system_name")
+    db_system_id = kwargs.get("db_system_id")
+    ignore_current = kwargs.get("ignore_current", False)
+
+    cluster_size = kwargs.get("cluster_size")
+    shape_name = kwargs.get("shape_name")
+
+    await_completion = kwargs.get("await_completion", False)
+
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    # Get the active config and compartment
+    try:
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
+        compartment_id = configuration.get_current_compartment_id(
+            compartment_id=compartment_id, config=config)
+        current_db_system_id = configuration.get_current_db_system_id(
+            config=config)
+        if (not ignore_current and db_system_name is None
+                and db_system_id is None and current_db_system_id):
+            db_system_id = current_db_system_id
+
+        import oci.identity
+        import oci.mysql
+        import mysqlsh
+        import json
+
+        try:
+            # Get the db_system based on input params
+            db_system = get_db_system(
+                db_system_name=db_system_name, db_system_id=db_system_id,
+                compartment_id=compartment_id, config=config,
+                interactive=interactive, raise_exceptions=True,
+                return_python_object=True)
+            if db_system is None:
+                if db_system_name or db_system_id:
+                    raise ValueError("DB System not found.")
+                else:
+                    raise Exception("Cancelling operation.")
+
+            if not cluster_size and interactive:
+                # Prompt the user for the new values
+                cluster_size = mysqlsh.globals.shell.prompt(
+                    f"Please enter the number of nodes for the HeatWave cluster "
+                    f"(1 - 64): ",
+                    {'defaultValue': '1'}).strip()
+            if cluster_size is None:
+                raise ValueError("The cluster_size was not specified.")
+            if cluster_size == "":
+                cluster_size = '1'
+
+            try:
+                cluster_size = int(cluster_size)
+            except:
+                raise ValueError(f"'{cluster_size}' is not a valid number.")
+
+            if cluster_size < 1 or cluster_size > 64:
+                raise ValueError(f"The cluster size must be between 1 and 64. A size of {cluster_size} was given.")
+
+            if not shape_name and interactive:
+                shape = get_db_system_shape(
+                    is_supported_for="HEATWAVECLUSTER", 
+                    compartment_id=db_system.compartment_id,
+                    config=config, config_profile=config_profile,
+                    interactive=True,
+                    raise_exceptions=True,
+                    return_python_object=True)
+
+                if shape:
+                    shape_name = shape.name
+            if not shape:
+                raise ValueError("No shape name given.")
+
+            # Initialize the DbSystem client
+            db_sys = core.get_oci_db_system_client(config=config)
+
+            details = oci.mysql.models.UpdateHeatWaveClusterDetails(
+                cluster_size=cluster_size,
+                shape_name=shape_name,
+            )
+            db_sys.update_heat_wave_cluster(db_system.id, update_heat_wave_cluster_details=details)
+
+            if await_completion:
+                await_hw_cluster_lifecycle_state(db_system_id=db_system.id, action_state='ACTIVE',
+                    action_name="rescale", config=config, interactive=interactive)
+            elif interactive:
+                print(f"The HeatWave Cluster of the MySQL DB System '{db_system.display_name}' is being "
+                      "rescaled.")
+
+        except oci.exceptions.ServiceError as e:
+            if raise_exceptions:
+                raise
+            print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
+    except (ValueError, oci.exceptions.ClientError) as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {e}')
+
+
+@plugin_function('mds.delete.heatWaveCluster', shell=True, cli=True, web=True)
+def delete_hw_cluster(**kwargs):
+    """Deletes the DbSystem with the given id
+
+    If no id is given, it will prompt the user for the id.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        db_system_name (str): The name of the DB System.
+        db_system_id (str): OCID of the DbSystem.
+        await_completion (bool): Whether to wait till the DbSystem reaches
+            the desired lifecycle state
+        ignore_current (bool): Whether to not default to the current bastion.
+        compartment_id (str): OCID of the parent compartment
+        config (dict): An OCI config object or None
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If true exceptions are raised
+
+
+    Returns:
+       None
+    """
+
+    db_system_name = kwargs.get("db_system_name")
+    db_system_id = kwargs.get("db_system_id")
+    await_completion = kwargs.get("await_completion")
+    ignore_current = kwargs.get("ignore_current", False)
+
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    # Get the active config and compartment
+    try:
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
+        compartment_id = configuration.get_current_compartment_id(
+            compartment_id=compartment_id, config=config)
+
+        # Get the active config and compartment
+        try:
+            import oci.mysql
+            import mysqlsh
+
+            db_system = get_db_system(
+                db_system_name=db_system_name, db_system_id=db_system_id,
+                compartment_id=compartment_id, config=config,
+                interactive=interactive, raise_exceptions=raise_exceptions,
+                ignore_current=ignore_current,
+                return_python_object=True)
+            if db_system is None:
+                if db_system_name or db_system_id:
+                    raise ValueError("DB System not found.")
+                else:
+                    raise Exception("Cancelling operation.")
+
+            if interactive:
+                # Prompt the user for specifying a compartment
+                prompt = mysqlsh.globals.shell.prompt(
+                    f"Are you sure you want to delete the HeatWave Cluster of the MySQL DB System "
+                    f"{db_system.display_name} [yes/NO]: ",
+                    {'defaultValue': 'no'}).strip().lower()
+
+                if prompt != "yes":
+                    print("Deletion aborted.\n")
+                    return
+
+            # Get DbSystem Client
+            db_sys = core.get_oci_db_system_client(config=config)
+
+            # Delete the HW Cluster
+            db_sys.delete_heat_wave_cluster(db_system.id)
+
+            # If the function should wait till the bastion reaches the correct
+            # lifecycle state
+            if await_completion:
+                await_hw_cluster_lifecycle_state(
+                    db_system.id, "DELETED", "complete the deletion process",
+                    config, interactive)
+            elif interactive:
+                print(f"The HeatWave Cluster of the MySQL DB System '{db_system.display_name}' is being "
+                      "deleted.")
+        except oci.exceptions.ServiceError as e:
+            if interactive:
+                raise
+            print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
+            return
+    except Exception as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {e}')

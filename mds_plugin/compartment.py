@@ -290,7 +290,7 @@ def format_compartment_listing(data, current_compartment_id=None):
         data (list): A list of compartment objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     import re
 
@@ -323,7 +323,7 @@ def format_availability_domain_listing(data):
         data (list): A list of availability domain objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     import re
 
@@ -351,7 +351,7 @@ def format_availability_domain(items) -> str:
         items: Either a list of objects or a single object
 
     Returns:
-       The objects formated as str
+       The objects formatted as str
     """
 
     # If a single db_system was given, wrap it in a list

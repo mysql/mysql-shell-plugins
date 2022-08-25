@@ -19,8 +19,8 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gui_plugin.core.DbSessionTasks import DbQueryTask
-from gui_plugin.core.DbSessionTasks import BaseObjectTask
+from gui_plugin.core.dbms.DbSessionTasks import DbQueryTask
+from gui_plugin.core.dbms.DbSessionTasks import BaseObjectTask
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 

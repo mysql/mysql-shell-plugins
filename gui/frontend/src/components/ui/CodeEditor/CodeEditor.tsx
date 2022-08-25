@@ -29,14 +29,14 @@ import Color from "color";
 
 import {
     ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextState, KeyCode, KeyMod,
-    languages, Monaco, Position, Range, IPosition, Selection,
+    languages, Monaco, Position, Range, IPosition, Selection, IScriptExecutionOptions,
 } from ".";
 import { Component, IComponentProperties } from "..";
 import { ExecutionContext } from "../../../script-execution";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { EditorLanguage, ITextRange } from "../../../supplement";
-import { requisitions } from "../../../supplement/Requisitions";
+import { IEditorExecutionOptions, requisitions } from "../../../supplement/Requisitions";
 import { settings } from "../../../supplement/Settings/Settings";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers";
 
@@ -135,8 +135,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     font?: IFontSettings;
     scrollbar?: Monaco.IEditorScrollbarOptions;
 
-    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
-        position?: IPosition) => Promise<boolean>;
+    onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
     onCursorChange?: (position: Position) => void;
     onOptionsChanged?: () => void;
@@ -208,9 +207,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             this.resizeObserver = new ResizeObserver(this.handleEditorResize);
         }
 
-        if (!CodeEditor.monacoConfigured) {
-            CodeEditor.configureMonaco();
-        }
+        // If Monaco wasn't initialized on load, do it now.
+        CodeEditor.configureMonaco();
     }
 
     public static addTypings(typings: string, source: string): void {
@@ -264,7 +262,11 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     /**
      * Called once to initialize various aspects of the monaco-editor subsystem (like languages, themes, options etc.)
      */
-    private static configureMonaco(): void {
+    public static configureMonaco(): void {
+        if (CodeEditor.monacoConfigured) {
+            return;
+        }
+
         CodeEditor.monacoConfigured = true;
 
         const completionProvider = new CodeCompletionProvider();
@@ -762,7 +764,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
      */
     public executeText(text: string): void {
         this.appendText(text);
-        this.executeCurrentContext(false, true);
+        this.executeCurrentContext(false, true, false);
     }
 
     private handleSettingsChanged = (): Promise<boolean> => {
@@ -789,7 +791,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             precondition,
             run: () => {
-                this.executeCurrentContext(false, true);
+                this.executeCurrentContext(false, true, false);
             },
         });
 
@@ -799,7 +801,16 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             keybindings: [KeyMod.Shift | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             precondition,
-            run: () => { return this.executeCurrentContext(false, false); },
+            run: () => { return this.executeCurrentContext(false, false, false); },
+        });
+
+        editor.addAction({
+            id: "executeCurrentStatement",
+            label: "Execute Current Statement",
+            keybindings: [KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.Enter],
+            contextMenuGroupId: "2_execution",
+            precondition,
+            run: () => { return this.executeCurrentContext(true, false, false); },
         });
 
         if (blockBased) {
@@ -1091,8 +1102,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
      * @param atCaret If true then execute only the statement at the caret position. This is valid only for
      *                SQL like languages.
      * @param advance If true, move the caret to the next block. If there's no block, create a new one first.
+     * @param forceSecondaryEngine Tells the executor to add a hint to SELECT statements to use the secondary
+     *                             engine (usually HeatWave).
      */
-    private executeCurrentContext(atCaret: boolean, advance: boolean): void {
+    private executeCurrentContext(atCaret: boolean, advance: boolean, forceSecondaryEngine: boolean): void {
         const editor = this.backend;
         const model = this.model;
         if (editor && model) {
@@ -1108,7 +1121,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                             position = block.toLocal(position);
                         }
 
-                        void onScriptExecution?.(block, undefined, position).then((executed) => {
+                        void onScriptExecution?.(block, { forceSecondaryEngine, source: position }).then((executed) => {
                             if (executed) {
                                 if (advance) {
                                     this.prepareNextExecutionBlock(index);
@@ -1534,29 +1547,29 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         return "unhandled";
     }
 
-    private executeSelectedOrAll = (startNewBlock: boolean): Promise<boolean> => {
+    private executeSelectedOrAll = (options: IEditorExecutionOptions): Promise<boolean> => {
         const { language } = this.mergedProps;
 
         const editor = this.backend;
         const model = this.model;
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
-        const advance = (language === "msg") && startNewBlock;
-        this.executeCurrentContext(false, advance || terminalMode);
+        const advance = (language === "msg") && options.startNewBlock;
+        this.executeCurrentContext(false, advance || terminalMode, options.forceSecondaryEngine);
         editor?.focus();
 
         return Promise.resolve(true);
     };
 
-    private executeCurrent = (startNewBlock: boolean): Promise<boolean> => {
+    private executeCurrent = (options: IEditorExecutionOptions): Promise<boolean> => {
         const { language } = this.mergedProps;
 
         const editor = this.backend;
         const model = this.model;
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
-        const advance = (language === "msg") && startNewBlock;
-        this.executeCurrentContext(true, advance || terminalMode);
+        const advance = (language === "msg") && options.startNewBlock;
+        this.executeCurrentContext(true, advance || terminalMode, options.forceSecondaryEngine);
         editor?.focus();
 
         return Promise.resolve(true);
@@ -1614,4 +1627,9 @@ requisitions.register("themeChanged", (data: IThemeChangeData): Promise<boolean>
     CodeEditor.updateTheme(data.name, data.type, data.values);
 
     return Promise.resolve(true);
+});
+
+setImmediate(() => {
+    // Need to delay the configuration call a tad to avoid trouble with Jest tests.
+    CodeEditor.configureMonaco();
 });

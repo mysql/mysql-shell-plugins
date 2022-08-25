@@ -100,7 +100,7 @@ def format_policy_listing(data):
         data (list): A list of policies
 
     Returns:
-        The formated string
+        The formatted string
     """
     import re
     import textwrap

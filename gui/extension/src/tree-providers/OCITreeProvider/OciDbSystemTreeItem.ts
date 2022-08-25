@@ -23,8 +23,6 @@
 
 import { TreeItemCollapsibleState } from "vscode";
 
-import * as path from "path";
-
 import { IMdsProfileData, ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
 import { OciBaseTreeItem } from "./OciBaseTreeItem";
 
@@ -34,19 +32,8 @@ export class OciDbSystemTreeItem extends OciBaseTreeItem {
     public constructor(
         profile: IMdsProfileData,
         public compartment: ICompartment,
-        public dbSystem: IMySQLDbSystem) {
-        super(dbSystem.displayName, profile, TreeItemCollapsibleState.None);
-        let iconName = "ociDbSystemNotActive.svg";
-        if (dbSystem.lifecycleState === "ACTIVE") {
-            iconName = "ociDbSystem.svg";
-        } else if (dbSystem.lifecycleState === "INACTIVE" ||
-            dbSystem.lifecycleState === "FAILED") {
-            iconName = "ociDbSystemStopped.svg";
-        }
-
-        this.iconPath = {
-            light: path.join(__dirname, "..", "..", "..", "..", "..", "images", "light", iconName),
-            dark: path.join(__dirname, "..", "..", "..", "..", "..", "images", "dark", iconName),
-        };
+        public dbSystem: IMySQLDbSystem,
+        treeState: TreeItemCollapsibleState) {
+        super(dbSystem.displayName, profile, treeState);
     }
 }

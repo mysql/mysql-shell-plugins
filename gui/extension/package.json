@@ -615,6 +615,30 @@
                 "title": "Stop the DB System"
             },
             {
+                "command": "msg.mds.addHWCluster",
+                "title": "Add HeatWave Cluster"
+            },
+            {
+                "command": "msg.mds.startHWCluster",
+                "title": "Start the HeatWave Cluster"
+            },
+            {
+                "command": "msg.mds.stopHWCluster",
+                "title": "Stop the HeatWave Cluster"
+            },
+            {
+                "command": "msg.mds.restartHWCluster",
+                "title": "Restart the HeatWave Cluster"
+            },
+            {
+                "command": "msg.mds.rescaleHWCluster",
+                "title": "Rescale the HeatWave Cluster"
+            },
+            {
+                "command": "msg.mds.deleteHWCluster",
+                "title": "Delete the HeatWave Cluster"
+            },
+            {
                 "command": "msg.mds.deleteDbSystem",
                 "title": "Delete the DB System"
             },
@@ -966,40 +990,70 @@
                 },
                 {
                     "command": "msg.mds.getDbSystemInfo",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "when": "viewItem == mdsDbSystem || viewItem == mdsDbSystemHW",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.mds.createConnectionViaBastionService",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "when": "viewItem == mdsDbSystem || viewItem == mdsDbSystemHW",
                     "group": "2_msg@1"
                 },
                 {
                     "command": "msg.mds.startDbSystem",
                     "title": "Start the DB System",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "when": "viewItem == mdsDbSystem || viewItem == mdsDbSystemHW",
                     "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mds.restartDbSystem",
                     "title": "Restart the DB System",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "when": "viewItem == mdsDbSystem || viewItem == mdsDbSystemHW",
                     "group": "3_msg@2"
                 },
                 {
                     "command": "msg.mds.stopDbSystem",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "when": "viewItem == mdsDbSystem || viewItem == mdsDbSystemHW",
                     "group": "3_msg@3"
                 },
                 {
-                    "command": "msg.mds.deleteDbSystem",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "command": "msg.mds.addHWCluster",
+                    "when": "viewItem == mdsDbSystemHW",
                     "group": "4_msg@1"
                 },
                 {
-                    "command": "msg.mds.createRouterEndpoint",
-                    "when": "view == msg.oci && viewItem == mdsDbSystem",
+                    "command": "msg.mds.deleteDbSystem",
+                    "when": "viewItem == mdsDbSystem || viewItem == mdsDbSystemHW",
                     "group": "5_msg@1"
+                },
+                {
+                    "command": "msg.mds.createRouterEndpoint",
+                    "when": "viewItem == mdsDbSystem || viewItem == mdsDbSystemHW",
+                    "group": "6_msg@1"
+                },
+                {
+                    "command": "msg.mds.startHWCluster",
+                    "when": "viewItem == mdsHWCluster",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mds.stopHWCluster",
+                    "when": "viewItem == mdsHWCluster",
+                    "group": "1_msg@2"
+                },
+                {
+                    "command": "msg.mds.restartHWCluster",
+                    "when": "viewItem == mdsHWCluster",
+                    "group": "1_msg@3"
+                },
+                {
+                    "command": "msg.mds.rescaleHWCluster",
+                    "when": "viewItem == mdsHWCluster",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mds.deleteHWCluster",
+                    "when": "viewItem == mdsHWCluster",
+                    "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mds.getBastion",

@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages, editor } from "monaco-editor/esm/vs/editor/editor.api";
+import { languages, editor, IPosition } from "monaco-editor/esm/vs/editor/editor.api";
 import { IStatementSpan } from "../../../parsing/parser-common";
 
 import { IExecuteResultReference } from "../../../script-execution";
@@ -116,11 +116,36 @@ export interface IExecutionContextState {
     statements: IStatementSpan[];
 }
 
-// A statement consists of its text and its relative position within its block/context.
+/** A statement consists of its text and its relative position within its block/context. */
 export interface IStatement {
     text: string;
 
-    offset: number;  // The character offset of the statement in the containing model.
-    line: number;    // The line number of the statement in the containing model.
-    column: number;  // Ditto for the column.
+    /** The character offset of the statement in the containing model. */
+    offset: number;
+
+    /** The line number of the statement in the containing model. */
+    line: number;
+
+    /** Ditto for the column. */
+    column: number;
+}
+
+/** Options that control how SQL statements are executed. */
+export interface IScriptExecutionOptions {
+    /** Any additional named parameters for placeholders in the query. */
+    params?: Array<[string, string]>;
+
+    /**
+     * Used when executing SQL statements to tell the executor to add a hint to SELECT statements to use the secondary
+     * engine (usually HeatWave).
+     */
+    forceSecondaryEngine?: boolean;
+
+    /**
+     * Determines where the SQL code comes from that must be executed. If that's a position it means
+     * to run only the code at that (caret) position. If a string is specified then it means to run
+     * this (single) query only. If not given at all run the statements touched by the editor selection
+     * or all statements, if there's no selection.
+     */
+    source?: IPosition | string;
 }

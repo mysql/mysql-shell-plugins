@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,7 +37,7 @@ import { CodeEditorMode, ICodeEditorModel } from "../components/ui/CodeEditor/Co
 import { ExecutionContext } from "./ExecutionContext";
 import { SQLExecutionContext } from "./SQLExecutionContext";
 import {
-    DiagnosticSeverity, IDiagnosticEntry, ILanguageWorkerApplyLimitsData, ILanguageWorkerApplySemicolonData,
+    DiagnosticSeverity, IDiagnosticEntry, ILanguageWorkerQueryPreprocessData, ILanguageWorkerApplySemicolonData,
     ILanguageWorkerInfoData, ILanguageWorkerParameterData, ILanguageWorkerQueryTypeData, ILanguageWorkerResultData,
     ILanguageWorkerSplitData, ILanguageWorkerValidateData, IParserErrorInfo, IStatementSpan, QueryType,
     ServiceLanguage, StatementFinishState,
@@ -883,27 +883,30 @@ export class CodeEditorLanguageServices {
     };
 
     /**
-     * Parses the query to see if there's already a top-level limit clause. If none was found, the query is
-     * rewritten to include a limit clause with the given values.
+     * Parses the query to see if it is valid and applies a number of transformations, depending on the parameters:
+     * - If there's no top-level limit clause, then one is added.
+     * - If indicated adds an optimizer hint to use the secondary engine (usually HeatWave).
      *
      * @param context Provides access to source code specific aspects.
      * @param sql The query to check and modify.
      * @param offset The limit offset to add.
      * @param count The row count value to add.
+     * @param forceSecondaryEngine Add the optimizer hint.
      *
      * @returns The rewritten query if the original query is error free and contained no top-level LIMIT clause.
      *          Otherwise the original query is returned.
      */
-    public checkAndApplyLimits = (context: ExecutionContext, sql: string, offset: number,
-        count: number): Promise<[string, boolean]> => {
+    public preprocessStatement = (context: ExecutionContext, sql: string, offset: number,
+        count: number, forceSecondaryEngine?: boolean): Promise<[string, boolean]> => {
         return new Promise((resolve, reject) => {
             const sqlContext = context as SQLExecutionContext;
-            const applyLimitsData: ILanguageWorkerApplyLimitsData = {
+            const applyLimitsData: ILanguageWorkerQueryPreprocessData = {
                 language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
-                api: "applyLimits",
+                api: "preprocessStatement",
                 sql,
                 offset,
                 count,
+                forceSecondaryEngine,
                 version: sqlContext.dbVersion,
                 sqlMode: sqlContext.sqlMode,
             };

@@ -171,7 +171,7 @@ class SshConnection:
 
 def format_instance_listing(items, current=None, vnics=None,
                             config=None):
-    """Returns a formated list of instances.
+    """Returns a formatted list of instances.
 
     If compartment_id is given, the current and parent compartment
     will be listed as well.
@@ -182,7 +182,7 @@ def format_instance_listing(items, current=None, vnics=None,
         compartment_id (str): The OCID of the current compartment.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     import re
     import oci.core.models
@@ -251,13 +251,13 @@ def format_image_list_item(data, index):
 
 
 def format_image_listing(data):
-    """Returns a formated list of images.
+    """Returns a formatted list of images.
 
     Args:
         data (list): A list of images objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
 
     import math
@@ -286,7 +286,7 @@ def format_compute_images(items) -> str:
         items: Either a list of objects or a single object
 
     Returns:
-       The objects formated as str
+       The objects formatted as str
     """
 
     # If a single db_system was given, wrap it in a list
@@ -574,13 +574,13 @@ def add_ingress_port_to_security_lists(**kwargs):
 
 
 def format_shape_listing(data):
-    """Returns a formated list of shapes.
+    """Returns a formatted list of shapes.
 
     Args:
         data (list): A list of shape objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     out = ""
 
@@ -603,7 +603,7 @@ def format_shapes(items) -> str:
         items: Either a list of objects or a single object
 
     Returns:
-       The objects formated as str
+       The objects formatted as str
     """
 
     # If a single db_system was given, wrap it in a list
@@ -1378,13 +1378,13 @@ def get_image_id(operating_system=None, operating_system_version=None,
 
 
 def format_vnic_listing(vnics):
-    """Returns a formated list of vnics.
+    """Returns a formatted list of vnics.
 
     Args:
         vnics (list): A list of vnics objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     import re
 

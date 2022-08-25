@@ -547,7 +547,7 @@ def format_db_object_listing(db_objects, print_header=False):
         print_header (bool): If set to true, a header is printed
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
 
     if print_header:

@@ -45,7 +45,7 @@ import {
     IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems, ISavedGraphData,
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
-import { IPosition } from "../../components/ui/CodeEditor";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
@@ -85,6 +85,7 @@ export interface IDBConnectionTabPersistentState {
     serverVersion: number;
     serverEdition: string;
     sqlMode: string;
+    heatWaveEnabled: boolean;
 
     editors: IOpenEditorState[];
     scripts: IDBDataEntry[];
@@ -343,6 +344,7 @@ Execute \\help or \\? for help;`;
                                     toolbarItems={toolbarItems}
                                     language={language}
                                     activeEditor={savedState.activeEntry}
+                                    heatWaveEnabled={savedState.heatWaveEnabled}
                                     editors={savedState.editors}
                                     backend={backend}
                                 />}
@@ -417,14 +419,14 @@ Execute \\help or \\? for help;`;
     private sqlShowDataAtPage = (data: ISqlPageRequest): Promise<boolean> => {
         return new Promise((resolve) => {
             const pageSize = settings.get("sql.limitRowCount", 1000);
-            void this.executeQuery(data.context as SQLExecutionContext, data.sql, 0, data.page, pageSize, undefined,
+            void this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize, { source: data.sql },
                 data.oldRequestId).then(() => { resolve(true); });
         });
     };
 
     private editorRunQuery = (details: IRunQueryRequest): Promise<boolean> => {
         if (this.consoleRef.current) {
-            this.consoleRef.current.executeQuery(details.query, details.parameters, details.linkId);
+            this.consoleRef.current.executeQuery({ source: details.query, params: details.parameters }, details.linkId);
         } else if (this.standaloneRef.current) {
             this.standaloneRef.current.executeQuery(details.query);
         }
@@ -435,9 +437,10 @@ Execute \\help or \\? for help;`;
     private editorRunScript = (details: IScriptRequest): Promise<boolean> => {
         return new Promise((resolve) => {
             if (this.consoleRef.current) {
-                void this.consoleRef.current.executeScript(details.content).then((handled) => {
-                    resolve(handled);
-                });
+                void this.consoleRef.current.executeScript(details.content, details.forceSecondaryEngine)
+                    .then((handled) => {
+                        resolve(handled);
+                    });
             } else if (this.standaloneRef.current) {
                 this.standaloneRef.current.executeQuery(details.content);
                 resolve(true);
@@ -494,27 +497,19 @@ Execute \\help or \\? for help;`;
      * Called for SQL code from a code editor. All result sets start at 0 offset in this scenario.
      *
      * @param context The context with the code to execute.
-     * @param params Any additional named parameters for placeholders in the query.
-     * @param source Determines where the SQL code comes from that must be executed. If that's a position it means
-     *               to run only the code at that (caret) position. If a string is specified then it means to run
-     *               this (single) query only. If not given at all run the statements touched by the editor selection
-     *               or all statements, if there's no selection.
+     * @param options Content and details for script execution.
      */
-    private runSQLCode = async (context: SQLExecutionContext, params?: Array<[string, string]>,
-        source?: IPosition | string): Promise<void> => {
+    private runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions): Promise<void> => {
 
         const pageSize = settings.get("sql.limitRowCount", 1000);
 
-        if (source) {
-            let statement: string | undefined;
-            if (typeof source === "string") {
-                statement = source;
-            } else {
-                statement = context.getStatementAtPosition(source)?.text;
+        if (options.source) {
+            if (typeof options.source !== "string") {
+                options.source = context.getStatementAtPosition(options.source)?.text;
             }
 
-            if (statement) {
-                await this.executeQuery(context, statement, 0, 0, pageSize, params);
+            if (options.source) {
+                await this.executeQuery(context, 0, 0, pageSize, options);
             }
         } else {
             const statements = context.statements;
@@ -529,7 +524,7 @@ Execute \\help or \\? for help;`;
                 }
 
                 try {
-                    await this.executeQuery(context, statement.text, index++, 0, pageSize, params);
+                    await this.executeQuery(context, index++, 0, pageSize, { ...options, source: statement.text });
                 } catch (e) {
                     if (stopOnErrors) {
                         break;
@@ -544,19 +539,19 @@ Execute \\help or \\? for help;`;
      * and no other top level LIMIT clause already exists.
      *
      * @param context The context to send results to.
-     * @param sql The query to execute.
      * @param index The index of the query being executed.
      * @param page The page number for the LIMIT clause.
      * @param count The size of a page.
-     * @param params Any additional named parameters for executing a query.
+     * @param options Content and details for script execution.
      * @param oldRequestId An optional request ID which points to an existing result set. If given this is used,
      *                     to replace that old result set with the new data. Otherwise a new result set is generated.
      *
      * @returns A promise which resolves when the query execution is finished.
      */
-    private executeQuery = async (context: SQLExecutionContext, sql: string, index: number, page: number, count: number,
-        params?: Array<[string, string]>, oldRequestId?: string): Promise<boolean> => {
+    private executeQuery = async (context: SQLExecutionContext, index: number, page: number, count: number,
+        options: IScriptExecutionOptions, oldRequestId?: string): Promise<boolean> => {
 
+        const sql = options.source as string;
         if (sql.trim().length === 0) {
             return Promise.resolve(true);
         }
@@ -573,7 +568,7 @@ Execute \\help or \\? for help;`;
                         // Passed-in parameters can override embedded ones.
                         const actualParams: string[] = [];
                         embeddedParams.forEach((param) => {
-                            const externalParam = params?.find((candidate) => {
+                            const externalParam = options.params?.find((candidate) => {
                                 return candidate[0] === param[0];
                             });
 
@@ -589,18 +584,20 @@ Execute \\help or \\? for help;`;
                             // exists already...
                             // plus one row - this way we can determine if another page exists after this one.
                             const offset = page * count;
+                            const sql = options.source as string;
 
-                            services.checkAndApplyLimits(context, sql, offset, count + 1).then(([query, changed]) => {
-                                this.processListener(backend.execute(query, actualParams), context, sql, index,
-                                    changed, page, oldRequestId)
-                                    .then(() => {
-                                        resolve(true);
-                                    }).catch((reason) => {
-                                        reject(reason);
-                                    });
-                            }).catch((reason) => {
-                                reject(reason);
-                            });
+                            services.preprocessStatement(context, sql, offset, count + 1, options.forceSecondaryEngine)
+                                .then(([query, changed]) => {
+                                    this.processListener(backend.execute(query, actualParams), context, sql, index,
+                                        changed, page, oldRequestId)
+                                        .then(() => {
+                                            resolve(true);
+                                        }).catch((reason) => {
+                                            reject(reason);
+                                        });
+                                }).catch((reason) => {
+                                    reject(reason);
+                                });
 
                         } else {
                             const listener = backend.execute(sql, actualParams);
@@ -1025,13 +1022,11 @@ Execute \\help or \\? for help;`;
      * Handles all incoming execution requests from the editors.
      *
      * @param context The context containing the code to be executed.
-     * @param params Additional named parameters to be used in SQL queries.
-     * @param source An optional caret position to provide the execute-at-position feature or a query to execute.
+     * @param options Content and details for script execution.
      *
      * @returns True if something was actually executed, false otherwise.
      */
-    private handleExecution = async (context: ExecutionContext, params?: Array<[string, string]>,
-        source?: IPosition | string): Promise<boolean> => {
+    private handleExecution = async (context: ExecutionContext, options: IScriptExecutionOptions): Promise<boolean> => {
         const { workerPool } = this.props;
 
         const command = context.code.trim();
@@ -1112,7 +1107,7 @@ Execute \\help or \\? for help;`;
 
                 case "sql":
                 case "mysql": {
-                    void this.runSQLCode(context as SQLExecutionContext, params, source).then(() => {
+                    void this.runSQLCode(context as SQLExecutionContext, options).then(() => {
                         resolve(true);
                     });
 

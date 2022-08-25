@@ -1431,7 +1431,7 @@ describe("MySQL Shell for VS Code", () => {
                 .findElement(By.css("textarea"))
                 .sendKeys("SHOW STATUS LIKE 'Ssl_cipher';");
 
-            const execSel = await getToolbarButton(driver!, "Execute selection or full script");
+            const execSel = await getToolbarButton(driver!, "Execute selection or full block and create a new block");
             await execSel?.click();
 
             const resultHost = await driver!.findElement(By.css(".resultHost"));
@@ -1602,7 +1602,7 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        it("Connection toolbar buttons - Execute selection or full script", async () => {
+        it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
             const contentHost = await driver!.findElement(By.id("contentHost"));
             await contentHost
                 .findElement(By.css("textarea"))
@@ -1610,7 +1610,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const lastId = await getLastQueryResultId(driver!);
 
-            const execSel = await getToolbarButton(driver!, "Execute selection or full script");
+            const execSel = await getToolbarButton(driver!, "Execute selection or full block and create a new block");
             await execSel?.click();
 
             await driver!.wait(async() => {
@@ -1712,7 +1712,7 @@ describe("MySQL Shell for VS Code", () => {
                 3000, "Commit button should be enabled");
 
             const execSelNew = await getToolbarButton(driver!,
-                "Execute selection or full script");
+                "Execute selection or full block and create a new block");
             await execSelNew?.click();
 
             let resultHosts = await driver!.findElements(By.css(".resultHost"));

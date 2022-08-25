@@ -29,7 +29,7 @@ import { IDictionary } from "../app-logic/Types";
 
 import { Stack } from "../supplement";
 
-// Describes the type of an SQL query. Not all SQL flavours support all types.
+/** Describes the type of an SQL query. Not all SQL flavours support all types. */
 export enum QueryType {
     Unknown,
     Ambiguous,
@@ -206,28 +206,47 @@ export enum QueryType {
     Sentinel
 }
 
-// This is the same as typescript.TextSpan (hence the missing leading I), but we cannot include typescript in a
-// web worker or it will grow tremendously.
+/**
+ * This is the same as typescript.TextSpan (hence the missing leading I), but we cannot include typescript in a
+ * web worker or it will grow tremendously.
+ */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface TextSpan {
     start: number;
     length: number;
 }
 
-// Indicates how a statement ends.
+/** Indicates how a statement ends. */
 export enum StatementFinishState {
-    Complete,        // Ends with a delimiter.
-    OpenComment,     // Ends with an open comment (multiline or single line w/o following new line).
-    OpenString,      // A string (single, double or backtick quoted) wasn't closed.
-    NoDelimiter,     // The delimiter is missing.
-    DelimiterChange, // The statement changes the delimiter.
+    /** Ends with a delimiter. */
+    Complete,
+
+    /** Ends with an open comment (multiline or single line w/o following new line). */
+    OpenComment,
+
+    /** A string (single, double or backtick quoted) wasn't closed. */
+    OpenString,
+
+    /** The delimiter is missing. */
+    NoDelimiter,
+
+    /** The statement changes the delimiter. */
+    DelimiterChange,
 }
 
 export interface IStatementSpan {
-    delimiter: string;    // The delimiter used to find this statement, except for the DELIMITER statement, where this
-    // field contains the new delimiter.
-    span: TextSpan;       // Start and length of the entire statement, including leading whitespaces.
-    contentStart: number; // The offset where non-whitespace content starts.
+    /**
+     * The delimiter used to find this statement, except for the DELIMITER statement, where this
+     * field contains the new delimiter.
+     */
+    delimiter: string;
+
+    /** Start and length of the entire statement, including leading whitespaces. */
+    span: TextSpan;
+
+    contentStart: number;
+
+    /** The offset where non-whitespace content starts. */
     state: StatementFinishState;
 }
 
@@ -246,7 +265,7 @@ export interface IParserErrorInfo {
     length: number;
 }
 
-// The definition of a single symbol (range and content it is made of).
+/** The definition of a single symbol (range and content it is made of). */
 export interface ISymbolDefinition {
     text: string;
     span: TextSpan;
@@ -304,27 +323,34 @@ export interface IDiagnosticEntry {
     message?: string;
 }
 
-// Details about a specific group of DB objects.
+/** Details about a specific group of DB objects. */
 export interface ICompletionObjectDetails {
     kind: LanguageCompletionKind;
     schemas?: Set<string>;
-    tables?: Set<string>;  // Only used for column references.
+
+    /** Only used for column references. */
+    tables?: Set<string>;
 }
 
-// Data collected during a code completion call.
+/** Data collected during a code completion call. */
 export interface ICompletionData {
-    isQuoted: boolean;   // True if the text that is being completed is already quoted.
-    keywords: string[];  // Possible keywords.
-    functions: string[]; // Keywords which can also be functions.
+    /** True if the text that is being completed is already quoted. */
+    isQuoted: boolean;
 
-    // Objects which can be collected from symbol tables.
+    /** Possible keywords. */
+    keywords: string[];
+
+    /** Keywords which can also be functions. */
+    functions: string[];
+
+    /** Objects which can be collected from symbol tables. */
     dbObjects: ICompletionObjectDetails[];
 
-    // Table + alias references from code.
+    /** Table + alias references from code. */
     tables: string[];
 }
 
-// Task data for an SQL split operation.
+/** Task data for an SQL split operation. */
 export interface ILanguageWorkerSplitData {
     api: "split";
     language: ServiceLanguage;
@@ -332,7 +358,7 @@ export interface ILanguageWorkerSplitData {
     delimiter: string;
 }
 
-// Task data for SQL query determination
+/** Task data for SQL query determination */
 export interface ILanguageWorkerQueryTypeData {
     api: "queryType";
     language: ServiceLanguage;
@@ -340,19 +366,20 @@ export interface ILanguageWorkerQueryTypeData {
     version: number;
 }
 
-// Task data for SQL LIMIT clause append operation.
-export interface ILanguageWorkerApplyLimitsData {
-    api: "applyLimits";
+/** Task data for query preprocessing. */
+export interface ILanguageWorkerQueryPreprocessData {
+    api: "preprocessStatement";
     language: ServiceLanguage;
     sql: string;
     offset: number;
     count: number;
+    forceSecondaryEngine?: boolean;
 
     version: number;
     sqlMode: string;
 }
 
-// Task data for semicolon append operation.
+/** Task data for semicolon append operation. */
 export interface ILanguageWorkerApplySemicolonData {
     api: "addSemicolon";
     language: ServiceLanguage;
@@ -362,7 +389,7 @@ export interface ILanguageWorkerApplySemicolonData {
     sqlMode: string;
 }
 
-// Task data for an SQL split operation.
+/** Task data for an SQL split operation. */
 export interface ILanguageWorkerValidateData {
     api: "validate";
     language: ServiceLanguage;
@@ -372,7 +399,7 @@ export interface ILanguageWorkerValidateData {
     offset: number;
 }
 
-// Task data for an SQL split operation.
+/** Task data for an SQL split operation. */
 export interface ILanguageWorkerInfoData {
     api: "info";
     language: ServiceLanguage;
@@ -381,7 +408,7 @@ export interface ILanguageWorkerInfoData {
     version: number;
 }
 
-// Task data for an SQL code completion operation.
+/** Task data for an SQL code completion operation. */
 export interface ILanguageWorkerSuggestionData {
     api: "suggestion";
     language: ServiceLanguage;
@@ -409,7 +436,7 @@ export interface ILanguageWorkerCleanupData {
 export type ILanguageWorkerTaskData =
     ILanguageWorkerSplitData |
     ILanguageWorkerQueryTypeData |
-    ILanguageWorkerApplyLimitsData |
+    ILanguageWorkerQueryPreprocessData |
     ILanguageWorkerApplySemicolonData |
     ILanguageWorkerValidateData |
     ILanguageWorkerInfoData |
@@ -436,7 +463,7 @@ export enum ServiceLanguage {
     Sqlite,
 }
 
-// Note: changes here need to be reflected in the mapper to Monaco completion kinds (mapCompletionKind).
+/** Note: changes here need to be reflected in the mapper to Monaco completion kinds (mapCompletionKind). */
 export enum LanguageCompletionKind {
     Keyword,
     Schema,
@@ -508,7 +535,7 @@ export const tokenFromPosition = (stream: CommonTokenStream, offset: number): To
     }
 };
 
-// A scanner adds some functionality on top of a token stream, for navigation between tokens, token checks and more.
+/** A scanner adds some functionality on top of a token stream, for navigation between tokens, token checks and more. */
 export class Scanner {
 
     private index = 0;

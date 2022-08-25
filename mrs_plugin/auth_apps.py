@@ -41,7 +41,7 @@ def format_auth_app_listing(auth_apps, print_header=False):
 
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
 
     if len(auth_apps) == 0:

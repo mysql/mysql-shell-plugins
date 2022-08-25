@@ -159,7 +159,7 @@ def format_load_balancer_listing(items, current=None) -> str:
         current (str): OCID of the current item
 
     Returns:
-       The db_systems formated as str
+       The db_systems formatted as str
     """
 
     # If a single db_system was given, wrap it in a list

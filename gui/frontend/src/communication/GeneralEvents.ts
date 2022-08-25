@@ -75,6 +75,7 @@ export interface IOpenConnectionData extends IGenericResponse {
         sqlMode?: string;
         version?: string;
         edition?: string;
+        heatWaveAvailable?: boolean;
     };
     result: IShellResultType;
 }

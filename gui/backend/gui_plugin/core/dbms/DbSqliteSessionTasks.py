@@ -20,12 +20,13 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import sqlite3
-from gui_plugin.core.DbSessionTasks import DbQueryTask, DbTask
-from gui_plugin.core.DbSessionTasks import DbSqlTask, BaseObjectTask
+from gui_plugin.core.dbms.DbSessionTasks import DbQueryTask, DbTask
+from gui_plugin.core.dbms.DbSessionTasks import DbSqlTask, BaseObjectTask
 from gui_plugin.core.Protocols import Response
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Logger as logger
+
 
 class SqliteOneFieldListTask(DbQueryTask):
     def process_result(self):
@@ -44,7 +45,7 @@ class SqliteOneFieldListTask(DbQueryTask):
 
 
 class SqliteBaseObjectTask(BaseObjectTask):
-   def process_result(self):
+    def process_result(self):
         row = self.resultset.fetchone()
         if row is None:
             self.dispatch_result(
@@ -78,7 +79,8 @@ class SqliteTableObjectTask(BaseObjectTask):
                 # Loop over all rows
                 for row in self.session.row_generator():
                     if self.session.is_killed():
-                        raise MSGException(Error.DB_QUERY_KILLED, "Query killed")
+                        raise MSGException(
+                            Error.DB_QUERY_KILLED, "Query killed")
 
                     # Return chunks of buffer_size a time, if buffer_size is 0
                     # or -1, do not return chunks but only the full result set

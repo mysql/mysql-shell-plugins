@@ -111,8 +111,9 @@ ctx.addEventListener("message", (event: MessageEvent) => {
             break;
         }
 
-        case "applyLimits": {
-            const result = services.checkAndApplyLimits(data.sql, data.version, data.sqlMode, data.offset, data.count);
+        case "preprocessStatement": {
+            const result = services.preprocessStatement(data.sql, data.version, data.sqlMode, data.offset, data.count,
+                data.forceSecondaryEngine);
             postResultMessage(taskId, {
                 query: result[0],
                 changed: result[1],

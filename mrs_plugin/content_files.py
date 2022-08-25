@@ -44,7 +44,7 @@ def format_content_file_listing(content_files, print_header=True):
 
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
 
     if print_header:

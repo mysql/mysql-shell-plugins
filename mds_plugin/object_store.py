@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -55,13 +55,13 @@ def get_object_store_namespace(config=None):
 
 
 def format_buckets_listing(buckets, current_bucket=None):
-    """Returns a formated list of buckets.
+    """Returns a formatted list of buckets.
 
     Args:
         buckets (list): A list of buckets objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     import re
 
@@ -82,13 +82,13 @@ def format_buckets_listing(buckets, current_bucket=None):
 
 
 def sizeof_fmt(size):
-    """Returns a formated file size
+    """Returns a formatted file size
 
     Args:
         size (integer): Size in bytes
 
     Returns:
-        The formated size as string
+        The formatted size as string
     """
     if size is None:
         return "0B"
@@ -103,13 +103,13 @@ def sizeof_fmt(size):
 
 
 def format_bucket_objects_listing(bucket_objects):
-    """Returns a formated list of buckets.
+    """Returns a formatted list of buckets.
 
     Args:
         buckets (list): A list of buckets objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     import re
     import math
@@ -823,7 +823,7 @@ def get_bucket_object(name=None, file_name=None, bucket_name=None,
     or return the contents as a string
 
     Args:
-        name (str): If set to JSON, output is formated that way.
+        name (str): If set to JSON, output is formatted that way.
         file_name (str): The name of the file that should be created.
         bucket_name (str): The name of the bucket.
         compartment_id (str): The OCID of the compartment
@@ -1164,7 +1164,7 @@ def create_bucket_object_par(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        bucket_object_name (str): If set to JSON, output is formated that way.
+        bucket_object_name (str): If set to JSON, output is formatted that way.
         bucket_name (str): The name of the bucket
         access_type (str): The type of access to grant ('r', 'w', 'rw')
         valid_till (str): The point in time until the PAR is valid using the 
@@ -1293,13 +1293,13 @@ def get_par_url_prefix(config=None):
 
 
 def format_pars_listing(pars):
-    """Returns a formated list of pars.
+    """Returns a formatted list of pars.
 
     Args:
         pars (list): A list of PAR objects.
 
     Returns:
-        The formated list as string
+        The formatted list as string
     """
     import re
     import math
