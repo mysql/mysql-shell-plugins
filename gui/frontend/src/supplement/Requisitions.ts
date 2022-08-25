@@ -123,9 +123,16 @@ export interface IOpenFileDialogResult {
     path: string[];
 }
 
-// The map containing possible requests and their associated callback.
-// The return value in the promise determines if the request was handled or not.
-// Watch out when adding new callbacks! There must be exactly one parameter.
+export interface IEditorExecutionOptions {
+    startNewBlock: boolean;
+    forceSecondaryEngine: boolean;
+}
+
+/**
+ * The map containing possible requests and their associated callback.
+ * The return value in the promise determines if the request was handled or not.
+ * Watch out when adding new callbacks! There must be exactly one parameter.
+ */
 export interface IRequestTypeMap {
     "applicationDidStart": SimpleCallback;
     "applicationWillFinish": SimpleCallback;
@@ -141,8 +148,8 @@ export interface IRequestTypeMap {
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 
-    "editorExecuteSelectedOrAll": (startNewBlock: boolean) => Promise<boolean>;
-    "editorExecuteCurrent": (startNewBlock: boolean) => Promise<boolean>;
+    "editorExecuteSelectedOrAll": (options: IEditorExecutionOptions) => Promise<boolean>;
+    "editorExecuteCurrent": (options: IEditorExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
     "editorFormat": SimpleCallback;
     "editorToggleSoftWrap": (active: boolean) => Promise<boolean>;

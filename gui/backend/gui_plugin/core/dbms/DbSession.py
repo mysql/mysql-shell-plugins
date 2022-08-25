@@ -30,6 +30,7 @@ import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
 
+
 class DbSessionFactory:
     registry = {}
 
@@ -74,46 +75,10 @@ def lock_usage(lock_mutext, timeout=-1):
         lock_mutext.release()
 
 
-class DbPingHandler(threading.Thread):
-    """
-    Schedules a dummy query on the given session with a defined interval.
-
-    This is required to prevent bastion sessions to disconnect after few
-    minutes of inactivity.
-    """
-
-    def __init__(self, session, interval):
-        super().__init__()
-        self.session = session
-        self.interval = interval
-        self.condition = threading.Condition()
-
-    def stop(self):
-        """
-        Stops the ping scheduling.
-        """
-        with self.condition:
-            self.condition.notify()
-
-    def run(self):
-        done = False
-        while not done:
-            with self.condition:
-                # If the wait ends because it timed out then done will be
-                # False, in such case the dummy query is executed.
-                # If the wait ends because of notify call (stop got called)
-                # then done will be True, which means the session has been
-                # terminated
-                done = self.condition.wait(self.interval)
-                if not done:
-                    self.session.execute("SELECT 1")
-
-
 class DbSession(threading.Thread):
     _cancel_requests = []
 
-    def __init__(self, id, threaded, connection_options, ping_interval=None,
-                 auto_reconnect=False, task_state_cb=None):
+    def __init__(self, id, threaded, connection_options, data={}, auto_reconnect=False, task_state_cb=None):
         super().__init__()
         self._id = id
         # Enable auto-reconnect logic for this session
@@ -138,9 +103,23 @@ class DbSession(threading.Thread):
         self._threaded = threaded
         self.thread_error = None
         self._opened = False
-        self._db_pinger = None
-        self._ping_interval = ping_interval
+        self._data = {} if data is None else data
         self._task_state_cb = task_state_cb
+
+        self._setup_tasks = None
+
+    def _initialize_setup_tasks(self):
+        return []
+
+    def has_data(self, option):
+        return option in self._data
+
+    def set_data(self, option, value):
+        self._data[option] = value
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def threaded(self):
@@ -180,28 +159,43 @@ class DbSession(threading.Thread):
 
         self._init_complete.set()
 
+    def _reset_setup_tasks(self):
+        if self._setup_tasks is None:
+            self._setup_tasks = self._initialize_setup_tasks()
+        else:
+            for setup_task in self._setup_tasks:
+                setup_task.reset()
+
+    def _on_connect(self):
+        for setup_task in self._setup_tasks:
+            setup_task.on_connect()
+
+    def _on_connected(self, notify_success):
+        for setup_task in self._setup_tasks:
+            setup_task.on_connected()
+
     def _open_database(self, notify_success=True):
+        self._reset_setup_tasks()
+
+        self._on_connect()
+
         # Opens the database
-        self._do_open_database(notify_success=notify_success)
+        if self._do_open_database(notify_success=notify_success):
+            self._on_connected(notify_success=notify_success)
 
-        # Starts the db pinger if needed
-        if self._ping_interval is not None and self._ping_interval > 0:
-            self._db_pinger = DbPingHandler(self, self._ping_interval)
-
-        
     def _do_open_database(self, notify_success=True):
         raise NotImplementedError()
 
     def _close_database(self, finalize):
+        self._do_close_database(finalize)
+
+    def _do_close_database(self, finalize):
         raise NotImplementedError()
 
     def _reconnect(self, auto_reconnect=False):
         raise NotImplementedError()
 
     def terminate_thread(self):
-        if not self._db_pinger is None:
-            self._db_pinger.stop()
-            self._db_pinger.join()
         self._close_database(True)
         if self.thread_error != 0:
             logger.error(
@@ -373,9 +367,6 @@ class DbSession(threading.Thread):
 
         # Wait for the thread initialization to be complete
         self._init_complete.wait()
-
-        if not self._db_pinger is None:
-            self._db_pinger.start()
 
         while self.thread_error is None:
             task = self._request_queue.get()

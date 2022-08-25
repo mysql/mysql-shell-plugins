@@ -490,21 +490,24 @@ export class SQLiteParsingServices {
     }
 
     /**
-     * Parses the query to see if there's already a top-level limit clause. If none was found, the query is
-     * rewritten to include a limit clause with the given values.
+     * Parses the query to see if it is valid and applies a number of transformations, depending on the parameters:
+     * - If there's no top-level limit clause, then one is added.
+     * - If indicated adds an optimizer hint to use the secondary engine (usually HeatWave).
      *
      * @param query The query to check and modify.
      * @param serverVersion The version of MySQL to use for checking (not used for SQLite).
      * @param sqlMode The current SQL mode in the server (not used for SQLite).
      * @param offset The limit offset to add.
      * @param count The row count value to add.
+     * @param forceSecondaryEngine Add the optimizer hint (not used for SQLite).
      *
      * @returns The rewritten query if the original query is error free and contained no top-level LIMIT clause.
      *          Otherwise the original query is returned. Additionally, a flag is returned telling if the query
      *          was actually changed or not.
      */
-    public checkAndApplyLimits(query: string, serverVersion: number, sqlMode: string, offset: number,
-        count: number): [string, boolean] {
+    public preprocessStatement(query: string, serverVersion: number, sqlMode: string, offset: number,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        count: number, forceSecondaryEngine?: boolean): [string, boolean] {
         const tree = this.startParsing(query, false);
         if (!tree || this.errors.length > 0) {
             return [query, false];

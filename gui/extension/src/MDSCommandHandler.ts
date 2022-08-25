@@ -256,6 +256,26 @@ export class MDSCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.mds.addHWCluster",
+            (item?: OciDbSystemTreeItem) => {
+                if (item && item.dbSystem.id) {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "create",
+                        "heat-wave-cluster",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    void host.addNewShellTask("Start HeatWave Cluster", shellArgs).then(() => {
+                        void commands.executeCommand("msg.mds.refreshOciProfiles");
+                    });
+                }
+            }));
+
         context.subscriptions.push(commands.registerCommand("msg.mds.deleteDbSystem",
             (item?: OciDbSystemTreeItem) => {
                 if (item && item.dbSystem.id) {
@@ -264,6 +284,106 @@ export class MDSCommandHandler {
                         "mds",
                         "delete",
                         "db-system",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    void host.addNewShellTask("Delete DB System", shellArgs).then(() => {
+                        void commands.executeCommand("msg.mds.refreshOciProfiles");
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mds.startHWCluster",
+            (item?: OciDbSystemTreeItem) => {
+                if (item && item.dbSystem.id) {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "start",
+                        "heat-wave-cluster",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    void host.addNewShellTask("Start HeatWave Cluster", shellArgs).then(() => {
+                        void commands.executeCommand("msg.mds.refreshOciProfiles");
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mds.stopHWCluster",
+            (item?: OciDbSystemTreeItem) => {
+                if (item && item.dbSystem.id) {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "stop",
+                        "heat-wave-cluster",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    void host.addNewShellTask("Stop HeatWave Cluster", shellArgs).then(() => {
+                        void commands.executeCommand("msg.mds.refreshOciProfiles");
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mds.restartHWCluster",
+            (item?: OciDbSystemTreeItem) => {
+                if (item && item.dbSystem.id) {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "restart",
+                        "heat-wave-cluster",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    void host.addNewShellTask("Restart HeatWave Cluster", shellArgs).then(() => {
+                        void commands.executeCommand("msg.mds.refreshOciProfiles");
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mds.rescaleHWCluster",
+            (item?: OciDbSystemTreeItem) => {
+                if (item && item.dbSystem.id) {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "update",
+                        "heat-wave-cluster",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    void host.addNewShellTask("Rescale HeatWave Cluster", shellArgs).then(() => {
+                        void commands.executeCommand("msg.mds.refreshOciProfiles");
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mds.deleteHWCluster",
+            (item?: OciDbSystemTreeItem) => {
+                if (item && item.dbSystem.id) {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "delete",
+                        "heat-wave-cluster",
                         `--db_system_id=${item.dbSystem.id.toString()}`,
                         `--config_profile=${item.profile.profile.toString()}`,
                         "--await_completion=true",

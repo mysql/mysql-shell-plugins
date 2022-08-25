@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gui_plugin.core.DbSession import DbSessionFactory
+from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.modules.DbModuleSession import check_service_database_session
 from gui_plugin.core.Error import MSGException
@@ -67,7 +67,7 @@ class SqleditorModuleSession(DbModuleSession):
             self._db_user_session = DbSessionFactory.create(
                 self._db_type, session_id, True,
                 db_session.connection_options,
-                self._ping_interval,
+                db_session.data,
                 False,
                 self._handle_api_response,
                 self.on_user_session_connected,

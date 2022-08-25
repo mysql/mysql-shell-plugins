@@ -21,8 +21,8 @@
 
 import time
 import json
-from .BaseTask import BaseTask, CommandTask
-from .Protocols import Response
+from ..BaseTask import BaseTask, CommandTask
+from ..Protocols import Response
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger

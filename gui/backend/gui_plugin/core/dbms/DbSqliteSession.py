@@ -24,12 +24,12 @@ import sqlite3
 import os.path
 import time
 from pathlib import Path
-from gui_plugin.core.DbSession import DbSession, DbSessionFactory
+from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory
 from gui_plugin.core.dbms.DbSqliteSessionTasks import SqliteOneFieldListTask, SqliteSetCurrentSchemaTask
 from gui_plugin.core.dbms.DbSqliteSessionTasks import SqliteBaseObjectTask, SqliteTableObjectTask, SqliteGetAutoCommit
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
-from gui_plugin.core.DbSessionTasks import check_supported_type
+from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
 
@@ -112,10 +112,10 @@ class DbSqliteSession(DbSession):
                         {"name": "Index",   "type": "TABLE_OBJECT"},
                         {"name": "Column",   "type": "TABLE_OBJECT"}]
 
-    def __init__(self, id, threaded, connection_options, ping_interval=None, auto_reconnect=True, task_state_cb=None,
+    def __init__(self, id, threaded, connection_options, data={}, auto_reconnect=True, task_state_cb=None,
                  on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None,
                  message_callback=None):
-        super().__init__(id, threaded, connection_options, ping_interval=ping_interval,
+        super().__init__(id, threaded, connection_options, data,
                          auto_reconnect=auto_reconnect, task_state_cb=task_state_cb)
 
         self._connected_cb = on_connected_cb
@@ -172,13 +172,15 @@ class DbSqliteSession(DbSession):
                 raise e
             else:
                 self._failed_cb(e)
+                return False
+        return True
 
     def _reconnect(self, auto_reconnect=False):
         logger.debug3(f"Reconnecting {self._id}...")
         self._close_database(False)
-        self._do_open_database(auto_reconnect is False)
+        self._open_database(auto_reconnect is False)
 
-    def _close_database(self, finalize):
+    def _do_close_database(self, finalize):
         self.conn.close()
 
     # DbSession overrides

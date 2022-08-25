@@ -44,7 +44,7 @@ def format_content_set_listing(content_sets, print_header=False):
 
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
 
     if len(content_sets) == 0:

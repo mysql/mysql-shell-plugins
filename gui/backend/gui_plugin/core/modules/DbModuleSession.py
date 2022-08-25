@@ -23,7 +23,7 @@ import os
 import threading
 import mysqlsh
 from gui_plugin.core.modules.ModuleSession import ModuleSession
-from gui_plugin.core.DbSession import DbSessionFactory
+from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
@@ -47,7 +47,6 @@ class DbModuleSession(ModuleSession):
         self._db_type = None
         self._connection_options = None
         self._db_service_session = None
-        self._ping_interval = None
         self._bastion_options = None
 
     def __del__(self):
@@ -180,7 +179,7 @@ class DbModuleSession(ModuleSession):
         self._db_service_session = DbSessionFactory.create(
             self._db_type, session_id, True,
             self._connection_options,
-            self._ping_interval,
+            None,
             True,
             self._handle_api_response,
             self.on_connected,

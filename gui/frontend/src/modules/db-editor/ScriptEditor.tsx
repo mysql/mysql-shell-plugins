@@ -22,7 +22,7 @@
  */
 
 import React from "react";
-import { IPosition, Position } from "monaco-editor";
+import { Position } from "monaco-editor";
 
 import {
     Component, Container, IComponentProperties, IComponentState, ISplitterPaneSizeInfo, Orientation, SplitContainer,
@@ -33,12 +33,12 @@ import { StandalonePresentationInterface } from "./execution/StandalonePresentat
 import { requisitions } from "../../supplement/Requisitions";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { EditorLanguage } from "../../supplement";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 
 export interface IScriptEditorProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
 
-    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
-        position?: IPosition) => Promise<boolean>;
+    onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onEdit?: (id?: string) => void;
 }
 

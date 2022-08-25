@@ -194,4 +194,7 @@ export interface IMySQLConnectionOptions {
 
     // mds bastion id
     "bastion-id"?: string;
+
+    // disable HeatWave check
+    "disable-heat-wave-check"?: boolean;
 }

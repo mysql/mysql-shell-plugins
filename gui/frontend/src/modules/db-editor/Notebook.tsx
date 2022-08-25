@@ -21,11 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition, Position } from "monaco-editor";
+import { Position } from "monaco-editor";
 import React from "react";
 
 import { IDBDataEntry, IEditorStatusInfo, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Component, IComponentProperties } from "../../components/ui";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContext, PresentationInterface, SQLExecutionContext } from "../../script-execution";
 import { EditorLanguage } from "../../supplement";
@@ -41,8 +42,7 @@ export interface INotebookProperties extends IComponentProperties {
     readOnly?: boolean;
     showAbout: boolean; // If true then show the about info text on first mount.
 
-    onScriptExecution?: (context: ExecutionContext, params?: Array<[string, string]>,
-        source?: IPosition | string) => Promise<boolean>;
+    onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
 
@@ -148,11 +148,10 @@ export class Notebook extends Component<INotebookProperties> {
      * Executes a single query with optional parameters and a link ID for external editors (like text editors
      * in VS code).
      *
-     * @param sql The statement to execute.
-     * @param params The parameters for that statement.
+     * @param options Content and details for script execution.
      * @param linkId The link ID, to connect the new execution context with the original text.
      */
-    public executeQuery(sql: string, params?: Array<[string, string]>, linkId?: number): void {
+    public executeQuery(options: IScriptExecutionOptions, linkId?: number): void {
         if (this.editorRef.current) {
             const { dbType } = this.props;
 
@@ -166,11 +165,11 @@ export class Notebook extends Component<INotebookProperties> {
             }
 
             if (currentBlock) {
-                this.editorRef.current.appendText(sql);
+                this.editorRef.current.appendText(options.source as string);
                 currentBlock.linkId = linkId;
 
                 const { onScriptExecution } = this.props;
-                void onScriptExecution?.(currentBlock, params, sql).then((executed) => {
+                void onScriptExecution?.(currentBlock, options).then((executed) => {
                     if (executed && this.editorRef.current) {
                         this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
                         this.editorRef.current.focus();
@@ -185,10 +184,12 @@ export class Notebook extends Component<INotebookProperties> {
      * Executes an entire script (possible multiple statements).
      *
      * @param script The script
+     * @param forceSecondaryEngine Tells the executor to add a hint to SELECT statements to use the secondary
+     *                             engine (usually HeatWave).
      *
      * @returns A promise that resolves to true when the execution is fully triggered.
      */
-    public executeScript(script: string): Promise<boolean> {
+    public executeScript(script: string, forceSecondaryEngine?: boolean): Promise<boolean> {
         return new Promise((resolve) => {
             if (this.editorRef.current) {
                 const { dbType } = this.props;
@@ -209,7 +210,7 @@ export class Notebook extends Component<INotebookProperties> {
 
 
                             const { onScriptExecution } = this.props;
-                            void onScriptExecution?.(currentBlock).then(() => {
+                            void onScriptExecution?.(currentBlock, { forceSecondaryEngine }).then(() => {
                                 this.editorRef.current?.prepareNextExecutionBlock(-1, lastBlock?.language);
                                 this.editorRef.current?.focus();
 
@@ -284,7 +285,7 @@ export class Notebook extends Component<INotebookProperties> {
                 sql = `${select} * ${from} ${tableName}`;
             }
 
-            this.executeQuery(sql);
+            this.executeQuery({ source: sql });
 
             return Promise.resolve(true);
         }

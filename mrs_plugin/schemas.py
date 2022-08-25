@@ -47,7 +47,7 @@ def format_schema_listing(schemas, print_header=False):
 
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
 
     if len(schemas) == 0:

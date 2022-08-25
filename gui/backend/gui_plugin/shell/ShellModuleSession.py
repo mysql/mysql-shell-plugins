@@ -20,6 +20,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gui_plugin.core.Protocols import Response
+from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.modules import ModuleSession
 from gui_plugin.core.BaseTask import CommandTask
@@ -95,6 +96,14 @@ class ShellQuitTask(ShellCommandTask):
                          params, result_queue, result_callback, options)
 
 
+class ShellDbSessionHandler(DbMysqlSession):
+    def __init__(self, connection_options, message_callback=None):
+        super().__init__(0, False, connection_options, message_callback=message_callback)
+
+    def _do_open_database(self, notify_success=True):
+        return False
+
+
 class ShellModuleSession(ModuleSession):
     def __init__(self, web_session, request_id, options=None, shell_args=None):
         super().__init__(web_session)
@@ -129,16 +138,17 @@ class ShellModuleSession(ModuleSession):
 
         # Check if MDS options have been specified
         connection_args = []
-        if not options is None:
-            if 'mysql-db-system-id' in options:
-                bastion_handler = BastionHandler(lambda x: self._web_session.send_response_message(
-                    msg_type='PENDING',
-                    msg=x,
-                    request_id=request_id,
-                    values=None, api=False))
 
-                options = bastion_handler.establish_connection(
-                    options)
+        if not options is None:
+            session_handler = ShellDbSessionHandler(options,
+                                                    message_callback=lambda x, y: self._web_session.send_response_message(
+                                                        msg_type=x,
+                                                        msg=y,
+                                                        request_id=request_id,
+                                                        values=None, api=False))
+
+            session_handler.open()
+            options = session_handler.connection_options
 
             if 'ssh' in options.keys():
                 connection_args.append('--ssh')

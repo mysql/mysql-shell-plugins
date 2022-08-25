@@ -26,7 +26,8 @@ import autoCommitInactiveIcon from "../../assets/images/toolbar/toolbar-auto_com
 import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
 import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
 //import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
-import executeNewCommandIcon from "../../assets/images/toolbar/toolbar-execute_and_new_cmd.svg";
+import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
+import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
 import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
 import formatIcon from "../../assets/images/toolbar/toolbar-format.svg";
 import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
@@ -57,6 +58,7 @@ export interface IDBEditorToolbarProperties extends IComponentProperties {
     toolbarItems?: IToolbarItems;
 
     activeEditor: string;
+    heatWaveEnabled: boolean;
     editors: IOpenEditorState[];
     language: string;            // The main language of the editor.
 
@@ -139,7 +141,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
     }
 
     public render(): React.ReactNode {
-        const { toolbarItems, language } = this.props;
+        const { toolbarItems, language, heatWaveEnabled } = this.props;
         const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
 
         const area = language === "msg" ? "block" : "script";
@@ -157,45 +159,76 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         const wordWrapIcon = wordWrap === "on" ? wordWrapActiveIcon : wordWrapInactiveIcon;
 
         const leftItems = [...toolbarItems?.left ?? []];
-        leftItems.push(
-            <Button
-                key="executeFullButton"
-                data-tooltip={`Execute ${selectionText}full ${area}`}
-                imageOnly={true}
-                disabled={!canExecute}
-                onClick={
-                    () => { void requisitions.execute("editorExecuteSelectedOrAll", false); }
-                }
-            >
-                <Icon src={executeIcon} data-tooltip="inherit" />
-            </Button>);
-
         if (language === "msg") {
             leftItems.push(
                 <Button
+                    key="executeFullBlock"
                     data-tooltip={`Execute ${selectionText}full block and create a new block`}
                     imageOnly={true}
                     disabled={!canExecute}
                     onClick={
-                        () => { void requisitions.execute("editorExecuteSelectedOrAll", true); }
+                        () => {
+                            void requisitions.execute("editorExecuteSelectedOrAll",
+                                { startNewBlock: true, forceSecondaryEngine: false });
+                        }
                     }
                 >
-                    <Icon src={executeNewCommandIcon} data-tooltip="inherit" />
+                    <Icon src={executeIcon} data-tooltip="inherit" />
                 </Button>);
         }
 
         if (canExecuteSubparts) {
             leftItems.push(
                 <Button
+                    key="executeFromCaret"
                     data-tooltip="Execute the statement at the caret position"
                     imageOnly={true}
                     disabled={!canExecute}
                     onClick={
-                        () => { void requisitions.execute("editorExecuteCurrent", false); }
+                        () => {
+                            void requisitions.execute("editorExecuteCurrent",
+                                { startNewBlock: false, forceSecondaryEngine: false });
+                        }
                     }
                 >
                     <Icon src={executeCaretIcon} data-tooltip="inherit" />
                 </Button>,
+            );
+
+            if (heatWaveEnabled) {
+                leftItems.push(
+                    <Button
+                        key="executeFullBlockHeatWave"
+                        data-tooltip={`Execute ${selectionText}full ${area} on HeatWave and create a new block`}
+                        imageOnly={true}
+                        disabled={!canExecute}
+                        onClick={
+                            () => {
+                                void requisitions.execute("editorExecuteSelectedOrAll",
+                                    { startNewBlock: true, forceSecondaryEngine: true });
+                            }
+                        }
+                    >
+                        <Icon src={executeHeatWaveIcon} data-tooltip="inherit" />
+                    </Button>,
+                    <Button
+                        key="executeFromCaretHeatWave"
+                        data-tooltip={`Execute statement at current position on HeatWave`}
+                        imageOnly={true}
+                        disabled={!canExecute}
+                        onClick={
+                            () => {
+                                void requisitions.execute("editorExecuteCurrent",
+                                    { startNewBlock: false, forceSecondaryEngine: true });
+                            }
+                        }
+                    >
+                        <Icon src={executeHeatWaveCaretIcon} data-tooltip="inherit" />
+                    </Button>,
+                );
+            }
+
+            leftItems.push(
                 /*<Button
                     data-tooltip="Execute Explain for the statement at the caret position"
                     requestType="editorExecuteExplain"
@@ -307,9 +340,11 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
     }
 
     private editorInfoUpdated = (): Promise<boolean> => {
-        this.updateState();
+        setImmediate(() => {
+            this.updateState();
+        });
 
-        // Allow other subscribers to get this event too.
+        // Allow other subscribers to get this event too, by returning false.
         return Promise.resolve(false);
     };
 

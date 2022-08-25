@@ -22,7 +22,7 @@
 import mysqlsh
 import sqlite3
 import re
-from gui_plugin.core.DbSession import DbSessionFactory
+from gui_plugin.core.dbms import DbSessionFactory
 from os import makedirs, getcwd, chdir
 from datetime import date
 from shutil import copyfile
@@ -132,8 +132,8 @@ class BackendSqliteDbManager(BackendDbManager):
     def open_database(self):
         session_id = f"BackendDB-" + \
             "anonymous" if self._web_session is None else self._web_session.session_uuid
-        return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options,
-                                       None, True, None, None, None, None, None)
+        return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options, None,
+                                       True, None, None, None, None, None)
 
     def current_database_exist(self):
         return path.isfile(self._connection_options["db_file"])

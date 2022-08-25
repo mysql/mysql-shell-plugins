@@ -33,12 +33,30 @@ describe("DBEditorToolbar tests", (): void => {
             <DBEditorToolbar
                 language={"pl"}
                 activeEditor={"DbEditor"}
+                heatWaveEnabled={false}
                 editors={[]}
             />,
         );
 
         const props = component.props();
         expect(props.language).toEqual("pl");
+        expect(props.activeEditor).toEqual("DbEditor");
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        component.unmount();
+    });
+
+    it("Test DBEditorToolbar instantiation (HeatWave)", () => {
+        const component = mount<DBEditorToolbar>(
+            <DBEditorToolbar
+                language={"en"}
+                activeEditor={"DbEditor"}
+                heatWaveEnabled={true}
+                editors={[]}
+            />,
+        );
+
+        const props = component.props();
+        expect(props.language).toEqual("en");
         expect(props.activeEditor).toEqual("DbEditor");
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
         component.unmount();

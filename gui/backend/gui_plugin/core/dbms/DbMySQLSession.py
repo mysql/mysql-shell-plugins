@@ -21,13 +21,16 @@
 
 from typing import Dict
 import mysqlsh
-from gui_plugin.core.DbSession import DbSession, DbSessionFactory
-from gui_plugin.core.DbSessionTasks import DbExecuteTask, check_supported_type
+from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory
+from gui_plugin.core.dbms import DbPingHandlerTask
+from gui_plugin.core.dbms.DbSessionTasks import DbExecuteTask, check_supported_type
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLOneFieldTask, MySQLOneFieldListTask
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLBaseObjectTask, MySQLTableObjectTask
-from gui_plugin.core.lib.OciUtils import BastionHandler
+from gui_plugin.core.dbms import DbMySQLSessionSetupTasks as SetupTasks
+import gui_plugin.core.dbms.DbMySQLSessionCommon as common
+from gui_plugin.core.lib import OciUtils
 from gui_plugin.core import Filtering
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
@@ -53,13 +56,14 @@ class DbMysqlSession(DbSession):
                         {"name": "Index",         "type": "TABLE_OBJECT"},
                         {"name": "Column",        "type": "TABLE_OBJECT"}]
 
-    def __init__(self, id, threaded, connection_options, ping_interval=None,
+    def __init__(self, id, threaded, connection_options, data={},
                  auto_reconnect=False, task_state_cb=None, on_connected_cb=None, on_failed_cb=None,
                  prompt_cb=None, message_callback=None, session=None):
-        super().__init__(id, threaded if session is None else False, connection_options if session is None else {}, ping_interval=ping_interval,
+        super().__init__(id, threaded if session is None else False,
+                         connection_options if session is None else {},
+                         data if session is None else None,
                          auto_reconnect=auto_reconnect, task_state_cb=task_state_cb)
 
-        self._connection_options_backup = self._connection_options.copy()
         self._prompt_cb = prompt_cb
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
@@ -78,6 +82,19 @@ class DbMysqlSession(DbSession):
                                    "Invalid MySQL scheme defined in the connection options. Valid values are 'mysql' and 'mysqlx'.")
 
             self.open()
+
+    def _initialize_setup_tasks(self):
+        return [SetupTasks.SessionInfoTask(self),
+                SetupTasks.HeatWaveCheckTask(self),
+                SetupTasks.BastionHandlerTask(
+                    self, lambda message: self._message_callback('PENDING', message)),
+                DbPingHandlerTask(self)]
+
+    @property
+    def connection_id(self):
+        if common.MySQLData.CONNECTION_ID in self.data:
+            return self.data[common.MySQLData.CONNECTION_ID]
+        return None
 
     def on_shell_prompt(self, text, options):
         if 'type' in options and options['type'] == 'password':
@@ -107,44 +124,18 @@ class DbMysqlSession(DbSession):
                                                 "promptDelegate": lambda x, o: self.on_shell_prompt(x, o), })
         self._shell = self._shell_ctx.get_shell()
 
-        self._do_connect(notify_success=notify_success)
+        return self._do_connect(notify_success=notify_success)
 
-    def _setup_bastion_session(self):
-        bastion_handler = BastionHandler(
-            lambda message: self._message_callback('PENDING', message))
-
-        # Database ping interval of 60 seconds
-        if self._ping_interval is None:
-            self._ping_interval = 60
-
-        # Restore the MDS connection options required to create the new bastion
-        missing = self._connection_options_backup.keys() - self._connection_options.keys()
-        for k in missing:
-            self._connection_options[k] = self._connection_options_backup[k]
-
-        # Performs the setup and updates the connection options
-        self._connection_options = bastion_handler.establish_connection(
-            self._connection_options)
+    def _on_connected(self, notify_success):
+        super()._on_connected(notify_success)
+        if not self._connected_cb is None and notify_success:
+            self._connected_cb(self)
 
     def _do_connect(self, notify_success=True):
         try:
-            # Check if MDS options have been specified
-            if 'mysql-db-system-id' in self._connection_options_backup:
-                self._setup_bastion_session()
-
+            # Open Shell connection
             self.session = self._shell.open_session(self._connection_options)
 
-            result = self.session.run_sql(
-                """SELECT connection_id(),
-                        @@version,
-                        @@SESSION.sql_mode""").fetch_all()[0]
-
-            self.connection_id = result[0]
-            self.version_info = result[1]
-            self.initial_sql_mode = result[2]
-
-            if not self._connected_cb is None and notify_success:
-                self._connected_cb(self)
             return True
         except Exception as e:
             if self._failed_cb is None:
@@ -153,7 +144,7 @@ class DbMysqlSession(DbSession):
             self._failed_cb(e)
         return False
 
-    def _close_database(self, finalize):
+    def _do_close_database(self, finalize):
         if self.session and self.session.is_open():
             self.session.close()
 
@@ -163,21 +154,29 @@ class DbMysqlSession(DbSession):
     def _reconnect(self, auto_reconnect=False):
         self._close_database(False)
 
+        attempt_limit = 1
         if auto_reconnect and self._auto_reconnect:
-            # Automatic reconnection loop only if enabled and required
-            for attempts in range(3):
-                try:
-                    logger.debug3(f"Reconnecting {self._id}...")
-                    if self._do_connect(False):
-                        return True
-                except Exception as e:
-                    logger.error(f"Reconnecting session: {str(e)}")
-                    if attempts < 2:
-                        time.sleep(5)
-        else:
-            # Executed when the reconnection is triggered by the user
-            logger.debug3(f"Reconnecting {self._id}...")
-            return self._do_connect(True)
+            attempt_limit = 3
+
+        # Automatic reconnection loop only if enabled and required
+        for attempt in range(3):
+            attempt += 1
+            try:
+                logger.debug3(f"Reconnecting {self._id}...")
+
+                self._reset_setup_tasks()
+
+                self._on_connect()
+
+                if self._do_connect(False):
+                    self._on_connected(notify_success=True)
+                    return True
+            except AssertionError as e:
+                raise
+            except Exception as e:
+                logger.error(f"Reconnecting session: {str(e)}")
+                if attempt < attempt_limit:
+                    time.sleep(5)
 
         return False
 
@@ -244,11 +243,20 @@ class DbMysqlSession(DbSession):
             }
 
     def info(self):
-        return {
-            "version": self.version_info.split('-')[0],
-            "edition": self.version_info.split('-')[1] if "-" in self.version_info else "",
-            "sql_mode": self.initial_sql_mode
-        }
+        ret_val = {}
+        if common.MySQLData.VERSION_INFO in self.data:
+            version_info = self.data[common.MySQLData.VERSION_INFO]
+            ret_val["version"] = version_info.split('-')[0]
+            ret_val["edition"] = version_info.split(
+                '-')[1] if "-" in version_info else ""
+
+        if common.MySQLData.SQL_MODE in self.data:
+            ret_val["sql_mode"] = self.data[common.MySQLData.SQL_MODE]
+
+        if common.MySQLData.HEATWAVE_AVAILABLE in self.data:
+            ret_val["heat_wave_available"] = self.data[common.MySQLData.HEATWAVE_AVAILABLE]
+
+        return ret_val
 
     def start_transaction(self):
         self.execute("START TRANSACTION")
@@ -499,7 +507,7 @@ class DbMysqlSession(DbSession):
                 resultset = self.execute(sql[0], params).fetch_one()
                 if not resultset:
                     raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
-                                   f"The table '{schema_name}.{name}' does not exist.")
+                                       f"The table '{schema_name}.{name}' does not exist.")
                 result["name"] = resultset[0] if resultset else ""
                 resultset = self.execute(sql[1], params).fetch_all()
                 result["columns"] = [name[0] for name in resultset]
@@ -531,7 +539,7 @@ class DbMysqlSession(DbSession):
                 result = self.execute(sql, params).fetch_one()
                 if not result:
                     raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
-                                   f"The view '{schema_name}.{name}' does not exist.")
+                                       f"The view '{schema_name}.{name}' does not exist.")
                 return {"name": result[0]}
 
     @check_supported_type
@@ -574,6 +582,6 @@ class DbMysqlSession(DbSession):
         else:
             result = self.execute(sql, params).fetch_one()
             if not result:
-                    raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
                                    f"The {type.lower()} '{schema_name}.{name}' does not exist.")
             return {"name": result[0]}

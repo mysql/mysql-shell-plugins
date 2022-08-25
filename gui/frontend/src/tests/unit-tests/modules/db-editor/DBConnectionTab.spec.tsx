@@ -83,6 +83,7 @@ describe("DBConnectionTab tests", (): void => {
             backend,
             serverVersion: 1,
             serverEdition: "gpl",
+            heatWaveEnabled: false,
             sqlMode: "mode1",
             editors: [edState],
             scripts: [],

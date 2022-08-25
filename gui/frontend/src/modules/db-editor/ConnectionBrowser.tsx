@@ -1112,6 +1112,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         "profile-name": details.useMDS ? mdsAdvancedSection.profileName.value : undefined,
                         "bastion-id": details.useMDS ? mdsAdvancedSection.bastionId.value : undefined,
                         "mysql-db-system-id": details.useMDS ? mdsAdvancedSection.mysqlDbSystemId.value : undefined,
+                        "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value,
                         /* eslint-enabled @typescript-eslint/naming-convention */
                     } as IMySQLConnectionOptions;
                 }
@@ -1475,6 +1476,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     caption: "Timeout",
                     value: optionsMySQL["connect-timeout"],
                     span: 3,
+                },
+                disableHeatwaveCheck: {
+                    caption: "Disable HeatWave Check on Connection Startup",
+                    value: optionsMySQL["disable-heat-wave-check"] ?? false,
+                    span: 8,
                 },
                 others: {
                     caption: "Other Options for Connection",

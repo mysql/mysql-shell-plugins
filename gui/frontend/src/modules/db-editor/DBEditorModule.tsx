@@ -818,6 +818,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             ? parseVersion(info.version)
                             : settings.get("editor.dbVersion", 80024);
                         const serverEdition = info.edition ?? "";
+                        const heatWaveEnabled = info.heatWaveAvailable ?? false;
 
                         const entryId = uuid();
                         const useNotebook = settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
@@ -845,6 +846,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             serverVersion,
                             serverEdition,
                             sqlMode,
+                            heatWaveEnabled,
 
                             explorerWidth: -1,
 

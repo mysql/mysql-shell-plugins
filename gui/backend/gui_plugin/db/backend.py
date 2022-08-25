@@ -20,17 +20,17 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gui_plugin.core.Error as Error
-from gui_plugin.core import DbSession
+from gui_plugin.core.dbms import DbSession, DbSessionFactory
 
 
 def get_db_session(session: object) -> object:
     if session is None:
         raise Error.MSGException(Error.CORE_INVALID_PARAMETER,
-                                       "Session required for this operation.")
+                                 "Session required for this operation.")
 
-    if not isinstance(session, DbSession.DbSession):
-        session = DbSession.DbSessionFactory.create(
-            "MySQL", None, False, None, None, True, None, None,
-            None, None, None, session)
+    if not isinstance(session, DbSession):
+        session = DbSessionFactory.create(
+            "MySQL", None, False, None, None, True, None, None, None, None,
+            None, session)
 
     return session

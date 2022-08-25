@@ -1,7 +1,0 @@
-[run]
-omit = /usr/*
-       *__init__*
-       */debugger/Debugger.py
-       */gui_registrar.py
-       */start/Start.py
-       */debug_utils.py

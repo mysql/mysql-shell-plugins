@@ -74,6 +74,12 @@ export interface IScriptRequest {
 
     name?: string;
     content: string;
+
+    /**
+     * Used when executing SQL statements to tell the executor to add a hint to SELECT statements to use the secondary
+     * engine (usually HeatWave
+     */
+    forceSecondaryEngine?: boolean;
 }
 
 /** Used to request the creation of a new script in the extension. */

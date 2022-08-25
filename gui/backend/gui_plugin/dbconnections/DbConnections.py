@@ -23,7 +23,7 @@ from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in
 import json
 from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.core.Protocols import Response
-from gui_plugin.core.DbSession import DbSessionFactory
+from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.Db import BackendDatabase, BackendTransaction
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
@@ -91,7 +91,8 @@ def add_db_connection(profile_id, connection, folder_path='',
 
             connection_id = db.get_last_row_id()
 
-            index = dbconnections.get_next_connection_index(db, profile_id, folder_path)
+            index = dbconnections.get_next_connection_index(
+                db, profile_id, folder_path)
 
             # Insert n:m profile_has_db_connection to associate the connection with
             # a profile
@@ -151,16 +152,16 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
                 db.execute("UPDATE db_connection SET options=? WHERE id=?", (json.dumps(
                     connection['options']), connection_id))
             if "folder_path" in connection:
-                index = dbconnections.get_next_connection_index(db, profile_id, folder_path)
+                index = dbconnections.get_next_connection_index(
+                    db, profile_id, folder_path)
                 db.execute("""UPDATE profile_has_db_connection
                               SET folder_path=?
                               WHERE profile_id=? AND db_connection_id=?""",
-                          (connection['folder_path'], profile_id, connection_id))
+                           (connection['folder_path'], profile_id, connection_id))
                 db.execute("""UPDATE profile_has_db_connection
                               SET `index`=?
                               WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
-                          (index, profile_id, connection['folder_path'], connection_id))
-
+                           (index, profile_id, connection['folder_path'], connection_id))
 
             result = Response.fromStatus(db.get_last_status(), {
                 "result": {"db_connection_id": connection_id}})
@@ -356,26 +357,29 @@ def move_connection(profile_id, folder_path, connection_id_to_move, connection_i
 
     with BackendDatabase(web_session) as db:
         with BackendTransaction(db):
-            index_to_move = dbconnections.get_connection_folder_index(db, profile_id, folder_path, connection_id_to_move)
-            index_offset = dbconnections.get_connection_folder_index(db, profile_id, folder_path, connection_id_offset)
+            index_to_move = dbconnections.get_connection_folder_index(
+                db, profile_id, folder_path, connection_id_to_move)
+            index_offset = dbconnections.get_connection_folder_index(
+                db, profile_id, folder_path, connection_id_offset)
 
             if index_to_move > index_offset:
                 index = index_offset if before else index_offset + 1
                 db.execute("""UPDATE profile_has_db_connection
                           SET `index`=`index`+1
                           WHERE profile_id=? AND folder_path=? AND `index`>=? AND `index`<?""",
-                          (profile_id, folder_path, index, index_to_move))
+                           (profile_id, folder_path, index, index_to_move))
             else:
                 index = index_offset - 1 if before else index_offset
                 db.execute("""UPDATE profile_has_db_connection
                           SET `index`=`index`-1
                           WHERE profile_id=? AND folder_path=? AND `index`<=? AND `index`>?""",
-                          (profile_id, folder_path, index, index_to_move))
+                           (profile_id, folder_path, index, index_to_move))
 
             db.execute("""UPDATE profile_has_db_connection
                           SET `index`=?
                           WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
-                          (index, profile_id, folder_path, connection_id_to_move))
+                       (index, profile_id, folder_path, connection_id_to_move))
 
-            result = Response.ok("Successfully updated db connections sort order.")
+            result = Response.ok(
+                "Successfully updated db connections sort order.")
     return result

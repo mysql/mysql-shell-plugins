@@ -50,6 +50,7 @@ import { unquote } from "../../utilities/string-helpers";
 import { MySQLConnectionScheme } from "../../communication/MySQL";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { ResultTextLanguage } from "../../components/ResultView";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
@@ -176,11 +177,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
      * Handles all incoming execution requests from the editors.
      *
      * @param context The context containing the code to be executed.
-     * @param params Additional named parameters.
+     * @param options Content and details for script execution.
      *
      * @returns True if something was actually executed, false otherwise.
      */
-    private handleExecution = async (context: ExecutionContext, params?: Array<[string, string]>): Promise<boolean> => {
+    private handleExecution = async (context: ExecutionContext, options: IScriptExecutionOptions): Promise<boolean> => {
         const { savedState } = this.props;
 
         const command = context.code.trim();
@@ -247,7 +248,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 savedState.backend.execute(languageSwitch).then((event: ICommShellEvent) => {
                                     if (event.eventType === EventType.FinalResponse) {
                                         this.currentLanguage = language;
-                                        void this.processCommand(command, context, params).then(() => {
+                                        void this.processCommand(command, context, options.params).then(() => {
                                             resolve(true);
                                         });
                                     }
@@ -264,7 +265,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             }
         }
 
-        await this.processCommand(command, context, params);
+        await this.processCommand(command, context, options.params);
 
         return Promise.resolve(true);
     };
