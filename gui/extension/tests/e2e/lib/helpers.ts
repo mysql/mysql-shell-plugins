@@ -366,7 +366,7 @@ export const selectMoreActionsItem = async (driver: WebDriver,
         try {
             await el.click();
         } catch(e) {
-            if (String(e).indexOf("StaleElementReferenceError") !== -1) {
+            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                 return true;
             }
         }
@@ -873,7 +873,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
                 }
             }
         } catch (e) {
-            if (String(e).indexOf("StaleElementReferenceError") !== -1) {
+            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                 return false;
             } else {
                 throw new Error(String(e));
@@ -1279,7 +1279,7 @@ export const clickContextMenuItem = async (driver:WebDriver, refEl: WebElement, 
         try {
             await el.click();
         } catch(e) {
-            if (String(e).indexOf("StaleElementReferenceError") !== -1) {
+            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                 return true;
             }
         }

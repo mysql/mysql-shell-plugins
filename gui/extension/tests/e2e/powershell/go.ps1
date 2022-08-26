@@ -173,11 +173,11 @@ try{
         exit 1
     }
 
-    # SETUP ENVIRONMENT
-    writeMsg "Setting up the environment..." "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-setup", "$dest" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
+    # INSTALL VSIX
+    writeMsg "Installing '$extensionItem'..." "-NoNewLine"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "$dest" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
     if($prc.ExitCode -ne 0){
-        Throw "Error setting up the environment"
+        Throw "Error installing VSIX"
     }
     else{
         writeMsg "DONE"

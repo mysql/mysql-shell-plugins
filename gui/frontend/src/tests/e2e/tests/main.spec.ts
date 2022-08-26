@@ -583,12 +583,22 @@ describe("Theme Editor", () => {
             const colorPad0 = await getColorPadCss(driver, 0);
 
             await toggleUiColorsMenu(driver, "Base Colors", "open");
-            await driver.sleep(2000);
 
-            const focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
+            let focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
 
-            await driver.executeScript(dragAndDrop, colors[0], focusBorder);
-
+            try{
+                await driver.executeScript(dragAndDrop, colors[0], focusBorder);
+            } catch (e) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await toggleUiColorsMenu(driver, "Base Colors", "open");
+                    focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
+                    colors = await driver.findElements(By.css("#colorPadCell > div"));
+                    await driver.executeScript(dragAndDrop, colors[0], focusBorder);
+                } else {
+                    throw e;
+                }
+            }
+            
             await focusBorder.click();
             let colorPopup = await driver.findElement(By.css(".colorPopup"));
             const focusBorderColor = await colorPopup.findElement(By.id("hexValueInput")).getAttribute("value");
@@ -636,7 +646,7 @@ describe("Theme Editor", () => {
 
     it("Drag and drop - Base colors to Color Pad", async () => {
         try {
-            const colors = await driver.findElements(By.css("#colorPadCell > div"));
+            let colors = await driver.findElements(By.css("#colorPadCell > div"));
 
             const uiColors = await driver.findElement(By.id("uiColors"));
             const uiColorsClasses = (await uiColors.getAttribute("class")).split(" ");
@@ -646,24 +656,33 @@ describe("Theme Editor", () => {
 
             await toggleUiColorsMenu(driver, "Base Colors", "open");
 
-            const focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
+            let focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
             await focusBorder.click();
             let colorPopup = await driver.findElement(By.css(".colorPopup"));
             const refColor = await colorPopup.findElement(By.id("hexValueInput")).getAttribute("value");
             await colorPopup.findElement(By.id("hexValueInput")).sendKeys(Key.ESCAPE);
 
-            await driver.executeScript(dragAndDrop, focusBorder, colors[0]);
+            try{
+                await driver.executeScript(dragAndDrop, focusBorder, colors[0]);
+            } catch (e) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await toggleUiColorsMenu(driver, "Base Colors", "open");
+                    focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
+                    colors = await driver.findElements(By.css("#colorPadCell > div"));
+                    await driver.executeScript(dragAndDrop, focusBorder, colors[0]);
+                } else {
+                    throw e;
+                }
+            }
 
             let colorPad0 = "";
             try {
                 colorPad0 = await getColorPadCss(driver, 0);
             } catch(e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") === -1) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                         colorPad0 = await getColorPadCss(driver, 0);
-                    } else {
-                        throw e;
-                    }
+                } else {
+                    throw e;
                 }
             }
 
@@ -697,12 +716,10 @@ describe("Theme Editor", () => {
             try {
                 colorPad1 = await getColorPadCss(driver, 1);
             } catch(e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") === -1) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                         colorPad1 = await getColorPadCss(driver, 1);
-                    } else {
-                        throw e;
-                    }
+                } else {
+                    throw e;
                 }
             }
 
@@ -826,7 +843,6 @@ describe("Theme Editor", () => {
 
             await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
-            //await toggleUiColorsMenu(driver, "Popup Colors", "close");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1772,12 +1788,10 @@ describe("Theme Editor", () => {
                     return (await driver.findElement(
                         By.css(".themeSelector label")).getText()).indexOf("Default") !== -1;
                 } catch (e) {
-                    if (e instanceof Error) {
-                        if (e.message.indexOf("StaleElementReferenceError") === -1) {
-                            return false;
-                        } else {
-                            throw e;
-                        }
+                    if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                        return false;
+                    } else {
+                        throw e;
                     }
                 }
             }, 5000, "Theme was not changed to Default Light, after delete");
