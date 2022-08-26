@@ -2121,12 +2121,10 @@ describe("DB Editor - Core Tests", () => {
             try {
                 await selectCurrentEditor(driver, script1, "javascript");
             } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") !== -1) {
-                        await selectCurrentEditor(driver, script1, "javascript");
-                    } else {
-                        throw e;
-                    }
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await selectCurrentEditor(driver, script1, "javascript");
+                } else {
+                    throw e;
                 }
             }
 
@@ -2140,12 +2138,10 @@ describe("DB Editor - Core Tests", () => {
             try {
                 await selectCurrentEditor(driver, script2, "typescript");
             } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") !== -1) {
-                        await selectCurrentEditor(driver, script2, "typescript");
-                    } else {
-                        throw e;
-                    }
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await selectCurrentEditor(driver, script2, "typescript");
+                } else {
+                    throw e;
                 }
             }
 
@@ -2159,12 +2155,10 @@ describe("DB Editor - Core Tests", () => {
             try {
                 await selectCurrentEditor(driver, script3, "mysql");
             } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") !== -1) {
-                        await selectCurrentEditor(driver, script3, "mysql");
-                    } else {
-                        throw e;
-                    }
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await selectCurrentEditor(driver, script3, "mysql");
+                } else {
+                    throw e;
                 }
             }
 
@@ -2176,12 +2170,11 @@ describe("DB Editor - Core Tests", () => {
             try {
                 await selectCurrentEditor(driver, script1, "javascript");
             } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") !== -1) {
-                        await selectCurrentEditor(driver, script1, "javascript");
-                    } else {
-                        throw e;
-                    }
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await selectCurrentEditor(driver, script1, "javascript");
+                } else {
+                    throw e;
+
                 }
             }
 
@@ -2195,12 +2188,10 @@ describe("DB Editor - Core Tests", () => {
             try {
                 await selectCurrentEditor(driver, script2, "typescript");
             } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") !== -1) {
-                        await selectCurrentEditor(driver, script2, "typescript");
-                    } else {
-                        throw e;
-                    }
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await selectCurrentEditor(driver, script2, "typescript");
+                } else {
+                    throw e;
                 }
             }
 
@@ -2214,12 +2205,10 @@ describe("DB Editor - Core Tests", () => {
             try {
                 await selectCurrentEditor(driver, script3, "mysql");
             } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("StaleElementReferenceError") !== -1) {
-                        await selectCurrentEditor(driver, script3, "mysql");
-                    } else {
-                        throw e;
-                    }
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+                    await selectCurrentEditor(driver, script3, "mysql");
+                } else {
+                    throw e;
                 }
             }
 

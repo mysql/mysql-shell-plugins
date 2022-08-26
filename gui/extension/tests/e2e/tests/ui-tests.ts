@@ -673,9 +673,14 @@ describe("MySQL Shell for VS Code", () => {
             );
 
             const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(driver!, textArea, "call clearSchemas();");
+            let result = await shellGetResult(driver!);
+            expect(result).to.include("OK");
+
             await enterCmd(driver!, textArea, `create schema ${testSchema};`);
 
-            const result = await shellGetResult(driver!);
+            result = await shellGetResult(driver!);
             expect(result).to.include("OK");
 
             await driver!.switchTo().defaultContent();
@@ -832,6 +837,10 @@ describe("MySQL Shell for VS Code", () => {
             const zoneHost = await driver!.findElements(By.css(".zoneHost"));
             let result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getAttribute("innerHTML");
             expect(result).to.include(`Default schema set to \`${conn.schema}\`.`);
+
+            await enterCmd(driver!, textArea, "call clearTables();");
+            result = await shellGetResult(driver!);
+            expect(result).to.include("OK");
 
             const prevZoneHosts = await driver!.findElements(By.css(".zoneHost"));
 
@@ -1013,6 +1022,10 @@ describe("MySQL Shell for VS Code", () => {
 
             const random = String(new Date().valueOf());
             const testView = `testview${random}`;
+
+            await enterCmd(driver!, textArea, "call clearViews();");
+            result = await shellGetResult(driver!);
+            expect(result).to.include("OK");
 
             const prevZoneHosts = await driver!.findElements(By.css(".zoneHost"));
 
