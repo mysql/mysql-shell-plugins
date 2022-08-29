@@ -71,7 +71,7 @@ describe("MySQL Parsing Services Tests", () => {
         const r4 = ranges[43];
         const s4 = schema.substring(r4.contentStart, r4.span.start + r4.span.length);
         expect(r4.state).toBe(StatementFinishState.DelimiterChange);
-        expect(s4).toBe("\n\nDELIMITER $$");
+        expect(s4).toBe("DELIMITER $$");
         expect(r4.delimiter).toBe("$$");
     });
 
