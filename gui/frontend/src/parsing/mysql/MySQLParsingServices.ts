@@ -457,8 +457,10 @@ export class MySQLParsingServices {
                                 contentStart: head,
                                 state: StatementFinishState.NoDelimiter,
                             });
+                            start = tail;
                         }
 
+                        head = tail;
                         tail += 9;
                         let run = tail;
                         while (run < end && sql[run] !== "\n") {
@@ -474,7 +476,7 @@ export class MySQLParsingServices {
                         result.push({
                             delimiter,
                             span: { start, length: run - start },
-                            contentStart: haveContent ? head : start,
+                            contentStart: head,
                             state: StatementFinishState.DelimiterChange,
                         });
 

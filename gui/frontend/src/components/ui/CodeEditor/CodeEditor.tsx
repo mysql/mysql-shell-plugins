@@ -1255,7 +1255,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             if (contextsToUpdate.length > 0) {
                 const firstIndex = contextsToUpdate[0];
                 const firstBlock = model.executionContexts.contextAt(firstIndex)!;
-                const blocks = this.splitText(firstBlock.code);
+                const blocks = this.splitText(firstBlock);
                 if (blocks.length > 1) {
                     const { createResultPresentation } = this.mergedProps;
 
@@ -1352,23 +1352,31 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     /**
      * Collects relative line numbers for block starts in the given text, by looking for language switch lines.
      *
-     * @param text The text to examine.
+     * @param startOrText Either the context where the new text starts or new text to add into an empty editor.
      *
      * @returns A list block entries with language, start and stop line (both zero-based).
      */
-    private splitText = (text: string): Array<[EditorLanguage, number, number]> => {
+    private splitText = (startOrText: ExecutionContext | string): Array<[EditorLanguage, number, number]> => {
         const { language, allowedLanguages = [], startLanguage } = this.mergedProps;
 
         const result: Array<[EditorLanguage, number, number]> = [];
 
         // Determine a language to start with.
-        let currentLanguage = (language === "msg" ? startLanguage : language) ?? "javascript";
+        let currentLanguage: EditorLanguage = "javascript";
+        let text = "";
+        if (typeof startOrText === "string") {
+            text = startOrText;
+            currentLanguage = (language === "msg" ? startLanguage : language) ?? "javascript";
 
-        if (currentLanguage && allowedLanguages.length > 0) {
-            if (!allowedLanguages.includes(currentLanguage)) {
-                // The current language is not allowed. Pick the first one in the allowed languages list.
-                currentLanguage = allowedLanguages[0];
+            if (currentLanguage && allowedLanguages.length > 0) {
+                if (!allowedLanguages.includes(currentLanguage)) {
+                    // The current language is not allowed. Pick the first one in the allowed languages list.
+                    currentLanguage = allowedLanguages[0];
+                }
             }
+        } else {
+            text = startOrText.code;
+            currentLanguage = startOrText.language;
         }
 
         let start = 0;
