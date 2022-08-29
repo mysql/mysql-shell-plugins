@@ -62,7 +62,7 @@ export interface ISchemaTreeEntry<T = unknown> {
     caption: string;       // The text to show in the tree.
     qualifiedName: {       // The parts of the FQN to access a db object.
         schema: string;
-        table?: string;
+        table?: string;    // Table or view name
         name?: string;     // Column or index name.
     };
 

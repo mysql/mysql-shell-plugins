@@ -477,7 +477,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleSchemaTreeContextMenuItemClick}
                 >
-                    <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" />
@@ -501,7 +500,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleSchemaTreeContextMenuItemClick}
                 >
-                    <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
@@ -525,7 +523,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleSchemaTreeContextMenuItemClick}
                 >
-                    <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" />
@@ -611,6 +608,12 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
             case SchemaTreeType.Index: {
                 this.indexContextMenuRef.current?.open(targetRect, false, {}, rowData);
+
+                break;
+            }
+
+            case SchemaTreeType.Column: {
+                this.columnContextMenuRef.current?.open(targetRect, false, {}, rowData);
 
                 break;
             }
@@ -904,14 +907,18 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     case SchemaTreeType.GroupNode: {
                         switch (entry.id) {
                             case "groupNode.Tables": {
-                                void this.renderTables(schema, row, tree);
+                                void this.renderTablesOrViews(schema, true, row, tree);
                                 break;
                             }
 
-                            case "groupNode.Views":
+                            case "groupNode.Views": {
+                                void this.renderTablesOrViews(schema, false, row, tree);
+                                break;
+                            }
+
                             case "groupNode.Routines":
                             case "groupNode.Events": {
-                                void this.renderSchemaObjects(schema, entry.qualifiedName.name ?? "", "", row, tree);
+                                void this.renderSchemaObjects(schema, entry.qualifiedName.name ?? "", row, tree);
                                 break;
                             }
 
@@ -1288,14 +1295,15 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return true;
     };
 
-    private async renderTables(schema: string, row: Tabulator.RowComponent, tree?: TabulatorProxy): Promise<void> {
+    private async renderTablesOrViews(schema: string, tables: boolean, row: Tabulator.RowComponent,
+        tree?: TabulatorProxy): Promise<void> {
         const { backend } = this.props;
 
         tree?.blockRedraw();
         this.removeDummyNode(row);
 
         try {
-            const names = await backend.getSchemaObjects(schema, "Table");
+            const names = await backend.getSchemaObjects(schema, tables ? "Table" : "View");
 
             for (const table of names) {
                 const newChild = {
@@ -1308,11 +1316,17 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     details: null,
                     children: [
                         this.generateGroupNode("Columns", "Column", schema, table),
+                    ],
+                };
+
+                if (table) {
+                    newChild.children.push(
                         this.generateGroupNode("Triggers", "Trigger", schema, table),
                         this.generateGroupNode("Foreign Keys", "Foreign Key", schema, table),
                         this.generateGroupNode("Indexes", "Index", schema, table),
-                    ],
-                };
+                    );
+                }
+
                 row.addTreeChild(newChild);
             }
         } catch (error) {
@@ -1360,8 +1374,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         tree?.restoreRedraw();
     };
 
-    private renderSchemaObjects = async (schema: string, type: string, filter: string,
-        row: Tabulator.RowComponent, tree?: TabulatorProxy): Promise<void> => {
+    private renderSchemaObjects = async (schema: string, type: string,
+        row: Tabulator.RowComponent, tree?: TabulatorProxy, filter?: string): Promise<void> => {
 
         const { backend } = this.props;
 
