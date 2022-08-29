@@ -312,6 +312,29 @@ await ws.sendAndValidate({
     "command": "gui.db.get_schema_object_names",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
+        "type": "Routine",
+        "schema_name": ws.tokens["schema"],
+        "routine_type": "function",
+        "filter": ""
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": []
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
         "type": "Event",
         "schema_name": ws.tokens["schema"]
     }

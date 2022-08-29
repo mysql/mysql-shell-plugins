@@ -367,8 +367,7 @@ class DbMysqlSession(DbSession):
                     WHERE ROUTINE_SCHEMA = ?"""
             if routine_type:
                 sql += f" AND ROUTINE_TYPE = ?"
-            if filter:
-                sql += f" AND ROUTINE_NAME like ?"
+            sql += f" AND ROUTINE_NAME like ?"
             sql += " ORDER BY ROUTINE_NAME"
             params = (schema_name, routine_type.upper(),
                       filter) if routine_type else (schema_name, filter)
