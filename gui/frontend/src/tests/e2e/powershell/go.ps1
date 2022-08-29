@@ -39,10 +39,10 @@ function parseHTML($path){
     return $html
 }
 
-try{
+try {
     $err = 0
 
-    $log = Join-Path $env:WORKSPACE "ps.log"
+    $log = Join-Path $env:WORKSPACE "psFE.log"
 
     function writeMsg($msg, $option){
 
@@ -52,23 +52,21 @@ try{
         
     }
     
-    if(!$env:WORKSPACE){
-        Throw "Please define 'WORKSPACE' env variable"
-    }
-    
-    if( Test-Path -Path $log ){
+    if ( Test-Path -Path $log ){
         Remove-Item -Path $log -Recurse -Force	
     }
 
     New-Item -ItemType "file" -Path $log
 
+    writeMsg "WORKSPACE: $env:WORKSPACE"
+
     writeMsg "Setup nodejs registry..." "-NoNewLine"
-    Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-tip.oraclecorp.com/api/npm/npmjs-remote" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
+    Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-tip.oraclecorp.com/api/npm/npmjs-remote" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
     writeMsg "DONE"
 
     writeMsg "Installing node modules..." "-NoNewLine"
-    if( !(Test-Path -Path "$basePath\node_modules") ){
-        Start-Process "npm" -ArgumentList "install", "--force" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
+    if ( !(Test-Path -Path "$basePath\node_modules") ){
+        Start-Process "npm" -ArgumentList "install", "--force" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
         writeMsg "DONE"
     }
     else{
@@ -78,7 +76,7 @@ try{
     writeMsg "Running Webdriver update..." "-NoNewLine"
     $env:PROXY = 'http://www-proxy.us.oracle.com:80'
     $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
-	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-update" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
+	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-update" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
     writeMsg "DONE"
 
     #############################EXEC TESTS#####################################################
@@ -96,7 +94,7 @@ try{
 
     while ($counter -le 20){
         $isReady = isSeleniumReady
-        if( $isReady ){
+        if ( $isReady ){
             break
         }
         else{
@@ -105,11 +103,11 @@ try{
         }
     }
     
-    if(!$isReady){ Throw "Selenium was not ready after 20 tries!" }
+    if (!$isReady){ Throw "Selenium was not ready after 20 tries!" }
 
     $id = Get-Content -Path "$env:WORKSPACE\selenium.log" | Select-String -Pattern "seleniumProcess.pid: (\d+)" | % { $_.Matches.Groups[1].Value }
 
-    if($id){
+    if ($id){
         writeMsg "OK!"
     }
     else{
@@ -118,7 +116,7 @@ try{
     
     #MANAGE THE RE-RUN
     $jsonReporter = Get-Content -Path "$basePath\jesthtmlreporter.config.json" | Out-String | ConvertFrom-Json
-    if( !(Test-Path -Path "$basePath\src\tests\e2e\test-report.html") ){
+    if ( !(Test-Path -Path "$basePath\src\tests\e2e\test-report.html") ){
         $jsonReporter.append = $false
     }
     else {
@@ -128,9 +126,9 @@ try{
 
     $jsonReporter | ConvertTo-Json -Depth 1 | Set-Content "$basePath\jesthtmlreporter.config.json"
     
-    if($env:RERUN -eq $true){
+    if ($env:RERUN -eq $true){
         #CHECK IF THERE IS A TEST-REPORT
-        if( Test-Path -Path "$basePath\src\tests\e2e\test-report.html" ){
+        if ( Test-Path -Path "$basePath\src\tests\e2e\test-report.html" ){
             writeMsg "Found an existing test report"
 
             ###GET FAILED TESTS###
@@ -140,21 +138,21 @@ try{
             $lastRunSize = $lastRun.Length
             $size = $lastRun[$lastRunSize -1].querySelectorAll(".failed .test-title").Length
 
-            if($size -gt 0){
+            if ($size -gt 0){
                 $failed = "`""
                 for($i=0; $i -le $size-1; $i++){
                     $failedTest = $lastRun.querySelectorAll(".failed .test-title").item($i).InnerText
                     writeMsg "- $failedTest"
                     $failed += $failedTest
-                    if($i -ne $size-1){
+                    if ($i -ne $size-1){
                         $failed += "|"
                     }
                 }
                 $failed += "`""
                 #RE-WRITE PACKAGE.JSON WITH TESTS TO RE-RUN
-                if($failed.Length -gt 0){
+                if ($failed.Length -gt 0){
                     $json = Get-Content -Path "$basePath\package.json" | Out-String | ConvertFrom-Json
-                    if($json.scripts.'e2e-tests-run' -like "*testNamePattern*"){
+                    if ($json.scripts.'e2e-tests-run' -like "*testNamePattern*"){
                         $json.scripts.'e2e-tests-run' -match '--testNamePattern=''([^'']*)'''
                         $json.scripts.'e2e-tests-run' = $json.scripts.'e2e-tests-run'.replace($matches[1], $failed)
                     }
@@ -179,7 +177,7 @@ try{
     
     #EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\results.log" -RedirectStandardError "$env:WORKSPACE\resultsErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsFE.log" -RedirectStandardError "$env:WORKSPACE\resultsFEErr.log"
     writeMsg "DONE"
 
     writeMsg "Running post actions" "-NoNewLine"
@@ -187,10 +185,10 @@ try{
     writeMsg "DONE"
 
     #CHECK RESULTS
-    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsErr.log" | Select-String -Pattern "(\d+) failed" | % { $_.Matches.Groups[0].Value })
-    $hasPassedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsErr.log" | Select-String -Pattern "(\d+) passed" | % { $_.Matches.Groups[0].Value })
+    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsFEErr.log" | Select-String -Pattern "(\d+) failed" | % { $_.Matches.Groups[0].Value })
+    $hasPassedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsFEErr.log" | Select-String -Pattern "(\d+) passed" | % { $_.Matches.Groups[0].Value })
 
-    if( $hasFailedTests -or (!$hasFailedTests -and !$hasPassedTests) ){
+    if ( $hasFailedTests -or (!$hasFailedTests -and !$hasPassedTests) ){
         writeMsg "There are failed tests !"
         $err = 1
     }
@@ -199,13 +197,13 @@ try{
     }
 
 }
-catch{
+catch {
     writeMsg $_
 	writeMsg $_.ScriptStackTrace
 	$err = 1
 }
-finally{
-    try{
+finally {
+    try {
         Get-Process | Where-Object {$_.Name -like "*chromedriver*" } | Stop-Process -Force
         Get-Process | Where-Object {$_.Name -like "*chrome*" } | Stop-Process -Force
         $prc = Get-Process -Id (Get-NetTCPConnection -LocalPort 4444).OwningProcess
@@ -213,11 +211,11 @@ finally{
         Stop-Process -Id $prc.Id
         writeMsg "DONE"
     }
-    catch{
+    catch {
         writeMsg "Selenium is not running. All fine"
     }
 
-    if( $err -eq 1){
+    if ( $err -eq 1){
         exit 1
     }
 }

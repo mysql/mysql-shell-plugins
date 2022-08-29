@@ -37,10 +37,10 @@
 $basePath = Join-Path $env:WORKSPACE "shell-plugins" "gui" "extension"
 $testsPath = Join-Path $basePath "tests" "e2e" "tests" "ui-tests.ts"
 
-try{
+try {
     $err = 0
 
-    $log = Join-Path $env:WORKSPACE "ps.log"
+    $log = Join-Path $env:WORKSPACE "psExt.log"
 
     function writeMsg($msg, $option){
 
@@ -50,22 +50,21 @@ try{
         
     }
 
-    if(!$env:EXTENSION_BRANCH){
+    if (!$env:EXTENSION_BRANCH){
         Throw "Please define 'EXTENSION_BRANCH' env variable"
     }
-    if(!$env:WORKSPACE){
-        Throw "Please define 'WORKSPACE' env variable"
-    }
     
-    if( Test-Path -Path $log ){
+    if (Test-Path -Path $log){
         Remove-Item -Path $log -Recurse -Force	
     }
 
     New-Item -ItemType "file" -Path $log
 
+    writeMsg "WORKSPACE: $env:WORKSPACE"
+
     writeMsg "Setup nodejs registry..." "-NoNewLine"
-    $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
-    if($prc.ExitCode -ne 0){
+    $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
+    if ($prc.ExitCode -ne 0){
         Throw "Error setting nodejs registry"
     }
     else{
@@ -74,15 +73,15 @@ try{
 
     
     $dbLocation = Join-Path $env:userprofile "AppData" "Roaming" "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
-    if(Test-Path -Path $dbLocation){
+    if (Test-Path -Path $dbLocation){
         writeMsg "Removing Plugin database..." "-NoNewLine"
         Remove-Item -Path $dbLocation -Force
         writeMsg "DONE"
     }
     
 	writeMsg "Setup noproxy..." "-NoNewLine"
-    $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
-    if($prc.ExitCode -ne 0){
+    $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
+    if ($prc.ExitCode -ne 0){
         Throw "Error setting nodejs registry"
     }
     else{
@@ -93,9 +92,9 @@ try{
     $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
     
     writeMsg "Installing node modules..." "-NoNewLine"
-    if( !(Test-Path -Path "$basePath\node_modules") ){
-        $prc = Start-Process "npm" -ArgumentList "install", "--force" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\node.log" -RedirectStandardError "$env:WORKSPACE\nodeErr.log"
-        if($prc.ExitCode -ne 0){
+    if ( !(Test-Path -Path "$basePath\node_modules") ){
+        $prc = Start-Process "npm" -ArgumentList "install", "--force" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
+        if ($prc.ExitCode -ne 0){
             Throw "Error installing node modules"
         }
         else{
@@ -129,7 +128,7 @@ try{
     $sshPath = Join-Path $env:userprofile ".ssh"
     if ( Test-Path -Path $sshPath ){
         Get-ChildItem -Path $sshPath | % {
-            if( ($_.Name -eq "id_rsa") -or ($_.Name -eq "id_rsa.pub")){
+            if ( ($_.Name -eq "id_rsa") -or ($_.Name -eq "id_rsa.pub")){
                 writeMsg "Removing $($_.Name) ..." "-NoNewLine"
                 Remove-Item -Path $_ -Force
                 writeMsg "DONE"
@@ -138,7 +137,7 @@ try{
     }
 
     # DOWNLOAD EXTENSION 
-    if(!$env:EXTENSION_PUSH_ID){
+    if (!$env:EXTENSION_PUSH_ID){
         $env:EXTENSION_PUSH_ID = "latest"
     }
 
@@ -159,7 +158,7 @@ try{
     writeMsg "Extension info:"
     writeMsg $extension
     writeMsg "End"
-    if($extension){
+    if ($extension){
         $extension | ForEach-Object { 
             $extensionItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
             writeMsg "Downloading $extensionItem ..." "-NoNewline" 
@@ -176,7 +175,7 @@ try{
     # INSTALL VSIX
     writeMsg "Installing '$extensionItem'..." "-NoNewLine"
     $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "$dest" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
-    if($prc.ExitCode -ne 0){
+    if ($prc.ExitCode -ne 0){
         Throw "Error installing VSIX"
     }
     else{
@@ -186,7 +185,7 @@ try{
     # CREATE EMPTY CONFIG FILE (REQUIRED FOR THE TESTS TO WORK ON OCI)
     writeMsg "Creating config file..." "-NoNewLine"
     $configFile = Join-Path $env:userprofile ".oci" "config"
-    if(Test-Path -Path $configFile){
+    if (Test-Path -Path $configFile){
         Remove-Item -Path $configFile -Force
     }
 
@@ -197,11 +196,11 @@ try{
     $loaded = $false
     $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"
     Get-ChildItem -Path $extensionsPath | % {
-        if( ($_.Name -like "*mysql-shell-for-vs-code*") ){
+        if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
             $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
             writeMsg "Importing OCI Library..." "-NoNewLine"
             $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
-            if($prc.ExitCode -ne 0){
+            if ($prc.ExitCode -ne 0){
                 Throw "Error importing OCI Library"
             }
             else{
@@ -211,7 +210,7 @@ try{
         }
     }
     
-    if($loaded -eq $false){
+    if ($loaded -eq $false){
         Throw "OCI Library not loaded. Maybe the extension folder was not found."
     }
 
@@ -225,7 +224,7 @@ try{
     }
 
     # RERUN
-    if($env:RERUN -eq $true){
+    if ($env:RERUN -eq $true){
         $path2json = Join-Path $basePath "mochawesome-report" "test-report.json"
         $json = Get-Content $path2json | Out-String | ConvertFrom-Json
         if ( [int]$json.PSObject.Properties.Value.failures[0] -gt 0 ) {
@@ -238,7 +237,7 @@ try{
             $failedSuites = $json.results.suites.suites | Where-Object { $_.failures.Length -gt 0 } | % { $_.title }
             $failedTests = $json.results.suites.suites.tests | Where-Object { $_.fail -eq "true" } | % { $_.title }
             $content = Get-Content $testsPath
-            if($failedSuites -is [array]){
+            if ($failedSuites -is [array]){
                 forEach($failedSuite in $failedSuites){
                     $content = $content.replace("describe(`"$failedSuite`"", "describe.only(`"$failedSuite`"") 
                     write-host "Marked test suite '$failedSuite' to be re-runned"
@@ -248,7 +247,7 @@ try{
                 $content = $content.replace("describe(`"$failedSuites`"", "describe.only(`"$failedSuites`"") 
                 writeMsg "Marked test suite '$failedSuites' to be re-runned"
             }
-            if($failedTests -is [array]){
+            if ($failedTests -is [array]){
                 forEach($failedTest in $failedTests){
                     $content = $content.replace("it(`"$failedTest`"", "it.only(`"$failedTest`"")
                     writeMsg "Marked test '$failedTest' to be re-runned"
@@ -266,11 +265,11 @@ try{
     
     # EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\results.log" -RedirectStandardError "$env:WORKSPACE\resultsErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
     writeMsg "DONE"
 
     # REMOVE THE RE-RUNS and MERGE
-    if($env:RERUN -eq $true){
+    if ($env:RERUN -eq $true){
         writeMsg "Removing re-runs on file..." "-NoNewLine"
         $content = Get-Content $testsPath
         $content = $content.replace(".only", "")
@@ -299,7 +298,7 @@ try{
         
         $curJson.results.suites.suites | ForEach-Object {
             $suite = $_
-            for($i=0; $i -le ($prevJson.results.suites.suites).Length-1; $i++){
+            for ($i=0; $i -le ($prevJson.results.suites.suites).Length-1; $i++){
                 if ($prevJson.results.suites.suites[$i].title -eq $suite.title){
                     $prevJson.results.suites.suites[$i].beforeHooks = $suite.beforeHooks
                     $prevJson.results.suites.suites[$i].afterHooks = $suite.afterHooks
@@ -317,7 +316,7 @@ try{
 
                     $_.tests | ForEach-Object {
                         $test = $_
-                        for($j=0; $j -le ($prevJson.results.suites.suites[$i].tests).Length-1; $j++){
+                        for ($j=0; $j -le ($prevJson.results.suites.suites[$i].tests).Length-1; $j++){
                             if ($prevJson.results.suites.suites[$i].tests[$j].title -eq $test.title){
                                 $prevTestUUid = $prevJson.results.suites.suites[$i].tests[$j].uuid
                                 $prevJson.results.suites.suites[$i].tests[$j] = $test
@@ -346,7 +345,7 @@ try{
         writeMsg "DONE"
         writeMsg "Generating new report..." "-NoNewLine"
         $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-report", "`"Test Report for BRANCH: $env:EXTENSION_BRANCH`"" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\newReport.log" -RedirectStandardError "$env:WORKSPACE\newReportErr.log"
-        if($prc.ExitCode -ne 0){
+        if ($prc.ExitCode -ne 0){
             Throw "Error generating new report"
         }
         else{
@@ -355,9 +354,9 @@ try{
     }
     
     # CHECK RESULTS
-    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\results.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
+    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsExt.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
 
-    if( $hasFailedTests -and ( [int]$hasFailedTests -gt 0 ) ){
+    if ($hasFailedTests -and ([int]$hasFailedTests -gt 0)){
         writeMsg "There are failed tests."
         $err = 1
     }
@@ -365,13 +364,13 @@ try{
         writeMsg "All tests passed."
     }
 }
-catch{
+catch {
     writeMsg $_
 	writeMsg $_.ScriptStackTrace
 	$err = 1
 }
-finally{
-    if( $err -eq 1){
+finally {
+    if ( $err -eq 1){
         exit 1
     }
 }

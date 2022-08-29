@@ -586,7 +586,7 @@ describe("Theme Editor", () => {
 
             let focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
 
-            try{
+            try {
                 await driver.executeScript(dragAndDrop, colors[0], focusBorder);
             } catch (e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
@@ -598,7 +598,7 @@ describe("Theme Editor", () => {
                     throw e;
                 }
             }
-            
+
             await focusBorder.click();
             let colorPopup = await driver.findElement(By.css(".colorPopup"));
             const focusBorderColor = await colorPopup.findElement(By.id("hexValueInput")).getAttribute("value");
@@ -662,7 +662,7 @@ describe("Theme Editor", () => {
             const refColor = await colorPopup.findElement(By.id("hexValueInput")).getAttribute("value");
             await colorPopup.findElement(By.id("hexValueInput")).sendKeys(Key.ESCAPE);
 
-            try{
+            try {
                 await driver.executeScript(dragAndDrop, focusBorder, colors[0]);
             } catch (e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
@@ -680,7 +680,7 @@ describe("Theme Editor", () => {
                 colorPad0 = await getColorPadCss(driver, 0);
             } catch(e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                        colorPad0 = await getColorPadCss(driver, 0);
+                    colorPad0 = await getColorPadCss(driver, 0);
                 } else {
                     throw e;
                 }
@@ -717,7 +717,7 @@ describe("Theme Editor", () => {
                 colorPad1 = await getColorPadCss(driver, 1);
             } catch(e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                        colorPad1 = await getColorPadCss(driver, 1);
+                    colorPad1 = await getColorPadCss(driver, 1);
                 } else {
                     throw e;
                 }
