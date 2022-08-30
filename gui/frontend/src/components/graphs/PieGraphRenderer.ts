@@ -128,15 +128,21 @@ export class PieGraphRenderer {
 
         // Pie slices.
         const slicePaths = sliceGroup.selectAll<IPieGeometryElement, d3.PieArcDatum<IPieDatum>>("path").data(pieData);
+        const colors = config.colors && config.colors.length > 0 ? config.colors : d3.schemeCategory10;
 
-        const path = slicePaths.enter()
-            .insert<IPiePathElement>("path")
-            .attr("class", "slice")
-            .attr("d", (datum, index, group) => {
-                const element = group[index];
-                element.previous = datum;
+        slicePaths.join<IPiePathElement>(
+            (enter) => {
+                const result = enter.append<IPiePathElement>("path");
 
-                return sliceArcGenerator(datum);
+                result.attr("class", "slice")
+                    .attr("d", (datum, index, group) => {
+                        const element = group[index];
+                        element.previous = datum;
+
+                        return sliceArcGenerator(datum);
+                    });
+
+                return result;
             })
             .on("mouseover", function (event, datum) {
                 if (config.tooltip) {
@@ -157,19 +163,16 @@ export class PieGraphRenderer {
                     text += `${datum.data.value.toFixed(2)}`;
                 }
                 this.setAttribute("data-tooltip", text);
+            })
+            .style("fill", (_, index) => {
+                return colors[index % colors.length];
+            })
+            .style("stroke", () => {
+                return config.borderColor ?? null;
+            })
+            .style("stroke-width", () => {
+                return config.borderWidth ?? null;
             });
-
-        slicePaths.style("fill", (_, index) => {
-            return config.colors ? config.colors[index] : d3.schemeCategory10[index % 10];
-        });
-
-        if (config.borderWidth !== undefined) {
-            path.style("stroke-width", config.borderWidth);
-        }
-
-        if (config.borderColor !== undefined) {
-            path.style("stroke", config.borderColor);
-        }
 
         /* istanbul ignore next */
         slicePaths.transition().duration(500)
@@ -183,8 +186,6 @@ export class PieGraphRenderer {
                 };
             })
             .ease(d3.easeCubicOut);
-
-        slicePaths.exit().remove();
 
         // Text labels.
         if (config.showValues ?? true) {
