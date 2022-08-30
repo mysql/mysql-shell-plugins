@@ -305,13 +305,18 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     >
                         {items}
                     </Dropdown>,
+                ],
+                right: [],
+            };
+
+            if (selectedPage !== "connections") {
+                toolbarItems.left.push(
                     <Button key="button1" id="newMenuButton" onClick={this.newButtonClick}>
                         <Icon key="newIcon" src={newIcon} />
                     </Button>,
                     <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
-                ],
-                right: [],
-            };
+                );
+            }
 
             if (showSaveButton) {
                 toolbarItems.right.push(<Button
