@@ -172,6 +172,26 @@ try {
         exit 1
     }
 
+    # DOWNLOAD CHROME-DRIVER
+    writeMsg "Downloading Chrome Driver..." "-NoNewLine"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-chromedriver" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
+    if ($prc.ExitCode -ne 0){
+        Throw "Error Chrome Driver"
+    }
+    else{
+        writeMsg "DONE"
+    }
+
+    # DOWNLOAD VSCODE
+    writeMsg "Downloading VSCode..." "-NoNewLine"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-vscode" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
+    if ($prc.ExitCode -ne 0){
+        Throw "Error Downloading VSCode"
+    }
+    else{
+        writeMsg "DONE"
+    }
+
     # INSTALL VSIX
     writeMsg "Installing '$extensionItem'..." "-NoNewLine"
     $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "$dest" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
