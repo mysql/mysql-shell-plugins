@@ -225,7 +225,7 @@ export enum StatementFinishState {
 
 export interface IStatementSpan {
     delimiter: string;    // The delimiter used to find this statement, except for the DELIMITER statement, where this
-                          // field contains the new delimiter.
+    // field contains the new delimiter.
     span: TextSpan;       // Start and length of the entire statement, including leading whitespaces.
     contentStart: number; // The offset where non-whitespace content starts.
     state: StatementFinishState;
@@ -234,9 +234,15 @@ export interface IStatementSpan {
 export interface IParserErrorInfo {
     message: string;
     tokenType: number;
-    charOffset: number; // Offset from the beginning of the input to the error position.
-    line: number;       // Error line.
-    offset: number;     // Char offset in the error line to the error start position.
+
+    /** Offset from the beginning of the input to the error position. */
+    charOffset: number;
+
+    /** Error line. */
+    line: number;
+
+    /** Char offset in the error line to the error start position. */
+    offset: number;
     length: number;
 }
 

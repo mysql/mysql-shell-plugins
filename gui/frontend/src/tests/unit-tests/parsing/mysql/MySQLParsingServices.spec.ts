@@ -101,12 +101,13 @@ describe("MySQL Parsing Services Tests", () => {
                         checkResult.version, "ANSI_QUOTES");
                     if (!result) {
                         const errors = services.errorsWithOffset(0);
+                        const error = errors[0];
                         fail(`This query failed to parse (${index}: ${checkResult.version}):\n${statement}\n` +
-                            `with error: ${errors[0].message}`);
+                            `with error: ${error.message}, line: ${error.line - 1}, column: ${error.offset}`);
                     }
                 } else {
-                    // Ignore all other statements. Since we don't check for versions below 8.0 in the grammar they may
-                    // unexpectedly succeed.
+                    // Ignore all other statements. Since we don't check for versions below 8.0 in the grammar they
+                    // may unexpectedly succeed.
                 }
             });
         });

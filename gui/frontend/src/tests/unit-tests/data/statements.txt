@@ -2888,4 +2888,7 @@ create user mike identified by 'a'$$
 [>=80019]SELECT * FROM t1 WHERE a IN (TABLE t2)$$
 [>=80019]TABLE t ORDER BY b LIMIT 3 OFFSET 2$$
 [>=80019]VALUES ROW(1,2),ROW(3,4),ROW(5,6) UNION VALUES ROW(10,15),ROW(20,25)$$
-[>=80027] ALTER TABLE `tbl` ADD PRIMARY KEY USING BTREE (`a`, `b`);
+[>=80027] ALTER TABLE `tbl` ADD PRIMARY KEY USING BTREE (`a`, `b`)$$
+[>=80031]revoke if exists all privileges, grant option from mike, goofy $$
+[>=80031]revoke proxy on mike from current_user() ignore unknown user$$
+[>=80031]analyze table a, b, c update histogram on x using data 'xyz' $$
