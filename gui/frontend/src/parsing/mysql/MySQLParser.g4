@@ -24,7 +24,7 @@ parser grammar MySQLParser;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [15457ff] (21. January 2022).
+ * Merged in all changes up to mysql-trunk git revision [07f0dc2] (15. July 2022).
  *
  * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
@@ -431,7 +431,7 @@ viewTail:
 ;
 
 viewQueryBlock:
-    queryExpressionOrParens viewCheckOption?
+    queryExpressionWithOptLockingClauses viewCheckOption?
 ;
 
 viewCheckOption:
@@ -486,7 +486,7 @@ createDatabaseOption:
 
 createTable:
     TEMPORARY_SYMBOL? TABLE_SYMBOL ifNotExists? tableName (
-        (OPEN_PAR_SYMBOL tableElementList CLOSE_PAR_SYMBOL)? createTableOptions? partitionClause? duplicateAsQueryExpression?
+        (OPEN_PAR_SYMBOL tableElementList CLOSE_PAR_SYMBOL)? createTableOptionsEtc?
         | LIKE_SYMBOL tableRef
         | OPEN_PAR_SYMBOL LIKE_SYMBOL tableRef CLOSE_PAR_SYMBOL
     )
@@ -501,12 +501,21 @@ tableElement:
     | tableConstraintDef
 ;
 
-duplicateAsQueryExpression: (REPLACE_SYMBOL | IGNORE_SYMBOL)? AS_SYMBOL? queryExpressionOrParens
+duplicateAsQe:
+    (REPLACE_SYMBOL | IGNORE_SYMBOL)? asCreateQueryExpression
+;
+
+asCreateQueryExpression:
+    AS_SYMBOL? queryExpressionWithOptLockingClauses
 ;
 
 queryExpressionOrParens:
-    queryExpression
+    queryExpression ({this.serverVersion >= 80031}? lockingClauseList)?
     | queryExpressionParens
+;
+
+queryExpressionWithOptLockingClauses:
+    queryExpression lockingClauseList?
 ;
 
 createRoutine: // Rule for external use only.
@@ -968,8 +977,14 @@ insertValues:
 ;
 
 insertQueryExpression:
-    queryExpressionOrParens
-    | OPEN_PAR_SYMBOL fields? CLOSE_PAR_SYMBOL queryExpressionOrParens
+    {this.serverVersion < 80031}? (
+        queryExpressionOrParens
+        | OPEN_PAR_SYMBOL fields? CLOSE_PAR_SYMBOL queryExpressionWithOptLockingClauses
+    )
+    | {this.serverVersion >= 80031}? (
+        queryExpressionWithOptLockingClauses
+        | OPEN_PAR_SYMBOL fields? CLOSE_PAR_SYMBOL queryExpressionWithOptLockingClauses
+    )
 ;
 
 valueList:
@@ -1044,55 +1059,29 @@ replaceStatement:
 
 selectStatement:
     queryExpression lockingClauseList?
-    | queryExpressionParens
+    | {this.serverVersion < 80031}? queryExpressionParens
     | selectStatementWithInto
 ;
 
-/*
-  From the server grammar:
-
-  MySQL has a syntax extension that allows into clauses in any one of two
-  places. They may appear either before the from clause or at the end. All in
-  a top-level select statement. This extends the standard syntax in two
-  ways. First, we don't have the restriction that the result can contain only
-  one row: the into clause might be INTO OUTFILE/DUMPFILE in which case any
-  number of rows is allowed. Hence MySQL does not have any special case for
-  the standard's <select statement: single row>. Secondly, and this has more
-  severe implications for the parser, it makes the grammar ambiguous, because
-  in a from-clause-less select statement with an into clause, it is not clear
-  whether the into clause is the leading or the trailing one.
-
-  While it's possible to write an unambiguous grammar, it would force us to
-  duplicate the entire <select statement> syntax all the way down to the <into
-  clause>. So instead we solve it by writing an ambiguous grammar and use
-  precedence rules to sort out the shift/reduce conflict.
-
-  The problem is when the parser has seen SELECT <select list>, and sees an
-  INTO token. It can now either shift it or reduce what it has to a table-less
-  query expression. If it shifts the token, it will accept seeing a FROM token
-  next and hence the INTO will be interpreted as the leading INTO. If it
-  reduces what it has seen to a table-less select, however, it will interpret
-  INTO as the trailing into. But what if the next token is FROM? Obviously,
-  we want to always shift INTO. We do this by two precedence declarations: We
-  make the INTO token right-associative, and we give it higher precedence than
-  an empty from clause, using the artificial token EMPTY_FROM_CLAUSE.
-
-  The remaining problem is that now we allow the leading INTO anywhere, when
-  it should be allowed on the top level only. We solve this by manually
-  throwing parse errors whenever we reduce a nested query expression if it
-  contains an into clause.
-*/
 selectStatementWithInto:
     OPEN_PAR_SYMBOL selectStatementWithInto CLOSE_PAR_SYMBOL
     | queryExpression intoClause lockingClauseList?
-    | {this.serverVersion >= 80024}? queryExpressionParens intoClause
+    | queryExpression lockingClauseList intoClause
+    | {this.serverVersion >= 80024 && this.serverVersion < 80031}? queryExpressionParens intoClause
 ;
 
 queryExpression:
-    withClause? (
-        queryExpressionBody orderClause?
-        | queryExpressionParens orderClause?
-    ) limitClause?
+    {this.serverVersion < 80031}? (
+        withClause? (
+            queryExpressionBody orderClause? limitClause?
+            | queryExpressionParens orderClause limitClause?
+        )
+        | queryExpressionParens limitClause
+        | queryExpressionParens limitClause?
+    )
+    | {this.serverVersion >= 80031}? (
+        withClause? queryExpressionBodyNew orderClause? limitClause?
+    )
 ;
 
 queryExpressionBody:
@@ -1105,8 +1094,15 @@ queryExpressionBody:
     ) (UNION_SYMBOL unionOption? ( queryPrimary | queryExpressionParens))*
 ;
 
+// Have to factor this part out into a new rule as ANTLR4 will otherwise complain about direct left recursion.
+queryExpressionBodyNew:
+    queryPrimary
+    | queryExpressionParens
+    | queryExpressionBody (UNION_SYMBOL | EXCEPT_SYMBOL | INTERSECT_SYMBOL) unionOption? queryExpressionBody
+;
+
 queryExpressionParens:
-    OPEN_PAR_SYMBOL (queryExpressionParens | queryExpression lockingClauseList?) CLOSE_PAR_SYMBOL
+    OPEN_PAR_SYMBOL (queryExpressionParens | queryExpressionWithOptLockingClauses) CLOSE_PAR_SYMBOL
 ;
 
 queryPrimary:
@@ -1316,9 +1312,11 @@ whereClause:
     WHERE_SYMBOL expr
 ;
 
-tableReference: ( // Note: we have also a tableRef rule for identifiers that reference a table anywhere.
+tableReference: // Note: we have also a tableRef rule for identifiers that reference a table anywhere.
+    (
         tableFactor
-        | OPEN_CURLY_SYMBOL ({this.serverVersion < 80017}? identifier | OJ_SYMBOL) escapedTableReference CLOSE_CURLY_SYMBOL // ODBC syntax
+        // ODBC syntax
+        | OPEN_CURLY_SYMBOL ({this.serverVersion < 80017}? identifier | OJ_SYMBOL) escapedTableReference CLOSE_CURLY_SYMBOL
     ) joinedTable*
 ;
 
@@ -2149,19 +2147,15 @@ renameUserStatement:
 ;
 
 revokeStatement:
-    REVOKE_SYMBOL (
+    REVOKE_SYMBOL ({this.serverVersion >= 80031}? ifExists)? (
         roleOrPrivilegesList FROM_SYMBOL userList
-        | roleOrPrivilegesList onTypeTo FROM_SYMBOL userList
+        | roleOrPrivilegesList ON_SYMBOL aclType? grantIdentifier FROM_SYMBOL userList
         | ALL_SYMBOL PRIVILEGES_SYMBOL? (
             ON_SYMBOL aclType? grantIdentifier
-            | COMMA_SYMBOL GRANT_SYMBOL OPTION_SYMBOL FROM_SYMBOL userList
-        )
+            | COMMA_SYMBOL GRANT_SYMBOL OPTION_SYMBOL
+        ) FROM_SYMBOL userList
         | PROXY_SYMBOL ON_SYMBOL user FROM_SYMBOL userList
-    )
-;
-
-onTypeTo: // Optional, starting with 8.0.1.
-    (ON_SYMBOL aclType? grantIdentifier)?
+    ) ({this.serverVersion >= 80031}? ignoreUnknownUser)?
 ;
 
 aclType:
@@ -2251,7 +2245,7 @@ role:
 //----------------------------------------------------------------------------------------------------------------------
 
 tableAdministrationStatement:
-    type = ANALYZE_SYMBOL noWriteToBinLog? TABLE_SYMBOL tableRefList (histogram)?
+    type = ANALYZE_SYMBOL noWriteToBinLog? TABLE_SYMBOL tableRefList histogram?
     | type = CHECK_SYMBOL TABLE_SYMBOL tableRefList checkOption*
     | type = CHECKSUM_SYMBOL TABLE_SYMBOL tableRefList (
         QUICK_SYMBOL
@@ -2264,6 +2258,7 @@ tableAdministrationStatement:
 histogram:
     UPDATE_SYMBOL HISTOGRAM_SYMBOL ON_SYMBOL identifierList (
         WITH_SYMBOL INT_NUMBER BUCKETS_SYMBOL
+        | {this.serverVersion >= 80031}? USING_SYMBOL DATA_SYMBOL textStringLiteral
     )?
     | DROP_SYMBOL HISTOGRAM_SYMBOL ON_SYMBOL identifierList
 ;
@@ -3786,6 +3781,16 @@ createTableOptions:
     createTableOption (COMMA_SYMBOL? createTableOption)*
 ;
 
+createTableOptionsEtc:
+    createTableOptions createPartitioningEtc?
+    | createPartitioningEtc
+;
+
+createPartitioningEtc:
+    partitionClause duplicateAsQe?
+    | duplicateAsQe
+;
+
 createTableOptionsSpaceSeparated:
     createTableOption+
 ;
@@ -3937,6 +3942,10 @@ ifExists:
 
 ifNotExists:
     IF_SYMBOL notRule EXISTS_SYMBOL
+;
+
+ignoreUnknownUser:
+    IGNORE_SYMBOL UNKNOWN_SYMBOL USER_SYMBOL
 ;
 
 procedureParameter:
@@ -4820,7 +4829,6 @@ identifierKeywordsUnambiguous:
         | MASTER_PORT_SYMBOL
         | MASTER_PUBLIC_KEY_PATH_SYMBOL
         | MASTER_RETRY_COUNT_SYMBOL
-        | MASTER_SERVER_ID_SYMBOL
         | MASTER_SSL_CAPATH_SYMBOL
         | MASTER_SSL_CA_SYMBOL
         | MASTER_SSL_CERT_SYMBOL
@@ -5542,5 +5550,4 @@ roleOrLabelKeyword:
     // Tokens that entered or left this rule in specific versions and are not automatically
     // handled in the lexer.
     | {this.serverVersion >= 80014}? ADMIN_SYMBOL
-    | {this.serverVersion < 80024}? MASTER_SERVER_ID_SYMBOL
 ;

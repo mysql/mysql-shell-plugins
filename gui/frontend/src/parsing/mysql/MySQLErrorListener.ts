@@ -247,7 +247,7 @@ export class MySQLErrorListener implements ANTLRErrorListener<Token> {
                 } else if (e instanceof FailedPredicateException) {
                     // For cases like "... | a ({condition}? b)", but not "... | a ({condition}? b)?".
                     // Remove parts of the message we don't want.
-                    const condition = e.message.substring("predicate failed: ".length, -1);
+                    const condition = e.message.substring("failed predicate: ".length);
 
                     condition.replace(/serverVersion/g, "server version");
                     condition.replace(/ && /g, "and");

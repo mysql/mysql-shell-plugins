@@ -24,7 +24,7 @@ lexer grammar MySQLLexer;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [15457ff] (21. January 2022).
+ * Merged in all changes up to mysql-trunk git revision [07f0dc2] (15. July 2022).
  *
  * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
@@ -58,7 +58,7 @@ tokens {
     // Tokens assigned in NUMBER rule.
     INT_NUMBER, // NUM in sql_yacc.yy
     LONG_NUMBER,
-    ULONGLONG_NUMBER
+    ULONGLONG_NUMBER,
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -584,7 +584,7 @@ MASTER_LOG_POS_SYMBOL:              M A S T E R '_' L O G '_' P O S             
 MASTER_PASSWORD_SYMBOL:             M A S T E R '_' P A S S W O R D                     {this.serverVersion < 80024}?;
 MASTER_PORT_SYMBOL:                 M A S T E R '_' P O R T                             {this.serverVersion < 80024}?;
 MASTER_RETRY_COUNT_SYMBOL:          M A S T E R '_' R E T R Y '_' C O U N T             {this.serverVersion < 80024}?;
-MASTER_SERVER_ID_SYMBOL:            M A S T E R '_' S E R V E R '_' I D                 {this.serverVersion < 80024}?;
+// MASTER_SERVER_ID_SYMBOL:            M A S T E R '_' S E R V E R '_' I D                 {this.serverVersion < 80024}?;
 MASTER_SSL_CAPATH_SYMBOL:           M A S T E R '_' S S L '_' C A P A T H               {this.serverVersion < 80024}?;
 MASTER_SSL_CA_SYMBOL:               M A S T E R '_' S S L '_' C A                       {this.serverVersion < 80024}?;
 MASTER_SSL_CERT_SYMBOL:             M A S T E R '_' S S L '_' C E R T                   {this.serverVersion < 80024}?;
@@ -890,7 +890,7 @@ TRUE_SYMBOL:                        T R U E;                                    
 TRUNCATE_SYMBOL:                    T R U N C A T E;
 TYPES_SYMBOL:                       T Y P E S;
 TYPE_SYMBOL:                        T Y P E;                                            // SQL-2003-N
-UDF_RETURNS_SYMBOL:                 U D F '_' R E T U R N S;
+UDF_RETURNS_SYMBOL:                 U D F '_' R E T U R N S                             {this.serverVersion < 80031}?;
 UNCOMMITTED_SYMBOL:                 U N C O M M I T T E D;                              // SQL-2003-N
 UNDEFINED_SYMBOL:                   U N D E F I N E D;
 UNDOFILE_SYMBOL:                    U N D O F I L E;
@@ -1073,7 +1073,6 @@ REQUIRE_TABLE_PRIMARY_KEY_CHECK_SYMBOL:
 STREAM_SYMBOL:                      S T R E A M                                         {this.serverVersion >= 80019}?; // MYSQL
 OFF_SYMBOL:                         O F F                                               {this.serverVersion >= 80019}?; // SQL-1999-R
 
-// 8.0.24
 RETURNING_SYMBOL:                   R E T U R N I N G                                   {this.serverVersion >= 80024}?; // SQL-2016-N
 JSON_VALUE_SYMBOL:                  J S O N '_' V A L U E                               {this.serverVersion >= 80024}?; // SQL-2016-R
 TLS_SYMBOL:                         T L S                                               {this.serverVersion >= 80024}?; // MYSQL
@@ -1166,6 +1165,8 @@ CHALLENGE_RESPONSE_SYMBOL:
     C H A L L E N G E '_' R E S P O N S E                                               {this.serverVersion >= 80027}?
 ;                                                                                       // MYSQL
 GTID_ONLY_SYMBOL:                   G T I D '_' O N L Y                                 {this.serverVersion >= 80027}?; // MYSQL
+
+INTERSECT_SYMBOL:                   I N T E R S E C T '_' S Y M B O L                   {this.serverVersion >= 80031}?; // SQL-1992-R
 
 // $antlr-format groupedAlignments on, alignTrailers off, alignLexerCommands on
 
