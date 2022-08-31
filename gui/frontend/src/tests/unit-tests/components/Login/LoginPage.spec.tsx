@@ -87,7 +87,7 @@ describe("Login Page Tests", (): void => {
                             eventType: EventType.FinalResponse,
                             message: "Authentication successful",
                             context: { messageClass: "test" },
-                            data: {},
+                            data: { requestState: { type: "", msg: "" } },
                         };
 
                         return ListenerEntry.resolve(event);

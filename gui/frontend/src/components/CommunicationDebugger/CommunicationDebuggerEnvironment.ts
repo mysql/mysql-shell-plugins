@@ -125,7 +125,9 @@ export class CommunicationDebuggerEnvironment {
     }
 
     public log(output: string): void {
-        const event = DispatchEvents.baseEvent(EventType.Notification, { output }, undefined, "debugger");
+        const event = DispatchEvents.baseEvent(EventType.Notification, { requestState: { type: "log", msg: "" } },
+            undefined, "debugger");
+        event.message = output;
         dispatcher.triggerEvent(event);
     }
 

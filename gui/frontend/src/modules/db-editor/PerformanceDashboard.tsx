@@ -986,14 +986,14 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
 
         const list = this.variableNames.join("\",\"");
         backend.execute(`show global status where variable_name in ("${list}")`).then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse && event.data.rows) {
-                const variables = event.data.rows as Array<[string, string]>;
+            if (event.eventType === EventType.FinalResponse && event.data.result.rows) {
+                const variables = event.data.result.rows as Array<[string, string]>;
 
                 if (this.hasPSAccess) {
                     backend.execute("SELECT STORAGE_ENGINES->>'$.\"InnoDB\".\"LSN\"' - STORAGE_ENGINES->>'$." +
                         "\"InnoDB\".\"LSN_checkpoint\"' FROM performance_schema.log_status")
                         .then((event: ICommResultSetEvent) => {
-                            if (event.eventType === EventType.FinalResponse && event.data.rows) {
+                            if (event.eventType === EventType.FinalResponse && event.data.result.rows) {
                                 const row = event.data.result.rows?.[0] as number[];
                                 this.updateData(variables, row[0]);
                             }

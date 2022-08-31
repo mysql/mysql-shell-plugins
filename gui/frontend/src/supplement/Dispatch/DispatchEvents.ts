@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types";
+import { IGenericResponse } from "../../communication";
 import { uuid } from "../../utilities/helpers";
 import { EventType, IDispatchEvent } from "./Dispatch";
 
@@ -30,7 +30,7 @@ import { EventType, IDispatchEvent } from "./Dispatch";
  */
 export class DispatchEvents {
 
-    public static baseEvent<T extends IDictionary>(eventType: EventType, data: T, id?: string,
+    public static baseEvent<T extends IGenericResponse>(eventType: EventType, data: T, id?: string,
         messageClass?: string): IDispatchEvent<T> {
         if (!id) {
             id = uuid();
@@ -52,20 +52,20 @@ export class DispatchEvents {
 
     }
 
-    public static classEvent<T extends IDictionary>(data: T, messageClass?: string): IDispatchEvent<T> {
+    public static classEvent<T extends IGenericResponse>(data: T, messageClass?: string): IDispatchEvent<T> {
         const result = DispatchEvents.baseEvent<T>(EventType.Notification, data, undefined, messageClass);
 
         return result;
     }
 
-    public static okEvent<T extends IDictionary>(data: T, messageClass?: string, id?: string): IDispatchEvent<T> {
+    public static okEvent<T extends IGenericResponse>(data: T, messageClass?: string, id?: string): IDispatchEvent<T> {
         const result = DispatchEvents.baseEvent<T>(EventType.Notification, data, id, messageClass);
         result.message = "ok";
 
         return result;
     }
 
-    public static errorEvent<T extends IDictionary = {}>(data: T, message: string, messageClass?: string,
+    public static errorEvent<T extends IGenericResponse>(data: T, message: string, messageClass?: string,
         id?: string): IDispatchEvent<T> {
         const result = DispatchEvents.baseEvent<T>(EventType.ErrorResponse, data, id, messageClass);
         result.message = message;
@@ -73,19 +73,12 @@ export class DispatchEvents {
         return result;
     }
 
-    public static okErrorEvent<T extends IDictionary = {}>(data: T, errorMessage: string, messageClass?: string,
+    public static okErrorEvent<T extends IGenericResponse>(data: T, errorMessage: string, messageClass?: string,
         id?: string): IDispatchEvent<T> {
         if (data) {
             return DispatchEvents.okEvent(data, messageClass, id);
         }
 
         return DispatchEvents.errorEvent(data, errorMessage, messageClass, id);
-    }
-
-    public static notification(messageClass: string, message = ""): IDispatchEvent {
-        const result = DispatchEvents.baseEvent<{}>(EventType.Notification, {}, undefined, messageClass);
-        result.message = message;
-
-        return result;
     }
 }

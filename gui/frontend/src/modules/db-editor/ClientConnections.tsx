@@ -604,7 +604,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             backend.execute("show variables where VARIABLE_NAME like '%version_comment%'")
                 .then((event: ICommResultSetEvent) => {
                     if (event.eventType === EventType.FinalResponse) {
-                        const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
+                        const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
                         const value = `${values.get("version_comment") ?? "none"}`;
                         this.setState({ version: value });
                     }
@@ -654,11 +654,13 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
                 this.setState({ resultSet, gotResponse: true });
             }
+        }).catch(() => {
+            //
         });
 
         backend.execute("show global status").then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
+                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
                 globalStatus.abortedClients = parseInt(`${values.get("Aborted_clients") ?? "0"}`, 10);
                 globalStatus.abortedConnections = parseInt(`${values.get("Aborted_connects") ?? "0"}`, 10);
                 globalStatus.threadConnected = parseInt(`${values.get("Threads_connected") ?? "0"}`, 10);

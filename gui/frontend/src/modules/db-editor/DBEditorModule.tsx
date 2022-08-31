@@ -58,7 +58,7 @@ import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Exp
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import {
     ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommDbDataContentEvent,
-    ICommOpenConnectionEvent, ICommResultSetEvent, IShellResultType, IResultSetData,
+    ICommOpenConnectionEvent, ICommSimpleRowEvent, ISimpleRowData,
 } from "../../communication";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
@@ -508,7 +508,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return new Promise((resolve, reject) => {
             const connections: IConnectionDetails[] = [];
             ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
-                .then((event: ICommResultSetEvent) => {
+                .then((event: ICommSimpleRowEvent) => {
                     if (!event.data) {
                         resolve(false);
 
@@ -516,7 +516,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     }
 
                     // XXX: temporary workaround.
-                    const resultData = convertSnakeToCamelCase(event.data) as IResultSetData;
+                    const resultData = convertSnakeToCamelCase(event.data) as ISimpleRowData;
                     connections.push(...resultData.rows as IConnectionDetails[]);
 
                     if (event.eventType === EventType.FinalResponse) {
@@ -793,7 +793,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 switch (event.eventType) {
                     case EventType.DataResponse: {
                         const data = event.data;
-                        if (!ShellPromptHandler.handleShellPrompt(data.result as IShellResultType, data.requestId!,
+                        if (!ShellPromptHandler.handleShellPrompt(data.result, data.requestId!,
                             backend)) {
                             this.setProgressMessage(event.message ?? "Loading ...");
                         }
@@ -907,7 +907,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 switch (event.eventType) {
                     case EventType.DataResponse: {
                         const data = event.data;
-                        const result = data.result as IShellResultType;
+                        const result = data.result;
                         if (!ShellPromptHandler.handleShellPrompt(result, data.requestId!, backend)) {
                             this.setProgressMessage(event.message ?? "Loading ...");
                         }

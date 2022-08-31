@@ -1234,7 +1234,7 @@ Execute \\help or \\? for help;`;
                                                 rows = [];
                                             }
 
-                                            if (event.data.rows) {
+                                            if (result.rows) {
                                                 for (const row of result.rows ?? []) {
                                                     // Convert rows to objects.
                                                     const rowForRes: Record<string, unknown> = {};

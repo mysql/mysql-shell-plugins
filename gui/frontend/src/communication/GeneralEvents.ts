@@ -25,16 +25,12 @@ import { IDispatchEvent, DispatchEvents, EventType } from "../supplement/Dispatc
 import { IShellDictionary, IShellRequest } from ".";
 import { IDictionary } from "../app-logic/Types";
 
-export interface IResponseDictionary {
-    [key: string]: unknown;
-}
-
 export interface IRequestState {
     type: string;
     msg: string;
 }
 
-export interface IGenericResponse extends IResponseDictionary {
+export interface IGenericResponse {
     /** Only set if this is a response to a client request. */
     requestId?: string;
     requestState: IRequestState;
@@ -50,6 +46,11 @@ export interface ICommShellProfile {
     name: string;
     description: string;
     options: IShellDictionary;
+}
+
+/** A special data interface for sent requests. Used only for the communication debugger. */
+export interface ISentShellRequestData extends IGenericResponse {
+    request: IShellRequest;
 }
 
 export interface IWebSessionData extends IGenericResponse {
@@ -75,6 +76,7 @@ export interface IOpenConnectionData extends IGenericResponse {
         version?: string;
         edition?: string;
     };
+    result: IShellResultType;
 }
 
 export interface IAddConnectionData extends IGenericResponse {
@@ -119,6 +121,10 @@ export interface IScriptContentData extends IGenericResponse {
 
 export interface ISimpleResultData extends IGenericResponse {
     result: number | string | string[];
+}
+
+export interface ISimpleRowData extends IGenericResponse {
+    rows: unknown[];
 }
 
 export interface IShellPromptValues {
@@ -317,11 +323,11 @@ export interface IShellModuleDataCategoriesEntry {
     parentCategoryId?: number;
 }
 
-export interface IShellDbDataCategoriesData extends IResponseDictionary {
+export interface IShellDbDataCategoriesData extends IGenericResponse {
     result: IShellModuleDataCategoriesEntry[];
 }
 
-export interface IShellModuleAddData extends IResponseDictionary {
+export interface IShellModuleAddData extends IGenericResponse {
     result: number;
 }
 
@@ -331,11 +337,11 @@ export interface IShellModuleDataEntry {
     caption: string;
 }
 
-export interface IShellModuleData extends IResponseDictionary {
+export interface IShellModuleData extends IGenericResponse {
     result: IShellModuleDataEntry[];
 }
 
-export interface IShellDbDataContentData extends IResponseDictionary {
+export interface IShellDbDataContentData extends IGenericResponse {
     result: string;
 }
 
@@ -397,7 +403,7 @@ export interface IMrsServiceData {
     comments: string;
 }
 
-export interface IMrsServiceResultData extends IResponseDictionary {
+export interface IMrsServiceResultData extends IGenericResponse {
     result: IMrsServiceData[];
 }
 
@@ -413,7 +419,7 @@ export interface IMrsSchemaData {
     serviceId: number;
 }
 
-export interface IMrsSchemaResultData extends IResponseDictionary {
+export interface IMrsSchemaResultData extends IGenericResponse {
     result: IMrsSchemaData[];
 }
 
@@ -436,7 +442,7 @@ export interface IMrsDbObjectData {
     schemaRequestPath?: string;
 }
 
-export interface IMrsDbObjectResultData extends IResponseDictionary {
+export interface IMrsDbObjectResultData extends IGenericResponse {
     result: IMrsDbObjectData[];
 }
 
@@ -458,11 +464,11 @@ export interface IDBDataTreeIdentifier {
     treeIdentifier: string;
 }
 
-export interface IDBDataTreeIdentifiers extends IResponseDictionary {
+export interface IDBDataTreeIdentifiers extends IGenericResponse {
     result: IDBDataTreeIdentifier[];
 }
 
-export interface IDBDataTreeContent extends IResponseDictionary {
+export interface IDBDataTreeContent extends IGenericResponse {
     result: IDBDataTreeEntry[];
 }
 
@@ -475,6 +481,9 @@ export interface IErrorData extends IGenericResponse {
 }
 
 export type ICommSimpleResultEvent = IDispatchEvent<ISimpleResultData>;
+
+// This is a temporary definition for responses that do not use the `result` field for data.
+export type ICommSimpleRowEvent = IDispatchEvent<ISimpleRowData>;
 
 export type ICommWebSessionEvent = IDispatchEvent<IWebSessionData>;
 export type ICommAuthenticationEvent = IDispatchEvent<IAuthenticationData>;
@@ -580,14 +589,19 @@ export class CommunicationEvents {
 
     /**
      * Creates an event object for data that was sent to the server. This event is usually handled only by
-     * parts of the application, which need to track both received and sent messages (like the communication debugger).
+     * parts of the application, which need to track sent messages (like the communication debugger).
      *
      * @param data The actual data to be sent to the shell.
-     * @returns a default (unspecialized event).
+     *
+     * @returns The constructed event for the shell request.
      */
-    public static generateRequestEvent(data: IShellRequest): IDispatchEvent {
-        const result = DispatchEvents.baseEvent(EventType.Request, data, data.request_id);
+    public static generateRequestEvent(data: IShellRequest): IDispatchEvent<ISentShellRequestData> {
+        const eventData: ISentShellRequestData = {
+            request: data,
+            requestState: { type: "", msg: "" },
+        };
 
-        return result;
+        return DispatchEvents.baseEvent(EventType.Request, eventData, data.request_id);
+
     }
 }

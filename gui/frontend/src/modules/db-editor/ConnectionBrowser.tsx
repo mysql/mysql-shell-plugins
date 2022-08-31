@@ -57,7 +57,7 @@ import { ConfirmDialog } from "../../components/Dialogs";
 import {
     IBastionSummary, ICommAddConnectionEvent, ICommErrorEvent, ICommMdsConfigProfileEvent, ICommMdsGetBastionsEvent,
     ICommOciBastionSummaryEvent, ICommOciMySQLDbSystemEvent, ICommOpenConnectionEvent, ICommSimpleResultEvent,
-    IMdsProfileData, IMySQLDbSystem, IShellResultType,
+    IMdsProfileData, IMySQLDbSystem,
 } from "../../communication";
 import { EventType } from "../../supplement/Dispatch";
 import {
@@ -1976,11 +1976,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 if (!event.data) {
                     return;
                 }
+
                 switch (event.eventType) {
                     case EventType.DataResponse: {
                         const data = event.data;
-                        if (!ShellPromptHandler.handleShellPrompt(data.result as IShellResultType, data.requestId!,
-                            backend, "Provide Password")) {
+                        if (!ShellPromptHandler.handleShellPrompt(data.result, data.requestId!, backend,
+                            "Provide Password")) {
                             this.setProgressMessage(event.message ?? "Loading ...");
                         }
 
