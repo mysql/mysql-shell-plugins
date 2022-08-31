@@ -30,8 +30,8 @@ import {
 } from "../../../../frontend/src/supplement/ShellInterface";
 import {
     ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent,
-    ICommOpenConnectionEvent, ICommResultSetEvent, IResultSetData, IShellFeedbackRequest,
-    IShellResultType, ShellPromptResponseType,
+    ICommOpenConnectionEvent, ICommSimpleRowEvent, IShellFeedbackRequest,
+    IShellResultType, ISimpleRowData, ShellPromptResponseType,
 } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
@@ -239,16 +239,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             } else {
                 const details: IConnectionDetails[] = [];
                 ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
-                    .then((event: ICommResultSetEvent) => {
+                    .then((event: ICommSimpleRowEvent) => {
                         if (!event.data) {
                             return;
                         }
 
-                        const resultData = convertSnakeToCamelCase(event.data) as IResultSetData;
+                        const resultData = convertSnakeToCamelCase(event.data as object) as ISimpleRowData;
                         const entries = resultData.rows as IConnectionDetails[];
                         switch (event.eventType) {
                             case EventType.DataResponse: {
-                                if (event.data?.rows) {
+                                if (event.data.rows) {
                                     details.push(...entries);
                                 }
 
@@ -256,7 +256,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             }
 
                             case EventType.FinalResponse: {
-                                if (event.data?.rows) {
+                                if (event.data.rows) {
                                     details.push(...entries);
                                 }
 

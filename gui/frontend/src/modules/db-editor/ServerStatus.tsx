@@ -520,7 +520,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         backend.execute("show variables").then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
+                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
 
                 serverStatus.connectionName = values.get("connection") ?? "none";
                 serverStatus.host = values.get("hostname") ?? "none";
@@ -609,7 +609,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         backend.execute("show global status").then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
+                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
                 const ut = Number(values.get("Uptime") ?? 0);
                 if (ut > 0) {
                     const uptime = new Date(ut);
@@ -625,7 +625,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         backend.execute("show plugins").then((event: ICommResultSetEvent) => {
             if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.rows as Array<[string, string]>);
+                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
                 serverFeatures.memCachePlugin = this.checkTriState(values.get("daemon_memcached"), "ACTIVE");
                 serverFeatures.windowsAuth = this.checkTriState(values.get("authentication_windows"), "ACTIVE");
                 serverFeatures.pamAuth = this.checkTriState(values.get("authentication_pam"), "ACTIVE");

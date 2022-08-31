@@ -200,8 +200,9 @@ export class MessageScheduler {
         }
 
         this.connectionEstablished = true;
-        dispatcher.triggerNotification("socketOpened");
-        resolve();
+        void requisitions.execute("socketStateChanged", true).then(() => {
+            resolve();
+        });
     };
 
 
@@ -214,7 +215,7 @@ export class MessageScheduler {
 
         this.connectionEstablished = false;
         this.autoReconnecting = false;
-        dispatcher.triggerNotification("socketClosed");
+        void requisitions.execute("socketStateChanged", false);
 
         if (!this.disconnecting && !this.debugging) {
             if (wasConnected) {

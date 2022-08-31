@@ -129,6 +129,7 @@ export interface IOpenFileDialogResult {
 export interface IRequestTypeMap {
     "applicationDidStart": SimpleCallback;
     "applicationWillFinish": SimpleCallback;
+    "socketStateChanged": (connected: boolean) => Promise<boolean>;
 
     "updateStatusbar": (items: IStatusbarInfo[]) => Promise<boolean>;
     "profileLoaded": SimpleCallback;

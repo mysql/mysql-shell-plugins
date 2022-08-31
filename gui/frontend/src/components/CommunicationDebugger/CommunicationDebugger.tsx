@@ -115,6 +115,8 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             scriptTabs: [],
         };
 
+        requisitions.register("socketStateChanged", this.connectionStateChanged);
+
         CodeEditor.addTypings(typings as string, "debugger");
 
         ListenerEntry.create({ persistent: true }).then((event: IDispatchEvent) => {
@@ -686,6 +688,16 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         MessageScheduler.get.clearState();
     };
 
+    private connectionStateChanged = (connected: boolean): Promise<boolean> => {
+        if (connected) {
+            this.printOutput("ws.isConnected = true;\n");
+        } else {
+            this.printOutput("ws.isConnected = false;\n");
+        }
+
+        return Promise.resolve(false);
+    };
+
     /**
      * Handles all triggered events that are requests or responses, except state and error responses.
      *
@@ -697,7 +709,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         switch (event.eventType) {
             case EventType.Request: {
                 // A request sent to the server.
-                const converted = convertCamelToSnakeCase(event.data as object);
+                const converted = convertCamelToSnakeCase(event.data);
                 this.printOutput("ws.send(" + JSON.stringify(converted, undefined, 4) + ");\n", OutputType.Command);
 
                 break;
@@ -705,16 +717,6 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
 
             default: {
                 switch (event.context.messageClass) {
-                    case "socketOpened": {
-                        this.printOutput("ws.isConnected = true;\n");
-                        break;
-                    }
-
-                    case "socketClosed": {
-                        this.printOutput("ws.isConnected = false;\n");
-                        break;
-                    }
-
                     default: {
                         if (event.context.messageClass === "webSession") {
                             // "webSession" events are sent for each server response with a valid session UUID.
@@ -727,9 +729,9 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
 
                         if (!debuggerValidate) {
                             // Don't print responses while doing a debugger validation run.
-                            const converted = convertCamelToSnakeCase(event.data as object);
-                            if (event.data.output) {
-                                this.printOutput((event.data.output as string) + "\n");
+                            const converted = convertCamelToSnakeCase(event.data);
+                            if (event.data.requestState.type === "log" && event.message) {
+                                this.printOutput((event.message) + "\n");
                             } else {
                                 this.printOutput("ws.lastResponse = " +
                                     JSON.stringify(converted, undefined, 4) + ";\n");

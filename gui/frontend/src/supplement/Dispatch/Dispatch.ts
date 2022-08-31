@@ -23,8 +23,7 @@
 
 /* eslint-disable max-classes-per-file */
 
-import { DispatchEvents } from ".";
-import { IDictionary } from "../../app-logic/Types";
+import { IGenericResponse } from "../../communication";
 import { ListenerEntry } from "./ListenerEntry";
 
 /**
@@ -57,7 +56,7 @@ export enum EventType {
  */
 export interface IDispatchEventContext {
     messageClass: string;
-    data?: unknown;
+    //data?: unknown;
 }
 
 /**
@@ -68,7 +67,7 @@ export interface IDispatchEventContext {
  * The 'data' which can be anything that the trigger entity finds useful for the consumer. This is
  * complementary to the event data itself.
  */
-export interface IDispatchEvent<T extends IDictionary = { [key: string]: unknown }> {
+export interface IDispatchEvent<T extends IGenericResponse = IGenericResponse> {
     id: string;
     eventType: EventType;
     message: string;
@@ -120,21 +119,12 @@ export class Dispatcher {
     }
 
     /**
-     * Triggers a simple notification event without attached data.
-     *
-     * @param messageClass The message class for the notification.
-     */
-    public triggerNotification(messageClass: string): void {
-        this.triggerEvent(DispatchEvents.notification(messageClass));
-    }
-
-    /**
      * Trigger an event
      *
      * @param event The event to trigger.
      * @param debugging Trigger the event only if it is a debugger event.
      */
-    public triggerEvent(event: IDispatchEvent, debugging = false): void {
+    public triggerEvent(event: IDispatchEvent<IGenericResponse>, debugging = false): void {
         // Try to match a context.
         const context = this.messageContext.get(event.id);
         if (context) {

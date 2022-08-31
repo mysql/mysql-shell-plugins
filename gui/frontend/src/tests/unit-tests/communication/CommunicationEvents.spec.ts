@@ -23,7 +23,9 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { CommunicationEvents, IWebSessionData, IGenericResponse, IShellRequest } from "../../../communication";
+import {
+    CommunicationEvents, IWebSessionData, IGenericResponse, IShellRequest, ISentShellRequestData,
+} from "../../../communication";
 import { EventType, IDispatchEvent } from "../../../supplement/Dispatch";
 import { uuid } from "../../../utilities/helpers";
 
@@ -41,7 +43,6 @@ describe("Communication events tests", () => {
                 description: "",
                 options: {},
             },
-            otherField: "other",
         };
 
         const event = CommunicationEvents.generateWebSessionEvent(data);
@@ -148,10 +149,10 @@ describe("Communication events tests", () => {
         };
 
         const event = CommunicationEvents.generateRequestEvent(request);
-        expect(event).toStrictEqual<IDispatchEvent<IShellRequest>>({
+        expect(event).toStrictEqual<IDispatchEvent<ISentShellRequestData>>({
             id: expect.any(String),
             eventType: EventType.Request,
-            data: request,
+            data: { request, requestState: { type: "", msg: "" } },
             message: "",
             context: {
                 messageClass: "",
