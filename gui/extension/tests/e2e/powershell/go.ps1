@@ -34,8 +34,12 @@
 # STOP SELENIUM
 #THESE TASKS WILL ENSURE THAT THE ENVIRONMENT IS OK TO RUN MYSQLSHELL UI TESTS
 
-$basePath = Join-Path $env:WORKSPACE "shell-plugins" "gui" "extension"
-$testsPath = Join-Path $basePath "tests" "e2e" "tests" "ui-tests.ts"
+Set-Location $PSScriptRoot
+$basePath = Join-Path ".." ".." ".."
+Set-Location $basePath
+$basePath = Get-Location
+
+$testsPath = Join-Path "tests" "e2e" "tests" "ui-tests.ts"
 
 try {
     $err = 0
@@ -60,7 +64,11 @@ try {
 
     New-Item -ItemType "file" -Path $log
 
+    writeMsg "BRANCH: $env:EXTENSION_BRANCH"
+    writeMsg "PUSH_ID: $env:EXTENSION_PUSH_ID"
+    writeMsg "REVISION: $env:TARGET_REVID"
     writeMsg "WORKSPACE: $env:WORKSPACE"
+    writeMsg "BASE PATH: $basePath"
 
     writeMsg "Setup nodejs registry..." "-NoNewLine"
     $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
@@ -93,7 +101,7 @@ try {
     
     writeMsg "Installing node modules..." "-NoNewLine"
     if ( !(Test-Path -Path "$basePath\node_modules") ){
-        $prc = Start-Process "npm" -ArgumentList "install", "--force" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
+        $prc = Start-Process "npm" -ArgumentList "install", "--force" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
         if ($prc.ExitCode -ne 0){
             Throw "Error installing node modules"
         }
@@ -141,9 +149,6 @@ try {
         $env:EXTENSION_PUSH_ID = "latest"
     }
 
-    writeMsg("EXTENSION_PUSH_ID: $env:EXTENSION_PUSH_ID")
-    writeMsg("EXTENSION_BRANCH: $env:EXTENSION_BRANCH")
-    writeMsg("URL: http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/")
     $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
     $bundles = $bundles | ConvertFrom-Json
     writeMsg "Bundles info:"
@@ -172,29 +177,9 @@ try {
         exit 1
     }
 
-    # DOWNLOAD CHROME-DRIVER
-    writeMsg "Downloading Chrome Driver..." "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-chromedriver" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error Chrome Driver"
-    }
-    else{
-        writeMsg "DONE"
-    }
-
-    # DOWNLOAD VSCODE
-    writeMsg "Downloading VSCode..." "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-vscode" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error Downloading VSCode"
-    }
-    else{
-        writeMsg "DONE"
-    }
-
     # INSTALL VSIX
     writeMsg "Installing '$extensionItem'..." "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "$dest" -WorkingDirectory "$basePath" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "$dest" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
     if ($prc.ExitCode -ne 0){
         Throw "Error installing VSIX"
     }
@@ -212,30 +197,30 @@ try {
     New-Item -Path $configFile -ItemType File
     writeMsg "DONE"
 
+    # RUN OCI TESTS ?
     # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
-    $loaded = $false
-    $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"
-    Get-ChildItem -Path $extensionsPath | % {
-        if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
-            $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
-            writeMsg "Importing OCI Library..." "-NoNewLine"
-            $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
-            if ($prc.ExitCode -ne 0){
-                Throw "Error importing OCI Library"
-            }
-            else{
-                $loaded = $true
-                writeMsg "DONE"
+    if ($env:RUN_OCI_TESTS -eq $true){
+        $loaded = $false
+        $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"
+        Get-ChildItem -Path $extensionsPath | % {
+            if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
+                $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
+                writeMsg "Importing OCI Library..." "-NoNewLine"
+                $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
+                if ($prc.ExitCode -ne 0){
+                    Throw "Error importing OCI Library"
+                }
+                else{
+                    $loaded = $true
+                    writeMsg "DONE"
+                }
             }
         }
+        if ($loaded -eq $false){
+            Throw "OCI Library not loaded. Maybe the extension folder was not found."
+        }
     }
-    
-    if ($loaded -eq $false){
-        Throw "OCI Library not loaded. Maybe the extension folder was not found."
-    }
-
-    # RUN OCI TESTS ?
-    if ($env:RUN_OCI_TESTS -eq $false){
+    else {
         $content = Get-Content $testsPath
         writeMsg "Marking OCI tests to be skipped..." "-NoNewLine"
         $content = $content.replace("describe(`"ORACLE CLOUD INFRASTRUCTURE tests`", () => {", "describe.skip(`"ORACLE CLOUD INFRASTRUCTURE tests`", () => {") 
@@ -285,7 +270,7 @@ try {
     
     # EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
     writeMsg "DONE"
 
     # REMOVE THE RE-RUNS and MERGE
@@ -364,7 +349,7 @@ try {
 
         writeMsg "DONE"
         writeMsg "Generating new report..." "-NoNewLine"
-        $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-report", "`"Test Report for BRANCH: $env:EXTENSION_BRANCH`"" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\newReport.log" -RedirectStandardError "$env:WORKSPACE\newReportErr.log"
+        $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-report" -Wait -RedirectStandardOutput "$env:WORKSPACE\newReport.log" -RedirectStandardError "$env:WORKSPACE\newReportErr.log"
         if ($prc.ExitCode -ne 0){
             Throw "Error generating new report"
         }

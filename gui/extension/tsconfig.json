@@ -21,12 +21,12 @@
     "include": [
         "src/*.ts",
         "src/**/*.ts",
-        "../frontend/src/modules/db-editor/assets/typings/scripting-runtime.d.ts"
+        "../frontend/src/modules/db-editor/assets/typings/scripting-runtime.d.ts",
     ],
     "exclude": [
         "node_modules",
         ".vscode-test",
         "test-resources",
-        "tests/e2e/**/*.ts"
+        "tests/e2e/**/*.ts",
     ]
 }
