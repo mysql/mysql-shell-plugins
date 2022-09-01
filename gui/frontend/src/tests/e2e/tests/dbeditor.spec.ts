@@ -1152,30 +1152,6 @@ describe("DB Editor - Core Tests", () => {
 
     });
 
-    it("Connection toolbar buttons - Execute selection or full block", async () => {
-        try {
-
-            await writeSQL(driver, "select * from sakila.actor");
-
-            const execSel = await getToolbarButton(driver, "Execute selection or full block");
-            await execSel?.click();
-
-            expect(await getResultColumnName(driver, "actor_id")).toBeDefined();
-
-            expect(await getResultColumnName(driver, "first_name")).toBeDefined();
-
-            expect(await getResultColumnName(driver, "last_name")).toBeDefined();
-
-            expect(await getResultColumnName(driver, "last_update")).toBeDefined();
-
-            expect(await hasNewPrompt(driver)).toBe(false);
-
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
     it("Connection toolbar buttons - Execute selection or full block and create new block", async () => {
         try {
 

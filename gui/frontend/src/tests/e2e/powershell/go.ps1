@@ -29,7 +29,10 @@
 # STOP SELENIUM
 #THESE TASKS WILL ENSURE THAT THE ENVIRONMENT IS OK TO RUN MYSQLSHELL UI TESTS
 
-$basePath = Join-Path $env:WORKSPACE "shell-plugins" "gui" "frontend"
+Set-Location $PSScriptRoot
+$basePath = Join-Path ".." ".." ".." ".."
+Set-Location $basePath
+$basePath = Get-Location
 
 function parseHTML($path){
     $source = Get-Content -Path $path -Raw
@@ -58,7 +61,10 @@ try {
 
     New-Item -ItemType "file" -Path $log
 
+    writeMsg "BRANCH: $env:BRANCH_NAME"
+    writeMsg "REVISION: $env:TARGET_REVID"
     writeMsg "WORKSPACE: $env:WORKSPACE"
+    writeMsg "BASE PATH: $basePath"
 
     writeMsg "Setup nodejs registry..." "-NoNewLine"
     Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-tip.oraclecorp.com/api/npm/npmjs-remote" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
@@ -66,7 +72,7 @@ try {
 
     writeMsg "Installing node modules..." "-NoNewLine"
     if ( !(Test-Path -Path "$basePath\node_modules") ){
-        Start-Process "npm" -ArgumentList "install", "--force" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
+        Start-Process "npm" -ArgumentList "install", "--force" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
         writeMsg "DONE"
     }
     else{
@@ -76,14 +82,14 @@ try {
     writeMsg "Running Webdriver update..." "-NoNewLine"
     $env:PROXY = 'http://www-proxy.us.oracle.com:80'
     $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
-	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-update" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
+	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-update" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
     writeMsg "DONE"
 
     #############################EXEC TESTS#####################################################
 
     #START SELENIUM
     writeMsg "Starting Selenium..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-start" -WorkingDirectory "$basePath" -RedirectStandardOutput "$env:WORKSPACE\selenium.log" -RedirectStandardError "$env:WORKSPACE\seleniumErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-start" -RedirectStandardOutput "$env:WORKSPACE\selenium.log" -RedirectStandardError "$env:WORKSPACE\seleniumErr.log"
     
     function isSeleniumReady(){
         return $null -ne (Get-Content -Path "$env:WORKSPACE\seleniumErr.log" | Select-String -Pattern "Selenium Server is up and running on port 4444" | % { $_.Matches.Groups[0].Value }) 
@@ -177,11 +183,11 @@ try {
     
     #EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsFE.log" -RedirectStandardError "$env:WORKSPACE\resultsFEErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsFE.log" -RedirectStandardError "$env:WORKSPACE\resultsFEErr.log"
     writeMsg "DONE"
 
     writeMsg "Running post actions" "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-report" -WorkingDirectory "$basePath" -Wait -RedirectStandardOutput "$env:WORKSPACE\postActions.log" -RedirectStandardError "$env:WORKSPACE\postActionsErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-report" -Wait -RedirectStandardOutput "$env:WORKSPACE\postActions.log" -RedirectStandardError "$env:WORKSPACE\postActionsErr.log"
     writeMsg "DONE"
 
     #CHECK RESULTS

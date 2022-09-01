@@ -92,7 +92,6 @@ import {
     getDriver,
     switchToFrame,
     shellGetResult,
-    shellGetResultTable,
     cleanEditor,
     shellGetTech,
     shellGetTotalRows,
@@ -204,6 +203,8 @@ describe("MySQL Shell for VS Code", () => {
             if (platform() === "win32") {
                 await initTree("DATABASE");
             }
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
         });
 
         afterEach(async function () {
@@ -369,6 +370,9 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", false);
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", false);
             await toggleSection(driver!, "MYSQL SHELL TASKS", false);
+
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
 
             const randomCaption = String(new Date().valueOf());
             conn.caption += randomCaption;
@@ -703,7 +707,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const msg = await driver!.findElement(By.css(".notification-list-item-message > span"));
             await driver!.wait(until.elementTextIs(msg,
-                `The object ${testSchema} has been dropped successfully.`), 3000, "Text was not found");
+                `The object ${testSchema} has been dropped successfully.`), 5000, "Text was not found");
 
             await driver!.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
@@ -873,7 +877,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const msg = await driver!.findElement(By.css(".notification-list-item-message > span"));
             await driver!.wait(until.elementTextIs(msg,
-                `The object ${testTable} has been dropped successfully.`), 3000, "Text was not found");
+                `The object ${testTable} has been dropped successfully.`), 5000, "Text was not found");
 
             await driver!.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
@@ -1088,6 +1092,9 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", false);
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", false);
             await toggleSection(driver!, "MYSQL SHELL TASKS", false);
+
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
 
             const randomCaption = String(new Date().valueOf());
             conn.caption += randomCaption;
@@ -1447,6 +1454,9 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", false);
             await toggleSection(driver!, "MYSQL SHELL TASKS", false);
 
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
+
             const randomCaption = String(new Date().valueOf());
             conn.caption += randomCaption;
             await createDBconnection(driver!, conn);
@@ -1592,7 +1602,7 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        it("Connection toolbar buttons - Execute selection or full block", async () => {
+        it("Connection toolbar buttons - Execute selection or full script", async () => {
             const contentHost = await driver!.findElement(By.id("contentHost"));
             await contentHost
                 .findElement(By.css("textarea"))
@@ -1608,6 +1618,8 @@ describe("MySQL Shell for VS Code", () => {
             }, 3000, "No new results block was displayed");
 
             expect(await getResultStatus(driver!, true)).to.match(/(\d+) record/);
+
+            expect(await hasNewPrompt(driver!)).to.be.true;
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
@@ -1700,7 +1712,7 @@ describe("MySQL Shell for VS Code", () => {
                 3000, "Commit button should be enabled");
 
             const execSelNew = await getToolbarButton(driver!,
-                "Execute selection or full block and create a new block");
+                "Execute selection or full script");
             await execSelNew?.click();
 
             let resultHosts = await driver!.findElements(By.css(".resultHost"));
@@ -2025,6 +2037,9 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", true);
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", false);
             await toggleSection(driver!, "MYSQL SHELL TASKS", false);
+
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
         });
 
         afterEach(async function () {
@@ -2725,6 +2740,9 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", false);
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", true);
             await toggleSection(driver!, "MYSQL SHELL TASKS", false);
+
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
         });
 
         afterEach(async function () {
@@ -2796,6 +2814,9 @@ describe("MySQL Shell for VS Code", () => {
             await toggleSection(driver!, "ORACLE CLOUD INFRASTRUCTURE", false);
             await toggleSection(driver!, "MYSQL SHELL CONSOLES", true);
             await toggleSection(driver!, "MYSQL SHELL TASKS", false);
+
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.toggle(false);
 
             const btn = await getLeftSectionButton(driver!, "MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
             await btn.click();

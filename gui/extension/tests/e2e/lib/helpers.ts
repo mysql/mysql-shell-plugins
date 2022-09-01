@@ -352,22 +352,22 @@ export const selectMoreActionsItem = async (driver: WebDriver,
     await moreActionsBtn.click();
 
     await driver.wait(async () => {
-        const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-        shadowRoot.querySelector("span[aria-label='${item}']")`);
-
-        return el !== undefined;
+        return (await driver.findElements(By.css(".context-menu-visible"))).length === 1;
     }, 2000,
     "More Actions Context menu was not displayed");
 
-    const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-            shadowRoot.querySelector("span[aria-label='${item}']")`);
 
     await driver.wait(async () => {
         try {
+            const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+            shadowRoot.querySelector("span[aria-label='${item}']")`);
+
             await el.click();
+
+            return (await driver.findElements(By.css(".context-menu-visible"))).length === 0;
         } catch(e) {
             if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                return true;
+                return false;
             }
         }
 
@@ -1063,7 +1063,7 @@ export const getToolbarButton = async (driver: WebDriver, button: string): Promi
         }
     }
 
-    return undefined;
+    throw new Error(`Could not find '${button}' button`);
 };
 
 export const writeSQL = async (driver: WebDriver, sql: string, dealWithBox?: boolean): Promise<void> => {
@@ -1272,12 +1272,13 @@ export const clickContextMenuItem = async (driver:WebDriver, refEl: WebElement, 
     }, 5000,
     "Context menu was not displayed");
 
-    const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-            shadowRoot.querySelector("span[aria-label='${item}']")`);
-
     await driver.wait(async () => {
         try {
+            const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+            shadowRoot.querySelector("span[aria-label='${item}']")`);
             await el.click();
+
+            return true;
         } catch(e) {
             if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                 return true;
