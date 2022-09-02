@@ -1,10 +1,18 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.3.4+8.0.30
+## Changes in 1.4.0+8.0.30
+
+### Additions
+
+- Dedicated handling for MDS HeatWave instances
+- Creation, rescaling and management of HeatWave Clusters
+- New toolbar buttons to force execution of SQL queries on HeatWave engine
 
 ### Fixes
 
--
+- Updated autocompletion support for MySQL Server 8.0.30
+- Fixed Pie graph rendering
+- Fixed KeepAlive functionality for MySQL Sessions through Bastion
 
 ## Changes in 1.3.3+8.0.30
 

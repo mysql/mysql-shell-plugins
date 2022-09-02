@@ -1,4 +1,4 @@
-# MySQL Shell for VS Code 1.3.4+8.0.30 Preview
+# MySQL Shell for VS Code 1.4.0+8.0.30 Preview
 
 This extension enables interactive editing and execution of SQL for MySQL Databases and the MySQL Database Service. It integrates the MySQL Shell directly into VS Code development workflows.
 
@@ -26,15 +26,15 @@ To file a bug report, select the following menu item or go to [bugs.mysql.com](h
 
 ### Tested Linux Distributions
 
-| Linux Distribution | Releases          |
-|--------------------|-------------------|
-| Debian             | 11                |
-| Ubuntu             | 20.04, 22.04      |
-| Ubuntu-WSL2        | 20.04             |
-| Kubuntu            | 21.10             |
-| RedHat/EL          | 7, 8              |
-| Fedora             | 35                |
-| Raspberry Pi OS    | January 28th 2022 |
+| Linux Distribution  | Releases          |
+|---------------------|-------------------|
+| Debian              | 11                |
+| Ubuntu              | 20.04, 22.04      |
+| Ubuntu-WSL2         | 20.04             |
+| Kubuntu             | 21.10             |
+| Oracle Linux/RedHat | 7, 8              |
+| Fedora              | 35                |
+| Raspberry Pi OS     | January 28th 2022 |
 
 If you have successfully tested the extension on other Linux distributions, please let us know by filing a [bugs report](https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension).
 
