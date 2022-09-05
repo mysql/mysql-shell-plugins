@@ -199,7 +199,7 @@ export const getToolbarButton = async (driver: WebDriver, button: string): Promi
         }
     }
 
-    return undefined;
+    throw new Error(`Could not find button '${button}'`);
 };
 
 export const getResultStatus = async (driver: WebDriver, isSelect?: boolean): Promise<string> => {
