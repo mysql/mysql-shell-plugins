@@ -1690,6 +1690,7 @@ describe("MySQL Shell for VS Code", () => {
                 .to.equals(conn.schema);
         });
 
+        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34566094
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
             const contentHost = await driver!.findElement(By.id("contentHost"));
             const textArea = await contentHost.findElement(By.css("textarea"));

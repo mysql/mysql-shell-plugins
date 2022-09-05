@@ -938,7 +938,7 @@ describe("DB Editor - Managing Connections", () => {
                 .findElement(By.css("textarea"))
                 .sendKeys("SHOW STATUS LIKE 'Ssl_cipher';");
 
-            const execSel = await getToolbarButton(driver, "Execute selection or full block");
+            const execSel = await getToolbarButton(driver, "Execute selection or full block and create a new block");
             await execSel?.click();
 
             const resultHost = await driver.findElement(By.css(".resultHost"));
@@ -1258,6 +1258,7 @@ describe("DB Editor - Core Tests", () => {
         }
     });
 
+    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34566094
     it("Connection toolbar buttons - Autocommit DB Changes", async () => {
         try {
 
@@ -1910,7 +1911,7 @@ describe("DB Editor - Core Tests", () => {
         }
     });
 
-    //TO FINISH
+    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34566108
     it("Add_run JS script", async () => {
         try {
 
@@ -1962,7 +1963,7 @@ describe("DB Editor - Core Tests", () => {
         }
     });
 
-    //TO FINISH
+    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34566108
     it("Add_run TS script", async () => {
         try {
 
