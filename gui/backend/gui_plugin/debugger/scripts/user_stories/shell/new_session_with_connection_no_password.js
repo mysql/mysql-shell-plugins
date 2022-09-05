@@ -1,11 +1,6 @@
-ws.execute("__lib/_init.js")
-
 ws.tokens["current_directory"] = "user_stories/shell"
 ws.tokens["current_test_name"] = "new_session"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
-
-//  Initialize
-await ws.execute("__lib/login/_admin.js")
 
 // Test Execution
 var default_mysql_options = ws.tokens.defaults.database_connections.mysql[0].options

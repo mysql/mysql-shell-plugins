@@ -90,6 +90,18 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                                                'This session was already '
                                                'authenticated.',
                                                json_message.get('request_id'))
+            elif request == 'logout':
+                if self.is_authenticated:
+                    self._session_user_id = None
+                    self.send_response_message('OK',
+                                               f'User successfully logged out.',
+                                               json_message.get('request_id'))
+
+                else:
+                    self.send_response_message('ERROR',
+                                               'This session is not '
+                                               'authenticated.',
+                                               json_message.get('request_id'))
             elif not self.is_authenticated:
                 self.send_response_message('ERROR',
                                            'This session is not yet '

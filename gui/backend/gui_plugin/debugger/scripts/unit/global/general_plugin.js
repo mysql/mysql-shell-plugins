@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
 // Testing the print callback, it is expected that something printed on the
 // plugin gets reported as a PENDING response to the FE
 await ws.sendAndValidate({

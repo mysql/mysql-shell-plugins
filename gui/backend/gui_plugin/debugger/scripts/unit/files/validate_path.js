@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
 //  validate empty path
 await ws.send({
     "request": "execute",

@@ -26,8 +26,7 @@ import re
 import time
 from gui_plugin.debugger.Debugger import read_script
 import gui_plugin.core.Logger as logger
-from tests import connect_and_get_session
-import os
+from tests.lib.utils import *
 import threading
 from queue import Queue, Empty
 import copy
@@ -168,6 +167,7 @@ class ObjectEncoder(json.JSONEncoder):
 
 class TWebSocket:
     '''Web Socket Wrapper with the API required to test user stories'''
+    session_scripts = {}
 
     def __init__(self, token=None, logger=None, script_reader=read_script):
         # Cleanup the user table
@@ -176,6 +176,7 @@ class TWebSocket:
         self.ws, self.session_id = connect_and_get_session(token=token)
         self.logger = logger
         self.validation_trace = []
+        self.module_scripts = {}
         self._script_reader = script_reader
 
         temp_dir = tempfile.mkdtemp()
@@ -242,8 +243,7 @@ class TWebSocket:
     def lastResponse(self):
         return self._last_response
 
-
-    def validateResponse(self,actual, expected):
+    def validateResponse(self, actual, expected):
         self.validation_trace.clear()
         self._validateResponse(actual, expected)
 
@@ -252,7 +252,8 @@ class TWebSocket:
             expected = expected.as_dict()
         if isinstance(expected, dict):
             assert isinstance(actual, dict)
-            self.validation_trace.insert(0, diff(str(actual), str(expected), prefix))
+            self.validation_trace.insert(
+                0, diff(str(actual), str(expected), prefix))
             for key in expected.keys():
                 self._validateResponse(actual[key], expected[key], key)
             self.validation_trace.remove(self.validation_trace[0])
@@ -264,19 +265,24 @@ class TWebSocket:
             assert len(actual) == len(expected[1])
             self._validateList(actual, expected[1], True, prefix)
         elif self.__is_regex(expected):
-            self.validation_trace.insert(0, diff(str(actual), expected[1], prefix))
+            self.validation_trace.insert(
+                0, diff(str(actual), expected[1], prefix))
             assert re.search(expected[1], str(actual))
             self.validation_trace.remove(self.validation_trace[0])
         elif expected == self.ignore:
             pass
         elif isinstance(expected, str):
             if expected == DEBUGGER_LAST_GENERATED_ID:
-                self.validation_trace.insert(0, diff(actual, self._last_generated_request_id, prefix))
-                assert self._last_generated_request_id == actual, "".join(self.validation_trace)
+                self.validation_trace.insert(
+                    0, diff(actual, self._last_generated_request_id, prefix))
+                assert self._last_generated_request_id == actual, "".join(
+                    self.validation_trace)
                 self.validation_trace.remove(self.validation_trace[0])
             elif expected == DEBUGGER_LAST_MODULE_ID:
-                self.validation_trace.insert(0, diff(actual, self._last_module_session_id, prefix))
-                assert self._last_module_session_id == actual, "".join(self.validation_trace)
+                self.validation_trace.insert(
+                    0, diff(actual, self._last_module_session_id, prefix))
+                assert self._last_module_session_id == actual, "".join(
+                    self.validation_trace)
                 self.validation_trace.remove(self.validation_trace[0])
             else:
                 self.validation_trace.insert(0, diff(actual, expected, prefix))
@@ -290,7 +296,8 @@ class TWebSocket:
     def _validateList(self, actual, expected, ordered, prefix=""):
         iterator = iter(actual)
         expected_copy = copy.copy(expected)
-        self.validation_trace.insert(0, diff(str(actual), str(expected), prefix))
+        self.validation_trace.insert(
+            0, diff(str(actual), str(expected), prefix))
 
         while len(expected_copy) > 0:
             try:
@@ -301,19 +308,24 @@ class TWebSocket:
             if ordered:
                 expected_item = expected_copy[0]
                 if isinstance(expected_item, Object):
-                    self._validateResponse(actual_item, expected_item.as_dict(), prefix)
+                    self._validateResponse(
+                        actual_item, expected_item.as_dict(), prefix)
                 elif isinstance(expected_item, dict) or isinstance(expected_item, list):
                     self._validateResponse(actual_item, expected_item, prefix)
                 elif expected_item == self.ignore:
                     pass
                 else:
                     if hasattr(expected_item, '__iter__'):
-                        self.validation_trace.insert(0, "Missing expected item" + str(actual_item))
-                        assert actual_item in expected_item, "".join(self.validation_trace)
+                        self.validation_trace.insert(
+                            0, "Missing expected item" + str(actual_item))
+                        assert actual_item in expected_item, "".join(
+                            self.validation_trace)
                         self.validation_trace.remove(self.validation_trace[0])
                     else:
-                        self.validation_trace.insert(0, diff(actual_item, expected_item, prefix))
-                        assert expected_item == actual_item, "".join(self.validation_trace)
+                        self.validation_trace.insert(
+                            0, diff(actual_item, expected_item, prefix))
+                        assert expected_item == actual_item, "".join(
+                            self.validation_trace)
                         self.validation_trace.remove(self.validation_trace[0])
                 expected_copy.remove(expected_item)
             else:
@@ -324,18 +336,25 @@ class TWebSocket:
                             self._validateResponse(
                                 actual_item, expected_item.as_dict(), prefix)
                         elif isinstance(expected_item, dict) or isinstance(expected_item, list):
-                            self._validateResponse(actual_item, expected_item, prefix)
+                            self._validateResponse(
+                                actual_item, expected_item, prefix)
                         elif expected_item == self.ignore:
                             pass
                         else:
                             if hasattr(expected_item, '__iter__'):
-                                self.validation_trace.insert(0, "Missing expected item" + str(actual_item))
-                                assert actual_item in expected_item, "".join(self.validation_trace)
-                                self.validation_trace.remove(self.validation_trace[0])
+                                self.validation_trace.insert(
+                                    0, "Missing expected item" + str(actual_item))
+                                assert actual_item in expected_item, "".join(
+                                    self.validation_trace)
+                                self.validation_trace.remove(
+                                    self.validation_trace[0])
                             else:
-                                self.validation_trace.insert(0, diff(actual_item, expected_item, prefix))
-                                assert expected_item == actual_item, "".join(self.validation_trace)
-                                self.validation_trace.remove(self.validation_trace[0])
+                                self.validation_trace.insert(
+                                    0, diff(actual_item, expected_item, prefix))
+                                assert expected_item == actual_item, "".join(
+                                    self.validation_trace)
+                                self.validation_trace.remove(
+                                    self.validation_trace[0])
                         found = True
                     except Exception as e:
                         continue
@@ -369,7 +388,31 @@ class TWebSocket:
         new_script = "\n".join(new_lines)
         return new_script
 
+    def set_script_mode(self, script, mode):
+        if script in TWebSocket.session_scripts:
+            del TWebSocket.session_scripts[script]
+
+        if script in self.module_scripts:
+            del self.module_scripts[script]
+
+        if mode == "session":
+            TWebSocket.session_scripts[script] = False
+        elif mode == "module":
+            self.module_scripts[script] = False
+
     def execute(self, story):
+        if story in TWebSocket.session_scripts:
+            if TWebSocket.session_scripts[story]:
+                return
+            else:
+                TWebSocket.session_scripts[story] = True
+
+        if story in self.module_scripts:
+            if self.module_scripts[story]:
+                return
+            else:
+                self.module_scripts[story] = True
+
         pre_script = None
         post_script = None
         try:

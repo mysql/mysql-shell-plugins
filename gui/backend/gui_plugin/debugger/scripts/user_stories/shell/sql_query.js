@@ -1,11 +1,8 @@
-ws.execute("__lib/_init.js")
-
 ws.tokens["current_directory"] = "user_stories/shell"
 ws.tokens["current_test_name"] = "sql_query"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 //  Initialize
-await ws.execute("__lib/login/_admin.js")
 await ws.execute("__lib/shell/_open_session.js")
 
 // Test Execution

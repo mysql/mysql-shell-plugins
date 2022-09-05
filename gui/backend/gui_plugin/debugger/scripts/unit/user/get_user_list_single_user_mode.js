@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_single_user_mode.js")
-
 await ws.send({
     "request": "execute",
     "request_id": ws.generateRequestId(),

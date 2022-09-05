@@ -1,4 +1,3 @@
-ws.execute("__lib/_init.js")
 var lib = ws.tokens.lib
 var regression = ws.tokens["regression"]
 
@@ -7,7 +6,6 @@ ws.tokens["current_test_name"] = "columns_ordered_by_ordinal_position"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 //  Initialize
-await ws.execute(lib.login.admin.file)
 await ws.execute(lib.sqleditor.open_session.file)
 
 // Initialize databases
@@ -49,6 +47,5 @@ await ws.execute(lib.sqleditor.for_each_connection.file)
 
 //  Terminate
 await ws.execute(lib.sqleditor.close_session.file)
-await ws.execute(lib.login.logout.file)
 
 ws.log("-----=== [END] " + ws.tokens["current_test_name"] + " test ===-----")

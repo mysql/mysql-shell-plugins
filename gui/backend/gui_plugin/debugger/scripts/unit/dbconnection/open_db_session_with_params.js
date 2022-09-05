@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
 var default_mysql_options = ws.tokens.defaults.database_connections.mysql[0].options
 
 await ws.sendAndValidate({

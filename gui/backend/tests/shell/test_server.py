@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,47 @@
 import json
 import uuid
 import pytest
-from ..conftest import connect_and_get_session
+import types
+from tests.lib.utils import *
+import signal
+
+port, nossl = config.Config.get_instance().get_server_params()
+server_params = [(port, nossl)]
+
+
+@pytest.fixture(scope="module", params=server_params)
+def shell_start_server(request):
+    p = start_server(request)
+
+    yield p
+
+    logger.info("sending sigint to the shell subprocess")
+    os.kill(p.pid,
+            signal.CTRL_BREAK_EVENT if hasattr(signal, 'CTRL_BREAK_EVENT') else signal.SIGINT)
+
+    logger.info(f"Waiting for server to shutdown")
+    p.wait()
+    logger.info(f"Done waiting for server shutdown")
+
+
+@pytest.fixture(scope="module")
+def shell_connect(shell_start_server):
+    ws, session_id = connect_and_get_session()
+
+    ws.headers['Cookie'] = "SessionId=%s" % session_id
+
+    def send_json(self, request):
+        self.send(request.dumps(request))
+
+    def receive_json(self):
+        return json.loads(self.recv())
+
+    ws.send_json = types.MethodType(send_json, ws)
+    ws.receive_json = types.MethodType(receive_json, ws)
+
+    yield (ws, session_id)
+
+    ws.close()
 
 
 @pytest.mark.usefixtures("shell_connect")
@@ -36,6 +76,13 @@ def test_new_session(shell_connect):
     assert session_id != session_id2
 
     ws2.close()
+
+
+@pytest.fixture(scope='function')
+def authenticate_user1(shell_start_server, create_users):
+    with authenticated_user("user1") as (ws, session_id):
+        yield (ws, session_id)
+
 
 @pytest.mark.usefixtures("authenticate_user1")
 def test_recover_session(authenticate_user1):

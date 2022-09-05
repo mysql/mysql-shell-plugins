@@ -20,32 +20,9 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 # pylint: disable-msg=W0631 for variable ws
-from tests.frontend.TestWebSocket import TWebSocket
+from tests.websocket.TestWebSocket import TWebSocket
 
 ws: TWebSocket
-
-ws.sendAndValidate({
-    "request": "authenticate",
-    "username": "admin1",
-    "password": "admin1",
-    "request_id": ws.generateRequestId()
-}, [
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": "User admin1 was successfully authenticated."
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "active_profile": {
-            "id": ws.matchRegexp("\\d+"),
-            "user_id": ws.matchRegexp("\\d+"),
-            "name": "Default",
-            "description": "Default Profile",
-            "options": {},
-        }
-    }
-])
-
 
 test_session_id = ws.generateRequestId()
 
@@ -122,36 +99,36 @@ ws.sendAndValidate({
         "module_session_id": ws.lastModuleSessionId,
     }
 }, [{
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": {
-            "type": "OK",
-            "msg": "Connection was successfully opened."
-        },
-        "module_session_id": ws.lastModuleSessionId,
-        "info": {
-            "version": ws.matchRegexp("8.0.[0-9][0-9]"),
-            "edition": ws.ignore,
-            "sql_mode": ws.ignore
-        },
-        "default_schema": params["connection"]["options"]["schema"]
-    }
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": "Connection was successfully opened."
+    },
+    "module_session_id": ws.lastModuleSessionId,
+    "info": {
+        "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+        "edition": ws.ignore,
+        "sql_mode": ws.ignore
+    },
+    "default_schema": params["connection"]["options"]["schema"]
+}
 ])
 
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.execute",
-        "args": {
-            "sql": f"SELECT pl.Id, pl.STATE FROM performance_schema.session_connect_attrs AS attrs INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl ON attrs.PROCESSLIST_ID = pl.Id WHERE attrs.ATTR_NAME='test_session_id' AND attrs.ATTR_VALUE='{test_session_id}'",
-            "module_session_id": ws.lastModuleSessionId,
-            "params": []
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": f"SELECT pl.Id, pl.STATE FROM performance_schema.session_connect_attrs AS attrs INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl ON attrs.PROCESSLIST_ID = pl.Id WHERE attrs.ATTR_NAME='test_session_id' AND attrs.ATTR_VALUE='{test_session_id}'",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": []
+    }
+},
     [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": { "type": "PENDING", "msg": "Execution started..." }
+            "request_state": {"type": "PENDING", "msg": "Execution started..."}
         },
         {
             "request_state": {"type": "OK", "msg": ""},
@@ -167,7 +144,7 @@ ws.sendAndValidate({
                 "execution_time": ws.ignore
             }
         }
-    ]
+]
 )
 
 for row in ws.lastResponse["result"]["rows"]:
@@ -177,19 +154,19 @@ for row in ws.lastResponse["result"]["rows"]:
         service_session_id1 = row[0]
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.execute",
-        "args": {
-            "sql": f"KILL {user_session_id1};",
-            "module_session_id": ws.lastModuleSessionId,
-            "params": []
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": f"KILL {user_session_id1};",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": []
+    }
+},
     [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": { "type": "PENDING", "msg": "Execution started..." }
+            "request_state": {"type": "PENDING", "msg": "Execution started..."}
         },
         {
             "result": {
@@ -203,23 +180,23 @@ ws.sendAndValidate({
             },
             "request_id": ws.lastGeneratedRequestId
         }
-    ]
+]
 )
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.execute",
-        "args": {
-            "sql": "SELECT 1 as result;",
-            "module_session_id": ws.lastModuleSessionId,
-            "params": []
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": "SELECT 1 as result;",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": []
+    }
+},
     [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": { "type": "PENDING", "msg": "Execution started..." }
+            "request_state": {"type": "PENDING", "msg": "Execution started..."}
         },
         {
             "result": {
@@ -233,17 +210,17 @@ ws.sendAndValidate({
             },
             "request_id": ws.lastGeneratedRequestId
         }
-    ]
+]
 )
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.reconnect",
-        "args": {
-            "module_session_id": ws.lastModuleSessionId,
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.reconnect",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+    }
+},
     [
         {
             "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
@@ -256,23 +233,23 @@ ws.sendAndValidate({
             "default_schema": params["connection"]["options"]["schema"],
             "request_id": ws.lastGeneratedRequestId
         }
-    ]
+]
 )
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.execute",
-        "args": {
-            "sql": "SELECT 1 as result;",
-            "module_session_id": ws.lastModuleSessionId,
-            "params": []
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": "SELECT 1 as result;",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": []
+    }
+},
     [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": { "type": "PENDING", "msg": "Execution started..." }
+            "request_state": {"type": "PENDING", "msg": "Execution started..."}
         },
         {
             "request_state": {"type": "OK", "msg": ""},
@@ -285,23 +262,23 @@ ws.sendAndValidate({
                 "execution_time": ws.ignore
             }
         }
-    ]
+]
 )
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.execute",
-        "args": {
-            "sql": f"SELECT pl.Id, pl.STATE FROM performance_schema.session_connect_attrs AS attrs INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl ON attrs.PROCESSLIST_ID = pl.Id WHERE attrs.ATTR_NAME='test_session_id' AND attrs.ATTR_VALUE='{test_session_id}'",
-            "module_session_id": ws.lastModuleSessionId,
-            "params": []
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": f"SELECT pl.Id, pl.STATE FROM performance_schema.session_connect_attrs AS attrs INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl ON attrs.PROCESSLIST_ID = pl.Id WHERE attrs.ATTR_NAME='test_session_id' AND attrs.ATTR_VALUE='{test_session_id}'",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": []
+    }
+},
     [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": { "type": "PENDING", "msg": "Execution started..." }
+            "request_state": {"type": "PENDING", "msg": "Execution started..."}
         },
         {
             "request_state": {"type": "OK", "msg": ""},
@@ -317,7 +294,7 @@ ws.sendAndValidate({
                 "execution_time": ws.ignore
             }
         }
-    ]
+]
 )
 
 for row in ws.lastResponse["result"]["rows"]:
@@ -331,19 +308,19 @@ assert service_session_id2 > service_session_id1
 
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.execute",
-        "args": {
-            "sql": f"KILL {service_session_id2};",
-            "module_session_id": ws.lastModuleSessionId,
-            "params": []
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": f"KILL {service_session_id2};",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": []
+    }
+},
     [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": { "type": "PENDING", "msg": "Execution started..." }
+            "request_state": {"type": "PENDING", "msg": "Execution started..."}
         },
         {
             "request_state": {"type": "OK", "msg": ""},
@@ -355,7 +332,7 @@ ws.sendAndValidate({
                 "execution_time": ws.ignore
             }
         }
-    ]
+]
 )
 
 ws.sendAndValidate({
@@ -370,11 +347,11 @@ ws.sendAndValidate({
     }
 }, [
     {
-        "request_state": { "type": "PENDING", "msg": "Execution started..." },
+        "request_state": {"type": "PENDING", "msg": "Execution started..."},
         "request_id": ws.lastGeneratedRequestId
     },
     {
-        "request_state": { "type": "OK", "msg": "" },
+        "request_state": {"type": "OK", "msg": ""},
         "request_id": ws.lastGeneratedRequestId,
         "result": []
     }
@@ -382,19 +359,19 @@ ws.sendAndValidate({
 
 
 ws.sendAndValidate({
-        "request": "execute",
-        "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.execute",
-        "args": {
-            "sql": f"SELECT pl.Id, pl.STATE FROM performance_schema.session_connect_attrs AS attrs INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl ON attrs.PROCESSLIST_ID = pl.Id WHERE attrs.ATTR_NAME='test_session_id' AND attrs.ATTR_VALUE='{test_session_id}'",
-            "module_session_id": ws.lastModuleSessionId,
-            "params": []
-        }
-    },
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.sqleditor.execute",
+    "args": {
+        "sql": f"SELECT pl.Id, pl.STATE FROM performance_schema.session_connect_attrs AS attrs INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl ON attrs.PROCESSLIST_ID = pl.Id WHERE attrs.ATTR_NAME='test_session_id' AND attrs.ATTR_VALUE='{test_session_id}'",
+        "module_session_id": ws.lastModuleSessionId,
+        "params": []
+    }
+},
     [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": { "type": "PENDING", "msg": "Execution started..." }
+            "request_state": {"type": "PENDING", "msg": "Execution started..."}
         },
         {
             "request_state": {"type": "OK", "msg": ""},
@@ -410,7 +387,7 @@ ws.sendAndValidate({
                 "execution_time": ws.ignore
             }
         }
-    ]
+]
 )
 
 for row in ws.lastResponse["result"]["rows"]:

@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
 await ws.send({
     "request": "execute",
     "request_id": ws.generateRequestId(),
@@ -16,3 +14,5 @@ ws.validateLastResponse({
         "msg": "Profile set successfully."
     }
 })
+
+ws.tokens["active_profile"]["id"] = 1
