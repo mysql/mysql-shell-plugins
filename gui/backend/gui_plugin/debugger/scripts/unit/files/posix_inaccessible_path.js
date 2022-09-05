@@ -1,6 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
-
 //  permission denied
 await ws.sendAndValidate({
     "request": "execute",

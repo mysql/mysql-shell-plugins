@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_single_user_mode.js")
-
 //  list file without sending the path argument
 await ws.send({
     "request": "execute",

@@ -1,9 +1,3 @@
-var lib = ws.tokens.lib
-lib.login.login.params = {
-    "user": "success_admin2"
-}
-await ws.execute(lib.login.login.file)
-
 ws.tokens['admin2_active_profile_id'] = ws.lastResponse["active_profile"]["id"]
 
 await ws.sendAndValidate({

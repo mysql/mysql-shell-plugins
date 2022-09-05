@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
 ws.tokens["module_option_1"] = {'test_option': 10}
 ws.tokens["module_option_2"] = {'test_option': 20}
 ws.tokens["module_option_3"] = {'test_option': 30}

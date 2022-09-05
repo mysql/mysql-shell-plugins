@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_single_user_mode.js")
-
 // validate with an write only path
 await ws.sendAndValidate({
     "request": "execute",
@@ -63,7 +61,7 @@ await ws.sendAndValidate({
             "source": "MSG"
         },
         "result": {
-            "path": ws.matchRegexp("[C|c]:/some_directory")
+            "path": ws.matchRegexp("\\w:/some_directory")
         }
     }
 ])

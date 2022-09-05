@@ -1,8 +1,26 @@
-await ws.execute("unit/authenticate/success_admin.js")
+//  Get the original profile, so that we can put it back
+ws.sendAndValidate({
+   "request_id": ws.generateRequestId(),
+   "request":"execute",
+   "command":"gui.users.get_profile",
+   "args":{
+      "profile_id": 1
+   }
+}, [
+   {
+       "request_state": {
+           "type": "OK",
+           "msg": ws.ignore
+       },
+       "result": ws.ignore,
+       "request_id": ws.lastGeneratedRequestId
+   }
+])
+var originalProfile = ws.lastResponse["result"]
 
 var profile = {
     "id":1,
-    "user_id":1,
+    "user_id":originalProfile["user_id"],
     "name":"Default",
     "description":"Default Profile",
     "options":{
@@ -4378,26 +4396,6 @@ var profile = {
     }
 }
 
-//  Get the original profile, so that we can put it back
-ws.sendAndValidate({
-    "request_id": ws.generateRequestId(),
-    "request":"execute",
-    "command":"gui.users.get_profile",
-    "args":{
-       "profile_id": 1
-    }
- }, [
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ws.ignore
-        },
-        "result": ws.ignore,
-        "request_id": ws.lastGeneratedRequestId
-    }
-])
-
-var originalProfile = ws.lastResponse["result"]
 ws.sendAndValidate({
     "request_id": ws.generateRequestId(),
     "request":"execute",

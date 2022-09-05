@@ -21,42 +21,32 @@
 
 
 import pytest
-import os
-from gui_plugin.debugger.Debugger import list_scripts
-from tests.frontend.TestWebSocket import TWebSocket
-from tests import get_logger, print_user_story_stack_trace
-from pathlib import Path
+from tests.websocket import TestWebSocket, utils
+from tests import get_logger
+from tests.websocket.utils import print_user_story_stack_trace
 
-all_stories = list_scripts()
-exclude_prefixes=["skip", "_"]
-story_list = []
-for story in all_stories:
-    exclude = False
-    for prefix in exclude_prefixes:
-        if os.path.basename(story).startswith(prefix):
-            exclude = True
-    if "single_user_mode" in story:
-        exclude = True
-    if "modules" in story:
-        exclude = True
+script_list = utils.get_user_stories(False, True)
 
-    if not exclude:
-        story_list.append(story)
+
+@pytest.fixture(scope="module")
+def ws():
+    ws = TestWebSocket.TWebSocket(logger=get_logger())
+    ws.execute("__lib/_init.js")
+    ws.execute(ws.tokens.lib.login.admin.file)
+    ws.tokens["active_profile"] = ws.lastResponse["active_profile"]
+
+    yield ws
+
+    ws.close()
+
 
 @pytest.mark.usefixtures("shell_start_server", "create_users", "create_test_schema", "clear_module_data_tables")
-@pytest.mark.parametrize("story", story_list)
-def test_user_stories(story):
-    if Path(story).name.startswith('windows') and not os.name == 'nt':
-        return
-
-    if Path(story).name.startswith('posix') and not os.name == 'posix':
-        return
-
-    ws = TWebSocket(logger=get_logger()) #pylint: disable=no-value-for-parameter, unexpected-keyword-arg
+@pytest.mark.parametrize("story", script_list)
+def test_user_stories(story, ws):
     try:
+        print("===== STARTING EXECUTION =====")
         ws.execute(story)
+        print("====== ENDING EXECUTION =====")
     except Exception as e:
         print_user_story_stack_trace(ws, e)
         raise
-    finally:
-        ws.close()

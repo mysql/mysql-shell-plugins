@@ -1,4 +1,3 @@
-ws.execute("__lib/_init.js")
 var lib = ws.tokens.lib
 var user_stories = ws.tokens["user_stories"]
 
@@ -8,13 +7,22 @@ ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 // Create module
 await ws.execute(user_stories.module.module_data_create.file)
-ws.reset()
 
 // Fail to share and delete
+ws.execute("__lib/login/_logout.js")
+lib.login.login.params = {
+    "user": "success_admin2"
+}
+await ws.execute(lib.login.login.file)
+
 await ws.execute(user_stories.module.module_data_fail_share_delete.file)
-ws.reset()
 
 // Delete module
+ws.execute("__lib/login/_logout.js")
+lib.login.login.params = {
+    "user": "success_admin"
+}
+await ws.execute(lib.login.login.file)
 await ws.execute(user_stories.module.module_data_delete.file)
 
 ws.log("-----=== [END] " + ws.tokens["current_test_name"] + " test ===-----")

@@ -14,3 +14,14 @@ ws.validateLastResponse({
     },
     "request_id": ws.lastGeneratedRequestId
 })
+
+ws.sendAndValidate({
+    "request": "logout",
+    "request_id": ws.generateRequestId()
+}, [{
+    "request_state": {
+        "type": "OK",
+        "msg": "User successfully logged out."
+    },
+    "request_id": ws.lastGeneratedRequestId}])
+

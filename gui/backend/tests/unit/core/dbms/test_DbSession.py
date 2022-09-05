@@ -26,19 +26,14 @@ import time
 import uuid
 import json
 import config
-import threading
-import sys
 import mysqlsh
 import os
-import types
 
 from gui_plugin.dbconnections import DbConnections
 from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
 from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
-from .MockWebSession import MockWebSession
 import gui_plugin.core.Logger as logger
-from tests import backend_callback, backend_callback_with_pending
-
+from tests.lib.utils import backend_callback, backend_callback_with_pending
 
 
 def create_sqlite3_db(db_path):
@@ -51,7 +46,7 @@ def create_sqlite3_db(db_path):
 def sqlite_session():  # pragma: no cover
     db_session_class = DbSqliteSession
     # We have to make sure that db exists
-    db_path = os.path.abspath(os.path.join(mysqlsh.plugin_manager.general.get_shell_user_dir(), # pylint: disable=no-member
+    db_path = os.path.abspath(os.path.join(mysqlsh.plugin_manager.general.get_shell_user_dir(),  # pylint: disable=no-member
                                            'plugin_data', 'gui_plugin', f'user_3', 'tests.sqlite3'))
     create_sqlite3_db(db_path)
 
@@ -77,7 +72,8 @@ def sqlite_session():  # pragma: no cover
 @pytest.fixture(scope='session')
 def mysql_connections_exists():  # pragma: no cover
     results = []
-    connection = config.Config.get_instance().database_connections[0]['options'].copy()
+    connection = config.Config.get_instance(
+    ).database_connections[0]['options'].copy()
     del connection['portStr']
     # for connection in config.Config.get_instance().database_connections:
 
@@ -146,12 +142,14 @@ def mysql_sessions(mysql_connections_exists):  # pragma: no cover
         session.close()
         session._term_complete.wait()
 
+
 class TestDbSessionSqlite():
 
     def test_instance(self):
         with pytest.raises(Exception) as exp:
             DbSqliteSession(uuid.uuid1(), True, None)
-        assert str(exp.value) == "Error[MSG-1202]: No connection_options dict given."
+        assert str(
+            exp.value) == "Error[MSG-1202]: No connection_options dict given."
 
         with pytest.raises(Exception) as exp:
             DbSqliteSession(uuid.uuid1(), True, {})
@@ -248,9 +246,8 @@ class TestDbSessionSqlite():
         verification_callback.join_and_validate()
         assert not rows
 
-
-
     # TODO(rennox): Duplicate tests for non threaded sessions
+
     def test_select(self, sqlite_session):
         @backend_callback_with_pending()
         def validate1(state, message, request_id, values):
@@ -398,9 +395,12 @@ class TestDbMysqlSession:
 
             if 'result_format' not in func.options or func.options['result_format'] == 'list':
                 assert values["columns"] == [{'length': 5, 'name': 'id', 'type': 'SMALLINT'},
-                                             {'length': 180, 'name': 'column1', 'type': 'STRING'},
-                                             {'length': 180, 'name': 'column2', 'type': 'STRING'},
-                                             {'length': 4294967295, 'name': 'column3', 'type': 'JSON'},
+                                             {'length': 180, 'name': 'column1',
+                                                 'type': 'STRING'},
+                                             {'length': 180, 'name': 'column2',
+                                                 'type': 'STRING'},
+                                             {'length': 4294967295,
+                                                 'name': 'column3', 'type': 'JSON'},
                                              {'length': 19, 'name': 'last_update', 'type': 'DATETIME'}]
                 assert row0[1] == 'column1_0'
                 assert row0[2] == 'column2_0'
@@ -486,7 +486,8 @@ class TestDbMysqlSession:
 
             result = values['rows'][0]
 
-            assert {'length': 21, 'name': 'cnt', 'type': 'INTEGER'} in values["columns"]
+            assert {'length': 21, 'name': 'cnt',
+                    'type': 'INTEGER'} in values["columns"]
 
             if count_callback.row_count == -1:
                 count_callback.row_count = result[0]
@@ -544,7 +545,8 @@ class TestDbMysqlSession:
 
             result = values['rows'][0]
 
-            assert {'length': 21, 'name': 'cnt', 'type': 'INTEGER'} in values['columns']
+            assert {'length': 21, 'name': 'cnt',
+                    'type': 'INTEGER'} in values['columns']
 
             if count_callback.row_count == -1:
                 count_callback.row_count = result[0]

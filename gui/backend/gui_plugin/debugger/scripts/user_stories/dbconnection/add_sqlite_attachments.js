@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
 ws.tokens["profile_id"] = 1
 ws.tokens["db_type"] = "Sqlite"
 ws.tokens["schema1"] = "schema_1.sqlite3"

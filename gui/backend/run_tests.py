@@ -175,11 +175,14 @@ class MyPaths:
             self.source.code = portable_path
 
     def verify(self):
-        assert self.runtime.root.is_dir()               ,"root dir not found: %s"         % (self.runtime.root)
-        assert self.runtime.plugins.root.is_dir()       ,"plugins root dir not found: %s" % (self.runtime.plugins.root)
-        assert self.runtime.plugins.gui_plugin.is_dir() ,"gui plugin dir not found: %s"   % (self.runtime.plugins.gui_plugin)
-        assert self.source.webroot.is_dir()             ,"webroot dir not found: %s"      % (self.source.webroot)
-        assert self.source.pytest_config.is_file()      ,"pytest config not found: %s"    % (self.source.pytest_config)
+        assert self.runtime.root.is_dir(), "root dir not found: %s" % (self.runtime.root)
+        assert self.runtime.plugins.root.is_dir(
+        ), "plugins root dir not found: %s" % (self.runtime.plugins.root)
+        assert self.runtime.plugins.gui_plugin.is_dir(
+        ), "gui plugin dir not found: %s" % (self.runtime.plugins.gui_plugin)
+        assert self.source.webroot.is_dir(), "webroot dir not found: %s" % (self.source.webroot)
+        assert self.source.pytest_config.is_file(
+        ), "pytest config not found: %s" % (self.source.pytest_config)
 
 
 if args.portable is not None and zipfile.is_zipfile(args.portable):

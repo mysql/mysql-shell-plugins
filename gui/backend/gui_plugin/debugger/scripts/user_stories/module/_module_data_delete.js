@@ -1,6 +1,3 @@
-var lib = ws.tokens.lib
-await ws.execute(lib.login.admin.file)
-
 await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.modules.move_data",
@@ -8,7 +5,7 @@ await ws.sendAndValidate({
         "id": ws.tokens['module_data_id1'],
         "tree_identifier": "SQLEditorScriptsTree",
         "linked_to": "protile",
-        "link_id": 1,
+        "link_id": ws.tokens["active_profile"]["id"],
         "source_path": "test_path",
         "target_path": "new_target_test_path"
     },
@@ -28,7 +25,7 @@ await ws.sendAndValidate({
         "id": ws.tokens['module_data_id1'],
         "tree_identifier": "SQLEditorScriptsTree",
         "linked_to": "profile",
-        "link_id": 1,
+        "link_id": ws.tokens["active_profile"]["id"],
         "source_path": "test_path",
         "target_path": "test_path"
     },
@@ -48,7 +45,7 @@ await ws.sendAndValidate({
         "id": ws.tokens['module_data_id1'],
         "tree_identifier": "",
         "linked_to": "profile",
-        "link_id": 1,
+        "link_id": ws.tokens["active_profile"]["id"],
         "source_path": "test_path",
         "target_path": "new_target_test_path"
     },
@@ -68,7 +65,7 @@ await ws.sendAndValidate({
         "id": ws.tokens['module_data_id1'],
         "tree_identifier": "SQLEditorScriptsTree",
         "linked_to": "profile",
-        "link_id": 1,
+        "link_id": ws.tokens["active_profile"]["id"],
         "source_path": "wrong_test_path",
         "target_path": "new_target_test_path"
     },
@@ -88,7 +85,7 @@ await ws.sendAndValidate({
         "id": ws.tokens['module_data_id1'],
         "tree_identifier": "SQLEditorScriptsTreeeee",
         "linked_to": "profile",
-        "link_id": 1,
+        "link_id": ws.tokens["active_profile"]["id"],
         "source_path": "test_path",
         "target_path": "new_target_test_path"
     },
@@ -246,4 +243,3 @@ await ws.sendAndValidate({
     "request_id": ws.lastGeneratedRequestId
 }])
 
-await ws.execute(lib.login.logout.file)

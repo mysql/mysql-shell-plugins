@@ -92,10 +92,14 @@ def delete_user(username, web_session=None):
         if not user_id:
             result = Response.error("User not exists.")
         else:
+            default_group_id = backend.get_default_group_id(db, user_id)
             with BackendTransaction(db):
                 db.execute("DELETE FROM user WHERE name = ?", (username,))
                 db.execute(
                     "DELETE FROM user_has_role WHERE user_id = ?", (user_id,))
+                db.execute(
+                    "DELETE FROM user_group_has_user WHERE user_id = ?", (user_id,))
+                backend.remove_user_group(db, default_group_id)
 
             result = Response.ok("User deleted successfully.")
 
@@ -547,6 +551,7 @@ def create_user_group(name, description, web_session=None):
             result = Response.exception(e)
 
     return result
+
 
 @plugin_function('gui.users.addUserToGroup', cli=True, web=True)
 def add_user_to_group(member_id, group_id, owner=0, web_session=None):

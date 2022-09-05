@@ -1,5 +1,3 @@
-var lib = ws.tokens.lib
-await ws.execute(lib.login.admin.file)
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -713,4 +711,3 @@ await ws.sendAndValidate({
                {"tree_identifier": "SQLEditorDevScriptsTree"}]
 }])
 
-await ws.execute(lib.login.logout.file)

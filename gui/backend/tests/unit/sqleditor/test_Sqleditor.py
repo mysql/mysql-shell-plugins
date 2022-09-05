@@ -25,9 +25,8 @@ import config
 from gui_plugin import sqleditor
 from gui_plugin import dbconnections
 from gui_plugin.core.Error import MSGException
-from tests.conftest import backend_callback
-from .MockWebSession import MockWebSession
-from tests import backend_callback_with_pending
+from tests.lib.MockWebSession import MockWebSession
+from tests.lib.utils import backend_callback, backend_callback_with_pending
 import time
 import gui_plugin.core.Logger as logger
 
@@ -102,10 +101,12 @@ class TestSqleditor:
             callback_schemas.request_id, callback_schemas)
 
         params._web_session.request_id = callback_schemas.request_id
-        sqleditor.execute(sql="SELECT SLEEP(3)", session=params._module_session._db_user_session)
+        sqleditor.execute(sql="SELECT SLEEP(3)",
+                          session=params._module_session._db_user_session)
         callback_schemas.join_and_validate()
         params._web_session.request_id = callback_request1.request_id
-        sqleditor.get_current_schema(session=params._module_session._db_user_session)
+        sqleditor.get_current_schema(
+            session=params._module_session._db_user_session)
         callback_request1.join_and_validate()
 
         params._web_session.request_id = None
@@ -115,7 +116,8 @@ class TestSqleditor:
         sqleditor.close_session(params._module_session)
 
         with pytest.raises(MSGException) as e:
-            sqleditor.execute(session=params._module_session._db_user_session, sql="SELECT SLEEP(1)")
+            sqleditor.execute(
+                session=params._module_session._db_user_session, sql="SELECT SLEEP(1)")
         assert e.value.args[0] == "Error[MSG-1012]: Session required for this operation."
 
         @backend_callback(1)

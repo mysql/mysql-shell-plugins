@@ -29,6 +29,7 @@ import secrets
 ALL_USERS_GROUP_ID = 1
 LOCAL_USERNAME = "LocalAdministrator"
 
+
 def create_group(db, name, description):
     """Returns the ID of the created user_group.
 
@@ -84,7 +85,7 @@ def add_user_role(db, user_id, role):
 
     if not res:
         raise MSGException(Error.USER_INVALID_ROLE,
-            f"There is no role with the name '{role}'.")
+                           f"There is no role with the name '{role}'.")
     else:
         role_id = res[0]
 
@@ -158,7 +159,8 @@ def get_user_id(db, username):
                      (username,)).fetch_one()
 
     if res is None:
-        raise MSGException(Error.USER_INVALID_USER, f"There is no user with the name '{username}'.")
+        raise MSGException(Error.USER_INVALID_USER,
+                           f"There is no user with the name '{username}'.")
 
     return res[0]
 
@@ -215,7 +217,7 @@ def get_profile(db, profile_id):
 
     if not result:
         raise MSGException(Error.USER_INVALID_PROFILE,
-            "The profile does not exist.")
+                           "The profile does not exist.")
 
     return result['rows'][0]
 
@@ -235,7 +237,8 @@ def get_default_profile(db, user_id):
         (user_id,)).fetch_one()
 
     if not user_row:
-        raise MSGException(Error.USER_INVALID_USER, f"There is no user with the given id.")
+        raise MSGException(Error.USER_INVALID_USER,
+                           f"There is no user with the given id.")
 
     profile_id = user_row[0]
     if profile_id is None:
@@ -245,6 +248,28 @@ def get_default_profile(db, user_id):
         set_default_profile(db, user_id, profile_id)
 
     return get_profile(db, profile_id)
+
+
+def get_default_group_id(db, user_id):
+    """Returns the default group for the given user.
+
+    Args:
+        db (object): The db object
+        user_id (int): The id of the user.
+
+    Returns:
+        The default group id
+    """
+    row = db.execute(
+        "SELECT user_group_id FROM user_group_has_user WHERE user_id = ? and owner = 1",
+        (user_id,)).fetch_one()
+
+    if not row:
+        raise MSGException(Error.USER_INVALID_USER,
+                           f"There is no default group for user with the given id.")
+
+    return row[0]
+
 
 def delete_profile(db, user_id, profile_id):
     """Deletes a profile for the given user.
@@ -259,9 +284,10 @@ def delete_profile(db, user_id, profile_id):
     """
     db.execute('''DELETE FROM profile
                   WHERE user_id=? and id=?''',
-                (user_id, profile_id))
+               (user_id, profile_id))
 
     return not db.rows_affected == 0
+
 
 def get_user_groups(db, user_id=None):
     """Retrieves the existing user groups,
@@ -306,8 +332,8 @@ def get_id_personal_user_group(db, user_id):
                             AND   u.name = ug.name
                             AND   u.id=?;""", (user_id,)).fetch_one()
         if not res:
-            raise MSGException(Error.USER_INVALID_GROUP,
-                f"There is no personal group for the user '{user_id}'.")
+            raise MSGException(Error.USER_MISSING_DEFAULT_GROUP,
+                               f"There is no personal group for the user '{user_id}'.")
         else:
             group_id = res[0]
 
@@ -315,6 +341,7 @@ def get_id_personal_user_group(db, user_id):
         raise e
 
     return group_id
+
 
 def remove_user_from_group(db, user_id, group_id):
     """Removes user from user group.
@@ -327,9 +354,14 @@ def remove_user_from_group(db, user_id, group_id):
     Returns:
         A boolean value indicating whether the given user was removed from the given group
     """
+    default_user_group_id = get_default_group_id(db, user_id)
+    if default_user_group_id == group_id:
+        raise MSGException(Error.USER_INVALID_GROUP,
+                           "Unable to delete user from personal group.")
+
     db.execute("""DELETE FROM user_group_has_user
                   WHERE user_id = ? AND user_group_id=?""",
-                (user_id, group_id,))
+               (user_id, group_id,))
 
     return db.rows_affected != 0
 
@@ -346,8 +378,8 @@ def update_user_group(db, group_id, name=None, description=None):
     Returns:
         A boolean value indicating whether the record was updated or not.
     """
-    actions=[]
-    args=tuple()
+    actions = []
+    args = tuple()
 
     if name:
         actions.append("name=?")
@@ -359,6 +391,7 @@ def update_user_group(db, group_id, name=None, description=None):
     db.execute(f"""UPDATE user_group SET {",".join(actions)}
                 WHERE id=?""", args + (group_id,))
     return db.rows_affected != 0
+
 
 def group_can_be_deleted(db, group_id):
     """Checks if user group is associated with data user group tree
@@ -391,6 +424,7 @@ def group_can_be_deleted(db, group_id):
 
     return (True, "")
 
+
 def remove_user_group(db, group_id):
     """Removes given user group.
 
@@ -406,9 +440,10 @@ def remove_user_group(db, group_id):
         raise MSGException(Error.USER_CANT_DELETE_GROUP, reason)
 
     db.execute("""DELETE FROM user_group WHERE id=?""",
-                (group_id,))
+               (group_id,))
 
     return db.rows_affected != 0
+
 
 def create_local_user(db):
     try:

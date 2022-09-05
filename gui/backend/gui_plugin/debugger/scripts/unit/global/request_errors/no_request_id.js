@@ -1,5 +1,3 @@
-await ws.execute("unit/authenticate/success_admin.js")
-
 await ws.sendAndValidate({
     "request": "execute",
     "command": "gui.users.list_users",

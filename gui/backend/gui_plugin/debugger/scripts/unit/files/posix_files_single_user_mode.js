@@ -1,6 +1,3 @@
-await ws.execute("unit/authenticate/success_single_user_mode.js")
-
-
 //  validate '..' path
 await ws.sendAndValidate({
     "request": "execute",

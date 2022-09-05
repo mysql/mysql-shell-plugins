@@ -1,11 +1,9 @@
-ws.execute("__lib/_init.js")
 
 ws.tokens["current_directory"] = "user_stories/metadata"
 ws.tokens["current_test_name"] = "sql_injection"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 //  Initialize
-await ws.execute("__lib/login/_admin.js")
 await ws.execute("__lib/connection/_add_mysql_root.js")
 
 ws.tokens["connection_id"] = ws.tokens.lib.connection.add_mysql_root.result["connection_id"]

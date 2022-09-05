@@ -1,4 +1,3 @@
-ws.execute("__lib/_init.js")
 var lib = ws.tokens.lib
 var unit = ws.tokens["unit"]
 
@@ -7,7 +6,6 @@ ws.tokens["current_test_name"] = "auto_commit"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 //  Initialize
-await ws.execute(lib.login.admin.file)
 await ws.execute(lib.sqleditor.open_session.file)
 
 //  Run specific tests
@@ -22,6 +20,5 @@ await ws.execute(lib.sqleditor.for_each_connection.file)
 
 //  Terminate
 await ws.execute(lib.sqleditor.close_session.file)
-await ws.execute(lib.login.logout.file)
 
 ws.log("-----=== [END] " + ws.tokens["current_test_name"] + " test ===-----")
