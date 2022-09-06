@@ -131,6 +131,7 @@
         "zstd"
     ],
     "ignorePaths": [
-        ".eslintrc.json"
+        ".eslintrc.json",
+        "src/parsing/mysql/data"
     ]
 }

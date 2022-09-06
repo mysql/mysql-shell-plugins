@@ -58,8 +58,7 @@ export const language: ILanguage = {
     // SQL case-insensitive by duplicating some symbols with lower case style.
     mysqlBrackets: mysql.brackets,
     mysqlKeywords: [
-        ...mysql.keywords,
-        ...(mysql.keywords as string[]).map((keyword) => { return keyword.toLowerCase(); }),
+        // Will be set in the Monaco highlighter set up following the creation of this structure.
     ],
     mysqlOperators: [
         ...mysql.operators,
