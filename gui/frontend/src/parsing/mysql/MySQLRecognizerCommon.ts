@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,7 @@ import { ParseTree, TerminalNode, ErrorNode } from "antlr4ts/tree";
 import { Interval } from "antlr4ts/misc/Interval";
 
 import { TextLiteralContext, MySQLParser } from "./generated/MySQLParser";
-import { IDictionary } from "../../app-logic/Types";
+import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords";
 
 // This interface describes functionality found in both, lexer and parser classes.
 export interface IMySQLRecognizerCommon {
@@ -49,14 +49,6 @@ export enum SqlMode {
     NoBackslashEscapes,
 }
 
-const keywordsMap = new Map<MySQLVersion, Set<string>>();
-const reservedKeywordsMap = new Map<MySQLVersion, Set<string>>();
-
-export enum MySQLVersion {
-    Unknown = "Unknown",
-    MySQL80 = "MySQL80",
-}
-
 /**
  * Determines if a given string represents a reserved keyword.
  *
@@ -66,7 +58,7 @@ export enum MySQLVersion {
  * @returns A flag which indicates if the identifier is a reserved MySQL keyword.
  */
 export const isReservedKeyword = (identifier: string, version: MySQLVersion): boolean => {
-    const reserved = reservedKeywordsMap.get(version);
+    const reserved = reservedMySQLKeywords.get(version);
 
     return reserved?.has(identifier) ?? false;
 };
@@ -80,7 +72,7 @@ export const isReservedKeyword = (identifier: string, version: MySQLVersion): bo
  * @returns A flag which indicates if the identifier is a MySQL keyword.
  */
 export const isKeyword = (identifier: string, version: MySQLVersion): boolean => {
-    const map = keywordsMap.get(version);
+    const map = mysqlKeywords.get(version);
 
     return map?.has(identifier) ?? false;
 };
@@ -489,25 +481,3 @@ export const contextFromPosition = (root: ParseTree, position: number): ParseTre
     // Return the root for that case.
     return root;
 };
-
-void import("./data/keywords.json").then((keywords) => {
-    const content: IDictionary = keywords.default ?? keywords;
-    Object.keys(content).forEach((versionKey: string) => {
-        const currentVersion = MySQLVersion[versionKey as keyof typeof MySQLVersion];
-        const set = new Set<string>();
-        const set2 = new Set<string>();
-
-        const dict = content[versionKey] as Array<{ word: string; reserved: boolean }>;
-        dict.forEach((value) => {
-            if (value.word.length > 0) {
-                set.add(value.word);
-                if (value.reserved) {
-                    set2.add(value.word);
-                }
-            }
-        });
-
-        keywordsMap.set(currentVersion, set);
-        reservedKeywordsMap.set(currentVersion, set2);
-    });
-});

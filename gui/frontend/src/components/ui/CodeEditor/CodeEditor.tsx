@@ -52,6 +52,7 @@ import { ReferencesProvider } from "./ReferencesProvider";
 import { RenameProvider } from "./RenameProvider";
 import { SignatureHelpProvider } from "./SignatureHelpProvider";
 import { MessageType } from "../../../app-logic/Types";
+import { mysqlKeywords, MySQLVersion } from "../../../parsing/mysql/mysql-keywords";
 
 export interface ICommandData {
     command: string;
@@ -282,6 +283,18 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             void msg.loader().then((module: ILanguageDefinition) => {
                 // TODO: no longer needed once we switch away from Monarch.
                 module.language.start = "sql";
+
+                // Dynamically load the MySQL keywords.
+                const keywordSet = mysqlKeywords.get(MySQLVersion.MySQL80);
+                const keywords = module.language.mysqlKeywords as string[];
+                if (keywordSet && keywords) {
+                    for (const entry of keywordSet.values()) {
+                        // Push each keyword twice (lower and upper case), as we have to make the
+                        // main language case sensitive.
+                        keywords.push(entry);
+                        keywords.push(entry.toLowerCase());
+                    }
+                }
                 languages.setMonarchTokensProvider(msg.id, module.language);
                 languages.setLanguageConfiguration(msg.id, module.languageConfiguration);
             });
