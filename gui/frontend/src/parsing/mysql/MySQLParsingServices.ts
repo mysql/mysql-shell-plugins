@@ -304,25 +304,115 @@ export class MySQLParsingServices {
 
         let haveContent = false; // Set when anything else but comments were found for the current statement.
 
-        while (tail < end) {
-            switch (sql[tail]) {
-                case "/": { // Possible multi line comment or hidden (conditional) command.
-                    if (sql[tail + 1] === "*") {
-                        if (sql[tail + 2] === "!") { // Hidden command.
-                            if (!haveContent) {
-                                haveContent = true;
-                                head = tail;
-                            }
-                            ++tail;
-                        }
-                        tail += 2;
+        /**
+         * Checks the current tail position if that touches a delimiter. If that's the case then the current statement
+         * is finished and new one starts.
+         *
+         * @returns True if a delimiter was found, otherwise false.
+         */
+        const checkDelimiter = (): boolean => {
+            if (sql[tail] === delimiter[0]) {
+                // Found possible start of the delimiter. Check if it really is.
+                if (delimiter.length === 1) {
+                    // Most common case.
+                    ++tail;
+                    result.push({
+                        delimiter,
+                        span: { start, length: tail - start },
+                        contentStart: haveContent ? head : start,
+                        state: StatementFinishState.Complete,
+                    });
 
-                        while (true) {
-                            while (tail < end && sql[tail] !== "*") {
+                    head = tail;
+                    start = head;
+                    haveContent = false;
+
+                    return true;
+                } else {
+                    // Multi character delimiter?
+                    const candidate = sql.substring(tail, tail + delimiter.length);
+                    if (candidate === delimiter) {
+                        // Multi char delimiter is complete. Tail still points to the start of the delimiter.
+                        tail += delimiter.length;
+                        result.push({
+                            delimiter,
+                            span: { start, length: tail - start },
+                            contentStart: haveContent ? head : start,
+                            state: StatementFinishState.Complete,
+                        });
+
+                        head = tail;
+                        start = head;
+                        haveContent = false;
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        while (tail < end) {
+            if (!checkDelimiter()) {
+                switch (sql[tail]) {
+                    case "/": { // Possible multi line comment or hidden (conditional) command.
+                        if (sql[tail + 1] === "*") {
+                            if (sql[tail + 2] === "!") { // Hidden command.
+                                if (!haveContent) {
+                                    haveContent = true;
+                                    head = tail;
+                                }
+                                ++tail;
+                            }
+                            tail += 2;
+
+                            while (true) {
+                                while (tail < end && sql[tail] !== "*") {
+                                    ++tail;
+                                }
+
+                                if (tail === end) { // Unfinished multiline comment.
+                                    result.push({
+                                        delimiter,
+                                        span: { start, length: tail - start },
+                                        contentStart: haveContent ? head : start,
+                                        state: StatementFinishState.OpenComment,
+                                    });
+                                    start = tail;
+                                    head = tail;
+
+                                    break;
+                                } else {
+                                    if (sql[++tail] === "/") {
+                                        ++tail; // Skip the slash too.
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!haveContent) {
+                                head = tail; // Skip over the comment.
+                            }
+
+                        } else {
+                            ++tail;
+                            haveContent = true;
+                        }
+
+                        break;
+                    }
+
+                    case "-": { // Possible single line comment.
+                        const temp = tail + 2;
+                        if (sql[tail + 1] === "-" && (sql[temp] === " " || sql[temp] === "\t" || sql[temp] === "\n")) {
+                            // Skip everything until the end of the line.
+                            tail += 2;
+                            while (tail < end && sql[tail] !== "\n") {
                                 ++tail;
                             }
 
-                            if (tail === end) { // Unfinished multiline comment.
+                            if (tail === end) { // Unfinished single line comment.
                                 result.push({
                                     delimiter,
                                     span: { start, length: tail - start },
@@ -333,31 +423,20 @@ export class MySQLParsingServices {
                                 head = tail;
 
                                 break;
-                            } else {
-                                if (sql[++tail] === "/") {
-                                    ++tail; // Skip the slash too.
-                                    break;
-                                }
                             }
+
+                            if (!haveContent) {
+                                head = tail;
+                            }
+                        } else {
+                            ++tail;
+                            haveContent = true;
                         }
 
-                        if (!haveContent) {
-                            head = tail; // Skip over the comment.
-                        }
-
-                    } else {
-                        ++tail;
-                        haveContent = true;
+                        break;
                     }
 
-                    break;
-                }
-
-                case "-": { // Possible single line comment.
-                    const temp = tail + 2;
-                    if (sql[tail + 1] === "-" && (sql[temp] === " " || sql[temp] === "\t" || sql[temp] === "\n")) {
-                        // Skip everything until the end of the line.
-                        tail += 2;
+                    case "#": { // MySQL single line comment.
                         while (tail < end && sql[tail] !== "\n") {
                             ++tail;
                         }
@@ -378,178 +457,107 @@ export class MySQLParsingServices {
                         if (!haveContent) {
                             head = tail;
                         }
-                    } else {
-                        ++tail;
-                        haveContent = true;
-                    }
-
-                    break;
-                }
-
-                case "#": { // MySQL single line comment.
-                    while (tail < end && sql[tail] !== "\n") {
-                        ++tail;
-                    }
-
-                    if (tail === end) { // Unfinished single line comment.
-                        result.push({
-                            delimiter,
-                            span: { start, length: tail - start },
-                            contentStart: haveContent ? head : start,
-                            state: StatementFinishState.OpenComment,
-                        });
-                        start = tail;
-                        head = tail;
 
                         break;
                     }
 
-                    if (!haveContent) {
-                        head = tail;
-                    }
-
-                    break;
-                }
-
-                case '"':
-                case "'":
-                case "`": { // Quoted string/id. Skip this in a local loop.
-                    haveContent = true;
-                    const quote = sql[tail++];
-                    while (tail < end && sql[tail] !== quote) {
-                        // Skip any escaped character too.
-                        if (sql[tail] === "\\") {
+                    case '"':
+                    case "'":
+                    case "`": { // Quoted string/id. Skip this in a local loop.
+                        haveContent = true;
+                        const quote = sql[tail++];
+                        while (tail < end && sql[tail] !== quote) {
+                            // Skip any escaped character too.
+                            if (sql[tail] === "\\") {
+                                ++tail;
+                            }
                             ++tail;
                         }
-                        ++tail;
-                    }
 
-                    if (sql[tail] === quote) {
-                        ++tail; // Skip trailing quote char if one was there.
-                    } else { // Unfinished single string.
-                        result.push({
-                            delimiter,
-                            span: { start, length: tail - start },
-                            contentStart: haveContent ? head : start,
-                            state: StatementFinishState.OpenString,
-                        });
-                        start = tail;
-                        head = tail;
-                    }
-
-                    break;
-                }
-
-                case "d":
-                case "D": {
-                    // Possible start of the DELIMITER word.
-                    if (tail + 9 >= end) {
-                        ++tail;
-                        break; // Not enough input for that.
-                    }
-
-                    const candidate = sql.substring(tail, tail + 9);
-                    if (candidate.match(MySQLParsingServices.delimiterKeyword)) {
-                        // Delimiter keyword found - get the new delimiter (everything until the end of the line).
-                        // But first push anything we found so far and haven't pushed yet.
-                        if (haveContent && tail > start) {
-                            result.push({
-                                delimiter,
-                                span: { start, length: tail - start },
-                                contentStart: head,
-                                state: StatementFinishState.NoDelimiter,
-                            });
-                            start = tail;
-                        }
-
-                        head = tail;
-                        tail += 9;
-                        let run = tail;
-                        while (run < end && sql[run] !== "\n") {
-                            ++run;
-                        }
-
-                        // The new delimiter including leading and trailing whitespaces.
-                        delimiter = sql.substring(tail, run);
-                        const length = delimiter.length;
-                        delimiter = delimiter.trimStart();
-                        tail += length - delimiter.length;
-
-                        result.push({
-                            delimiter,
-                            span: { start, length: run - start },
-                            contentStart: head,
-                            state: StatementFinishState.DelimiterChange,
-                        });
-
-                        tail = run;
-                        head = tail;
-                        start = head;
-                        haveContent = false;
-                    } else {
-                        ++tail;
-
-                        if (!haveContent) {
-                            haveContent = true;
-                            head = tail;
-                        }
-                    }
-
-                    break;
-                }
-
-                default:
-                    if (sql[tail] === delimiter[0]) {
-                        // Found possible start of the delimiter. Check if it really is.
-                        if (delimiter.length === 1) {
-                            // Most common case.
-                            ++tail;
+                        if (sql[tail] === quote) {
+                            ++tail; // Skip trailing quote char if one was there.
+                        } else { // Unfinished single string.
                             result.push({
                                 delimiter,
                                 span: { start, length: tail - start },
                                 contentStart: haveContent ? head : start,
-                                state: StatementFinishState.Complete,
+                                state: StatementFinishState.OpenString,
+                            });
+                            start = tail;
+                            head = tail;
+                        }
+
+                        break;
+                    }
+
+                    case "d":
+                    case "D": {
+                        // Possible start of the DELIMITER word.
+                        if (tail + 9 >= end) {
+                            ++tail;
+                            break; // Not enough input for that.
+                        }
+
+                        const candidate = sql.substring(tail, tail + 9);
+                        if (candidate.match(MySQLParsingServices.delimiterKeyword)) {
+                            // Delimiter keyword found - get the new delimiter (everything until the end of the line).
+                            // But first push anything we found so far and haven't pushed yet.
+                            if (haveContent && tail > start) {
+                                result.push({
+                                    delimiter,
+                                    span: { start, length: tail - start },
+                                    contentStart: head,
+                                    state: StatementFinishState.NoDelimiter,
+                                });
+                                start = tail;
+                            }
+
+                            head = tail;
+                            tail += 9;
+                            let run = tail;
+                            while (run < end && sql[run] !== "\n") {
+                                ++run;
+                            }
+
+                            // The new delimiter including leading and trailing whitespaces.
+                            delimiter = sql.substring(tail, run);
+                            const length = delimiter.length;
+                            delimiter = delimiter.trimStart();
+                            tail += length - delimiter.length;
+
+                            result.push({
+                                delimiter,
+                                span: { start, length: run - start },
+                                contentStart: head,
+                                state: StatementFinishState.DelimiterChange,
                             });
 
+                            tail = run;
                             head = tail;
                             start = head;
                             haveContent = false;
                         } else {
-                            // Multi character delimiter?
-                            const candidate = sql.substring(tail, tail + delimiter.length);
-                            if (candidate === delimiter) {
-                                // Multi char delimiter is complete. Tail still points to the start of the delimiter.
-                                tail += delimiter.length;
-                                result.push({
-                                    delimiter,
-                                    span: { start, length: tail - start },
-                                    contentStart: haveContent ? head : start,
-                                    state: StatementFinishState.Complete,
-                                });
+                            ++tail;
 
+                            if (!haveContent) {
+                                haveContent = true;
                                 head = tail;
-                                start = head;
-                                haveContent = false;
-                            } else {
-                                // Not a delimiter.
-                                ++tail;
-                                if (!haveContent) {
-                                    haveContent = true;
-                                    head = tail;
-                                }
                             }
                         }
-                    } else {
+
+                        break;
+                    }
+
+                    default:
                         if (!haveContent && sql[tail] > " ") {
                             haveContent = true;
                             head = tail;
                         }
                         ++tail;
-                    }
 
-                    break;
+                        break;
+                }
             }
-
         }
 
         // Add remaining text to the range list.
