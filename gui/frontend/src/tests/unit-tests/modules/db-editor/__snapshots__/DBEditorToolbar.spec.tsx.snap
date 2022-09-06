@@ -30,6 +30,47 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           }
         }
       >
+        <Button
+          data-tooltip="Execute full script"
+          disabled={false}
+          imageOnly={true}
+          key="executeFullBlock"
+          onClick={[Function]}
+        >
+          <button
+            className="msg button imageOnly"
+            data-tooltip="Execute full script"
+            disabled={false}
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            style={
+              Object {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="toolbar-execute.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(toolbar-execute.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(toolbar-execute.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </button>
+        </Button>
         <Divider
           thickness={1}
           vertical={true}
@@ -251,6 +292,47 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           }
         }
       >
+        <Button
+          data-tooltip="Execute full script"
+          disabled={false}
+          imageOnly={true}
+          key="executeFullBlock"
+          onClick={[Function]}
+        >
+          <button
+            className="msg button imageOnly"
+            data-tooltip="Execute full script"
+            disabled={false}
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            style={
+              Object {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="toolbar-execute.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  Object {
+                    "WebkitMaskImage": "url(toolbar-execute.svg)",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url(toolbar-execute.svg)",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </button>
+        </Button>
         <Divider
           thickness={1}
           vertical={true}
