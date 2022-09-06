@@ -175,6 +175,22 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 >
                     <Icon src={executeIcon} data-tooltip="inherit" />
                 </Button>);
+        } else if (!canExecuteSubparts) {
+            leftItems.push(
+                <Button
+                    key="executeFullBlock"
+                    data-tooltip={`Execute full script`}
+                    imageOnly={true}
+                    disabled={!canExecute}
+                    onClick={
+                        () => {
+                            void requisitions.execute("editorExecuteSelectedOrAll",
+                                { startNewBlock: false, forceSecondaryEngine: false });
+                        }
+                    }
+                >
+                    <Icon src={executeIcon} data-tooltip="inherit" />
+                </Button>);
         }
 
         if (canExecuteSubparts) {
