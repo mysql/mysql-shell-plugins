@@ -83,11 +83,6 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     value: request.values?.requestPath as string,
                     span: 4,
                 },
-                requiresAuth: {
-                    caption: "Requires Authentication",
-                    span: 4,
-                    value: request.values?.requiresAuth as string,
-                },
                 itemsPerPage: {
                     caption: "Items per Page",
                     span: 4,
@@ -96,7 +91,12 @@ export class MrsSchemaDialog extends ValueDialogBase {
                 enabled: {
                     caption: "Enabled",
                     span: 4,
-                    value: request.values?.enabled as string,
+                    value: (request.values?.enabled ?? true) as boolean,
+                },
+                requiresAuth: {
+                    caption: "Requires Authentication",
+                    span: 4,
+                    value: request.values?.requiresAuth as string,
                 },
                 comments: {
                     caption: "Comments",

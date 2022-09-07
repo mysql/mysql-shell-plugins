@@ -1,0 +1,127 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import React from "react";
+
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
+import { IMySQLDbSystemShapeSummary } from "../../../communication/Oci";
+
+import {
+    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, DialogValueOption,
+} from "../../../components/Dialogs";
+
+export class MdsHWClusterDialog extends ValueDialogBase {
+    private dialogRef = React.createRef<ValueEditDialog>();
+
+    public render(): React.ReactNode {
+        return (
+            <ValueEditDialog
+                ref={this.dialogRef}
+                id="mdsHWClusterDialog"
+                onClose={this.handleCloseDialog}
+                onValidate={this.validateInput}
+            />
+        );
+    }
+
+    public show(request: IDialogRequest, title: string): void {
+        const shapes = request.parameters?.shapes as IMySQLDbSystemShapeSummary[];
+
+        this.dialogRef.current?.show(this.dialogValues(request, title, shapes), { title: "MySQL HeatWave Cluster" },
+            { shapes });
+    }
+
+    private dialogValues(request: IDialogRequest, title: string, shapes: IMySQLDbSystemShapeSummary[]): IDialogValues {
+
+        let selectedShape = shapes.find((shape) => {
+            return request.values?.shapeName === shape.name;
+        });
+
+        if (shapes.length > 0 && !selectedShape) {
+            selectedShape = shapes[0];
+        }
+
+        const mainSection: IDialogSection = {
+            caption: title,
+            values: {
+                clusterSize: {
+                    caption: "Cluster Size",
+                    value: request.values?.clusterSize as number,
+                    span: 4,
+                    options: [DialogValueOption.AutoFocus],
+                },
+                shapeName: {
+                    caption: "Shape Name",
+                    value: selectedShape?.name,
+                    choices: shapes.map((shape) => {
+                        return shape.name;
+                    }),
+                    span: 4,
+                },
+            },
+        };
+
+        return {
+            id: "mainSection",
+            sections: new Map<string, IDialogSection>([
+                ["mainSection", mainSection],
+            ]),
+        };
+    }
+
+    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
+        data?: IDictionary): void => {
+        const { onClose } = this.props;
+
+        if (closure === DialogResponseClosure.Accept && data) {
+            const mainSection = dialogValues.sections.get("mainSection");
+            if (mainSection) {
+                const values: IDictionary = {};
+                values.clusterSize = mainSection.values.clusterSize.value as number;
+                values.shapeName = mainSection.values.shapeName.value as string;
+
+                onClose(closure, values);
+            }
+        } else {
+            onClose(closure);
+        }
+    };
+
+    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+        };
+
+        if (closing) {
+            const mainSection = values.sections.get("mainSection");
+            if (mainSection) {
+                if (!mainSection.values.clusterSize.value) {
+                    result.messages.name = "The cluster size must be specified.";
+                }
+            }
+        }
+
+        return result;
+    };
+
+}

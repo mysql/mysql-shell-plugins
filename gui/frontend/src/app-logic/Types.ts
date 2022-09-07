@@ -196,6 +196,9 @@ export enum DialogType {
 
     /** A dialog to create or edit an MRS schema. */
     MrsSchema,
+
+    /** A dialog to create or edit a MySQL HeatWave cluster. */
+    MdsHeatWaveCluster,
 }
 
 /** A set of values that describe a single modal dialog request. */

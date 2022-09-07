@@ -144,7 +144,7 @@ export interface IShellPromptValues {
 
 export interface IShellDocumentWarning {
     level: "Note" | "Warning" | "Error";
-    code: "string";
+    code: number;
     message: string;
 }
 
@@ -478,9 +478,25 @@ export interface IObjectNamesData extends IGenericResponse {
 }
 
 export interface IErrorData extends IGenericResponse {
-    msg: string;
+    result: {
+        requestState: {
+            type: "ERROR";
+
+            /** The server error code. */
+            code: number;
+
+            /** Mostly a duplicate of the generic response message field (without MySQL error code). */
+            msg: string;
+
+            /** A value indicating what caused the error. */
+            source: string;
+
+            sqlstate: unknown;
+        };
+    };
 }
 
+export type ICommGenericEvent = IDispatchEvent<IGenericResponse>;
 export type ICommSimpleResultEvent = IDispatchEvent<ISimpleResultData>;
 
 // This is a temporary definition for responses that do not use the `result` field for data.

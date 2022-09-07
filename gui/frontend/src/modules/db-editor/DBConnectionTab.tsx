@@ -803,21 +803,27 @@ Execute \\help or \\? for help;`;
                         break;
                     }
                 }
-            }).catch((event): void => {
-                if (event.data?.requestId) { // Only ICommErrorEvent contains a request ID.
-                    const resultTimer = this.resultTimers.get(event.data.requestId as string);
+            }).catch((event: ICommErrorEvent): void => {
+                if (event.data.requestId) { // Only ICommErrorEvent contains a request ID.
+                    const resultTimer = this.resultTimers.get(event.data.requestId);
                     if (resultTimer) {
                         void clearIntervalAsync(resultTimer.timer).then(() => {
                             this.resultTimers.delete(event.data.requestId as string);
                         });
                     }
 
-                    const status = { type: MessageType.Error, text: `Error: ${event.message as string}` };
+                    const stateInfo = event.data.result.requestState;
+                    const status = { type: MessageType.Error, text: `Error: ${event.message}` };
 
-                    // For now test the error message, but it should come in as final response, instead.
-                    if (event.message === "Query killed") {
-                        status.type = MessageType.Warning;
-                        status.text = "Cancelled: query was prematurely stopped";
+                    switch (stateInfo.code) {
+                        case 1201: { // Query killed.
+                            status.type = MessageType.Warning;
+                            status.text = "Cancelled: query was prematurely stopped";
+
+                            break;
+                        }
+
+                        default:
                     }
 
                     void ApplicationDB.db.add("dbModuleResultData", {
@@ -840,6 +846,25 @@ Execute \\help or \\? for help;`;
                     }).then(() => {
                         context.updateResultDisplay();
                     });
+
+                    switch (stateInfo.code) {
+                        case 3889: {
+                            // Sent if a select query was executed on HeatWave, which contained a problem.
+                            this.getHeatWaveTrace(context, sql, id!, event.data.requestId, currentPage).then(() => {
+                                reject(event.message);
+                            }).catch(() => { /* Ignore further errors. */ });
+
+                            break;
+                        }
+
+                        default: {
+                            reject(event.message);
+
+                            break;
+                        }
+                    }
+
+                    return;
                 }
 
                 reject(event.message);
@@ -1122,6 +1147,125 @@ Execute \\help or \\? for help;`;
 
         });
     };
+
+    /**
+     * Starts a trace sequence to get details about a HeatWave error.
+     * The result of that trace will be added to the given context.
+     *
+     * @param context The context to add the additional info.
+     * @param sql The query which caused the trouble.
+     * @param id The id of the connection tab.
+     * @param requestId The id of the original request.
+     * @param currentPage The current result set page that is shown.
+     */
+    private async getHeatWaveTrace(context: ExecutionContext, sql: string, id: string, requestId: string,
+        currentPage: number): Promise<void> {
+        const { backend } = this.state;
+
+        if (!backend) {
+            return;
+        }
+
+        const services = CodeEditorLanguageServices.instance;
+        const type = await services.determineQueryType(context, sql);
+        if (type !== QueryType.ExplainStatement) {
+            // If the statement is not an explain statement then make it one.
+            // That avoids any large data retrieval for this trace.
+            sql = "explain " + sql;
+        }
+
+        /**
+         * Used when an error comes up while retrieving the optimizer trace.
+         *
+         * @param message The error message.
+         */
+        const addTraceError = (message: string): void => {
+            const status = {
+                type: MessageType.Error,
+                text: "Error while getting optimizer trace:\n" + message,
+            };
+
+            void ApplicationDB.db.add("dbModuleResultData", {
+                tabId: id,
+                requestId,
+                rows: [],
+                executionInfo: status,
+                hasMoreRows: false,
+                currentPage,
+            });
+
+            void context.addResultData({
+                type: "text",
+                requestId,
+                executionInfo: status,
+            }).then(() => {
+                context.updateResultDisplay();
+            });
+
+        };
+
+        // Store the current values for the optimizer trace and enable it (if it wasn't yet).
+        // Setting the offset every time is essential to trigger a reset which is required for correct results.
+        try {
+            await backend.executeWithPromise("SET @old_optimizer_trace = @@optimizer_trace, " +
+                "@old_optimizer_trace_offset = @@optimizer_trace_offset, @@optimizer_trace = \"enabled=on\", " +
+                "@@optimizer_trace_offset = -2;");
+
+            // Run the query on the primary engine.
+            await backend.executeWithPromise(sql);
+
+            // Now we can read the optimizer trace to get the details.
+            const result = await backend.executeWithPromise("SELECT QUERY, TRACE->'$**.Rapid_Offload_Fails', " +
+                "TRACE->'$**.secondary_engine_not_used' FROM INFORMATION_SCHEMA.OPTIMIZER_TRACE;");
+
+            // Restore the previous trace status.
+            backend.execute("SET @@optimizer_trace = @old_optimizer_trace, @@optimizer_trace_offset = " +
+                "@old_optimizer_trace_offset;");
+
+            if (result.length > 0) {
+                const data = result[result.length - 1] as IResultSetData;
+                const rows = data.result.rows as string[][];
+                if (rows && rows.length > 0) {
+                    const info = (rows[0][1] ?? rows[0][2]);
+
+                    // Remove outer braces and split into the two values.
+                    const values = info.substring(2, info.length - 2).split(":");
+                    if (values.length > 1) {
+                        // Remove the quotes and add this text to the error info
+                        // of the given context.
+                        const text = values[1].trim();
+                        const status = {
+                            type: MessageType.Warning,
+                            text: "Optimizer Trace:\n" + text.substring(1, text.length - 1),
+                        };
+
+                        // The result data from the trace is stored under an own request ID.
+                        // This way our automatic collection for output messages kicks in.
+                        // Otherwise the trace would overwrite the error info from the actual
+                        // query.
+                        void ApplicationDB.db.add("dbModuleResultData", {
+                            tabId: id,
+                            requestId: data.requestId ?? requestId,
+                            rows: [],
+                            executionInfo: status,
+                            hasMoreRows: false,
+                            currentPage,
+                        });
+
+                        void context.addResultData({
+                            type: "text",
+                            requestId: data.requestId ?? requestId,
+                            executionInfo: status,
+                        }).then(() => {
+                            context.updateResultDisplay();
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            addTraceError(String(error));
+        }
+    }
 
     private handleEdit = (editorId?: string): void => {
         if (editorId) {
@@ -1562,7 +1706,7 @@ Execute \\help or \\? for help;`;
             }
 
             default: {
-                // Forward any other menu action to the model.
+                // Forward any other menu action to the module.
                 const { id, onExplorerMenuAction } = this.props;
                 onExplorerMenuAction?.(id!, actionId, params);
 

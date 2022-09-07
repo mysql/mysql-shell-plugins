@@ -24,7 +24,7 @@
 import { EventType, IDispatchEvent, ListenerEntry } from "../Dispatch";
 import {
     ProtocolGui, ICommErrorEvent, ICommStartSessionEvent, ShellAPIGui, ICommSimpleResultEvent,
-    ShellPromptResponseType, IPromptReplyBackend, MessageScheduler, IGenericResponse,
+    ShellPromptResponseType, IPromptReplyBackend, MessageScheduler, IGenericResponse, ICommGenericEvent,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
@@ -167,6 +167,31 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             { rowPacketSize: settings.get("sql.rowPacketSize", 1000) });
 
         return MessageScheduler.get.sendRequest(request, { messageClass: "execute" });
+    }
+
+    public executeWithPromise(sql: string, params?: string[]): Promise<IGenericResponse[]> {
+        return new Promise((resolve, reject) => {
+            const result: IGenericResponse[] = [];
+            this.execute(sql, params).then((event: ICommGenericEvent) => {
+                switch (event.eventType) {
+                    case EventType.DataResponse: {
+                        result.push(event.data);
+                        break;
+                    }
+
+                    case EventType.FinalResponse: {
+                        result.push(event.data);
+
+                        resolve(result);
+                        break;
+                    }
+
+                    default:
+                }
+            }).catch((event: ICommErrorEvent) => {
+                reject(event.message);
+            });
+        });
     }
 
     /**

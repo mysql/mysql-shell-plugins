@@ -24,12 +24,16 @@
 import {
     commands, ExtensionContext, window, workspace, Uri, TextDocument, Range, Selection, languages,
     WorkspaceEdit,
+    StatusBarAlignment,
 } from "vscode";
 
 import { homedir } from "os";
 import { existsSync } from "fs";
 
-import { ICommErrorEvent, ICommOciBastionEvent, ICommOciSessionResultEvent } from "../../frontend/src/communication";
+import {
+    ICommErrorEvent, ICommOciBastionEvent, ICommOciMySQLDbSystemShapeListEvent, ICommOciSessionResultEvent,
+    ICompartment, IMdsProfileData,
+} from "../../frontend/src/communication";
 import { IDispatchEvent, EventType } from "../../frontend/src/supplement/Dispatch";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface";
 import { taskOutputChannel } from "./extension";
@@ -42,8 +46,14 @@ import { OciComputeInstanceTreeItem } from "./tree-providers/OCITreeProvider/Oci
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSystemTreeItem";
 import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoadBalancerTreeItem";
 import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem";
+import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model";
+
+import { DialogResponseClosure, DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
+import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 
 export class MDSCommandHandler {
+    private dialogManager = new DialogWebviewManager();
+
     private shellSession = new ShellInterfaceShellSession();
 
     private ociTreeDataProvider: OciTreeDataProvider;
@@ -258,21 +268,8 @@ export class MDSCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mds.addHWCluster",
             (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
-                    const shellArgs: string[] = [
-                        "--",
-                        "mds",
-                        "create",
-                        "heat-wave-cluster",
-                        `--db_system_id=${item.dbSystem.id.toString()}`,
-                        `--config_profile=${item.profile.profile.toString()}`,
-                        "--await_completion=true",
-                        "--raise_exceptions=true",
-                    ];
-
-                    void host.addNewShellTask("Start HeatWave Cluster", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                if (item && item.dbSystem && item.dbSystem.id && item.compartment && item.profile) {
+                    this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
                 }
             }));
 
@@ -358,21 +355,8 @@ export class MDSCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mds.rescaleHWCluster",
             (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
-                    const shellArgs: string[] = [
-                        "--",
-                        "mds",
-                        "update",
-                        "heat-wave-cluster",
-                        `--db_system_id=${item.dbSystem.id.toString()}`,
-                        `--config_profile=${item.profile.profile.toString()}`,
-                        "--await_completion=true",
-                        "--raise_exceptions=true",
-                    ];
-
-                    void host.addNewShellTask("Rescale HeatWave Cluster", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                if (item && item.dbSystem && item.dbSystem.id && item.compartment && item.profile) {
+                    this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
                 }
             }));
 
@@ -390,7 +374,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Delete DB System", shellArgs).then(() => {
+                    void host.addNewShellTask("Delete HeatWave Cluster", shellArgs).then(() => {
                         void commands.executeCommand("msg.mds.refreshOciProfiles");
                     });
                 }
@@ -594,4 +578,98 @@ export class MDSCommandHandler {
         });
     }
 
+
+    /**
+     * Shows a dialog to create a new or edit an existing MRS service.
+     *
+     * @param dbSystem The dbSystem of the HW Cluster
+     * @param compartment The compartment of the HW Cluster
+     * @param profile The OCI profile
+     * @param host The extension host
+     */
+    private showMdsHWClusterDialog(dbSystem: DbSystem, compartment: ICompartment,
+        profile: IMdsProfileData, host: ExtensionHost): void {
+
+        const statusbarItem = window.createStatusBarItem();
+        statusbarItem.text = `$(loading~spin) Fetching List of MDS HeatWave Cluster Shapes...`;
+        statusbarItem.show();
+
+        // cSpell:ignore HEATWAVECLUSTER
+        this.shellSession.mds.listDbSystemShapes("HEATWAVECLUSTER", profile.profile, compartment.id)
+            .then((event: ICommOciMySQLDbSystemShapeListEvent) => {
+                statusbarItem.hide();
+
+                const title = dbSystem.heatWaveCluster
+                    ? "Rescale the MySQL HeatWave Cluster"
+                    : "Configure the MySQL HeatWave Cluster";
+
+                const request = {
+                    id: "mdsHWClusterDialog",
+                    type: DialogType.MdsHeatWaveCluster,
+                    title,
+                    parameters: { shapes: event.data?.result },
+                    values: {
+                        clusterSize: dbSystem?.heatWaveCluster?.clusterSize,
+                        shapeName: dbSystem?.heatWaveCluster?.shapeName,
+                    },
+                };
+
+                void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
+                    // The request was not sent at all (e.g. there was already one running).
+                    if (!response || response.closure !== DialogResponseClosure.Accept) {
+                        return;
+                    }
+
+                    if (response.data) {
+                        const clusterSize = response.data.clusterSize as number;
+                        const shapeName = response.data.shapeName as string;
+
+                        if (!dbSystem.heatWaveCluster || dbSystem.heatWaveCluster.lifecycleState === "DELETED") {
+                            const shellArgs: string[] = [
+                                "--",
+                                "mds",
+                                "create",
+                                "heat-wave-cluster",
+                                `--db_system_id=${dbSystem.id.toString()}`,
+                                `--cluster_size=${clusterSize.toString()}`,
+                                `--shape_name=${shapeName}`,
+                                `--config_profile=${profile.profile.toString()}`,
+                                "--await_completion=true",
+                                "--raise_exceptions=true",
+                            ];
+
+                            void host.addNewShellTask("Create HeatWave Cluster", shellArgs).then(() => {
+                                void commands.executeCommand("msg.mds.refreshOciProfiles");
+                            });
+                        } else {
+                            if (dbSystem.heatWaveCluster && clusterSize === dbSystem.heatWaveCluster.clusterSize
+                                && shapeName === dbSystem.heatWaveCluster.shapeName) {
+                                window.setStatusBarMessage("The HeatWave Cluster parameters remained unchanged.", 6000);
+                            } else {
+                                const shellArgs: string[] = [
+                                    "--",
+                                    "mds",
+                                    "update",
+                                    "heat-wave-cluster",
+                                    `--db_system_id=${dbSystem.id.toString()}`,
+                                    `--cluster_size=${clusterSize.toString()}`,
+                                    `--shape_name=${shapeName}`,
+                                    `--config_profile=${profile.profile.toString()}`,
+                                    "--await_completion=true",
+                                    "--raise_exceptions=true",
+                                ];
+
+                                void host.addNewShellTask("Rescale HeatWave Cluster", shellArgs).then(() => {
+                                    void commands.executeCommand("msg.mds.refreshOciProfiles");
+                                });
+                            }
+                        }
+                    }
+                });
+            }).catch((errorEvent: ICommErrorEvent) => {
+                statusbarItem.hide();
+                void window.showErrorMessage(`Error while listing MySQL REST services: ` +
+                    `${errorEvent.message ?? "<unknown>"}`);
+            });
+    }
 }
