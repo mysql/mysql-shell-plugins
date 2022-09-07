@@ -21,6 +21,8 @@
 import threading
 import enum
 
+import gui_plugin.core.Logger as logger
+
 
 class DbSessionData(enum.Enum):
     PING_INTERVAL = 0
@@ -47,6 +49,10 @@ class DbPingHandler(threading.Thread):
         with self.condition:
             self.condition.notify()
 
+    def dispatch_result(self, state, message=None, id=None, data=None):
+        logger.debug3(
+            f"DBPingHandler State: {state}")
+
     def run(self):
         done = False
         while not done:
@@ -58,4 +64,5 @@ class DbPingHandler(threading.Thread):
                 # terminated
                 done = self.condition.wait(self.interval)
                 if not done:
-                    self.session.execute("SELECT 1")
+                    self.session.execute(
+                        "SELECT 1", callback=self.dispatch_result)
