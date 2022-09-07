@@ -22,7 +22,8 @@
  */
 
 import { IAuthenticationDetails, IComputeInstance, IGenericResponse } from ".";
-import { IBastionSession, IBastionSummary, IBastion, ICompartment, IMySQLDbSystem, ILoadBalancer } from "./Oci";
+import { IBastionSession, IBastionSummary, IBastion, ICompartment, IMySQLDbSystem, ILoadBalancer,
+    IMySQLDbSystemShapeSummary } from "./Oci";
 
 import { IDispatchEvent } from "../supplement/Dispatch";
 
@@ -66,6 +67,10 @@ export interface IOciLoadBalancersListData extends IGenericResponse {
     result: ILoadBalancer[];
 }
 
+export interface IOciMySQLDbSystemShapeListData extends IGenericResponse {
+    result: IMySQLDbSystemShapeSummary[];
+}
+
 export type ICommOciComputeInstanceEvent = IDispatchEvent<IOciComputeInstanceData>;
 
 export type ICommOciSessionResultEvent = IDispatchEvent<IOciBastionSessionData>;
@@ -81,3 +86,5 @@ export type ICommOciCompartmentEvent = IDispatchEvent<IOciCompartmentData>;
 export type ICommOciAuthenticationDetailsEvent = IDispatchEvent<IOciAuthenticationDetailData>;
 
 export type ICommOciLoadBalancersEvent = IDispatchEvent<IOciLoadBalancersListData>;
+
+export type ICommOciMySQLDbSystemShapeListEvent = IDispatchEvent<IOciMySQLDbSystemShapeListData>;

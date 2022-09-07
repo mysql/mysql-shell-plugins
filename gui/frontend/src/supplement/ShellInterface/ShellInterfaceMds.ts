@@ -116,4 +116,14 @@ export class ShellInterfaceMds {
 
         return MessageScheduler.get.sendRequest(request, { messageClass: "setCurrentBastion" });
     }
+
+    public listDbSystemShapes(isSupportedFor: string, configProfile: string, compartmentId: string): ListenerEntry {
+        const request = ProtocolMds.getRequestListDbSystemShapes({
+            isSupportedFor,
+            configProfile,
+            compartmentId,
+        });
+
+        return MessageScheduler.get.sendRequest(request, { messageClass: "listDbSystemShapes" });
+    }
 }

@@ -425,7 +425,7 @@ def list_db_system_shapes(**kwargs):
         return_python_object (bool): Used for internal plugin calls
 
     Returns:
-        A list of DB Systems
+        A list of DB Systems Shapes
     """
 
     is_supported_for = kwargs.get("is_supported_for", "DBSYSTEM")
@@ -1956,7 +1956,7 @@ def create_hw_cluster(**kwargs):
 
                 if shape:
                     shape_name = shape.name
-            if not shape:
+            if not shape_name:
                 raise ValueError("No shape name given.")
 
             # Initialize the DbSystem client
@@ -2090,7 +2090,7 @@ def update_hw_cluster(**kwargs):
 
                 if shape:
                     shape_name = shape.name
-            if not shape:
+            if not shape_name:
                 raise ValueError("No shape name given.")
 
             # Initialize the DbSystem client

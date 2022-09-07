@@ -85,7 +85,7 @@ export class ExtensionHost {
 
         this.serverResponseListener = ListenerEntry.createByClass("serverResponse", { persistent: true });
         this.serverResponseListener.catch((errorEvent: ICommErrorEvent) => {
-            void window.showErrorMessage(`Backend Error: ${errorEvent.data.msg}`);
+            void window.showErrorMessage(`Backend Error: ${errorEvent.data.result.requestState.msg}`);
         });
 
         this.sessionListener = ListenerEntry.createByClass("webSession",

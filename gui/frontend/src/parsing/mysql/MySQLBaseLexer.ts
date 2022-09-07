@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -230,13 +230,16 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         }
 
         // Double quoted text represents identifiers only if the ANSI QUOTES sql mode is active.
-        if (this.sqlModes.has(SqlMode.AnsiQuotes) && (type === MySQLLexer.DOUBLE_QUOTED_TEXT)) {
-            return true;
+        if (type === MySQLLexer.DOUBLE_QUOTED_TEXT) {
+            return this.sqlModes.has(SqlMode.AnsiQuotes);
         }
 
         const symbol = this.vocabulary.getSymbolicName(type);
-        if (symbol && symbol !== "" && !isReservedKeyword(symbol, numberToVersion(this.serverVersion))) {
-            return true;
+        if (symbol && symbol.endsWith("_SYMBOL")) {
+            if (!isReservedKeyword(symbol.substring(0, symbol.length - "_SYMBOL".length),
+                numberToVersion(this.serverVersion))) {
+                return true;
+            }
         }
 
         return false;
@@ -251,7 +254,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      */
     public keywordFromText(name: string): number {
         // (My)SQL only uses ASCII chars for keywords so we can do a simple case conversion here for comparison.
-        name = name.toLowerCase();
+        name = name.toUpperCase();
 
         if (!isKeyword(name, numberToVersion(this.serverVersion))) {
             return -2; // -1 can be interpreted as EOF.
@@ -262,19 +265,14 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             const max = this.vocabulary.maxTokenType;
             for (let i = 0; i <= max; ++i) {
                 const symbolName = this.vocabulary.getSymbolicName(i);
-                if (symbolName) {
-                    this.symbols.set(symbolName.toLowerCase(), i);
+                if (symbolName && symbolName.endsWith("_SYMBOL")) {
+                    this.symbols.set(symbolName.substring(0, symbolName.length - "_SYMBOL".length).toUpperCase(), i);
                 }
             }
         }
 
         // Here we know for sure we got a keyword.
-        const symbol = this.symbols.get(name);
-        if (!symbol) {
-            return -2;
-        }
-
-        return symbol;
+        return this.symbols.get(name) ?? -2;
     }
 
     // Scans from the current token position to find out which query type we are dealing with in the input.
@@ -725,13 +723,13 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         break;
                     }
 
-                    default: {
-                        return QueryType.Unknown;
+                    case MySQLLexer.TRANSACTION_SYMBOL: {
+                        return QueryType.SetTransaction;
                     }
-                }
 
-                if (token.type === MySQLLexer.TRANSACTION_SYMBOL) {
-                    return QueryType.SetTransaction;
+                    default: {
+                        return QueryType.Set;
+                    }
                 }
 
                 return QueryType.Set;
@@ -772,7 +770,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.SERVER_SYMBOL: {
+                    case MySQLLexer.MASTER_SYMBOL: {
                         return QueryType.ResetMaster;
                     }
                     case MySQLLexer.SLAVE_SYMBOL: {
@@ -906,10 +904,6 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         return QueryType.ShowVariables;
                     }
 
-                    case MySQLLexer.AUTHORS_SYMBOL: {
-                        return QueryType.ShowAuthors;
-                    }
-
                     case MySQLLexer.BINARY_SYMBOL: {
                         return QueryType.ShowBinaryLogs;
                     }
@@ -922,7 +916,8 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         return QueryType.ShowRelayLogEvents;
                     }
 
-                    case MySQLLexer.CHAR_SYMBOL: {
+                    case MySQLLexer.CHAR_SYMBOL:
+                    case MySQLLexer.CHARSET_SYMBOL: {
                         return QueryType.ShowCharset;
                     }
 
@@ -932,10 +927,6 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
 
                     case MySQLLexer.COLUMNS_SYMBOL: {
                         return QueryType.ShowColumns;
-                    }
-
-                    case MySQLLexer.CONTRIBUTORS_SYMBOL: {
-                        return QueryType.ShowContributors;
                     }
 
                     case MySQLLexer.COUNT_SYMBOL: {
@@ -1089,6 +1080,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         return QueryType.ShowPrivileges;
                     }
 
+                    case MySQLLexer.FULL_SYMBOL:
                     case MySQLLexer.PROCESSLIST_SYMBOL: {
                         return QueryType.ShowProcessList;
                     }
@@ -1156,7 +1148,8 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 return QueryType.Kill;
             }
 
-            case MySQLLexer.DESCRIBE_SYMBOL: // EXPLAIN is converted to DESCRIBE in the lexer.
+            case MySQLLexer.EXPLAIN_SYMBOL:
+            case MySQLLexer.DESCRIBE_SYMBOL:
             case MySQLLexer.DESC_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {

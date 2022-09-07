@@ -160,36 +160,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Requires Authentication
-          </label>
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg input valueEditor"
-              id="requiresAuth"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
             Items per Page
           </label>
           <div
@@ -217,10 +187,31 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
           <label
             __self="[object Object]"
             __source="[object Object]"
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              __self="[object Object]"
+              __source="[object Object]"
+              class="checkMark"
+            />
+            Enabled
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Enabled
+            Requires Authentication
           </label>
           <div
             __self="[object Object]"
@@ -232,7 +223,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               __self="[object Object]"
               __source="[object Object]"
               class="msg input valueEditor"
-              id="enabled"
+              id="requiresAuth"
               spellcheck="true"
               type="text"
             />
@@ -499,7 +490,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           <label
             __self="[object Object]"
             __source="[object Object]"
-            class="msg checkbox unchecked valueEditor"
+            class="msg checkbox checked valueEditor"
             id="makeDefault"
             tabindex="0"
           >
@@ -916,5 +907,62 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
       </Dialog>
     </ValueEditDialog>
   </MrsSchemaDialog>
+  <MdsHWClusterDialog
+    onClose={[Function]}
+  >
+    <ValueEditDialog
+      id="mdsHWClusterDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          Object {
+            "begin": Array [],
+            "end": Array [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <y>
+            <Icon
+              disabled={false}
+              src={388}
+            />
+            <Label />
+          </y>
+        }
+        className="msg valueEditDialog"
+        container={Object {}}
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            rowGap={16}
+          />
+        }
+        id="mdsHWClusterDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={Object {}}
+          id="mdsHWClusterDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+    </ValueEditDialog>
+  </MdsHWClusterDialog>
 </DialogHost>
 `;

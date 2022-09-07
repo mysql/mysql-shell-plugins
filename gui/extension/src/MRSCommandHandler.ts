@@ -24,8 +24,9 @@
 import { commands, ExtensionContext, window } from "vscode";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
 import {
-    ICommErrorEvent, ICommMrsServiceEvent, ICommSimpleResultEvent, IMrsSchemaData, IMrsServiceData, IShellDictionary,
+    ICommErrorEvent, ICommMrsServiceEvent, ICommSimpleResultEvent, IMrsSchemaData, IMrsServiceData,
 } from "../../frontend/src/communication";
+
 import { EventType } from "../../frontend/src/supplement/Dispatch";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
 

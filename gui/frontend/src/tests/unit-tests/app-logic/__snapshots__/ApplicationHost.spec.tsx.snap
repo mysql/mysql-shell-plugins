@@ -1323,6 +1323,63 @@ exports[`Application host tests Rendering About 1`] = `
             </Dialog>
           </ValueEditDialog>
         </MrsSchemaDialog>
+        <MdsHWClusterDialog
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mdsHWClusterDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mdsHWClusterDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mdsHWClusterDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+          </ValueEditDialog>
+        </MdsHWClusterDialog>
       </DialogHost>
     </div>
   </Container>
@@ -2652,6 +2709,63 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
             </Dialog>
           </ValueEditDialog>
         </MrsSchemaDialog>
+        <MdsHWClusterDialog
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mdsHWClusterDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mdsHWClusterDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mdsHWClusterDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+          </ValueEditDialog>
+        </MdsHWClusterDialog>
       </DialogHost>
     </div>
   </Container>
@@ -3981,6 +4095,63 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
             </Dialog>
           </ValueEditDialog>
         </MrsSchemaDialog>
+        <MdsHWClusterDialog
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mdsHWClusterDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mdsHWClusterDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mdsHWClusterDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+          </ValueEditDialog>
+        </MdsHWClusterDialog>
       </DialogHost>
     </div>
   </Container>
@@ -5310,6 +5481,63 @@ exports[`Application host tests Rendering Preferences 1`] = `
             </Dialog>
           </ValueEditDialog>
         </MrsSchemaDialog>
+        <MdsHWClusterDialog
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mdsHWClusterDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mdsHWClusterDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mdsHWClusterDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+          </ValueEditDialog>
+        </MdsHWClusterDialog>
       </DialogHost>
     </div>
   </Container>
@@ -6639,6 +6867,63 @@ exports[`Application host tests Standard Rendering 1`] = `
             </Dialog>
           </ValueEditDialog>
         </MrsSchemaDialog>
+        <MdsHWClusterDialog
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mdsHWClusterDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mdsHWClusterDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mdsHWClusterDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+          </ValueEditDialog>
+        </MdsHWClusterDialog>
       </DialogHost>
     </div>
   </Container>

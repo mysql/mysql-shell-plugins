@@ -379,86 +379,85 @@ describe("ProtocolMds tests", (): void => {
     });
 
     it("Test bastion requests", () => {
-        let result = ProtocolMds.getRequestListBastions({
-            compartmentId: "compartmentId1",
-            validForDbSystemId: "validForDbSystemId1", config: {}, configProfile: "default1",
-            interactive: false, returnType: "number", raiseExceptions: false,
+        let result = ProtocolMds.getRequestListBastions();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastions, undefined);
+        result = ProtocolMds.getRequestListBastions({
+            compartmentId: "compartmentId1", validForDbSystemId: "validForDbSystemId1", config: {},
+            configProfile: "default1", interactive: false, returnType: "number", raiseExceptions: false,
         });
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastions, {
-            compartment_id: "compartmentId1",
-            valid_for_db_system_id: "validForDbSystemId1", config: {}, config_profile: "default1",
-            interactive: false, return_type: "number", raise_exceptions: false,
+            compartment_id: "compartmentId1", valid_for_db_system_id: "validForDbSystemId1", config: {},
+            config_profile: "default1", interactive: false, return_type: "number", raise_exceptions: false,
         });
-        result = ProtocolMds.getRequestListBastions();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastions, undefined);
 
+        result = ProtocolMds.getRequestGetBastion();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastion, undefined);
         result = ProtocolMds.getRequestGetBastion({
-            bastionName: "myBastion", bastionId: "myBastionId1",
-            awaitState: "pending", ignoreCurrent: false, fallbackToAnyInCompartment: false,
-            compartmentId: "compartmentId1", config: {}, configProfile: "default1", interactive: true,
-            returnType: "boolean", raiseExceptions: false,
+            bastionName: "myBastion", bastionId: "myBastionId1", awaitState: "pending", ignoreCurrent: false,
+            fallbackToAnyInCompartment: false, compartmentId: "compartmentId1", config: {}, configProfile: "default1",
+            interactive: true, returnType: "boolean", raiseExceptions: false,
         });
-
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastion, {
-            bastion_name: "myBastion",
-            bastion_id: "myBastionId1", await_state: "pending", ignore_current: false,
+            bastion_name: "myBastion", bastion_id: "myBastionId1", await_state: "pending", ignore_current: false,
             fallback_to_any_in_compartment: false, compartment_id: "compartmentId1", config: {},
             config_profile: "default1", interactive: true, return_type: "boolean", raise_exceptions: false,
         });
 
+        result = ProtocolMds.getRequestCreateBastion();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastion, undefined);
         result = ProtocolMds.getRequestCreateBastion({
             bastionName: "myBastion", dbSystemId: "dbSystemMySqlId1",
             clientCidr: "/home", maxSessionTtlInSeconds: 1000, targetSubnetId: "subnetId1", awaitActiveState: false,
             compartmentId: "compartmentId1", config: {}, configProfile: "default1", ignoreCurrent: false,
             interactive: false, returnType: "any", raiseExceptions: false,
         });
-
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastion,
             {
-                bastion_name: "myBastion", db_system_id: "dbSystemMySqlId1",
-                client_cidr: "/home", max_session_ttl_in_seconds: 1000, target_subnet_id: "subnetId1",
-                await_active_state: false, compartment_id: "compartmentId1", config: {}, config_profile: "default1",
-                ignore_current: false, interactive: false, return_type: "any", raise_exceptions: false,
+                bastion_name: "myBastion", db_system_id: "dbSystemMySqlId1", client_cidr: "/home",
+                max_session_ttl_in_seconds: 1000, target_subnet_id: "subnetId1", await_active_state: false,
+                compartment_id: "compartmentId1", config: {}, config_profile: "default1", ignore_current: false,
+                interactive: false, return_type: "any", raise_exceptions: false,
             });
 
+        result = ProtocolMds.getRequestDeleteBastion();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastion, undefined);
         result = ProtocolMds.getRequestDeleteBastion({
-            bastionName: "myBastion", bastionId: "bastionId1",
-            awaitDeletion: false, compartmentId: "compartmentId1", config: {}, configProfile: "default1",
-            ignoreCurrent: false, interactive: false, raiseExceptions: false,
+            bastionName: "myBastion", bastionId: "bastionId1", awaitDeletion: false, compartmentId: "compartmentId1",
+            config: {}, configProfile: "default1", ignoreCurrent: false, interactive: false, raiseExceptions: false,
         });
-
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastion, {
-            bastion_name: "myBastion",
-            bastion_id: "bastionId1", await_deletion: false, compartment_id: "compartmentId1", config: {},
-            config_profile: "default1", ignore_current: false, interactive: false, raise_exceptions: false,
+            bastion_name: "myBastion", bastion_id: "bastionId1", await_deletion: false,
+            compartment_id: "compartmentId1", config: {}, config_profile: "default1", ignore_current: false,
+            interactive: false, raise_exceptions: false,
         });
 
+        result = ProtocolMds.getRequestListBastionSessions();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions, undefined);
         result = ProtocolMds.getRequestListBastionSessions({
-            bastionId: "bastionId1", ignoreCurrent: false,
-            compartmentId: "compartmentId1", config: {}, configProfile: "default1", interactive: false,
-            returnType: "any", raiseExceptions: false,
+            bastionId: "bastionId1", ignoreCurrent: false, compartmentId: "compartmentId1", config: {},
+            configProfile: "default1", interactive: false, returnType: "any", raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions, {
+            bastion_id: "bastionId1", ignore_current: false, compartment_id: "compartmentId1", config: {},
+            config_profile: "default1", interactive: false, return_type: "any", raise_exceptions: false,
         });
 
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions, {
-            bastion_id: "bastionId1",
-            ignore_current: false, compartment_id: "compartmentId1", config: {}, config_profile: "default1",
+
+        result = ProtocolMds.getRequestGetBastionSession();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastionSession, undefined);
+        result = ProtocolMds.getRequestGetBastionSession({
+            sessionName: "session1", sessionId: "sessionId1", bastionId: "bastionId1",
+            compartmentId: "compartmentId1", config: {}, configProfile: "default1", ignoreCurrent: false,
+            interactive: false, returnType: "any", raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastionSession, {
+            session_name: "session1", session_id: "sessionId1", bastion_id: "bastionId1",
+            compartment_id: "compartmentId1", config: {}, config_profile: "default1", ignore_current: false,
             interactive: false, return_type: "any", raise_exceptions: false,
         });
 
-
-        result = ProtocolMds.getRequestGetBastionSession({
-            sessionName: "session1", sessionId: "sessionId1",
-            bastionId: "bastionId1", compartmentId: "compartmentId1", config: {}, configProfile: "default1",
-            ignoreCurrent: false, interactive: false, returnType: "any", raiseExceptions: false,
-        });
-
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastionSession, {
-            session_name: "session1",
-            session_id: "sessionId1", bastion_id: "bastionId1", compartment_id: "compartmentId1", config: {},
-            config_profile: "default1", ignore_current: false, interactive: false, return_type: "any",
-            raise_exceptions: false,
-        });
-
+        result = ProtocolMds.getRequestCreateBastionSession();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastionSession, undefined);
         result = ProtocolMds.getRequestCreateBastionSession({
             bastionName: "myBastion", bastionId: "bastionId1",
             fallbackToAnyInCompartment: false, sessionType: "interactive", sessionName: "session1",
@@ -467,7 +466,6 @@ describe("ProtocolMds tests", (): void => {
             compartmentId: "compartmentId1", config: {}, configProfile: "default1",
             ignoreCurrent: false, interactive: false, returnType: "any", raiseExceptions: false,
         });
-
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastionSession, {
             bastion_name: "myBastion", bastion_id: "bastionId1",
             fallback_to_any_in_compartment: false, session_type: "interactive", session_name: "session1",
@@ -477,6 +475,8 @@ describe("ProtocolMds tests", (): void => {
             ignore_current: false, interactive: false, return_type: "any", raise_exceptions: false,
         });
 
+        result = ProtocolMds.getRequestDeleteBastionSession();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastionSession, undefined);
         result = ProtocolMds.getRequestDeleteBastionSession({
             sessionName: "my session", sessionId: "mySessionId2", bastionName: "Bastion 1",
             bastionId: "myBastion1", compartmentId: "compartmentId", config: {},
@@ -489,43 +489,105 @@ describe("ProtocolMds tests", (): void => {
                 config_profile: "default1", ignore_current: false, interactive: false, raise_exceptions: false,
             });
 
+        result = ProtocolMds.getRequestSetCurrentBastion();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentBastion, undefined);
         result = ProtocolMds.getRequestSetCurrentBastion({
             bastionName: "Bastion 1", bastionId: "myBastion1",
             compartmentId: "compartmentId", config: {}, configProfile: "default1", profileName: "default",
             cliRcFilePath: "~/.oci/oci_cli_rc", raiseExceptions: false, interactive: false,
         });
-
         testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentBastion, {
             bastion_name: "Bastion 1",
             bastion_id: "myBastion1", compartment_id: "compartmentId", config: {}, config_profile: "default1",
             profile_name: "default", cli_rc_file_path: "~/.oci/oci_cli_rc", raise_exceptions: false,
             interactive: false,
         });
-
-        result = ProtocolMds.getRequestGetBastion();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastion, undefined);
-
-        result = ProtocolMds.getRequestCreateBastion();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastion, undefined);
-
-        result = ProtocolMds.getRequestDeleteBastion();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastion, undefined);
-
-        result = ProtocolMds.getRequestListBastionSessions();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListBastionSessions, undefined);
-
-
-        result = ProtocolMds.getRequestGetBastionSession();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetBastionSession, undefined);
-
-        result = ProtocolMds.getRequestCreateBastionSession();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateBastionSession, undefined);
-
-        result = ProtocolMds.getRequestDeleteBastionSession();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteBastionSession, undefined);
-
-        result = ProtocolMds.getRequestSetCurrentBastion();
-        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsSetCurrentBastion, undefined);
     });
 
+    it("Test HeatWave requests", () => {
+        let result = ProtocolMds.getRequestListDbSystemShapes();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListDbSystemShapes, undefined);
+        result = ProtocolMds.getRequestListDbSystemShapes({
+            isSupportedFor: "xyz", availabilityDomain: "domain", compartmentId: "12345", config: {},
+            configProfile: "myProfile", interactive: true, raiseExceptions: false, returnFormatted: true,
+            returnPythonObject: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsListDbSystemShapes, {
+            is_supported_for: "xyz", availability_domain: "domain", compartment_id: "12345", config: {},
+            config_profile: "myProfile", interactive: true, raise_exceptions: false, return_formatted: true,
+            return_python_object: false,
+        });
+
+        result = ProtocolMds.getRequestStopHeatWaveCluster();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStopHeatWaveCluster, undefined);
+        result = ProtocolMds.getRequestStopHeatWaveCluster({
+            dbSystemName: "name", dbSystemId: "id", awaitCompletion: true, ignoreCurrent: false, compartmentId: "id",
+            config: { a: 1, b: 2 }, configProfile: "myProfile", interactive: false, raiseExceptions: true,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStopHeatWaveCluster, {
+            db_system_name: "name", db_system_id: "id", await_completion: true, ignore_current: false,
+            compartment_id: "id", config: { a: 1, b: 2 }, config_profile: "myProfile", interactive: false,
+            raise_exceptions: true,
+        });
+
+        result = ProtocolMds.getRequestStartHeatWaveCluster();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStartHeatWaveCluster, undefined);
+        result = ProtocolMds.getRequestStartHeatWaveCluster({
+            dbSystemName: "name", dbSystemId: "id", awaitCompletion: true, ignoreCurrent: true, compartmentId: "id",
+            config: { a: 1, b: 2 }, configProfile: "myProfile", interactive: true, raiseExceptions: true,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsStartHeatWaveCluster, {
+            db_system_name: "name", db_system_id: "id", await_completion: true, ignore_current: true,
+            compartment_id: "id", config: { a: 1, b: 2 }, config_profile: "myProfile", interactive: true,
+            raise_exceptions: true,
+        });
+
+        result = ProtocolMds.getRequestRestartHeatWaveCluster();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsRestartHeatWaveCluster, undefined);
+        result = ProtocolMds.getRequestRestartHeatWaveCluster({
+            dbSystemName: "name", dbSystemId: "id", awaitCompletion: true, ignoreCurrent: true, compartmentId: "id",
+            config: { a: 1, b: 2 }, configProfile: "myProfile", interactive: true, raiseExceptions: true,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsRestartHeatWaveCluster, {
+            db_system_name: "name", db_system_id: "id", await_completion: true, ignore_current: true,
+            compartment_id: "id", config: { a: 1, b: 2 }, config_profile: "myProfile", interactive: true,
+            raise_exceptions: true,
+        });
+
+        result = ProtocolMds.getRequestCreateHeatWaveCluster();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateHeatWaveCluster, undefined);
+        result = ProtocolMds.getRequestCreateHeatWaveCluster({
+            dbSystemName: "name", dbSystemId: "id", ignoreCurrent: false, clusterSize: 1e2, shapeName: "myShape",
+            awaitCompletion: false, compartmentId: "id", interactive: false, raiseExceptions: false,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsCreateHeatWaveCluster, {
+            db_system_name: "name", db_system_id: "id", ignore_current: false, cluster_size: 1e2, shape_name: "myShape",
+            await_completion: false, compartment_id: "id", interactive: false, raise_exceptions: false,
+        });
+
+        result = ProtocolMds.getRequestUpdateHeatWaveCluster();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUpdateHeatWaveCluster, undefined);
+        result = ProtocolMds.getRequestUpdateHeatWaveCluster({
+            dbSystemName: "name", dbSystemId: "id", ignoreCurrent: false, clusterSize: 1e2, shapeName: "myShape",
+            awaitCompletion: false, compartmentId: "id", config: { a: 1, b: 2 }, configProfile: "myProfile",
+            interactive: true, raiseExceptions: true,
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsUpdateHeatWaveCluster, {
+            db_system_name: "name", db_system_id: "id", ignore_current: false, cluster_size: 1e2, shape_name: "myShape",
+            await_completion: false, compartment_id: "id", config: { a: 1, b: 2 }, config_profile: "myProfile",
+            interactive: true, raise_exceptions: true,
+        });
+
+        result = ProtocolMds.getRequestDeleteHeatWaveCluster();
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteHeatWaveCluster, undefined);
+        result = ProtocolMds.getRequestDeleteHeatWaveCluster({
+            dbSystemName: "name", dbSystemId: "id", awaitCompletion: false, compartmentId: "id", interactive: false,
+            raiseExceptions: false, ignoreCurrent: true, config: { c: 3, d: 4 }, configProfile: "myProfile",
+        });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsDeleteHeatWaveCluster, {
+            db_system_name: "name", db_system_id: "id", await_completion: false, compartment_id: "id",
+            interactive: false, raise_exceptions: false, ignore_current: true, config: { c: 3, d: 4 },
+            config_profile: "myProfile",
+        });
+    });
 });

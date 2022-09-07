@@ -27,8 +27,8 @@ import {
     ConfirmDialog, DialogValueOption, IDialogSection, IDialogValues, PasswordDialog, ValueDialogBase, ValueEditDialog,
 } from "../components/Dialogs";
 import { Component } from "../components/ui";
+import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
 import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
-
 import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
 import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
@@ -87,6 +87,13 @@ export class DialogHost extends Component {
         dialogs.push(<MrsSchemaDialog
             ref={ref2}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsSchema)}
+        />);
+
+        const ref3 = React.createRef<MdsHWClusterDialog>();
+        this.dialogRefs.set(DialogType.MdsHeatWaveCluster, ref3);
+        dialogs.push(<MdsHWClusterDialog
+            ref={ref3}
+            onClose={this.handleDialogClose.bind(this, DialogType.MdsHeatWaveCluster)}
         />);
 
         return (

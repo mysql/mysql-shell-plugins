@@ -24,7 +24,6 @@
 import { Protocol, IShellRequest, IShellDictionary } from ".";
 
 
-
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -46,6 +45,7 @@ export enum ShellAPIMds {
     MdsDeleteComputeInstance = "mds.delete.compute_instance",
     MdsUtilCreateMdsEndpoint = "mds.util.create_mds_endpoint",
     MdsGetDbSystemConfiguration = "mds.get.db_system_configuration",
+    MdsListDbSystemShapes = "mds.list.db_system_shapes",
     MdsListDbSystems = "mds.list.db_systems",
     MdsGetDbSystem = "mds.get.db_system",
     MdsGetDbSystemId = "mds.get.db_system_id",
@@ -55,6 +55,12 @@ export enum ShellAPIMds {
     MdsStopDbSystem = "mds.stop.db_system",
     MdsStartDbSystem = "mds.start.db_system",
     MdsRestartDbSystem = "mds.restart.db_system",
+    MdsStopHeatWaveCluster = "mds.stop.heat_wave_cluster",
+    MdsStartHeatWaveCluster = "mds.start.heat_wave_cluster",
+    MdsRestartHeatWaveCluster = "mds.restart.heat_wave_cluster",
+    MdsCreateHeatWaveCluster = "mds.create.heat_wave_cluster",
+    MdsUpdateHeatWaveCluster = "mds.update.heat_wave_cluster",
+    MdsDeleteHeatWaveCluster = "mds.delete.heat_wave_cluster",
     MdsListLoadBalancers = "mds.list.load_balancers",
     MdsListBastions = "mds.list.bastions",
     MdsGetBastion = "mds.get.bastion",
@@ -212,6 +218,19 @@ export interface IShellGetDbSystemConfigurationKwargs {
 }
 
 
+export interface IShellListDbSystemShapesKwargs {
+    isSupportedFor?: string;
+    availabilityDomain?: string;
+    compartmentId?: string;
+    config?: object;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+    returnFormatted?: boolean;
+    returnPythonObject?: boolean;
+}
+
+
 export interface IShellListDbSystemsKwargs {
     compartmentId?: string;
     config?: object;
@@ -331,6 +350,88 @@ export interface IShellStartDbSystemKwargs {
 
 
 export interface IShellRestartDbSystemKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    awaitCompletion?: boolean;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellStopHeatWaveClusterKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    awaitCompletion?: boolean;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellStartHeatWaveClusterKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    awaitCompletion?: boolean;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellRestartHeatWaveClusterKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    awaitCompletion?: boolean;
+    ignoreCurrent?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellCreateHeatWaveClusterKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    ignoreCurrent?: boolean;
+    clusterSize?: number;
+    shapeName?: string;
+    awaitCompletion?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellUpdateHeatWaveClusterKwargs {
+    dbSystemName?: string;
+    dbSystemId?: string;
+    ignoreCurrent?: boolean;
+    clusterSize?: number;
+    shapeName?: string;
+    awaitCompletion?: boolean;
+    compartmentId?: string;
+    config?: IShellDictionary;
+    configProfile?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellDeleteHeatWaveClusterKwargs {
     dbSystemName?: string;
     dbSystemId?: string;
     awaitCompletion?: boolean;
@@ -966,13 +1067,50 @@ export class ProtocolMds extends Protocol {
     }
 
     /**
+     * Lists Shapes available for MySQL DB Systems
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * Lists all shapes of a given compartment.
+     *
+     * <b>Returns:</b>
+     *
+     *     A list of DB Systems Shapes
+     */
+    public static getRequestListDbSystemShapes(kwargs?: IShellListDbSystemShapesKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                is_supported_for: kwargs.isSupportedFor,
+                availability_domain: kwargs.availabilityDomain,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+                return_formatted: kwargs.returnFormatted,
+                return_python_object: kwargs.returnPythonObject,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsListDbSystemShapes,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
      * Lists MySQL DB Systems
      *
      * @param kwargs Optional parameters
      *
      * @returns Not documented
      *
-     * Lists all users of a given compartment.
+     * Lists all DB Systems of a given compartment.
      *
      * <b>Returns:</b>
      *
@@ -1306,6 +1444,232 @@ export class ProtocolMds extends Protocol {
         }
 
         return Protocol.getRequestCommandExecute(ShellAPIMds.MdsRestartDbSystem,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Stops the HeatWave cluster with the given DBSystem id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestStopHeatWaveCluster(kwargs?: IShellStopHeatWaveClusterKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsStopHeatWaveCluster,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Starts the HeatWave cluster with the given DBSystem id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestStartHeatWaveCluster(kwargs?: IShellStartHeatWaveClusterKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsStartHeatWaveCluster,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Restarts the HeatWave cluster with the given DBSystem id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestRestartHeatWaveCluster(kwargs?: IShellRestartHeatWaveClusterKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsRestartHeatWaveCluster,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Adds a HeatWave cluster to the DbSystem with the given id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestCreateHeatWaveCluster(kwargs?: IShellCreateHeatWaveClusterKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                ignore_current: kwargs.ignoreCurrent,
+                cluster_size: kwargs.clusterSize,
+                shape_name: kwargs.shapeName,
+                await_completion: kwargs.awaitCompletion,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsCreateHeatWaveCluster,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Update the HeatWave cluster for a DbSystem with the given id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestUpdateHeatWaveCluster(kwargs?: IShellUpdateHeatWaveClusterKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                ignore_current: kwargs.ignoreCurrent,
+                cluster_size: kwargs.clusterSize,
+                shape_name: kwargs.shapeName,
+                await_completion: kwargs.awaitCompletion,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsUpdateHeatWaveCluster,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Deletes the DbSystem with the given id
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns Not documented
+     *
+     * If no id is given, it will prompt the user for the id.
+     *
+     * <b>Returns:</b>
+     *
+     *    None
+     */
+    public static getRequestDeleteHeatWaveCluster(kwargs?: IShellDeleteHeatWaveClusterKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_system_name: kwargs.dbSystemName,
+                db_system_id: kwargs.dbSystemId,
+                await_completion: kwargs.awaitCompletion,
+                ignore_current: kwargs.ignoreCurrent,
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                config_profile: kwargs.configProfile,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsDeleteHeatWaveCluster,
             {
                 args: {},
                 kwargs: kwargsToUse,
