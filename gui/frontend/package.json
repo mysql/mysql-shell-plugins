@@ -84,7 +84,7 @@
         "build-win": "call scripts/production-build.cmd false",
         "build-win-with-maps": "call scripts/production-build.cmd true",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
-        "update-snapshots": "react-scripts test --runInBand --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --watchAll=false -u",
+        "update-snapshots": "react-scripts test --runInBand --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --setupFilesAfterEnv \"./src/tests/setupUnitTests.ts\" --no-coverage  --watchAll=false -u",
         "test": "npm run unit-tests --",
         "unit-tests": "react-scripts test --runInBand --testMatch [ \"**/tests/unit-tests/**/*.spec.[jt]s?(x)\" ] --setupFilesAfterEnv \"./src/tests/setupUnitTests.ts\" --coverage --watchAll=false",
         "e2e-tests-update": "webdriver-manager update --out_dir ../../src/tests/e2e/selenium",
