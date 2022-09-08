@@ -1079,9 +1079,9 @@ Execute \\help or \\? for help;`;
                     workerPool.runTask({ api: ScriptingApi.Request, code: context.code, contextId: context.id })
                         .then((taskId: number, data: IConsoleWorkerResultData) => {
                             this.handleTaskResult(taskId, data);
-
-                            resolve(true);
                         });
+
+                    resolve(true);
 
                     break;
                 }
@@ -1098,18 +1098,17 @@ Execute \\help or \\? for help;`;
                         contextId: context.id,
                     }).then((taskId: number, data: IConsoleWorkerResultData) => {
                         this.handleTaskResult(taskId, data);
-
-                        resolve(true);
                     });
+
+                    resolve(true);
 
                     break;
                 }
 
                 case "sql":
                 case "mysql": {
-                    void this.runSQLCode(context as SQLExecutionContext, options).then(() => {
-                        resolve(true);
-                    });
+                    void this.runSQLCode(context as SQLExecutionContext, options);
+                    resolve(true);
 
                     break;
                 }
