@@ -35,10 +35,14 @@ export interface IButtonProperties extends IComponentProperties {
     caption?: string;
     round?: boolean;
     orientation?: Orientation;
-    imageOnly?: boolean;       // When set the button gets no min width or extra padding.
-    isDefault?: boolean;         // If set this button gets the initial focus.
 
-    // Buttons can automatically trigger requests, if no parameter is required.
+    /** When set the button gets no min width or extra padding. */
+    imageOnly?: boolean;
+
+    /** If set this button gets the initial focus. */
+    isDefault?: boolean;
+
+    /** Buttons can automatically trigger requests, if no parameter is required. */
     requestType?: keyof IRequestTypeMap;
 
     focusOnClick?: boolean;
@@ -51,8 +55,8 @@ export class Button extends Component<IButtonProperties> {
     public constructor(props: IButtonProperties) {
         super(props);
 
-        this.addHandledProperties("innerRef", "round", "style", "orientation", "imageOnly", "isDefault", "requestType",
-            "commandParams", "focusOnClick");
+        this.addHandledProperties("innerRef", "round", "orientation", "imageOnly", "isDefault", "requestType",
+            "focusOnClick");
 
         if (props.requestType) {
             this.connectEvents("onClick");

@@ -156,7 +156,7 @@ export interface IRequestTypeMap {
     "editorRunCommand": (details: { command: string; context: IExecutionContext }) => Promise<boolean>;
     "editorToggleStopExecutionOnError": (active: boolean) => Promise<boolean>;
     "editorStopExecution": SimpleCallback;
-    "editorToggleAutoCommit": (active: boolean) => Promise<boolean>;
+    "editorToggleAutoCommit": SimpleCallback;
     "editorExecuteExplain": SimpleCallback;
     "editorCommit": SimpleCallback;
     "editorRollback": SimpleCallback;

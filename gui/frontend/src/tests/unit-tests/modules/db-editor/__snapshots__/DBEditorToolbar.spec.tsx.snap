@@ -89,6 +89,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
         <Button
           data-tooltip="Format current block or script"
           imageOnly={true}
+          key="editorFormatButton"
           requestType="editorFormat"
         >
           <button
@@ -142,6 +143,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
         <Button
           data-tooltip="Find"
           imageOnly={true}
+          key="editorFindButton"
           requestType="editorFind"
         >
           <button
@@ -180,6 +182,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
         <Button
           data-tooltip="Show hidden characters"
           imageOnly={true}
+          key="editorShowHiddenButton"
           onClick={[Function]}
         >
           <button
@@ -218,6 +221,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
         <Button
           data-tooltip="Soft wrap lines "
           imageOnly={true}
+          key="editorToggleSoftWrapButton"
           onClick={[Function]}
         >
           <button
@@ -351,6 +355,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
         <Button
           data-tooltip="Format current block or script"
           imageOnly={true}
+          key="editorFormatButton"
           requestType="editorFormat"
         >
           <button
@@ -404,6 +409,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
         <Button
           data-tooltip="Find"
           imageOnly={true}
+          key="editorFindButton"
           requestType="editorFind"
         >
           <button
@@ -442,6 +448,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
         <Button
           data-tooltip="Show hidden characters"
           imageOnly={true}
+          key="editorShowHiddenButton"
           onClick={[Function]}
         >
           <button
@@ -480,6 +487,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
         <Button
           data-tooltip="Soft wrap lines "
           imageOnly={true}
+          key="editorToggleSoftWrapButton"
           onClick={[Function]}
         >
           <button

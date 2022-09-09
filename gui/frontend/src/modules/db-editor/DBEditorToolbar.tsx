@@ -246,6 +246,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
 
             leftItems.push(
                 /*<Button
+                    key="editorExplainButton"
                     data-tooltip="Execute Explain for the statement at the caret position"
                     requestType="editorExecuteExplain"
                     imageOnly={true}
@@ -254,6 +255,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                     <Icon src={executeExplainIcon} data-tooltip="inherit" />
                 </Button>,*/
                 <Button
+                    key="editorStpExecutionButton"
                     data-tooltip="Stop execution of the current statement/script"
                     requestType="editorStopExecution"
                     imageOnly={true}
@@ -262,6 +264,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                     <Icon src={stopExecutionIcon} data-tooltip="inherit" />
                 </Button>,
                 <Button
+                    key="editorStpExecutionOnErrorButton"
                     data-tooltip="Stop execution of the current statement/script in case of errors"
                     imageOnly={true}
                     onClick={
@@ -278,6 +281,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         if (canExecuteSubparts) {
             leftItems.push(
                 <Button
+                    key="commitButton"
                     data-tooltip="Commit DB changes"
                     requestType="editorCommit"
                     imageOnly={true}
@@ -286,6 +290,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                     <Icon src={commitIcon} data-tooltip="inherit" />
                 </Button>,
                 <Button
+                    key="rollbackButton"
                     data-tooltip="Rollback DB changes"
                     requestType="editorRollback"
                     imageOnly={true}
@@ -294,19 +299,20 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                     <Icon src={rollbackIcon} data-tooltip="inherit" />
                 </Button>,
                 <Button
+                    key="autoCommitButton"
                     data-tooltip="Auto commit DB changes"
+                    requestType="editorToggleAutoCommit"
                     imageOnly={true}
-                    onClick={
-                        () => { void requisitions.execute("editorToggleAutoCommit", autoCommit); }
-                    }
                 >
                     <Icon src={autoCommitIcon} data-tooltip="inherit" />
                 </Button>,
-                <Divider vertical={true} thickness={1} />);
+                <Divider vertical={true} thickness={1} />,
+            );
         }
 
         leftItems.push(
             <Button
+                key="editorFormatButton"
                 data-tooltip="Format current block or script"
                 requestType="editorFormat"
                 imageOnly={true}
@@ -315,6 +321,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
             </Button>,
             <Divider vertical={true} thickness={1} />,
             <Button
+                key="editorFindButton"
                 data-tooltip="Find"
                 requestType="editorFind"
                 imageOnly={true}
@@ -322,6 +329,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 <Icon src={searchIcon} data-tooltip="inherit" />
             </Button>,
             <Button
+                key="editorShowHiddenButton"
                 data-tooltip="Show hidden characters"
                 imageOnly={true}
                 onClick={this.toggleHidden}
@@ -329,6 +337,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 <Icon src={showHiddenIcon} data-tooltip="inherit" />
             </Button>,
             <Button
+                key="editorToggleSoftWrapButton"
                 data-tooltip="Soft wrap lines "
                 imageOnly={true}
                 onClick={
@@ -394,11 +403,12 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         return Promise.resolve(true);
     };
 
-    private toggleAutoCommit = async (active: boolean): Promise<boolean> => {
+    private toggleAutoCommit = async (): Promise<boolean> => {
         const { backend } = this.props;
+        const { autoCommit } = this.state;
 
         try {
-            await backend?.setAutoCommit(!active);
+            await backend?.setAutoCommit(!autoCommit);
             await this.queryAutoCommit();
         } catch (reason) {
             void requisitions.execute("showError",
