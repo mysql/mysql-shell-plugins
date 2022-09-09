@@ -1,5 +1,17 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.4.1+8.0.30
+
+### Additions
+
+- Added automatic MySQL optimizer trace and output when execution on HeatWave fails
+- Added dedicated dialog for HeatWave cluster settings
+
+### Fixes
+
+- A new SQL Block is now added directly after the query execution has started (instead of waiting for the query to finish) if requested
+- Copy CREATE statement to clipboard in the Connection Tree context menu has been fixed
+
 ## Changes in 1.4.0+8.0.30
 
 ### Additions
