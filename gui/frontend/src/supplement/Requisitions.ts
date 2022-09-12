@@ -21,7 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// eslint-disable-next-line max-classes-per-file
 import React from "react";
 
 import {
@@ -40,20 +39,20 @@ import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, EntityType } from ".
 import { RequisitionPipeline } from "./RequisitionPipeline";
 import { IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 
-export const appParameters: AppParameters = new Map<string, string>();
+export const appParameters: Map<string, string> & IAppParameters = new Map<string, string>();
 
-class AppParameters extends Map<string, string> {
-    // Indicates if the app runs under control of a wrapper app (a web client control embedded in a desktop app).
-    public embedded?: boolean;
+interface IAppParameters {
+    /** Indicates if the app runs under control of a wrapper app (a web client control embedded in a desktop app). */
+    embedded?: boolean;
 
-    // Indicates if the app runs in the VS Code extension.
-    public inExtension?: boolean;
+    /** Indicates if the app runs in the VS Code extension. */
+    inExtension?: boolean;
 
-    // Set when debugging of the web app (not the extension) is ongoing.
-    public inDevelopment?: boolean;
+    /** Set when debugging of the web app (not the extension) is ongoing. */
+    inDevelopment?: boolean;
 
-    // Indicates if unit tests are running.
-    public testsRunning?: boolean;
+    /** Indicates if unit tests are running. */
+    testsRunning?: boolean;
 }
 
 /**
@@ -82,39 +81,43 @@ const parseAppParameters = (): void => {
     }
 };
 
-type SimpleCallback = (_: undefined) => Promise<boolean>;
+type SimpleCallback = (_: unknown) => Promise<boolean>;
 
 export interface IOpenDialogFilters {
     [key: string]: string[];
 }
 
-// This is essentially a copy of the vscode OpenDialogOptions interface.
+/** This is essentially a copy of the vscode OpenDialogOptions interface. */
 export interface IOpenDialogOptions {
-    // Resource Id which trigger open dialog
+    /** Resource Id which trigger open dialog */
     id?: string;
 
-    // The resource the dialog shows when opened.
+    /** The resource the dialog shows when opened. */
     default?: string;
 
-    // A human-readable string for the open button.
+    /** A human-readable string for the open button. */
     openLabel?: string;
 
-    // Allow to select files, defaults to `true`.
+    /** Allow to select files, defaults to `true`. */
     canSelectFiles?: boolean;
 
-    // Allow to select folders, defaults to `false`.
+    /** Allow to select folders, defaults to `false`. */
     canSelectFolders?: boolean;
 
-    // Allow to select many files or folders.
+    /** Allow to select many files or folders. */
     canSelectMany?: boolean;
 
-    // A set of file filters that are used by the dialog. For example:
-    //  'Images': ['png', 'jpg']
-    //  'TypeScript': ['ts', 'tsx']
+    /**
+     *  A set of file filters that are used by the dialog. For example:
+     * 'Images': ['png', 'jpg']
+     *  'TypeScript': ['ts', 'tsx']
+     */
     filters?: IOpenDialogFilters;
 
-    // Dialog title. This parameter might be ignored, as not all operating systems display a title on
-    // open dialogs (for example, macOS).
+    /**
+     * Dialog title. This parameter might be ignored, as not all operating systems display a title on
+     * open dialogs (for example, macOS).
+     */
     title?: string;
 }
 
@@ -199,7 +202,7 @@ export interface IRequestTypeMap {
     "showPreferences": SimpleCallback;
     "showModule": (module: string) => Promise<boolean>;
     "showPage": (data: { module: string; page: string }) => Promise<boolean>;
-    "showPageSection": (data: { type: EntityType; id: string }) => Promise<boolean>;
+    "showPageSection": (type: EntityType) => Promise<boolean>;
 
     "showDialog": (request: IDialogRequest) => Promise<boolean>;
     "dialogResponse": (response: IDialogResponse) => Promise<boolean>;
@@ -217,30 +220,30 @@ export interface IRequestTypeMap {
 
     "connectedToUrl": (url?: URL) => Promise<boolean>;
     "refreshSessions": (sessions: IShellSessionDetails[]) => Promise<boolean>;
-    "closeInstance": () => Promise<boolean>;
+    "closeInstance": SimpleCallback;
     "createNewScript": (request: INewScriptRequest) => Promise<boolean>;
 
     "dbFileDropped": (fileName: string) => Promise<boolean>;
 
     "hostThemeChange": (data: { css: string; themeClass: string }) => Promise<boolean>;
 
-    // A list of requests that must be executed sequentially.
+    /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IRequestListEntry<keyof IRequestTypeMap>>) => Promise<boolean>;
 
-    // Pass text around (e.g. for debugging).
+    /** Pass text around (e.g. for debugging). */
     "message": (message: string) => Promise<boolean>;
 
-    // For unit tests only.
+    /** For unit tests only. */
     "testButtonClick": SimpleCallback;
 
 }
 
-// A function that can be use to send messages between host and client parts in embedded scenarios.
+/** A function that can be use to send messages between host and client parts in embedded scenarios. */
 interface IRemoteTarget {
     postMessage: (data: IEmbeddedMessage, origin: string) => void;
 }
 
-// A generic type to extract the (single) callback parameter type from the callback map.
+/** A generic type to extract the (single) callback parameter type from the callback map. */
 export type IRequisitionCallbackValues<K extends keyof IRequestTypeMap> = Parameters<IRequestTypeMap[K]>[0];
 
 export interface IRequestListEntry<K extends keyof IRequestTypeMap> {
@@ -464,7 +467,7 @@ export class RequisitionHub {
                 // (wrong) intersection type.
                 // See also https://stackoverflow.com/questions/55933800/typescript-unexpected-intersection.
                 // And even worse: if there are callbacks with a mix of simple types (e.g. string and boolean), this
-                // intersection type becomes `never`, which is totally odd.
+                // intersection type becomes `never`, which requires that explicit cast here.
                 promises.push(callback(parameter as never));
             });
 

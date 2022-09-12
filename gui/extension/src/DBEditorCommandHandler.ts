@@ -43,6 +43,7 @@ import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-
 import { CodeBlocks } from "./CodeBlocks";
 import { uuid } from "../../frontend/src/utilities/helpers";
 import { DBType } from "../../frontend/src/supplement/ShellInterface";
+import { WebviewProvider } from "./web-views/WebviewProvider";
 
 // A class to handle all DB editor related commands and jobs.
 export class DBEditorCommandHandler {
@@ -50,6 +51,8 @@ export class DBEditorCommandHandler {
 
     // All open DB editor view providers.
     private providers: DBConnectionViewProvider[] = [];
+    private lastActiveProvider?: DBConnectionViewProvider;
+
     private url?: URL;
 
     private codeBlocks = new CodeBlocks();
@@ -100,19 +103,19 @@ export class DBEditorCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.showServerStatus",
             (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(caption, String(id), uuid(), EntityType.Status);
+                void provider?.showPageSection(caption, String(id), EntityType.Status);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showClientConnections",
             (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(caption, String(id), uuid(), EntityType.Connections);
+                void provider?.showPageSection(caption, String(id), EntityType.Connections);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showPerformanceDashboard",
             (caption: string, id: number) => {
                 const provider = this.currentProvider;
-                void provider?.showPageSection(caption, String(id), uuid(), EntityType.Dashboard);
+                void provider?.showPageSection(caption, String(id), EntityType.Dashboard);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.insertScript", (item: ScriptTreeItem) => {
@@ -381,27 +384,20 @@ export class DBEditorCommandHandler {
     }
 
     private get currentProvider(): DBConnectionViewProvider | undefined {
+        if (this.lastActiveProvider) {
+            return this.lastActiveProvider;
+        }
+
         if (this.providers.length > 0) {
             return this.providers[this.providers.length - 1];
-        } else {
-            return this.newProvider;
         }
+
+        return this.newProvider;
     }
 
     private get newProvider(): DBConnectionViewProvider | undefined {
         if (this.url) {
-            const provider = new DBConnectionViewProvider(this.url, (view) => {
-                const index = this.providers.findIndex((candidate) => {
-                    return candidate === view;
-                });
-
-                if (index > -1) {
-                    this.providers.splice(index, 1);
-                }
-
-                // Remove also any open script entry.
-                this.openScripts.delete(view as DBConnectionViewProvider);
-            });
+            const provider = new DBConnectionViewProvider(this.url, this.providerDisposed, this.providerStateChanged);
 
             this.providers.push(provider);
 
@@ -410,6 +406,29 @@ export class DBEditorCommandHandler {
 
         return undefined;
     }
+
+    private providerDisposed = (provider: WebviewProvider): void => {
+        const index = this.providers.findIndex((candidate) => {
+            return candidate === provider;
+        });
+
+        if (index > -1) {
+            this.providers.splice(index, 1);
+        }
+
+        if (this.lastActiveProvider === provider) {
+            this.lastActiveProvider = undefined;
+        }
+
+        // Remove also any open script entry.
+        this.openScripts.delete(provider as DBConnectionViewProvider);
+    };
+
+    private providerStateChanged = (provider: WebviewProvider, active: boolean): void => {
+        if (active) {
+            this.lastActiveProvider = provider as DBConnectionViewProvider;
+        }
+    };
 
     private connectedToUrl = (url?: URL): Promise<boolean> => {
         this.url = url;

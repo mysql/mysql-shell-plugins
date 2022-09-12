@@ -62,6 +62,7 @@ import {
 import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
 import { PerformanceDashboard } from "./PerformanceDashboard";
+import { uuid } from "../../utilities/helpers";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
@@ -143,6 +144,11 @@ interface IDBConnectionTabState extends IComponentState {
 
 // A tab page for a single connection (managed by the scripting module).
 export class DBConnectionTab extends Component<IDBConnectionTabProperties, IDBConnectionTabState> {
+
+    // Unique IDs for the fixed admin sections.
+    public static serverStatusId = uuid();
+    public static clientConnectionsId = uuid();
+    public static performanceDashboardId = uuid();
 
     private static aboutMessage = `Welcome to the MySQL Shell - DB Editor.
 
@@ -471,8 +477,8 @@ Execute \\help or \\? for help;`;
         });
     };
 
-    private showPageSection = (data: { id: string; type: EntityType }): Promise<boolean> => {
-        this.handleSelectItem(data.id, data.type);
+    private showPageSection = (type: EntityType): Promise<boolean> => {
+        this.handleSelectItem("", type);
 
         return Promise.resolve(true);
     };
@@ -1517,7 +1523,6 @@ Execute \\help or \\? for help;`;
                     context?.updateResultDisplay();
                 }
             });
-
         }
     };
 
@@ -1528,16 +1533,19 @@ Execute \\help or \\? for help;`;
         switch (type) {
             case EntityType.Connections: {
                 name = "clientConnections";
+                itemId = DBConnectionTab.clientConnectionsId;
                 break;
             }
 
             case EntityType.Status: {
                 name = "serverStatus";
+                itemId = DBConnectionTab.serverStatusId;
                 break;
             }
 
             case EntityType.Dashboard: {
                 name = "performanceDashboard";
+                itemId = DBConnectionTab.performanceDashboardId;
                 break;
             }
 

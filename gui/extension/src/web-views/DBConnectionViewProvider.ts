@@ -33,10 +33,6 @@ import { INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../fr
 
 export class DBConnectionViewProvider extends WebviewProvider {
 
-    public constructor(url: URL, onDispose: (view: WebviewProvider) => void) {
-        super(url, onDispose);
-    }
-
     /**
      * Shows the given module page.
      *
@@ -57,16 +53,15 @@ export class DBConnectionViewProvider extends WebviewProvider {
      *
      * @param caption The title of the webview tab.
      * @param page The page to open in the webview tab (if not already done).
-     * @param id The unique ID of the section to show.
      * @param type The type of the section.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public showPageSection(caption: string, page: string, id: string, type: EntityType): Promise<boolean> {
+    public showPageSection(caption: string, page: string, type: EntityType): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
-            { requestType: "showPageSection", parameter: { type, id } },
+            { requestType: "showPageSection", parameter: type },
         ], caption, "newConnection");
     }
 
