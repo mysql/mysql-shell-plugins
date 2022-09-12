@@ -159,6 +159,11 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     private folderContextMenuRef = React.createRef<Menu>();
     private scriptContextMenuRef = React.createRef<Menu>();
 
+    // Unique IDs for the fixed admin sections.
+    private serverStatusId: string;
+    private clientConnectionsId: string;
+    private performanceDashboardId: string;
+
     public constructor(props: IExplorerProperties) {
         super(props);
 
@@ -168,6 +173,10 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         this.addHandledProperties("schemaTree", "editors", "scripts", "selectedEntry", "markedSchema", "backend",
             "onSelectItem", "dbType", "onDoubleClickItem", "onCloseItem", "onAddItem", "onChangeItem", "onAddScript",
             "onSaveSchemaTree", "onSaveExplorerState", "onContextMenuItemClick");
+
+        this.serverStatusId = uuid();
+        this.clientConnectionsId = uuid();
+        this.performanceDashboardId = uuid();
     }
 
     public componentDidMount(): void {
@@ -297,7 +306,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                             content: [
                                 <Accordion.Item
                                     key="serverStatus"
-                                    id={uuid()}
+                                    id={this.serverStatusId}
                                     caption="Server Status"
                                     picture={<Icon as="span" src={adminServerStatusIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Status }}
@@ -305,7 +314,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                 />,
                                 <Accordion.Item
                                     key="clientConnections"
-                                    id={uuid()}
+                                    id={this.clientConnectionsId}
                                     caption="Client Connections"
                                     picture={<Icon as="span" src={clientConnectionsIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Connections }}
@@ -313,7 +322,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                 />,
                                 <Accordion.Item
                                     key="performanceDashboard"
-                                    id={uuid()}
+                                    id={this.performanceDashboardId}
                                     caption="Performance Dashboard"
                                     picture={<Icon
                                         as="span"

@@ -295,7 +295,14 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
     }
 
     public componentWillUnmount(): void {
+        const { onGraphDataChange } = this.props;
+        const { graphData } = this.state;
+
         clearInterval(this.refreshTimer);
+        onGraphDataChange?.({
+            ...graphData,
+            series: new Map<string, IXYDatum[]>(),
+        });
     }
 
     public render(): React.ReactNode {
@@ -482,31 +489,12 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         const { graphData } = this.state;
 
         const colors = colorSchemes.get(graphData.activeColorScheme)!;
-        const tableCacheEfficiency = graphData.computedValues.tableCacheEfficiency;
-        const selects = graphData.computedValues.selects;
-        const inserts = graphData.computedValues.inserts;
-        const updates = graphData.computedValues.updates;
-        const deletes = graphData.computedValues.deletes;
-        const creates = graphData.computedValues.creates;
-        const alters = graphData.computedValues.alters;
-        const drops = graphData.computedValues.drops;
-        const totalStatements = graphData.computedValues.totalStatements;
-        const threadsCached = graphData.computedValues.threadsCached;
-        const threadsConnected = graphData.computedValues.threadsConnected;
-        const threadsCreated = graphData.computedValues.threadsCreated;
-        const threadsRunning = graphData.computedValues.threadsRunning;
-        const openFiles = graphData.computedValues.openFiles;
-        const openStreams = graphData.computedValues.openStreams;
-        const openTableDefinitions = graphData.computedValues.openTableDefinitions;
-        const openTables = graphData.computedValues.openTables;
-        const openedTableDefinitions = graphData.computedValues.openedTableDefinitions;
-        const openedTables = graphData.computedValues.openedTables;
-        const trxBegin = graphData.computedValues.trxBegin;
-        const trxCommit = graphData.computedValues.trxCommit;
-        const trxReleaseSavepoint = graphData.computedValues.trxReleaseSavepoint;
-        const trxRollback = graphData.computedValues.trxRollback;
-        const trxRollbackToSavepoint = graphData.computedValues.trxRollbackToSavepoint;
-        const trxSavepoint = graphData.computedValues.trxSavepoint;
+        const {
+            tableCacheEfficiency, selects, inserts, updates, deletes, creates, alters, drops,
+            totalStatements, threadsCached, threadsConnected, threadsCreated, threadsRunning,
+            openFiles, openStreams, openTableDefinitions, openTables, openedTableDefinitions, openedTables,
+            trxBegin, trxCommit, trxReleaseSavepoint, trxRollback, trxRollbackToSavepoint, trxSavepoint,
+        } = graphData.computedValues;
 
         const sqlStatementsData = graphData.series.get("sqlStatementsData");
 
@@ -1155,18 +1143,6 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         const logFileSize = currentValues.get("Innodb_log_file_size") ?? 1;
         const logFilesInGroup = currentValues.get("Innodb_log_files_in_group") ?? 1;
         const checkpointAge = lsnDiff / logFileSize * logFilesInGroup;
-
-        /*this.setState({
-            dataVersion: dataVersion + 1,
-            currentValues, incomingNetworkData, selects, inserts, updates, deletes, creates, alters, drops,
-            tableCacheEfficiency, innoDBBufferPoolUsage, innoDBBufferReads, innoDBBufferWrites, innoDBBufferDiskReads,
-            innoDBRedoLogDataWritten, innoDBRedoLogWrites, innoDBDoubleWriteBufferWrites, innoDBDataWritten,
-            innoDBDataRead, totalStatements,
-            threadsCached, threadsConnected, threadsCreated, threadsRunning,
-            openFiles, openStreams, openTableDefinitions, openTables, openedTableDefinitions, openedTables,
-            trxBegin, trxCommit, trxReleaseSavepoint, trxRollback, trxRollbackToSavepoint, trxSavepoint,
-            checkpointAge, innoDBBufferReadRatio,
-        });*/
 
         onGraphDataChange?.({
             timestamp,
