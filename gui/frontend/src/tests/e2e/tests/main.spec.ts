@@ -529,7 +529,7 @@ describe("Main pages", () => {
 
 });
 
-describe("Theme Editor", () => {
+xdescribe("Theme Editor", () => {
     let driver: WebDriver;
     let testFailed = false;
     let themeLabel = "";

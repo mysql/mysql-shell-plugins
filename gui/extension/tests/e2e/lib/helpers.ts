@@ -30,13 +30,11 @@ import {
     Button,
     Key as key,
     SideBarView,
-    DefaultTreeSection,
-    DefaultTreeItem,
+    CustomTreeItem,
+    CustomTreeSection,
     BottomBarPanel,
     Workbench,
-    TitleBar,
     OutputView,
-    TitleBarItem,
     Key as selKey,
 } from "vscode-extension-tester";
 import { expect } from "chai";
@@ -45,82 +43,12 @@ import { ChildProcess, spawn, execSync } from "child_process";
 import { platform } from "os";
 import addContext from "mochawesome/addContext";
 import fs from "fs/promises";
-import { join } from "path";
+import { TreeSection } from "monaco-page-objects/out/components/sidebar/tree/TreeSection";
 
-const uiTestsFile = fs.readFile(join("tests", "e2e", "tests", "ui-tests.ts"));
-let treeSection: DefaultTreeSection;
-
-export const moreActionsContextMenu = new Map<string, Number>([
-    ["Restart the Internal MySQL Shell Process", 1],
-    ["Connect to External MySQL Shell Process", 2],
-    ["Relaunch Welcome Wizard", 3],
-    ["Reset MySQL Shell for VS Code Extension", 4],
-]);
-
-export const connContextMenu = new Map<string, Number>([
-    ["Open DB Connection", 1],
-    ["Open DB Connection in New Tab", 2],
-    ["Open MySQL Shell GUI Console for this Connection", 3],
-    ["Edit MySQL Connection", 5],
-    ["Duplicate this MySQL Connection", 6],
-    ["Delete MySQL Connection", 7],
-    ["Show MySQL System Schemas", 8],
-    ["Configure MySQL REST Service", 10],
-]);
-
-export const schemaContextMenu = new Map<string, Number>([
-    ["Copy To Clipboard", 3],
-    ["Drop Schema...", 5],
-]);
-
-export const restContextMenu = new Map<string, Number>([
-    ["Add REST Service", 1],
-]);
-
-export const clipBoardContextMenu = new Map<string, Number>([
-    ["Name", 0],
-    ["Create Statement", 1],
-]);
-
-export const tableContextMenu = new Map<string, Number>([
-    ["Show Data...", 1],
-    ["Add Table to REST Service", 2],
-    ["Copy To Clipboard", 3],
-    ["Drop Table...", 4],
-]);
-
-export const viewContextMenu = new Map<string, Number>([
-    ["Show Data...", 1],
-    ["Copy To Clipboard", 2],
-    ["Drop View...", 3],
-]);
-
-export const ociProfileContextMenu = new Map<string, Number>([
-    ["View Config Profile Information", 1],
-    ["Set as New Default Config Profile", 2],
-]);
-
-export const ociCompartmentContextMenu = new Map<string, Number>([
-    ["View Compartment Information", 1],
-    ["Set as Current Compartment", 2],
-]);
-
-export const ociDBSystemContextMenu = new Map<string, Number>([
-    ["View DB System Information", 1],
-    ["Create Connection with Bastion Service", 2],
-    ["Start the DB System", 3],
-    ["Restart the DB System", 4],
-    ["Stop the DB System", 5],
-    ["Delete the DB System", 6],
-    ["Create MySQL Router Endpoint on new Compute Instace", 7],
-]);
-
-export const ociBastionContextMenu = new Map<string, Number>([
-    ["Get Bastion Information", 1],
-    ["Set as Current Bastion", 2],
-    ["Delete Bastion", 3],
-    ["Refresh When Bastion Reaches Active State", 4],
-]);
+let dbTreeSection: CustomTreeSection | undefined;
+let ociTreeSection: CustomTreeSection | undefined;
+let consolesTreeSection: CustomTreeSection | undefined;
+let tasksTreeSection: CustomTreeSection | undefined;
 
 export interface IDbConnection {
     caption: string;
@@ -210,12 +138,12 @@ export const waitForLoading = async (driver: WebDriver, sectionName: string, tim
 export const getTreeElement = async (driver: WebDriver, section: string, el: string): Promise<WebElement> => {
     const sec = await getLeftSection(driver, section);
 
-    return sec?.findElement(By.xpath("//div[contains(@aria-label, '" + el + "')]"));
+    return sec?.findElement(By.xpath(`//div[@aria-label="${el} "]`));
 };
 
-export const isDefaultItem = async (driver: WebDriver, itemType: string,
+export const isDefaultItem = async (driver: WebDriver, section: string,itemType: string,
     itemName: string): Promise<boolean | undefined> => {
-    const root = await getTreeElement(driver, "ORACLE CLOUD INFRASTRUCTURE", itemName);
+    const root = await getTreeElement(driver, section, itemName);
     const el = await root.findElement(By.css(".custom-view-tree-node-item > div"));
     const backImage = await el.getCssValue("background-image");
 
@@ -226,10 +154,37 @@ export const isDefaultItem = async (driver: WebDriver, itemType: string,
             return backImage.indexOf("folderCurrent") !== -1;
         case "bastion":
             return backImage.indexOf("ociBastionCurrent") !== -1;
+        case "rest":
+            return backImage.indexOf("mrsServiceDefault") !== -1;
         default:
             break;
     }
 
+};
+
+export const toggleBottomBar = async (driver: WebDriver, expand:boolean): Promise<void> => {
+    const bottombar = await driver.findElement(By.css(".basepanel.bottom"));
+    const parent: WebElement = await driver.executeScript("return arguments[0].parentNode", bottombar);
+    const parentClasses = (await parent.getAttribute("class")).split(" ");
+    const isVisible = parentClasses.includes("visible");
+    const closeBtn = await bottombar.findElement(By.css("a.codicon-panel-close"));
+
+    if (isVisible) {
+        if (expand === false) {
+            await closeBtn.click();
+        }
+    } else {
+        if (expand === true) {
+            let output: WebElement;
+            await driver.wait(async () => {
+                await driver.actions().sendKeys(selKey.chord(selKey.CONTROL, "j")).perform();
+                output = await bottombar.findElement(By.xpath("//a[contains(@aria-label, 'Output (')]"));
+
+                return output.isDisplayed();
+            }, 5000, "");
+            await output!.click();
+        }
+    }
 };
 
 export const selectItem = async (taps: Number): Promise<void> => {
@@ -239,68 +194,93 @@ export const selectItem = async (taps: Number): Promise<void> => {
     await keyboard.type(Key.Enter);
 };
 
-export const initTree = async (section: string): Promise<void> => {
-    treeSection = await new SideBarView().getContent().getSection(section) as DefaultTreeSection;
+export const initTreeSection = async (section: string): Promise<void> => {
+    switch (section) {
+        case "DATABASE":
+            if (!dbTreeSection) {
+                dbTreeSection = await new SideBarView().getContent().getSection("DATABASE") as CustomTreeSection;
+            }
+            break;
+        case "ORACLE CLOUD INFRASTRUCTURE":
+            if (!ociTreeSection) {
+                ociTreeSection = await new SideBarView().getContent()
+                    .getSection("ORACLE CLOUD INFRASTRUCTURE") as CustomTreeSection;
+            }
+            break;
+        case "MYSQL SHELL CONSOLES":
+            if (!consolesTreeSection) {
+                consolesTreeSection = await new SideBarView().getContent()
+                    .getSection("MYSQL SHELL CONSOLES") as CustomTreeSection;
+            }
+            break;
+        case "MYSQL SHELL TASKS":
+            if (!tasksTreeSection) {
+                tasksTreeSection = await new SideBarView().getContent()
+                    .getSection("MYSQL SHELL TASKS") as CustomTreeSection;
+            }
+            break;
+        default:
+            break;
+    }
+};
+
+export const getExistingConnections = async (driver: WebDriver): Promise<string[]> => {
+    const sec = await getLeftSection(driver, "DATABASE");
+    const els = await sec?.findElements(By.xpath(`//div[contains(@aria-label, 'conn')]`));
+    const connections = [];
+    for (const el of els) {
+        const text = (await el.getAttribute("aria-label")).trim();
+        connections.push(text);
+    }
+
+    return connections;
 };
 
 export const selectContextMenuItem = async (driver: WebDriver,
-    section: string, treeItem: string, ctxMenu: string,
+    section: string, treeItem: string,
     ctxMenuItem: string): Promise<void> => {
     const ctxMenuItems = ctxMenuItem.split("->");
-    if (platform() === "win32") {
+
+    let treeSection: CustomTreeSection | undefined;
+
+    switch (section) {
+        case "DATABASE":
+            treeSection = dbTreeSection;
+            break;
+        case "ORACLE CLOUD INFRASTRUCTURE":
+            treeSection = ociTreeSection;
+            break;
+        case "MYSQL SHELL CONSOLES":
+            treeSection = consolesTreeSection;
+            break;
+        case "MYSQL SHELL TASKS":
+            treeSection = tasksTreeSection;
+            break;
+        default:
+            break;
+    }
+
+    const perform = async () => {
         const item = await getTreeElement(driver, section, treeItem);
-        const cstTreeItem = new DefaultTreeItem(item, treeSection);
+        const cstTreeItem = new CustomTreeItem(item, treeSection as TreeSection);
         const ctx = await cstTreeItem?.openContextMenu();
         const ctxItem = await ctx?.getItem(ctxMenuItems[0].trim());
         const menu = await ctxItem!.select();
         if (ctxMenuItems.length > 1) {
             await (await menu?.getItem(ctxMenuItems[1].trim()))!.select();
         }
+    };
 
-    } else if (platform() === "darwin") {
-        const el = await getTreeElement(driver, section, treeItem);
-        await driver.actions()
-            .mouseMove(el)
-            .click(Button.RIGHT)
-            .perform();
-
-        await driver.sleep(500);
-        switch (ctxMenu) {
-            case "connection":
-                await selectItem(connContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "rest":
-                await selectItem(restContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "schema":
-                await selectItem(schemaContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "table":
-                await selectItem(tableContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "view":
-                await selectItem(viewContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "ociCompartment":
-                await selectItem(ociCompartmentContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "ociProfile":
-                await selectItem(ociProfileContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "ociDBSystem":
-                await selectItem(ociDBSystemContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            case "ociBastion":
-                await selectItem(ociBastionContextMenu.get(ctxMenuItems[0].trim()) as Number);
-                break;
-            default:
-                break;
-        }
-        if (ctxMenuItems.length > 1) {
-            await keyboard.type(Key.Right);
-            await selectItem(clipBoardContextMenu.get(ctxMenuItems[1].trim()) as Number);
+    try {
+        await perform();
+    } catch (e) {
+        if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+            await perform();
+        } else {
+            throw e;
         }
     }
+
 };
 
 export const isJson = (text: string): boolean => {
@@ -366,7 +346,7 @@ export const selectMoreActionsItem = async (driver: WebDriver,
 
             return (await driver.findElements(By.css(".context-menu-visible"))).length === 0;
         } catch(e) {
-            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
                 return false;
             }
         }
@@ -528,12 +508,14 @@ export const setFeedbackRequested = async (driver: WebDriver,
 
 export const toggleTreeElement = async (driver: WebDriver, section: string,
     el: string, expanded: boolean): Promise<void> => {
+
     await driver.wait(async () => {
         const element = await getTreeElement(driver, section, el);
-        if (await element.getAttribute("aria-expanded") !== String(expanded)) {
+        const ariaExpanded = await element.getAttribute("aria-expanded");
+        if (ariaExpanded !== String(expanded)) {
             const toggle = await element?.findElement(By.css(".codicon-tree-item-expanded"));
             await toggle?.click();
-            await driver.sleep(200);
+            await driver.sleep(500);
 
             return false;
         } else {
@@ -541,6 +523,24 @@ export const toggleTreeElement = async (driver: WebDriver, section: string,
             return true;
         }
     }, 5000, `${section} > ${el} was not toggled`);
+};
+
+export const getFirstTreeChild = async (driver: WebDriver, section: string, parent:string): Promise<string> => {
+
+    await toggleTreeElement(driver, section, parent, true);
+    const parentNode = await getTreeElement(driver, section, parent);
+    const parentNodeId = await parentNode.getAttribute("id");
+    const parentNodeLevel = await parentNode.getAttribute("aria-level");
+    const parentIds = parentNodeId.match(/list_id_(\d+)_(\d+)/);
+    const childId = `list_id_${parentIds![1]}_${Number(parentIds![2]) + 1}`;
+    const childLevel = Number(parentNodeLevel) + 1;
+
+    const childs = await driver.findElements(By.xpath(`//div[@id='${childId}' and @aria-level='${childLevel}']`));
+    if (childs.length > 0) {
+        return (await childs[0].getAttribute("aria-label")).trim();
+    } else {
+        throw new Error(`Tree item '${parent}' does not have childs`);
+    }
 };
 
 export const hasTreeChildren = async (driver: WebDriver, section: string,
@@ -606,7 +606,7 @@ export const welcomeMySQLShell = async (): Promise<boolean> => {
 
 export const deleteDBConnection = async (driver: WebDriver, dbName: string): Promise<void> => {
 
-    await selectContextMenuItem(driver, "DATABASE", dbName, "connection", "Delete MySQL Connection");
+    await selectContextMenuItem(driver, "DATABASE", dbName, "Delete MySQL Connection");
 
     const editorView = new EditorView();
     await driver.wait(async () => {
@@ -666,6 +666,13 @@ export const pressEnter = async (driver: WebDriver): Promise<void> => {
             .keyUp(key.COMMAND)
             .perform();
     }
+};
+
+export const openNewNotebook = async (driver: WebDriver): Promise<void> => {
+    const button = await driver.findElement(By.id("newMenuButton"));
+    await button.click();
+    const notebook = await driver.wait(until.elementLocated(By.id("addEditor")), 2000, "Scripts menu was not opened");
+    await notebook.click();
 };
 
 export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: string,
@@ -850,7 +857,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
 
             return true;
         } catch (e) {
-            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
                 return false;
             } else {
                 throw e;
@@ -873,7 +880,7 @@ export const waitForExtensionChannel = async (driver: WebDriver): Promise<void> 
                 }
             }
         } catch (e) {
-            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
                 return false;
             } else {
                 throw new Error(String(e));
@@ -974,16 +981,6 @@ export const postActions = async (driver: WebDriver, testContext: Mocha.Context)
         await fs.writeFile(imgPath, img, "base64");
 
         addContext(testContext, { title: "Failure", value: `../${imgPath}` });
-
-        const codeLines = (await uiTestsFile).toString().split("\n");
-        for (let i = 0; i <= codeLines.length - 1; i++) {
-            if (codeLines[i].indexOf(testName) !== -1) {
-                if (codeLines[i - 1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
-                    const bugLink = codeLines[i - 1].replace("// bug: ", "").trim();
-                    addContext(testContext, `---->  HAS A BUG  <----- : ${bugLink}"`);
-                }
-            }
-        }
     }
 };
 
@@ -1144,7 +1141,8 @@ export const getResultTab = async (driver: WebDriver, tabName: string): Promise<
     for (const tab of tabs) {
         if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
             await tab.getAttribute("id") !== "selectorItemstepUp") {
-            if (await (await tab.findElement(By.css("label"))).getText() === tabName) {
+            const label = await tab.findElement(By.css("label"));
+            if (await label.getAttribute("innerHTML") === tabName) {
 
                 return tab;
             }
@@ -1219,39 +1217,50 @@ export const setDBEditorLanguage = async (driver: WebDriver, language: string): 
 };
 
 export const getResultStatus = async (driver: WebDriver, isSelect?: boolean): Promise<string> => {
-    let results: WebElement[] | undefined;
+    let zoneHosts: WebElement[] | undefined;
+    let block: WebElement;
     let obj = "";
     if (isSelect) {
         obj = "label";
     } else {
         obj = "span";
     }
+
     await driver.wait(
         async (driver) => {
-            results = await driver.findElements(By.css(".zoneHost"));
-            const about = await results[0].findElement(By.css("span"));
+            zoneHosts = await driver.findElements(By.css(".zoneHost"));
+            const about = await zoneHosts[0].findElement(By.css("span"));
             //first element is usually the about info
             if ((await about.getText()).indexOf("Welcome") !== -1) {
-                results.shift();
+                zoneHosts.shift();
             }
-            if (results.length > 0) {
-                if ((await results[0].findElements(By.css(".message.info"))).length > 0) {
+            if (zoneHosts.length > 0) {
+                if ((await zoneHosts[0].findElements(By.css(".message.info"))).length > 0) {
                     //if language has been changed...
-                    results.shift();
+                    zoneHosts.shift();
                 }
             } else {
                 return false;
             }
 
-            return results[results.length - 1] !== undefined;
+            return zoneHosts[zoneHosts.length - 1] !== undefined;
         },
         10000,
         `Result Status is undefined`,
     );
 
-    const block = await results![results!.length - 1].findElement(By.css(obj));
+    await driver.wait(async () => {
+        try {
+            block = await zoneHosts![zoneHosts!.length - 1].findElement(By.css(obj));
 
-    return block.getAttribute("innerHTML");
+            return true;
+        } catch (e) {
+            return false;
+        }
+
+    }, 10000, "Result Status content was not found");
+
+    return block!.getAttribute("innerHTML");
 };
 
 export const clickContextMenuItem = async (driver:WebDriver, refEl: WebElement, item: string): Promise<void> => {
@@ -1280,7 +1289,7 @@ export const clickContextMenuItem = async (driver:WebDriver, refEl: WebElement, 
 
             return true;
         } catch(e) {
-            if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
+            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
                 return true;
             }
         }
@@ -1329,9 +1338,11 @@ export const getLastQueryResultId = async (driver: WebDriver): Promise<number> =
 };
 
 export const switchToFrame = async (driver: WebDriver, frame: string): Promise<void> => {
-    await driver.switchTo().frame(0);
-    await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id(`frame:${frame}`)));
+    await driver.wait(until.ableToSwitchToFrame(0), 5000, "Not able to switch to frame 0");
+    await driver.wait(until.ableToSwitchToFrame(
+        By.id("active-frame")), 5000, "Not able to switch to frame active-frame");
+    await driver.wait(until.ableToSwitchToFrame(
+        By.id(`frame:${frame}`)), 5000, `Not able to switch to frame ${frame}`);
 };
 
 export const shellGetResult = async (driver: WebDriver): Promise<string> => {
@@ -1492,4 +1503,150 @@ export const getShellSchemaTabStatus = async (driver: WebDriver): Promise<string
     const schema = await driver.findElement(By.id("schema"));
 
     return schema.getAttribute("innerHTML");
+};
+
+export const setRestService = async (driver: WebDriver, serviceName: string,
+    comments: string, hostname: string,
+    https: boolean, http: boolean, mrsDefault: boolean, mrsEnabled: boolean): Promise<void> => {
+
+    const dialog = await driver.findElement(By.id("mrsServiceDialog"));
+
+    const inputServName = await dialog.findElement(By.id("serviceName"));
+    await inputServName.clear();
+    await inputServName.sendKeys(serviceName);
+
+    const inputComments = await dialog.findElement(By.id("comments"));
+    await inputComments.clear();
+    await inputComments.sendKeys(comments);
+
+    const inputHost = await dialog.findElement(By.id("hostName"));
+    await inputHost.clear();
+    await inputHost.sendKeys(hostname);
+
+    const inputHttps = await dialog.findElement(By.id("protocolHTTPS"));
+    const httpsClasses = await inputHttps.getAttribute("class");
+    let classes = httpsClasses.split(" ");
+    if (https === true) {
+        if (classes.includes("unchecked")) {
+            await inputHttps.findElement(By.css(".checkMark")).click();
+        }
+    } else {
+        if (classes.includes("checked")) {
+            await inputHttps.findElement(By.css(".checkMark")).click();
+        }
+    }
+
+    const inputHttp = await dialog.findElement(By.id("protocolHTTP"));
+    const httpClasses = await inputHttp.getAttribute("class");
+    classes = httpClasses.split(" ");
+    if (http === true) {
+        if (classes.includes("unchecked")) {
+            await inputHttp.findElement(By.css(".checkMark")).click();
+        }
+    } else {
+        if (classes.includes("checked")) {
+            await inputHttp.findElement(By.css(".checkMark")).click();
+        }
+    }
+
+    const inputMrsDef = await dialog.findElement(By.id("makeDefault"));
+    const inputMrsDefClasses = await inputMrsDef.getAttribute("class");
+    classes = inputMrsDefClasses.split(" ");
+    if (mrsDefault === true) {
+        if (classes.includes("unchecked")) {
+            await inputMrsDef.findElement(By.css(".checkMark")).click();
+        }
+    } else {
+        if (classes.includes("checked")) {
+            await inputMrsDef.findElement(By.css(".checkMark")).click();
+        }
+    }
+
+    const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
+    const inputMrsEnabledClasses = await inputMrsEnabled.getAttribute("class");
+    classes = inputMrsEnabledClasses.split(" ");
+    if (mrsEnabled === true) {
+        if (classes.includes("unchecked")) {
+            await inputMrsEnabled.findElement(By.css(".checkMark")).click();
+        }
+    } else {
+        if (classes.includes("checked")) {
+            await inputMrsEnabled.findElement(By.css(".checkMark")).click();
+        }
+    }
+
+    await dialog.findElement(By.id("ok")).click();
+};
+
+export const setRestSchema = async (driver: WebDriver, schemaName: string,
+    mrsService: string, requestPath: string, itemsPerPage: number,
+    authentication: boolean, enabled: boolean, comments: string): Promise <void> => {
+
+    const dialog = await driver.findElement(By.id("mrsSchemaDialog"));
+
+    const inputSchemaName = await dialog.findElement(By.id("name"));
+    await inputSchemaName.clear();
+    await inputSchemaName.sendKeys(schemaName);
+
+    const selectService = await dialog.findElement(By.id("service"));
+    await selectService.click();
+    await driver.findElement(By.id(mrsService)).click();
+
+    const inputRequestPath = await dialog.findElement(By.id("requestPath"));
+    await inputRequestPath.clear();
+    await inputRequestPath.sendKeys(requestPath);
+
+    const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
+    const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
+    let classes = inputRequiresAuthClasses.split(" ");
+    if (authentication === true) {
+        if (classes.includes("unchecked")) {
+            await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+        }
+    } else {
+        if (classes.includes("checked")) {
+            await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+        }
+    }
+
+    const inputEnabled = await dialog.findElement(By.id("enabled"));
+    const inputEnabledClasses = await inputEnabled.getAttribute("class");
+    classes = inputEnabledClasses.split(" ");
+    if (enabled === true) {
+        if (classes.includes("unchecked")) {
+            await inputEnabled.findElement(By.css(".checkMark")).click();
+        }
+    } else {
+        if (classes.includes("checked")) {
+            await inputEnabled.findElement(By.css(".checkMark")).click();
+        }
+    }
+
+    if (itemsPerPage !== 0 || itemsPerPage !== undefined) {
+        if ((await dialog.findElements(By.id("up"))).length > 0) {
+            let ref: WebElement;
+            if (itemsPerPage > 0) {
+                ref = await dialog.findElement(By.id("up"));
+            } else {
+                ref = await dialog.findElement(By.id("down"));
+            }
+
+            const clicks = parseInt((String(itemsPerPage).replace("-", "")), 10);
+            let count = 1;
+
+            while (count < clicks) {
+                await ref.click();
+                count ++;
+            }
+        } else {
+            const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
+            await inputItemsPerPage.sendKeys(itemsPerPage);
+        }
+    }
+
+    const inputComments = await dialog.findElement(By.id("comments"));
+    await inputComments.clear();
+    await inputComments.sendKeys(comments);
+
+    await dialog.findElement(By.id("ok")).click();
 };

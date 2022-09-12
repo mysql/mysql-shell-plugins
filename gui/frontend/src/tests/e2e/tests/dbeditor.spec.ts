@@ -1203,13 +1203,11 @@ describe("DB Editor - Core Tests", () => {
                 return (await driver.findElements(By.css(".statementStart"))).length >= 3;
             }, 3000, "Statement start (blue dot) was not found on all lines");
 
-            await textArea.sendKeys(Key.ARROW_UP);
+            const lines = await driver!.findElements(By.css("#contentHost .editorHost .view-line"));
 
-            await textArea.sendKeys(Key.ARROW_LEFT);
+            let span2Click = await lines[lines.length-2].findElement(By.css("span > span"));
 
-            await textArea.sendKeys(Key.ARROW_LEFT);
-
-            await textArea.sendKeys(Key.ARROW_LEFT);
+            await span2Click.click();
 
             let lastId = await getLastQueryResultId(driver!);
 
@@ -1222,10 +1220,9 @@ describe("DB Editor - Core Tests", () => {
 
             expect(await getResultColumnName(driver, "address_id")).toBeDefined();
 
-            await textArea.sendKeys(Key.ARROW_UP);
-            await textArea.sendKeys(Key.ARROW_LEFT);
-            await textArea.sendKeys(Key.ARROW_LEFT);
-            await textArea.sendKeys(Key.ARROW_LEFT);
+            span2Click = await lines[lines.length-3].findElement(By.css("span > span"));
+
+            await span2Click.click();
 
             lastId = await getLastQueryResultId(driver!);
 
@@ -1238,9 +1235,9 @@ describe("DB Editor - Core Tests", () => {
 
             expect(await getResultColumnName(driver, "actor_id")).toBeDefined();
 
-            await textArea.sendKeys(Key.ARROW_DOWN);
+            span2Click = await lines[lines.length-1].findElement(By.css("span > span"));
 
-            await textArea.sendKeys(Key.ARROW_DOWN);
+            await span2Click.click();
 
             lastId = await getLastQueryResultId(driver!);
 
@@ -1911,7 +1908,6 @@ describe("DB Editor - Core Tests", () => {
         }
     });
 
-    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34566108
     it("Add_run JS script", async () => {
         try {
 
@@ -1963,7 +1959,6 @@ describe("DB Editor - Core Tests", () => {
         }
     });
 
-    // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34566108
     it("Add_run TS script", async () => {
         try {
 
