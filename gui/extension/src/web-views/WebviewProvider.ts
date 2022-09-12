@@ -32,6 +32,9 @@ import { IDialogResponse } from "../../../frontend/src/app-logic/Types";
 
 import { printChannelOutput } from "../extension";
 
+export type WebviewDisposeHandler = (view: WebviewProvider) => void;
+export type WebviewChangeStateHandler = (view: WebviewProvider, active: boolean) => void;
+
 // The base class for our web view providers.
 export class WebviewProvider {
     protected panel?: WebviewPanel;
@@ -41,7 +44,8 @@ export class WebviewProvider {
 
     public constructor(
         protected url: URL,
-        protected onDispose: (view: WebviewProvider) => void) {
+        protected onDispose: WebviewDisposeHandler,
+        protected onStateChange?: WebviewChangeStateHandler) {
     }
 
     public close(): void {
@@ -148,6 +152,12 @@ export class WebviewProvider {
                         this.requisitions?.handleRemoteMessage(message);
                     }
                 });
+
+                if (this.onStateChange) {
+                    this.panel.onDidChangeViewState((event) => {
+                        this.onStateChange?.(this, event.webviewPanel.active);
+                    });
+                }
 
                 // Insert an iframe to load the external URL from the running mysql shell server.
                 this.url.searchParams.set("app", "vscode");

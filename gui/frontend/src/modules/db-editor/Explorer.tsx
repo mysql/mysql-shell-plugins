@@ -76,12 +76,11 @@ import {
 } from "../../components/ui";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
-import { IOpenEditorState } from "./DBConnectionTab";
+import { DBConnectionTab, IOpenEditorState } from "./DBConnectionTab";
 import { ICommErrorEvent } from "../../communication";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { EditorLanguage } from "../../supplement";
-import { uuid } from "../../utilities/helpers";
 
 /** Lookup for icons for a specific document type. */
 export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
@@ -159,11 +158,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     private folderContextMenuRef = React.createRef<Menu>();
     private scriptContextMenuRef = React.createRef<Menu>();
 
-    // Unique IDs for the fixed admin sections.
-    private serverStatusId: string;
-    private clientConnectionsId: string;
-    private performanceDashboardId: string;
-
     public constructor(props: IExplorerProperties) {
         super(props);
 
@@ -173,10 +167,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         this.addHandledProperties("schemaTree", "editors", "scripts", "selectedEntry", "markedSchema", "backend",
             "onSelectItem", "dbType", "onDoubleClickItem", "onCloseItem", "onAddItem", "onChangeItem", "onAddScript",
             "onSaveSchemaTree", "onSaveExplorerState", "onContextMenuItemClick");
-
-        this.serverStatusId = uuid();
-        this.clientConnectionsId = uuid();
-        this.performanceDashboardId = uuid();
     }
 
     public componentDidMount(): void {
@@ -306,7 +296,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                             content: [
                                 <Accordion.Item
                                     key="serverStatus"
-                                    id={this.serverStatusId}
+                                    id={DBConnectionTab.serverStatusId}
                                     caption="Server Status"
                                     picture={<Icon as="span" src={adminServerStatusIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Status }}
@@ -314,7 +304,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                 />,
                                 <Accordion.Item
                                     key="clientConnections"
-                                    id={this.clientConnectionsId}
+                                    id={DBConnectionTab.clientConnectionsId}
                                     caption="Client Connections"
                                     picture={<Icon as="span" src={clientConnectionsIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Connections }}
@@ -322,7 +312,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                 />,
                                 <Accordion.Item
                                     key="performanceDashboard"
-                                    id={this.performanceDashboardId}
+                                    id={DBConnectionTab.performanceDashboardId}
                                     caption="Performance Dashboard"
                                     picture={<Icon
                                         as="span"

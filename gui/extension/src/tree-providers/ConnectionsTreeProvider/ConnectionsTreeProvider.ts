@@ -466,7 +466,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 entry.backend.openConnection(entry.details.id).then((event: ICommOpenConnectionEvent) => {
                     switch (event.eventType) {
                         case EventType.DataResponse: {
-                            const result = event.data?.result as IShellResultType;
+                            const result = event.data.result;
                             if (this.isShellPromptResult(result)) {
                                 if (result.type === "password") {
                                     void window.showInputBox({
