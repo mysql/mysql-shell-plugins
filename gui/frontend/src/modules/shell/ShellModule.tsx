@@ -225,7 +225,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
         // Add a toolbar with a drop down to switch pages in embedded mode.
         let toolbarInset: React.ReactElement | undefined;
-        if (appParameters.embedded) {
+        if (appParameters.embedded && selectedTab !== "waitPage") {
             const items: Array<React.ReactElement<typeof Dropdown.Item>> = [
                 <Dropdown.Item
                     id="sessions"

@@ -279,35 +279,33 @@ export class MRSCommandHandler {
                         });
                 } else {
                     // Send update request.
-                    backend.mrs.updateServiceById(
-                        service.id, {
-                            urlContextRoot,
-                            protocols,
-                            hostName,
-                            isDefault,
-                            enabled,
-                            comments,
-                        })
-                        .then((addServiceEvent: ICommSimpleResultEvent) => {
-                            switch (addServiceEvent.eventType) {
-                                case EventType.DataResponse:
-                                case EventType.FinalResponse: {
-                                    void commands.executeCommand("msg.refreshConnections");
-                                    void window.setStatusBarMessage(
-                                        "The MRS service has been successfully updated.", 5000);
+                    backend.mrs.updateServiceById(service.id, {
+                        urlContextRoot,
+                        protocols,
+                        hostName,
+                        isDefault,
+                        enabled,
+                        comments,
+                    }).then((addServiceEvent: ICommSimpleResultEvent) => {
+                        switch (addServiceEvent.eventType) {
+                            case EventType.DataResponse:
+                            case EventType.FinalResponse: {
+                                void commands.executeCommand("msg.refreshConnections");
+                                void window.setStatusBarMessage(
+                                    "The MRS service has been successfully updated.", 5000);
 
-                                    break;
-                                }
-
-                                default: {
-                                    break;
-                                }
+                                break;
                             }
 
-                        }).catch((errorEvent: ICommErrorEvent): void => {
-                            void window.showErrorMessage(`Error while adding MySQL REST service: ` +
-                                `${errorEvent.message ?? "<unknown>"}`);
-                        });
+                            default: {
+                                break;
+                            }
+                        }
+
+                    }).catch((errorEvent: ICommErrorEvent): void => {
+                        void window.showErrorMessage(`Error while updating MySQL REST service: ` +
+                            `${errorEvent.message ?? "<unknown>"}`);
+                    });
                 }
             }
         });
