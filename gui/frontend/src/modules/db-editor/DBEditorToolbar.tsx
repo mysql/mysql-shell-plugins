@@ -125,7 +125,6 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         requisitions.register("editorStopExecution", this.stopExecution);
         requisitions.register("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.register("editorToggleAutoCommit", this.toggleAutoCommit);
-        requisitions.register("editorToggleSoftWrap", this.toggleSoftWrap);
         requisitions.register("sqlTransactionEnded", this.transactionEnded);
         requisitions.register("settingsChanged", this.settingsChanged);
     }
@@ -135,7 +134,6 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         requisitions.unregister("editorStopExecution", this.stopExecution);
         requisitions.unregister("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.unregister("editorToggleAutoCommit", this.toggleAutoCommit);
-        requisitions.unregister("editorToggleSoftWrap", this.toggleSoftWrap);
         requisitions.unregister("sqlTransactionEnded", this.transactionEnded);
         requisitions.unregister("settingsChanged", this.settingsChanged);
     }
@@ -340,9 +338,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 key="editorToggleSoftWrapButton"
                 data-tooltip="Soft wrap lines "
                 imageOnly={true}
-                onClick={
-                    () => { void requisitions.execute("editorToggleSoftWrap", wordWrap === "on"); }
-                }
+                onClick={() => { settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on"); }}
             >
                 <Icon src={wordWrapIcon} data-tooltip="inherit" />
             </Button>,
@@ -379,13 +375,24 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
     };
 
     private settingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
-        if (entry?.key === "editor.showHidden") {
+        if (!entry) {
             this.forceUpdate();
+        } else {
+            switch (entry.key) {
+                case "editor.showHidden":
+                case "editor.wordWrap": {
+                    this.forceUpdate();
 
-            return Promise.resolve(true);
+                    break;
+                }
+
+                default: {
+                    return Promise.resolve(false);
+                }
+            }
         }
 
-        return Promise.resolve(false);
+        return Promise.resolve(true);
     };
 
     private stopExecution = (): Promise<boolean> => {
@@ -416,13 +423,6 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         }
 
         this.updateState();
-
-        return Promise.resolve(true);
-    };
-
-    private toggleSoftWrap = (active: boolean): Promise<boolean> => {
-        settings.set("editor.wordWrap", active ? "off" : "on");
-        this.forceUpdate();
 
         return Promise.resolve(true);
     };

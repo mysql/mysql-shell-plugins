@@ -84,7 +84,6 @@ export interface ICodeEditorModel extends Monaco.ITextModel {
 
     // Functionality differs depending on where the code editor is used.
     editorMode: CodeEditorMode;
-
 }
 
 // The presentation class type depends on the place where the editor is used.
@@ -97,6 +96,8 @@ export interface IEditorPersistentState {
     contextStates?: IExecutionContextState[]; // Serializable execution blocks.
     options: ICodeEditorOptions;
 }
+
+type WordWrapType = "off" | "on" | "wordWrapColumn" | "bounded";
 
 interface ICodeEditorProperties extends IComponentProperties {
     state?: IEditorPersistentState;
@@ -489,7 +490,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         requisitions.unregister("editorExecuteCurrent", this.executeCurrent);
         requisitions.unregister("editorFind", this.find);
         requisitions.unregister("editorFormat", this.format);
-        requisitions.unregister("editorToggleSoftWrap", this.toggleSoftWrap);
 
         const editor = this.backend;
 
@@ -780,8 +780,35 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         this.executeCurrentContext(false, true, false);
     }
 
-    private handleSettingsChanged = (): Promise<boolean> => {
-        this.forceUpdate();
+    private handleSettingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+        if (!entry) {
+            this.forceUpdate();
+        } else {
+            switch (entry.key) {
+                case "editor.wordWrap": {
+                    const { allowSoftWrap } = this.mergedProps;
+
+                    if (allowSoftWrap) {
+                        const editor = this.backend;
+                        editor?.updateOptions({ wordWrap: entry.value as WordWrapType });
+                    }
+
+                    break;
+                }
+
+                case "editor.showHidden": {
+                    const editor = this.backend;
+                    const renderWhitespace = entry.value as boolean ? "all" : "none";
+                    const renderControlCharacters = entry.value as boolean;
+
+                    editor?.updateOptions({ renderWhitespace, renderControlCharacters });
+
+                    break;
+                }
+
+                default:
+            }
+        }
 
         return Promise.resolve(true);
     };
@@ -900,7 +927,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         requisitions.register("editorExecuteCurrent", this.executeCurrent);
         requisitions.register("editorFind", this.find);
         requisitions.register("editorFormat", this.format);
-        requisitions.register("editorToggleSoftWrap", this.toggleSoftWrap);
     }
 
     /**
@@ -1135,6 +1161,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                         }
 
                         void onScriptExecution?.(block, { forceSecondaryEngine, source: position }).then((executed) => {
+                            editor.focus();
                             if (executed) {
                                 if (advance) {
                                     this.prepareNextExecutionBlock(index);
@@ -1617,21 +1644,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         } else {
             return Promise.resolve(false);
         }
-    };
-
-    private toggleSoftWrap = (active: boolean): Promise<boolean> => {
-        const { allowSoftWrap } = this.mergedProps;
-
-        if (allowSoftWrap) {
-            const editor = this.backend;
-
-            editor?.updateOptions({ wordWrap: active ? "off" : "on" });
-
-            return Promise.resolve(true);
-        }
-
-
-        return Promise.resolve(false);
     };
 
 }

@@ -155,7 +155,6 @@ export interface IRequestTypeMap {
     "editorExecuteCurrent": (options: IEditorExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
     "editorFormat": SimpleCallback;
-    "editorToggleSoftWrap": (active: boolean) => Promise<boolean>;
     "editorRunCommand": (details: { command: string; context: IExecutionContext }) => Promise<boolean>;
     "editorToggleStopExecutionOnError": (active: boolean) => Promise<boolean>;
     "editorStopExecution": SimpleCallback;
