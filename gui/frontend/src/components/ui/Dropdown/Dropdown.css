@@ -43,6 +43,7 @@
 .msg.dropdown > .container > .image {
     height: 20px;
     width: 20px;
+    margin-right: 4px;
 }
 
 .msg.dropdown > .container > .label {

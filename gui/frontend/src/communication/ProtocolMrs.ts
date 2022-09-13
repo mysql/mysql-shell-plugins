@@ -23,8 +23,6 @@
 
 import { Protocol, IShellRequest } from ".";
 
-
-
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
