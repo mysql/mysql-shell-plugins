@@ -1410,7 +1410,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
      * @returns A list block entries with language, start and stop line (both zero-based).
      */
     private splitText = (startOrText: ExecutionContext | string): Array<[EditorLanguage, number, number]> => {
-        const { language, allowedLanguages = [], startLanguage } = this.mergedProps;
+        const { language, allowedLanguages = [], startLanguage, sqlDialect } = this.mergedProps;
 
         const result: Array<[EditorLanguage, number, number]> = [];
 
@@ -1430,6 +1430,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         } else {
             text = startOrText.code;
             currentLanguage = startOrText.language;
+        }
+
+        if (currentLanguage === "sql" && sqlDialect) {
+            currentLanguage = sqlDialect as EditorLanguage;
         }
 
         let start = 0;
