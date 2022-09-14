@@ -85,22 +85,7 @@ export class Notebook extends Component<INotebookProperties> {
     public render(): React.ReactNode {
         const { editorState, dbType, readOnly, onScriptExecution, onHelpCommand } = this.props;
 
-        let dialect;
-        switch (dbType) {
-            case DBType.MySQL: {
-                dialect = "mysql";
-                break;
-            }
-
-            case DBType.Sqlite: {
-                dialect = "sql";
-                break;
-            }
-
-            default: {
-                break;
-            }
-        }
+        const dialect = this.dialectFromDbType(dbType);
 
         return (
             <CodeEditor
@@ -308,9 +293,12 @@ export class Notebook extends Component<INotebookProperties> {
 
     private sendStatusInfo = (): void => {
         if (this.editorRef.current) {
-            const { editorState } = this.props;
+            const { editorState, dbType } = this.props;
             const position = editorState.viewState?.cursorState[0].position;
-            const language = editorState.model.getLanguageId() as EditorLanguage;
+            let language = editorState.model.getLanguageId();
+            if (language === "msg") {
+                language = `mixed/${this.dialectFromDbType(dbType)}`;
+            }
 
             const info: IEditorStatusInfo = {
                 insertSpaces: editorState.options.insertSpaces,
@@ -338,5 +326,26 @@ export class Notebook extends Component<INotebookProperties> {
             // In this case we can run our one-time initialization.
             this.editorRef.current?.executeText("\\about");
         }
+    }
+
+    private dialectFromDbType(type: DBType): EditorLanguage {
+        let dialect: EditorLanguage = "sql";
+        switch (type) {
+            case DBType.MySQL: {
+                dialect = "mysql";
+                break;
+            }
+
+            case DBType.Sqlite: {
+                dialect = "sql";
+                break;
+            }
+
+            default: {
+                break;
+            }
+        }
+
+        return dialect;
     }
 }
