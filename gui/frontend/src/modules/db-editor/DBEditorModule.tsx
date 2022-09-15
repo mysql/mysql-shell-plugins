@@ -387,9 +387,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         editorTabs.forEach((info: IDBEditorTabInfo) => {
             const connectionState = this.connectionState.get(info.tabId)!;
 
-            if (!toolbarItems) {
+            let tabToolbarItems = toolbarItems;
+            if (!tabToolbarItems) {
                 // If no special UI is to be rendered use an editor selection dropdown.
-                toolbarItems = {
+                tabToolbarItems = {
                     left: [
                         <Label key="mainLabel">Editor:</Label>,
                         <Dropdown
@@ -432,7 +433,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 workerPool={this.workerPool}
                 dbType={info.details.dbType}
                 connectionId={info.details.id}
-                toolbarItems={toolbarItems}
+                toolbarItems={tabToolbarItems}
                 savedState={connectionState}
                 showExplorer={showTabs && showExplorer}
                 onHelpCommand={this.handleHelpCommand}
