@@ -79,9 +79,10 @@ export enum ComponentPlacement {
     LeftBottom = "left-end",
 }
 
-// Specifies the type for the mouse event handler.
+/** Specifies the type for the mouse event handler. */
 export enum MouseEventType {
     Click,
+    DoubleClick,
     Enter,
     Leave,
     Down,
@@ -89,21 +90,21 @@ export enum MouseEventType {
     Move,
 }
 
-// Specifies the type for the keyboard event handler.
+/** Specifies the type for the keyboard event handler. */
 export enum KeyboardEventType {
     Down,
     Up,
     Press,
 }
 
-// Specifies the type for the pointer event handler.
+/** Specifies the type for the pointer event handler. */
 export enum PointerEventType {
     Down,
     Up,
     Move,
 }
 
-// Specifies the type for the drag event handler.
+/** Specifies the type for the drag event handler. */
 export enum DragEventType {
     Start,
     Over,
@@ -112,12 +113,19 @@ export enum DragEventType {
     Drop,
 }
 
-// Item selection style in lists and similar.
+/** Item selection style in lists and similar. */
 export enum SelectionType {
-    None,      // Neither clickable, nor show any highlight on hover.
-    Highlight, // Not clickable, but show highlight on hover.
-    Single,    // Show highlight and allow to select at most one row.
-    Multi,     // Show highlight and allow to select any number of rows.
+    /** Neither clickable, nor show any highlight on hover. */
+    None,
+
+    /** Not clickable, but show highlight on hover. */
+    Highlight,
+
+    /** Show highlight and allow to select at most one row. */
+    Single,
+
+    /** Show highlight and allow to select any number of rows. */
+    Multi,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,7 +134,8 @@ type Constructor<T> = new (...args: any) => T;
 export interface IComponentProperties {
     children?: React.ReactNode | React.ReactNode[];
 
-    className?: string; // Additional class names to apply for this component.
+    /** Additional class names to apply for this component. */
+    className?: string;
     id?: string;
     size?: ComponentSize;
     as?: Constructor<Component> | string;
@@ -135,18 +144,23 @@ export interface IComponentProperties {
     draggable?: boolean;
     disabled?: boolean | ((props: IComponentProperties) => boolean);
     role?: string;
-    title?: string; // For OS style tooltips.
 
-    // Template handling: a template describes how a single element in a list of potentially many elements looks like.
-    // The template is cloned for each list entry and gets assigned the element data for this list entry.
-    // All nested components in such a cloned element receive the same element data.
-    // This data is an object with fields that hold component properties. A component uses the properties for which it
-    // has got a data ID. Multiple elements can use the same data ID.
+    /** For OS style tooltips. */
+    title?: string;
+
+    /**
+     * Template handling: a template describes how a single element in a list of potentially many elements looks like.
+     * The template is cloned for each list entry and gets assigned the element data for this list entry.
+     * All nested components in such a cloned element receive the same element data.
+     * This data is an object with fields that hold component properties. A component uses the properties for which it
+     * has got a data ID. Multiple elements can use the same data ID.
+     */
     dataId?: string;
     data?: { [key: string]: IComponentProperties };
 
-    // Clicks can be triggered by both mouse and keyboard events, hence we use a common ancestor as event type.
+    /** Clicks can be triggered by both mouse and keyboard events, hence we to use a common ancestor as event type. */
     onClick?: (e: React.SyntheticEvent, props: Readonly<IComponentProperties>) => void;
+    onDoubleClick?: (e: React.MouseEvent, props: Readonly<IComponentProperties>) => void;
     onKeyDown?: (e: React.KeyboardEvent, props: Readonly<IComponentProperties>) => void;
     onKeyUp?: (e: React.KeyboardEvent, props: Readonly<IComponentProperties>) => void;
     onKeyPress?: (e: React.KeyboardEvent, props: Readonly<IComponentProperties>) => void;
@@ -221,6 +235,7 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
             "onBlur",
             "onResize",
             "onClick",
+            "onDoubleClick",
             "onKeyDown",
             "onKeyUp",
             "onKeyPress",
@@ -357,6 +372,10 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
             result.onClick = this.internalHandleMouseClick;
         }
 
+        if (this.props.onDoubleClick || this.forcedEvents.has("onDoubleClick")) {
+            result.onDoubleClick = this.internalHandleMouseDoubleClick;
+        }
+
         if (this.props.onKeyDown || this.forcedEvents.has("onKeyDown")) {
             result.onKeyDown = this.internalHandleKeyDown;
         }
@@ -488,6 +507,13 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Click, e)) {
             const props = this.mergedProps;
             props.onClick?.(e, props);
+        }
+    };
+
+    private internalHandleMouseDoubleClick = (e: React.MouseEvent): void => {
+        if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.DoubleClick, e)) {
+            const props = this.mergedProps;
+            props.onDoubleClick?.(e, props);
         }
     };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -159,7 +159,17 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
         const { onAction, type } = this.mergedProps;
 
         const event = e as React.MouseEvent;
+        const button = event.currentTarget as HTMLButtonElement;
+
+        // Have to prevent double clicks on browser tiles. But since everything is async there's no way to know
+        // the action triggered by the tile is finished (or at least started, so the button is hidden).
+        // Hence the only way to enable the button is to use a timer.
+        button.disabled = true;
+        setTimeout(() => {
+            button.disabled = false;
+        }, 200);
         e.stopPropagation();
+
         if (type === BrowserTileType.Open) {
             onAction?.("open", this.mergedProps, { newTab: event.metaKey || event.altKey });
         } else {
