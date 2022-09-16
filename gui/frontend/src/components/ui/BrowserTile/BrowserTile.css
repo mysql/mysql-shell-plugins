@@ -28,7 +28,7 @@
 
     align-items: stretch;
 
-    margin: 10px;
+    margin: 2px;
     padding: 0 0 0 20px;
     width: 270px;
     height: 80px;
@@ -44,19 +44,23 @@
 }
 
 /* Need a stronger focus indicator for this big buttons. A single thin line doesn't work well. */
-.msg.browserTile:focus {
+.msg.browserTile:focus,
+.msg.browserTile:focus-within {
     outline: none;
+    border-color: var(--browserTileSecondary-activeBackground);
+    color: var(--browserTile-activeForeground);
+    background-color: var(--browserTile-activeBackground);
 }
 
 .msg.browserTile:focus::after {
     content: '';
     display: block;
     position: absolute;
-    top: -6px;
-    bottom: -6px;
-    left: -6px;
-    right: -6px;
-    border-radius: 6px;
+    top: -4px;
+    bottom: -4px;
+    left: -4px;
+    right: -4px;
+    border-radius: 4px;
     border: 2px dashed var(--focusBorder);
     overflow: visible;
 }
@@ -73,9 +77,7 @@
     background-color: var(--browserTile-hoverBackground);
 }
 
-.msg.browserTile:not(:disabled):active,
-.msg.browserTile:focus,
-.msg.browserTile:focus-within {
+.msg.browserTile:not(:disabled):active {
     color: var(--browserTile-activeForeground);
     border-color: var(--browserTile-activeBorder);
     background-color: var(--browserTile-activeBackground);
@@ -87,10 +89,15 @@
     color: var(--browserTileSecondary-foreground);
 }
 
-.msg.browserTile.secondary:not(:disabled):active,
-.msg.browserTile.secondary:focus {
+.msg.browserTile.secondary:not(:disabled):active {
     color: var(--browserTileSecondary-activeForeground);
     border-color: var(--browserTileSecondary-activeBorder);
+    background-color: var(--browserTileSecondary-activeBackground);
+}
+
+.msg.browserTile.secondary:focus {
+    color: var(--browserTileSecondary-activeForeground);
+    border-color: transparent;
     background-color: var(--browserTileSecondary-activeBackground);
 }
 

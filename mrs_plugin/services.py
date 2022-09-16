@@ -593,6 +593,7 @@ def change_service(**kwargs):
                     core.check_request_path(
                         url_ctx_root, session=session)
 
+            # Initialize the params list with the service_id
             params = [service_id]
             if change_type == SERVICE_DISABLE:
                 sql = """
@@ -644,23 +645,52 @@ def change_service(**kwargs):
                     """
                 params.insert(0, value)
             elif change_type == SERVICE_SET_ALL:
-                sql = """
-                    UPDATE `mysql_rest_service_metadata`.`service` service
-                    JOIN `mysql_rest_service_metadata`.`url_host` host ON host.id = service.url_host_id
-                    SET service.enabled = ?,
-                        service.url_context_root = ?,
-                        service.url_protocol = ?,
-                        service.comments = ?,
-                        service.is_default = ?,
-                        host.name = ?
-                    WHERE service.id = ?
+                # Check if host_name has changed and if so, create a new host if needed or update
+                new_host_name = value.get("url_host")
+                # Explicitly allow an empty string for the host_name
+                if (new_host_name is not None) and new_host_name != service.get("url_host_name"):
+                    # Check if a host_name with the given name already exists
+                    sql = """
+                        SELECT id FROM `mysql_rest_service_metadata`.`url_host`
+                        WHERE name = ?
                     """
+                    res = session.run_sql(sql, [new_host_name])
+                    row = res.fetch_one()
+                    if row:
+                        host_id = row.get_field("id")
+                    else:
+                        # Create a new url_host entry and get its id
+                        res = session.run_sql("""
+                            INSERT INTO `mysql_rest_service_metadata`.`url_host` (`name`)
+                            VALUES (?)
+                            """, [new_host_name])
+                        host_id = res.get_auto_increment_value()
 
+                    # Update service with new host id
+                    res = session.run_sql("""
+                        UPDATE `mysql_rest_service_metadata`.`service`
+                        SET url_host_id = ?
+                        WHERE id = ?
+                        """, [host_id, service_id])
+
+                # Set is_default values of all other services to false
                 if str(value.get("is_default")).lower() == "true":
                     res = session.run_sql("""
                         UPDATE `mysql_rest_service_metadata`.`service`
-                        SET is_default = FALSE
-                        """)
+                        SET is_default = FALSE 
+                        WHERE id <> ?
+                        """, [service_id])
+
+                # Update the service
+                sql = """
+                    UPDATE `mysql_rest_service_metadata`.`service`
+                    SET enabled = ?,
+                        url_context_root = ?,
+                        url_protocol = ?,
+                        comments = ?,
+                        is_default = ?
+                    WHERE id = ?
+                    """
                 params.insert(
                     0, (str(value.get("enabled")).lower() == "true" or
                     str(value.get("enabled")) == "1"))
@@ -670,7 +700,6 @@ def change_service(**kwargs):
                 params.insert(
                     4, (str(value.get("is_default")).lower() == "true" or
                     str(value.get("is_default")) == "1"))
-                params.insert(5, value.get("url_host", service.get("url_host_name")))
             else:
                 raise Exception("Operation not supported")
 

@@ -354,8 +354,8 @@ export const registerSettings = (): void => {
         "choice", "notebook", false,
         {
             choices: [
-                ["Notebook", "notebook", "A multi language editor with embedded results"],
-                ["MySQL Script", "script", "A single language script editor (MySQL)"],
+                ["DB Notebook", "notebook", "A multi-language editor with embedded results"],
+                ["MySQL Script", "script", "A single-language script editor (MySQL)"],
             ],
         });
     registerSetting(

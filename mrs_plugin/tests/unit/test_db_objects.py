@@ -95,17 +95,17 @@ def test_add_db_object(init_mrs):
     db_object["raise_exceptions"] = True
     with pytest.raises(Exception) as exc_info:
         add_db_object(**db_object)
-    assert str(exc_info.value) == "The request_path has to start with '/'."
+    assert str(exc_info.value) == "The request_path 'table_addresses' has to start with '/'."
 
     db_object["request_path"] = "/table_addresses"
     with pytest.raises(ValueError) as exc_info:
         add_db_object(**db_object)
-    assert str(exc_info.value) == "No CRUD operations specified.Operation chancelled."
+    assert str(exc_info.value) == "No CRUD operations specified.Operation cancelled."
 
     db_object["crud_operations"] = ['CREATE', 'READ', 'UPDATE', 'DELETE']
     with pytest.raises(ValueError) as exc_info:
         add_db_object(**db_object)
-    assert str(exc_info.value) == "No CRUD operation format specified.Operation chancelled."
+    assert str(exc_info.value) == "No CRUD operation format specified.Operation cancelled."
 
     db_object["crud_operation_format"] = "FEED"
     db_object["crud_operations"] = 1
@@ -201,17 +201,17 @@ def test_set_crud_operations(init_mrs):
     with pytest.raises(ValueError) as exc_info:
         set_crud_operations(db_object_id=1, crud_operations=None,
             crud_operation_format="FEED", **args)
-    assert str(exc_info.value) == "No CRUD operations specified.Operation chancelled."
+    assert str(exc_info.value) == "No CRUD operations specified.Operation cancelled."
 
     with pytest.raises(ValueError) as exc_info:
         set_crud_operations(db_object_id=1, crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
             crud_operation_format=None, **args)
-    assert str(exc_info.value) == "No CRUD operation format specified.Operation chancelled."
+    assert str(exc_info.value) == "No CRUD operation format specified.Operation cancelled."
 
     with pytest.raises(ValueError) as exc_info:
         set_crud_operations(db_object_id=1, crud_operations=('CREATE', 'READ', 'UPDATE', 'DELETE'),
             crud_operation_format="FEED", **args)
-    assert str(exc_info.value) == "The crud_operations need to be specified as list. Operation chancelled."
+    assert str(exc_info.value) == "The crud_operations need to be specified as list. Operation cancelled."
 
     with pytest.raises(ValueError) as exc_info:
         set_crud_operations(db_object_id=1, crud_operations=['CRAETE'], crud_operation_format="FEED", **args)

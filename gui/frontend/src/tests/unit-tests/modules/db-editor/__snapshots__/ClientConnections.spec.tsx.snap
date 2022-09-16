@@ -149,6 +149,22 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 />
               </Popup>
             </Dropdown>
+            <Divider
+              key="refreshSeparator"
+              thickness={1}
+              vertical={true}
+            >
+              <div
+                className="msg divider vertical"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                style={
+                  Object {
+                    "--thickness": "1px",
+                  }
+                }
+              />
+            </Divider>
             <Button
               data-tooltip="Hide sleeping connections"
               imageOnly={true}
@@ -227,6 +243,22 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </Icon>
               </button>
             </Button>
+            <Divider
+              key="filterSeparator"
+              thickness={1}
+              vertical={true}
+            >
+              <div
+                className="msg divider vertical"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                style={
+                  Object {
+                    "--thickness": "1px",
+                  }
+                }
+              />
+            </Divider>
             <Button
               data-tooltip="Don't load full thread info"
               imageOnly={true}
@@ -305,6 +337,22 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </Icon>
               </button>
             </Button>
+            <Divider
+              key="actionSeparator"
+              thickness={1}
+              vertical={true}
+            >
+              <div
+                className="msg divider vertical"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                style={
+                  Object {
+                    "--thickness": "1px",
+                  }
+                }
+              />
+            </Divider>
             <Button
               data-tooltip="Kill Query"
               disabled={true}
@@ -409,117 +457,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
             }
           }
         >
-          <Grid
-            columnGap={12}
-            columns={2}
-            rowGap={12}
-          >
-            <div
-              className="msg grid"
-              style={
-                Object {
-                  "columnGap": "12px",
-                  "gridTemplateColumns": "repeat(2, 1fr)",
-                  "rowGap": "12px",
-                }
-              }
-            >
-              <GridCell
-                className="left"
-                key="cellLogo"
-              >
-                <Container
-                  className="msg gridCell left"
-                  orientation="row"
-                  style={Object {}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell left"
-                    style={
-                      Object {
-                        "alignItems": undefined,
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  >
-                    <Icon
-                      disabled={false}
-                      id="mysqlLogo"
-                      src="mysql-logo.svg"
-                    >
-                      <div
-                        className="msg icon"
-                        id="mysqlLogo"
-                        style={
-                          Object {
-                            "WebkitMaskImage": "url(mysql-logo.svg)",
-                            "backgroundColor": undefined,
-                            "height": undefined,
-                            "maskImage": "url(mysql-logo.svg)",
-                            "width": undefined,
-                          }
-                        }
-                      />
-                    </Icon>
-                  </div>
-                </Container>
-              </GridCell>
-              <GridCell
-                className="right"
-                key="serverInfo"
-                orientation="column"
-              >
-                <Container
-                  className="msg gridCell right"
-                  orientation="column"
-                  style={Object {}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell right"
-                    style={
-                      Object {
-                        "alignItems": undefined,
-                        "flexDirection": "column",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  >
-                    <Label
-                      as="h1"
-                    >
-                      <h1
-                        className="msg label"
-                        data-tooltip="expand"
-                        style={
-                          Object {
-                            "textAlign": undefined,
-                          }
-                        }
-                      >
-                        Client Connections
-                      </h1>
-                    </Label>
-                    <Label
-                      as="h2"
-                    >
-                      <h2
-                        className="msg label"
-                        data-tooltip="expand"
-                        style={
-                          Object {
-                            "textAlign": undefined,
-                          }
-                        }
-                      />
-                    </Label>
-                  </div>
-                </Container>
-              </GridCell>
-            </div>
-          </Grid>
           <Container
             crossAlignment="flex-start"
             id="connectionProps"
@@ -686,6 +623,52 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   }
                 >
                   Errors: 
+                </label>
+              </Label>
+            </div>
+          </Container>
+          <Container
+            id="connectionListTitle"
+            orientation="column"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="connectionListTitle"
+              style={
+                Object {
+                  "alignItems": undefined,
+                  "flexDirection": "column",
+                  "flexWrap": undefined,
+                  "justifyContent": undefined,
+                }
+              }
+            >
+              <Divider
+                thickness={4}
+                vertical={false}
+              >
+                <div
+                  className="msg divider horizontal"
+                  onMouseEnter={[Function]}
+                  onMouseLeave={[Function]}
+                  style={
+                    Object {
+                      "--thickness": "4px",
+                    }
+                  }
+                />
+              </Divider>
+              <Label>
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Client Connection List
                 </label>
               </Label>
             </div>
@@ -863,6 +846,22 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 />
               </Popup>
             </Dropdown>
+            <Divider
+              key="refreshSeparator"
+              thickness={1}
+              vertical={true}
+            >
+              <div
+                className="msg divider vertical"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                style={
+                  Object {
+                    "--thickness": "1px",
+                  }
+                }
+              />
+            </Divider>
             <Button
               data-tooltip="Hide sleeping connections"
               imageOnly={true}
@@ -941,6 +940,22 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </Icon>
               </button>
             </Button>
+            <Divider
+              key="filterSeparator"
+              thickness={1}
+              vertical={true}
+            >
+              <div
+                className="msg divider vertical"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                style={
+                  Object {
+                    "--thickness": "1px",
+                  }
+                }
+              />
+            </Divider>
             <Button
               data-tooltip="Don't load full thread info"
               imageOnly={true}
@@ -1019,6 +1034,22 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </Icon>
               </button>
             </Button>
+            <Divider
+              key="actionSeparator"
+              thickness={1}
+              vertical={true}
+            >
+              <div
+                className="msg divider vertical"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                style={
+                  Object {
+                    "--thickness": "1px",
+                  }
+                }
+              />
+            </Divider>
             <Button
               data-tooltip="Kill Query"
               disabled={true}
@@ -1123,117 +1154,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
             }
           }
         >
-          <Grid
-            columnGap={12}
-            columns={2}
-            rowGap={12}
-          >
-            <div
-              className="msg grid"
-              style={
-                Object {
-                  "columnGap": "12px",
-                  "gridTemplateColumns": "repeat(2, 1fr)",
-                  "rowGap": "12px",
-                }
-              }
-            >
-              <GridCell
-                className="left"
-                key="cellLogo"
-              >
-                <Container
-                  className="msg gridCell left"
-                  orientation="row"
-                  style={Object {}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell left"
-                    style={
-                      Object {
-                        "alignItems": undefined,
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  >
-                    <Icon
-                      disabled={false}
-                      id="mysqlLogo"
-                      src="mysql-logo.svg"
-                    >
-                      <div
-                        className="msg icon"
-                        id="mysqlLogo"
-                        style={
-                          Object {
-                            "WebkitMaskImage": "url(mysql-logo.svg)",
-                            "backgroundColor": undefined,
-                            "height": undefined,
-                            "maskImage": "url(mysql-logo.svg)",
-                            "width": undefined,
-                          }
-                        }
-                      />
-                    </Icon>
-                  </div>
-                </Container>
-              </GridCell>
-              <GridCell
-                className="right"
-                key="serverInfo"
-                orientation="column"
-              >
-                <Container
-                  className="msg gridCell right"
-                  orientation="column"
-                  style={Object {}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell right"
-                    style={
-                      Object {
-                        "alignItems": undefined,
-                        "flexDirection": "column",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  >
-                    <Label
-                      as="h1"
-                    >
-                      <h1
-                        className="msg label"
-                        data-tooltip="expand"
-                        style={
-                          Object {
-                            "textAlign": undefined,
-                          }
-                        }
-                      >
-                        Client Connections
-                      </h1>
-                    </Label>
-                    <Label
-                      as="h2"
-                    >
-                      <h2
-                        className="msg label"
-                        data-tooltip="expand"
-                        style={
-                          Object {
-                            "textAlign": undefined,
-                          }
-                        }
-                      />
-                    </Label>
-                  </div>
-                </Container>
-              </GridCell>
-            </div>
-          </Grid>
           <Container
             crossAlignment="flex-start"
             id="connectionProps"
@@ -1400,6 +1320,52 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   }
                 >
                   Errors: 
+                </label>
+              </Label>
+            </div>
+          </Container>
+          <Container
+            id="connectionListTitle"
+            orientation="column"
+          >
+            <div
+              className="msg container fixedScrollbar"
+              id="connectionListTitle"
+              style={
+                Object {
+                  "alignItems": undefined,
+                  "flexDirection": "column",
+                  "flexWrap": undefined,
+                  "justifyContent": undefined,
+                }
+              }
+            >
+              <Divider
+                thickness={4}
+                vertical={false}
+              >
+                <div
+                  className="msg divider horizontal"
+                  onMouseEnter={[Function]}
+                  onMouseLeave={[Function]}
+                  style={
+                    Object {
+                      "--thickness": "4px",
+                    }
+                  }
+                />
+              </Divider>
+              <Label>
+                <label
+                  className="msg label"
+                  data-tooltip="expand"
+                  style={
+                    Object {
+                      "textAlign": undefined,
+                    }
+                  }
+                >
+                  Client Connection List
                 </label>
               </Label>
             </div>

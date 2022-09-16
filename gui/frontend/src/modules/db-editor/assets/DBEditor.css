@@ -258,18 +258,25 @@ msg.connectionTabHost #dashboardToolbar .image {
 }
 
 .msg.serverStatus .heading {
-    margin: 30px 30px 0 30px;
+    margin: 20px 30px 0 30px;
     text-align: center;
-    font-size: 25pt;
-    height: 39px;
+    font-size: 20pt;
+    height: 34px;
     font-weight: 100;
+}
+
+.msg.serverStatus #header,
+.msg.clientConnections #header {
+    display: flex;
+    grid-template-columns: none;
+    padding-top: 20px;
+    justify-content: center;
 }
 
 .msg.serverStatus #mysqlLogo,
 .msg.clientConnections #mysqlLogo {
-    margin: 8px 0 8px auto;
-    width: 100px;
-    height: 100px;
+    width: 46px;
+    height: 46px;
 }
 
 .msg #serverRunningIcon,
@@ -278,7 +285,8 @@ msg.connectionTabHost #dashboardToolbar .image {
     height: 92px;
 }
 
-.msg.serverStatus .divider {
+.msg.serverStatus .divider,
+.msg.clientConnections .divider {
     background-color: var(--list-gridColor);
     --thickness: 1px !important;
 }
@@ -414,24 +422,26 @@ msg.connectionTabHost #dashboardToolbar .image {
 
 .msg.clientConnections #contentHost {
     flex: 1;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .msg.serverStatus h1,
 .msg.clientConnections h1 {
     font-size: 1.4rem;
-    margin-bottom: 0;
+    font-weight: 500;
+    margin: 0;
 }
 
 .msg.serverStatus h2,
 .msg.clientConnections h2 {
     font-size: 1rem;
     margin-top: 0;
+    font-weight: 300;
 }
 
 .msg.clientConnections {
     flex: 1;
-    margin-left: 10px;
-    margin-right: 10px;
 }
 
 .msg.clientConnections #clientConnectionDetails {
@@ -443,7 +453,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 }
 
 .msg.clientConnections #connectionDetails {
-    flex: 0 0 33%;
+    flex: 0 0 40%;
 }
 
 .msg.clientConnections .grid {
@@ -460,37 +470,38 @@ msg.connectionTabHost #dashboardToolbar .image {
     justify-content: flex-start;
 }
 
+.msg.msg.clientConnections #connectionListTitle .label {
+    padding-top: 10px;
+    padding-bottom: 3px;
+    font-size: 15px;
+    font-weight: 300;
+}
+
 .msg.msg.clientConnections .toolbar {
     width: 100%;
 }
 
 .msg.msg.clientConnections .toolbar #refreshSelector {
     min-width: 120px;
-}
-
-.msg.msg.clientConnections .toolbar > * {
-    margin-left: 3px;
-    margin-right: 3px;
+    margin: 0 3px 0 6px;
 }
 
 .msg.clientConnections #connectionProps {
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .msg.clientConnections #connectionProps label {
-    padding-left: 20px;
     padding-right: 20px;
+    min-width: 190px;
 }
 
 .msg.clientConnections #detailsTabView {
-    margin-left: 20px;
     min-width: 100px;
 }
 
-.msg.clientConnections #detailsTabView #clientConnectionDetails,
-.msg.clientConnections #detailsTabView #clientConnectionAttributes {
-    padding: 20px;
+.msg.clientConnections #detailsTabView #clientConnectionDetails {
+    padding: 10px;
 }
 
 

@@ -125,7 +125,7 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.addConnection", () => {
             const provider = this.currentProvider;
-            void provider?.addConnection("SQL Connections");
+            void provider?.addConnection("DB Connections");
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.refreshConnection", (item?: ConnectionTreeItem) => {
@@ -135,18 +135,18 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.removeConnection", (item: ConnectionTreeItem) => {
             const provider = this.currentProvider;
-            void provider?.removeConnection("SQL Connections", item.entry.details.id);
+            void provider?.removeConnection("DB Connections", item.entry.details.id);
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.editConnection", (item: ConnectionTreeItem) => {
             const provider = this.currentProvider;
-            void provider?.editConnection("SQL Connections", item.entry.details.id);
+            void provider?.editConnection("DB Connections", item.entry.details.id);
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.duplicateConnection",
             (item: ConnectionTreeItem) => {
                 const provider = this.currentProvider;
-                void provider?.duplicateConnection("SQL Connections", item.entry.details.id);
+                void provider?.duplicateConnection("DB Connections", item.entry.details.id);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showSystemSchemasOnConnection",
@@ -165,7 +165,7 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.openDBBrowser", () => {
             const provider = this.currentProvider;
-            void provider?.show("SQL Connections", "connections");
+            void provider?.show("DB Connections", "connections");
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropSchema", (item?: SchemaMySQLTreeItem) => {
@@ -329,7 +329,7 @@ export class DBEditorCommandHandler {
             (item?: OciDbSystemTreeItem) => {
                 if (item) {
                     const provider = this.currentProvider;
-                    void provider?.addConnection("SQL Connections", item.dbSystem, item.profile.profile);
+                    void provider?.addConnection("DB Connections", item.dbSystem, item.profile.profile);
                 }
             }));
 

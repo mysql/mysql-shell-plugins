@@ -62,7 +62,7 @@ export class PresentationInterface {
     protected static maxAutoHeight = {
         text: 292,
         resultSets: 292,
-        graphData: 600,
+        graphData: 300,
     };
 
     // The size of the result area after adding data or manual resize by the user.

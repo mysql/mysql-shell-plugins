@@ -338,10 +338,10 @@ declare class Graph {
 }
 
 declare enum PieGraphLayout {
-    MediumPie,
-    MediumDonut,
-    LargePie,
-    LargeDonut,
+    Donut,
+    ThickDonut,
+    ThinDonut,
+    Pie,
 }
 
 /** A simplified graph class specifically for Pie graphs. */

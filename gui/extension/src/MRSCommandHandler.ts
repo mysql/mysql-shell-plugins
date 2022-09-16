@@ -24,7 +24,7 @@
 import { commands, ExtensionContext, window } from "vscode";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
 import {
-    ICommErrorEvent, ICommMrsServiceEvent, ICommSimpleResultEvent, IMrsSchemaData, IMrsServiceData,
+    ICommErrorEvent, ICommMrsServiceEvent, ICommSimpleResultEvent, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData,
 } from "../../frontend/src/communication";
 
 import { EventType } from "../../frontend/src/supplement/Dispatch";
@@ -312,7 +312,7 @@ export class MRSCommandHandler {
     }
 
     /**
-     * Shows a dialog to create a new or edit an existing MRS service.
+     * Shows a dialog to create a new or edit an existing MRS schema.
      *
      * @param backend The interface for sending the requests.
      * @param schemaName The name of the database schema.
@@ -411,6 +411,51 @@ export class MRSCommandHandler {
             });
         }).catch((errorEvent: ICommErrorEvent) => {
             void window.showErrorMessage(`Error while listing MySQL REST services: ` +
+                `${errorEvent.message ?? "<unknown>"}`);
+        });
+    }
+
+    /**
+     * Shows a dialog to create a new or edit an existing MRS schema.
+     *
+     * @param backend The interface for sending the requests.
+     * @param dbObjectName The name of the db object.
+     * @param dbObject If not assigned then a new dbObject must be created otherwise this contains the existing values.
+     */
+    private showMrsDbObjectDialog(backend: ShellInterfaceSqlEditor, dbObjectName?: string,
+        dbObject?: IMrsDbObjectData): void {
+        backend.mrs.listServices().then((event: ICommMrsServiceEvent) => {
+            const title = dbObject
+                ? "Adjust the MySQL REST Object Configuration"
+                : "Enter Configuration Values for the New MySQL REST Object";
+
+            const request = {
+                id: "mrsDbObjectDialog",
+                type: DialogType.MrsDbObject,
+                title,
+                parameters: { services: event.data?.result },
+                values: {
+                    serviceId: dbObject?.serviceId,
+                    dbSchemaId: dbObject?.dbSchemaId,
+                    name: dbObject?.name ?? dbObjectName,
+                    requestPath: dbObject?.requestPath ?? `/${dbObjectName ?? ""}`,
+                    requiresAuth: dbObject?.requiresAuth === 1,
+                    enabled: !dbObject || dbObject.enabled === 1,
+                    itemsPerPage: dbObject?.itemsPerPage,
+                    comments: dbObject?.comments ?? "",
+                    rowUserOwnershipEnforced: !dbObject || dbObject.rowUserOwnershipEnforced === 1,
+                    rowUserOwnershipColumn: dbObject?.rowUserOwnershipColumn,
+                },
+            };
+
+            void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
+                // The request was not sent at all (e.g. there was already one running).
+                if (!response || response.closure !== DialogResponseClosure.Accept) {
+                    return;
+                }
+            });
+        }).catch((errorEvent: ICommErrorEvent) => {
+            void window.showErrorMessage(`Error while editing MySQL REST database object: ` +
                 `${errorEvent.message ?? "<unknown>"}`);
         });
     }

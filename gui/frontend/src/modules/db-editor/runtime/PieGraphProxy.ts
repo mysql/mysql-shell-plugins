@@ -54,20 +54,20 @@ export class PieGraphProxy {
             let radius: [number, number];
 
             switch (layout) {
-                case PieGraphLayout.LargeDonut: {
-                    radius = [150, 300];
+                case PieGraphLayout.ThickDonut: {
+                    radius = [80, 200];
 
                     break;
                 }
 
-                case PieGraphLayout.MediumDonut: {
+                case PieGraphLayout.Donut: {
                     radius = [120, 200];
 
                     break;
                 }
 
-                case PieGraphLayout.LargePie: {
-                    radius = [0, 300];
+                case PieGraphLayout.ThinDonut: {
+                    radius = [150, 200];
 
                     break;
                 }

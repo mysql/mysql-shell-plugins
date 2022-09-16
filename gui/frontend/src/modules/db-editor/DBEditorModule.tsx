@@ -233,7 +233,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 <Dropdown.Item
                     id="connections"
                     key="connections"
-                    caption="Connections"
+                    caption="DB Connections"
                     picture={<Icon src={connectionsIcon} />}
                 />,
             ];
@@ -489,7 +489,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleNewScriptClick}
                 >
-                    <MenuItem key="item1" id="addEditor" caption="New Notebook" icon={notebookIcon} />
+                    <MenuItem key="item1" id="addEditor" caption="New DB Notebook" icon={notebookIcon} />
                     <MenuItem key="item2" id="addSQLScript" caption="New SQL Script" icon={sqlIcon} />
                     <MenuItem key="item3" id="addTSScript" caption="New TS Script" icon={typescriptIcon} />
                     <MenuItem key="item4" id="addJSScript" caption="New JS Script" icon={javascriptIcon} />
@@ -632,7 +632,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private showConnections = (): Promise<boolean> => {
         return new Promise((resolve) => {
             this.setState({ selectedPage: "connections" }, () => { resolve(true); });
-            requisitions.executeRemote("selectConnectionTab", "SQL Connections");
+            requisitions.executeRemote("selectConnectionTab", "DB Connections");
         });
     };
 
@@ -833,7 +833,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             explorerState: new Map(),
                             editors: [{
                                 id: entryId,
-                                caption: useNotebook ? "Notebook" : "Script",
+                                caption: useNotebook ? "DB Notebook" : "Script",
                                 type: useNotebook ? EntityType.Notebook : EntityType.Script,
                                 state: {
                                     model,
@@ -1180,7 +1180,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         this.setState({ selectedPage: id, selectedItem: undefined });
 
         if (id === "connections") {
-            requisitions.executeRemote("selectConnectionTab", "SQL Connections");
+            requisitions.executeRemote("selectConnectionTab", "DB Connections");
         } else {
             const { editorTabs } = this.state;
             const tab = editorTabs.find((info) => {
@@ -1202,7 +1202,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const id = uuid();
             connectionState.editors.push({
                 id,
-                caption: `Notebook ${++this.editorCounter}`,
+                caption: `DB Notebook ${++this.editorCounter}`,
                 type: EntityType.Notebook,
                 state: {
                     model,
@@ -1251,7 +1251,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const entryId = uuid();
                     connectionState.editors.push({
                         id: entryId,
-                        caption: useNotebook ? "Notebook" : "Script",
+                        caption: useNotebook ? "DB Notebook" : "Script",
                         type: useNotebook ? EntityType.Notebook : EntityType.Script,
                         state: {
                             model,
@@ -1692,7 +1692,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
         switch (language) {
             case "javascript": {
-                return `The DB Editor's interactive prompt is currently running in JavaScript mode.
+                return `The DB Notebook's interactive prompt is currently running in JavaScript mode.
 Execute "\\sql" to switch to SQL mode, "\\ts" to switch to TypeScript mode.
 
 GLOBAL FUNCTIONS
@@ -1706,7 +1706,7 @@ GLOBAL FUNCTIONS
             }
 
             case "typescript": {
-                return `The DB Editor's interactive prompt is currently running in TypeScript mode.
+                return `The DB Notebook's interactive prompt is currently running in TypeScript mode.
 Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
 
 GLOBAL FUNCTIONS
@@ -1720,7 +1720,7 @@ GLOBAL FUNCTIONS
             }
 
             case "mysql": {
-                return `The DB Editor's interactive prompt is currently running in SQL mode.
+                return `The DB Notebook's interactive prompt is currently running in SQL mode.
 Execute "\\js" to switch to JavaScript mode, "\\ts" to switch to TypeScript mode.
 
 Use ? as placeholders, provide values in comments.

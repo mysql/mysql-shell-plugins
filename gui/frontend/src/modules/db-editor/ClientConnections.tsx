@@ -47,7 +47,7 @@ import { ICommResultSetEvent, IPromptReplyBackend } from "../../communication";
 import {
     Component, Container, ContentAlignment, IComponentProperties, IComponentState, Icon, ITreeGridOptions,
     Orientation, SelectionType, Tabulator, TreeGrid, Toolbar, Button, Label, Dropdown,
-    ContentWrap, Tabview, TabPosition, Grid, GridCell,
+    ContentWrap, Tabview, TabPosition, Grid, GridCell, Divider,
 } from "../../components/ui";
 import { IResultSet } from "../../script-execution";
 import { EventType } from "../../supplement/Dispatch";
@@ -208,19 +208,6 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             >
                 {toolbar}
                 <Container id="contentHost" orientation={Orientation.TopDown}>
-                    <Grid columns={2} rowGap={12} columnGap={12}>
-                        <GridCell key="cellLogo" className="left">
-                            <Icon src={mysqlIcon} id="mysqlLogo" />
-                        </GridCell>
-                        <GridCell
-                            orientation={Orientation.TopDown}
-                            key="serverInfo"
-                            className="right"
-                        >
-                            <Label as="h1">Client Connections</Label>
-                            <Label as="h2">{version}</Label>
-                        </GridCell>
-                    </Grid>
                     <Container
                         id="connectionProps"
                         orientation={Orientation.LeftToRight}
@@ -228,6 +215,10 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                         wrap={ContentWrap.Wrap}
                     >
                         {connectionProps}
+                    </Container>
+                    <Container id="connectionListTitle" orientation={Orientation.TopDown}>
+                        <Divider />
+                        <Label>Client Connection List</Label>
                     </Container>
                     <Container id="connectionList" orientation={Orientation.LeftToRight}>
                         {
@@ -434,6 +425,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             >
                 {items}
             </Dropdown>,
+            <Divider vertical={true} thickness={1} key="refreshSeparator" />,
             <Button
                 key="hideSleepConn"
                 data-tooltip="Hide sleeping connections"
@@ -450,6 +442,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             >
                 <Icon src={hideBackgroundThreadsIcon} data-tooltip="inherit" />
             </Button>,
+            <Divider vertical={true} thickness={1} key="filterSeparator" />,
             <Button
                 key="noFullInfo"
                 data-tooltip="Don't load full thread info"
@@ -466,6 +459,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             >
                 <Icon src={showDetailsIcon} data-tooltip="inherit" />
             </Button>,
+            <Divider vertical={true} thickness={1} key="actionSeparator" />,
             <Button
                 disabled={this.selectedRow ? false : true}
                 key="killQuery"

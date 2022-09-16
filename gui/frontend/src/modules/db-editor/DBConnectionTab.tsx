@@ -150,7 +150,7 @@ export class DBConnectionTab extends Component<IDBConnectionTabProperties, IDBCo
     public static clientConnectionsId = uuid();
     public static performanceDashboardId = uuid();
 
-    private static aboutMessage = `Welcome to the MySQL Shell - DB Editor.
+    private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
 
 Press %modifier%+Enter to execute the current statement.
 

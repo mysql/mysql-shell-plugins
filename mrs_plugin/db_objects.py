@@ -23,6 +23,7 @@
 
 # cSpell:ignore mysqlsh, mrs, privs
 
+from unittest.loader import VALID_MODULE_NAME
 from mysqlsh.plugin_manager import plugin_function
 from mrs_plugin import core, schemas as mrs_schemas
 
@@ -104,10 +105,10 @@ def add_db_object(**kwargs):
                 schema_id = schema.get("id")
             except:
                 schema_id = mrs_schemas.add_schema(schema_name=schema_name,
-                    request_path=f"/{schema_name}",
-                    requires_auth=True if requires_auth else False,
-                    session=session,
-                    interactive=False)
+                                                   request_path=f"/{schema_name}",
+                                                   requires_auth=True if requires_auth else False,
+                                                   session=session,
+                                                   interactive=False)
 
         # Get the schema
         schema = mrs_schemas.get_schema(
@@ -118,7 +119,6 @@ def add_db_object(**kwargs):
 
         if not schema:
             raise Exception("Cancelling operation.")
-
 
         if not db_object_type and interactive:
             # Get object counts per type
@@ -264,7 +264,8 @@ def add_db_object(**kwargs):
                 request_path = '/' + db_object_name
 
         if not request_path.startswith('/'):
-            raise Exception("The request_path has to start with '/'.")
+            raise Exception(
+                f"The request_path '{request_path}' has to start with '/'.")
 
         # Check if the request_path starts with / and is unique for the schema
         core.check_request_path(
@@ -287,7 +288,7 @@ def add_db_object(**kwargs):
                 allow_multi_select=True)
         if not crud_operations:
             raise ValueError("No CRUD operations specified."
-                             "Operation chancelled.")
+                             "Operation cancelled.")
 
         if not crud_operation_format and interactive:
             crud_operation_format_options = [
@@ -302,11 +303,11 @@ def add_db_object(**kwargs):
                 print_list=True)
         if not crud_operation_format:
             raise ValueError("No CRUD operation format specified."
-                             "Operation chancelled.")
+                             "Operation cancelled.")
 
         if type(crud_operations) != list:
             raise ValueError("The crud_operations need to be specified as "
-                             "list. Operation chancelled.")
+                             "list. Operation cancelled.")
 
         # Get requires_auth
         if not requires_auth:
@@ -321,7 +322,7 @@ def add_db_object(**kwargs):
         if not row_user_ownership_enforced:
             if interactive:
                 row_user_ownership_enforced = core.prompt(
-                    "Should row ownership be prequired when querying the "
+                    "Should row ownership be required when querying the "
                     "object [y/N]: ",
                     {'defaultValue': 'n'}).strip().lower() == 'y'
             else:
@@ -329,18 +330,23 @@ def add_db_object(**kwargs):
 
         if row_user_ownership_enforced and not row_user_ownership_column:
             if interactive:
-                if db_object_type == "PROCEDURE":
-                    # TODO: Give the user the list of params to choose from
-                    row_user_ownership_column = core.prompt(
-                        "Which procedure parameter should be used for "
-                        "row ownership checks: ").strip()
-                else:
-                    # TODO: Give the user the list of columns to choose from
-                    row_user_ownership_column = core.prompt(
-                        "Which column should be used for row ownership "
-                        "checks: ").strip()
+                fields = get_db_object_row_ownership_fields(
+                    schema_name=schema["name"],
+                    db_object_name=db_object_name,
+                    db_object_type=db_object_type)
+                if len(fields) < 1:
+                    raise ValueError(
+                        "No IN parameters available for this procedure.")
+
+                print("List of available fields:")
+                row_user_ownership_column = core.prompt_for_list_item(
+                    item_list=fields, prompt_caption="Which "
+                    + ("parameter" if db_object_type == "PROCEDURE" else "column")
+                    + " should be used for row ownership checks",
+                    print_list=True)
+
                 if not row_user_ownership_column or row_user_ownership_column == "":
-                    raise ValueError('Operation chancelled.')
+                    raise ValueError('Operation cancelled.')
 
         # Get items_per_page
         if not items_per_page:
@@ -355,7 +361,7 @@ def add_db_object(**kwargs):
                             items_per_page = int(items_per_page)
                         except:
                             raise ValueError("No valid value given."
-                                             "Operation chancelled.")
+                                             "Operation cancelled.")
                     else:
                         items_per_page = None
 
@@ -379,7 +385,7 @@ def add_db_object(**kwargs):
                 grant_privs += "DELETE, "
             else:
                 raise ValueError(f"The given CRUD operation {crud_operation} "
-                                 "does not exist.")
+                                    "does not exist.")
 
         sql = """
             INSERT INTO mysql_rest_service_metadata.db_object(
@@ -403,16 +409,20 @@ def add_db_object(**kwargs):
              comments])
         db_object_id = res.auto_increment_value
 
-
         # Grant privilege to the 'mrs_provider_data_access' role
         if grant_privs:
             grant_privs = grant_privs[0:-2]
         else:
             raise ValueError("No valid CRUD Operation specified")
 
-        sql = (f"GRANT {grant_privs} ON "
-               f"{schema.get('name')}.{db_object_name} "
-               "TO 'mrs_provider_data_access'")
+        if db_object_type == "PROCEDURE":
+            sql = (f"GRANT EXECUTE ON PROCEDURE `"
+                f"{schema.get('name')}`.`{db_object_name}` "
+                "TO 'mrs_provider_data_access'")
+        else:
+            sql = (f"GRANT {grant_privs} ON "
+                f"{schema.get('name')}.{db_object_name} "
+                "TO 'mrs_provider_data_access'")
         res = session.run_sql(sql)
 
         if return_formatted:
@@ -424,7 +434,6 @@ def add_db_object(**kwargs):
         if raise_exceptions:
             raise
         print(f"Error: {str(e)}")
-
 
 
 @plugin_function('mrs.get.dbObject', shell=True, cli=True, web=True)
@@ -494,7 +503,9 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
                 sc.request_path AS schema_request_path,
                 CONCAT(h.name, se.url_context_root) AS host_ctx,
                 o.crud_operation,
-                MAX(al.changed_at) as changed_at
+                MAX(al.changed_at) as changed_at,
+                CONCAT(sc.name, '.', o.name) AS qualified_name,
+                se.id AS service_id
             FROM mysql_rest_service_metadata.db_object o
                 LEFT OUTER JOIN mysql_rest_service_metadata.db_schema sc
                     ON sc.id = o.db_schema_id
@@ -531,6 +542,81 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
             raise Exception("The given db_objects was not found.")
         else:
             return db_objects[0]
+
+    except Exception as e:
+        if interactive:
+            print(f"Error: {str(e)}")
+        else:
+            raise
+
+
+@plugin_function('mrs.get.dbObjectRowOwnershipFields', shell=True, cli=True, web=True)
+def get_db_object_row_ownership_fields(request_path=None, db_object_name=None, **kwargs):
+    """Gets the list of available row ownership fields for the given db_object
+
+    Args:
+        request_path (str): The request_path of the schema
+        db_object_name (str): The name of the db_object
+        **kwargs: Additional options
+
+    Keyword Args:
+        db_object_id (int): The id of the db_object
+        schema_id (int): The id of the schema
+        schema_name (str): The name of the schema
+        db_object_type (str): The type of the db_object (TABLE, VIEW, PROCEDURE)
+        session (object): The database session to use.
+        interactive (bool): Indicates whether to execute in interactive mode
+
+    Returns:
+        The list of available row ownership fields names
+    """
+
+    schema_name = kwargs.get("schema_name")
+    db_object_type = kwargs.get("db_object_type")
+
+    session = kwargs.get("session")
+    interactive = kwargs.get("interactive", True)
+
+    try:
+        if db_object_type and db_object_type != "TABLE" and db_object_type != "VIEW" and db_object_type != "PROCEDURE":
+            raise ValueError(
+                "The object_type must be either set to TABLE, VIEW or PROCEDURE.")
+
+        if schema_name and db_object_name and db_object_type:
+            qualified_name = [schema_name, db_object_name]
+        else:
+            db_object = get_db_object(request_path=request_path,
+                                      db_object_name=db_object_name, interactive=False,
+                                      **kwargs)
+            qualified_name = db_object["qualified_name"].split(".")
+            db_object_type = db_object["object_type"]
+
+        session = core.get_current_session(session)
+
+        # Make sure the MRS metadata schema exists and has the right version
+        core.ensure_rds_metadata_schema(session)
+
+        if db_object_type == "PROCEDURE":
+            sql = """
+                SELECT PARAMETER_NAME FROM `INFORMATION_SCHEMA`.`PARAMETERS`
+                WHERE SPECIFIC_SCHEMA = ?
+                    AND SPECIFIC_NAME = ?
+                    AND PARAMETER_MODE = "IN"
+                ORDER BY ORDINAL_POSITION
+            """
+        else:
+            sql = """
+                SELECT COLUMN_NAME FROM `INFORMATION_SCHEMA`.`COLUMNS`
+                WHERE TABLE_SCHEMA = ?
+                    AND TABLE_NAME = ?
+                    AND GENERATION_EXPRESSION = ""
+                ORDER BY ORDINAL_POSITION
+            """
+
+        res = session.run_sql(sql, [qualified_name[0], qualified_name[1]])
+        rows = res.fetch_all()
+
+        return [f[0] for f in rows]
 
     except Exception as e:
         if interactive:
@@ -616,7 +702,9 @@ def get_db_objects(schema_id, **kwargs):
                 o.comments, sc.request_path AS schema_request_path,
                 CONCAT(h.name, se.url_context_root) AS host_ctx,
                 o.crud_operation as crud_operations,
-                MAX(al.changed_at) as changed_at
+                MAX(al.changed_at) as changed_at,
+                CONCAT(sc.name, '.', o.name) AS qualified_name,
+                se.id AS service_id
             FROM mysql_rest_service_metadata.db_object o
                 LEFT OUTER JOIN mysql_rest_service_metadata.db_schema sc
                     ON sc.id = o.db_schema_id
@@ -774,7 +862,7 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
                 allow_multi_select=True)
         if not crud_operations:
             raise ValueError("No CRUD operations specified."
-                             "Operation chancelled.")
+                             "Operation cancelled.")
 
         if not crud_operation_format and interactive:
             crud_operation_format_options = [
@@ -789,11 +877,11 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
                 print_list=True)
         if not crud_operation_format:
             raise ValueError("No CRUD operation format specified."
-                             "Operation chancelled.")
+                             "Operation cancelled.")
 
         if type(crud_operations) != list:
             raise ValueError("The crud_operations need to be specified as "
-                             "list. Operation chancelled.")
+                             "list. Operation cancelled.")
 
         grant_privs = ""
         for crud_operation in crud_operations:
@@ -815,7 +903,8 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
                 WHERE id = ?
                 """, [",".join(crud_operations), crud_operation_format, db_object.get("id")])
         if res.get_affected_row_count() != 1:
-            raise Exception(f"Could not update crud operations for the db_object {db_object.get('name')}.")
+            raise Exception(
+                f"Could not update crud operations for the db_object {db_object.get('name')}.")
 
         # Update privilege to the 'mrs_provider_data_access' role
         if grant_privs:
@@ -824,15 +913,15 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
             raise ValueError("No valid CRUD Operation specified")
 
         schema = mrs_schemas.get_schema(schema_id=db_object.get("db_schema_id"), session=session,
-                    interactive=interactive, return_formatted=False)
+                                        interactive=interactive, return_formatted=False)
         sql = (f"REVOKE ALL ON  "
-            f"{schema.get('name')}.{db_object.get('name')} "
-            "FROM 'mrs_provider_data_access'")
+               f"{schema.get('name')}.{db_object.get('name')} "
+               "FROM 'mrs_provider_data_access'")
         res = session.run_sql(sql)
 
         sql = (f"GRANT {grant_privs} ON "
-            f"{schema.get('name')}.{db_object.get('name')} "
-            "TO 'mrs_provider_data_access'")
+               f"{schema.get('name')}.{db_object.get('name')} "
+               "TO 'mrs_provider_data_access'")
         res = session.run_sql(sql)
 
         if interactive:

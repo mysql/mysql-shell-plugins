@@ -1115,7 +1115,7 @@
             "msg-view": [
                 {
                     "id": "msg.connections",
-                    "name": "DATABASE"
+                    "name": "DATABASE CONNECTIONS"
                 },
                 {
                     "id": "msg.oci",

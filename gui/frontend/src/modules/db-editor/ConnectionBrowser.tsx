@@ -324,10 +324,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 </Menu>
                 <FrontPage
                     showGreeting={settings.get("dbEditor.connectionBrowser.showGreeting", true)}
-                    caption="MySQL Shell - DB Editor"
-                    description={"The DB Editor is a visual tool for working with databases. It can be used to " +
+                    caption="MySQL Shell - DB Notebooks"
+                    description={"DB Notebooks are modern editors for working with databases. They can be used to " +
                         "create and manage databases schema objects, write SQL queries and scripts, and work with " +
-                        "table data. There are two types of editors: Notebook Editors and Script Editors."
+                        "data.\n\n" +
+                        "Click on a Database Connection to open a new DB Notebook."
                     }
                     helpUrls={linkMap}
                     onCloseGreeting={this.handleCloseGreeting}

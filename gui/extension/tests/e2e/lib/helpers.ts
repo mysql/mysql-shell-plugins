@@ -67,7 +67,7 @@ export const setDriver = async (): Promise<WebDriver | undefined> => {
     let browser: VSBrowser;
 
     let counter = 0;
-    while(counter <= 10) {
+    while (counter <= 10) {
         try {
             browser = VSBrowser.instance;
             await browser.waitForWorkbench();
@@ -75,7 +75,7 @@ export const setDriver = async (): Promise<WebDriver | undefined> => {
             await driver.manage().timeouts().implicitlyWait(5000);
 
             return driver;
-        } catch(e) {
+        } catch (e) {
             if (e instanceof Error) {
                 if (e.message.indexOf("target frame detached") === -1) {
                     throw new Error(String(e.stack));
@@ -97,7 +97,7 @@ export const takeScreenshot = async (context: Mocha.Context): Promise<void> => {
     const imgPath = `tests/e2e/screenshots/${String(testName)}.png`;
     await fs.writeFile(imgPath, img, "base64");
 
-    addContext(context, {title: "Failure", value: `../${imgPath}`});
+    addContext(context, { title: "Failure", value: `../${imgPath}` });
 };
 
 export const waitForWelcomePage = async (): Promise<void> => {
@@ -161,7 +161,7 @@ export const getTreeElement = async (section: string,
     }
 };
 
-export const isDefaultItem = async (section: string,itemType: string,
+export const isDefaultItem = async (section: string, itemType: string,
     itemName: string): Promise<boolean | undefined> => {
     const root = await getTreeElement(section, itemName);
     const el = await root.findElement(By.css(".custom-view-tree-node-item > div"));
@@ -182,7 +182,7 @@ export const isDefaultItem = async (section: string,itemType: string,
 
 };
 
-export const toggleBottomBar = async (expand:boolean): Promise<void> => {
+export const toggleBottomBar = async (expand: boolean): Promise<void> => {
     const bottombar = await driver.findElement(By.css(".basepanel.bottom"));
     const parent: WebElement = await driver.executeScript("return arguments[0].parentNode", bottombar);
     const parentClasses = (await parent.getAttribute("class")).split(" ");
@@ -216,9 +216,9 @@ export const selectItem = async (taps: Number): Promise<void> => {
 
 export const initTreeSection = async (section: string): Promise<void> => {
     switch (section) {
-        case "DATABASE":
+        case "DATABASE CONNECTIONS":
             if (!dbTreeSection) {
-                dbTreeSection = await new SideBarView().getContent().getSection("DATABASE") as CustomTreeSection;
+                dbTreeSection = await new SideBarView().getContent().getSection("DATABASE CONNECTIONS") as CustomTreeSection;
             }
             break;
         case "ORACLE CLOUD INFRASTRUCTURE":
@@ -245,7 +245,7 @@ export const initTreeSection = async (section: string): Promise<void> => {
 };
 
 export const getExistingConnections = async (): Promise<string[]> => {
-    const sec = await getLeftSection("DATABASE");
+    const sec = await getLeftSection("DATABASE CONNECTIONS");
     const els = await sec?.findElements(By.xpath(`//div[contains(@aria-label, 'conn')]`));
     const connections = [];
     for (const el of els) {
@@ -264,7 +264,7 @@ export const selectContextMenuItem = async (
     let treeSection: CustomTreeSection | undefined;
 
     switch (section) {
-        case "DATABASE":
+        case "DATABASE CONNECTIONS":
             treeSection = dbTreeSection;
             break;
         case "ORACLE CLOUD INFRASTRUCTURE":
@@ -354,7 +354,7 @@ export const selectMoreActionsItem = async (
     await driver.wait(async () => {
         return (await driver.findElements(By.css(".context-menu-visible"))).length === 1;
     }, 2000,
-    "More Actions Context menu was not displayed");
+        "More Actions Context menu was not displayed");
 
 
     await driver.wait(async () => {
@@ -365,26 +365,26 @@ export const selectMoreActionsItem = async (
             await el.click();
 
             return (await driver.findElements(By.css(".context-menu-visible"))).length === 0;
-        } catch(e) {
+        } catch (e) {
             if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
                 return false;
             }
         }
 
-    }, 3000 ,"More Actions context menu is still displayed");
+    }, 3000, "More Actions context menu is still displayed");
 };
 
 export const createDBconnection = async (dbConfig: IDbConnection): Promise<void> => {
-    const createConnBtn = await getLeftSectionButton("DATABASE", "Create New MySQL Connection");
+    const createConnBtn = await getLeftSectionButton("DATABASE CONNECTIONS", "Create New MySQL Connection");
     await createConnBtn?.click();
 
     const editorView = new EditorView();
-    const editor = await editorView.openEditor("SQL Connections");
-    expect(await editor.getTitle()).to.equals("SQL Connections");
+    const editor = await editorView.openEditor("DB Connections");
+    expect(await editor.getTitle()).to.equals("DB Connections");
 
     await driver.switchTo().frame(0);
     await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+    await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
 
     const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
         10000, "Connection dialog was not loaded");
@@ -423,7 +423,7 @@ export const getDB = async (name: string, useFrame = true): Promise<WebElement> 
     if (useFrame) {
         await driver.switchTo().frame(0);
         await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-        await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+        await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
     }
 
     const db = await driver.wait(async () => {
@@ -545,7 +545,7 @@ export const toggleTreeElement = async (section: string,
     }, 5000, `${section} > ${el} was not toggled`);
 };
 
-export const getFirstTreeChild = async (section: string, parent:string): Promise<string> => {
+export const getFirstTreeChild = async (section: string, parent: string): Promise<string> => {
 
     await toggleTreeElement(section, parent, true);
     const parentNode = await getTreeElement(section, parent);
@@ -626,18 +626,18 @@ export const welcomeMySQLShell = async (): Promise<boolean> => {
 
 export const deleteDBConnection = async (dbName: string): Promise<void> => {
 
-    await selectContextMenuItem("DATABASE", dbName, "Delete MySQL Connection");
+    await selectContextMenuItem("DATABASE CONNECTIONS", dbName, "Delete MySQL Connection");
 
     const editorView = new EditorView();
     await driver.wait(async () => {
         const activeTab = await editorView.getActiveTab();
 
-        return await activeTab?.getTitle() === "SQL Connections";
+        return await activeTab?.getTitle() === "DB Connections";
     }, 3000, "error");
 
     await driver.switchTo().frame(0);
     await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+    await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
 
     const item = driver.findElement(By.xpath("//label[contains(text(),'" + dbName + "')]"));
     const dialog = await driver.wait(until.elementLocated(
@@ -649,7 +649,7 @@ export const deleteDBConnection = async (dbName: string): Promise<void> => {
 };
 
 export const clearPassword = async (dbName: string): Promise<void> => {
-    const el = await getTreeElement("DATABASE", dbName);
+    const el = await getTreeElement("DATABASE CONNECTIONS", dbName);
     expect(el).to.exist;
 
     await driver.actions()
@@ -661,10 +661,10 @@ export const clearPassword = async (dbName: string): Promise<void> => {
     await selectItem(4);
     const editorView = new EditorView();
     const editors = await editorView.getOpenEditorTitles();
-    expect(editors.includes("SQL Connections")).to.be.true;
+    expect(editors.includes("DB Connections")).to.be.true;
     await driver.switchTo().frame(0);
     await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+    await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
     const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
     await newConDialog.findElement(By.id("Clear Password")).click();
     await driver.switchTo().defaultContent();
@@ -889,7 +889,7 @@ export const reloadSection = async (sectionName: string): Promise<void> => {
     await section.click();
     let btnName = "";
     switch (sectionName) {
-        case "DATABASE":
+        case "DATABASE CONNECTIONS":
             btnName = "Reload the connection list";
             break;
         case "ORACLE CLOUD INFRASTRUCTURE":
@@ -904,7 +904,7 @@ export const reloadSection = async (sectionName: string): Promise<void> => {
 };
 
 export const reloadConnection = async (connName: string): Promise<void> => {
-    const context = await getTreeElement("DATABASE", connName);
+    const context = await getTreeElement("DATABASE CONNECTIONS", connName);
     await driver.actions().mouseMove(context).perform();
     const btns = await context.findElements(By.css(".actions a"));
     for (const btn of btns) {
@@ -941,7 +941,7 @@ export const isDBConnectionSuccessful = async (connection: string): Promise<bool
 
     await driver.switchTo().frame(0);
     await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-    await driver.switchTo().frame(await driver.findElement(By.id("frame:SQL Connections")));
+    await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
 
     expect(await driver.findElement(By.css(".zoneHost"))).to.exist;
 
@@ -1085,7 +1085,7 @@ export const closeFinder = async (el: WebElement): Promise<void> => {
 
 export const getResultTab = async (tabName: string): Promise<WebElement | undefined> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-    const tabs = await zoneHosts[zoneHosts.length-1].findElements(By.css(".resultHost .tabArea div"));
+    const tabs = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".resultHost .tabArea div"));
 
     for (const tab of tabs) {
         if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
@@ -1110,7 +1110,7 @@ export const getResultColumnName = async (columnName: string,
     }
     try {
         const resultHosts = await driver.findElements(By.css(".resultHost"));
-        const resultSet = await resultHosts[resultHosts.length-1].findElement(
+        const resultSet = await resultHosts[resultHosts.length - 1].findElement(
             By.css(".tabulator-headers"),
         );
 
@@ -1151,13 +1151,13 @@ export const setDBEditorLanguage = async (language: string): Promise<void> => {
         const results = await driver.findElements(By.css(".message.info"));
         switch (language) {
             case "sql":
-                expect(await results[results.length-1].getText()).equals("Switched to MySQL mode");
+                expect(await results[results.length - 1].getText()).equals("Switched to MySQL mode");
                 break;
             case "js":
-                expect(await results[results.length-1].getText()).equals("Switched to JavaScript mode");
+                expect(await results[results.length - 1].getText()).equals("Switched to JavaScript mode");
                 break;
             case "ts":
-                expect(await results[results.length-1].getText()).equals("Switched to TypeScript mode");
+                expect(await results[results.length - 1].getText()).equals("Switched to TypeScript mode");
                 break;
             default:
                 break;
@@ -1223,12 +1223,12 @@ export const clickContextMenuItem = async (refEl: WebElement, item: string): Pro
             shadowRoot.querySelector("span[aria-label='${item}']")`);
 
             return el !== undefined;
-        } catch(e) {
+        } catch (e) {
             return false;
         }
 
     }, 5000,
-    "Context menu was not displayed");
+        "Context menu was not displayed");
 
     await driver.wait(async () => {
         try {
@@ -1237,13 +1237,13 @@ export const clickContextMenuItem = async (refEl: WebElement, item: string): Pro
             await el.click();
 
             return true;
-        } catch(e) {
+        } catch (e) {
             if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
                 return true;
             }
         }
 
-    }, 3000 ,"Context menu is still displayed");
+    }, 3000, "Context menu is still displayed");
 };
 
 export const getGraphHost = async (): Promise<WebElement> => {
@@ -1259,15 +1259,15 @@ export const hasNewPrompt = async (): Promise<boolean | undefined> => {
     let text: String;
     try {
         const prompts = await driver.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-        const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
+        const lastPrompt = await prompts[prompts.length - 1].findElement(By.css("span > span"));
         text = await lastPrompt.getText();
-    } catch(e) {
+    } catch (e) {
         if (String(e).indexOf("StaleElementReferenceError") === -1) {
             throw new Error(String(e.stack));
         } else {
             await driver.sleep(500);
             const prompts = await driver.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-            const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
+            const lastPrompt = await prompts[prompts.length - 1].findElement(By.css("span > span"));
             text = await lastPrompt.getText();
         }
     }
@@ -1280,7 +1280,7 @@ export const getLastQueryResultId = async (): Promise<number> => {
     if (zoneHosts.length > 0) {
         const zones = await driver.findElements(By.css(".zoneHost"));
 
-        return parseInt((await zones[zones.length-1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
+        return parseInt((await zones[zones.length - 1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
     } else {
         return 0;
     }
@@ -1348,15 +1348,15 @@ export const getPromptTextLine = async (prompt: String): Promise<String> => {
     const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
 
     let tags;
-    switch(prompt) {
+    switch (prompt) {
         case "last":
-            tags = await lines[lines.length-1].findElements(By.css("span > span"));
+            tags = await lines[lines.length - 1].findElements(By.css("span > span"));
             break;
         case "last-1":
-            tags = await lines[lines.length-2].findElements(By.css("span > span"));
+            tags = await lines[lines.length - 2].findElements(By.css("span > span"));
             break;
         case "last-2":
-            tags = await lines[lines.length-3].findElements(By.css("span > span"));
+            tags = await lines[lines.length - 3].findElements(By.css("span > span"));
             break;
         default:
             throw new Error("Error getting line");
@@ -1529,7 +1529,7 @@ export const setRestService = async (serviceName: string,
 
 export const setRestSchema = async (schemaName: string,
     mrsService: string, requestPath: string, itemsPerPage: number,
-    authentication: boolean, enabled: boolean, comments: string): Promise <void> => {
+    authentication: boolean, enabled: boolean, comments: string): Promise<void> => {
 
     const dialog = await driver.findElement(By.id("mrsSchemaDialog"));
 
@@ -1585,7 +1585,7 @@ export const setRestSchema = async (schemaName: string,
 
             while (count < clicks) {
                 await ref.click();
-                count ++;
+                count++;
             }
         } else {
             const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
