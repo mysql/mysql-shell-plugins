@@ -98,8 +98,8 @@ export interface IConsoleWorkerEnvironment {
 
 // Same definition as in scripting-runtime.d.ts (modify in sync!).
 export enum PieGraphLayout {
-    MediumPie,
-    MediumDonut,
-    LargePie,
-    LargeDonut,
+    Donut,
+    ThickDonut,
+    ThinDonut,
+    Pie,
 }

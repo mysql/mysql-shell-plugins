@@ -196,7 +196,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                     mainAlignment={ContentAlignment.Start}
                     crossAlignment={ContentAlignment.Center}
                 >
-                    <Grid columns={2} rowGap={12} columnGap={12}>
+                    <Grid columns={2} rowGap={15} columnGap={12} id="header">
                         <GridCell rowSpan={2}>
                             <Icon src={mysqlIcon} id="mysqlLogo" />
                         </GridCell>

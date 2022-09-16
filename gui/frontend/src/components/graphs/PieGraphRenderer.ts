@@ -55,8 +55,8 @@ export class PieGraphRenderer {
             return;
         }
 
-        const width = config.transformation?.width ?? 1200;
-        const height = config.transformation?.height ?? 900;
+        const width = config.transformation?.width ?? 666;//1200;
+        const height = config.transformation?.height ?? 500;//900;
         const x = config.transformation?.x ?? "50%";
         const y = config.transformation?.y ?? "50%";
 

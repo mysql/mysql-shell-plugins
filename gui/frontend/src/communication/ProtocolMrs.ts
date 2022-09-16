@@ -23,6 +23,8 @@
 
 import { Protocol, IShellRequest } from ".";
 
+
+
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -59,6 +61,7 @@ export enum ShellAPIMrs {
     MrsDeleteContentSet = "mrs.delete.content_set",
     MrsAddDbObject = "mrs.add.db_object",
     MrsGetDbObject = "mrs.get.db_object",
+    MrsGetDbObjectRowOwnershipFields = "mrs.get.db_object_row_ownership_fields",
     MrsListDbObjects = "mrs.list.db_objects",
     MrsSetDbObjectRequestPath = "mrs.set.db_object.request_path",
     MrsSetDbObjectCrudOperations = "mrs.set.db_object.crud_operations",
@@ -400,6 +403,16 @@ export interface IShellAddDbObjectKwargs {
 export interface IShellGetDbObjectKwargs {
     dbObjectId?: number;
     schemaId?: number;
+    moduleSessionId?: string;
+    interactive?: boolean;
+}
+
+
+export interface IShellGetDbObjectRowOwnershipFieldsKwargs {
+    dbObjectId?: number;
+    schemaId?: number;
+    schemaName?: string;
+    dbObjectType?: string;
     moduleSessionId?: string;
     interactive?: boolean;
 }
@@ -1440,6 +1453,39 @@ export class ProtocolMrs extends Protocol {
         }
 
         return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsGetDbObject,
+            {
+                args: {
+                    request_path: requestPath,
+                    db_object_name: dbObjectName,
+                },
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Gets the list of available row ownership fields for the given db_object
+     *
+     * @param requestPath The request_path of the schema
+     * @param dbObjectName The name of the db_object
+     * @param kwargs Additional options
+     *
+     * @returns The list of available row ownership fields names
+     */
+    public static getRequestGetDbObjectRowOwnershipFields(requestPath?: string, dbObjectName?: string, kwargs?: IShellGetDbObjectRowOwnershipFieldsKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_object_id: kwargs.dbObjectId,
+                schema_id: kwargs.schemaId,
+                schema_name: kwargs.schemaName,
+                db_object_type: kwargs.dbObjectType,
+                module_session_id: kwargs.moduleSessionId,
+                interactive: kwargs.interactive,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsGetDbObjectRowOwnershipFields,
             {
                 args: {
                     request_path: requestPath,

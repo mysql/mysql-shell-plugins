@@ -907,6 +907,63 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
       </Dialog>
     </ValueEditDialog>
   </MrsSchemaDialog>
+  <MrsDbObjectDialog
+    onClose={[Function]}
+  >
+    <ValueEditDialog
+      id="mrsSchemaDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          Object {
+            "begin": Array [],
+            "end": Array [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <y>
+            <Icon
+              disabled={false}
+              src={388}
+            />
+            <Label />
+          </y>
+        }
+        className="msg valueEditDialog"
+        container={Object {}}
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            rowGap={16}
+          />
+        }
+        id="mrsSchemaDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={Object {}}
+          id="mrsSchemaDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+    </ValueEditDialog>
+  </MrsDbObjectDialog>
   <MdsHWClusterDialog
     onClose={[Function]}
   >

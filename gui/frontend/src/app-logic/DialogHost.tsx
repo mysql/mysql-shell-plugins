@@ -28,6 +28,7 @@ import {
 } from "../components/Dialogs";
 import { Component } from "../components/ui";
 import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
+import { MrsDbObjectDialog } from "../modules/mrs/dialogs/MrsDbObjectDialog";
 import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
 import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
 import { requisitions } from "../supplement/Requisitions";
@@ -89,10 +90,17 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsSchema)}
         />);
 
-        const ref3 = React.createRef<MdsHWClusterDialog>();
-        this.dialogRefs.set(DialogType.MdsHeatWaveCluster, ref3);
-        dialogs.push(<MdsHWClusterDialog
+        const ref3 = React.createRef<MrsDbObjectDialog>();
+        this.dialogRefs.set(DialogType.MrsDbObject, ref3);
+        dialogs.push(<MrsDbObjectDialog
             ref={ref3}
+            onClose={this.handleDialogClose.bind(this, DialogType.MrsDbObject)}
+        />);
+
+        const refMds1 = React.createRef<MdsHWClusterDialog>();
+        this.dialogRefs.set(DialogType.MdsHeatWaveCluster, refMds1);
+        dialogs.push(<MdsHWClusterDialog
+            ref={refMds1}
             onClose={this.handleDialogClose.bind(this, DialogType.MdsHeatWaveCluster)}
         />);
 

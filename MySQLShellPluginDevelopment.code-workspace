@@ -69,7 +69,8 @@
             "streetsidesoftware.code-spell-checker",
             "dbaeumer.vscode-eslint",
             "ms-python.python",
-            "ms-python.vscode-pylance"
+            "ms-python.vscode-pylance",
+            "orta.vscode-jest"
         ]
     }
 }

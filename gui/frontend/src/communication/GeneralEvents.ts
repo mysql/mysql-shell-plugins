@@ -429,18 +429,19 @@ export interface IMrsDbObjectData {
     comments: string;
     crudOperations: string[];
     dbSchemaId: number;
-    enabled: boolean;
+    enabled: number;
     hostCtx?: string;
     id: number;
     itemsPerPage?: number;
     name: string;
     objectType: string;
     requestPath: string;
-    requiresAuth: boolean;
-    rowOwnershipColumn?: string;
-    rowOwnershipEnforced: boolean;
-    rowOwnershipParameter?: string;
+    requiresAuth: number;
+    rowUserOwnershipColumn?: string;
+    rowUserOwnershipEnforced: number;
     schemaRequestPath?: string;
+    qualifiedName: string;
+    serviceId: number;
 }
 
 export interface IMrsDbObjectResultData extends IGenericResponse {

@@ -48,15 +48,17 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
           <Grid
             columnGap={12}
             columns={2}
-            rowGap={12}
+            id="header"
+            rowGap={15}
           >
             <div
               className="msg grid"
+              id="header"
               style={
                 Object {
                   "columnGap": "12px",
                   "gridTemplateColumns": "repeat(2, 1fr)",
-                  "rowGap": "12px",
+                  "rowGap": "15px",
                 }
               }
             >
@@ -2469,15 +2471,17 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
           <Grid
             columnGap={12}
             columns={2}
-            rowGap={12}
+            id="header"
+            rowGap={15}
           >
             <div
               className="msg grid"
+              id="header"
               style={
                 Object {
                   "columnGap": "12px",
                   "gridTemplateColumns": "repeat(2, 1fr)",
-                  "rowGap": "12px",
+                  "rowGap": "15px",
                 }
               }
             >

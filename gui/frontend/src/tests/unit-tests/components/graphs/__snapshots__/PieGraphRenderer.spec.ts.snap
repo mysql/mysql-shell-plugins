@@ -7,7 +7,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
   <svg
     id="graph2"
     overflow="visible"
-    viewBox="0 0 1200 900"
+    viewBox="0 0 666 500"
     x="50%"
     y="50%"
   >
@@ -82,7 +82,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
   <svg
     id="graph2"
     overflow="visible"
-    viewBox="0 0 1200 900"
+    viewBox="0 0 666 500"
     x="50%"
     y="50%"
   >

@@ -171,7 +171,7 @@ const getCssWebviewContent = (rootPath: Uri): string => {
     }
     .pingEffect div {
         position: absolute;
-        border: 4px solid #fff;
+        border: 4px solid var(--vscode-foreground);
         opacity: 1;
         border-radius: 50%;
         animation: pingEffect 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;

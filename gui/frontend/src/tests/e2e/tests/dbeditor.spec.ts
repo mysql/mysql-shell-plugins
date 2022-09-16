@@ -1889,7 +1889,7 @@ describe("DB Editor - Core Tests", () => {
                 .findElement(By.css("textarea"))
                 .sendKeys("select actor from sakila.actor");
 
-            await selectCurrentEditor(driver, "Notebook", "shell");
+            await selectCurrentEditor(driver, "DB Notebook", "shell");
 
             await selectCurrentEditor(driver, "myNewConsole", "shell");
 
@@ -1901,7 +1901,7 @@ describe("DB Editor - Core Tests", () => {
 
             expect(
                 await driver.findElement(By.css("#documentSelector label")).getText(),
-            ).toBe("Notebook");
+            ).toBe("DB Notebook");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -2081,7 +2081,7 @@ describe("DB Editor - Core Tests", () => {
             testFailed = true;
             throw e;
         } finally {
-            await selectCurrentEditor(driver, "Notebook", "shell");
+            await selectCurrentEditor(driver, "DB Notebook", "shell");
         }
     });
 
@@ -2194,7 +2194,7 @@ describe("DB Editor - Core Tests", () => {
             testFailed = true;
             throw e;
         } finally {
-            await selectCurrentEditor(driver, "Notebook", "shell");
+            await selectCurrentEditor(driver, "DB Notebook", "shell");
         }
     });
 });

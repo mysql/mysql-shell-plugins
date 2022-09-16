@@ -43,7 +43,7 @@
         "resultView.headerBackground": "#F0F0F0",
         "resultView.headerForeground": "#616161",
         "resultView.gridColor": "#EDEDED",
-        "resultView.background": "#161616",
+        "resultView.background": "#FFFFFF",
         "resultView.foreground": "#C0B4C4",
         "editorZone.background": "#FAFAFA",
         "editorZone.foreground": "#616161",
