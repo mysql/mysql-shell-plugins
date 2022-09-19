@@ -285,6 +285,7 @@
         "merge.currentHeaderBackground": "#40C8AE",
         "merge.incomingContentBackground": "#40A6FF",
         "merge.incomingHeaderBackground": "#40A6FF",
+        "minimap.foregroundOpacity": "#000000",
         "minimap.background": "#1E1E1E",
         "minimap.errorHighlight": "#FF1212",
         "minimap.findMatchHighlight": "#D18616",
