@@ -2,6 +2,7 @@
 **/.vscode-test/*
 !**/.vscode/launch.json
 !**/.vscode/tasks.json
+!**/.vscode/settings.json
 
 **/node_modules
 **/__pycache__

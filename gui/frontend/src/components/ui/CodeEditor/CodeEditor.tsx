@@ -365,10 +365,11 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         };
 
         const showMinimap = settings.get("editor.showMinimap", true);
+        const useMinimap = settings.get("dbEditor.useMinimap", false);
         const effectiveMinimapSettings = minimap ?? {
             enabled: true,
         };
-        effectiveMinimapSettings.enabled = showMinimap;
+        effectiveMinimapSettings.enabled = showMinimap && useMinimap;
 
         let combinedLanguage;
 
@@ -802,6 +803,22 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                     const renderControlCharacters = entry.value as boolean;
 
                     editor?.updateOptions({ renderWhitespace, renderControlCharacters });
+
+                    break;
+                }
+
+                case "editor.showMinimap":
+                case "dbEditor.useMinimap": {
+                    const { minimap } = this.mergedProps;
+                    const showMinimap = settings.get("editor.showMinimap", true);
+                    const useMinimap = settings.get("dbEditor.useMinimap", false);
+                    const effectiveMinimapSettings = minimap ?? {
+                        enabled: true,
+                    };
+                    effectiveMinimapSettings.enabled = showMinimap && useMinimap;
+
+                    const editor = this.backend;
+                    editor?.updateOptions({ minimap: effectiveMinimapSettings });
 
                     break;
                 }
