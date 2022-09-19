@@ -24,6 +24,7 @@
 import { IRequestTypeMap } from "../Requisitions";
 
 // Contains descriptions for all settings used in the application.
+// Error handling is taken out of test coverage as errors can only be introduced by changing this file.
 
 type SettingValueType = "string" | "boolean" | "number" | "list" | "choice" | "object" | "action";
 
@@ -79,6 +80,8 @@ export const settingCategories: ISettingCategory = {
 export const categoryFromPath = (path: string): [string, ISettingCategory] => {
     const parts = path.split(".");
     const key = parts.pop();
+
+    /* istanbul ignore if */
     if (!key) {
         throw new Error(`The setting category path "${path}" is invalid.`);
     }
@@ -90,6 +93,7 @@ export const categoryFromPath = (path: string): [string, ISettingCategory] => {
             break;
         }
 
+        /* istanbul ignore if */
         if (!category.children) {
             throw new Error(`The setting category path "${path}" is invalid.`);
         }
@@ -98,6 +102,7 @@ export const categoryFromPath = (path: string): [string, ISettingCategory] => {
             return child.key === part;
         });
 
+        /* istanbul ignore if */
         if (!entry) {
             throw new Error(`The setting category path "${path}" is invalid.`);
         }
@@ -118,6 +123,8 @@ export const categoryFromPath = (path: string): [string, ISettingCategory] => {
  */
 const registerSettingCategory = (path: string, title: string, description: string): void => {
     const [key, category] = categoryFromPath(path);
+
+    /* istanbul ignore if */
     if (category.children && category.children.find((child) => {
         return child.key === key;
     })) {
@@ -151,6 +158,8 @@ const registerSettingCategory = (path: string, title: string, description: strin
 const registerSetting = (path: string, title: string, description: string, valueType: SettingValueType,
     defaultValue: unknown, advanced: boolean, parameters: ISettingParameters = {}): void => {
     const [key, category] = categoryFromPath(path);
+
+    /* istanbul ignore if */
     if (category.values.find((child) => {
         return child.key === key;
     })) {
@@ -349,6 +358,15 @@ export const registerSettings = (): void => {
                 ["MySQL Script", "script", "A single language script editor (MySQL)"],
             ],
         });
+    registerSetting(
+        "dbEditor.useMinimap",
+        "Use the minimap if globally enabled",
+        "Determines if notebooks in the DB editor show a minimap. Only has an effect when mini maps are globally " +
+        "enabled",
+        "boolean",
+        false,
+        false,
+    );
     registerSetting(
         "dbEditor.upperCaseKeywords",
         "Use UPPER case keywords in code completion",
