@@ -76,7 +76,7 @@ import {
 } from "../../components/ui";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
-import { DBConnectionTab, IOpenEditorState } from "./DBConnectionTab";
+import { IOpenEditorState } from "./DBConnectionTab";
 import { ICommErrorEvent } from "../../communication";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
@@ -120,7 +120,7 @@ export interface IExplorerProperties extends IComponentProperties {
     dbType: DBType;
 
     // The state of each accordion item.
-    state?: Map<string, IExplorerSectionState>;
+    savedState?: Map<string, IExplorerSectionState>;
 
     onSelectItem?: (id: string, type: EntityType) => void;
     onCloseItem?: (id: string) => void;
@@ -207,7 +207,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     }
 
     public render(): React.ReactNode {
-        const { state, dbType } = this.props;
+        const { id = "", savedState: state, dbType } = this.props;
         const { editing, schemaList } = this.state;
 
         const className = this.getEffectiveClassNames(["scriptingExplorer"]);
@@ -296,7 +296,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                             content: [
                                 <Accordion.Item
                                     key="serverStatus"
-                                    id={DBConnectionTab.serverStatusId}
+                                    id={`${id}-${EntityType.Status}`}
                                     caption="Server Status"
                                     picture={<Icon as="span" src={adminServerStatusIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Status }}
@@ -304,7 +304,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                 />,
                                 <Accordion.Item
                                     key="clientConnections"
-                                    id={DBConnectionTab.clientConnectionsId}
+                                    id={`${id}-${EntityType.Connections}`}
                                     caption="Client Connections"
                                     picture={<Icon as="span" src={clientConnectionsIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Connections }}
@@ -312,7 +312,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                 />,
                                 <Accordion.Item
                                     key="performanceDashboard"
-                                    id={DBConnectionTab.performanceDashboardId}
+                                    id={`${id}-${EntityType.Dashboard}`}
                                     caption="Performance Dashboard"
                                     picture={<Icon
                                         as="span"
@@ -1108,7 +1108,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     };
 
     private handleSectionExpand = (props: IAccordionProperties, sectionId: string, expanded: boolean): void => {
-        const { id, onSaveExplorerState, state } = this.props;
+        const { id, onSaveExplorerState, savedState: state } = this.props;
 
         const newMap = state ? new Map(state) : new Map<string, IExplorerSectionState>();
         const sectionState = newMap.get(sectionId) ?? {};
@@ -1120,7 +1120,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     };
 
     private handleSectionResize = (props: IAccordionProperties, sectionId: string, size: number): void => {
-        const { id, onSaveExplorerState, state } = this.props;
+        const { id, onSaveExplorerState, savedState: state } = this.props;
 
         const newMap = state ? new Map(state) : new Map<string, IExplorerSectionState>();
         const sectionState = newMap.get(sectionId) ?? {};

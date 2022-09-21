@@ -62,7 +62,6 @@ import {
 import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
 import { PerformanceDashboard } from "./PerformanceDashboard";
-import { uuid } from "../../utilities/helpers";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
@@ -144,11 +143,6 @@ interface IDBConnectionTabState extends IComponentState {
 
 // A tab page for a single connection (managed by the scripting module).
 export class DBConnectionTab extends Component<IDBConnectionTabProperties, IDBConnectionTabState> {
-
-    // Unique IDs for the fixed admin sections.
-    public static serverStatusId = uuid();
-    public static clientConnectionsId = uuid();
-    public static performanceDashboardId = uuid();
 
     private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
 
@@ -318,7 +312,7 @@ Execute \\help or \\? for help;`;
                                     id={id}
                                     dbType={dbType}
                                     schemaTree={savedState.schemaTree}
-                                    state={savedState.explorerState}
+                                    savedState={savedState.explorerState}
                                     editors={savedState.editors}
                                     scripts={savedState.scripts}
                                     selectedEntry={savedState.activeEntry}
@@ -1527,32 +1521,32 @@ Execute \\help or \\? for help;`;
     };
 
     private handleSelectItem = (itemId: string, type: EntityType): void => {
-        const { id, onSelectItem } = this.props;
+        const { id = "", onSelectItem } = this.props;
 
         let name: string | undefined;
         switch (type) {
             case EntityType.Connections: {
                 name = "clientConnections";
-                itemId = DBConnectionTab.clientConnectionsId;
+                itemId = `${id}-${EntityType.Connections}`;
                 break;
             }
 
             case EntityType.Status: {
                 name = "serverStatus";
-                itemId = DBConnectionTab.serverStatusId;
+                itemId = `${id}-${EntityType.Status}`;
                 break;
             }
 
             case EntityType.Dashboard: {
                 name = "performanceDashboard";
-                itemId = DBConnectionTab.performanceDashboardId;
+                itemId = `${id}-${EntityType.Dashboard}`;
                 break;
             }
 
             default:
         }
 
-        onSelectItem?.(id!, itemId, undefined, name);
+        onSelectItem?.(id, itemId, undefined, name);
     };
 
     private handleCloseEditor = (editorId: string): void => {

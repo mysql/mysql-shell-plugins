@@ -271,7 +271,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     items.push((
                         <DocumentDropdownItem
                             page={info.tabId}
-                            item={entry.id}
                             id={entry.id}
                             key={entry.id}
                             caption={entry.caption}
@@ -280,7 +279,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         />
                     ));
 
-                    if (selectedPage !== "connections" && entry.id === connectionState.activeEntry) {
+                    if (selectedPage === info.tabId && entry.id === connectionState.activeEntry) {
                         if (entry.type === EntityType.Script) {
                             showSaveButton = true;
                             needsSave = dirtyEditors.has(entry.id);
@@ -1034,7 +1033,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             this.handleSelectTab(candidateProps.page);
 
             // For the content.
-            this.handleSelectEntry(candidateProps.page, candidateProps.item);
+            this.handleSelectEntry(candidateProps.page, candidateProps.id!);
         } else {
             // A connection tab or the overview tab.
             this.handleSelectTab(id);
