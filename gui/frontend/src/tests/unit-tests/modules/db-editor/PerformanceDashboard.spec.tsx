@@ -44,7 +44,7 @@ describe("PerformanceDashboard Tests", (): void => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests("PerformanceDashboard", false, true, "DEBUG2");
+        launcher = await setupShellForTests(false, true, "DEBUG2");
 
         // Create a connection for our tests.
         credentials = getDbCredentials();

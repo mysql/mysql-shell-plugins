@@ -231,7 +231,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         );
 
         const linkMap = new Map<string, string>();
-        linkMap.set("Learn More >", "https://www.mysql.com");
+        linkMap.set("Learn More >", "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code");
         linkMap.set("Browse Tutorial >", "https://www.mysql.com");
         linkMap.set("Read Docs >", "https://www.mysql.com");
 

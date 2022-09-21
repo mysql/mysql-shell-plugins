@@ -324,7 +324,7 @@ Click on a Database Connection to open a new DB Notebook.
                 }
               >
                 <a
-                  href="https://www.mysql.com"
+                  href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
                   key="Learn More >"
                   onClick={[Function]}
                   rel="noopener noreferrer"

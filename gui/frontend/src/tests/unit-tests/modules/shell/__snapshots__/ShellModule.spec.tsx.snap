@@ -478,7 +478,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                 }
                               >
                                 <a
-                                  href="https://www.mysql.com"
+                                  href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
                                   key="Learn More >"
                                   onClick={[Function]}
                                   rel="noopener noreferrer"

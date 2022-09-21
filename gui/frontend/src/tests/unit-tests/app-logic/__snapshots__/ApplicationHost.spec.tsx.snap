@@ -826,7 +826,7 @@ exports[`Application host tests Rendering About 1`] = `
                                       }
                                     >
                                       <a
-                                        href="https://www.mysql.com"
+                                        href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
                                         key="Learn More >"
                                         onClick={[Function]}
                                         rel="noopener noreferrer"
@@ -2269,7 +2269,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                       }
                                     >
                                       <a
-                                        href="https://www.mysql.com"
+                                        href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
                                         key="Learn More >"
                                         onClick={[Function]}
                                         rel="noopener noreferrer"
@@ -3712,7 +3712,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                       }
                                     >
                                       <a
-                                        href="https://www.mysql.com"
+                                        href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
                                         key="Learn More >"
                                         onClick={[Function]}
                                         rel="noopener noreferrer"
@@ -5155,7 +5155,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                       }
                                     >
                                       <a
-                                        href="https://www.mysql.com"
+                                        href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
                                         key="Learn More >"
                                         onClick={[Function]}
                                         rel="noopener noreferrer"
@@ -6598,7 +6598,7 @@ exports[`Application host tests Standard Rendering 1`] = `
                                       }
                                     >
                                       <a
-                                        href="https://www.mysql.com"
+                                        href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
                                         key="Learn More >"
                                         onClick={[Function]}
                                         rel="noopener noreferrer"

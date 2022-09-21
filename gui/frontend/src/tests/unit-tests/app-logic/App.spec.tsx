@@ -53,7 +53,7 @@ describe("Application tests", () => {
 
     beforeAll(async () => {
         // No automatic login takes place here, like in other tests. The app will trigger the login.
-        launcher = await setupShellForTests("Application", false, false);
+        launcher = await setupShellForTests(false, false);
         expect(MessageScheduler.get.isConnected).toBe(false);
 
         expect(requisitions.registrations("dialogResponse")).toBe(1);

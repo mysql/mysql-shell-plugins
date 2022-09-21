@@ -71,7 +71,7 @@
                         "Used for problem analysis. Not used currently",
                         "Used for problem analysis. Print everything, which may include security related things like passwords, connection tokens, and so on."
                     ],
-                    "description": "Sets different verbosity levels for the communication log between the extension and the MySQL Shell. To see this log, open the OUTPUT channel MySQL Shell for VS Code."
+                    "description": "Sets different verbosity levels for the communication log between the extension and MySQL Shell. To see this log, open the OUTPUT channel MySQL Shell for VS Code."
                 },
                 "msg.workers.minWorkerCount": {
                     "type": "number",
@@ -242,6 +242,16 @@
                     "default": "",
                     "markdownDescription": "Specify a URL to be used to connect to a running MySQL instance.\n\nLeave empty to use an automatically launched local MySQL Shell instance.\n\nUse the `Connect to External MySQL Shell Process` menu item in the DB connections section title menu to switch between shell connections."
                 },
+                "msg.shell.enforceHttps": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Enforce the usage of HTTPS when connecting to MySQL Shell\n\n_This extension relies on a MySQL Shell process serving its user interface and data. To protect this flow of sensitive data it is highly recommended to use HTTPS encryption when other users have access to the machine that is running MySQL Shell. This requires MySQL Shell's rootCA.crt certificate to be installed on the machine that MySQL Shell is running. The [Welcome Wizard](command:msg.runWelcomeWizard) is used to perform this task._\n\nThe certificate can later be found at\n- ~/.mysqlsh-gui/plugin_data/gui_plugin/web_certs/rootCA.crt (macOS, Linux)\n- %appdata%/MySQL/mysqlsh-gui/plugin_data/gui_plugin/web_certs/rootCA.crt (Windows)\n\nWhen using a VS Code ssh-remote development session, please note that his certificate also needs to be installed on your local development machine.\n\n1. Download the certificate to your local machine, e.g. with scp\n2. Install the certificate locally, e.g. with Keychain Access on macOS. Read more about this [here](https://dev.mysql.com/doc/mysql-shell-for-vs-code/en/certificate-handling.html)\n3. Restart VS Code after installing the certificate\n\nPlease [reload VS Code](command:workbench.action.reloadWindow) after changing this setting."
+                },
+                "msg.shell.showUnsecuredConnectionWarning": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Display a warning panel when not using HTTPS to communicate with MySQL Shell.\n\nPlease [reload VS Code](command:workbench.action.reloadWindow) after changing this setting."
+                },
                 "msg.tabPosition.newConnection": {
                     "type": "string",
                     "default": "Active",
@@ -393,7 +403,7 @@
             },
             {
                 "command": "msg.openSessionBrowser",
-                "title": "Open the MySQL Shell Console Browser",
+                "title": "Open MySQL Shell Console Browser",
                 "icon": {
                     "dark": "images/dark/overviewPage.svg",
                     "light": "images/light/overviewPage.svg"

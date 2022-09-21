@@ -543,7 +543,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
 /**
  * Helper method to launch a MySQL Shell for a test suite and wait for it until it's fully up.
  *
- * @param testId A unique ID to identify a test suite, which is used to customize the user data dir name.
  * @param showOutput If true then the shell output will be printed to the console (inline). Errors are always displayed.
  * @param handleEvents If this parameter is true, the function also subscribes to serverResponse and webSession events
  *                     to trigger authentication and waits until a profile is loaded. If false, the caller has to take
@@ -552,7 +551,7 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
  *
  * @returns A promise resolving to the created shell launcher. Use this to shut down the shell process when done.
  */
-export const setupShellForTests = (testId: string, showOutput: boolean, handleEvents = true,
+export const setupShellForTests = (showOutput: boolean, handleEvents = true,
     logLevel?: LogLevel): Promise<MySQLShellLauncher> => {
     // Create a test folder name with a random part, in the system's temp folder.
     const targetDir = mkdtempSync(path.join(os.tmpdir(), "msg-unit-tests"));

@@ -117,7 +117,7 @@ describe("ProfileSelector test", () => {
     };
 
     it("Update on connect", async () => {
-        const launchPromise = setupShellForTests("ProfileSelector", false, true, "DEBUG3");
+        const launchPromise = setupShellForTests(false, true, "DEBUG3");
 
         const component = mount<ProfileSelector>(
             <ProfileSelector />,

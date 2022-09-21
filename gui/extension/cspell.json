@@ -109,7 +109,9 @@
         "webrootpath",
         "zstd",
         "mochawesome",
-        "nocolor"
+        "nocolor",
+        "Keychain",
+        "appdata"
     ],
     "ignorePaths": [
         "./.eslintrc.json"

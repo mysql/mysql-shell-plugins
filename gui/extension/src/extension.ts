@@ -24,6 +24,7 @@
 import {
     commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace, extensions, env,
     Uri,
+    ExtensionKind,
 } from "vscode";
 
 import * as child_process from "child_process";
@@ -118,6 +119,15 @@ const shellLauncher = new MySQLShellLauncher(handleShellOutput,
     },
 );
 
+const forwardPortThroughSshSession = async (dynamicUrl: URL): Promise<URL> => {
+    const localUri = await env.asExternalUri(Uri.parse(dynamicUrl.href));
+
+    // The Uri class escapes special characters when .toString() is used
+    // This will not be fixed, as outlined in https://github.com/microsoft/vscode/issues/86043#issuecomment-561189941
+    // therefore we need to covert "%3D" back to "="
+    return new URL(localUri.toString().replace("%3D", "="));
+};
+
 /**
  * Entry function for the extension. Called when the extension is activated.
  *
@@ -199,7 +209,8 @@ export const activate = (context: ExtensionContext): void => {
                                         void commands.executeCommand("workbench.action.reloadWindow");
                                     }
                                 });
-                        } else if (!output.startsWith("Starting embedded MySQL Shell") && !output.includes("DEBUG")) {
+                        } else if (!output.startsWith("Starting embedded MySQL Shell") && !output.includes("DEBUG")
+                            && !output.includes("LC_ALL")) {
                             void window.showInformationMessage(
                                 `The following error occurred while deleting the certificate: ${output} ` +
                                 "Cancelled reset operation.");
@@ -263,8 +274,10 @@ export const activate = (context: ExtensionContext): void => {
         return startupCompleted;
     }));
 
+    const msgExtension = extensions.getExtension("Oracle.mysql-shell-for-vs-code");
+
     // Handle version specific topics
-    const currentVersion = extensions.getExtension("Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
+    const currentVersion = msgExtension!.packageJSON.version || "1.0.0";
 
     // Check if this is the initial run of the MySQL Shell extension after an update
     const lastRunVersion = context.globalState.get("MySQLShellLastRunVersion");
@@ -294,9 +307,21 @@ export const activate = (context: ExtensionContext): void => {
             externalUrl = workspace.getConfiguration("msg.shell").get<string>("externalUrl");
         }
 
-        const configuration = workspace.getConfiguration(`msg.debugLog`);
-        const level = configuration.get<LogLevel>("level", "INFO");
-        shellLauncher.startShellAndConnect(context.extensionPath, true, level, externalUrl);
+        // Check if the extension is running locally or remotely via ssh-remote
+        const sshRemote = (msgExtension!.extensionKind === ExtensionKind.Workspace && env.remoteName === "ssh-remote");
+        outputChannel.appendLine(`Running on a ${sshRemote ? "ssh-remote" : "local"} VS Code session.`);
+
+        const level = workspace.getConfiguration(`msg.debugLog`).get<LogLevel>("level", "INFO");
+        const enforceHttps = workspace.getConfiguration(`msg.shell`)
+            .get<boolean>("enforceHttps", true);
+
+        // If the extension is running remotely via ssh-remote make sure to add the ssh tunnel for the web UI
+        if (sshRemote) {
+            shellLauncher.startShellAndConnect(context.extensionPath, enforceHttps, level, externalUrl,
+                forwardPortThroughSshSession);
+        } else {
+            shellLauncher.startShellAndConnect(context.extensionPath, enforceHttps, level, externalUrl);
+        }
     }
 };
 

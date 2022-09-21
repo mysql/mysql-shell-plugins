@@ -132,6 +132,12 @@ if [ -z "${SHELL_VERSION}" ] && [ ! -d "packaging" ]; then
     fi
 fi
 
+# Clean output and packaging/extension-packages directories
+echo "Cleaning output directories..."
+rm -rf output
+rm -rf packaging/extension-packages
+
+# Create the packaging/extension-packages
 mkdir -p packaging/extension-packages
 
 for d in packaging/mysql-shell/*; do
