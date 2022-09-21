@@ -25,7 +25,6 @@ import { DropdownItem, IDropdownItemProperties } from "../../components/ui/Dropd
 
 export interface IDocumentDropdownItemProperties extends IDropdownItemProperties {
     page: string;
-    item: string;
 }
 
 // This class adds no different rendering output, but only data fields.
