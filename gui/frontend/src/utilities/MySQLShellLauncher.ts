@@ -235,6 +235,39 @@ export class MySQLShellLauncher {
     };
 
     /**
+     * Checks the given port to see if that is currently in use by opening a socket to it.
+     *
+     * @param port The port to test.
+     *
+     * @returns True if the given port is already in use, otherwise false.
+     */
+    private static checkPort = (port: number): Promise<boolean> => {
+        return new Promise((resolve, reject) => {
+            const socket = new net.Socket();
+
+            socket.on("timeout", () => {
+                socket.destroy();
+                resolve(false);
+            });
+
+            socket.on("connect", () => {
+                socket.destroy();
+                resolve(true);
+            });
+
+            socket.on("error", (error: Error & { code: string }) => {
+                if (error.code !== "ECONNREFUSED") {
+                    reject(error);
+                } else {
+                    resolve(false);
+                }
+            });
+
+            socket.connect(port, "0.0.0.0");
+        });
+    };
+
+    /**
      * Determines an unused TCP/IP port that can be used for a shell process.
      *
      * @returns A promise which resolves to the found port.
@@ -303,9 +336,10 @@ export class MySQLShellLauncher {
      * @param secure If true a secure connection is established (which requires proper SSL certificates).
      * @param logLevel The log level to use initially.
      * @param target If a target URL is specified, the extension connects to that remote shell instead.
+     * @param forwardPort A callback function that forwards the connection through the ssh tunnel
      */
     public startShellAndConnect = (rootPath: string, secure: boolean, logLevel: LogLevel = "INFO",
-        target?: string): void => {
+        target?: string, forwardPort?: (dynamicUrl: URL) => Promise<URL>): void => {
 
         // istanbul ignore next
         if (target) {
@@ -327,7 +361,7 @@ export class MySQLShellLauncher {
                 void requisitions.execute("connectedToUrl", undefined);
             }
         } else {
-            MySQLShellLauncher.findFreePort().then((port) => {
+            const launchShellUsingPort = (port: number): void => {
                 this.launchDetails.singleUserToken = uuid();
                 this.launchDetails.port = port;
 
@@ -345,16 +379,39 @@ export class MySQLShellLauncher {
                         const url = new URL(`${protocol}://localhost:${port}/` +
                             `?token=${this.launchDetails.singleUserToken}`);
 
-                        // Connect with a copy of the URL, because the URL will be modified in the connect() call.
-                        MessageScheduler.get.connect(new URL(url.href),
-                            MySQLShellLauncher.getShellUserConfigDir(rootPath))
-                            .then(() => {
-                                void requisitions.execute("connectedToUrl", url);
-                            }).catch(/* istanbul ignore next */(reason) => {
-                                // Errors arriving here are directly reflected in test failures.
-                                this.onError(new Error(`Could not establish websocket connection: ${String(reason)}`));
-                                void requisitions.execute("connectedToUrl", undefined);
+                        if (forwardPort) {
+                            this.onOutput("Establishing the port forwarding session to remote ssh server...");
+                            forwardPort(url).then((redirectUrl) => {
+                                // Connect with a copy of the URL, because the URL will be modified in the connect()
+                                // call.
+                                MessageScheduler.get.connect(new URL(url.href),
+                                    MySQLShellLauncher.getShellUserConfigDir(rootPath))
+                                    .then(() => {
+                                        void requisitions.execute("connectedToUrl", redirectUrl);
+                                    }).catch(/* istanbul ignore next */(reason) => {
+                                        // Errors arriving here are directly reflected in test failures.
+                                        this.onError(
+                                            new Error(`Could not establish websocket connection: ${String(reason)}`));
+                                        void requisitions.execute("connectedToUrl", undefined);
+                                    });
+                            }).catch((reason) => {
+                                this.onError(
+                                    new Error(`Could not establish the port forwarding: ${String(reason)}`));
                             });
+                        } else {
+                            // Connect with a copy of the URL, because the URL will be modified in the connect() call.
+                            MessageScheduler.get.connect(new URL(url.href),
+                                MySQLShellLauncher.getShellUserConfigDir(rootPath))
+                                .then(() => {
+                                    void requisitions.execute("connectedToUrl", url);
+                                }).catch(/* istanbul ignore next */(reason) => {
+                                    // Errors arriving here are directly reflected in test failures.
+                                    this.onError(
+                                        new Error(`Could not establish websocket connection: ${String(reason)}`));
+                                    void requisitions.execute("connectedToUrl", undefined);
+                                });
+                        }
+
                     }
                     this.onOutput(output);
                 };
@@ -368,14 +425,28 @@ export class MySQLShellLauncher {
                     onExit: this.onExit,
                     processInput: this.launchDetails.singleUserToken,
                 });
-            }).catch(/* istanbul ignore next */(error) => {
-                // Errors arriving here are directly reflected in test failures.
-                if (error instanceof Error) {
-                    this.onError(error);
+            };
+
+            // Check if default port 33336 is already in use.
+            void MySQLShellLauncher.checkPort(33336).then((inUse) => {
+                if (!inUse) {
+                    launchShellUsingPort(33336);
                 } else {
-                    this.onError(new Error(String(error)));
+                    this.onOutput("Finding free port...");
+                    MySQLShellLauncher.findFreePort().then((port) => {
+                        launchShellUsingPort(port);
+                    }).catch(/* istanbul ignore next */(error) => {
+                        // Errors arriving here are directly reflected in test failures.
+                        if (error instanceof Error) {
+                            this.onError(error);
+                        } else {
+                            this.onError(new Error(String(error)));
+                        }
+                    });
+
                 }
             });
         }
     };
+
 }

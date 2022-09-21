@@ -38,7 +38,7 @@ describe("ShellInterfaceDb Tests", () => {
     let testConnection: IConnectionDetails;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests("ShellInterfaceDb", false, true, "DEBUG3");
+        launcher = await setupShellForTests(false, true, "DEBUG3");
 
         // Create a connection for our tests.
         credentials = getDbCredentials();

@@ -3044,9 +3044,9 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
-        it("Open the MySQL Shell Console Browser", async () => {
+        it("Open MySQL Shell Console Browser", async () => {
             const btn = await getLeftSectionButton(
-                "MYSQL SHELL CONSOLES", "Open the MySQL Shell Console Browser");
+                "MYSQL SHELL CONSOLES", "Open MySQL Shell Console Browser");
             await btn.click();
 
             const editors = await new EditorView().getOpenEditorTitles();

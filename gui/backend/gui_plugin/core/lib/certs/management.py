@@ -67,13 +67,12 @@ def create_certificate(cert_path):
         today = datetime.datetime.today()
         one_day = datetime.timedelta(1, 0, 0)
 
-        # Default validity for the certificates is 10 years
-        validity = one_day * 365 * 10
-
         # In macOS TLS server certificates must have a validity period of 825
         # days or fewer: to be set as today + validity
-        if platform.system() == "Darwin":
-            validity = one_day * 824
+        #
+        # Since the client in a VS Code ssh-remote session might run on macOS 
+        # we need to use this value for all platforms
+        validity = one_day * 824
 
         # ---------------------------------------------
         # Generation of the Private Key for the Root CA

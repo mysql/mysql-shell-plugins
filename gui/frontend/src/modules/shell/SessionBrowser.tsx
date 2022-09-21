@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -106,7 +106,7 @@ export class SessionBrowser extends Component<ISessionBrowserProperties> {
         );
 
         const linkMap = new Map<string, string>();
-        linkMap.set("Learn More >", "https://www.mysql.com");
+        linkMap.set("Learn More >", "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code");
         linkMap.set("Browse Tutorial >", "https://www.mysql.com");
         linkMap.set("Read Docs >", "https://www.mysql.com");
 

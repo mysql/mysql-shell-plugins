@@ -162,19 +162,154 @@ export class WebviewProvider {
                 // Insert an iframe to load the external URL from the running mysql shell server.
                 this.url.searchParams.set("app", "vscode");
 
+                // Define the URL for the test image used to check if the mysql shell server can be reached.
+                const testImgUrl = new URL(this.url);
+                testImgUrl.pathname = "/images/no-image.svg";
+
+                // Get the user setting for showing the Unsecure Connection warning panel
+                const showUnsecuredConnectionWarning = workspace.getConfiguration(`msg.shell`)
+                    .get<boolean>("showUnsecuredConnectionWarning", true);
+
                 this.panel.webview.html = `
 <!doctype html><html lang="en">
 <head>
 <meta http-equiv="Content-Security-Policy" content="default-src *; img-src http: https:;
     script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline' http: https: data: *;">
+<style>
+    .warning {
+        width: 210px;
+        height: 50px;
+        color: black;
+        background: red;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        position:absolute;
+        bottom: 10px;
+        right: 10px;
+        opacity: 0.5;
+        text-align: center;
+    }
+    .clickThrough {
+        pointer-events: none;
+    }
+    .warning h1 {
+        line-height: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        margin: 0px;
+    }
+    .warning p {
+        line-height: 8px;
+        font-size: 8px;
+        font-weight: 300;
+        margin: 0px;
+    }
+    .warning p a {
+        color: white;
+    }
+    #waitForContent {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 100vh;
+    }
+    .pingEffect {
+        display: inline-block;
+        position: relative;
+        width: 80px;
+        height: 80px;
+    }
+    .pingEffect div {
+        position: absolute;
+        border: 4px solid var(--vscode-foreground);
+        opacity: 1;
+        border-radius: 50%;
+        animation: pingEffect 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+    .pingEffect div:nth-child(2) {
+    animation-delay: -0.5s;
+    }
+    @keyframes pingEffect {
+        0% {
+            top: 36px;
+            left: 36px;
+            width: 0;
+            height: 0;
+            opacity: 1;
+        }
+        100% {
+            top: 0px;
+            left: 0px;
+            width: 72px;
+            height: 72px;
+            opacity: 0;
+        }
+    }
+  </style>
+  <script>
+    // Keep track of whether the waitForContentDiv should still be shown
+    let showWaitForContentDiv = true;
+
+    // Hides the waitForContentDiv in case the content was loaded or there was and error
+    function hideWaitForContentDiv() {
+        showWaitForContentDiv = false;
+        document.getElementById("waitForContent").style.display = "none";
+    }
+
+    // Displays a floating div panel at the bottom right
+    function showFloatingLabel(title, info, clickThrough) {
+        var div = document.createElement("div");
+        div.classList.add("warning");
+        if (clickThrough) {
+            div.classList.add("clickThrough");
+        }
+        var h1 = document.createElement("h1");
+        h1.innerHTML = title;
+        div.appendChild(h1);
+        var p = document.createElement("p");
+        p.innerHTML = info;
+        div.appendChild(p);
+        document.body.appendChild(div);
+    }
+
+    // Called when an error occurred while loading the content
+    function showLoadingError() {
+        hideWaitForContentDiv();
+
+        if ("${this.url.protocol}" === "https:") {
+            showFloatingLabel("Failed to Connect", 
+                "Please check if you have the<br>" +
+                "MySQL Shell rootCA.crt certificate<br>" +
+                "<a href='https://dev.mysql.com/doc/mysql-shell-for-vs-code/en/certificate-handling.html'>" +
+                "installed</a> on your local system.", false);
+        } else {
+            showFloatingLabel("Failed to Connect", 
+                "Unable to connect to MySQL Shell.<br>" +
+                "Please check if the MySQL Shell<br>" +
+                "process is running.", false);
+        }
+    }
+
+    // Only display the waitForContentDiv after 1 second to avoid flickering
+    setTimeout(() => {
+        // If the waitForContentDiv should still be show (content has not loaded yet, or there was an error)
+        if (showWaitForContentDiv) {
+            document.getElementById("waitForContent").style.display = "flex";
+        }
+    }, 1000);
+  </script>
 </head>
 <body style="margin:0px;padding:0px;overflow:hidden;">
-<iframe id="frame:${caption}"
+<iframe id="frame:${caption}" onload="hideWaitForContentDiv()"
     src="${this.url.toString()}"
     frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;
     width:100%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px" height="100%"
     width="100%">
 </iframe>
+<div id="waitForContent"><div class="pingEffect"><div></div><div></div></div></div>
+<img src="${testImgUrl.toString()}" onerror="showLoadingError()" 
+    width="0" height="0">
 <script>
     let frame;
     let vscode;
@@ -234,6 +369,14 @@ export class WebviewProvider {
             }
         }
     });
+
+    if ("${this.url.protocol}" !== "https:" && ${String(showUnsecuredConnectionWarning)} === true) {
+        showFloatingLabel("Warning: Unsecured Connection", 
+            "MySQL Shell is currently using HTTP.<br>" +
+            "Open the VS Code Settings and enable <br>" +
+            "Msg &gt; Shell: Enforce Https.",
+            true);
+    }
 </script>
 
 </body></html>

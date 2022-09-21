@@ -33,7 +33,7 @@ describe("ShellInterfaceCore Tests", () => {
     let core: ShellInterfaceCore;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests("ShellInterfaceCore", false, true, "DEBUG3");
+        launcher = await setupShellForTests(false, true, "DEBUG3");
 
         // All available interfaces from the ShellInterface interface are singletons.
         core = ShellInterface.core;
