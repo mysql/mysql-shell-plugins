@@ -132,16 +132,28 @@ class DbMysqlSession(DbSession):
             self._connected_cb(self)
 
     def _do_connect(self, notify_success=True):
-        try:
-            # Open Shell connection
-            self.session = self._shell.open_session(self._connection_options)
+        attempts = 3
+        exception = None
+        while attempts > 0:
+            try:
+                # Open Shell connection
+                self.session = self._shell.open_session(self._connection_options)
 
-            return True
-        except Exception as e:
+                return True
+            except Exception as e:
+                # If this is a issue during opening MySQL session
+                # lets try 3 times to connect
+                if "Error opening MySQL" in str(e):
+                    attempts -= 1
+                else:
+                    attempts = 0
+                exception = e
+
+        if exception:
             if self._failed_cb is None:
-                raise e
+                raise exception
 
-            self._failed_cb(e)
+            self._failed_cb(exception)
         return False
 
     def _do_close_database(self, finalize):

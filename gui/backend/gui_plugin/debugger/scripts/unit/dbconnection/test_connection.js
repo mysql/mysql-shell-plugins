@@ -11,6 +11,57 @@ await ws.sendAndValidate({
                 "host": default_mysql_options.host,
                 "port": default_mysql_options.port,
                 "user": default_mysql_options.user,
+                "schema": "information_schema"
+            }
+        },
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "ERROR",
+            "msg": "MySQL scheme not defined in the connection options."
+        }
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.dbconnections.test_connection",
+    "args": {
+        "connection": {
+            "db_type": "MySQL",
+            "options": {
+                "host": default_mysql_options.host,
+                "port": default_mysql_options.port,
+                "user": default_mysql_options.user,
+                "scheme": "mysqlY",
+                "schema": "information_schema"
+            }
+        },
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "ERROR",
+            "msg": "Invalid MySQL scheme defined in the connection options. Valid values are 'mysql' and 'mysqlx'."
+        }
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.dbconnections.test_connection",
+    "args": {
+        "connection": {
+            "db_type": "MySQL",
+            "options": {
+                "host": default_mysql_options.host,
+                "port": default_mysql_options.port,
+                "user": default_mysql_options.user,
                 "password": "FAKE WRONG PASSWORD",
                 "scheme": default_mysql_options.scheme,
                 "schema": "information_schema"
