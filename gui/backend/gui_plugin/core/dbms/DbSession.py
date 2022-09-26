@@ -63,8 +63,8 @@ class DbSessionFactory:
 
 
 @contextmanager
-def lock_usage(lock_mutext, timeout=-1):
-    result = lock_mutext.acquire(blocking=True, timeout=timeout)
+def lock_usage(lock_mutex, timeout=-1):
+    result = lock_mutex.acquire(blocking=True, timeout=timeout)
 
     if result is None:
         raise Exception("Could not acquire lock.")
@@ -72,7 +72,7 @@ def lock_usage(lock_mutext, timeout=-1):
     yield result
 
     if result:
-        lock_mutext.release()
+        lock_mutex.release()
 
 
 class DbSession(threading.Thread):
@@ -140,7 +140,7 @@ class DbSession(threading.Thread):
             # Start the session thread
             self.start()
 
-            if not self.thread_error is None:
+            if self.thread_error is not None:
                 raise self.thread_error
         else:
             self._open_database()
@@ -197,9 +197,10 @@ class DbSession(threading.Thread):
 
     def terminate_thread(self):
         self._close_database(True)
-        if self.thread_error != 0:
+        if self.thread_error is not None:
             logger.error(
                 f"Thread {self._id} exiting with code {self.thread_error}")
+            self._message_callback('ERROR', self.thread_error)
         self._term_complete.set()
 
     def execute_thread(self, sql, params):
