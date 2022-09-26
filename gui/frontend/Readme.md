@@ -45,16 +45,27 @@ Keep in mind that the connection to the web server runs over a secure channel (h
 
 It is strongly recommended to use Visual Studio code for development on all platforms, also because of the excellent support for React development. All the instructions below focus on this IDE.
 
-Use the `frontend/` folder as the root folder in your vscode project. It contains all necessary files for frontend developoment.
+Use the `frontend/` folder as the root folder in your vscode project. It contains all necessary files for frontend development.
 
 ## Recommended extensions
 
 - Jest
-- TSLint
-- Debugger for Chrome
+- ESLint
 - Debugger for Firefox
 
-There's already a TSLint configuration file in the `frontend/` folder, which should automatically be picked up by the TSLint extension.
+There's already an ESLint configuration file in the `frontend/` folder, which should automatically be picked up by the ESLint extension.
+
+For Jest use this configuration:
+
+```json
+	"jest.coverageFormatter": "GutterFormatter",
+    "jest.testExplorer": {
+        "enabled": true
+    },
+    "jest.autoRun": "off",
+    "jest.jestCommandLine": "npm run test --",
+    "jest.showCoverageOnLoad": true,
+```
 
 ## Debugging
 

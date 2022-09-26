@@ -157,6 +157,11 @@
                     "default": "",
                     "description": "Specify the name (title) of a DB connection to be used when running SQL from a text editor and no connection is open yet. Leave empty to select a connection."
                 },
+                "msg.dbEditor.useMinimap": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Determines if notebooks in the DB editor show a minimap. Only has an effect when mini maps are globally enabled"
+                },
                 "msg.dbEditor.startLanguage": {
                     "type": "string",
                     "default": "sql",
