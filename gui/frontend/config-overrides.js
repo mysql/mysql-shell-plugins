@@ -67,6 +67,7 @@ module.exports = function override(config, env) {
             ],
         },
     );
+    config.module.noParse = /node_modules\/typescript\/lib\/typescript.js/;
 
     config.resolve = config.resolve || {};
     config.resolve.alias = config.resolve.alias || {};

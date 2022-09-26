@@ -67,6 +67,7 @@
         "parse5": "6.0.1",
         "raw-loader": "4.0.2",
         "react-app-rewired": "2.1.8",
+        "react-error-overlay": "6.0.9",
         "react-scripts": "3.4.4",
         "run-my-sql-file": "1.0.0",
         "selenium-webdriver": "4.1.0",
@@ -74,6 +75,9 @@
         "typescript-eslint-parser": "22.0.0",
         "webdriver-manager": "12.1.8",
         "worker-loader": "3.0.8"
+    },
+    "resolutions": {
+        "react-error-overlay": "6.0.9"
     },
     "scripts": {
         "launch-shell-web-server": "bash ./scripts/launch-shell-webserver.sh",
