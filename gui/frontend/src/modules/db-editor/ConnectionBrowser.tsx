@@ -641,6 +641,9 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 contexts.push("useSSH");
             }
 
+            // Push useMDS to display the MDS tab
+            contexts.push("useMDS");
+
             this.beginValueUpdating("Loading...", "bastionName");
             this.beginValueUpdating("Loading...", "mysqlDbSystemName");
             this.beginValueUpdating("Loading...", "bastionId");
