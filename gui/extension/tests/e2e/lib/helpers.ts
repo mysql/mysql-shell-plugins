@@ -39,16 +39,22 @@ import {
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { keyboard, Key } from "@nut-tree/nut-js";
-import { ChildProcess, spawn, execSync } from "child_process";
+import { ChildProcess, spawn } from "child_process";
 import { platform } from "os";
 import addContext from "mochawesome/addContext";
 import fs from "fs/promises";
 import { TreeSection } from "monaco-page-objects/out/components/sidebar/tree/TreeSection";
+import { basename } from "path";
 
-let dbTreeSection: CustomTreeSection | undefined;
-let ociTreeSection: CustomTreeSection | undefined;
-let consolesTreeSection: CustomTreeSection | undefined;
-let tasksTreeSection: CustomTreeSection | undefined;
+let dbTreeSectionCust: CustomTreeSection | undefined;
+let ociTreeSectionCust: CustomTreeSection | undefined;
+let consolesTreeSectionCust: CustomTreeSection | undefined;
+let tasksTreeSectionCust: CustomTreeSection | undefined;
+
+export const dbTreeSection = "DATABASE CONNECTIONS";
+export const ociTreeSection = "ORACLE CLOUD INFRASTRUCTURE";
+export const consolesTreeSection = "MYSQL SHELL CONSOLES";
+export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 export interface IDbConnection {
     caption: string;
@@ -59,23 +65,27 @@ export interface IDbConnection {
     portX: number;
     schema: string;
     password: string;
+    sslMode: string | undefined;
+    sslCA: string | undefined;
+    sslClientCert: string | undefined;
+    sslClientKey: string | undefined;
 }
 
-let driver: WebDriver;
+export let driver: WebDriver;
 
-export const setDriver = async (): Promise<WebDriver | undefined> => {
+export const loadDriver = async (): Promise<void> => {
     let browser: VSBrowser;
 
     let counter = 0;
-    while (counter <= 10) {
+    while(counter <= 10) {
         try {
             browser = VSBrowser.instance;
             await browser.waitForWorkbench();
             driver = browser.driver;
             await driver.manage().timeouts().implicitlyWait(5000);
 
-            return driver;
-        } catch (e) {
+            return;
+        } catch(e) {
             if (e instanceof Error) {
                 if (e.message.indexOf("target frame detached") === -1) {
                     throw new Error(String(e.stack));
@@ -217,25 +227,26 @@ export const selectItem = async (taps: Number): Promise<void> => {
 export const initTreeSection = async (section: string): Promise<void> => {
     switch (section) {
         case "DATABASE CONNECTIONS":
-            if (!dbTreeSection) {
-                dbTreeSection = await new SideBarView().getContent().getSection("DATABASE CONNECTIONS") as CustomTreeSection;
+            if (!dbTreeSectionCust) {
+                dbTreeSectionCust = await new SideBarView().getContent()
+                    .getSection("DATABASE CONNECTIONS") as CustomTreeSection;
             }
             break;
         case "ORACLE CLOUD INFRASTRUCTURE":
-            if (!ociTreeSection) {
-                ociTreeSection = await new SideBarView().getContent()
+            if (!ociTreeSectionCust) {
+                ociTreeSectionCust = await new SideBarView().getContent()
                     .getSection("ORACLE CLOUD INFRASTRUCTURE") as CustomTreeSection;
             }
             break;
         case "MYSQL SHELL CONSOLES":
-            if (!consolesTreeSection) {
-                consolesTreeSection = await new SideBarView().getContent()
+            if (!consolesTreeSectionCust) {
+                consolesTreeSectionCust = await new SideBarView().getContent()
                     .getSection("MYSQL SHELL CONSOLES") as CustomTreeSection;
             }
             break;
         case "MYSQL SHELL TASKS":
-            if (!tasksTreeSection) {
-                tasksTreeSection = await new SideBarView().getContent()
+            if (!tasksTreeSectionCust) {
+                tasksTreeSectionCust = await new SideBarView().getContent()
                     .getSection("MYSQL SHELL TASKS") as CustomTreeSection;
             }
             break;
@@ -265,16 +276,16 @@ export const selectContextMenuItem = async (
 
     switch (section) {
         case "DATABASE CONNECTIONS":
-            treeSection = dbTreeSection;
+            treeSection = dbTreeSectionCust;
             break;
         case "ORACLE CLOUD INFRASTRUCTURE":
-            treeSection = ociTreeSection;
+            treeSection = ociTreeSectionCust;
             break;
         case "MYSQL SHELL CONSOLES":
-            treeSection = consolesTreeSection;
+            treeSection = consolesTreeSectionCust;
             break;
         case "MYSQL SHELL TASKS":
-            treeSection = tasksTreeSection;
+            treeSection = tasksTreeSectionCust;
             break;
         default:
             break;
@@ -354,7 +365,7 @@ export const selectMoreActionsItem = async (
     await driver.wait(async () => {
         return (await driver.findElements(By.css(".context-menu-visible"))).length === 1;
     }, 2000,
-        "More Actions Context menu was not displayed");
+    "More Actions Context menu was not displayed");
 
 
     await driver.wait(async () => {
@@ -1228,7 +1239,7 @@ export const clickContextMenuItem = async (refEl: WebElement, item: string): Pro
         }
 
     }, 5000,
-        "Context menu was not displayed");
+    "Context menu was not displayed");
 
     await driver.wait(async () => {
         try {
@@ -1284,6 +1295,25 @@ export const getLastQueryResultId = async (): Promise<number> => {
     } else {
         return 0;
     }
+};
+
+export const switchToWebView = async (): Promise<void> => {
+    await driver.wait(until.ableToSwitchToFrame(0), 5000, "Not able to switch to frame 0");
+    await driver.wait(until.ableToSwitchToFrame(
+        By.id("active-frame")), 5000, "Not able to switch to frame 2");
+    const nextFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
+    await driver.wait(until.ableToSwitchToFrame(
+        By.id(nextFrame)), 5000, "Not able to switch to frame 3");
+
+    await driver.wait(async () => {
+        try {
+            await driver.findElements(By.css(".zoneHost"));
+
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }, 10000, "WebView content was not loaded");
 };
 
 export const switchToFrame = async (frame: string): Promise<void> => {
@@ -1598,4 +1628,78 @@ export const setRestSchema = async (schemaName: string,
     await inputComments.sendKeys(comments);
 
     await dialog.findElement(By.id("ok")).click();
+};
+
+export const getCurrentEditorType = async (): Promise<string> => {
+    const selector = await driver.findElement(By.id("documentSelector"));
+    const img = await selector.findElement(By.css("img"));
+    const imgSrc = await img.getAttribute("src");
+    const srcPath = basename(imgSrc);
+
+    return srcPath.split(".")[0];
+};
+
+export const getCurrentEditor = async (): Promise<string> => {
+    const selector = await driver.findElement(By.id("documentSelector"));
+    const label = await selector.findElement(By.css("label"));
+
+    return label.getText();
+};
+
+export const addScript = async (scriptType: string): Promise<void> => {
+    const curEditor = await getCurrentEditor();
+    const button = await driver.findElement(By.id("newMenuButton"));
+    await button.click();
+    let locator = "";
+    switch (scriptType) {
+        case "sql":
+            locator = "addSQLScript";
+            break;
+        case "ts":
+            locator = "addTSScript";
+            break;
+        case "js":
+            locator = "addJSScript";
+            break;
+        default:
+            break;
+    }
+
+    const script = await driver.wait(until.elementLocated(By.id(locator)), 2000, "Scripts menu was not opened");
+    await script.click();
+    await driver.wait(async () => {
+        const nextEditor = await getCurrentEditor();
+
+        return nextEditor !== curEditor;
+    }, 3000, "Current editor did not changed");
+};
+
+export const getScriptResult = async (): Promise<string> => {
+    const host = await driver?.findElement(By.id("resultPaneHost"));
+    const result = await host?.findElement(By.css(".label"));
+
+    return result.getText();
+};
+
+export const clickTreeElement = async (section: string, el: string): Promise<void> => {
+    const element = await getTreeElement(section, el);
+    await element.click();
+};
+
+export const selectEditor = async (editor: string): Promise<void> => {
+    const selector = await driver.findElement(By.id("documentSelector"));
+    await selector.click();
+    const list = await driver.findElement(By.css(".dropdownList"));
+    const items = await list.findElements(By.css(".dropdownItem"));
+
+    for (const item of items) {
+        const label = await item.findElement(By.css("label"));
+        const text = await label.getAttribute("innerHTML");
+        if (text === editor) {
+            await item.click();
+
+            return;
+        }
+    }
+    throw new Error(`Could not find ${editor}`);
 };
