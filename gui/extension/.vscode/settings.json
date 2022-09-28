@@ -4,6 +4,6 @@
         "enabled": true
     },
     "jest.autoRun": "off",
-    "jest.jestCommandLine": "npm run test --",
+    "jest.jestCommandLine": "npm run unit-tests --",
     "jest.showCoverageOnLoad": true,
 }
