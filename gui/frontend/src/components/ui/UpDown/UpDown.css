@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,8 @@
  */
 
 .msg.upDown {
-    --item-height: 20px; /* Set by the control on mount to the real size. */
+    /* Set by the control on mount to the real size. */
+    --item-height: 20px;
 
     flex: 1 1 auto;
 }
@@ -35,14 +36,14 @@
 .msg.upDown .button {
     flex: 1 1 auto;
 
-    min-width: 0px;
+    min-width: 0;
     height: 9px;
     width: 16px;
 
-    padding: 0px;
-    margin: 0px;
+    padding: 0;
+    margin: 0;
 
-    border-radius: 0px;
+    border-radius: 0;
     border: none;
 
     pointer-events: all;
@@ -82,8 +83,8 @@
 
     margin: 0 2px 0 0;
     padding: 0;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 
     min-width: 80px;
 
@@ -96,10 +97,10 @@
     flex: 1 1 auto;
     align-items: stretch;
 
-    padding: 0px 8px;
+    padding: 0 8px;
     height: max-content;
-    top: 0px;
-    transition: top 0.5s ease-out;
+    top: 0;
+    transition: top 0.25s ease-out;
 }
 
 .msg.upDown #innerList > .container {

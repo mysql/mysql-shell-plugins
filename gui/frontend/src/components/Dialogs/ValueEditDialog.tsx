@@ -66,61 +66,78 @@ export interface IDialogListEntry {
     [key: string]: IComponentProperties;
 }
 
-export type DialogValueType = number | string | boolean;
+export type DialogValueType = number | string | boolean | string[];
 
-// A single editable value, with its description.
+/** A single editable value, with its description. */
 export interface IDialogValue {
     caption?: string;
     value?: DialogValueType;
     placeholder?: string;
 
-    // These members indicate special sources that limit the possible input value.
-    choices?: string[]; // Only one of the list of choices is possible.
+    /** These members indicate special sources that limit the possible input value. */
+
+    /** Only one of the list of choices is possible. */
+    choices?: string[];
+
+    /** Any combination of the set values is possible. The value field must be a comma-separated list. */
+    set?: string[];
 
     action?: string;    // Action name for button
     matrix?: DialogValueType[][];
-    tags?: string[];    // Any combination of the tags is possible. The value field must be a comma-separated list.
 
     list?: IDialogListEntry[];
 
     options?: DialogValueOption[];
 
-    // A value between 1 and 8 for the grid cells to span horizontally (default: 4).
+    /** A value between 1 and 8 for the grid cells to span horizontally (default: 4). */
     span?: number;
 
-    // Used with the Resource value option, to limit user selectable files.
+    /** Used with the Resource value option, to limit user selectable files. */
     filters?: IOpenDialogFilters;
 
-    // Called for certain value types (checkbox, choice) when the value was changed.
+    /** Called for certain value types (checkbox, choice) when the value was changed. */
     onChange?: (value: DialogValueType) => void;
 
-    // Called for certain value types (checkbox, choice) when the value was changed.
+    /** Called for certain value types (checkbox, choice) when the value was changed. */
     onClick?: (id: string, values: IDialogValues) => void;
 
-    // Called for certain value types (input) when they lose focus.
+    /** Called for certain value types (input) when they lose focus. */
     onFocusLost?: (value: string) => void;
 }
 
-// A set of keys and their associated values, which can be edited in this dialog.
+/** A set of keys and their associated values, which can be edited in this dialog. */
 export interface IDialogSection {
-    caption?: string;    // The caption of the context.
-    contexts?: string[]; // All contexts in this list must be currently active to make the section visible.
-    groupName?: string;  // Place all sections with the same group name into a tabview.
-    active?: boolean;    // If this section is grouped and the currently visible page, this value is true.
+    /** The caption of the context. */
+    caption?: string;
+
+    /** All contexts in this list must be currently active to make the section visible. */
+    contexts?: string[];
+
+    /** Place all sections with the same group name into a tabview. */
+    groupName?: string;
+
+    /** If this section is grouped and the currently visible page, this value is true. */
+    active?: boolean;
+
     values: {
         [key: string]: IDialogValue;
     };
 }
 
-// A collection of settings grouped into sections, each with an own optional caption.
-// The same interface is used for validation and return values.
+/**
+ * A collection of settings grouped into sections, each with an own optional caption.
+ * The same interface is used for validation and return values.
+ */
 export interface IDialogValues {
-    id?: string; // An identification for the dialog invocation.
+    /** An identification for the dialog invocation. */
+    id?: string;
     sections: Map<string, IDialogSection>;
 }
 
-// Contains a set of validation messages for dialog value keys that did not validate ok.
-// These messages are shown below the input field for that dialog value.
+/**
+ * Contains a set of validation messages for dialog value keys that did not validate ok.
+ * These messages are shown below the input field for that dialog value.
+ */
 export interface IDialogValidations {
     requiredContexts?: string[];
     messages: { [key: string]: string };
@@ -154,7 +171,8 @@ export interface IValueEditDialogShowOptions {
 }
 
 export interface IValueEditDialogProperties extends IComponentProperties {
-    container?: HTMLElement; // A node where to mount the dialog to.
+    /** A node where to mount the dialog to. */
+    container?: HTMLElement;
 
     advancedActionCaption?: string;
     customFooter?: React.ReactNode;
@@ -176,13 +194,14 @@ interface IValueEditDialogState extends IComponentState {
     preventConfirm: boolean;
     actionText?: string;
 
-    activeContexts: Set<string>; // A list of ids that allow conditional rendering of sections and values.
+    /** A list of ids that allow conditional rendering of sections and values. */
+    activeContexts: Set<string>;
 
-    // Additional data directly passed through from the caller to the receiver.
+    /** Additional data directly passed through from the caller to the receiver. */
     data?: IDictionary;
 }
 
-// A dialog to let the user enter values and to validate them.
+/** A dialog to let the user enter values and to validate them. */
 export class ValueEditDialog extends Component<IValueEditDialogProperties, IValueEditDialogState> {
 
     private dialogRef = React.createRef<Dialog>();
@@ -712,7 +731,32 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                     id={entry.key}
                     key={entry.key}
                     className="valueEditor"
-                    initialSelection={entry.value.value as (string | undefined)}
+                    selection={entry.value.value as (string | undefined)}
+                    optional={true}
+                    onSelect={this.dropdownChange}
+                    disabled={options?.includes(DialogValueOption.Disabled)}
+                    autoFocus={options?.includes(DialogValueOption.AutoFocus)}
+                >
+                    {items}
+                </Dropdown>);
+            } else if (Array.isArray(entry.value.set) && !(typeof entry.value.value === "number")) {
+                // A set of string values -> represented as tag input.
+                const items = entry.value.set.map((item: string, itemIndex: number) => {
+                    return <Dropdown.Item
+                        caption={item}
+                        key={itemIndex}
+                        id={item}
+                    />;
+                });
+
+                const selection = !entry.value.value
+                    ? undefined
+                    : (typeof entry.value.value === "string") ? entry.value.value : new Set(entry.value.value);
+                result.push(<Dropdown
+                    id={entry.key}
+                    key={entry.key}
+                    multiSelect={true}
+                    selection={selection}
                     onSelect={this.dropdownChange}
                     disabled={options?.includes(DialogValueOption.Disabled)}
                     autoFocus={options?.includes(DialogValueOption.AutoFocus)}
@@ -833,7 +877,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                             id={entry.key}
                             key={entry.key}
                             className="valueEditor"
-                            value={entry.value.value}
+                            value={Array.isArray(entry.value.value) ? "<invalid value>" : entry.value.value}
                             onChange={this.inputChange}
                             onConfirm={this.acceptOnConfirm}
                             onBlur={this.onBlur}
@@ -1029,20 +1073,21 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
     };
 
-    private dropdownChange = (selectedId: string | number, props: IDropdownProperties): void => {
+    private dropdownChange = (selectedIds: Set<string>, props: IDropdownProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
+        const value = props.multiSelect ? [...selectedIds] : (selectedIds.size > 0 ? [...selectedIds][0] : "");
         values.sections.forEach((section) => {
             if (props.id) {
                 const entry = section.values[props.id];
                 if (!isNil(entry)) {
-                    entry.value = selectedId;
+                    entry.value = value;
 
                     const validations = onValidate?.(false, values, data) || { messages: {} };
                     this.setState({ values, validations });
 
-                    entry.onChange?.(selectedId);
+                    entry.onChange?.(value);
                 }
             }
         });

@@ -115,7 +115,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                         <Dropdown
                             ref={this.themeDropdownRef}
                             className="themeSelector"
-                            initialSelection={themeManager.activeTheme}
+                            selection={themeManager.activeTheme}
                             onSelect={this.handleThemeSwitch}
                         >
                             {themeList}
@@ -263,12 +263,12 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         settings.saveSettings();
     };
 
-    private handleThemeSwitch = (id: string | number): void => {
+    private handleThemeSwitch = (ids: Set<string>): void => {
         const html = document.getElementsByTagName("html");
         html[0].classList.add("themeSwitch");
-        setTimeout(() => { html[0].classList.remove("themeSwitch"); }, 1000);
+        setTimeout(() => { html[0].classList.remove("themeSwitch"); }, 500);
 
-        themeManager.activeTheme = id.toString();
+        themeManager.activeTheme = [...ids][0];
     };
 
     private importTheme = (): void => {
@@ -282,7 +282,8 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                         const json = text.replace(/\/\/\s*[^"\n\r]*$/gm, "");
                         const theme = JSON.parse(json) as IThemeObject;
                         const themeId = themeManager.loadThemeDetails(theme, true);
-                        this.themeDropdownRef.current?.selectEntry(themeId, true);
+                        themeManager.activeTheme = themeId;
+                        this.forceUpdate();
                     } catch (e) {
                         if (e instanceof Error) {
                             const message: string = e.toString() || "";
@@ -308,7 +309,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
 
     private removeCurrentTheme = (): void => {
         themeManager.removeCurrentTheme();
-        this.handleThemeSwitch(themeManager.activeTheme);
+        this.handleThemeSwitch(new Set(themeManager.activeTheme));
     };
 
     /**
@@ -376,7 +377,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
             themeManager.saveTheme();
 
             themeManager.duplicateCurrentTheme(newName);
-            this.handleThemeSwitch(newName);
+            this.handleThemeSwitch(new Set(newName));
         }
     };
 

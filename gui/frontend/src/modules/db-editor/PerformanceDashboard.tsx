@@ -313,7 +313,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             <Label caption="Graph Colors:" />
             <Dropdown
                 id="graphColorsDropdown"
-                initialSelection={graphData.activeColorScheme}
+                selection={graphData.activeColorScheme}
                 onSelect={this.handleColorsSelection}
             >
                 <DropdownItem caption="Classic" id="classic" />
@@ -327,7 +327,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             <Label caption="Time Range:" />
             <Dropdown
                 id="timeRangeDropdown"
-                initialSelection={String(graphData.displayInterval)}
+                selection={String(graphData.displayInterval)}
                 onSelect={this.handleTimeRangeSelection}
             >
                 <DropdownItem caption="150 sec" id="50" />
@@ -1439,16 +1439,16 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         return (datum as IPieDatum).value !== undefined;
     }
 
-    private handleColorsSelection = (value: string): void => {
+    private handleColorsSelection = (values: Set<string>): void => {
         const { onGraphDataChange, graphData } = this.props;
 
-        onGraphDataChange?.({ ...graphData, activeColorScheme: value as ColorScheme });
+        onGraphDataChange?.({ ...graphData, activeColorScheme: [...values][0] as ColorScheme });
     };
 
-    private handleTimeRangeSelection = (selectedId: string): void => {
+    private handleTimeRangeSelection = (selectedIds: Set<string>): void => {
         const { onGraphDataChange, graphData } = this.props;
 
-        onGraphDataChange?.({ ...graphData, displayInterval: parseInt(selectedId, 10) });
+        onGraphDataChange?.({ ...graphData, displayInterval: parseInt([...selectedIds][0], 10) });
     };
 
 }

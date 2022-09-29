@@ -105,6 +105,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             __source="[object Object]"
             class="msg container fixedScrollbar dropdown valueEditor"
             id="service"
+            selection="localhost"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
           >

@@ -114,7 +114,7 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
     }
 
     public close(): void {
-        this.portalRef.current?.close(true);
+        this.portalRef.current?.close(false);
     }
 
     public get clientRect(): DOMRect | undefined {

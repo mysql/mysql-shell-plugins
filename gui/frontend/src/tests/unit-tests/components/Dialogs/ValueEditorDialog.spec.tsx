@@ -877,8 +877,8 @@ describe("Value Edit Dialog Tests", (): void => {
 
             expect(dropDownChange).toBeCalledTimes(0);
             elements = portals[1].getElementsByClassName("dropdownItem");
-            expect(elements).toHaveLength(3);
-            (elements[1] as HTMLButtonElement).click(); // Select the second item, which closes the dropdown portal.
+            expect(elements).toHaveLength(4);
+            (elements[2] as HTMLButtonElement).click(); // Select the third item, which closes the dropdown portal.
             await nextProcessTick();
 
             portals = document.getElementsByClassName("portal");

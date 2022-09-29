@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -57,7 +57,7 @@
 
 .msg.selector .selectorItem.selected {
     background-color: var(--button-hoverBackground);
-    transition: background-color ease 200ms;
+    transition: background-color ease 250ms;
 }
 
 .msg.selector .selectorItem:not(.nohover):hover {
@@ -66,14 +66,14 @@
 
 .msg.selector .selectorItem:active {
     background-color: var(--button-pressedBackground);
-    transition: background-color ease 200ms;
+    transition: background-color ease 250ms;
 }
 
 .msg.selector .selectorItem.stepDown {
     flex: 0 0;
     position: absolute;
-    left: 0px;
-    top: 0px;
+    left: 0;
+    top: 0;
     z-index: 10;
 
     min-width: 16px;
@@ -83,8 +83,8 @@
 .msg.selector .selectorItem.stepUp {
     flex: 0 0;
     position: absolute;
-    right: 0px;
-    bottom: 0px;
+    right: 0;
+    bottom: 0;
     z-index: 10;
 
     min-width: 16px;
@@ -103,25 +103,25 @@
 }
 
 .msg.selector.horizontal .selectorItem.stepDown::after {
-    transform: translate(2px, 0px) rotate(-45deg);
+    transform: translate(2px, 0) rotate(-45deg);
 }
 
 .msg.selector.horizontal .selectorItem.stepUp::after {
-    transform: translate(-2px, 0px) rotate(135deg);
+    transform: translate(-2px, 0) rotate(135deg);
 }
 
 .msg.selector.vertical .selectorItem.stepDown::after {
-    transform: translate(0px, 3px) rotate(45deg);
+    transform: translate(0, 3px) rotate(45deg);
 }
 
 .msg.selector.vertical .selectorItem.stepUp::after {
-    transform: translate(0px, -2px) rotate(-135deg);
+    transform: translate(0, -2px) rotate(-135deg);
 }
 
 .msg.selector.horizontal .selectorItem #auxillary {
-    margin: 0px 0px 0px auto;
+    margin: 0 0 0 auto;
 }
 
 .msg.selector.vertical .selectorItem #auxillary {
-    margin: auto 0px 0px 0px;
+    margin: auto 0 0 0;
 }

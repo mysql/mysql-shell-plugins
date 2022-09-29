@@ -108,7 +108,7 @@ export class Container<
             // This way all children share the same data and pick their actual values using their data ID.
             content = React.Children.map(children, (child: React.ReactNode): React.ReactNode => {
                 if (React.isValidElement(child)) {
-                    return React.cloneElement(child, { data });
+                    return React.cloneElement(child, { data } as IContainerProperties);
                 } else {
                     return undefined;
                 }

@@ -48,18 +48,18 @@
     border: 1px solid var(--checkbox-border);
     border-radius: 0.2rem;
 
-    transition: background-color 0.3s
+    transition: background-color 0.25s
 }
 
 .msg.checkbox:hover .checkMark {
     background-color: var(--button-hoverBackground);
-    transition: background-color 0.3s
+    transition: background-color 0.25s
 }
 
 .msg.checkbox.disabled .checkMark {
     color: var(--text-dimmedForeground);
     background-color: var(--button-dimmedBackground);
-    transition: background-color 0.3s
+    transition: background-color 0.25s
 }
 
 .msg.checkbox.disabled {
@@ -105,4 +105,3 @@
     left: 2px;
     background-color: var(--checkbox-foreground);
 }
-

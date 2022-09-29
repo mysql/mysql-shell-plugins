@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,7 +34,7 @@
     user-select: none;
     overflow: hidden;
 
-    transition: transform 0.2s;
+    transition: transform 0.25s;
 }
 
 .msg.colorField > .inner {
@@ -55,7 +55,7 @@
 
 .msg.colorField.dropTarget {
     transform: scale(1.5);
-    transition: transform 0.2s;
+    transition: transform 0.25s;
 }
 
 .msg.colorField.invalid {
@@ -74,7 +74,7 @@
 }
 
 .msg.colorPopup .slider > .body {
-    margin: 0px 6px 0px 3px ;
+    margin: 0 6px 0 3px;
 }
 
 .msg.colorPopup .input {
@@ -99,8 +99,8 @@
 .msg.colorPopup #hue #hueLabel {
     position: absolute;
 
-    left: 0px;
-    top: 0px;
+    left: 0;
+    top: 0;
 
     font-size: 30pt;
     font-weight: 800;
@@ -111,7 +111,7 @@
 .msg.colorPopup #hue #hueDataLabel {
     position: absolute;
     align-self: center;
-    padding: 2px 0px 0px 5px;
+    padding: 2px 0 0 5px;
     mix-blend-mode: difference;
 }
 
@@ -152,7 +152,7 @@
     border-radius: 50%;
 
     background-color: white;
-    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .msg.colorPopup #alpha .slider {
@@ -189,15 +189,15 @@
 
 .msg.msg.colorPopup .actions {
     position: absolute;
-    right: 0px;
-    top: 0px;
+    right: 0;
+    top: 0;
     width: 32px;
     height: 32px;
 
     justify-content: space-around;
     border-top-right-radius: 5px;
-    border-top-left-radius: 0px;
-    border-bottom-right-radius: 0px;
+    border-top-left-radius: 0;
+    border-bottom-right-radius: 0;
     border-bottom-left-radius: 50%;
 
     background-color: hsl(171, 46%, 27%);

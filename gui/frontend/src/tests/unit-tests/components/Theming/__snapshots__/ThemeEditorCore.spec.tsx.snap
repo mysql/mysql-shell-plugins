@@ -137,10 +137,10 @@ exports[`Theme editor core testing Render test 1`] = `
               >
                 <Dropdown
                   className="themeSelector"
-                  initialSelection="Auto"
                   multiSelect={false}
                   onSelect={[Function]}
                   optional={false}
+                  selection="Auto"
                   showDescription={false}
                   withoutArrow={false}
                 >
@@ -160,12 +160,14 @@ exports[`Theme editor core testing Render test 1`] = `
                     onClick={[Function]}
                     onKeyDown={[Function]}
                     orientation="row"
+                    selection="Auto"
                     tabIndex={0}
                   >
                     <div
                       className="msg container fixedScrollbar dropdown themeSelector"
                       onClick={[Function]}
                       onKeyDown={[Function]}
+                      selection="Auto"
                       style={
                         Object {
                           "alignItems": "center",

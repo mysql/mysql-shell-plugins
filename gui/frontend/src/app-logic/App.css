@@ -123,7 +123,7 @@ html.themeSwitch,
 html.themeSwitch *,
 html.themeSwitch *:before,
 html.themeSwitch *:after {
-    transition: color 500ms, background-color 500ms !important;
+    transition: color 250ms, background-color 250ms !important;
     transition-delay: 0 !important;
 }
 

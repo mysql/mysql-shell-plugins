@@ -84,10 +84,7 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
         const { children, container = document.body } = this.mergedProps;
         const { open, options } = this.state;
 
-        const className = this.getEffectiveClassNames([
-            "portal",
-            //this.classFromProperty(!options?.lockFocus, "ignoreMouse"),
-        ]);
+        const className = this.getEffectiveClassNames(["portal"]);
 
         const style: IDictionary = {
             /* eslint-disable @typescript-eslint/naming-convention */
