@@ -1437,6 +1437,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             __source="[object Object]"
             class="msg container fixedScrollbar dropdown valueEditor"
             id="selectOne"
+            selection="One"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
           >
@@ -1935,6 +1936,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             __source="[object Object]"
             class="msg container fixedScrollbar dropdown valueEditor"
             id="selectOne"
+            selection="One"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
           >

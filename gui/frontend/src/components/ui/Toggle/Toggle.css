@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,11 @@
  */
 
 .msg.toggle {
-	--toggle-border-width: 1px;
+    --toggle-border-width: 1px;
 }
 
 input.msg.toggle {
-	display: none;
+    display: none;
 }
 
 label.msg.toggle {
@@ -45,15 +45,15 @@ label.msg.toggle {
 label.msg.toggle::before {
     display: block;
     content: "";
-	height: 12px;
-	width: 23px;
+    height: 12px;
+    width: 23px;
 
     border-radius: 2px;
     border: var(--toggle-border-width) solid hsla(var(--toggle-color), 1);
     background-color: hsla(var(--toggle-color), 0.75);
     margin-right: 4px;
 
-    transition: border 0.2s, background-color 0.2s;
+    transition: border 0.25s, background-color 0.25s;
 }
 
 label.msg.toggle.round::before {
@@ -64,7 +64,7 @@ input:checked + label.msg.toggle::before {
     border: var(--toggle-border-width) solid hsla(var(--toggle-checked-color), 1);
     background-color: hsla(var(--toggle-checked-color), 0.75);
 
-    transition: border 0.2s, background-color 0.2s;
+    transition: border 0.25s, background-color 0.25s;
 }
 
 label.msg.toggle.tiny::before {
@@ -99,21 +99,21 @@ label.msg.toggle::after {
     content: "";
 
     position: absolute;
-	width: 12px;
-	height: 12px;
-	left: var(--toggle-border-width);
+    width: 12px;
+    height: 12px;
+    left: var(--toggle-border-width);
 
-	background-color: var(--icon-foreground);
-	border-radius: 2px;
-	transition: left 0.2s;
+    background-color: var(--icon-foreground);
+    border-radius: 2px;
+    transition: left 0.25s;
 }
 
 label.msg.toggle.round::after {
-	border-radius: 50%;
+    border-radius: 50%;
 }
 
 /* Checked, standard size. */
-input:checked.msg.toggle + label::after   {
+input:checked.msg.toggle + label::after {
     left: calc(11px + var(--toggle-border-width));
 }
 
@@ -124,7 +124,7 @@ label.msg.toggle.tiny::after {
 }
 
 /** Checked, tiny. */
-input:checked.msg.toggle.tiny + label::after  {
+input:checked.msg.toggle.tiny + label::after {
     left: calc(5px + var(--toggle-border-width));
 }
 
@@ -133,7 +133,7 @@ label.msg.toggle.small::after {
     height: 8px;
 }
 
-input:checked.msg.toggle.small + label::after  {
+input:checked.msg.toggle.small + label::after {
     left: calc(7px + var(--toggle-border-width));
 }
 
@@ -142,7 +142,7 @@ label.msg.toggle.medium::after {
     height: 12px;
 }
 
-input:checked.msg.toggle.medium + label::after  {
+input:checked.msg.toggle.medium + label::after {
     left: calc(11px + var(--toggle-border-width));
 }
 
@@ -151,7 +151,7 @@ label.msg.toggle.big::after {
     height: 25px;
 }
 
-input:checked.msg.toggle.big + label::after  {
+input:checked.msg.toggle.big + label::after {
     left: calc(24px + var(--toggle-border-width));
 }
 
@@ -160,7 +160,7 @@ label.msg.toggle.huge::after {
     height: 35px;
 }
 
-input:checked.msg.toggle.huge + label::after  {
+input:checked.msg.toggle.huge + label::after {
     left: calc(34px + var(--toggle-border-width));
 }
 
@@ -169,25 +169,38 @@ input:checked.msg.toggle.huge + label::after  {
   to specify a manual alignment. Unfortunately, that doesn't work well in Firefox, so we cannot use the margin
   for all browsers and instead use the automatic layout for FF + Chrome and the manual alignment for Safari.
 */
-_::-webkit-full-page-media, _:future, label.msg.toggle::after {
+_::-webkit-full-page-media,
+_:future,
+label.msg.toggle::after {
     margin-top: 3px;
 }
 
-_::-webkit-full-page-media, _:future, label.msg.toggle.tiny::after {
+_::-webkit-full-page-media,
+_:future,
+label.msg.toggle.tiny::after {
     margin-top: 2.5px;
 }
-_::-webkit-full-page-media, _:future, label.msg.toggle.small::after {
+
+_::-webkit-full-page-media,
+_:future,
+label.msg.toggle.small::after {
     margin-top: 3.5px;
 }
 
-_::-webkit-full-page-media, _:future, label.msg.toggle.medium::after {
+_::-webkit-full-page-media,
+_:future,
+label.msg.toggle.medium::after {
     margin-top: 4px;
 }
 
-_::-webkit-full-page-media, _:future, label.msg.toggle.big::after {
+_::-webkit-full-page-media,
+_:future,
+label.msg.toggle.big::after {
     margin-top: 9.5px;
 }
 
-_::-webkit-full-page-media, _:future, label.msg.toggle.huge::after {
+_::-webkit-full-page-media,
+_:future,
+label.msg.toggle.huge::after {
     margin-top: 11px;
 }

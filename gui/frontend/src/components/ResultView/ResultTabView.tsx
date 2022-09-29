@@ -291,7 +291,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                                 <Divider vertical={true} />
                                 <Dropdown
                                     id="viewStyleDropDown"
-                                    initialSelection="grid"
+                                    selection="grid"
                                     data-tooltip="Select a View Section for the Result Set"
                                 >
                                     <Dropdown.Item

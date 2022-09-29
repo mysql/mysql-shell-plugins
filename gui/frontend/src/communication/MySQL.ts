@@ -21,10 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// Have to disable the spell checker and naming convention rule as we list a number of values here that cannot be
+// Have to disable naming convention rule as we list a number of values here that cannot be
 // changed to conform to our rules.
 
-/* spell-checker: disable */
 /* eslint-disable @typescript-eslint/naming-convention */
 
 export enum MySQLConnectionScheme {
@@ -55,7 +54,7 @@ export enum MySQLSqlMode {
     AllowInvalidDates = "ALLOW_INVALID_DATES",
     AnsiQuotes = "ANSI_QUOTES",
     ErrorForDivisionByZero = "ERROR_FOR_DIVISION_BY_ZERO",
-    HighNotPrecendence = "HIGH_NOT_PRECEDENCE",
+    HighNotPrecedence = "HIGH_NOT_PRECEDENCE",
     IgnoreSpace = "IGNORE_SPACE",
     NoAutoValueOnZero = "NO_AUTO_VALUE_ON_ZERO",
     NoUnsignedSubtraction = "NO_UNSIGNED_SUBTRACTION",
@@ -67,134 +66,147 @@ export enum MySQLSqlMode {
     RealAsFloat = "REAL_AS_FLOAT",
     StrictAllTables = "STRICT_ALL_TABLES",
     StrictTransTables = "STRICT_TRANS_TABLES",
-    TimeTruncateFractial = "TIME_TRUNCATE_FRACTIONAL",
+    TimeTruncateFractional = "TIME_TRUNCATE_FRACTIONAL",
 }
 
 export enum MySQLConnCompression {
-    "REQUIRED",  // Connection will only be made when compression can be enabled.
-    "PREFERRED", // Compression is negotiated (default for X protocol).
-    "DISABLED",  // No compression (default for classic protocol).
+    /** Connection will only be made when compression can be enabled. */
+    Required = "REQUIRED",
+
+    /** Compression is negotiated (default for X protocol). */
+    Preferred = "PREFERRED",
+
+    /** No compression (default for classic protocol). */
+    Disabled = "DISABLED",
 }
 
 export interface IMySQLConnectionOptions {
-    // Base options:
-
-    // The protocol to be used on the connection.
+    /** The protocol to be used on the connection. */
     scheme: MySQLConnectionScheme;
 
-    // The MySQL user name to be used on the connection.
+    /** The MySQL user name to be used on the connection. */
     user?: string;
 
-    // The password to be used on the connection.
+    /** The password to be used on the connection. */
     password?: string;
 
-    // The hostname or IP address to be used on the connection.
+    /** The hostname or IP address to be used on the connection. */
     host: string;
 
-    // The port to be used in a TCP connection.
+    /** The port to be used in a TCP connection. */
     port?: number;
 
-    // The socket file name for unix sockets or the pipe name for Windows pipes.
+    /** The socket file name for unix sockets or the pipe name for Windows pipes. */
     socket?: string;
 
-    // The schema to be selected once the connection is done.
+    /** The schema to be selected once the connection is done. */
     schema?: string;
 
-    // Main options:
-
-    // The SSL mode to be used in the connection.
+    /** The SSL mode to be used in the connection. */
     "ssl-mode"?: MySQLSslMode;
 
-    // The path to the X509 certificate authority file in PEM format.
+    /** The path to the X509 certificate authority file in PEM format. */
     "ssl-ca"?: string;
 
-    // Path to the directory that contains the X509 certificate authority files in PEM format.
+    /** Path to the directory that contains the X509 certificate authority files in PEM format. */
     "ssl-capath"?: string;
 
-    // The path to the SSL public key certificate file in PEM format.
+    /** The path to the SSL public key certificate file in PEM format. */
     "ssl-cert"?: string;
 
-    // The path to the SSL private key file in PEM format.
+    /** The path to the SSL private key file in PEM format. */
     "ssl-key"?: string;
 
-    // The path to file that contains certificate revocation lists.
+    /** The path to file that contains certificate revocation lists. */
     "ssl-crl"?: string;
 
-    // The path of directory that contains certificate revocation list files.
+    /** The path of directory that contains certificate revocation list files. */
     "ssl-crlpath"?: string;
 
-    // The list of permissible encryption ciphers for connections that use TLS protocols up through TLSv1.2.
-    // Colon-separated string. Example: "HIGH:!SSLv2:!RC4:!aNULL@STRENGTH".
+    /**
+     * The list of permissible encryption ciphers for connections that use TLS protocols up through TLSv1.2.
+     * Colon-separated string. Example: "HIGH:!SSLv2:!RC4:!aNULL@STRENGTH".
+     */
     "ssl-ciphersuites"?: string;
 
-    // Comma separated list of protocols permitted for secure connections.
+    /** Comma separated list of protocols permitted for secure connections. */
     "tls-version"?: string;
 
-    // List of TLS v1.3 ciphers to use. Same format as for field sslCipher.
+    /** List of TLS v1.3 ciphers to use. Same format as for field sslCipher. */
     "tls-ciphers"?: string;
 
-    // Authentication method.
+    /** Authentication method. */
     "auth-method"?: MySQLAuthMethod;
 
-    // Request public key from the server required for RSA key pair-based password exchange. Use when connecting to
-    // MySQL 8.0 servers with classic MySQL sessions with SSL mode DISABLED.
+    /**
+     * Request public key from the server required for RSA key pair-based password exchange. Use when connecting to
+     * MySQL 8.0 servers with classic MySQL sessions with SSL mode DISABLED.
+     */
     "get-server-public-key"?: boolean;
 
-    // The path name to a file containing a client-side copy of the public key required by the server for RSA
-    // key pair-based password exchange. Use when connecting to MySQL 8.0 servers with classic MySQL sessions with
-    // SSL mode DISABLED.
+    /**
+     * The path name to a file containing a client-side copy of the public key required by the server for RSA
+     * key pair-based password exchange. Use when connecting to MySQL 8.0 servers with classic MySQL sessions with
+     * SSL mode DISABLED.
+     */
     "server-public-key-path"?: string;
 
-    // The connection timeout in milliseconds. If not provided a default timeout of 10 seconds will be used.
-    // Specifying a value of 0 disables the connection timeout.
+    /**
+     * The connection timeout in milliseconds. If not provided a default timeout of 10 seconds will be used.
+     * Specifying a value of 0 disables the connection timeout.
+     */
     "connect-timeout"?: number;
 
-    // Enable compression in client/server protocol.
+    /** Enable compression in client/server protocol. */
     compression?: MySQLConnCompression;
 
-    // Use compression algorithm in server/client protocol.
-    // Comma-separated list with these values: "zlib", "zstd", "lz" and/or "uncompressed".
+    /**
+     * Use compression algorithm in server/client protocol.
+     * Comma-separated list with these values: "zlib", "zstd", "lz" and/or "uncompressed".
+     */
     "compression-algorithms"?: string;
 
-    // Use this compression level in the client/server protocol.
-    //   zstd: 1-22 (default 3)
-    //   zlib: 1-9 (default 3), supported only by X protocol
-    //   lz4: 0-16 (default 2), supported only by X protocol.
+    /**
+     * Use this compression level in the client/server protocol.
+     *   zstd: 1-22 (default 3)
+     *   zlib: 1-9 (default 3), supported only by X protocol
+     *   lz4: 0-16 (default 2), supported only by X protocol.
+     */
     "compression-level"?: number;
 
-    // List of connection attributes to be registered at the PERFORMANCE_SCHEMA connection attributes tables.
+    /** List of connection attributes to be registered at the PERFORMANCE_SCHEMA connection attributes tables. */
     "connection-attributes"?: { [key: string]: string };
 
-    // Enable/disable LOAD DATA LOCAL INFILE.
+    /** Enable/disable LOAD DATA LOCAL INFILE. */
     "local-infile"?: boolean;
 
-    // an SSHURI
+    /** An SSH URI. */
     "ssh"?: string;
 
-    // passowrd to be used on the ssh connection
+    /** Password to be used on the ssh connection */
     "ssh-password"?: string;
 
-    // the ssh key file password
+    /** the ssh key file password */
     "ssh-identity-file"?: string;
 
-    // the key file to be used on the ssh connection
+    /** the key file to be used on the ssh connection */
     "ssh-identity-file-password"?: string;
 
-    // custom path for the ssh config file
+    /** custom path for the ssh config file */
     "ssh-config-file"?: string;
 
-    // the ssh public key file password
+    /** The SSH public key file password. */
     "ssh-public-identity-file"?: string;
 
-    // mds db sytem id
+    /** MDS db system id */
     "mysql-db-system-id"?: string;
 
-    // mds profile name
+    /** MDS profile name */
     "profile-name"?: string;
 
-    // mds bastion id
+    /** mds bastion id */
     "bastion-id"?: string;
 
-    // disable HeatWave check
+    /** disable HeatWave check */
     "disable-heat-wave-check"?: boolean;
 }

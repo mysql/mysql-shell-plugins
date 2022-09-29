@@ -36,7 +36,7 @@ export interface ITag {
     picture?: React.ReactElement<Icon> | React.ReactElement<Image>;
 }
 
-// A block of tags that can be dragged in/out and individually be deleted.
+/** A block of tags that can be dragged in/out and individually be deleted. */
 export interface ITagInputProperties extends IComponentProperties {
     tags?: ITag[];
     removable?: boolean;
@@ -44,7 +44,6 @@ export interface ITagInputProperties extends IComponentProperties {
 
     innerRef?: React.RefObject<HTMLElement>;
 
-    // No data id is available during drag over, so we cannot base a decision on that.
     canAdd?: (props: ITagInputProperties) => boolean;
     onAdd?: (id: string, props: ITagInputProperties) => void;
     onRemove?: (id: string, props: ITagInputProperties) => void;

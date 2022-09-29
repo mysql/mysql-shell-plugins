@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -143,7 +143,7 @@ export class Statusbar extends Component<IStatusbarProperties, IStatusbarState> 
                                 key={`statusbarItem${index}`}
                                 className={itemClass}
                                 withoutArrow={true}
-                                initialSelection={selectedItem}
+                                selection={selectedItem}
                                 onSelect={this.handleItemChange}
                                 optional={false}
                                 title={item.tooltip}
@@ -222,8 +222,8 @@ export class Statusbar extends Component<IStatusbarProperties, IStatusbarState> 
         void requisitions.execute("statusBarButtonClick", { type: props["data-command"], event: e });
     };
 
-    private handleItemChange = (selectedId: string | number): void => {
-        void requisitions.execute("changeProfile", selectedId);
+    private handleItemChange = (selectedIds: Set<string>): void => {
+        void requisitions.execute("changeProfile", [...selectedIds][0]);
     };
 
     private updateStatusItems = (data: IStatusbarInfo[]): void => {

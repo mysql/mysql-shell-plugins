@@ -248,8 +248,8 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 <Label style={{ paddingRight: "8px" }}>GUI Console:</Label>
                 <Dropdown
                     id="sessionSelector"
-                    initialSelection={selectedTab}
-                    onSelect={this.handleSelectTab}
+                    selection={selectedTab}
+                    onSelect={this.handleSelectTabFromDropdown}
                 >
                     {items}
                 </Dropdown>
@@ -595,6 +595,10 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
             this.setState({ selectedTab: newSelection, shellTabs });
         }
+    };
+
+    private handleSelectTabFromDropdown = (ids: Set<string>): void => {
+        this.setState({ selectedTab: [...ids][0] });
     };
 
     private handleSelectTab = (id: string): void => {

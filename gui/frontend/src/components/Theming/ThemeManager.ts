@@ -323,12 +323,6 @@ export class ThemeManager {
     }
 
     private settingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
-        if (entry?.key === "theming.currentTheme") {
-            this.activeTheme = settings.get("theming.currentTheme", "Auto");
-
-            return Promise.resolve(true);
-        }
-
         if (!entry || entry.key === "" || entry.key.startsWith("theming.")) {
             settings.get("theming.themes", []).forEach((definition: IThemeObject): void => {
                 this.loadThemeDetails(definition);

@@ -283,7 +283,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                 </Grid>
 
                 <p>Dropdown</p>
-                <Dropdown initialSelection="tesla" optional={false} style={{ maxWidth: "300px" }}>
+                <Dropdown selection="tesla" optional={false} style={{ maxWidth: "300px" }}>
                     <Dropdown.Item id="tesla" caption="Tesla" />
                     <Dropdown.Item id="volvo" caption="Volvo" />
                     <Dropdown.Item id="bmw" caption="BMW" />
@@ -442,9 +442,9 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                         <Label caption="Select Editor Language: " />
                         <Dropdown
                             id="editorLanguagePicker"
-                            initialSelection={editorLanguage}
-                            onSelect={(selectedId: string | number): void => {
-                                this.setState({ editorLanguage: selectedId as EditorLanguage });
+                            selection={editorLanguage}
+                            onSelect={(selectedIds: Set<string>): void => {
+                                this.setState({ editorLanguage: [...selectedIds][0] as EditorLanguage });
                             }}
                         >
                             <Dropdown.Item id="javascript" caption="JavaScript" />
@@ -556,7 +556,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                         <Label>Title Bar</Label>
                         <Divider vertical={true} />
                         <Search />
-                        <Dropdown initialSelection="English">
+                        <Dropdown selection="English">
                             <Dropdown.Item id="English" caption="English" />
                             <Dropdown.Item id="Polish" caption="Polish" />
                             <Dropdown.Item id="Portuguese" caption="Portuguese" />

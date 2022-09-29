@@ -299,7 +299,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     <Dropdown
                         id="documentSelector"
                         key="selector"
-                        initialSelection={selectedEntry ?? selectedPage}
+                        selection={selectedEntry ?? selectedPage}
                         onSelect={this.handleSelectTabOrEntry}
                     >
                         {items}
@@ -395,7 +395,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         <Dropdown
                             id="documentSelector"
                             key="documentSelector"
-                            initialSelection={connectionState.activeEntry}
+                            selection={connectionState.activeEntry}
                             onSelect={this.handleEditorSelectorChange}
                         >
                             {
@@ -1016,8 +1016,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return Promise.resolve(true);
     }
 
-    private handleSelectTabOrEntry = (id: string, props: IDropdownProperties): void => {
+    private handleSelectTabOrEntry = (ids: Set<string>, props: IDropdownProperties): void => {
         const list = React.Children.toArray(props.children);
+        const id = [...ids][0];
         const item = list.find((entry) => {
             // eslint-disable-next-line dot-notation
             const candidateProps = entry["props"] as IDocumentDropdownItemProperties;
@@ -1270,10 +1271,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private handleEditorSelectorChange = (selectedId: string | number): void => {
+    private handleEditorSelectorChange = (selectedIds: Set<string>): void => {
         const { selectedPage } = this.state;
 
-        this.handleSelectEntry(selectedPage, selectedId as string);
+        this.handleSelectEntry(selectedPage, [...selectedIds][0]);
     };
 
     /**

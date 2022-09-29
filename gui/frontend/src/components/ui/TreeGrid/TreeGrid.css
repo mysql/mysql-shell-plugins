@@ -163,7 +163,7 @@
     font-size: 1em;
 }
 
-.msg.treeGrid.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-header-menu-button+.tabulator-title-editor {
+.msg.treeGrid.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-header-menu-button + .tabulator-title-editor {
     width: calc(100% - 22px);
 }
 
@@ -539,7 +539,7 @@
 
     top: 0;
     left: 0;
-    z-index: 100;
+    z-index: 10;
 
     height: 100%;
     width: 100%;
@@ -979,7 +979,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
-    z-index: 10000;
+    z-index: 10;
 }
 
 .msg.treeGrid.tabulator .tabulator-menu .tabulator-menu-item {
@@ -1040,7 +1040,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
-    z-index: 10000;
+    z-index: 10;
 }
 
 .msg.treeGrid.tabulator .tabulator-edit-select-list .tabulator-edit-select-list-item {
@@ -1144,10 +1144,10 @@
     left: 0;
     right: 0;
 
-    z-index: 10000;
+    z-index: 10;
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
     display: none !important;
 }
 
@@ -1157,7 +1157,7 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) {
 }
 
 /* row grouping element */
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group {
     padding: 5px;
 
     border-bottom: 2px solid var(--foreground);
@@ -1171,13 +1171,13 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
     min-width: 100%;
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group:hover {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, .1);
 }
 
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-visible .tabulator-arrow {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-visible .tabulator-arrow {
     margin-right: 10px;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
@@ -1186,36 +1186,36 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
 }
 
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-1 td {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-1 td {
     padding-left: 30px !important;
 }
 
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-2 td {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-2 td {
     padding-left: 50px !important;
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-3 td {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-3 td {
     padding-left: 70px !important;
 }
 
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-4 td {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-4 td {
     padding-left: 90px !important;
 }
 
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-5 td {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group.tabulator-group-level-5 td {
     padding-left: 110px !important;
 }
 
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group .tabulator-group-toggle {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group .tabulator-group-toggle {
     display: inline-block;
 }
 
 /* sorting arrow */
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group .tabulator-arrow {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group .tabulator-arrow {
     display: inline-block;
     width: 0;
     height: 0;
@@ -1227,12 +1227,12 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
     vertical-align: middle;
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-print-table-group span {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-print-table-group span {
     margin-left: 10px;
     color: var(--foreground);
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-data-tree-branch {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-data-tree-branch {
     display: inline-block;
     vertical-align: middle;
 
@@ -1248,7 +1248,7 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
     border-bottom: 2px solid var(--list-gridColor);
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-data-tree-control {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-data-tree-control {
 
     display: inline-flex;
     justify-content: center;
@@ -1267,12 +1267,12 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
     overflow: hidden;
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-data-tree-control:hover {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-data-tree-control:hover {
     cursor: pointer;
     background: rgba(0, 0, 0, .2);
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-collapse {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-collapse {
     display: inline-block;
     position: relative;
 
@@ -1282,7 +1282,7 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
     background: transparent;
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-collapse:after {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-collapse:after {
     position: absolute;
     content: "";
     left: -3px;
@@ -1294,7 +1294,7 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
     background: var(--rowTextColor);
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-expand {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-expand {
     display: inline-block;
     position: relative;
 
@@ -1305,7 +1305,7 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
 
 }
 
-body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-expand:after {
+body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) .tabulator-data-tree-control .tabulator-data-tree-control-expand:after {
     position: absolute;
     content: "";
     left: -3px;
@@ -1338,10 +1338,10 @@ body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen) .tabulat
     border-bottom: 1px solid var(--sideBarSectionHeader-foreground);
 
     transform: rotate(-45deg);
-    transition: transform 0.3s
+    transition: transform 0.25s
 }
 
-.msg.treeGrid.tabulator .treeToggle.expanded::after  {
+.msg.treeGrid.tabulator .treeToggle.expanded::after {
     transform: translateX(2px) translateY(-2px) rotate(45deg);
-    transition: transform 0.3s
+    transition: transform 0.25s
 }

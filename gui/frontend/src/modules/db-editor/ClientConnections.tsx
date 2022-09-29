@@ -174,7 +174,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
     public render(): React.ReactNode {
         const { toolbarItems } = this.props;
-        const { resultSet, gotResponse, version, showDetails, selectedTab } = this.state;
+        const { resultSet, gotResponse, showDetails, selectedTab } = this.state;
 
         const className = this.getEffectiveClassNames(["clientConnections"]);
 
@@ -421,7 +421,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                 id="refreshSelector"
                 key="selector"
                 onSelect={this.handleTimeRangeSelection}
-                initialSelection={`${this.interval / 1000}`}
+                selection={`${this.interval / 1000}`}
             >
                 {items}
             </Dropdown>,
@@ -769,9 +769,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         }
     };
 
-    private handleTimeRangeSelection = (selectedId: string): void => {
+    private handleTimeRangeSelection = (selectedIds: Set<string>): void => {
         clearInterval(this.refreshTimer);
-        this.interval = parseInt(selectedId, 10) * 1000;
+        this.interval = parseInt([...selectedIds][0], 10) * 1000;
         this.updateValues();
         if (this.interval > 0) {
             this.refreshTimer = setInterval(() => {

@@ -83,7 +83,8 @@
 }
 
 .msg.valueEditDialog .gridCell .description {
-    margin-top: calc(0.95em + 6px); /* Font size of the title plus title bottom margin. */
+    /* Font size of the title plus title bottom margin. */
+    margin-top: calc(0.95em + 6px);
     flex: 1 1 auto;
     white-space: initial;
 }
@@ -142,4 +143,12 @@
     margin-left: 4px;
     margin-right: 4px;
     width: 100%;
+}
+
+/*
+ * Temporary solution to hide the horizontal scroll bar, which shows up too early currently.
+ * This assumes we don't need any horizontal scrolling (which might change in the future).
+ */
+.msg.valueEditDialog .tabulator-tableholder {
+    overflow-x: hidden;
 }

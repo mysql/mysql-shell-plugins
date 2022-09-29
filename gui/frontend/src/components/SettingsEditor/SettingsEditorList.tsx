@@ -327,7 +327,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
                             id={data.id}
                             key={data.id}
                             className="settingValue"
-                            initialSelection={value as string}
+                            selection={value as string}
                             showDescription={hasDescriptions}
                             onSelect={this.handleDropDownChange}
                         >
@@ -396,8 +396,9 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         settings.set(props.id!, value);
     };
 
-    private handleDropDownChange = (selectedId: string, props: IDropdownProperties): void => {
-        settings.set(props.id!, selectedId);
+    private handleDropDownChange = (selectedIds: Set<string>, props: IDropdownProperties): void => {
+        // There's always at least one entry.
+        settings.set(props.id!, [...selectedIds][0]);
     };
 
 }

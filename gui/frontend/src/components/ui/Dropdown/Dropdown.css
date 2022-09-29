@@ -71,6 +71,7 @@
 
 .msg.dropdown.multiSelect .tag {
     cursor: pointer;
+    min-height: 18px;
 }
 
 .msg.dropdown:hover {

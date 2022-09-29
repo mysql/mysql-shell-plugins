@@ -68,11 +68,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
             </Label>
             <Dropdown
               id="refreshSelector"
-              initialSelection="5"
               key="selector"
               multiSelect={false}
               onSelect={[Function]}
               optional={false}
+              selection="5"
               showDescription={false}
               withoutArrow={false}
             >
@@ -93,6 +93,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onKeyDown={[Function]}
                 orientation="row"
+                selection="5"
                 tabIndex={0}
               >
                 <div
@@ -100,6 +101,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}
+                  selection="5"
                   style={
                     Object {
                       "alignItems": "center",
@@ -765,11 +767,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
             </Label>
             <Dropdown
               id="refreshSelector"
-              initialSelection="5"
               key="selector"
               multiSelect={false}
               onSelect={[Function]}
               optional={false}
+              selection="5"
               showDescription={false}
               withoutArrow={false}
             >
@@ -790,6 +792,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onKeyDown={[Function]}
                 orientation="row"
+                selection="5"
                 tabIndex={0}
               >
                 <div
@@ -797,6 +800,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}
+                  selection="5"
                   style={
                     Object {
                       "alignItems": "center",

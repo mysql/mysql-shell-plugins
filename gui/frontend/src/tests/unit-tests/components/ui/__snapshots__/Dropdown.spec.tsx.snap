@@ -2,9 +2,9 @@
 
 exports[`Dropdown render testing Standard Rendering 1`] = `
 <Dropdown
-  initialSelection="tesla"
   multiSelect={false}
   optional={false}
+  selection="tesla"
   showDescription={false}
   style={
     Object {
@@ -29,6 +29,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
     onClick={[Function]}
     onKeyDown={[Function]}
     orientation="row"
+    selection="tesla"
     style={
       Object {
         "maxWidth": "300px",
@@ -40,6 +41,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
       className="msg container fixedScrollbar dropdown"
       onClick={[Function]}
       onKeyDown={[Function]}
+      selection="tesla"
       style={
         Object {
           "alignItems": "center",

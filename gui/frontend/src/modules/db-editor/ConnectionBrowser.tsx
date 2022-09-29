@@ -49,7 +49,7 @@ import { webSession } from "../../supplement/WebSession";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 
 import {
-    IMySQLConnectionOptions, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
+    IMySQLConnectionOptions, MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
 } from "../../communication/MySQL";
 import { filterInt } from "../../utilities/string-helpers";
 import { settings } from "../../supplement/Settings/Settings";
@@ -1090,6 +1090,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                             }
                         });
                     }
+
+                    const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
+                        ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
+                        : undefined;
+
                     details.options = {
                         /* eslint-disable @typescript-eslint/naming-convention */
                         "scheme": mysqlDetailsSection.scheme.value as string,
@@ -1099,11 +1104,13 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         "schema": mysqlDetailsSection.defaultSchema.value,
                         // "useSSL": useSsl ? undefined : "no",
                         "ssl-mode": mode ?? undefined,
-                        "ssl-ca": mysqlSslSection.sslCaFile.value ?? undefined,
-                        "ssl-cert": mysqlSslSection.sslCertFile.value ?? undefined,
-                        "ssl-key": mysqlSslSection.sslKeyFile.value ?? undefined,
-                        "ssl-cipher": mysqlSslSection.sslCipher.value ?? undefined,
-                        //useCompression: section5.useCompression.value,
+                        "ssl-ca": mysqlSslSection.sslCaFile.value,
+                        "ssl-cert": mysqlSslSection.sslCertFile.value,
+                        "ssl-key": mysqlSslSection.sslKeyFile.value,
+                        "ssl-cipher": mysqlSslSection.sslCipher.value,
+                        "compression": mysqlAdvancedSection.compression.value,
+                        "compression-algorithms": compressionAlgorithms,
+                        "compression-level": mysqlAdvancedSection.compressionLevel.value,
                         //useAnsiQuotes: section5.ansiQuotes.value,
                         //enableClearTextAuthPlugin: section5.clearTextAuth.value,
                         "connection-timeout": mysqlAdvancedSection.timeout.value,
@@ -1439,12 +1446,23 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             caption: "Advanced",
             groupName: "group1",
             values: {
-                compressionType: {
-                    caption: "Connection Compression",
-                    value: optionsMySQL["compression-algorithms"],
-                    tags: ["zstd", "zlib", "lz4", "uncompressed"],
-                    options: [DialogValueOption.Grouped],
-                    span: 5,
+                compression: {
+                    caption: "Compression",
+                    value: optionsMySQL.compression,
+                    choices: Object.keys(MySQLConnCompression),
+                    span: 2,
+                },
+                compressionAlgorithms: {
+                    caption: "Compression Algorithms",
+                    value: optionsMySQL["compression-algorithms"]?.split(","),
+                    set: ["zstd", "zlib", "lz4", "uncompressed"],
+                    span: 3,
+                },
+                compressionLevel: {
+                    caption: "Compression Level",
+                    value: optionsMySQL["compression-level"] ?? 3,
+                    span: 3,
+
                 },
                 // ansiQuotes: {
                 //     caption: "Use ANSI Quotes to Quote Identifiers",
@@ -1456,12 +1474,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 //     value: optionsMySQL.enableClearTextAuthPlugin ?? false,
                 //     options: [DialogValueOption.Grouped],
                 // },
-                sshCompressionLevel: {
-                    caption: "SSH Compression Level",
-                    value: optionsMySQL["compression-level"],
-                    span: 3,
-
-                },
                 sqlMode: {
                     caption: "SQL Mode",
                     value: optionsMySQL["sql-mode"],
@@ -1474,12 +1486,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
                         return { data: result };
                     }),
-                    span: 5,
+                    span: 4,
                 },
                 timeout: {
                     caption: "Timeout",
                     value: optionsMySQL["connect-timeout"],
-                    span: 3,
+                    span: 4,
                 },
                 disableHeatwaveCheck: {
                     caption: "Disable HeatWave Check on Connection Startup",

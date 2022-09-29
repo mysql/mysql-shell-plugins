@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -228,9 +228,7 @@ export class Accordion extends Component<IAccordionProperties, IAccordionState> 
                 }
 
                 if (React.isValidElement(section.content)) {
-                    section.content = React.cloneElement(section.content, {
-                        expanded: expand,
-                    });
+                    section.content = React.cloneElement(section.content, { expanded: expand } as IComponentProperties);
                 }
             } else if (expand && singleExpand) {
                 // Collapse all other sections if only one can be expanded.
@@ -246,9 +244,8 @@ export class Accordion extends Component<IAccordionProperties, IAccordionState> 
                     section.resizable = false;
 
                     if (React.isValidElement(section.content)) {
-                        section.content = React.cloneElement(section.content, {
-                            expanded: false,
-                        });
+                        section.content = React.cloneElement(section.content,
+                            { expanded: false } as IComponentProperties);
                     }
                 }
             }
