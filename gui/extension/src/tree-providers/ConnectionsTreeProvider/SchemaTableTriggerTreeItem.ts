@@ -43,7 +43,7 @@ export class SchemaTableTriggerTreeItem extends ConnectionsTreeBaseItem {
         return "schemaTableTrigger.svg";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return "trigger";
     }
 }

@@ -110,6 +110,13 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     value: request.values?.comments as string,
                     horizontalSpan: 8,
                 },
+                options: {
+                    type: "text",
+                    caption: "Options",
+                    value: request.values?.options as string,
+                    horizontalSpan: 8,
+                    multiLine: true,
+                },
             },
         };
 
@@ -126,7 +133,7 @@ export class MrsSchemaDialog extends ValueDialogBase {
         const { onClose } = this.props;
 
         if (closure === DialogResponseClosure.Accept && data) {
-            const services = data.services as IMrsServiceData[];
+            const services = data.services as IMrsServiceData[] ?? [];
             const mainSection = dialogValues.sections.get("mainSection");
             if (mainSection) {
                 const values: IDictionary = {};
@@ -140,6 +147,7 @@ export class MrsSchemaDialog extends ValueDialogBase {
                 values.enabled = mainSection.values.enabled.value as boolean;
                 values.itemsPerPage = mainSection.values.itemsPerPage.value as number;
                 values.comments = mainSection.values.comments.value as string;
+                values.options = mainSection.values.options.value as string;
 
                 onClose(closure, values);
             }
@@ -161,11 +169,11 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     result.messages.name = "The schema name must not be empty.";
                 }
                 if (!mainSection.values.requestPath.value) {
-                    result.messages.requestPath = "The request path name must not be empty.";
+                    result.messages.requestPath = "The request path must not be empty.";
                 } else {
                     const requestPath = mainSection.values.requestPath.value as string;
                     if (!requestPath.startsWith("/")) {
-                        result.messages.requestPath = "The request path name start with /.";
+                        result.messages.requestPath = "The request path must start with /.";
                     }
                 }
             }

@@ -71,6 +71,7 @@ def test_get_schemas(init_mrs):
          'request_path': '/PhoneBook',
          'requires_auth': 0,
          'enabled': 1,
+         'options': None,
          'items_per_page': 25,
          'comments': '',
          'host_ctx': 'localhost/test'},
@@ -81,6 +82,7 @@ def test_get_schemas(init_mrs):
          'request_path': '/test_schema',
          'requires_auth': 0,
          'enabled': 1,
+         'options': None,
          'items_per_page': 20,
          'comments': 'test schema',
          'host_ctx': 'localhost/test'}
@@ -102,15 +104,18 @@ def test_get_schema(init_mrs):
     }
     result = get_schema(**args)
     assert result is not None
-    assert result == {'id': 2,
-                      'name': 'PhoneBook',
-                      'service_id': 1,
-                      'request_path': '/PhoneBook',
-                      'requires_auth': 0,
-                      'enabled': 1,
-                      'items_per_page': 25,
-                      'comments': '',
-                      'host_ctx': 'localhost/test'}
+    assert result == {
+                        'id': 2,
+                        'name': 'PhoneBook',
+                        'service_id': 1,
+                        'request_path': '/PhoneBook',
+                        'requires_auth': 0,
+                        'enabled': 1,
+                        'options': None,
+                        'items_per_page': 25,
+                        'comments': '',
+                        'host_ctx': 'localhost/test'
+                    }
 
     args['return_formatted'] = True
     result = get_schema(**args)

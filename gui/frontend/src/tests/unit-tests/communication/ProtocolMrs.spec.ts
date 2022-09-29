@@ -110,8 +110,8 @@ describe("ProtocolMrs Tests", (): void => {
         testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsAddDbObject, undefined);
         result = ProtocolMrs.getRequestGetDbObject();
         testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsGetDbObject, undefined);
-        result = ProtocolMrs.getRequestListDbObjects(1);
-        testStandardFields(result, ShellAPIMrs.MrsListDbObjects, { schema_id: 1 });
+        result = ProtocolMrs.getRequestListDbObjects({ schemaId: 1 });
+        testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsListDbObjects, { schema_id: 1 });
         result = ProtocolMrs.getRequestSetDbObjectRequestPath();
         testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsSetDbObjectRequestPath, undefined);
         result = ProtocolMrs.getRequestSetDbObjectCrudOperations();
@@ -142,7 +142,7 @@ describe("ProtocolMrs Tests", (): void => {
 
     it("Test service requests", () => {
         let result = ProtocolMrs.getRequestAddService("rootContext", "localhost", true, {
-            urlProtocol: "xProt",
+            urlProtocol: ["HTTP"],
             isDefault: true, comments: "lorem", moduleSessionId: "session1", interactive: true,
             raiseExceptions: true,
         });
@@ -249,12 +249,12 @@ describe("ProtocolMrs Tests", (): void => {
 
         result = ProtocolMrs.getRequestUpdateService({
             urlContextRoot: "rootContext",
-            urlHostName: "localhost", value: "test val", serviceId: 1, moduleSessionId: "session1",
+            urlHostName: "localhost", serviceId: 1, moduleSessionId: "session1",
             interactive: false, raiseExceptions: false,
         });
         testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsUpdateService, {
             url_context_root: "rootContext",
-            url_host_name: "localhost", value: "test val", service_id: 1, module_session_id: "session1",
+            url_host_name: "localhost", service_id: 1, module_session_id: "session1",
             interactive: false, raise_exceptions: false,
         });
     });
@@ -371,21 +371,26 @@ describe("ProtocolMrs Tests", (): void => {
 
         result = ProtocolMrs.getRequestUpdateSchema({
             schemaName: "testDb", serviceId: 1,
-            schemaId: 1, value: "newVal", moduleSessionId: "session1", interactive: false, raiseExceptions: false,
+            schemaId: 1, moduleSessionId: "session1", interactive: false, raiseExceptions: false,
         });
         testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsUpdateSchema, {
             schema_name: "testDb",
-            service_id: 1, schema_id: 1, value: "newVal", module_session_id: "session1", interactive: false,
+            service_id: 1, schema_id: 1, module_session_id: "session1", interactive: false,
             raise_exceptions: false,
         });
     });
 
     it("Test content requests", () => {
-        let result = ProtocolMrs.getRequestAddContentSet("content", 1, {
+        let result = ProtocolMrs.getRequestAddContentSet({
+            contentDir: "content", serviceId: 1,
             requestPath: "path", requiresAuth: true,
             moduleSessionId: "session1", interactive: false, raiseExceptions: false,
         });
-        testStandardFields(result, ShellAPIMrs.MrsAddContentSet, { content_dir: "content", service_id: 1 });
+        testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsAddContentSet, {
+            content_dir: "content", service_id: 1,
+            request_path: "path", requires_auth: true,
+            module_session_id: "session1", interactive: false, raise_exceptions: false,
+        });
 
         result = ProtocolMrs.getRequestListContentSets(1, {
             includeEnableState: true, moduleSessionId: "sessionId1",
@@ -450,11 +455,16 @@ describe("ProtocolMrs Tests", (): void => {
         });
         testStandardFields(result, ShellAPIMrs.MrsGetDbObject, { request_path: "/home", db_object_name: "myDb" });
 
-        result = ProtocolMrs.getRequestListDbObjects(1, {
+        result = ProtocolMrs.getRequestListDbObjects({
+            schemaId: 1,
             includeEnableState: true,
             moduleSessionId: "session1", interactive: false, raiseExceptions: false, returnFormatted: false,
         });
-        testStandardFields(result, ShellAPIMrs.MrsListDbObjects, { schema_id: 1 });
+        testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsListDbObjects, {
+            schema_id: 1,
+            include_enable_state: true,
+            module_session_id: "session1", interactive: false, raise_exceptions: false, return_formatted: false,
+        });
 
         result = ProtocolMrs.getRequestSetDbObjectRequestPath(1, "/home", {
             moduleSessionId: "session1",
@@ -501,8 +511,12 @@ describe("ProtocolMrs Tests", (): void => {
             raise_exceptions: false, return_formatted: false,
         });
 
-        result = ProtocolMrs.getRequestAddAuthenticationApp("myApp", 1, {});
-        testStandardFields(result, ShellAPIMrs.MrsAddAuthenticationApp, { app_name: "myApp", service_id: 1 });
+        result = ProtocolMrs.getRequestAddAuthenticationApp({
+            appName: "myApp",
+            serviceId: 1,
+        });
+        debugger;
+        testStandardFieldsWithKwArgs(result, ShellAPIMrs.MrsAddAuthenticationApp, { app_name: "myApp", service_id: 1 });
 
         result = ProtocolMrs.getRequestListAuthenticationApps(1, {});
         testStandardFields(result, ShellAPIMrs.MrsListAuthenticationApps, { service_id: 1 });

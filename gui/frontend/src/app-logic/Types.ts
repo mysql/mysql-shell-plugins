@@ -200,6 +200,9 @@ export enum DialogType {
     /** A dialog to create or edit an MRS dbObject. */
     MrsDbObject,
 
+    /** A dialog to create or edit an MRS contentSet. */
+    MrsContentSet,
+
     /** A dialog to create or edit a MySQL HeatWave cluster. */
     MdsHeatWaveCluster,
 

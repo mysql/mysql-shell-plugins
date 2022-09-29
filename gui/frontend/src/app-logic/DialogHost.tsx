@@ -33,6 +33,7 @@ import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog"
 import { MrsDbObjectDialog } from "../modules/mrs/dialogs/MrsDbObjectDialog";
 import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
 import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
+import { MrsContentSetDialog } from "../modules/mrs/dialogs/MrsContentSetDialog";
 import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
 
@@ -77,26 +78,36 @@ export class DialogHost extends Component {
             />,
         ];
 
-        const ref1 = React.createRef<MrsServiceDialog>();
-        this.dialogRefs.set(DialogType.MrsService, ref1);
+        const refMrs1 = React.createRef<MrsServiceDialog>();
+        this.dialogRefs.set(DialogType.MrsService, refMrs1);
         dialogs.push(<MrsServiceDialog
             key="mrsServiceDialog"
-            ref={ref1}
+            ref={refMrs1}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsService)}
         />);
 
-        const ref2 = React.createRef<MrsSchemaDialog>();
-        this.dialogRefs.set(DialogType.MrsSchema, ref2);
+        const refMrs2 = React.createRef<MrsSchemaDialog>();
+        this.dialogRefs.set(DialogType.MrsSchema, refMrs2);
         dialogs.push(<MrsSchemaDialog
-            ref={ref2}
+            key="mrsSchemaDialog"
+            ref={refMrs2}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsSchema)}
         />);
 
-        const ref3 = React.createRef<MrsDbObjectDialog>();
-        this.dialogRefs.set(DialogType.MrsDbObject, ref3);
+        const refMrs3 = React.createRef<MrsDbObjectDialog>();
+        this.dialogRefs.set(DialogType.MrsDbObject, refMrs3);
         dialogs.push(<MrsDbObjectDialog
-            ref={ref3}
+            key="mrsDbObjectDialog"
+            ref={refMrs3}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsDbObject)}
+        />);
+
+        const refMrs4 = React.createRef<MrsContentSetDialog>();
+        this.dialogRefs.set(DialogType.MrsContentSet, refMrs4);
+        dialogs.push(<MrsContentSetDialog
+            key="mrsContentSetDialog"
+            ref={refMrs4}
+            onClose={this.handleDialogClose.bind(this, DialogType.MrsContentSet)}
         />);
 
         const refMds1 = React.createRef<MdsHWClusterDialog>();

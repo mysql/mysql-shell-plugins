@@ -43,7 +43,7 @@ export class SchemaTableIndexTreeItem extends ConnectionsTreeBaseItem {
         return "schemaTableIndex.svg";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return "index";
     }
 }

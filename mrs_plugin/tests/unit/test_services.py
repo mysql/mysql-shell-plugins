@@ -25,7 +25,7 @@ from ... services import *
 @pytest.mark.usefixtures("init_mrs")
 def test_add_service(init_mrs):
     args = {
-        "url_protocol": "HTTP",
+        "url_protocol": ["HTTP"],
         "is_default": True,
         "comments": "Test service",
         "session": init_mrs,
@@ -36,7 +36,7 @@ def test_add_service(init_mrs):
     assert result is None
 
     args = {
-        "url_protocol": "HTTP",
+        "url_protocol": ["HTTP"],
         "is_default": False,
         "comments": "Test service 2",
         "session": init_mrs,
@@ -74,19 +74,29 @@ def test_get_services(init_mrs):
     assert services is not None
     assert services == [{'id': 2,
                          'enabled': 1,
-                         'url_protocol': 'HTTP',
+                         'auth_completed_page_content': None,
+                         'auth_completed_url': None,
+                         'auth_completed_url_validation': None,
+                         'auth_path': '/authentication',
+                         'url_protocol': ['HTTP'],
                          'url_host_name': 'localhost',
                          'url_context_root': '/service2',
                          'is_default': 0,
+                         'options': None,
                          'comments': 'Test service 2',
                          'host_ctx': 'localhost/service2'},
 
                         {'id': 1,
                          'enabled': 1,
-                         'url_protocol': 'HTTP',
+                         'auth_completed_page_content': None,
+                         'auth_completed_url': None,
+                         'auth_completed_url_validation': None,
+                         'auth_path': '/authentication',
+                         'url_protocol': ['HTTP'],
                          'url_host_name': 'localhost',
                          'url_context_root': '/test',
                          'is_default': 1,
+                         'options': None,
                          'comments': 'Test service',
                          'host_ctx': 'localhost/test'}
                         ]
@@ -107,26 +117,40 @@ def test_get_service(init_mrs):
     service = get_service("/test", "localhost", **args)
 
     assert service is not None
-    assert service == {'id': 1,
-                       'enabled': 1,
-                       'url_protocol': 'HTTP',
-                       'url_host_name': 'localhost',
-                       'url_context_root': '/test',
-                       'is_default': 1,
-                       'comments': 'Test service',
-                       'host_ctx': 'localhost/test'}
+    assert service == {
+                        'id': 1,
+                        'enabled': 1,
+                        'url_protocol': ['HTTP'],
+                        'url_host_name': 'localhost',
+                        'url_context_root': '/test',
+                        'auth_completed_page_content': None,
+                        'auth_completed_url': None,
+                        'auth_completed_url_validation': None,
+                        'auth_path': '/authentication',
+                        'is_default': 1,
+                        'options': None,
+                        'comments': 'Test service',
+                        'host_ctx': 'localhost/test'
+                    }
 
     service = get_service("/service2", "localhost", **args)
 
     assert service is not None
-    assert service == {'id': 2,
-                       'enabled': 1,
-                       'url_protocol': 'HTTP',
-                       'url_host_name': 'localhost',
-                       'url_context_root': '/service2',
-                       'is_default': 0,
-                       'comments': 'Test service 2',
-                       'host_ctx': 'localhost/service2'}
+    assert service == {
+                        'id': 2,
+                        'enabled': 1,
+                        'auth_completed_page_content': None,
+                        'auth_completed_url': None,
+                        'auth_completed_url_validation': None,
+                        'auth_path': '/authentication',
+                        'url_protocol': ['HTTP'],
+                        'url_host_name': 'localhost',
+                        'url_context_root': '/service2',
+                        'is_default': 0,
+                        'options': None,
+                        'comments': 'Test service 2',
+                        'host_ctx': 'localhost/service2'
+                    }
 
     args['return_formatted'] = True
     service = get_service("/service2", "localhost", **args)

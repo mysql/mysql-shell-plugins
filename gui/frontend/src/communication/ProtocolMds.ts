@@ -24,7 +24,6 @@
 import { Protocol, IShellRequest, IShellDictionary } from ".";
 
 
-
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -44,6 +43,7 @@ export enum ShellAPIMds {
     MdsGetComputeInstance = "mds.get.compute_instance",
     MdsListComputeShapes = "mds.list.compute_shapes",
     MdsDeleteComputeInstance = "mds.delete.compute_instance",
+    MdsUtilHeatWaveLoadData = "mds.util.heat_wave_load_data",
     MdsUtilCreateMdsEndpoint = "mds.util.create_mds_endpoint",
     MdsGetDbSystemConfiguration = "mds.get.db_system_configuration",
     MdsListDbSystemShapes = "mds.list.db_system_shapes",
@@ -93,6 +93,14 @@ export interface IShellSetCurrentCompartmentKwargs {
     cliRcFilePath?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
+}
+
+
+export interface IShellGetCurrentCompartmentIdKwargs {
+    compartmentId?: string;
+    config?: IShellDictionary;
+    profileName?: string;
+    cliRcFilePath?: string;
 }
 
 
@@ -185,6 +193,21 @@ export interface IShellDeleteComputeInstanceKwargs {
     config?: IShellDictionary;
     configProfile?: string;
     ignoreCurrent?: boolean;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellUtilHeatWaveLoadDataKwargs {
+    schemas?: unknown[];
+    mode?: string;
+    output?: string;
+    disableUnsupportedColumns?: boolean;
+    optimizeLoadParallelism?: boolean;
+    enableMemoryCheck?: boolean;
+    sqlMode?: string;
+    excludeList?: string;
+    moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
 }
@@ -688,23 +711,26 @@ export class ProtocolMds extends Protocol {
     /**
      * Gets the current compartment_id
      *
-     * @param compartmentId If specified, returned instead of the current
-     * @param config The config to be used, None defaults to global config
-     * @param profileName Name of the config profile
-     * @param cliRcFilePath The location of the OCI CLI config file
+     * @param kwargs Optional parameters
      *
      * @returns The current compartment_id
      */
-    public static getRequestGetCurrentCompartmentId(compartmentId?: string, config?: IShellDictionary, profileName?: string, cliRcFilePath = "~/.oci/oci_cli_rc"): IShellRequest {
+    public static getRequestGetCurrentCompartmentId(kwargs?: IShellGetCurrentCompartmentIdKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                compartment_id: kwargs.compartmentId,
+                config: kwargs.config,
+                profile_name: kwargs.profileName,
+                cli_rc_file_path: kwargs.cliRcFilePath,
+            };
+        }
 
         return Protocol.getRequestCommandExecute(ShellAPIMds.MdsGetCurrentCompartmentId,
             {
-                args: {
-                    compartment_id: compartmentId,
-                    config,
-                    profile_name: profileName,
-                    cli_rc_file_path: cliRcFilePath,
-                },
+                args: {},
+                kwargs: kwargsToUse,
             });
     }
 
@@ -984,6 +1010,39 @@ export class ProtocolMds extends Protocol {
         }
 
         return Protocol.getRequestCommandExecute(ShellAPIMds.MdsDeleteComputeInstance,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Loads data to a HeatWave Cluster
+     *
+     * @param kwargs Optional parameters
+     *
+     * @returns None in interactive mode, the result sets as string otherwise
+     */
+    public static getRequestUtilHeatWaveLoadData(kwargs?: IShellUtilHeatWaveLoadDataKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                schemas: kwargs.schemas,
+                mode: kwargs.mode,
+                output: kwargs.output,
+                disable_unsupported_columns: kwargs.disableUnsupportedColumns,
+                optimize_load_parallelism: kwargs.optimizeLoadParallelism,
+                enable_memory_check: kwargs.enableMemoryCheck,
+                sql_mode: kwargs.sqlMode,
+                exclude_list: kwargs.excludeList,
+                module_session_id: kwargs.moduleSessionId,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMds.MdsUtilHeatWaveLoadData,
             {
                 args: {},
                 kwargs: kwargsToUse,

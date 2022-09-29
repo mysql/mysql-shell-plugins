@@ -54,8 +54,8 @@ def test_add_content_set(init_mrs):
 
         result = add_content_set(content_dir=tmp, service_id=1, **content_set)
         assert result is not None
-        assert result == {'content_set_id': 2,
-                          'number_of_files_uploaded': 0}
+        assert result == {'contentSetId': 2,
+                          'numberOfFilesUploaded': 0}
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_content_sets(init_mrs):
@@ -73,6 +73,7 @@ def test_get_content_sets(init_mrs):
     sets = get_content_sets(1, **args)
     assert sets is not None
     assert sets ==  [{'id': 1,
+                      'options': None,
                       'request_path': '/test_content_set',
                       'requires_auth': 0,
                       'enabled': 1,
@@ -80,6 +81,7 @@ def test_get_content_sets(init_mrs):
                       'host_ctx': 'localhost/test'},
 
                      {'id': 2,
+                      'options': None,
                       'request_path': '/test_content_set2',
                       'requires_auth': 0,
                       'enabled': 1,

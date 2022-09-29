@@ -31,7 +31,7 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Common, dbTreeSection, explicitWait } from "../lib/common";
+import { driver, Common, dbTreeSection, explicitWait, ociExplicitWait } from "../lib/common";
 
 export interface IDBConnection {
     caption: string;
@@ -54,7 +54,7 @@ export class Database {
         const sec = await Common.getSection(dbTreeSection);
         const els = await sec?.findElements(By.xpath(`//div[@role='treeitem']`));
         const connections = [];
-        for (const el of els) {
+        for (const el of els!) {
             const icon = await el.findElement(By.css(".custom-view-tree-node-item-icon")).getAttribute("style");
             if (icon.includes("connectionMySQL") || icon.includes("connectionSqlite")) {
                 const text = (await el.getAttribute("aria-label")).trim();
@@ -66,7 +66,7 @@ export class Database {
     };
 
     public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
-        const createConnBtn = await Common.getSectionToolbarButton(dbTreeSection, "Create New MySQL Connection");
+        const createConnBtn = await Common.getSectionToolbarButton(dbTreeSection, "Create New DB Connection");
         await createConnBtn?.click();
 
         const editorView = new EditorView();
@@ -185,7 +185,7 @@ export class Database {
 
     public static deleteConnection = async (dbName: string): Promise<void> => {
 
-        await Common.selectContextMenuItem(dbTreeSection, dbName, "Delete MySQL Connection");
+        await Common.selectContextMenuItem(dbTreeSection, dbName, "Delete DB Connection");
 
         const editorView = new EditorView();
         await driver.wait(async () => {
@@ -592,16 +592,20 @@ export class Database {
         }
     };
 
-    public static setRestService = async (serviceName: string,
-        comments: string, hostname: string,
-        https: boolean, http: boolean, mrsDefault: boolean, mrsEnabled: boolean): Promise<void> => {
+    public static setRestService = async (
+        serviceName: string,
+        comments: string,
+        hostname: string,
+        protocols: string[],
+        mrsDefault: boolean,
+        mrsEnabled: boolean): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
             explicitWait, "MRS Service dialog was not displayed");
 
-        const inputServName = await dialog.findElement(By.id("serviceName"));
-        await inputServName.clear();
-        await inputServName.sendKeys(serviceName);
+        const inputServPath = await dialog.findElement(By.id("servicePath"));
+        await inputServPath.clear();
+        await inputServPath.sendKeys(serviceName);
 
         const inputComments = await dialog.findElement(By.id("comments"));
         await inputComments.clear();
@@ -611,35 +615,35 @@ export class Database {
         await inputHost.clear();
         await inputHost.sendKeys(hostname);
 
-        const inputHttps = await dialog.findElement(By.id("protocolHTTPS"));
-        const httpsClasses = await inputHttps.getAttribute("class");
-        let classes = httpsClasses.split(" ");
-        if (https === true) {
-            if (classes.includes("unchecked")) {
-                await inputHttps.findElement(By.css(".checkMark")).click();
-            }
-        } else {
-            if (classes.includes("checked")) {
-                await inputHttps.findElement(By.css(".checkMark")).click();
+        const protocolsSelect = await driver.findElement(By.id("protocols"));
+        await protocolsSelect.click();
+
+        await driver.wait(until.elementLocated(By.id("protocolsPopup")), ociExplicitWait,
+            "Protocols Drop down list was not opened");
+
+        const availableProtocols = await driver.findElements(By.css("#protocolsPopup div.dropdownItem"));
+        for (const prt of availableProtocols) {
+            const item = await prt.getAttribute("id");
+            if (protocols.includes(item)) {
+                const isUnchecked = (await (await prt.findElement(By.css("label"))).getAttribute("class"))
+                    .includes("unchecked");
+                if (isUnchecked) {
+                    await prt.click();
+                }
+            } else {
+                const isUnchecked = (await (await prt.findElement(By.css("label"))).getAttribute("class"))
+                    .includes("unchecked");
+                if (!isUnchecked) {
+                    await prt.click();
+                }
             }
         }
 
-        const inputHttp = await dialog.findElement(By.id("protocolHTTP"));
-        const httpClasses = await inputHttp.getAttribute("class");
-        classes = httpClasses.split(" ");
-        if (http === true) {
-            if (classes.includes("unchecked")) {
-                await inputHttp.findElement(By.css(".checkMark")).click();
-            }
-        } else {
-            if (classes.includes("checked")) {
-                await inputHttp.findElement(By.css(".checkMark")).click();
-            }
-        }
+        await driver.actions().sendKeys(selKey.ESCAPE).perform();
 
         const inputMrsDef = await dialog.findElement(By.id("makeDefault"));
         const inputMrsDefClasses = await inputMrsDef.getAttribute("class");
-        classes = inputMrsDefClasses.split(" ");
+        let classes = inputMrsDefClasses.split(" ");
         if (mrsDefault === true) {
             if (classes.includes("unchecked")) {
                 await inputMrsDef.findElement(By.css(".checkMark")).click();

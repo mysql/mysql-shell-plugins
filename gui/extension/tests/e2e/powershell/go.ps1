@@ -187,16 +187,6 @@ try {
         writeMsg "DONE"
     }
 
-    # CREATE EMPTY CONFIG FILE (REQUIRED FOR THE TESTS TO WORK ON OCI)
-    writeMsg "Creating config file..." "-NoNewLine"
-    $configFile = Join-Path $env:userprofile ".oci" "config"
-    if (Test-Path -Path $configFile){
-        Remove-Item -Path $configFile -Force
-    }
-
-    New-Item -Path $configFile -ItemType File
-    writeMsg "DONE"
-
     # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
     $loaded = $false
     $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"

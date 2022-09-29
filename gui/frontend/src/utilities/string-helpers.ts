@@ -159,6 +159,33 @@ export const formatTime = (time?: number): string => {
 };
 
 /**
+ * Converts the given number of bytes to a string expression, in the most compact and readable format.
+ *
+ * @param value The value in bytes
+ *
+ * @returns The formatted bytes.
+ */
+export const formatBytes = (value: number): string => {
+    if (value < 1024) {
+        return `${value.toFixed(2)} B`;
+    }
+
+    value /= 1024;
+    if (value < 1014) {
+        return `${value.toFixed(2)} KB`;
+    }
+
+    value /= 1024;
+    if (value < 1024) {
+        return `${value.toFixed(2)} MB`;
+    }
+
+    value /= 1024;
+
+    return `${value.toFixed(2)} GB`;
+};
+
+/**
  * Formats a string with the correct singular/plural form.
  *
  * @param text The singular form of the text.

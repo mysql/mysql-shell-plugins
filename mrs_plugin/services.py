@@ -25,6 +25,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 from mrs_plugin import core
+import json
 
 # Service operations
 SERVICE_SET_ALL = 0
@@ -35,6 +36,7 @@ SERVICE_SET_DEFAULT = 4
 SERVICE_SET_CONTEXT_ROOT = 5
 SERVICE_SET_PROTOCOL = 6
 SERVICE_SET_COMMENTS = 7
+SERVICE_SET_OPTIONS = 8
 
 
 def prompt_for_url_context_root(default=None):
@@ -67,7 +69,7 @@ def prompt_for_service_protocol(default=None):
         print_list=True,
         allow_multi_select=True)
 
-    return ','.join(protocols)
+    return protocols
 
 
 def format_service_listing(services, print_header=False):
@@ -94,7 +96,7 @@ def format_service_listing(services, print_header=False):
         url = item.get('url_host_name') + item.get('url_context_root')
         output += (f"{item['id']:>3} {url[:24]:25} "
                    f"{'Yes' if item['enabled'] else '-':8} "
-                   f"{item['url_protocol'][:19]:20} "
+                   f"{','.join(item['url_protocol'])[:19]:20} "
                    f"{'Yes' if item['is_default'] else '-':5}")
         if i < len(services):
             output += "\n"
@@ -114,9 +116,17 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
         **kwargs: Additional options
 
     Keyword Args:
-        url_protocol (str): The protocols supported by this service
+        url_protocol (list): The protocols supported by this service
         is_default (bool): Whether the new service should be the new default
         comments (str): Comments about the service
+        options (str): Options for the service
+        auth_path (str): The authentication path
+        auth_completed_url (str): The redirection URL called after authentication
+        auth_completed_url_validation (str): The regular expression that validates the
+            app redirection URL specified by the /login?onCompletionRedirect parameter
+        auth_completed_page_content (str): The custom page content to use of the
+            authentication completed page
+        auth_apps (str): The list of auth_apps in JSON format
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
@@ -128,6 +138,13 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
     url_protocol = kwargs.get("url_protocol")
     is_default = kwargs.get("is_default")
     comments = kwargs.get("comments")
+    options = kwargs.get("options")
+    auth_path = kwargs.get("auth_path")
+    auth_completed_url = kwargs.get("auth_completed_url")
+    auth_completed_url_validation = kwargs.get("auth_completed_url_validation")
+    auth_completed_page_content = kwargs.get("auth_completed_page_content")
+    auth_apps = kwargs.get("auth_apps")
+
     session = kwargs.get("session")
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
@@ -178,6 +195,11 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
         if not comments and interactive:
             comments = core.prompt_for_comments()
 
+        if not options and interactive:
+            optionsPrompt = core.prompt("Options (in JSON format): ")
+            if optionsPrompt:
+                options = optionsPrompt
+
         # Check if any service is active
         res = session.run_sql("""
             SELECT COUNT(*) as cnt
@@ -216,14 +238,24 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
         res = session.run_sql("""
             INSERT INTO `mysql_rest_service_metadata`.`service`(
                 enabled, url_host_id, url_protocol,
-                url_context_root, is_default, comments)
-            VALUES(1, ?, ?, ?, ?, ?)
+                url_context_root, is_default, comments, options,
+                auth_path, auth_completed_url,
+                auth_completed_url_validation, auth_completed_page_content)
+            VALUES(1, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?)
             """, [
             host_id,
-            url_protocol if url_protocol else 'HTTP',
+            ",".join(url_protocol) if url_protocol else 'HTTP',
             url_context_root if url_context_root else '/mrs',
             1 if is_default else 0,
-            comments])
+            comments,
+            options if options else None,
+            auth_path if auth_path else '/authentication',
+            auth_completed_url,
+            auth_completed_url_validation,
+            auth_completed_page_content
+        ])
+        service_id = res.auto_increment_value
 
         if is_default and res.auto_increment_value > 0:
             session.run_sql("""
@@ -231,6 +263,25 @@ def add_service(url_context_root=None, url_host_name=None, enabled=True,
                 SET is_default = 0
                 WHERE id <> ?
                 """, [res.auto_increment_value])
+
+        # Insert parameter
+        if auth_apps:
+            auth_apps = json.loads(auth_apps)
+
+            for app in auth_apps:
+                res = session.run_sql("""
+                    INSERT INTO `mysql_rest_service_metadata`.`auth_app` (
+                        `auth_vendor_id`, `service_id`, `name`, 
+                        `description`, `url`, `url_direct_auth`, `access_token`, 
+                        `app_id`, `enabled`, `use_built_in_authorization`, 
+                        `limit_to_registered_users`, `default_auth_role_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """, [app.get("authVendorId"), service_id, app.get("name"),
+                      app.get("description"), app.get("url"), 
+                      app.get("urlDirectAuth"), app.get("accessToken"),
+                      app.get("appId"), app.get("enabled"), 
+                      app.get("useBuiltInAuthorization"),
+                      app.get("limitToRegisteredUsers"), app.get("defaultAuthRoleId")])
 
         if interactive:
             return "\n" + "Service created successfully."
@@ -329,8 +380,11 @@ def get_service(url_context_root=None, url_host_name=None, service_id=None,
         # Build SQL based on which input has been provided
         sql = """
             SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
-                se.url_context_root, se.is_default, se.comments,
-                CONCAT(h.name, se.url_context_root) AS host_ctx
+                se.url_context_root, se.is_default, se.comments, se.options,
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                se.auth_path, se.auth_completed_url,
+                se.auth_completed_url_validation,
+                se.auth_completed_page_content
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id
@@ -392,10 +446,16 @@ def get_services(**kwargs):
     try:
         session = core.get_current_session(session)
 
+        # Make sure the MRS metadata schema exists and has the right version
+        core.ensure_rds_metadata_schema(session)
+
         sql = """
             SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
-                se.url_context_root, se.is_default, se.comments,
-                CONCAT(h.name, se.url_context_root) AS host_ctx
+                se.url_context_root, se.is_default, se.comments, se.options,
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                se.auth_path, se.auth_completed_url,
+                se.auth_completed_url_validation,
+                se.auth_completed_page_content
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id
@@ -445,6 +505,7 @@ def clean_service(service_id, session):
         DELETE FROM `mysql_rest_service_metadata`.`auth_app`
         WHERE service_id=?""", [service_id])
 
+
 def change_service(**kwargs):
     """Makes a given change to a MRS service
 
@@ -454,9 +515,21 @@ def change_service(**kwargs):
     Keyword Args:
         service_id (int): The id of the service
         change_type (int): Type of change
+        value (str): The value to be set as string or a dict if all are set
         url_context_root (str): The context root for this service
         url_host_name (str): The host name for this service
-        value (str): The value to be set as string or a dict if all are set
+        url_protocol (list): The protocols supported by this service
+        enabled (bool): Whether the new service should be enabled
+        is_default (bool): Whether the new service should be the new default
+        comments (str): Comments about the service
+        options (str): Options for the service
+        auth_path (str): The authentication path
+        auth_completed_url (str): The redirection URL called after authentication
+        auth_completed_url_validation (str): The regular expression that validates the
+            app redirection URL specified by the /login?onCompletionRedirect parameter
+        auth_completed_page_content (str): The custom page content to use of the
+            authentication completed page
+        auth_apps (str): The list of auth_apps in JSON format
         session (object): The database session to use
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
@@ -469,9 +542,20 @@ def change_service(**kwargs):
     service_id = kwargs.get("service_id")
 
     change_type = kwargs.get("change_type")
-    url_context_root = kwargs.get("url_context_root")
+    url_context_root = kwargs.get("url_context_root", "/")
     url_host_name = kwargs.get("url_host_name")
     value = kwargs.get("value", {})
+
+    enabled = kwargs.get("enabled")
+    url_protocol = kwargs.get("url_protocol", [""])
+    is_default = kwargs.get("is_default", False)
+    comments = kwargs.get("comments", "")
+    options = kwargs.get("options")
+    auth_path = kwargs.get("auth_path")
+    auth_completed_url = kwargs.get("auth_completed_url")
+    auth_completed_url_validation = kwargs.get("auth_completed_url_validation")
+    auth_completed_page_content = kwargs.get("auth_completed_page_content")
+    auth_apps = kwargs.get("auth_apps")
 
     session = kwargs.get("session")
 
@@ -479,10 +563,8 @@ def change_service(**kwargs):
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
 
     try:
-        session = core.get_current_session(session)
-
         # Make sure the MRS metadata schema exists and has the right version
-        core.ensure_rds_metadata_schema(session)
+        session = core.get_current_session_with_rds_metadata(session)
 
         # List of services to be changed, initialized with service_id if given
         service_ids = [service_id] if service_id else []
@@ -557,6 +639,8 @@ def change_service(**kwargs):
                 value = prompt_for_service_protocol()
             elif change_type == SERVICE_SET_COMMENTS:
                 value = core.prompt_for_comments()
+            elif change_type == SERVICE_SET_OPTIONS:
+                value = core.prompt("Options: ").strip()
 
         if change_type == SERVICE_SET_PROTOCOL and not value:
             raise ValueError("No value given.")
@@ -570,13 +654,7 @@ def change_service(**kwargs):
             if change_type == SERVICE_SET_CONTEXT_ROOT:
                 url_ctx_root = value
             elif change_type == SERVICE_SET_ALL:
-                if isinstance(value, str): # TODO: Check why dicts cannot be used
-                    value = json.loads(value)
-
-                if not isinstance(value, dict):
-                    raise Exception("Value is supposed to be a dictionary")
-
-                url_ctx_root = value.get("url_context_root", "/")
+                url_ctx_root = url_context_root
 
             if (change_type == SERVICE_SET_CONTEXT_ROOT or
                change_type == SERVICE_SET_ALL):
@@ -644,9 +722,16 @@ def change_service(**kwargs):
                     WHERE id = ?
                     """
                 params.insert(0, value)
+            elif change_type == SERVICE_SET_OPTIONS:
+                sql = """
+                    UPDATE `mysql_rest_service_metadata`.`service`
+                    SET options = ?
+                    WHERE id = ?
+                    """
+                params.insert(0, value)
             elif change_type == SERVICE_SET_ALL:
                 # Check if host_name has changed and if so, create a new host if needed or update
-                new_host_name = value.get("url_host")
+                new_host_name = url_host_name
                 # Explicitly allow an empty string for the host_name
                 if (new_host_name is not None) and new_host_name != service.get("url_host_name"):
                     # Check if a host_name with the given name already exists
@@ -674,10 +759,10 @@ def change_service(**kwargs):
                         """, [host_id, service_id])
 
                 # Set is_default values of all other services to false
-                if str(value.get("is_default")).lower() == "true":
+                if str(is_default).lower() == "true":
                     res = session.run_sql("""
                         UPDATE `mysql_rest_service_metadata`.`service`
-                        SET is_default = FALSE 
+                        SET is_default = FALSE
                         WHERE id <> ?
                         """, [service_id])
 
@@ -688,26 +773,78 @@ def change_service(**kwargs):
                         url_context_root = ?,
                         url_protocol = ?,
                         comments = ?,
-                        is_default = ?
+                        is_default = ?,
+                        options = ?,
+                        auth_path = ?,
+                        auth_completed_url = ?,
+                        auth_completed_url_validation = ?,
+                        auth_completed_page_content = ?
                     WHERE id = ?
                     """
                 params.insert(
-                    0, (str(value.get("enabled")).lower() == "true" or
-                    str(value.get("enabled")) == "1"))
+                    0, (str(enabled).lower() == "true" or
+                        str(enabled) == "1"))
                 params.insert(1, url_ctx_root)
-                params.insert(2, value.get("url_protocol", ""))
-                params.insert(3, value.get("comments", ""))
+                params.insert(2, ",".join(url_protocol))
+                params.insert(3, comments)
                 params.insert(
-                    4, (str(value.get("is_default")).lower() == "true" or
-                    str(value.get("is_default")) == "1"))
+                    4, (str(is_default).lower() == "true" or
+                        str(is_default) == "1"))
+                params.insert(5, options if options else None)
+                params.insert(6, auth_path if auth_path else "/authentication")
+                params.insert(7, auth_completed_url)
+                params.insert(8, auth_completed_url_validation)
+                params.insert(9, auth_completed_page_content)
             else:
                 raise Exception("Operation not supported")
 
             res = session.run_sql(sql, params)
-            if res.get_affected_row_count() == 0:
+            if res.affected_items_count == 0 and change_type != SERVICE_SET_ALL:
                 raise Exception(
                     f"The specified service with id {service_id} was not "
                     "found.")
+
+        # Synchronize the auth_apps
+        if auth_apps:
+            auth_apps = json.loads(auth_apps)
+
+            session.run_sql("START TRANSACTION")
+            try:
+                session.run_sql("""
+                    DELETE FROM `mysql_rest_service_metadata`.`auth_app`
+                    WHERE service_id = ?
+                    """, [service_id])
+
+                for app in auth_apps:
+                    # If there is a negative id, it's a new column
+                    res = session.run_sql("""
+                        INSERT INTO `mysql_rest_service_metadata`.`auth_app` (
+                            `id`, 
+                            `auth_vendor_id`, `service_id`, `name`, 
+                            `description`, `url`, 
+                            `url_direct_auth`, `access_token`, 
+                            `app_id`, `enabled`, 
+                            `use_built_in_authorization`, 
+                            `limit_to_registered_users`, `default_auth_role_id`)
+                        VALUES (?, 
+                            ?, ?, ?, 
+                            ?, ?, 
+                            ?, ?, 
+                            ?, ?, 
+                            ?, 
+                            ?, ?);
+                    """, [app.get("id") if app.get("id") > 0 else None,
+                          app.get("authVendorId"), service_id, app.get("name"),
+                          app.get("description"), app.get("url"),
+                          app.get("urlDirectAuth"), app.get("accessToken"),
+                          app.get("appId"), app.get("enabled"),
+                          app.get("useBuiltInAuthorization"),
+                          app.get("limitToRegisteredUsers"), app.get("defaultAuthRoleId")])
+
+                session.run_sql("COMMIT")
+            except Exception as e:
+                session.run_sql("ROLLBACK")
+                raise
 
         if change_type == SERVICE_SET_DEFAULT:
             return "The service has been made the default."
@@ -909,6 +1046,31 @@ def set_comments(**kwargs):
         **kwargs)
 
 
+@plugin_function('mrs.set.service.options', shell=True, cli=True, web=True)
+def set_options(**kwargs):
+    """Sets the options of a MRS service
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        value (str): The comments
+        service_id (int): The id of the service
+        session (object): The database session to use.
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If set to true exceptions are raised
+
+    Returns:
+        The result message as string
+    """
+
+    return change_service(
+        change_type=SERVICE_SET_OPTIONS,
+        **kwargs)
+
+
 @plugin_function('mrs.update.service', shell=True, cli=True, web=True)
 def update_service(**kwargs):
     """Sets all properties of a MRS service
@@ -920,16 +1082,20 @@ def update_service(**kwargs):
         service_id (int): The id of the service
         url_context_root (str): The context root for this service
         url_host_name (str): The host name for this service
-        value (str): The values as dict #TODO: check why dicts cannot be passed
+        url_protocol (list): The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS'
+        enabled (bool): Whether the service should be enabled
+        comments (str): Comments about the service
+        options (str): Options of the service
+        auth_path (str): The authentication path
+        auth_completed_url (str): The redirection URL called after authentication
+        auth_completed_url_validation (str): The regular expression that validates the
+            app redirection URL specified by the /login?onCompletionRedirect parameter
+        auth_completed_page_content (str): The custom page content to use of the
+            authentication completed page
+        auth_apps (str): The list of auth_apps in JSON format
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
-
-    Allowed options for value:
-        url_context_root (str,optional): The context root for this service
-        url_protocol (str,optional): The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS'
-        enabled (bool,optional): Whether the service should be enabled
-        comments (str,optional): Comments about the service
 
     Returns:
         The result message as string
@@ -938,3 +1104,63 @@ def update_service(**kwargs):
     return change_service(
         change_type=SERVICE_SET_ALL,
         **kwargs)
+
+
+@plugin_function('mrs.get.serviceRequestPathAvailability', shell=True, cli=True, web=True)
+def get_service_request_path_availability(**kwargs):
+    """Checks the availability of a given request path for the given service
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        service_id (int): The id of the service
+        request_path (str): The request path to check
+        session (object): The database session to use.
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If set to true exceptions are raised
+
+    Returns:
+        True or False
+    """
+
+    service_id = kwargs.get("service_id")
+    request_path = kwargs.get("request_path")
+
+    session = kwargs.get("session")
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    try:
+        session = core.get_current_session_with_rds_metadata(session)
+
+        service = get_service(
+            service_id=service_id, auto_select_single=True,
+            session=session, interactive=interactive,
+            return_formatted=False)
+
+        # Get request_path
+        if not request_path and interactive:
+            request_path = core.prompt(
+                "Please enter the request path for this content set ["
+                f"/content]: ",
+                {'defaultValue': '/content'}).strip()
+
+        if not request_path.startswith('/'):
+            raise Exception("The request_path has to start with '/'.")
+
+        result = True
+        try:
+            core.check_request_path(
+                service.get('url_host_name') + service.get('url_context_root') +
+                request_path,
+                session=session)
+        except:
+            result = False
+
+        return result
+
+    except Exception as e:
+        if raise_exceptions:
+            raise
+        print(f"Error: {str(e)}")

@@ -38,7 +38,6 @@ export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions)
         return snakeCased;
     });
 };
-
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 

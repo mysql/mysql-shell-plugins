@@ -120,7 +120,6 @@ bindings_template = """/*
 import { {__PLUGIN_IMPORTS__} } from ".";
 
 {__ADDITIONAL_DEFINITIONS__}
-
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -168,7 +167,7 @@ binding_parameter_override_optional = """
 """
 
 binding_parameter_override_required = """
-        const {__PARAMETER__}ToUse = {__OVERRIDE__};
+        const {__PARAMETER_NAME__}ToUse = {__OVERRIDE__};
 """
 
 binding_method_enum_item = """{__ENUM_NAME__} = "{__FUNCTION_NAME__}",

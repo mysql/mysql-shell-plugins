@@ -67,8 +67,8 @@ def test_configure(init_mrs):
     }
     config_output = configure(**config)
     assert config_output is not None
-    assert config_output == {'schema_changed': False,
-                             'mrs_enabled': False}
+    assert config_output == {'schemaChanged': False,
+                             'mrsEnabled': False}
 
     config = {
         "enable_mrs": True,
@@ -77,8 +77,8 @@ def test_configure(init_mrs):
     }
     config_output = configure(**config)
     assert config_output is not None
-    assert config_output == {'schema_changed': False,
-                             'mrs_enabled': True}
+    assert config_output == {'schemaChanged': False,
+                             'mrsEnabled': True}
 
 @pytest.mark.usefixtures("init_mrs")
 def test_ls():

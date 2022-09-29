@@ -76,7 +76,7 @@ export class Shell {
         const zoneHost = zoneHosts[zoneHosts.length - 1];
 
         return zoneHost
-            .findElement(By.css(".resultStatus label.msg.label"))
+            .findElement(By.css(".resultStatus.containsMessage"))
             .getText();
     };
 

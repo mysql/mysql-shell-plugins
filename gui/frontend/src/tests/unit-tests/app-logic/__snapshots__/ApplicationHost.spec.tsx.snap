@@ -1311,6 +1311,7 @@ exports[`Application host tests Rendering About 1`] = `
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
+          key="mrsSchemaDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -1390,6 +1391,7 @@ exports[`Application host tests Rendering About 1`] = `
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
+          key="mrsDbObjectDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -1468,6 +1470,86 @@ exports[`Application host tests Rendering About 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
+        <MrsContentSetDialog
+          key="mrsContentSetDialog"
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mrsContentSetDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mrsContentSetDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mrsContentSetDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
+          </ValueEditDialog>
+        </MrsContentSetDialog>
         <MdsHWClusterDialog
           onClose={[Function]}
         >
@@ -2943,6 +3025,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
+          key="mrsSchemaDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -3022,6 +3105,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
+          key="mrsDbObjectDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -3100,6 +3184,86 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
+        <MrsContentSetDialog
+          key="mrsContentSetDialog"
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mrsContentSetDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mrsContentSetDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mrsContentSetDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
+          </ValueEditDialog>
+        </MrsContentSetDialog>
         <MdsHWClusterDialog
           onClose={[Function]}
         >
@@ -4575,6 +4739,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
+          key="mrsSchemaDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -4654,6 +4819,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
+          key="mrsDbObjectDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -4732,6 +4898,86 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
+        <MrsContentSetDialog
+          key="mrsContentSetDialog"
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mrsContentSetDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mrsContentSetDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mrsContentSetDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
+          </ValueEditDialog>
+        </MrsContentSetDialog>
         <MdsHWClusterDialog
           onClose={[Function]}
         >
@@ -6207,6 +6453,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
+          key="mrsSchemaDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -6286,6 +6533,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
+          key="mrsDbObjectDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -6364,6 +6612,86 @@ exports[`Application host tests Rendering Preferences 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
+        <MrsContentSetDialog
+          key="mrsContentSetDialog"
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mrsContentSetDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mrsContentSetDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mrsContentSetDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
+          </ValueEditDialog>
+        </MrsContentSetDialog>
         <MdsHWClusterDialog
           onClose={[Function]}
         >
@@ -7839,6 +8167,7 @@ exports[`Application host tests Standard Rendering 1`] = `
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
+          key="mrsSchemaDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -7918,6 +8247,7 @@ exports[`Application host tests Standard Rendering 1`] = `
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
+          key="mrsDbObjectDialog"
           onClose={[Function]}
         >
           <ValueEditDialog
@@ -7996,6 +8326,86 @@ exports[`Application host tests Standard Rendering 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
+        <MrsContentSetDialog
+          key="mrsContentSetDialog"
+          onClose={[Function]}
+        >
+          <ValueEditDialog
+            id="mrsContentSetDialog"
+            onClose={[Function]}
+            onValidate={[Function]}
+          >
+            <Dialog
+              actions={
+                Object {
+                  "begin": Array [],
+                  "end": Array [
+                    <Button
+                      caption="OK"
+                      disabled={false}
+                      id="ok"
+                      onClick={[Function]}
+                    />,
+                    <Button
+                      caption="Cancel"
+                      id="cancel"
+                      onClick={[Function]}
+                    />,
+                  ],
+                }
+              }
+              caption={
+                <y>
+                  <Icon
+                    disabled={false}
+                    src={388}
+                  />
+                  <Label />
+                </y>
+              }
+              className="msg valueEditDialog"
+              container={Object {}}
+              content={
+                <Grid
+                  columnGap={16}
+                  columns={8}
+                  rowGap={16}
+                />
+              }
+              id="mrsContentSetDialog"
+              onClose={[Function]}
+            >
+              <Portal
+                container={Object {}}
+                id="mrsContentSetDialog"
+                onClose={[Function]}
+                onOpen={[Function]}
+              />
+            </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
+          </ValueEditDialog>
+        </MrsContentSetDialog>
         <MdsHWClusterDialog
           onClose={[Function]}
         >

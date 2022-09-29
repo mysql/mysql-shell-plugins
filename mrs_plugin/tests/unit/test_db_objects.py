@@ -21,6 +21,7 @@
 
 import pytest
 from ... db_objects import *
+import json
 
 @pytest.mark.usefixtures("init_mrs")
 def test_add_db_object(init_mrs):
@@ -35,9 +36,7 @@ def test_add_db_object(init_mrs):
         "requires_auth": False,
         "items_per_page": 10,
         "row_user_ownership_enforced": False,
-        "row_ownership_enforced": False,
-        "row_ownership_column": "",
-        "row_ownership_parameter": "",
+        "row_user_ownership_column": "",
         "comments": "Test table",
         "session": init_mrs,
         "interactive": False,
@@ -58,9 +57,8 @@ def test_add_db_object(init_mrs):
         "crud_operation_format": "FEED",
         "requires_auth": False,
         "items_per_page": 10,
-        "row_ownership_enforced": False,
-        "row_ownership_column": "",
-        "row_ownership_parameter": "",
+        "row_user_ownership_enforced": False,
+        "row_user_ownership_column": "",
         "comments": "Test table",
         "session": init_mrs,
         "interactive": False,
@@ -79,9 +77,8 @@ def test_add_db_object(init_mrs):
         "request_path": "table_addresses",
         "requires_auth": False,
         "items_per_page": 10,
-        "row_ownership_enforced": False,
-        "row_ownership_column": "",
-        "row_ownership_parameter": "",
+        "row_user_ownership_enforced": False,
+        "row_user_ownership_column": "",
         "session": init_mrs,
         "interactive": True,
         "raise_exceptions": False,
@@ -165,6 +162,7 @@ def test_get_db_object(init_mrs):
     assert result is None
 
     args["interactive"] = False
+    del args["db_object_id"]
     with pytest.raises(Exception) as exc_info:
         get_db_object(request_path="test_db", db_object_name="db", **args)
     assert str(exc_info.value) == "The request_path has to start with '/'."
@@ -173,6 +171,7 @@ def test_get_db_object(init_mrs):
         get_db_object(request_path="/test_abc", db_object_name="db1", **args)
     assert str(exc_info.value) == "The given db_objects was not found."
 
+    args["db_object_id"] = 1
     db_object = get_db_object(**args)
     assert db_object is not None
     assert db_object['id'] == 1
@@ -241,6 +240,67 @@ def test_disable_enable(init_mrs):
     result = enable_db_object(db_object_name="db", schema_id=1, **args)
     assert result is not None
     assert result == "The db_object has been enabled."
+
+@pytest.mark.usefixtures("init_mrs")
+def test_db_object_update(init_mrs):
+    args ={
+        "db_object_id": 1,
+        "session": init_mrs,
+        "interactive": False,
+        "name": "new_name",
+        "request_path": "/aaaaaa",
+        "enabled": False,
+        "schema_id": 1,
+        "items_per_page": 33,
+        "crud_operations": ["CREATE", "READ"],
+        "crud_operation_format": "ITEM",
+        "media_type": "media type",
+        "auto_detect_media_type": False,
+        "requires_auth": False,
+        "auth_stored_procedure": "some SP",
+        "row_user_ownership_enforced": True,
+        "row_user_ownership_column": "some column",
+        "comments": "adding some comments",
+        "options": json.dumps({
+            "aaa": "val aaa",
+            "bbb": "val bbb"
+        }),
+    }
+    result = update_db_object(**args)
+    db_object = get_db_object(**args)
+
+    assert result is not None
+    assert result == "The db_object has been updated."
+
+    assert db_object.get("name") == args["name"]
+    assert db_object.get("request_path") == args["request_path"]
+    assert db_object.get("enabled") == args["enabled"]
+    assert db_object.get("items_per_page") == args["items_per_page"]
+    assert db_object.get("crud_operations") == args["crud_operations"]
+    assert db_object.get("crud_operation_format") == args["crud_operation_format"]
+    assert db_object.get("media_type") == args["media_type"]
+    assert db_object.get("auto_detect_media_type") == args["auto_detect_media_type"]
+    assert db_object.get("requires_auth") == args["requires_auth"]
+    assert db_object.get("auth_stored_procedure") == args["auth_stored_procedure"]
+    assert db_object.get("row_user_ownership_enforced") == args["row_user_ownership_enforced"]
+    assert db_object.get("row_user_ownership_column") == args["row_user_ownership_column"]
+    assert db_object.get("comments") == args["comments"]
+    assert db_object.get("options") == args["options"]
+
+    args2 ={
+        "db_object_id": 1,
+        "session": init_mrs,
+        "interactive": False,
+    }
+
+
+    for param in ["name", "request_path", "enabled", "crud_operations", "crud_operation_format",
+        "auto_detect_media_type", "requires_auth", "row_user_ownership_enforced"]:
+        with pytest.raises(ValueError) as exc_info:
+            result = update_db_object(**args2)
+        assert str(exc_info.value) == f"The '{param}' parameter was not set."
+        args2[param] = args[param]
+
 
 
 @pytest.mark.usefixtures("init_mrs")

@@ -30,7 +30,7 @@ import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import {
     ConnectionMySQLTreeItem,
     ConnectionsTreeBaseItem,
-    ConnectionsTreeDataProvider, ConnectionTreeItem, IConnectionEntry, SchemaEventTreeItem, SchemaMySQLTreeItem,
+    ConnectionsTreeDataProvider, ConnectionTreeItem, SchemaEventTreeItem, SchemaMySQLTreeItem,
     SchemaRoutineTreeItem, SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem,
 } from "./tree-providers/ConnectionsTreeProvider";
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
@@ -44,11 +44,10 @@ import { CodeBlocks } from "./CodeBlocks";
 import { uuid } from "../../frontend/src/utilities/helpers";
 import { DBType } from "../../frontend/src/supplement/ShellInterface";
 import { WebviewProvider } from "./web-views/WebviewProvider";
+import { ExtensionHost } from "./ExtensionHost";
 
 // A class to handle all DB editor related commands and jobs.
 export class DBEditorCommandHandler {
-    private connectionsProvider = new ConnectionsTreeDataProvider();
-
     // All open DB editor view providers.
     private providers: DBConnectionViewProvider[] = [];
     private lastActiveProvider?: DBConnectionViewProvider;
@@ -60,7 +59,9 @@ export class DBEditorCommandHandler {
     // For each open editor a list of open scripts is held (via a mapping of script IDs and their target URI).
     private openScripts = new Map<DBConnectionViewProvider, Map<string, Uri>>();
 
-    public setup(context: ExtensionContext): void {
+    public constructor (private connectionsProvider: ConnectionsTreeDataProvider) {}
+
+    public setup(context: ExtensionContext, host: ExtensionHost): void {
         this.codeBlocks.setup(context);
         context.subscriptions.push(window.createTreeView(
             "msg.connections",
@@ -224,7 +225,7 @@ export class DBEditorCommandHandler {
                     await window.showInformationMessage(`The file "${uri.fsPath}" ` +
                         `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
                 } else {
-                    const connection = await this.determineConnection();
+                    const connection = await host.determineConnection();
                     if (connection) {
                         await workspace.fs.readFile(uri).then((value) => {
                             const content = value.toString();
@@ -341,7 +342,7 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerTextEditorCommand("msg.executeEmbeddedSqlFromEditor",
             (editor: TextEditor) => {
-                void this.determineConnection().then((connection) => {
+                void host.determineConnection().then((connection) => {
                     if (connection) {
                         this.codeBlocks.executeSqlFromEditor(editor, connection.details.caption, connection.details.id);
                     }
@@ -349,7 +350,7 @@ export class DBEditorCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerTextEditorCommand("msg.executeSelectedSqlFromEditor", (editor) => {
-            void this.determineConnection().then((connection) => {
+            void host.determineConnection().then((connection) => {
                 if (connection) {
                     const provider = this.currentProvider;
                     if (provider) {
@@ -555,38 +556,5 @@ export class DBEditorCommandHandler {
                     resolve(true);
                 });
         });
-    };
-
-    /**
-     * Determines a connection to run SQL code with.
-     *
-     * @returns A promise resolving to a connection entry or undefined if no entry was found.
-     */
-    private determineConnection = async (): Promise<IConnectionEntry | undefined> => {
-        const connections = this.connectionsProvider.connections;
-        const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
-        if (connectionName) {
-            const connection = connections.find((candidate) => {
-                return candidate.details.caption === connectionName;
-            });
-
-            return connection;
-        } else {
-            // No default connection set. Show a picker.
-            const items = connections.map((connection) => {
-                return connection.details.caption;
-            });
-            const name = await window.showQuickPick(items, {
-                title: "Select a connection for SQL execution",
-                matchOnDescription: true,
-                placeHolder: "Type the name of an existing DB connection",
-            });
-
-            const connection = connections.find((candidate) => {
-                return candidate.details.caption === name;
-            });
-
-            return connection;
-        }
     };
 }

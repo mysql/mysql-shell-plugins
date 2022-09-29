@@ -47,7 +47,7 @@ export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
         return "schemaRoutine.svg";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return this.type;
     }
 
