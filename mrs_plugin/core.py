@@ -259,6 +259,7 @@ def get_current_session(session=None):
                 "MySQL session not specified. Please either pass a session "
                 "object when calling the function or open a database "
                 "connection in the MySQL Shell first.")
+
     return session
 
 
@@ -325,6 +326,25 @@ def ensure_rds_metadata_schema(session=None, auto_create_and_update=False,
                         "Please run mrs.configure() first.")
 
     return False
+
+
+def get_current_session_with_rds_metadata(
+        session=None, auto_create_and_update=False, interactive=True):
+    """Returns the current database session and ensures MRS metadata schema
+    is-up to-date
+
+    If a session is provided, it will be returned instead of the current one.
+    If there is no active session, then an exception will be raised.
+
+    Returns:
+        The current database session
+    """
+
+    session = get_current_session(session)
+
+    ensure_rds_metadata_schema(session, auto_create_and_update, interactive)
+
+    return session
 
 
 def split_sql_script(sql_script):
@@ -656,14 +676,20 @@ def get_sql_result_as_dict_list(res):
     if not res:
         return []
 
-    col_names = res.get_column_names()
+    cols = res.get_columns()
     rows = res.fetch_all()
     dict_list = []
 
     for row in rows:
         item = {}
-        for col_name in col_names:
-            item[col_name] = row.get_field(col_name)
+        for col in cols:
+            col_name = col.get_column_label()
+            field_val = row.get_field(col_name)
+            col_type = str(col.get_type())
+            if col_type == "<Type.SET>":
+                item[col_name] = field_val.split(",") if field_val else []
+            else:
+                item[col_name] = field_val
         dict_list.append(item)
 
     return dict_list

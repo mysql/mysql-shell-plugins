@@ -391,6 +391,16 @@ export interface ICompartmentTags {
     [key: string]: unknown;
 }
 
+export interface IMrsStatusData {
+    serviceConfigured: boolean;
+    serviceEnabled: boolean;
+    serviceCount: number;
+}
+
+export interface IMrsStatusResultData extends IGenericResponse {
+    result: IMrsStatusData;
+}
+
 export interface IMrsServiceData {
     enabled: number;
     hostCtx: string;
@@ -400,10 +410,53 @@ export interface IMrsServiceData {
     urlHostName: string;
     urlProtocol: string;
     comments: string;
+    options: string;
+    authPath: string;
+    authCompletedUrl: string;
+    authCompletedUrlValidation: string;
+    authCompletedPageContent: string;
+    authApps?: IMrsAuthAppData[];
 }
 
 export interface IMrsServiceResultData extends IGenericResponse {
     result: IMrsServiceData[];
+}
+
+export interface IMrsServiceRequestPathAvailabilityResultData extends IGenericResponse {
+    result: boolean;
+}
+
+export interface IMrsAuthAppData extends IDictionary {
+    id?: number;
+    authVendorId?: number;
+    authVendorName?: string;
+    serviceId?: number;
+    name?: string;
+    description?: string;
+    url?: string;
+    urlDirectAuth?: string;
+    accessToken?: string;
+    appId?: string;
+    enabled: boolean;
+    useBuiltInAuthorization: boolean;
+    limitToRegisteredUsers: boolean;
+    defaultAuthRoleId?: number;
+}
+
+export interface IMrsAuthAppsResultData extends IGenericResponse {
+    result: IMrsAuthAppData[];
+}
+
+export interface IMrsAuthVendorData extends IDictionary {
+    id?: number;
+    name: string;
+    validationUrl?: string;
+    enabled: boolean;
+    comments?: string;
+}
+
+export interface IMrsAuthVendorResultData extends IGenericResponse {
+    result: IMrsAuthVendorData[];
 }
 
 export interface IMrsSchemaData {
@@ -416,16 +469,22 @@ export interface IMrsSchemaData {
     requestPath: string;
     requiresAuth: number;
     serviceId: number;
+    options: string;
 }
 
 export interface IMrsSchemaResultData extends IGenericResponse {
     result: IMrsSchemaData[];
 }
 
+export interface IMrsAddSchemaResultData extends IGenericResponse {
+    result: number;
+}
+
 export interface IMrsDbObjectData {
     changedAt?: string;
     comments: string;
     crudOperations: string[];
+    crudOperationFormat: string;
     dbSchemaId: number;
     enabled: number;
     hostCtx?: string;
@@ -438,12 +497,82 @@ export interface IMrsDbObjectData {
     rowUserOwnershipColumn?: string;
     rowUserOwnershipEnforced: number;
     schemaRequestPath?: string;
-    qualifiedName: string;
+    qualifiedName?: string;
     serviceId: number;
+    mediaType?: string;
+    autoDetectMediaType: number;
+    authStoredProcedure?: string;
+    options?: string;
+    parameters?: IMrsDbObjectParameterData[];
 }
 
 export interface IMrsDbObjectResultData extends IGenericResponse {
     result: IMrsDbObjectData[];
+}
+
+export interface IMrsDbObjectParameterData extends IDictionary {
+    id?: number;
+    dbObjectId?: number;
+    position: number;
+    name: string;
+    bindColumnName: string;
+    datatype: string;
+    mode: string;
+    comments?: string;
+}
+
+export interface IMrsDbObjectFieldsResultData extends IGenericResponse {
+    result: IMrsDbObjectParameterData[];
+}
+
+export interface IMrsAddDbObjectResultData extends IGenericResponse {
+    result: number;
+}
+
+export interface IMrsGetDbObjectRowOwnershipFieldsResultData extends IGenericResponse {
+    result: string[];
+}
+
+export interface IMrsContentSetData {
+    comments: string;
+    enabled: number;
+    hostCtx: string;
+    id: number;
+    requestPath: string;
+    requiresAuth: number;
+    serviceId: number;
+    options: string;
+}
+
+export interface IMrsContentSetResultData extends IGenericResponse {
+    result: IMrsContentSetData[];
+}
+
+export interface IMrsContentFileData {
+    id: number;
+    contentSetId: number;
+    requestPath: string;
+    requiresAuth: boolean;
+    enabled: boolean;
+    size: number;
+    contentSetRequestPath: string;
+    hostCtx: string;
+    changedAt: string;
+}
+
+export interface IMrsContentFileResultData extends IGenericResponse {
+    result: IMrsContentFileData[];
+}
+
+
+export interface IMrsAddContentSetData {
+    contentSetId?: number;
+    numberOfFilesUploaded?: number;
+    info?: string;
+}
+
+export interface IMrsAddContentSetResultData extends IGenericResponse {
+    result: IMrsAddContentSetData;
 }
 
 export interface IModuleListData extends IGenericResponse {
@@ -533,9 +662,22 @@ export type ICommMdsConfigProfileEvent = IDispatchEvent<IShellMdsProfileData>;
 
 export type ICommMdsGetBastionsEvent = IDispatchEvent<IShellMdsBastionsData>;
 
+export type ICommMrsStatusEvent = IDispatchEvent<IMrsStatusResultData>;
 export type ICommMrsServiceEvent = IDispatchEvent<IMrsServiceResultData>;
+export type ICommMrsServiceRequestPathAvailabilityEvent = IDispatchEvent<IMrsServiceRequestPathAvailabilityResultData>;
+
+export type ICommMrsAuthVendorsEvent = IDispatchEvent<IMrsAuthVendorResultData>;
+export type ICommMrsAuthAppsEvent = IDispatchEvent<IMrsAuthAppsResultData>;
+
 export type ICommMrsSchemaEvent = IDispatchEvent<IMrsSchemaResultData>;
+export type ICommMrsAddSchemaEvent = IDispatchEvent<IMrsAddSchemaResultData>;
 export type ICommMrsDbObjectEvent = IDispatchEvent<IMrsDbObjectResultData>;
+export type ICommMrsAddDbObjectEvent = IDispatchEvent<IMrsAddDbObjectResultData>;
+export type ICommMrsGetDbObjectRowOwnershipFieldsEvent = IDispatchEvent<IMrsGetDbObjectRowOwnershipFieldsResultData>;
+export type ICommMrsGetDbObjectFieldsEvent = IDispatchEvent<IMrsDbObjectFieldsResultData>;
+export type ICommMrsAddContentSetEvent = IDispatchEvent<IMrsAddContentSetResultData>;
+export type ICommMrsContentSetEvent = IDispatchEvent<IMrsContentSetResultData>;
+export type ICommMrsContentFileEvent = IDispatchEvent<IMrsContentFileResultData>;
 
 export type ICommModuleListEvent = IDispatchEvent<IModuleListData>;
 export type ICommModuleAddDataCategoryEvent = IDispatchEvent<IModuleAddDataCategory>;

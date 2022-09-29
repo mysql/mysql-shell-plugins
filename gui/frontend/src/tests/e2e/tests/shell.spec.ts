@@ -673,56 +673,62 @@ describe("MySQL Shell Sessions", () => {
     });
 
     it("Check query result content", async () => {
-        const editor = await driver.findElement(By.id("shellEditorHost"));
+        try {
+            const editor = await driver.findElement(By.id("shellEditorHost"));
 
-        await driver.executeScript(
-            "arguments[0].click();",
-            await editor.findElement(By.css(".current-line")),
-        );
+            await driver.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
 
-        const textArea = await editor.findElement(By.css("textArea"));
+            const textArea = await editor.findElement(By.css("textArea"));
 
-        let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
-        uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
+            let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
-        await enterCmd(
-            textArea,
-            uri);
+            await enterCmd(
+                textArea,
+                uri);
 
-        const result = await shellGetResult();
+            const result = await shellGetResult();
 
-        let text = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
-        text += `${String(globalConn.portX)}/${globalConn.schema}'`;
-        expect(result).toContain(text);
+            let text = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            text += `${String(globalConn.portX)}/${globalConn.schema}'`;
+            expect(result).toContain(text);
 
-        expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
+            expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
-        expect(result).toContain(
-            `Default schema \`${globalConn.schema}\` accessible through db`,
-        );
+            expect(result).toContain(
+                `Default schema \`${globalConn.schema}\` accessible through db`,
+            );
 
-        text = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
-        text += `, using the X protocol`;
-        expect(await getShellServerTabStatus()).toBe(text);
+            text = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
+            text += `, using the X protocol`;
+            expect(await getShellServerTabStatus()).toBe(text);
 
-        expect(await getShellSchemaTabStatus())
-            .toContain(globalConn.schema);
+            expect(await getShellSchemaTabStatus())
+                .toContain(globalConn.schema);
 
-        await enterCmd(textArea, "\\sql");
+            await enterCmd(textArea, "\\sql");
 
-        await enterCmd(textArea, "SHOW DATABASES;");
+            await enterCmd(textArea, "SHOW DATABASES;");
 
-        expect(await isValueOnDataSet("sakila")).toBe(true);
+            expect(await isValueOnDataSet("sakila")).toBe(true);
 
-        expect(await isValueOnDataSet("mysql")).toBe(true);
+            expect(await isValueOnDataSet("mysql")).toBe(true);
 
-        await enterCmd(textArea, "\\js");
+            await enterCmd(textArea, "\\js");
 
-        await enterCmd(textArea, "db.actor.select()");
+            await enterCmd(textArea, "db.actor.select()");
 
-        expect(await shellGetLangResult()).toBe("json");
+            expect(await shellGetLangResult()).toBe("json");
 
-        expect(await isValueOnJsonResult("PENELOPE")).toBe(true);
+            expect(await isValueOnJsonResult("PENELOPE")).toBe(true);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+
     });
 
 });

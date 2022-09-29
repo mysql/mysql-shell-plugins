@@ -43,7 +43,7 @@ export class SchemaTableColumnTreeItem extends ConnectionsTreeBaseItem {
         return "schemaTableColumn.svg";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return "column";
     }
 }

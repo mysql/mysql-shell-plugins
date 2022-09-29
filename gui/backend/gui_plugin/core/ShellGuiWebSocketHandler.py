@@ -552,12 +552,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
             kwargs = {**args, **kwargs}
 
-            v = kwargs.get('value')
-            if v and type(v) == dict:
-                # TODO: Check why a dict cannot be passed as it makes the
-                # shell error out
-                kwargs.update({"value": json.dumps(v)})
-
             # Inspect the function arguments and check if there are arguments
             # named user_id, profile_id, web_session, request_id,
             # module_session, async_web_session or session.

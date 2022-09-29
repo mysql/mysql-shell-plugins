@@ -1315,12 +1315,13 @@ def set_current_compartment(**kwargs):
 
 
 @plugin_function('mds.get.currentCompartmentId', shell=True, cli=True, web=True)
-def get_current_compartment_id(
-        compartment_id=None, config=None,
-        profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
+def get_current_compartment_id(**kwargs):
     """Gets the current compartment_id
 
     Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
         compartment_id (str): If specified, returned instead of the current
         config (dict): The config to be used, None defaults to global config
         profile_name (str): Name of the config profile
@@ -1329,6 +1330,11 @@ def get_current_compartment_id(
     Returns:
         The current compartment_id
     """
+    compartment_id = kwargs.get('compartment_id')
+    config = kwargs.get('config')
+    profile_name = kwargs.get('profile_name')
+    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+
     return get_current_value(
         value_name="compartment-id", passthrough_value=compartment_id,
         config=config, profile_name=profile_name,

@@ -38,6 +38,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { ICommResultSetEvent } from "../../communication";
 import { EventType } from "../../supplement/Dispatch";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem";
+import { formatBytes } from "../../utilities/string-helpers";
 
 enum MarkerType {
     None,
@@ -1217,24 +1218,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
     }
 
     private formatTrafficValue = (domainValue: d3.NumberValue): string => {
-        let value = domainValue.valueOf();
-        if (value < 1024) {
-            return `${value.toFixed(2)} B/s`;
-        }
-
-        value /= 1024;
-        if (value < 1014) {
-            return `${value.toFixed(2)} KB/s`;
-        }
-
-        value /= 1024;
-        if (value < 1024) {
-            return `${value.toFixed(2)} MB/s`;
-        }
-
-        value /= 1024;
-
-        return `${value.toFixed(2)} GB/s`;
+        return `${formatBytes(domainValue.valueOf())}/s`;
     };
 
     /**

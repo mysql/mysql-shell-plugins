@@ -30,8 +30,8 @@ import {
 } from "../../../../frontend/src/supplement/ShellInterface";
 import {
     ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent,
-    ICommOpenConnectionEvent, ICommSimpleRowEvent, IShellFeedbackRequest,
-    IShellResultType, ShellPromptResponseType,
+    ICommSimpleRowEvent, IShellFeedbackRequest,
+    IShellResultType,
 } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
@@ -51,8 +51,13 @@ import {
     SchemaTableColumnTreeItem, SchemaTableForeignKeyTreeItem, SchemaTableIndexTreeItem, SchemaTableMySQLTreeItem,
     SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
 } from ".";
-import { stripAnsiCode } from "../../../../frontend/src/utilities/helpers";
 import { SchemaListTreeItem } from "./SchemaListTreeItem";
+import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
+import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem";
+import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem";
+import { openSqlEditorConnection } from "../../utilitiesShellGui";
+import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
+import { formatBytes } from "../../../../frontend/src/utilities/string-helpers";
 
 export interface IConnectionEntry {
     id: string;
@@ -207,7 +212,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         }
 
         if (element instanceof MrsServiceTreeItem) {
-            return this.listMrsSchemas(element);
+            return this.getMrsServiceChildren(element);
+        }
+
+        if (element instanceof MrsContentSetTreeItem) {
+            return this.getMrsContentSetChildren(element);
         }
 
         if (element instanceof MrsSchemaTreeItem) {
@@ -340,59 +349,54 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A promise that resolves to a list of tree items for the UI.
      */
-    private updateSchemaList(entry: IConnectionEntry): Promise<TreeItem[]> {
+    private updateSchemaList = async (entry: IConnectionEntry): Promise<TreeItem[]> => {
         if (!entry.backend) {
-            return new Promise((resolve, reject) => {
-                entry.backend = new ShellInterfaceSqlEditor();
+            const backend = new ShellInterfaceSqlEditor();
+            entry.backend = backend;
 
-                entry.backend.startSession(entry.id).then(() => {
+            await backend.startSession(entry.id + "ConnectionTreeProvider");
+
+            try {
+                if (entry.details.dbType === DBType.Sqlite) {
+                    const options = entry.details.options as ISqliteConnectionOptions;
+
                     // Before opening the connection check the DB file, if this is an sqlite connection.
-                    if (entry.backend && entry.details.dbType === DBType.Sqlite) {
-                        const options = entry.details.options as ISqliteConnectionOptions;
-                        ShellInterface.core.validatePath(options.dbFile).then(() => {
-                            this.openNewConnection(entry).then((items) => {
-                                resolve(items);
-                            }).catch((reason) => {
-                                reject(reason);
-                            });
-                        }).catch(() => {
-                            // If the path is not ok then we might have to create the DB file first.
-                            if (entry.backend) {
-                                ShellInterface.core.createDatabaseFile(options.dbFile).then(() => {
-                                    this.openNewConnection(entry).then((items) => {
-                                        resolve(items);
-                                    }).catch((reason) => {
-                                        reject(reason);
-                                    });
-                                }).catch((errorEvent: ICommErrorEvent) => {
-                                    reject();
-                                    void window.showErrorMessage(`DB Creation Error: \n` +
-                                        `${errorEvent.message ?? "<unknown>"}`, "OK");
-                                });
-                            } else {
-                                reject();
-                            }
+                    if (await ShellInterface.core.validatePath(options.dbFile)) {
+                        await openSqlEditorConnection(entry.backend, entry.details.id, (message) => {
+                            showStatusText(message);
                         });
-                    } else {
-                        this.openNewConnection(entry).then((items) => {
-                            resolve(items);
-                        }).catch((reason) => {
-                            void entry.backend?.closeSession();
-                            entry.backend = undefined;
 
-                            reject(reason);
-                        });
+                        return this.updateSchemaList(entry);
+                    } else {
+                        // If the path is not ok then we might have to create the DB file first.
+                        try {
+                            await ShellInterface.core.createDatabaseFile(options.dbFile);
+
+                            return this.updateSchemaList(entry);
+                        } catch (error) {
+                            throw Error(`DB Creation Error: \n${String(error) ?? "<unknown>"}`);
+                        }
                     }
-                }).catch((errorEvent: ICommErrorEvent) => {
-                    reject();
-                    void window.showErrorMessage(`Error during module session creation: \n` +
-                        `${errorEvent.message ?? "<unknown>"}`, "OK");
-                });
-            });
+                } else {
+                    await openSqlEditorConnection(entry.backend, entry.details.id, (message) => {
+                        showStatusText(message);
+                    });
+
+                    return this.updateSchemaList(entry);
+                }
+
+            } catch (error) {
+                await entry.backend?.closeSession();
+
+                entry.backend = undefined;
+
+                throw new Error(`Error during module session creation: \n` +
+                    `${(error instanceof Error) ? error.message : String(error)}`);
+            }
         } else {
             return this.doUpdateSchemaList(entry);
         }
-    }
+    };
 
     /**
      * Does the actual schema update work for the given session and creates schema tree items for all schema entries.
@@ -401,125 +405,53 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A new list of tree items for the updated schema list.
      */
-    private doUpdateSchemaList(entry: IConnectionEntry): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
-            if (entry.backend) {
+    private doUpdateSchemaList = async (entry: IConnectionEntry): Promise<TreeItem[]> => {
+        try {
+            const backend = entry.backend;
+            if (backend) {
                 const schemaList: TreeItem[] = [];
                 if (entry.details.dbType === DBType.MySQL) {
                     schemaList.push(new AdminTreeItem("MySQL Administration", "", entry, true));
                 }
 
-                entry.backend.getCatalogObjects("Schema").then((schemas) => {
-                    schemas.forEach((schema) => {
-                        if (entry.details.dbType === "MySQL") {
-                            if (schema === "mysql_rest_service_metadata") {
-                                schemaList.unshift(
-                                    new MrsTreeItem("MySQL REST Service", schema, entry, true));
-                            }
+                const schemas = await backend.getCatalogObjects("Schema");
+                for (const schema of schemas) {
+                    if (entry.details.dbType === "MySQL") {
+                        // If the schema is the MRS metadata schema, add the MRS tree item
+                        if (schema === "mysql_rest_service_metadata") {
+                            const enabled = (await backend.mrs.statusWithPromise()).result.serviceEnabled;
 
-                            // Only show system schemas if the options is set
-                            let hideSystemSchemas = true;
-                            if (entry.details.hideSystemSchemas !== undefined) {
-                                hideSystemSchemas = entry.details.hideSystemSchemas;
-                            }
-
-                            if ((schema !== "mysql" &&
-                                schema !== "mysql_innodb_cluster_metadata" &&
-                                schema !== "mysql_rest_service_metadata")
-                                || !hideSystemSchemas) {
-                                schemaList.push(
-                                    new SchemaMySQLTreeItem(schema, schema, entry, true));
-                            }
-                        } else {
-                            schemaList.push(new SchemaTreeItem(schema, schema, entry, true));
-                        }
-                    });
-
-                    resolve(schemaList);
-                }).catch((reason) => {
-                    reject(`Error retrieving schema list: ${String(reason)}`);
-                });
-
-            } else {
-                reject();
-            }
-        });
-    }
-
-    /**
-     * Opens the given connection once all verification was done. Used when opening a connection the first time.
-     *
-     * @param entry The connection details for the opening.
-     */
-    private openNewConnection(entry: IConnectionEntry): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
-            if (entry.backend) {
-                entry.backend.openConnection(entry.details.id).then((event: ICommOpenConnectionEvent) => {
-                    switch (event.eventType) {
-                        case EventType.DataResponse: {
-                            const result = event.data.result;
-                            if (this.isShellPromptResult(result)) {
-                                if (result.type === "password") {
-                                    void window.showInputBox({
-                                        title: result.prompt,
-                                        password: true,
-                                    }).then((value) => {
-                                        if (event.data && event.data.requestId) {
-                                            if (value) {
-                                                entry.backend!.sendReply(event.data.requestId,
-                                                    ShellPromptResponseType.Ok, value);
-                                            } else {
-                                                entry.backend!.sendReply(event.data.requestId,
-                                                    ShellPromptResponseType.Cancel, "");
-                                            }
-                                        }
-                                    });
-                                } else if (result.prompt) {
-                                    void window.showInputBox({
-                                        title: stripAnsiCode(result.prompt),
-                                        password: false,
-                                        value: "N",
-                                    }).then((value) => {
-                                        if (event.data && event.data.requestId) {
-                                            if (value) {
-                                                entry.backend!.sendReply(event.data.requestId,
-                                                    ShellPromptResponseType.Ok, value);
-                                            } else {
-                                                entry.backend!.sendReply(event.data.requestId,
-                                                    ShellPromptResponseType.Cancel, "");
-                                            }
-                                        }
-                                    });
-                                }
-                            } else if (event.message) {
-                                showStatusText(event.message);
-                            }
-
-                            break;
+                            schemaList.unshift(
+                                new MrsTreeItem("MySQL REST Service", schema, entry, true, enabled));
                         }
 
-                        case EventType.FinalResponse: {
-                            this.updateSchemaList(entry).then((list) => {
-                                resolve(list);
-                            }).catch((reason) => {
-                                reject(reason);
-                            });
-
-                            break;
+                        // Only show system schemas if the options is set
+                        let hideSystemSchemas = true;
+                        if (entry.details.hideSystemSchemas !== undefined) {
+                            hideSystemSchemas = entry.details.hideSystemSchemas;
                         }
 
-                        default: {
-                            break;
+                        if ((schema !== "mysql" &&
+                            schema !== "mysql_innodb_cluster_metadata" &&
+                            schema !== "mysql_rest_service_metadata")
+                            || !hideSystemSchemas) {
+                            schemaList.push(
+                                new SchemaMySQLTreeItem(schema, schema, entry, true));
                         }
+                    } else {
+                        schemaList.push(new SchemaTreeItem(schema, schema, entry, true));
                     }
-                }).catch((errorEvent: ICommErrorEvent) => {
-                    reject(`Error during open connection: ${errorEvent.message ?? "<unknown>"}`);
-                });
+                }
+
+                return schemaList;
+
             } else {
-                reject();
+                throw new Error("No entry.backend assignment on tree entry.");
             }
-        });
-    }
+        } catch (error) {
+            throw new Error(`Error retrieving schema list: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
 
     /**
      * Loads a list of schemas object names (tables, views etc.).
@@ -543,7 +475,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         if (objectType === "Routine") {
             const createItems = (type: "function" | "procedure", list: string[]): void => {
                 for (const objectName of list) {
-                    items.push(new SchemaRoutineTreeItem(objectName, schema, type, entry, false));
+                    if (element.entry.details.dbType === "MySQL") {
+                        items.push(new SchemaRoutineMySQLTreeItem(objectName, schema, type, entry, false));
+                    } else {
+                        items.push(new SchemaRoutineTreeItem(objectName, schema, type, entry, false));
+                    }
                 }
             };
 
@@ -571,7 +507,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                         }
 
                         case SchemaItemGroupType.Views: {
-                            items.push(new SchemaViewTreeItem(objectName, schema, entry, true));
+                            if (element.entry.details.dbType === "MySQL") {
+                                items.push(new SchemaViewMySQLTreeItem(objectName, schema, entry, true));
+                            } else {
+                                items.push(new SchemaViewTreeItem(objectName, schema, entry, true));
+                            }
 
                             break;
                         }
@@ -726,7 +666,74 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     }
 
     /**
-     * Loads the list of MRS schemas.
+     * Loads the list of MRS content sets.
+     *
+     * @param element The MRS service element.
+     *
+     * @returns A promise that resolves to a list of tree items for the UI.
+     */
+    private getMrsServiceChildren = async (element: MrsServiceTreeItem): Promise<TreeItem[]> => {
+        if (element.entry.backend) {
+            try {
+                // Get all MRS Schemas
+                const schemas =
+                    (await element.entry.backend.mrs.listSchemasWithPromise(element.value.id)).result;
+
+                const treeItemList: TreeItem[] = schemas.map((value) => {
+                    return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value,
+                        element.entry);
+                });
+
+                // Get all MRS ContentSets
+                const contentSets =
+                    (await element.entry.backend.mrs.listContentSetsWithPromise(element.value.id)).result;
+
+                const contentSetsTreeItemList = contentSets.map((value) => {
+                    return new MrsContentSetTreeItem(`${value.requestPath}`, value,
+                        element.entry);
+                });
+
+                return treeItemList.concat(contentSetsTreeItemList);
+            } catch (error) {
+                throw new Error("Error during retrieving MRS content sets. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
+            }
+        } else {
+            return [];
+        }
+    };
+
+    /**
+     * Loads the list of MRS content sets.
+     *
+     * @param element The MRS service element.
+     *
+     * @returns A promise that resolves to a list of tree items for the UI.
+     */
+    private getMrsContentSetChildren = async (element: MrsContentSetTreeItem): Promise<TreeItem[]> => {
+        if (element.entry.backend) {
+            try {
+                // Get all MRS content files
+                const contentFiles =
+                    (await element.entry.backend.mrs.listContentFilesWithPromise(element.value.id)).result;
+
+                const treeItemList: TreeItem[] = contentFiles.map((value) => {
+                    return new MrsContentFileTreeItem(`${value.requestPath} (${formatBytes(value.size)})`, value,
+                        element.entry);
+                });
+
+                return treeItemList;
+            } catch (error) {
+                throw new Error("Error during retrieving MRS content files. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
+            }
+        } else {
+            return [];
+        }
+    };
+
+    /**
+     * Loads the list of MRS db objects.
      *
      * @param element The MRS service element.
      *

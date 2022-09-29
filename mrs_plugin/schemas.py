@@ -108,11 +108,12 @@ def add_schema(**kwargs):
         enabled (bool): The enabled state
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
+        options (str): The options for the schema
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
 
     Returns:
-        None
+        The schema_id of the created schema when not in interactive mode 
     """
 
     schema_name = kwargs.get("schema_name")
@@ -122,6 +123,7 @@ def add_schema(**kwargs):
     enabled = kwargs.get("enabled", True)
     items_per_page = kwargs.get("items_per_page")
     comments = kwargs.get("comments")
+    options = kwargs.get("options")
     session = kwargs.get("session")
     interactive = kwargs.get("interactive", True)
 
@@ -207,15 +209,24 @@ def add_schema(**kwargs):
             else:
                 comments = ""
 
+        if not options:
+            if interactive:
+                options = core.prompt(
+                    "Options: ").strip()
+            else:
+                options = ""
+
         res = session.run_sql("""
             INSERT INTO `mysql_rest_service_metadata`.db_schema(
                 service_id, name, request_path,
-                requires_auth, enabled, items_per_page, comments)
-            VALUES(?, ?, ?, ?, ?, ?, ?)
+                requires_auth, enabled, items_per_page, comments,
+                options)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
             """, [service.get("id"), schema_name,
                   request_path, 1 if requires_auth else 0,
                   1 if enabled else 0,
-                  items_per_page, comments])
+                  items_per_page, comments, 
+                  options if options else None])
 
         if interactive:
             return "\n" + "Schema added successfully."
@@ -331,7 +342,8 @@ def get_schema(**kwargs):
         sql = """
             SELECT sc.id, sc.name, sc.service_id, sc.request_path,
                 sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments,
-                CONCAT(h.name, se.url_context_root) AS host_ctx
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                sc.options
             FROM `mysql_rest_service_metadata`.db_schema sc
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                     ON se.id = sc.service_id
@@ -414,7 +426,8 @@ def get_schemas(**kwargs):
         sql = """
             SELECT sc.id, sc.name, sc.service_id, sc.request_path,
                 sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments,
-                CONCAT(h.name, se.url_context_root) AS host_ctx
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                sc.options
             FROM `mysql_rest_service_metadata`.db_schema sc
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                     ON se.id = sc.service_id
@@ -450,12 +463,19 @@ def change_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
+        schema_id (int): The id of the schema
         change_type (int): Type of change
         schema_name (str): The name of the schema
         request_path (str): The request_path of the schema
         service_id (int): The id of the service
         value (str): The values as string or dict
-        schema_id (int): The id of the schema
+        request_path (str): The request_path
+        requires_auth (bool): Whether authentication is required to access
+            the schema
+        enabled (bool): The enabled state
+        items_per_page (int): The number of items returned per page
+        comments (str): Comments for the schema
+        options (str): The options for the schema
         session (object): The database session to use
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
@@ -463,15 +483,20 @@ def change_schema(**kwargs):
     Returns:
         The result message as string
     """
-    import json
 
+    schema_id = kwargs.get("schema_id")
     change_type = kwargs.get("change_type")
     schema_name = kwargs.get("schema_name")
     request_path = kwargs.get("request_path")
     service_id = kwargs.get("service_id")
     value = kwargs.get("value")
 
-    schema_id = kwargs.get("schema_id")
+    requires_auth = kwargs.get("requires_auth")
+    enabled = kwargs.get("enabled", True)
+    items_per_page = kwargs.get("items_per_page")
+    comments = kwargs.get("comments")
+    options = kwargs.get("options")
+
     session = kwargs.get("session")
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
@@ -557,14 +582,11 @@ def change_schema(**kwargs):
             if change_type == SCHEMA_SET_REQUEST_PATH:
                 request_path_val = value
             elif change_type == SCHEMA_SET_ALL:
-                if type(value) == str:  # TODO: Check why dicts cannot be used
-                    value = json.loads(value)
-                request_path_val = value.get("request_path")
+                request_path_val = request_path
 
             if (change_type == SCHEMA_SET_REQUEST_PATH or
                change_type == SCHEMA_SET_ALL):
                 schema = get_schema(
-                    request_path=request_path,
                     schema_id=schema_id, session=session,
                     interactive=False, return_formatted=False)
 
@@ -646,24 +668,24 @@ def change_schema(**kwargs):
                         requires_auth = ?,
                         enabled = ?,
                         items_per_page = ?,
-                        comments = ?
+                        comments = ?,
+                        options = ?
                     WHERE id = ?
                     """
-                params.insert(0, value.get("name", ""))
+                params.insert(0, schema_name)
                 params.insert(1, request_path_val or schema.get("request_path"))
-                params.insert(
-                    2, (str(value.get("requires_auth")).lower() == "true" or
-                    str(value.get("requires_auth")) == "1"))
-                params.insert(
-                    3, (str(value.get("enabled")).lower() == "true" or
-                    str(value.get("enabled")) == "1"))
-                params.insert(4, value.get("items_per_page", 25))
-                params.insert(5, value.get("comments", ""))
+                params.insert(2, (str(requires_auth).lower() == "true" or
+                    str(requires_auth) == "1"))
+                params.insert(3, (str(enabled).lower() == "true" or
+                    str(enabled) == "1"))
+                params.insert(4, items_per_page)
+                params.insert(5, comments)
+                params.insert(6, options if options else None)
             else:
                 raise Exception("Operation not supported")
 
             res = session.run_sql(sql, params)
-            if res.get_affected_row_count() == 0:
+            if res.affected_items_count == 0:
                 raise Exception(
                     f"The specified schema with id {schema_id} was not "
                     "found.")
@@ -898,18 +920,16 @@ def update_schema(**kwargs):
         schema_name (str): The name of the schema
         service_id (int): The id of the service
         schema_id (int): The id of the schema
-        value (str): The values as dict #TODO: check why dicts cannot be passed
-        session (object): The database session to use.
-        interactive (bool): Indicates whether to execute in interactive mode
-        raise_exceptions (bool): If set to true exceptions are raised
-
-    Allowed options for value:
-        schema_name (str): The name of the schema
+        request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
             the schema
         enabled (bool): The enabled state
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
+        options (str): The options for the schema
+        session (object): The database session to use.
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If set to true exceptions are raised
 
     Returns:
         The result message as string

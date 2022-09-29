@@ -34,7 +34,7 @@ export class SchemaTableMySQLTreeItem extends SchemaTableTreeItem {
         return "schemaTable.svg";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return "table";
     }
 }

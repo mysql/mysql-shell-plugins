@@ -30,7 +30,7 @@ import { DialogHost } from "./../../../app-logic/DialogHost";
 import { JestReactWrapper, nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../test-helpers";
 import { DialogType, IDialogRequest } from "../../../app-logic/Types";
 import { requisitions } from "../../../supplement/Requisitions";
-import { IMrsServiceData } from "../../../communication";
+import { IMrsDbObjectData, IMrsSchemaData, IMrsServiceData } from "../../../communication";
 
 describe("DialogHost Tests", () => {
     let host: JestReactWrapper;
@@ -131,6 +131,114 @@ describe("DialogHost Tests", () => {
                     urlProtocol: "https",
                     comments: "Lorem Ipsum",
                 }] as IMrsServiceData[],
+            },
+        };
+
+        await requisitions.execute("showDialog", promptRequest);
+        portals = document.getElementsByClassName("portal");
+        expect(portals.length).toBe(1);
+
+        expect(portals[0]).toMatchSnapshot();
+
+        // Try to show the dialog again -> should have no effect.
+        await requisitions.execute("showDialog", promptRequest);
+        portals = document.getElementsByClassName("portal");
+        expect(portals.length).toBe(1);
+
+        sendKeyPress(keyboardKey.Escape);
+
+        await nextProcessTick();
+
+        portals = document.getElementsByClassName("portal");
+        expect(portals.length).toBe(0);
+    });
+
+    it("Show MRS DB Object Dialog (snapshot)", async () => {
+        let portals = document.getElementsByClassName("portal");
+        expect(portals.length).toBe(0);
+
+        const title = "Enter Configuration Values for the New MySQL REST Object";
+        const services: IMrsServiceData[] = [{
+            enabled: 1,
+            hostCtx: "/mrs",
+            id: 1,
+            isDefault: 1,
+            urlContextRoot: "/mrs",
+            urlHostName: "",
+            urlProtocol: "HTTP,HTTPS",
+            comments: "",
+            options: "{\"header\": {\"Access-Control-Allow-Origin\": \"*\", "
+                + "\"Access-Control-Allow-Methods\": \"GET, POST, PUT, DELETE, OPTIONS\"}}",
+            authPath: "",
+            authCompletedUrl: "",
+            authCompletedUrlValidation: "",
+            authCompletedPageContent: "",
+        }];
+
+        const schemas: IMrsSchemaData[] = [{
+            comments: "",
+            enabled: 1,
+            hostCtx: "/mrs",
+            id: 1,
+            itemsPerPage: 25,
+            name: "mrs_notes",
+            requestPath: "/mrs_notes",
+            requiresAuth: 1,
+            serviceId: 1,
+            options: "",
+        }];
+
+        const rowOwnershipFields = [
+            "id",
+            "created_by",
+            "title",
+            "create_date",
+            "last_update",
+            "pinned",
+            "locked_down",
+            "content",
+        ];
+
+        const dbObject: IMrsDbObjectData = {
+            changedAt: "2022-10-05 11:47:58",
+            comments: "",
+            crudOperations: ["READ"],
+            crudOperationFormat: "FEED",
+            dbSchemaId: 1,
+            enabled: 1,
+            hostCtx: "/mrs",
+            id: 1,
+            name: "note",
+            objectType: "TABLE",
+            requestPath: "/note",
+            requiresAuth: 1,
+            rowUserOwnershipColumn: "created_by",
+            rowUserOwnershipEnforced: 1,
+            schemaRequestPath: "/mrs_notes",
+            qualifiedName: "mrs_notes.note",
+            serviceId: 1,
+            autoDetectMediaType: 0,
+        };
+
+        const promptRequest: IDialogRequest = {
+            id: "mrsDbObjectDialog",
+            type: DialogType.MrsDbObject,
+            title,
+            parameters: { services, schemas, rowOwnershipFields },
+            values: {
+                serviceId: dbObject.serviceId,
+                dbSchemaId: dbObject.dbSchemaId,
+                name: dbObject.name,
+                requestPath: dbObject.requestPath,
+                requiresAuth: dbObject.requiresAuth === 1,
+                enabled: dbObject.enabled === 1,
+                itemsPerPage: dbObject.itemsPerPage,
+                comments: dbObject.comments ?? "",
+                rowUserOwnershipEnforced: dbObject.rowUserOwnershipEnforced === 1,
+                rowUserOwnershipColumn: dbObject.rowUserOwnershipColumn,
+                objectType: dbObject.objectType,
+                crudOperations: dbObject.crudOperations,
+                crudOperationFormat: dbObject.crudOperationFormat,
             },
         };
 

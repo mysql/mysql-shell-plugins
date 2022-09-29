@@ -39,7 +39,8 @@
 
 .msg.valueEditDialog .sectionTitle {
     flex: 1 1 auto;
-    text-align: center;
+    text-align: left;
+    font-size: 0.95em;
 
     padding: 8px 0 4px 0;
     margin: 4px 0;
@@ -59,7 +60,7 @@
 .msg.valueEditDialog .valueTitle {
     font-size: 0.95em;
     color: var(--text-dimmedForeground);
-    margin: 0 0 6px 0;
+    padding-bottom: 2px;
 
     white-space: pre-line;
 }
@@ -87,6 +88,15 @@
     margin-top: calc(0.95em + 6px);
     flex: 1 1 auto;
     white-space: initial;
+}
+
+.msg.valueEditDialog .gridCell .cellDescription {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    flex: 1 1 auto;
+    font-size: 10px;
+    white-space: initial;
+    color: var(--tag-background);
 }
 
 .msg.valueEditDialog .gridCell .message {

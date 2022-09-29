@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,31 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import path from "path";
+import { Command } from "vscode";
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class MrsTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "mrs";
 
+    public constructor(
+        public name: string,
+        public schema: string,
+        public entry: IConnectionEntry,
+        hasChildren: boolean,
+        public enabled: boolean,
+        command?: Command) {
+        super(name, schema, entry, hasChildren, command);
+
+        this.iconPath = {
+            light: path.join(__dirname, "..", "..", "..", "..", "..", "images", "light", this.iconName),
+            dark: path.join(__dirname, "..", "..", "..", "..", "..", "images", "dark", this.iconName),
+        };
+        this.command = command;
+    }
+
     protected get iconName(): string {
-        return "mrs.svg";
+        return this.enabled ? "mrs.svg" : "mrsDisabled.svg";
     }
 }

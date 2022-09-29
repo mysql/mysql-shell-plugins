@@ -26,7 +26,15 @@ import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
 export class SchemaTableTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "schemaTableItem";
 
+    public get qualifiedName(): string {
+        return `\`${this.schema}\`.\`${this.name}\``;
+    }
+
     protected get iconName(): string {
         return "schemaTable.svg";
+    }
+
+    public get dbType(): string {
+        return "table";
     }
 }

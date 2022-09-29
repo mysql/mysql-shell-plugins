@@ -56,7 +56,7 @@ def format_auth_app_listing(auth_apps, print_header=False):
     i = 0
     for item in auth_apps:
         i += 1
-        description=item['description'] if item['description'] is not None else ""
+        description = item['description'] if item['description'] is not None else ""
         output += (f"{item['id']:>3} {item['name'][:25]:26} "
                    f"{description[:35]:36} "
                    f"{item['auth_vendor'][:15]:16} "
@@ -67,23 +67,63 @@ def format_auth_app_listing(auth_apps, print_header=False):
     return output
 
 
-@plugin_function('mrs.add.authenticationApp', shell=True, cli=True, web=True)
-def add_auth_app(app_name=None, service_id=None, **kwargs):
+@plugin_function('mrs.get.authenticationVendors', shell=True, cli=True, web=True)
+def get_auth_vendors(**kwargs):
     """Adds an auth_app to the given MRS service
 
     Args:
-        app_name (str): The app_name
-        service_id (int): The id of the service the schema should be added to
         **kwargs: Additional options
 
     Keyword Args:
+        enabled (bool): Whether to return just the enabled vendors (default) or all
+        session (object): The database session to use
+        raise_exceptions (bool): If set to true exceptions are raised
+
+    Returns:
+        The list of vendor objects
+    """
+
+    enabled = kwargs.get("enabled", True)
+
+    session = kwargs.get("session")
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    try:
+        session = core.get_current_session_with_rds_metadata(session)
+        res = session.run_sql("""
+                SELECT id, name, validation_url, enabled, comments
+                FROM `mysql_rest_service_metadata`.`auth_vendor`
+                WHERE enabled = ?
+                """, [enabled])
+
+        return core.get_sql_result_as_dict_list(res)
+    except Exception as e:
+        if raise_exceptions:
+            raise
+        print(f"Error: {str(e)}")
+
+
+@plugin_function('mrs.add.authenticationApp', shell=True, cli=True, web=True)
+def add_auth_app(**kwargs):
+    """Adds an auth_app to the given MRS service
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        app_name (str): The app_name
+        service_id (int): The id of the service the schema should be added to
         auth_vendor_id (str): The auth_vendor_id
         description (str): A description of the app
         url (str): url of the app
+        url_direct_auth (str): url direct auth of the app
         access_token (str): access_token of the app
         app_id (str): app_id of the app
         limit_to_registered_users (bool): Limit access to registered users
+        use_built_in_authorization (bool): Limit access to registered users
         registered_users (str): List of registered users, separated by ,
+        default_auth_role_id (int): The default role to be assigned to new users
         session (object): The database session to use
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
@@ -93,21 +133,26 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
             number_of_files_uploaded
     """
 
-    import os
-
+    app_name = kwargs.get("app_name")
+    service_id = kwargs.get("service_id")
     auth_vendor_id = kwargs.get("auth_vendor_id")
     description = kwargs.get("description")
     url = kwargs.get("url")
+    url_direct_auth = kwargs.get("url_direct_auth")
     access_token = kwargs.get("access_token")
     app_id = kwargs.get("app_id")
+    use_built_in_authorization = kwargs.get("use_built_in_authorization")
     limit_to_reg_users = kwargs.get("limit_to_registered_users")
     registered_users = kwargs.get("registered_users")
+    default_auth_role_id = kwargs.get("default_auth_role_id")
+
     session = kwargs.get("session")
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
 
     try:
-        session = core.get_current_session(session)
+        # Make sure the MRS metadata schema exists and has the right version
+        session = core.get_current_session_with_rds_metadata(session)
 
         service = mrs_services.get_service(
             service_id=service_id, auto_select_single=True,
@@ -116,12 +161,8 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
 
         # Get auth_vendor_id
         if not auth_vendor_id and interactive:
-            res = session.run_sql("""
-                SELECT id, name
-                FROM `mysql_rest_service_metadata`.`auth_vendor`
-                WHERE enabled = 1
-                """)
-            app_vendors = core.get_sql_result_as_dict_list(res)
+            app_vendors = get_auth_vendors(
+                session=session, raise_exceptions=raise_exceptions)
             if len(app_vendors) == 0:
                 raise ValueError("No authentication vendors enabled.")
 
@@ -185,18 +226,29 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         res = session.run_sql("""
             INSERT INTO `mysql_rest_service_metadata`.`auth_app`(
                 auth_vendor_id, service_id, name, description, url,
-                access_token, app_id, enabled, limit_to_registered_users)
+                url_direct_auth,
+                access_token, app_id, enabled, 
+                use_built_in_authorization, limit_to_registered_users,
+                default_auth_role_id)
             VALUES(?, ?, ?, ?, ?,
-                ?, ?, ?, ?)
-            """, [auth_vendor_id,
-                  service.get("id"),
-                  app_name,
-                  description,
-                  url,
-                  access_token,
-                  app_id,
-                  1,
-                  limit_to_reg_users if limit_to_reg_users else 0])
+                    ?,
+                    ?, ?, ?, 
+                    ?, ?,
+                    ?)
+            """, [
+            auth_vendor_id,
+            service.get("id"),
+            app_name,
+            description,
+            url,
+            url_direct_auth,
+            access_token,
+            app_id,
+            1,
+            use_built_in_authorization if use_built_in_authorization else 1,
+            limit_to_reg_users if limit_to_reg_users else 0,
+            default_auth_role_id
+        ])
         auth_app_id = res.auto_increment_value
 
         # Create the registered_users if specified
@@ -249,10 +301,8 @@ def get_auth_apps(service_id=None, **kwargs):
     return_formatted = kwargs.get("return_formatted", interactive)
 
     try:
-        session = core.get_current_session(session)
-
         # Make sure the MRS metadata schema exists and has the right version
-        core.ensure_rds_metadata_schema(session)
+        session = core.get_current_session_with_rds_metadata(session)
 
         # Check the given service_id or get the default if none was given
         service = mrs_services.get_service(
@@ -262,7 +312,8 @@ def get_auth_apps(service_id=None, **kwargs):
 
         sql = """
             SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
-                a.description, a.url, a.access_token, a.app_id, a.enabled,
+                a.description, a.url, a.url_direct_auth, a.access_token,
+                a.app_id, a.enabled, a.use_built_in_authorization,
                 a.limit_to_registered_users, v.name as auth_vendor
             FROM `mysql_rest_service_metadata`.`auth_app` a
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v

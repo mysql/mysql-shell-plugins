@@ -35,7 +35,7 @@ from mrs_plugin import auth_apps as mrs_auth_apps
 # Define plugin version
 VERSION = "0.1.29"
 
-DB_VERSION = [0, 0, 23]
+DB_VERSION = [0, 0, 24]
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
 
@@ -347,8 +347,8 @@ def configure(**kwargs):
 
         if not interactive:
             return {
-                "schema_changed": schema_changed,
-                "mrs_enabled": enable_mrs}
+                "schemaChanged": schema_changed,
+                "mrsEnabled": enable_mrs}
     except Exception as e:
         if interactive:
             print(f"Error: {str(e)}")
@@ -411,7 +411,8 @@ def status(**kwargs):
             WHERE id = 1
             """)
         row = res.fetch_one()
-        result['service_enabled'] = row.get_field("service_enabled")
+        result['service_enabled'] = (int(row.get_field("service_enabled")) == 1) \
+            if row and row.get_field("service_enabled") else False
 
         # Get the number of enabled services
         res = session.run_sql("""

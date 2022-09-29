@@ -34,7 +34,7 @@ export class SchemaEventTreeItem extends ConnectionsTreeBaseItem {
         return "schemaEvent.svg";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return "event";
     }
 }

@@ -33,7 +33,7 @@ import {
 } from "../../frontend/src/communication";
 
 import { eventFilterNoRequests, ListenerEntry } from "../../frontend/src/supplement/Dispatch";
-import { ShellInterface } from "../../frontend/src/supplement/ShellInterface";
+import { DBType, ShellInterface } from "../../frontend/src/supplement/ShellInterface";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { ISettingCategory, settingCategories } from "../../frontend/src/supplement/Settings/SettingsRegistry";
 import { settings } from "../../frontend/src/supplement/Settings/Settings";
@@ -51,13 +51,16 @@ import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler";
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
 import { MRSCommandHandler } from "./MRSCommandHandler";
+import { ConnectionsTreeDataProvider, IConnectionEntry } from "./tree-providers/ConnectionsTreeProvider";
 
 // This class manages some extension wide things like authentication handling etc.
 export class ExtensionHost {
     private activeProfile?: ICommShellProfile;
     private updatingSettings = false;
 
-    private dbEditorCommandHandler = new DBEditorCommandHandler();
+    private connectionsProvider = new ConnectionsTreeDataProvider();
+
+    private dbEditorCommandHandler  = new DBEditorCommandHandler(this.connectionsProvider);
     private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
     private mrsCommandHandler = new MRSCommandHandler();
     private mdsCommandHandler = new MDSCommandHandler();
@@ -78,7 +81,7 @@ export class ExtensionHost {
     private serverResponseListener: ListenerEntry;
     private sessionListener: ListenerEntry;
 
-    public constructor(private context: ExtensionContext) {
+    public constructor(public context: ExtensionContext) {
         this.setupEnvironment();
 
         requisitions.register("settingsChanged", this.updateVscodeSettings);
@@ -132,11 +135,73 @@ export class ExtensionHost {
         });
     }
 
+
+    /**
+     * Determines a connection to run SQL code with.
+     *
+     * @param dbType The DBType of the connection
+     *
+     * @returns A promise resolving to a connection entry or undefined if no entry was found.
+     */
+    public determineConnection = async (dbType?: DBType): Promise<IConnectionEntry | undefined> => {
+        let connections = this.connectionsProvider.connections;
+
+        const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
+        if (connectionName) {
+            const connection = connections.find((candidate) => {
+                return candidate.details.caption === connectionName;
+            });
+
+            if (!connection) {
+                throw Error(`The default Database Connection ${connectionName} is not available anymore. ` +
+                    "Please make another Database Connection the new default.");
+            } else if (dbType && connection.details.dbType !== dbType) {
+                throw Error(`The default Database Connection ${connectionName} is a ` +
+                    `${String(connection.details.dbType)} connection. This function requires a ${String(dbType)} ` +
+                    "connection.");
+            }
+
+            return connection;
+        } else {
+            // If a specific dbType was specified, filter connections by that DBType
+            if (dbType) {
+                connections = connections.filter((conn) => {
+                    return conn.details.dbType === dbType;
+                });
+            }
+
+            // Check if there is at least one connection
+            if (connections.length === 0) {
+                if (dbType) {
+                    throw Error(`Please create a ${String(dbType)} Database Connection first.`);
+                } else {
+                    throw Error("Please create a Database Connection first.");
+                }
+            }
+
+            // No default connection set. Show a picker.
+            const items = connections.map((connection) => {
+                return connection.details.caption;
+            });
+            const name = await window.showQuickPick(items, {
+                title: "Select a connection for SQL execution",
+                matchOnDescription: true,
+                placeHolder: "Type the name of an existing DB connection",
+            });
+
+            const connection = connections.find((candidate) => {
+                return candidate.details.caption === name;
+            });
+
+            return connection;
+        }
+    };
+
     /**
      * Prepares all vscode providers for first use.
      */
     private setupEnvironment(): void {
-        this.dbEditorCommandHandler.setup(this.context);
+        this.dbEditorCommandHandler.setup(this.context, this);
         this.shellConsoleCommandHandler.setup(this.context);
         this.mrsCommandHandler.setup(this.context, this);
         this.mdsCommandHandler.setup(this.context, this);
@@ -463,5 +528,4 @@ export class ExtensionHost {
             taskOutputChannel.append(JSON.stringify(message));
         }
     };
-
 }

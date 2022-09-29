@@ -326,7 +326,15 @@
             },
             {
                 "command": "msg.openConnection",
-                "title": "Open DB Connection",
+                "title": "Connect to Database",
+                "icon": {
+                    "dark": "images/dark/openConnection.svg",
+                    "light": "images/light/openConnection.svg"
+                }
+            },
+            {
+                "command": "msg.openConnectionNewTab",
+                "title": "Connect to Database on New Tab",
                 "icon": {
                     "dark": "images/dark/openConnection.svg",
                     "light": "images/light/openConnection.svg"
@@ -341,16 +349,8 @@
                 }
             },
             {
-                "command": "msg.openConnectionNewTab",
-                "title": "Open DB Connection in New Tab",
-                "icon": {
-                    "dark": "images/dark/openConnection.svg",
-                    "light": "images/light/openConnection.svg"
-                }
-            },
-            {
                 "command": "msg.addConnection",
-                "title": "Create New MySQL Connection",
+                "title": "Create New DB Connection",
                 "icon": {
                     "dark": "images/dark/add.svg",
                     "light": "images/light/add.svg"
@@ -358,7 +358,7 @@
             },
             {
                 "command": "msg.duplicateConnection",
-                "title": "Duplicate this MySQL Connection",
+                "title": "Duplicate this DB Connection",
                 "icon": {
                     "dark": "images/dark/clone.svg",
                     "light": "images/light/clone.svg"
@@ -366,7 +366,7 @@
             },
             {
                 "command": "msg.removeConnection",
-                "title": "Delete MySQL Connection",
+                "title": "Delete DB Connection",
                 "icon": {
                     "dark": "images/dark/remove.svg",
                     "light": "images/light/remove.svg"
@@ -374,16 +374,16 @@
             },
             {
                 "command": "msg.editConnection",
-                "title": "Edit MySQL Connection",
+                "title": "Edit DB Connection",
                 "icon": "$(edit)"
             },
             {
                 "command": "msg.newSessionUsingConnection",
-                "title": "Open MySQL Shell GUI Console for this Connection"
+                "title": "Open MySQL Shell Console for this Connection"
             },
             {
                 "command": "msg.defaultConnection",
-                "title": "Set this Connection as Default for Embedded SQL Execution"
+                "title": "Set this DB Connection as Default for Embedded SQL Execution"
             },
             {
                 "command": "msg.showSystemSchemasOnConnection",
@@ -534,6 +534,14 @@
                 "title": "Configure MySQL REST Service"
             },
             {
+                "command": "msg.mrs.enableMySQLRestService",
+                "title": "Enable MySQL REST Service"
+            },
+            {
+                "command": "msg.mrs.disableMySQLRestService",
+                "title": "Disable MySQL REST Service"
+            },
+            {
                 "command": "msg.mrs.addService",
                 "title": "Add REST Service..."
             },
@@ -566,8 +574,28 @@
                 "title": "Edit REST Schema..."
             },
             {
-                "command": "msg.mrs.addTable",
-                "title": "Add Table to REST Service"
+                "command": "msg.mrs.addDbObject",
+                "title": "Add Database Object to REST Service"
+            },
+            {
+                "command": "msg.mrs.editDbObject",
+                "title": "Edit REST Database Object"
+            },
+            {
+                "command": "msg.mrs.deleteDbObject",
+                "title": "Delete REST Database Object"
+            },
+            {
+                "command": "msg.mrs.editContentSet",
+                "title": "Edit REST Static Content Set"
+            },
+            {
+                "command": "msg.mrs.deleteContentSet",
+                "title": "Delete REST Static Content Set"
+            },
+            {
+                "command": "msg.mrs.addFolderAsContentSet",
+                "title": "Upload Folder to MySQL REST Service"
             },
             {
                 "command": "msg.showTaskOutput",
@@ -725,6 +753,11 @@
                     "when": "resourceLangId == mysql || resourceLangId == sql",
                     "command": "msg.editInScriptEditor",
                     "group": "1_msg@1"
+                },
+                {
+                    "when": "explorerResourceIsFolder",
+                    "command": "msg.mrs.addFolderAsContentSet",
+                    "group": "8_msg@1"
                 }
             ],
             "editor/title/context": [
@@ -842,11 +875,6 @@
                     "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.newSessionUsingConnection",
-                    "when": "view == msg.connections && viewItem == connectionMySQL",
-                    "group": "2_msg@1"
-                },
-                {
                     "command": "msg.defaultConnection",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
                     "group": "2_msg@1"
@@ -883,9 +911,14 @@
                     "group": "5_msg@2"
                 },
                 {
-                    "command": "msg.mrs.configureMySQLRestService",
+                    "command": "msg.newSessionUsingConnection",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
                     "group": "6_msg@1"
+                },
+                {
+                    "command": "msg.mrs.configureMySQLRestService",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "7_msg@1"
                 },
                 {
                     "command": "msg.dumpSchemaToDisk",
@@ -954,13 +987,18 @@
                 },
                 {
                     "command": "msg.mrs.addService",
-                    "when": "view == msg.connections && viewItem == mrs",
-                    "group": "2_msg@2"
+                    "when": "viewItem == mrs",
+                    "group": "1_msg@2"
                 },
                 {
-                    "command": "msg.mrs.setDefaultService",
-                    "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "1_msg@1"
+                    "command": "msg.mrs.enableMySQLRestService",
+                    "when": "viewItem == mrs",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.disableMySQLRestService",
+                    "when": "viewItem == mrs",
+                    "group": "2_msg@2"
                 },
                 {
                     "command": "msg.mrs.editService",
@@ -968,9 +1006,14 @@
                     "group": "1_msg@2"
                 },
                 {
-                    "command": "msg.mrs.deleteService",
+                    "command": "msg.mrs.setDefaultService",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteService",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mrs.editSchema",
@@ -983,9 +1026,29 @@
                     "group": "2_msg@1"
                 },
                 {
-                    "command": "msg.mrs.addTable",
-                    "when": "view == msg.connections && viewItem == schemaTableItemMySQL",
+                    "command": "msg.mrs.addDbObject",
+                    "when": "viewItem == schemaTableItemMySQL || viewItem == schemaViewItemMySQL || viewItem == schemaRoutineItemMySQL",
                     "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.editDbObject",
+                    "when": "viewItem == mrsDbObject",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteDbObject",
+                    "when": "viewItem == mrsDbObject",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.editContentSet",
+                    "when": "viewItem == mrsContentSet",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteContentSet",
+                    "when": "viewItem == mrsContentSet",
+                    "group": "2_msg@1"
                 },
                 {
                     "command": "msg.removeSession",
@@ -1147,7 +1210,8 @@
                 },
                 {
                     "id": "msg.consoles",
-                    "name": "MYSQL SHELL CONSOLES"
+                    "name": "MYSQL SHELL CONSOLES",
+                    "visibility": "hidden"
                 },
                 {
                     "id": "msg.shellTasks",

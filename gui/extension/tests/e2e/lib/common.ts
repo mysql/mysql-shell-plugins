@@ -35,7 +35,7 @@ import {
     OutputView,
     Key as selKey,
     Locator,
-    Notification,
+    Button,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
@@ -88,21 +88,17 @@ export class Common {
 
     };
 
-    public static getSection = async (name: string): Promise<WebElement> => {
+    public static getSection = async (name: string): Promise<WebElement | undefined> => {
 
         const leftSideBar = await driver.findElement(By.id("workbench.view.extension.msg-view"));
         const sections = await leftSideBar.findElements(By.css(".split-view-view.visible"));
-        let ctx: WebElement | undefined;
         for (const section of sections) {
             if (await section.findElement(By.css("h3.title")).getText() === name) {
-                ctx = section;
-                break;
+                return section;
             }
         }
-        expect(ctx).to.exist;
 
-        return ctx!;
-
+        throw new Error(`Could not find section named ${name}`);
     };
 
     public static getTreeElement = async (section: string,
@@ -111,9 +107,9 @@ export class Common {
         const sec = await this.getSection(section);
 
         if (el.includes("*")) {
-            return sec?.findElement(By.xpath(`//div[contains(@aria-label, '${el.replace("*", "")}')]`));
+            return sec!.findElement(By.xpath(`//div[contains(@aria-label, '${el.replace("*", "")}')]`));
         } else {
-            return sec?.findElement(By.xpath(`//div[@aria-label="${el} "]`));
+            return sec!.findElement(By.xpath(`//div[@aria-label="${el} "]`));
         }
 
     };
@@ -122,21 +118,21 @@ export class Common {
         itemName: string): Promise<boolean | undefined> => {
 
         const root = await this.getTreeElement(section, itemName);
-        const el = await root.findElement(By.css(".custom-view-tree-node-item > div"));
+        const el = await root.findElement(By.css(".custom-view-tree-node-item-icon"));
         const backImage = await el.getCssValue("background-image");
 
         switch (itemType) {
             case "profile": {
-                return backImage.indexOf("ociProfileCurrent") !== -1;
+                return backImage.includes("ociProfileCurrent");
             }
             case "compartment": {
-                return backImage.indexOf("folderCurrent") !== -1;
+                return backImage.includes("folderCurrent");
             }
             case "bastion": {
-                return backImage.indexOf("ociBastionCurrent") !== -1;
+                return backImage.includes("ociBastionCurrent");
             }
             case "rest": {
-                return backImage.indexOf("mrsServiceDefault") !== -1;
+                return backImage.includes("mrsServiceDefault");
             }
             default: {
                 break;
@@ -269,10 +265,10 @@ export class Common {
 
         const section = await this.getSection(sectionName);
         expect(section).to.exist;
-        await section.click();
+        await section!.click();
 
         let btn: WebElement | undefined;
-        const buttons = await section.findElements(By.css(".actions li"));
+        const buttons = await section!.findElements(By.css(".actions li"));
         for (const button of buttons) {
             let title = await button.getAttribute("title");
             if (title === "") {
@@ -284,7 +280,7 @@ export class Common {
             }
         }
 
-        await section.click();
+        await section!.click();
         await driver.wait(until.elementIsVisible(btn!), 2000, `${buttonName} is not visible`);
 
         return btn!;
@@ -295,7 +291,7 @@ export class Common {
         section: string, item: string): Promise<void> => {
 
         const sec = await this.getSection(section);
-        await sec.click();
+        await sec!.click();
 
         const moreActionsBtn = await this.getSectionToolbarButton(section, "More Actions...");
         await moreActionsBtn.click();
@@ -454,9 +450,12 @@ export class Common {
 
     public static execCmd = async (textArea: WebElement, cmd: string,
         timeout?: number): Promise<void> => {
+
         cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
         const prevBlocks = await driver.findElements(By.css(".zoneHost"));
+
         await textArea.sendKeys(cmd);
+
         await textArea.sendKeys(key.ENTER);
 
         await this.execOnEditor();
@@ -575,7 +574,7 @@ export class Common {
 
         try {
             await driver.wait(async () => {
-                return (await sec.findElements(locator)).length > 0;
+                return (await sec!.findElements(locator)).length > 0;
             }, 3000, `${el} was not found`);
 
             return true;
@@ -586,7 +585,7 @@ export class Common {
 
     public static reloadSection = async (sectionName: string): Promise<void> => {
         const section = await this.getSection(sectionName);
-        await section.click();
+        await section!.click();
         let btnName = "";
         switch (sectionName) {
             case dbTreeSection: {
@@ -640,16 +639,39 @@ export class Common {
         }, 10000, "WebView content was not loaded");
     };
 
-    public static waitForNotification = async (): Promise<Notification> => {
-        const workbench = new Workbench();
+    public static hasNotifications = async (): Promise<boolean> => {
+        try {
+            const workbench = new Workbench();
 
+            return (await workbench.getNotifications()).length > 0;
+        } catch (e) {
+            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
+    };
+
+    public static verifyNotification = async (text: string, waitToDisappear = false): Promise<void> => {
         await driver.wait(async () => {
-            return (await workbench.getNotifications()).length > 0 ? true : false;
-        }, explicitWait, "Could not get notification");
+            try {
+                const workbench = new Workbench();
 
-        const notifications = await workbench.getNotifications();
+                const ntfs = await workbench.getNotifications();
 
-        return notifications[notifications.length - 1];
+                return (await ntfs[ntfs.length - 1].getMessage()).includes(text);
+            } catch (e) {
+                return false;
+            }
+        }, ociExplicitWait, `Notification with text '${text}' was not found`);
+
+        if (waitToDisappear) {
+            await driver.wait(async () => {
+                return (await Common.hasNotifications()) === false;
+            }, explicitWait, `'${text}' notification is still visible`);
+        }
+
     };
 
     public static waitForOutputText = async (view: OutputView, textToSearch: string,
@@ -673,7 +695,7 @@ export class Common {
     public static hasLoadingBar = async (section: string): Promise<boolean> => {
         const sectionObj = await this.getSection(section);
 
-        return (await sectionObj.findElements(By.css(".monaco-progress-container.active"))).length > 0;
+        return (await sectionObj!.findElements(By.css(".monaco-progress-container.active"))).length > 0;
     };
 
     public static setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
@@ -769,6 +791,40 @@ export class Common {
         await driver.wait(async () => {
             return await this.getPromptTextLine("last") === "";
         }, 3000, "Prompt was not cleaned");
+    };
+
+    public static hideSection = async (section:string, hide: boolean): Promise <void> => {
+        const context = await driver.findElement(By.id("workbench.view.extension.msg-view"));
+        const title = await context.findElement(By.css("h3"));
+        await driver
+            .actions()
+            .mouseMove(title)
+            .click(Button.RIGHT)
+            .perform();
+
+        const contextMenu = await driver.wait(until.elementLocated(By.css(".context-view.monaco-menu-container")),
+            3000, "Could not find the context menu");
+
+        const items = await contextMenu.findElements(By.css("li.action-item a"));
+        for (const item of items) {
+            const label = await item.getAttribute("innerHTML");
+            if (label.includes(section) ) {
+                const isChecked = (await item.getAttribute("class")).includes("checked");
+                if ((isChecked && hide) || (!isChecked && !hide)) {
+                    await item.click();
+
+                    break;
+                }
+            }
+        }
+
+        await driver.wait(async () => {
+            if (!hide) {
+                return (await this.getSection(section)) !== undefined;
+            } else {
+                return (await this.getSection(section)) === undefined;
+            }
+        }, 3000, `${section} was not hidden/displayed`);
     };
 }
 

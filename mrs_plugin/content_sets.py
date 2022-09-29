@@ -70,19 +70,22 @@ def format_content_set_listing(content_sets, print_header=False):
 
 
 @plugin_function('mrs.add.contentSet', shell=True, cli=True, web=True)
-def add_content_set(content_dir=None, service_id=None, **kwargs):
+def add_content_set(**kwargs):
     """Adds content to the given MRS service
 
     Args:
-        content_dir (str): The path to the content directory
-        service_id (int): The id of the service the schema should be added to
         **kwargs: Additional options
 
     Keyword Args:
+        content_dir (str): The path to the content directory
+        service_id (int): The id of the service the schema should be added to
         request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
             the content
         comments (str): Comments about the content
+        enabled (bool): Whether to enable the content set after all files are uploaded
+        options (str): The options as JSON string
+        replace_existing (bool): Whether to replace a content set that uses the same request_path
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
@@ -94,15 +97,20 @@ def add_content_set(content_dir=None, service_id=None, **kwargs):
 
     import os
 
+    content_dir = kwargs.get("content_dir")
+    service_id = kwargs.get("service_id")
     request_path = kwargs.get("request_path")
     requires_auth = kwargs.get("requires_auth")
     comments = kwargs.get("comments")
+    enabled = kwargs.get("enabled", 1)
+    options = kwargs.get("options")
+    replace_existing = kwargs.get("replace_existing", False)
     session = kwargs.get("session")
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
 
     try:
-        session = core.get_current_session(session)
+        session = core.get_current_session_with_rds_metadata(session)
 
         service = mrs_services.get_service(
             service_id=service_id, auto_select_single=True,
@@ -119,97 +127,121 @@ def add_content_set(content_dir=None, service_id=None, **kwargs):
         if not request_path.startswith('/'):
             raise Exception("The request_path has to start with '/'.")
 
-        core.check_request_path(
-            service.get('url_host_name') + service.get('url_context_root') +
-            request_path,
-            session=session)
+        # Do all following steps in a single transaction so they can be fully rolled back or committed as one
+        session.run_sql("START TRANSACTION")
+        try:
+            if replace_existing:
+                conflicting_content_sets = get_content_sets(
+                    service_id=service.get("id"),
+                    request_path=request_path,
+                    session=session, interactive=interactive, raise_exceptions=True,
+                    return_formatted=False)
+                if len(conflicting_content_sets) > 0:
+                    session.run_sql("""
+                        DELETE FROM `mysql_rest_service_metadata`.`content_set`
+                        WHERE id = ?
+                    """, [conflicting_content_sets[0].get("id")])
 
-        # Get the content_dir
-        if not content_dir and interactive:
-            content_dir = core.prompt(
-                message=('Please enter the file path to the directory '
-                         'that contains the static content: '))
+            core.check_request_path(
+                service.get('url_host_name') + service.get('url_context_root') +
+                request_path,
+                session=session)
 
-        if not content_dir:
-            if interactive:
-                raise ValueError('Operation cancelled.')
-            else:
-                raise ValueError('No content directory path given.')
+            # Get the content_dir
+            if not content_dir and interactive:
+                content_dir = core.prompt(
+                    message=('Please enter the file path to the directory '
+                            'that contains the static content: '))
 
-        # Convert Unix path to Windows
-        content_dir = os.path.abspath(
-            os.path.expanduser(content_dir))
+            if not content_dir:
+                if interactive:
+                    raise ValueError('Operation cancelled.')
+                else:
+                    raise ValueError('No content directory path given.')
 
-        # If a content_dir has been provided, check if that directory exists
-        if not os.path.isdir(content_dir):
-            raise ValueError(
-                f"The given content directory path '{content_dir}' "
-                "does not exists.")
+            # Convert Unix path to Windows
+            content_dir = os.path.abspath(
+                os.path.expanduser(content_dir))
 
-        # Get requires_auth
-        if not requires_auth:
-            if interactive:
-                requires_auth = core.prompt(
-                    "Should the content require authentication [y/N]: ",
-                    {'defaultValue': 'n'}).strip().lower() == 'y'
-            else:
-                requires_auth = False
+            # If a content_dir has been provided, check if that directory exists
+            if not os.path.isdir(content_dir):
+                raise ValueError(
+                    f"The given content directory path '{content_dir}' "
+                    "does not exists.")
 
-        # Get comments
-        if not comments and interactive:
-            comments = core.prompt_for_comments()
+            # Get requires_auth
+            if not requires_auth:
+                if interactive:
+                    requires_auth = core.prompt(
+                        "Should the content require authentication [y/N]: ",
+                        {'defaultValue': 'n'}).strip().lower() == 'y'
+                else:
+                    requires_auth = False
 
-        # Create the content_set, ensure it is created as "not enabled"
-        res = session.run_sql("""
-            INSERT INTO `mysql_rest_service_metadata`.`content_set`(
-                service_id, request_path, requires_auth, enabled, comments)
-            VALUES(?, ?, ?, ?, ?)
-            """, [service.get("id"),
-                  request_path,
-                  1 if requires_auth else 0,
-                  0,
-                  comments])
-        content_set_id = res.auto_increment_value
+            # Get comments
+            if not comments and interactive:
+                comments = core.prompt_for_comments()
 
-        file_list = []
-        for root, dirs, files in os.walk(content_dir):
-            for file in files:
-                file_list.append(os.path.join(root, file))
-
-        for file in file_list:
-            # Read the file content
-            with open(file, 'rb') as f:
-                data = f.read()
-
-            # Upload it to the content table
+            # Create the content_set, ensure it is created as "not enabled"
             res = session.run_sql("""
-                INSERT INTO `mysql_rest_service_metadata`.`content_file`(
-                    content_set_id, request_path, requires_auth, enabled,
-                    content)
-                VALUES(?, ?, ?, ?, ?)
-                """, [content_set_id,
-                      file[len(content_dir):],
-                      1 if requires_auth else 0,
-                      1,
-                      data])
+                INSERT INTO `mysql_rest_service_metadata`.`content_set`(
+                    service_id, request_path, requires_auth, enabled, comments, options)
+                VALUES(?, ?, ?, ?, ?, ?)
+                """, [service.get("id"),
+                    request_path,
+                    1 if requires_auth else 0,
+                    0,
+                    comments,
+                    options if options else None])
+            content_set_id = res.auto_increment_value
 
-        if interactive:
-            print(f"{len(file_list)} files added.")
+            file_list = []
+            for root, dirs, files in os.walk(content_dir):
+                for file in files:
+                    file_list.append(os.path.join(root, file))
 
-        # Enable the content_set after all content has been uploaded
-        res = session.run_sql("""
-            UPDATE `mysql_rest_service_metadata`.`content_set`
-            SET enabled = 1
-            WHERE id = ?
-            """, [content_set_id])
+            for file in file_list:
+                print(f"Uploading file {file[len(content_dir):]} ...")
 
-        if interactive:
-            return "\n" + "Content added successfully."
-        else:
-            return {
-                "content_set_id": content_set_id,
-                "number_of_files_uploaded": len(file_list)
-            }
+                # Read the file content
+                with open(file, 'rb') as f:
+                    data = f.read()
+
+                # Upload it to the content table
+                res = session.run_sql("""
+                    INSERT INTO `mysql_rest_service_metadata`.`content_file`(
+                        content_set_id, request_path, requires_auth, enabled,
+                        content)
+                    VALUES(?, ?, ?, ?, ?)
+                    """, [content_set_id,
+                        file[len(content_dir):],
+                        1 if requires_auth else 0,
+                        1,
+                        data])
+
+            if interactive:
+                print(f"{len(file_list)} files added.")
+
+            # Enable the content_set after all content has been uploaded
+            if enabled:
+                res = session.run_sql("""
+                    UPDATE `mysql_rest_service_metadata`.`content_set`
+                    SET enabled = 1
+                    WHERE id = ?
+                    """, [content_set_id])
+
+            session.run_sql("COMMIT")
+
+            if interactive:
+                return "\n" + "Content added successfully."
+            else:
+                return {
+                    "contentSetId": content_set_id,
+                    "numberOfFilesUploaded": len(file_list)
+                }
+        except Exception as e:
+            session.run_sql("ROLLBACK")
+            raise
 
     except Exception as e:
         if raise_exceptions:
@@ -228,10 +260,11 @@ def get_content_sets(service_id=None, **kwargs):
     Keyword Args:
         include_enable_state (bool): Only include items with the given
             enabled state
+        request_path (str): The request_path of the content_set
         session (object): The database session to use.
         interactive (bool): Indicates whether to execute in interactive mode
         raise_exceptions (bool): If set to true exceptions are raised
-        return_formatted (bool): If set to true, a list object is returned
+        return_formatted (bool): If set to false, a list object is returned
 
     Returns:
         Either a string listing the content sets when interactive is set or list
@@ -239,6 +272,7 @@ def get_content_sets(service_id=None, **kwargs):
     """
 
     include_enable_state = kwargs.get("include_enable_state")
+    request_path = kwargs.get("request_path")
     session = kwargs.get("session")
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
@@ -256,24 +290,29 @@ def get_content_sets(service_id=None, **kwargs):
             session=session, interactive=interactive,
             return_formatted=False)
 
+        params = [service.get("id")]
         sql = """
             SELECT cs.id, cs.request_path, cs.requires_auth,
                 cs.enabled, cs.comments,
-                CONCAT(h.name, se.url_context_root) AS host_ctx
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                cs.options
             FROM `mysql_rest_service_metadata`.`content_set` cs
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.`service` se
                     ON se.id = cs.service_id
                 LEFT JOIN `mysql_rest_service_metadata`.`url_host` h
-				    ON se.url_host_id = h.id
+                    ON se.url_host_id = h.id
             WHERE cs.service_id = ? /*=1*/
             """
         if include_enable_state is not None:
-            sql += ("AND cs.enabled = "
-                    f"{'TRUE' if include_enable_state else 'FALSE'} ")
+            sql += "AND cs.enabled = ? "
+            params.append(True if include_enable_state else False)
+        if request_path:
+            sql += "AND cs.request_path = ? "
+            params.append(request_path)
 
         sql += "ORDER BY cs.request_path"
 
-        res = session.run_sql(sql, [service.get("id")])
+        res = session.run_sql(sql, params)
 
         content_sets = core.get_sql_result_as_dict_list(res)
 
@@ -603,7 +642,7 @@ def change_content_set(change_type=None, request_path=None, service_id=None,
                 raise Exception("Operation not supported")
 
             res = session.run_sql(sql, [content_set_id])
-            if res.get_affected_row_count() == 0:
+            if res.affected_items_count == 0:
                 raise Exception(
                     f"The specified content_set with id {content_set_id} was "
                     "not found.")

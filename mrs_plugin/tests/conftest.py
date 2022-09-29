@@ -72,7 +72,7 @@ def init_mrs():
     configure(**config)
 
     service = {
-        "url_protocol": "HTTP",
+        "url_protocol": ["HTTP"],
         "is_default": True,
         "comments": "Test service",
         "session": session,
@@ -81,6 +81,24 @@ def init_mrs():
     }
     from .. services import add_service
     result = add_service("/test", "localhost", True, **service)
+
+    assert result is not None
+    assert isinstance(result, dict)
+    assert result == {
+        'id': 1,
+        'enabled': 1,
+        'url_protocol': ['HTTP'],
+        'url_host_name': 'localhost',
+        'url_context_root': '/test',
+        'is_default': 1,
+        'comments': 'Test service',
+        'options': None,
+        'host_ctx': 'localhost/test',
+        'auth_path': '/authentication',
+        'auth_completed_url': None,
+        'auth_completed_url_validation': None,
+        'auth_completed_page_content': None
+    }
 
     schema = {
         "schema_name": "PhoneBook",
@@ -123,9 +141,8 @@ def init_mrs():
         "crud_operation_format": "ITEM",
         "requires_auth": False,
         "items_per_page": 10,
-        "row_ownership_enforced": False,
-        "row_ownership_column": "",
-        "row_ownership_parameter": "",
+        "row_user_ownership_enforced": False,
+        "row_user_ownership_column": "",
         "comments": "Test table",
         "session": session,
         "interactive": False,

@@ -34,7 +34,7 @@ export class SchemaTreeItem extends ConnectionsTreeBaseItem {
         return "schemaSqlite.svg";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return "schema";
     }
 }

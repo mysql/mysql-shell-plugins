@@ -68,6 +68,9 @@ export enum CommonDialogValueOption {
 
     /** Set to break two consecutive groups apart (set on first member). */
     NewGroup,
+
+    /** If the control should be hidden. */
+    Hidden,
 }
 
 /** Contains fields that are common to all dialog values. */
@@ -77,6 +80,9 @@ export interface IBaseDialogValue {
 
     caption?: string;
     options?: CommonDialogValueOption[];
+
+    /** Provides a description specific to this value, which will be rendered as part of the value. */
+    description?: string;
 
     /** A value between 1 and 8 for the grid cells to span horizontally (default: 4). */
     horizontalSpan?: number;
@@ -113,9 +119,6 @@ export interface IStringInputDialogValue extends IBaseDialogValue {
     type: "text";
 
     value?: string;
-
-    /** Provides a description specific to this value, which will be rendered as part of the value. */
-    description?: string;
 
     /** Text to be shown in the input field, if no value is set yet. */
     placeholder?: string;
@@ -163,6 +166,8 @@ export interface IBooleanInputDialogValue extends IBaseDialogValue {
     type: "boolean";
 
     value?: boolean;
+
+    label?: string;
 
     /** Called when the value was changed. */
     onChange?: (value: boolean, dialog: ValueEditDialog) => void;
@@ -259,7 +264,7 @@ export interface IRelationDialogValue extends IBaseDialogValue {
     relations: { [key: string]: string };
 
     /** The id of the current entry in the relations object. Only one set of values can be edited at a time. */
-    active?: string;
+    active?: string | number;
 
     /** The fields shown in the overview list as individual columns. Default is ["title"]. */
     listItemCaptionFields?: string[];
@@ -650,7 +655,6 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                     ref={this.relationListContextMenuRef}
                     onItemClick={this.handleRelationListContextMenuItemClick}
                 >
-                    <MenuItem id="addEntry" caption="Add Entry" />
                     <MenuItem id="removeEntry" caption="Remove Selected Entry" />
                 </Menu>
             </>
@@ -942,6 +946,11 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         for (const entry of edits) {
             const options = entry.value.options;
 
+            // If the option CommonDialogValueOption.Hidden is set, do not render the control
+            if (options?.includes(CommonDialogValueOption.Hidden)) {
+                continue;
+            }
+
             if (entry.value.type === "description") {
                 const text = entry.value.value ?? entry.value.caption;
                 result.push(
@@ -987,7 +996,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                         result.push(<Checkbox
                             id={key}
                             key={key}
-                            caption={entry.value.caption}
+                            caption={entry.value.label ?? entry.value.caption}
                             className="valueEditor"
                             checkState={value ? CheckState.Checked : CheckState.Unchecked}
                             onChange={this.checkboxChange.bind(this, sectionId)}
@@ -1128,10 +1137,11 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                             columns={settingsListColumns}
                             tableData={entry.value.value}
                             options={options}
-                            selectedIds={[entry.value.active ?? ""]}
+                            selectedIds={[String(entry.value.active) ?? ""]}
                             height="12em"
                             onRowSelected={this.handleRelationalListRowSelection.bind(this, sectionId, entry.value)}
-                            onRowContext={this.handleRelationListRowContext.bind(this, sectionId, entry.value)}
+                            onRowContext={
+                                this.handleRelationListRowContext.bind(this, sectionId, entry.value)}
                         />);
 
                         result.push(containerGridEntry);
@@ -1158,7 +1168,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                                 <ParamDialog
                                     ref={this.paramDialogRef}
                                     id="paramDialog"
-                                    caption="Add connection parameters"
+                                    caption="Add parameters"
                                 />
                                 <TreeGrid
                                     id="valueGrid"
@@ -1225,20 +1235,20 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                             </Container>,
                         );
 
-                        // Add cell specific description if given.
-                        if (entry.value.description) {
-                            result.push(
-                                <Label
-                                    key={key + "CellDescription"}
-                                    className="cellDescription"
-                                    caption={entry.value.description}
-                                />,
-                            );
-                        }
-
                         break;
                     }
                 }
+            }
+
+            // Add cell specific description if given.
+            if (entry.value.description) {
+                result.push(
+                    <Label
+                        key={entry.key + "CellDescription"}
+                        className="cellDescription"
+                        caption={entry.value.description}
+                    />,
+                );
             }
         }
 
@@ -1566,7 +1576,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             }
 
             dialogValue = section.values[parts[0]];
-            if (!dialogValue || dialogValue.type !== "relation" || !dialogValue.active) {
+            if (!dialogValue || dialogValue.type !== "relation" || dialogValue.active === undefined) {
                 return;
             }
 
@@ -1588,9 +1598,15 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         return dialogValue;
     }
 
-    private handleRelationListRowContext = (sectionId: string, value: IRelationDialogValue, event: Event): void => {
+    private handleRelationListRowContext = (sectionId: string, value: IRelationDialogValue, event: Event,
+        row: RowComponent): void => {
         const e = event as MouseEvent;
         const targetRect = new DOMRect(e.clientX, e.clientY, 2, 2);
+
+        const entry = row.getData() as IDictionary;
+        if (entry && entry.id) {
+            value.active = String(entry.id);
+        }
 
         this.relationListContextMenuRef.current?.open(targetRect, false, {}, { sectionId, value });
     };
@@ -1611,30 +1627,26 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             this.forceUpdate();
         } else if ((itemData.value.value ?? []).length > 1) {
             // Don't allow to remove the last element or we will no longer get row context menu events.
-            let index = itemData.value.value?.findIndex((candidate) => {
-                return candidate[idName] === itemData.value.active;
+            const index = itemData.value.value?.findIndex((candidate) => {
+                return String(candidate[idName]) === String(itemData.value.active);
             }) ?? -1;
 
-            if (index > -1) {
+            // Don't delete the <new> entry if there
+            if (index > -1 && index < (itemData.value.value ?? []).length - 1) {
                 const { onValidate } = this.props;
                 const { values, data } = this.state;
 
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 if (Object.keys(validations.messages).length === 0) {
-                    // Select the entry which is now at the position where the deleted entry was.
-                    // If that was the last one then select the now last one.
-                    if (itemData.value.value?.length === 0) {
-                        itemData.value.active = undefined;
-                    } else {
-                        if (index === itemData.value.value?.length) {
-                            --index;
-                        }
-
-                        const entry = itemData.value.value?.[index] ?? {};
-                        itemData.value.active = entry[idName] as string;
-                    }
-
+                    // Remove item
                     itemData.value.value?.splice(index, 1);
+
+                    // Make the new item in the same position active or the one before that
+                    // if the last item as already selected
+                    const entry = itemData.value.value?.[
+                        (index === (itemData.value.value ?? []).length - 1) ? index - 1 : index];
+                    itemData.value.active = (entry) ? String(entry[idName]) : undefined;
+
                     this.setState({ values, validations });
                 }
             }

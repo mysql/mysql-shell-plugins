@@ -31,14 +31,21 @@ def test_get_current_service():
     set_current_objects(service_id=1, schema_id=1, content_set_id=1)
     current_service = get_current_service()
     assert current_service is not None
-    assert current_service == {'id': 1,
-                               'enabled': 1,
-                               'url_protocol': 'HTTP',
-                               'url_host_name': 'localhost',
-                               'url_context_root': '/test',
-                               'is_default': 1,
-                               'comments': 'Test service',
-                               'host_ctx': 'localhost/test'}
+    assert current_service == {
+                                'id': 1,
+                                'enabled': 1,
+                                'auth_completed_page_content': None,
+                                'auth_completed_url': None,
+                                'auth_completed_url_validation': None,
+                                'auth_path': "/authentication",
+                                'url_protocol': ['HTTP'],
+                                'url_host_name': 'localhost',
+                                'url_context_root': '/test',
+                                'is_default': 1,
+                                'options': None,
+                                'comments': 'Test service',
+                                'host_ctx': 'localhost/test'
+                            }
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_current_content_set():
@@ -61,6 +68,7 @@ def test_get_current_schema():
                       'request_path': '/test_schema',
                       'requires_auth': 0,
                       'enabled': 1,
+                      'options': None,
                       'items_per_page': 20,
                       'comments': 'test schema',
                       'host_ctx': 'localhost/test'}
@@ -100,14 +108,21 @@ def test_analyze_service_path():
 
     service, schema, content_set = analyze_service_path("localhost/test/test_schema")
     assert service is not None
-    assert service == {'id': 1,
-                       'enabled': 1,
-                       'url_protocol': 'HTTP',
-                       'url_host_name': 'localhost',
-                       'url_context_root': '/test',
-                       'is_default': 1,
-                       'comments': 'Test service',
-                       'host_ctx': 'localhost/test'}
+    assert service == {
+                        'id': 1,
+                        'enabled': 1,
+                        'auth_completed_page_content': None,
+                        'auth_completed_url': None,
+                        'auth_completed_url_validation': None,
+                        'auth_path': '/authentication',
+                        'url_protocol': ['HTTP'],
+                        'url_host_name': 'localhost',
+                        'url_context_root': '/test',
+                        'is_default': 1,
+                        'options': None,
+                        'comments': 'Test service',
+                        'host_ctx': 'localhost/test'
+                    }
 
     assert schema is not None
     assert schema == {'id': 1,
@@ -116,6 +131,7 @@ def test_analyze_service_path():
                       'request_path': '/test_schema',
                       'requires_auth': 0,
                       'enabled': 1,
+                      'options': None,
                       'items_per_page': 20,
                       'comments': 'test schema',
                       'host_ctx': 'localhost/test'}

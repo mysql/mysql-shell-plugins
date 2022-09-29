@@ -206,6 +206,47 @@ export class MySQLShellLauncher {
     };
 
     /**
+     * Determines an unused TCP/IP port that can be used for a shell process.
+     *
+     * @returns A promise which resolves to the found port.
+     */
+    public static findFreePort = (): Promise<number> => {
+        return new Promise((resolve, reject) => {
+            const server = net.createServer();
+            let errorEncountered = false;
+
+            // Cannot simulate an error here.
+            // istanbul ignore next
+            server.on("error", (err) => {
+                server.close();
+
+                if (!errorEncountered) {
+                    errorEncountered = true;
+                    reject(err);
+                }
+            });
+
+            server.listen(0, () => {
+                const address = server.address();
+
+                // istanbul ignore if
+                if (!address || typeof address === "string" || address.port === 0) {
+                    reject(new Error("Unable to get a port for the backend"));
+                } else {
+                    server.close();
+
+                    // istanbul ignore else
+                    if (!errorEncountered) {
+                        errorEncountered = true;
+                        resolve(address.port);
+                    }
+                }
+            });
+
+        });
+    };
+
+    /**
      * Returns the path to the MySQL Shell binary that should be used.
      *
      * The function checks if a MySQL Shell exists under the given root path. If so, the path to that binary is
@@ -268,47 +309,6 @@ export class MySQLShellLauncher {
     };
 
     /**
-     * Determines an unused TCP/IP port that can be used for a shell process.
-     *
-     * @returns A promise which resolves to the found port.
-     */
-    private static findFreePort = (): Promise<number> => {
-        return new Promise((resolve, reject) => {
-            const server = net.createServer();
-            let errorEncountered = false;
-
-            // Cannot simulate an error here.
-            // istanbul ignore next
-            server.on("error", (err) => {
-                server.close();
-
-                if (!errorEncountered) {
-                    errorEncountered = true;
-                    reject(err);
-                }
-            });
-
-            server.listen(0, () => {
-                const address = server.address();
-
-                // istanbul ignore if
-                if (!address || typeof address === "string" || address.port === 0) {
-                    reject(new Error("Unable to get a port for the backend"));
-                } else {
-                    server.close();
-
-                    // istanbul ignore else
-                    if (!errorEncountered) {
-                        errorEncountered = true;
-                        resolve(address.port);
-                    }
-                }
-            });
-
-        });
-    };
-
-    /**
      * Ends the shell process without disposing of the launcher class. A new process can be started at any time.
      *
      * @returns a promise that resolves when the process signalled its end.
@@ -348,7 +348,7 @@ export class MySQLShellLauncher {
                 // For external targets we don't pass on a shell config dir, as we probably cannot access it
                 // anyway (unless the target is on localhost).
                 MessageScheduler.get.connect(new URL(target), "").then(() => {
-                    this.launchDetails.port = Number(url.port);
+                    this.launchDetails.port = Number(url.port ?? 8000);
                     this.launchDetails.singleUserToken = url.searchParams.get("token") ?? "";
 
                     void requisitions.execute("connectedToUrl", url);

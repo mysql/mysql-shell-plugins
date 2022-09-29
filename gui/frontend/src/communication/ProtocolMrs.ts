@@ -24,7 +24,6 @@
 import { Protocol, IShellRequest } from ".";
 
 
-
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -40,7 +39,9 @@ export enum ShellAPIMrs {
     MrsSetServiceContextPath = "mrs.set.service.context_path",
     MrsSetServiceProtocol = "mrs.set.service.protocol",
     MrsSetServiceComments = "mrs.set.service.comments",
+    MrsSetServiceOptions = "mrs.set.service.options",
     MrsUpdateService = "mrs.update.service",
+    MrsGetServiceRequestPathAvailability = "mrs.get.service_request_path_availability",
     MrsAddSchema = "mrs.add.schema",
     MrsGetSchema = "mrs.get.schema",
     MrsListSchemas = "mrs.list.schemas",
@@ -62,13 +63,17 @@ export enum ShellAPIMrs {
     MrsAddDbObject = "mrs.add.db_object",
     MrsGetDbObject = "mrs.get.db_object",
     MrsGetDbObjectRowOwnershipFields = "mrs.get.db_object_row_ownership_fields",
+    MrsGetDbObjectFields = "mrs.get.db_object_fields",
     MrsListDbObjects = "mrs.list.db_objects",
+    MrsGetDbObjectParameters = "mrs.get.db_object_parameters",
     MrsSetDbObjectRequestPath = "mrs.set.db_object.request_path",
     MrsSetDbObjectCrudOperations = "mrs.set.db_object.crud_operations",
     MrsEnableDbObject = "mrs.enable.db_object",
     MrsDisableDbObject = "mrs.disable.db_object",
     MrsDeleteDbObject = "mrs.delete.db_object",
+    MrsUpdateDbObject = "mrs.update.db_object",
     MrsListContentFiles = "mrs.list.content_files",
+    MrsGetAuthenticationVendors = "mrs.get.authentication_vendors",
     MrsAddAuthenticationApp = "mrs.add.authentication_app",
     MrsListAuthenticationApps = "mrs.list.authentication_apps",
     MrsInfo = "mrs.info",
@@ -82,9 +87,15 @@ export enum ShellAPIMrs {
 //  Begin auto generated types
 
 export interface IShellAddServiceKwargs {
-    urlProtocol?: string;
+    urlProtocol?: unknown[];
     isDefault?: boolean;
     comments?: string;
+    options?: string;
+    authPath?: string;
+    authCompletedUrl?: string;
+    authCompletedUrlValidation?: string;
+    authCompletedPageContent?: string;
+    authApps?: string;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
@@ -182,11 +193,39 @@ export interface IShellSetServiceCommentsKwargs {
 }
 
 
+export interface IShellSetServiceOptionsKwargs {
+    urlContextRoot?: string;
+    urlHostName?: string;
+    value?: string;
+    serviceId?: number;
+    moduleSessionId?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
 export interface IShellUpdateServiceKwargs {
     serviceId?: number;
     urlContextRoot?: string;
     urlHostName?: string;
-    value?: string;
+    urlProtocol?: unknown[];
+    enabled?: boolean;
+    comments?: string;
+    options?: string;
+    authPath?: string;
+    authCompletedUrl?: string;
+    authCompletedUrlValidation?: string;
+    authCompletedPageContent?: string;
+    authApps?: string;
+    moduleSessionId?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+}
+
+
+export interface IShellGetServiceRequestPathAvailabilityKwargs {
+    serviceId?: number;
+    requestPath?: string;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
@@ -201,6 +240,7 @@ export interface IShellAddSchemaKwargs {
     enabled?: boolean;
     itemsPerPage?: number;
     comments?: string;
+    options?: string;
     moduleSessionId?: string;
     interactive?: boolean;
 }
@@ -319,7 +359,12 @@ export interface IShellUpdateSchemaKwargs {
     schemaName?: string;
     serviceId?: number;
     schemaId?: number;
-    value?: string;
+    requestPath?: string;
+    requiresAuth?: boolean;
+    enabled?: boolean;
+    itemsPerPage?: number;
+    comments?: string;
+    options?: string;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
@@ -327,9 +372,14 @@ export interface IShellUpdateSchemaKwargs {
 
 
 export interface IShellAddContentSetKwargs {
+    contentDir?: string;
+    serviceId?: number;
     requestPath?: string;
     requiresAuth?: boolean;
     comments?: string;
+    enabled?: boolean;
+    options?: string;
+    replaceExisting?: boolean;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
@@ -338,6 +388,7 @@ export interface IShellAddContentSetKwargs {
 
 export interface IShellListContentSetsKwargs {
     includeEnableState?: boolean;
+    requestPath?: string;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
@@ -385,6 +436,7 @@ export interface IShellAddDbObjectKwargs {
     schemaName?: string;
     autoAddSchema?: boolean;
     requestPath?: string;
+    enabled?: boolean;
     crudOperations?: unknown[];
     crudOperationFormat?: string;
     requiresAuth?: boolean;
@@ -392,6 +444,11 @@ export interface IShellAddDbObjectKwargs {
     rowUserOwnershipEnforced?: boolean;
     rowUserOwnershipColumn?: string;
     comments?: string;
+    mediaType?: string;
+    autoDetectMediaType?: boolean;
+    authStoredProcedure?: string;
+    options?: string;
+    parameters?: string;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
@@ -418,12 +475,32 @@ export interface IShellGetDbObjectRowOwnershipFieldsKwargs {
 }
 
 
+export interface IShellGetDbObjectFieldsKwargs {
+    dbObjectId?: number;
+    schemaId?: number;
+    schemaName?: string;
+    dbObjectType?: string;
+    moduleSessionId?: string;
+    interactive?: boolean;
+}
+
+
 export interface IShellListDbObjectsKwargs {
+    schemaId?: number;
     includeEnableState?: boolean;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
     returnFormatted?: boolean;
+}
+
+
+export interface IShellGetDbObjectParametersKwargs {
+    dbObjectId?: number;
+    schemaId?: number;
+    schemaName?: string;
+    moduleSessionId?: string;
+    interactive?: boolean;
 }
 
 
@@ -460,6 +537,33 @@ export interface IShellDeleteDbObjectKwargs {
 }
 
 
+export interface IShellUpdateDbObjectKwargs {
+    dbObjectId?: number;
+    dbObjectName?: string;
+    schemaId?: number;
+    requestPath?: string;
+    name?: string;
+    enabled?: boolean;
+    crudOperations?: unknown[];
+    crudOperationFormat?: string;
+    requiresAuth?: boolean;
+    itemsPerPage?: number;
+    autoDetectMediaType?: boolean;
+    rowUserOwnershipEnforced?: boolean;
+    rowUserOwnershipColumn?: string;
+    comments?: string;
+    mediaType?: string;
+    authStoredProcedure?: string;
+    options?: string;
+    parameters?: string;
+    moduleSessionId?: string;
+    interactive?: boolean;
+    raiseExceptions?: boolean;
+    returnFormatted?: boolean;
+    returnPythonObject?: boolean;
+}
+
+
 export interface IShellListContentFilesKwargs {
     contentSetId?: number;
     includeEnableState?: boolean;
@@ -470,14 +574,26 @@ export interface IShellListContentFilesKwargs {
 }
 
 
+export interface IShellGetAuthenticationVendorsKwargs {
+    enabled?: boolean;
+    moduleSessionId?: string;
+    raiseExceptions?: boolean;
+}
+
+
 export interface IShellAddAuthenticationAppKwargs {
+    appName?: string;
+    serviceId?: number;
     authVendorId?: string;
     description?: string;
     url?: string;
+    urlDirectAuth?: string;
     accessToken?: string;
     appId?: string;
     limitToRegisteredUsers?: boolean;
+    useBuiltInAuthorization?: boolean;
     registeredUsers?: string;
+    defaultAuthRoleId?: number;
     moduleSessionId?: string;
     interactive?: boolean;
     raiseExceptions?: boolean;
@@ -529,6 +645,12 @@ export class ProtocolMrs extends Protocol {
                 url_protocol: kwargs.urlProtocol,
                 is_default: kwargs.isDefault,
                 comments: kwargs.comments,
+                options: kwargs.options,
+                auth_path: kwargs.authPath,
+                auth_completed_url: kwargs.authCompletedUrl,
+                auth_completed_url_validation: kwargs.authCompletedUrlValidation,
+                auth_completed_page_content: kwargs.authCompletedPageContent,
+                auth_apps: kwargs.authApps,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
                 raise_exceptions: kwargs.raiseExceptions,
@@ -821,22 +943,40 @@ export class ProtocolMrs extends Protocol {
     }
 
     /**
+     * Sets the options of a MRS service
+     *
+     * @param kwargs Additional options
+     *
+     * @returns The result message as string
+     */
+    public static getRequestSetServiceOptions(kwargs?: IShellSetServiceOptionsKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                url_context_root: kwargs.urlContextRoot,
+                url_host_name: kwargs.urlHostName,
+                value: kwargs.value,
+                service_id: kwargs.serviceId,
+                module_session_id: kwargs.moduleSessionId,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsSetServiceOptions,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
      * Sets all properties of a MRS service
      *
      * @param kwargs Additional options
      *
-     * @returns Not documented
-     *
-     * <b>Allowed options for value:</b>
-     *
-     *     url_context_root (str,optional): The context root for this service
-     * url_protocol (str,optional): The protocol either 'HTTP', 'HTTPS' or
-     * 'HTTP,HTTPS'     enabled (bool,optional): Whether the service should be
-     * enabled     comments (str,optional): Comments about the service
-     *
-     * <b>Returns:</b>
-     *
-     *     The result message as string
+     * @returns The result message as string
      */
     public static getRequestUpdateService(kwargs?: IShellUpdateServiceKwargs): IShellRequest {
 
@@ -846,7 +986,15 @@ export class ProtocolMrs extends Protocol {
                 service_id: kwargs.serviceId,
                 url_context_root: kwargs.urlContextRoot,
                 url_host_name: kwargs.urlHostName,
-                value: kwargs.value,
+                url_protocol: kwargs.urlProtocol,
+                enabled: kwargs.enabled,
+                comments: kwargs.comments,
+                options: kwargs.options,
+                auth_path: kwargs.authPath,
+                auth_completed_url: kwargs.authCompletedUrl,
+                auth_completed_url_validation: kwargs.authCompletedUrlValidation,
+                auth_completed_page_content: kwargs.authCompletedPageContent,
+                auth_apps: kwargs.authApps,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
                 raise_exceptions: kwargs.raiseExceptions,
@@ -861,11 +1009,38 @@ export class ProtocolMrs extends Protocol {
     }
 
     /**
+     * Checks the availability of a given request path for the given service
+     *
+     * @param kwargs Additional options
+     *
+     * @returns True or False
+     */
+    public static getRequestGetServiceRequestPathAvailability(kwargs?: IShellGetServiceRequestPathAvailabilityKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                service_id: kwargs.serviceId,
+                request_path: kwargs.requestPath,
+                module_session_id: kwargs.moduleSessionId,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsGetServiceRequestPathAvailability,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
      * Add a schema to the given MRS service
      *
      * @param kwargs Additional options
      *
-     * @returns None
+     * @returns The schema_id of the created schema when not in interactive mode
      */
     public static getRequestAddSchema(kwargs?: IShellAddSchemaKwargs): IShellRequest {
 
@@ -879,6 +1054,7 @@ export class ProtocolMrs extends Protocol {
                 enabled: kwargs.enabled,
                 items_per_page: kwargs.itemsPerPage,
                 comments: kwargs.comments,
+                options: kwargs.options,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
             };
@@ -1185,18 +1361,7 @@ export class ProtocolMrs extends Protocol {
      *
      * @param kwargs Additional options
      *
-     * @returns Not documented
-     *
-     * <b>Allowed options for value:</b>
-     *
-     *     schema_name (str): The name of the schema     requires_auth (bool):
-     * Whether authentication is required to access         the schema     enabled
-     * (bool): The enabled state     items_per_page (int): The number of items
-     * returned per page     comments (str): Comments for the schema
-     *
-     * <b>Returns:</b>
-     *
-     *     The result message as string
+     * @returns The result message as string
      */
     public static getRequestUpdateSchema(kwargs?: IShellUpdateSchemaKwargs): IShellRequest {
 
@@ -1206,7 +1371,12 @@ export class ProtocolMrs extends Protocol {
                 schema_name: kwargs.schemaName,
                 service_id: kwargs.serviceId,
                 schema_id: kwargs.schemaId,
-                value: kwargs.value,
+                request_path: kwargs.requestPath,
+                requires_auth: kwargs.requiresAuth,
+                enabled: kwargs.enabled,
+                items_per_page: kwargs.itemsPerPage,
+                comments: kwargs.comments,
+                options: kwargs.options,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
                 raise_exceptions: kwargs.raiseExceptions,
@@ -1223,20 +1393,23 @@ export class ProtocolMrs extends Protocol {
     /**
      * Adds content to the given MRS service
      *
-     * @param contentDir The path to the content directory
-     * @param serviceId The id of the service the schema should be added to
      * @param kwargs Additional options
      *
      * @returns None in interactive mode, a dict with content_set_id and         number_of_files_uploaded
      */
-    public static getRequestAddContentSet(contentDir?: string, serviceId?: number, kwargs?: IShellAddContentSetKwargs): IShellRequest {
+    public static getRequestAddContentSet(kwargs?: IShellAddContentSetKwargs): IShellRequest {
 
         let kwargsToUse;
         if (kwargs) {
             kwargsToUse = {
+                content_dir: kwargs.contentDir,
+                service_id: kwargs.serviceId,
                 request_path: kwargs.requestPath,
                 requires_auth: kwargs.requiresAuth,
                 comments: kwargs.comments,
+                enabled: kwargs.enabled,
+                options: kwargs.options,
+                replace_existing: kwargs.replaceExisting,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
                 raise_exceptions: kwargs.raiseExceptions,
@@ -1245,10 +1418,7 @@ export class ProtocolMrs extends Protocol {
 
         return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsAddContentSet,
             {
-                args: {
-                    content_dir: contentDir,
-                    service_id: serviceId,
-                },
+                args: {},
                 kwargs: kwargsToUse,
             });
     }
@@ -1267,6 +1437,7 @@ export class ProtocolMrs extends Protocol {
         if (kwargs) {
             kwargsToUse = {
                 include_enable_state: kwargs.includeEnableState,
+                request_path: kwargs.requestPath,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
                 raise_exceptions: kwargs.raiseExceptions,
@@ -1396,7 +1567,23 @@ export class ProtocolMrs extends Protocol {
      *
      * @param kwargs Additional options
      *
-     * @returns None
+     * @returns Not documented
+     *
+     * <b>Allowed options for parameters:</b>
+     *
+     *     id (int,optional): The id of the parameter or a negative value when it
+     * is a new parameter     db_object_id (int,optional): The id of the
+     * corresponding db object     position (int): The position of the parameter;
+     * name (str): The name of the parameter;     bind_column_name (str): The
+     * column name of the TABLE or VIEW or parameter name the PROCEDURE
+     * this parameter maps to     datatype (str): The datatype, 'STRING', 'INT',
+     * 'DOUBLE', 'BOOLEAN', 'LONG', 'TIMESTAMP', 'JSON'     mode (str): The
+     * parameter mode, "IN", "OUT", "INOUT"     comments (str,optional): The
+     * comments for the parameter
+     *
+     * <b>Returns:</b>
+     *
+     *     None
      */
     public static getRequestAddDbObject(kwargs?: IShellAddDbObjectKwargs): IShellRequest {
 
@@ -1409,6 +1596,7 @@ export class ProtocolMrs extends Protocol {
                 schema_name: kwargs.schemaName,
                 auto_add_schema: kwargs.autoAddSchema,
                 request_path: kwargs.requestPath,
+                enabled: kwargs.enabled,
                 crud_operations: kwargs.crudOperations,
                 crud_operation_format: kwargs.crudOperationFormat,
                 requires_auth: kwargs.requiresAuth,
@@ -1416,6 +1604,11 @@ export class ProtocolMrs extends Protocol {
                 row_user_ownership_enforced: kwargs.rowUserOwnershipEnforced,
                 row_user_ownership_column: kwargs.rowUserOwnershipColumn,
                 comments: kwargs.comments,
+                media_type: kwargs.mediaType,
+                auto_detect_media_type: kwargs.autoDetectMediaType,
+                auth_stored_procedure: kwargs.authStoredProcedure,
+                options: kwargs.options,
+                parameters: kwargs.parameters,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
                 raise_exceptions: kwargs.raiseExceptions,
@@ -1463,13 +1656,13 @@ export class ProtocolMrs extends Protocol {
     }
 
     /**
-     * Gets the list of available row ownership fields for the given db_object
+     * Gets the list of possible row ownership fields for the given db_object
      *
      * @param requestPath The request_path of the schema
      * @param dbObjectName The name of the db_object
      * @param kwargs Additional options
      *
-     * @returns The list of available row ownership fields names
+     * @returns The list of possible row ownership fields names
      */
     public static getRequestGetDbObjectRowOwnershipFields(requestPath?: string, dbObjectName?: string, kwargs?: IShellGetDbObjectRowOwnershipFieldsKwargs): IShellRequest {
 
@@ -1496,18 +1689,51 @@ export class ProtocolMrs extends Protocol {
     }
 
     /**
-     * Returns all db_objects for the given schema
+     * Gets the list of available row ownership fields for the given db_object
      *
-     * @param schemaId The id of the schema to list the db_objects from
+     * @param requestPath The request_path of the schema
+     * @param dbObjectName The name of the db_object
      * @param kwargs Additional options
      *
-     * @returns A list of dicts representing the db_objects of the schema
+     * @returns The list of available db object fields
      */
-    public static getRequestListDbObjects(schemaId: number, kwargs?: IShellListDbObjectsKwargs): IShellRequest {
+    public static getRequestGetDbObjectFields(requestPath?: string, dbObjectName?: string, kwargs?: IShellGetDbObjectFieldsKwargs): IShellRequest {
 
         let kwargsToUse;
         if (kwargs) {
             kwargsToUse = {
+                db_object_id: kwargs.dbObjectId,
+                schema_id: kwargs.schemaId,
+                schema_name: kwargs.schemaName,
+                db_object_type: kwargs.dbObjectType,
+                module_session_id: kwargs.moduleSessionId,
+                interactive: kwargs.interactive,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsGetDbObjectFields,
+            {
+                args: {
+                    request_path: requestPath,
+                    db_object_name: dbObjectName,
+                },
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Returns all db_objects for the given schema
+     *
+     * @param kwargs Additional options
+     *
+     * @returns A list of dicts representing the db_objects of the schema
+     */
+    public static getRequestListDbObjects(kwargs?: IShellListDbObjectsKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                schema_id: kwargs.schemaId,
                 include_enable_state: kwargs.includeEnableState,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
@@ -1518,8 +1744,38 @@ export class ProtocolMrs extends Protocol {
 
         return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsListDbObjects,
             {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Gets the list of parameters for the given db_object
+     *
+     * @param requestPath The request_path of the schema
+     * @param dbObjectName The name of the db_object
+     * @param kwargs Additional options
+     *
+     * @returns The list of db object parameters
+     */
+    public static getRequestGetDbObjectParameters(requestPath?: string, dbObjectName?: string, kwargs?: IShellGetDbObjectParametersKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_object_id: kwargs.dbObjectId,
+                schema_id: kwargs.schemaId,
+                schema_name: kwargs.schemaName,
+                module_session_id: kwargs.moduleSessionId,
+                interactive: kwargs.interactive,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsGetDbObjectParameters,
+            {
                 args: {
-                    schema_id: schemaId,
+                    request_path: requestPath,
+                    db_object_name: dbObjectName,
                 },
                 kwargs: kwargsToUse,
             });
@@ -1676,6 +1932,51 @@ export class ProtocolMrs extends Protocol {
     }
 
     /**
+     * Update a db_object
+     *
+     * @param kwargs Additional options
+     *
+     * @returns None
+     */
+    public static getRequestUpdateDbObject(kwargs?: IShellUpdateDbObjectKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                db_object_id: kwargs.dbObjectId,
+                db_object_name: kwargs.dbObjectName,
+                schema_id: kwargs.schemaId,
+                request_path: kwargs.requestPath,
+                name: kwargs.name,
+                enabled: kwargs.enabled,
+                crud_operations: kwargs.crudOperations,
+                crud_operation_format: kwargs.crudOperationFormat,
+                requires_auth: kwargs.requiresAuth,
+                items_per_page: kwargs.itemsPerPage,
+                auto_detect_media_type: kwargs.autoDetectMediaType,
+                row_user_ownership_enforced: kwargs.rowUserOwnershipEnforced,
+                row_user_ownership_column: kwargs.rowUserOwnershipColumn,
+                comments: kwargs.comments,
+                media_type: kwargs.mediaType,
+                auth_stored_procedure: kwargs.authStoredProcedure,
+                options: kwargs.options,
+                parameters: kwargs.parameters,
+                module_session_id: kwargs.moduleSessionId,
+                interactive: kwargs.interactive,
+                raise_exceptions: kwargs.raiseExceptions,
+                return_formatted: kwargs.returnFormatted,
+                return_python_object: kwargs.returnPythonObject,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsUpdateDbObject,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
      * Returns all db_objects for the given schema
      *
      * @param kwargs Additional options
@@ -1706,24 +2007,52 @@ export class ProtocolMrs extends Protocol {
     /**
      * Adds an auth_app to the given MRS service
      *
-     * @param appName The app_name
-     * @param serviceId The id of the service the schema should be added to
      * @param kwargs Additional options
      *
-     * @returns None in interactive mode, a dict with content_set_id and         number_of_files_uploaded
+     * @returns The list of vendor objects
      */
-    public static getRequestAddAuthenticationApp(appName?: string, serviceId?: number, kwargs?: IShellAddAuthenticationAppKwargs): IShellRequest {
+    public static getRequestGetAuthenticationVendors(kwargs?: IShellGetAuthenticationVendorsKwargs): IShellRequest {
 
         let kwargsToUse;
         if (kwargs) {
             kwargsToUse = {
+                enabled: kwargs.enabled,
+                module_session_id: kwargs.moduleSessionId,
+                raise_exceptions: kwargs.raiseExceptions,
+            };
+        }
+
+        return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsGetAuthenticationVendors,
+            {
+                args: {},
+                kwargs: kwargsToUse,
+            });
+    }
+
+    /**
+     * Adds an auth_app to the given MRS service
+     *
+     * @param kwargs Additional options
+     *
+     * @returns None in interactive mode, a dict with content_set_id and         number_of_files_uploaded
+     */
+    public static getRequestAddAuthenticationApp(kwargs?: IShellAddAuthenticationAppKwargs): IShellRequest {
+
+        let kwargsToUse;
+        if (kwargs) {
+            kwargsToUse = {
+                app_name: kwargs.appName,
+                service_id: kwargs.serviceId,
                 auth_vendor_id: kwargs.authVendorId,
                 description: kwargs.description,
                 url: kwargs.url,
+                url_direct_auth: kwargs.urlDirectAuth,
                 access_token: kwargs.accessToken,
                 app_id: kwargs.appId,
                 limit_to_registered_users: kwargs.limitToRegisteredUsers,
+                use_built_in_authorization: kwargs.useBuiltInAuthorization,
                 registered_users: kwargs.registeredUsers,
+                default_auth_role_id: kwargs.defaultAuthRoleId,
                 module_session_id: kwargs.moduleSessionId,
                 interactive: kwargs.interactive,
                 raise_exceptions: kwargs.raiseExceptions,
@@ -1732,10 +2061,7 @@ export class ProtocolMrs extends Protocol {
 
         return Protocol.getRequestCommandExecute(ShellAPIMrs.MrsAddAuthenticationApp,
             {
-                args: {
-                    app_name: appName,
-                    service_id: serviceId,
-                },
+                args: {},
                 kwargs: kwargsToUse,
             });
     }

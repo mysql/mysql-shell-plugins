@@ -104,7 +104,7 @@ export class ConnectionsTreeBaseItem extends TreeItem {
         return "";
     }
 
-    protected get dbType(): string {
+    public get dbType(): string {
         return "";
     }
 

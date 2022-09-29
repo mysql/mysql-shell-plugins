@@ -98,14 +98,21 @@ describe("ProtocolMds tests", (): void => {
             raise_exceptions: false,
         });
 
-        result = ProtocolMds.getRequestGetCurrentCompartmentId();
-        testStandardFields(result, ShellAPIMds.MdsGetCurrentCompartmentId,
+        result = ProtocolMds.getRequestGetCurrentCompartmentId({});
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetCurrentCompartmentId,
             {
                 compartment_id: undefined, config: undefined, config_profile: undefined,
-                cli_rc_file_path: "~/.oci/oci_cli_rc",
+                profile_name: undefined,
+                cli_rc_file_path: undefined,
             });
-        result = ProtocolMds.getRequestGetCurrentCompartmentId("compartmentId1", {}, "default1", "~/.oci/oci_cli_rc");
-        testStandardFields(result, ShellAPIMds.MdsGetCurrentCompartmentId, {
+        result = ProtocolMds.getRequestGetCurrentCompartmentId(
+            {
+                compartmentId: "compartmentId1",
+                config: {},
+                profileName: "default1",
+                cliRcFilePath: "~/.oci/oci_cli_rc",
+            });
+        testStandardFieldsWithKwArgs(result, ShellAPIMds.MdsGetCurrentCompartmentId, {
             compartment_id: "compartmentId1",
             config: {}, profile_name: "default1", cli_rc_file_path: "~/.oci/oci_cli_rc",
         });
