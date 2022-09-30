@@ -242,7 +242,7 @@ def get_current_session(session=None):
     """Returns the current database session
 
     If a session is provided, it will be returned instead of the current one.
-    If there is no active session an exception will be raised.
+    If there is no active session, then an exception will be raised.
 
     Returns:
         The current database session
@@ -256,7 +256,7 @@ def get_current_session(session=None):
         session = shell.get_session()
         if session is None:
             raise Exception(
-                "No MySQL session specified. Please either pass a session "
+                "MySQL session not specified. Please either pass a session "
                 "object when calling the function or open a database "
                 "connection in the MySQL Shell first.")
     return session
@@ -389,7 +389,7 @@ def update_rds_metadata_schema(session, current_db_version_str,
         print("Updating MRS metadata schema...")
 
     script_dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        'db_schema')
+                                   'db_schema')
 
     version_to_update = current_db_version_str
 
@@ -469,7 +469,8 @@ def create_rds_metadata_schema(session=None, interactive=True):
 
     latest_version_val = [0, 0, 0]
 
-    script_dir = sql_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db_schema')
+    script_dir = sql_file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 'db_schema')
 
     # find the latest version of the database file available
     for f in os.listdir(script_dir):
@@ -484,8 +485,7 @@ def create_rds_metadata_schema(session=None, interactive=True):
         return
 
     sql_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-    'db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
-
+                                 'db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
 
     with open(sql_file_path) as f:
         sql_script = f.read()

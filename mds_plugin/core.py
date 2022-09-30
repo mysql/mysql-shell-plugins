@@ -22,6 +22,7 @@
 """Sub-Module for core functions"""
 
 from mysqlsh.plugin_manager import plugin_function
+import mysqlsh
 
 
 RETURN_STR = "STR"
@@ -338,7 +339,6 @@ def get_oci_instance_agent_client(config):
     return instance_agent_client
 
 
-
 def return_oci_object(oci_object, return_formatted=False,
                       return_python_object=False, format_function=None,
                       current=None):
@@ -401,7 +401,6 @@ def oci_object(oci_object, return_type=RETURN_DICT, format_function=None,
         return str(oci_object)
 
 
-
 def fixed_len(s, length, append=None, no_linebreaks=False, align_right=False):
     """Returns the given string with a new length of len
 
@@ -428,3 +427,89 @@ def fixed_len(s, length, append=None, no_linebreaks=False, align_right=False):
         s.rjust(length, ' ') if align_right else s.ljust(length, ' ')
 
     return s + append if append else ''
+
+
+def get_current_session(session=None):
+    """Returns the current database session
+
+    If a session is provided, it will be returned instead of the current one.
+    If there is no active session, then an exception will be raised.
+
+    Returns:
+        The current database session
+    """
+    shell = mysqlsh.globals.shell
+
+    # Check if the user provided a session or there is an active global session
+    if session is None:
+        session = shell.get_session()
+        if session is None:
+            raise Exception(
+                "MySQL session not specified. Please either pass a session "
+                "object when calling the function or open a database "
+                "connection in the MySQL Shell first.")
+    return session
+
+
+def format_result_set(res, rows, addColumnHeader=True, addFooter=True):
+    """Formats a MySQL Shell result set in table format
+
+    Args:
+        res: The result set to use
+        rows: The rows to format
+
+    Returns:
+       A string representing the formatted result set
+    """
+
+    if not res:
+        raise ValueError("No result set given.")
+    if not rows:
+        raise ValueError("No rows given.")
+
+    # Get column lengths
+    colLengths = []
+    for column in res.column_names:
+        colLengths.append(len(column))
+
+    # Update column lengths with row lengths
+    for row in rows:
+        i = 0
+        for field in row:
+            fieldLength = len(f"{field}")
+            if fieldLength > colLengths[i]:
+                colLengths[i] = fieldLength
+            i += 1
+
+    # Format column header and separator string
+    colStr = "|"
+    sepStr = "+"
+    i = 0
+    for col in res.column_names:
+        colStr += " " + fixed_len(col, colLengths[i] + 1, "|", True)
+        sepStr += "-" * (colLengths[i] + 2) + "+"
+        i += 1
+
+    # Format rows
+    rowStr = ""
+    for row in rows:
+        i = 0
+        rowStr += "|"
+        for field in row:
+            rowStr += " " + fixed_len(f"{field}", colLengths[i] + 1, "|", True)
+            i += 1
+
+        rowStr += "\n"
+
+    # Build result string
+    if addColumnHeader:
+        resultStr = sepStr + "\n" + colStr + "\n" + sepStr + "\n"
+    else:
+        resultStr = sepStr + "\n"
+
+    resultStr += rowStr + sepStr + "\n"
+
+    if addFooter:
+        resultStr += f"{len(rows)} row{'s' if len(rows) != 1 else ''} in set.\n"
+
+    return resultStr

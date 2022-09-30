@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,102 @@
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core, configuration, mysql_database_service
 
-# cSpell:ignore SQLDB, Popen, bufsize
+# cSpell:ignore SQLDB, Popen, bufsize, dryrun
+
+
+@plugin_function('mds.util.heatWaveLoadData', shell=True, cli=True, web=True)
+def mds_heat_wave_load_data(**kwargs):
+    """Loads data to a HeatWave Cluster
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        schemas (list): The list of schemas
+        mode (str): The mode to use, "normal"|"dryrun"
+        output (str): The output mode to use, "normal"|"compact"|"silent"|"help"
+        disable_unsupported_columns (bool): Whether to disable unsupported columns
+        optimize_load_parallelism (bool): Whether to optimize parallelism
+        enable_memory_check (bool): Whether to enable the memory check
+        sql_mode (str): The sql_mode to use
+        exclude_list (str): The database object list to exclude
+        session (object): The database session to use.
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If set to true exceptions are raised
+
+    Returns:
+       None in interactive mode, the result sets as string otherwise
+    """
+    schemas = kwargs.get("schemas")
+    mode = kwargs.get("mode", "normal")
+    output = kwargs.get("output", "normal")
+    disable_unsupported_columns = kwargs.get("disable_unsupported_columns", True)
+    optimize_load_parallelism = kwargs.get("optimize_load_parallelism", True)
+    enable_memory_check = kwargs.get("enable_memory_check", True)
+    sql_mode = kwargs.get("sql_mode", "")
+    exclude_list = kwargs.get("exclude_list", "")
+
+    session = kwargs.get("session")
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    try:
+        if not schemas:
+            raise ValueError("At least one schema needs to be specified.")
+
+        session = core.get_current_session(session)
+
+        policy = (
+            "disable_unsupported_columns" if disable_unsupported_columns else "not_disable_unsupported_columns")
+        set_load_parallelism = (
+            "TRUE" if optimize_load_parallelism else "FALSE")
+
+        schemasJson = "JSON_ARRAY(" + ', '.join(f'"{s}"' for s in schemas) + ")"
+        optionsJson = ("JSON_OBJECT(" 
+            f'"mode", "{mode}", '
+            f'"output", "{output}", '
+            f'"sql_mode", {sql_mode}, '
+            f'"policy", "{policy}", '
+            f'"set_load_parallelism", {set_load_parallelism}, '
+            f'"auto_enc", JSON_OBJECT("mode", "{"check" if enable_memory_check else "off"}")')
+        if exclude_list:
+            optionsJson += f', "exclude_list", JSON_ARRAY({exclude_list})'
+        optionsJson += ")"
+
+        if interactive:
+            print(f"Loading Data to HeatWave Cluster Using Auto Parallel Load.\n")
+
+        sql = f"CALL sys.heatwave_load({schemasJson}, {optionsJson})"
+        if interactive:
+            print(f"MySQL > {sql}\n")
+
+        res = session.run_sql(sql)
+
+        out_str = ""
+        next_result = True
+        while next_result:
+            rows = res.fetch_all()
+
+            if len(rows) == 0:
+                next_result = res.next_result()
+                continue
+
+            if interactive:
+                print(core.format_result_set(res, rows, addFooter=False))
+            else:
+                out_str += out_str + "\n"
+
+
+            next_result = res.next_result()
+
+        if not interactive:
+            return out_str
+
+    except Exception as e:
+        if raise_exceptions:
+            raise
+        else:
+            print(f"Error: {str(e)}")
 
 
 @plugin_function('mds.util.createJumpHost')
@@ -343,7 +438,7 @@ def add_public_endpoint(**kwargs):
             return_python_object=True)
         if not jump_host:
             raise Exception(f"Compute instance {instance_name} not available."
-                "Operation cancelled.")
+                            "Operation cancelled.")
 
         # Get the public IP of the instance
         public_ip = compute.get_instance_public_ip(
@@ -456,7 +551,7 @@ def add_public_endpoint(**kwargs):
                 cnf["destinations"] = f"{endpoint.ip_address}:{endpoint.port_x}"
 
                 # cSpell:ignore mrds SQLR
-                # Ensure that there is a section with the name of 
+                # Ensure that there is a section with the name of
                 # "rest_mrds"
                 if "rest_mrds" not in router_config.sections():
                     router_config["rest_mrds"] = {}
@@ -522,7 +617,7 @@ def add_public_endpoint(**kwargs):
 
             # Add ingress rules for MySQL ports to security list
             sec_lists = compute.get_instance_vcn_security_lists(
-                instance_id=jump_host.id, 
+                instance_id=jump_host.id,
                 compartment_id=db_system.compartment_id,
                 config=config, interactive=interactive,
                 raise_exceptions=raise_exceptions,
@@ -553,10 +648,10 @@ def add_public_endpoint(**kwargs):
 
             if interactive:
                 print(f"\nNew endpoint successfully created.\n\n"
-                    f"    Classic MySQL Protocol: {public_ip}:6446\n"
-                    f"    MySQL X Protocol: {public_ip}:6447\n\n"
-                    f"    MySQL REST Service HTTP: {public_ip}:8080\n\n"
-                    f"Example:\n    mysqlsh mysql://dba@{public_ip}:6446")
+                      f"    Classic MySQL Protocol: {public_ip}:6446\n"
+                      f"    MySQL X Protocol: {public_ip}:6447\n\n"
+                      f"    MySQL REST Service HTTP: {public_ip}:8080\n\n"
+                      f"Example:\n    mysqlsh mysql://dba@{public_ip}:6446")
 
             if not return_formatted:
                 return {

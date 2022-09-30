@@ -110,6 +110,7 @@ export class MdsHWClusterDialog extends ValueDialogBase {
     private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
         const result: IDialogValidations = {
             messages: {},
+            requiredContexts: [],
         };
 
         if (closing) {
