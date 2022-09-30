@@ -1108,7 +1108,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         "ssl-cert": mysqlSslSection.sslCertFile.value,
                         "ssl-key": mysqlSslSection.sslKeyFile.value,
                         "ssl-cipher": mysqlSslSection.sslCipher.value,
-                        "compression": mysqlAdvancedSection.compression.value,
+                        "compression": (mysqlAdvancedSection.compression.value !== "")
+                            ? mysqlAdvancedSection.compression.value : undefined,
                         "compression-algorithms": compressionAlgorithms,
                         "compression-level": mysqlAdvancedSection.compressionLevel.value,
                         //useAnsiQuotes: section5.ansiQuotes.value,
@@ -1451,6 +1452,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     value: optionsMySQL.compression,
                     choices: Object.keys(MySQLConnCompression),
                     span: 2,
+                    options: [DialogValueOption.Optional],
                 },
                 compressionAlgorithms: {
                     caption: "Compression Algorithms",
