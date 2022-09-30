@@ -48,6 +48,7 @@ export interface IContextUpdateData {
 export enum DialogValueOption {
     ReadOnly,    // If set then the value is not editable.
     Disabled,
+    Optional,    // If the value is optional.
 
     AutoFocus,   // When set focus an element and select all content. Can only be set once and only for input fields.
     Description, // If set then the value is just a description label (regardless of its type).
@@ -76,7 +77,7 @@ export interface IDialogValue {
 
     /** These members indicate special sources that limit the possible input value. */
 
-    /** Only one of the list of choices is possible. */
+    /** Only one of the list of choices is possible. To make the choice optional, an empty string needs to be added. */
     choices?: string[];
 
     /** Any combination of the set values is possible. The value field must be a comma-separated list. */
@@ -719,6 +720,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 />);
             } else if (Array.isArray(entry.value.choices)) {
                 // A list of string values -> represented as dropdown.
+                // If an empty string is given, the value is optional.
                 const items = entry.value.choices.map((item: string, itemIndex: number) => {
                     return <Dropdown.Item
                         caption={item}
@@ -732,7 +734,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                     key={entry.key}
                     className="valueEditor"
                     selection={entry.value.value as (string | undefined)}
-                    optional={true}
+                    optional={options?.includes(DialogValueOption.Optional)}
                     onSelect={this.dropdownChange}
                     disabled={options?.includes(DialogValueOption.Disabled)}
                     autoFocus={options?.includes(DialogValueOption.AutoFocus)}

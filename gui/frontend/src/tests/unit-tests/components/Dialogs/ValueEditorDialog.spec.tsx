@@ -87,6 +87,7 @@ describe("Value Edit Dialog Tests", (): void => {
             selectOne: { // A dropdown.
                 caption: "Select One",
                 value: "One",
+                options: [DialogValueOption.Optional],
                 choices: ["One", "Two", "Three"],
                 onChange: dropDownChange,
             },
