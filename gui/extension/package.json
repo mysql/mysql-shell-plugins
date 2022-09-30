@@ -554,6 +554,10 @@
                 "title": "Delete REST Schema..."
             },
             {
+                "command": "msg.mds.loadToHeatWave",
+                "title": "Load Data to HeatWave Cluster"
+            },
+            {
                 "command": "msg.mrs.addSchema",
                 "title": "Add Schema to REST Service"
             },
@@ -899,9 +903,14 @@
                     "group": "2_msg@9"
                 },
                 {
+                    "command": "msg.mds.loadToHeatWave",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
+                    "group": "3_msg@2"
+                },
+                {
                     "command": "msg.mrs.addSchema",
                     "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
-                    "group": "3_msg@1"
+                    "group": "4_msg@1"
                 },
                 {
                     "command": "msg.dropSchema",

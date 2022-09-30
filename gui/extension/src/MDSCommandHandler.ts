@@ -50,6 +50,8 @@ import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model";
 
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
+import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
+import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();
@@ -547,6 +549,32 @@ export class MDSCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.mds.loadToHeatWave",
+            (item?: SchemaMySQLTreeItem, items?: ConnectionsTreeBaseItem[]) => {
+                if (item) {
+                    const schemas: string[] = [];
+                    if (items && items.length > 0) {
+                        items?.forEach((schema) => {
+                            // Only consider SchemaMySQLTreeItems of the same connection
+                            if (schema instanceof SchemaMySQLTreeItem
+                                && schema.entry.details.caption === item.entry.details.caption) {
+                                schemas.push(schema.name);
+                            }
+                        });
+                    } else {
+                        schemas.push(item.name);
+                    }
+
+                    if (schemas.length > 0) {
+                        item?.entry?.backend?.getCatalogObjects("Schema").then((allSchemas) => {
+                            this.showMdsHWLoadDataDialog(item.entry.details.id, schemas, allSchemas, host);
+                        }).catch((reason) => {
+                            void window.showErrorMessage(`Error retrieving schema list: ${String(reason)}`);
+                        });
+                    }
+                }
+            }));
+
     };
 
     /**
@@ -671,5 +699,71 @@ export class MDSCommandHandler {
                 void window.showErrorMessage(`Error while listing MySQL REST services: ` +
                     `${errorEvent.message ?? "<unknown>"}`);
             });
+    }
+
+    /**
+     * Shows a dialog to load data to HeatWave
+     *
+     * @param connectionId The id of the database connection to use
+     * @param selectedSchemas The list of schemas to load
+     * @param allSchemas The list of all available schemas
+     * @param host The extension host
+     */
+    private showMdsHWLoadDataDialog(connectionId: number, selectedSchemas: string[],
+        allSchemas: string[], host: ExtensionHost): void {
+
+        const title = "Load Data to HeatWave";
+
+        const request = {
+            id: "mdsHWLoadDataDialog",
+            type: DialogType.MdsHeatWaveLoadData,
+            title,
+            parameters: { },
+            values: {
+                selectedSchemas,
+                allSchemas,
+            },
+        };
+
+        void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
+            // The request was not sent at all (e.g. there was already one running).
+            if (!response || response.closure !== DialogResponseClosure.Accept) {
+                return;
+            }
+
+            if (response.data) {
+                const schemaList = response.data.schemas as string[];
+                const mode = response.data.mode as string;
+                const output = response.data.output as string;
+                const disableUnsupportedColumns = response.data.disableUnsupportedColumns as boolean;
+                const optimizeLoadParallelism = response.data.optimizeLoadParallelism as boolean;
+                const enableMemoryCheck = response.data.enableMemoryCheck as boolean;
+                const sqlMode = response.data.sqlMode as string;
+                const excludeList = response.data.excludeList as string;
+
+                const shellArgs: string[] = [
+                    "--",
+                    "mds",
+                    "util",
+                    "heat-wave-load-data",
+                    `--schemas=${schemaList.join(",")}`,
+                    `--mode=${mode}`,
+                    `--output=${output}`,
+                    `--disable-unsupported-columns=${disableUnsupportedColumns ? "1" : "0"}`,
+                    `--optimize-load-parallelism=${optimizeLoadParallelism ? "1" : "0"}`,
+                    `--enable-memory-check=${enableMemoryCheck ? "1" : "0"}`,
+                    `--sql-mode="${sqlMode}"`,
+                    `--exclude-list=${excludeList}`,
+                    "--raise-exceptions=1",
+                    "--interactive=1",
+                ];
+
+                void host.addNewShellTask("Load Data to HeatWave Cluster", shellArgs, connectionId).then(() => {
+                    void window.showInformationMessage(
+                        "The data load to the HeatWave cluster operation has finished.");
+                });
+            }
+        });
+
     }
 }

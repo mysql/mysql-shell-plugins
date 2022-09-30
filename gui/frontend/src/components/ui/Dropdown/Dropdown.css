@@ -105,6 +105,7 @@
 
     position: absolute;
     right: 6px;
+    top: 8px;
 
     border-right: 1px solid var(--dropdown-foreground);
     border-bottom: 1px solid var(--dropdown-foreground);
@@ -122,11 +123,16 @@
     border: 1px solid transparent;
 
     font-size: 0.9em;
+
+    max-height: 250px;
+    overflow-y: scroll;
 }
 
 .msg.dropdownList > .dropdownItem {
     cursor: pointer;
     padding: 2px 4px;
+
+    min-height: 30px;
 }
 
 .msg.dropdownList > .dropdownItem > .checkbox {

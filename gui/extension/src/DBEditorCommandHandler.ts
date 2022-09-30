@@ -62,7 +62,13 @@ export class DBEditorCommandHandler {
 
     public setup(context: ExtensionContext): void {
         this.codeBlocks.setup(context);
-        context.subscriptions.push(window.registerTreeDataProvider("msg.connections", this.connectionsProvider));
+        context.subscriptions.push(window.createTreeView(
+            "msg.connections",
+            {
+                treeDataProvider: this.connectionsProvider,
+                showCollapseAll: true,
+                canSelectMany: true,
+            }));
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("editorRunQuery", this.editorRunQuery);
