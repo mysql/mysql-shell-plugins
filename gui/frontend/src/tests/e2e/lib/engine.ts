@@ -24,15 +24,14 @@
 import { Builder, until, By, WebDriver } from "selenium-webdriver";
 import { Options } from "selenium-webdriver/chrome";
 
-export const getDriver = async (): Promise<WebDriver> => {
+export let driver: WebDriver;
+
+export const loadDriver = async (): Promise<void> => {
     const prom = async (): Promise<WebDriver> => {
         return new Promise( (resolve) => {
             const options: Options = new Options();
 
-            let headless = process.env.HEADLESS;
-            if(!headless) {
-                headless = "1";
-            }
+            const headless = process.env.HEADLESS ?? "1";
 
             let driver: WebDriver;
             options.addArguments("--no-sandbox");
@@ -55,15 +54,12 @@ export const getDriver = async (): Promise<WebDriver> => {
             resolve(driver);
         });
     };
-    const driver: WebDriver = await prom();
-    await driver.manage().setTimeouts({ implicit: 5000 });
 
-    return driver;
+    driver = await prom();
+    await driver.manage().setTimeouts({ implicit: 5000 });
 };
 
-export const load = async (driver: WebDriver, url: String): Promise<void> => {
+export const loadPage = async (url: String): Promise<void> => {
     await driver.get(String(url));
     await driver.wait(until.elementLocated(By.id("root")), 10000);
 };
-
-

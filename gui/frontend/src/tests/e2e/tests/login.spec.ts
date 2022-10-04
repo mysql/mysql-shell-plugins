@@ -22,25 +22,22 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { getDriver, load } from "../lib/engine";
-import { WebDriver, By } from "selenium-webdriver";
+import { loadDriver, loadPage, driver } from "../lib/engine";
+import { By } from "selenium-webdriver";
 import { waitForLoginPage } from "../lib/helpers";
 
 describe("Login", () => {
-    let driver: WebDriver;
+
     let testFailed = false;
 
     beforeAll(async () => {
-        driver = await getDriver();
-    });
-
-    beforeEach(async () => {
+        await loadDriver();
         try {
-            await load(driver, String(process.env.SHELL_UI_MU_HOSTNAME));
-            await waitForLoginPage(driver);
+            await loadPage(String(process.env.SHELL_UI_MU_HOSTNAME));
+            await waitForLoginPage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForLoginPage(driver);
+            await waitForLoginPage();
         }
     });
 
@@ -102,8 +99,13 @@ describe("Login", () => {
 
     it("Successfull login", async () => {
         try {
-            await driver.findElement(By.id("loginUsername")).sendKeys("client");
-            await driver.findElement(By.id("loginPassword")).sendKeys("client");
+            const username = await driver.findElement(By.id("loginUsername"));
+            await username.clear();
+            await username.sendKeys("client");
+
+            const password = await driver.findElement(By.id("loginPassword"));
+            await password.clear();
+            await password.sendKeys("client");
             await driver.findElement(By.id("loginButton")).click();
 
             const result = await driver.wait(async () => {

@@ -22,32 +22,58 @@
  */
 
 import { platform } from "os";
-import { By, until, Key, WebDriver, WebElement } from "selenium-webdriver";
-import * as net from "net";
+import { By, until, Key, WebElement } from "selenium-webdriver";
+import { driver } from "../lib/engine";
 
-export const waitForHomePage = async (driver: WebDriver): Promise<void> => {
+/**
+ * Waits for the homepage to be loaded
+ *
+ * @returns A promise resolving when the homepage is loaded.
+ */
+export const waitForHomePage = async (): Promise<void> => {
     await driver.wait(until.elementLocated(By.id("mainActivityBar")), 10000, "Blank page was displayed");
 };
 
-export const waitForLoginPage = async (driver: WebDriver): Promise<void> => {
+/**
+ * Waits for the login page to be loaded
+ *
+ * @returns A promise resolving when the login page is loaded
+ */
+export const waitForLoginPage = async (): Promise<void> => {
     await driver.findElement(By.id("loginDialogSakilaLogo"));
 };
 
-export const getBackgroundColor = async (driver: WebDriver): Promise<void> => {
+/**
+ * Returns the background color of the page
+ *
+ * @returns Promise resolving to the background color
+ */
+export const getBackgroundColor = async (): Promise<string> => {
     const script =
         "return window.getComputedStyle(document.documentElement).getPropertyValue('--background'); ";
 
     return driver.executeScript(script);
 };
 
-
-export const selectAppColorTheme = async (driver: WebDriver, theme: string): Promise<void> => {
+/**
+ * Selects the color theme on Theme Editor section
+ *
+ * @param theme name of the theme
+ * @returns Promise resolving when the select is made
+ */
+export const selectAppColorTheme = async (theme: string): Promise<void> => {
     await driver.findElement(By.id("theming.currentTheme")).click();
     const dropDownList = await driver.findElement(By.css(".dropdownList"));
     await dropDownList.findElement(By.id(theme)).click();
 };
 
-export const selectDatabaseType = async (driver: WebDriver, value: string): Promise<void> => {
+/**
+ * Selects the database type on the Database Connection Configuration dialog
+ *
+ * @param value database type
+ * @returns Promise resolving when the select is made
+ */
+export const selectDatabaseType = async (value: string): Promise<void> => {
     await driver.findElement(By.id("databaseType")).click();
     const dropDownList = await driver.findElement(By.css(".dropdownList"));
     const els = await dropDownList.findElements(By.css("div"));
@@ -56,42 +82,65 @@ export const selectDatabaseType = async (driver: WebDriver, value: string): Prom
     }
 };
 
-export const selectProtocol = async (driver: WebDriver, value: string): Promise<void> => {
+/**
+ * Selects the protocol on the Database Connection Configuration dialog
+ *
+ * @param value protocol
+ * @returns Promise resolving when the select is made
+ */
+export const selectProtocol = async (value: string): Promise<void> => {
     await driver.findElement(By.id("scheme")).click();
     const dropDownList = await driver.findElement(By.css(".dropdownList"));
     await dropDownList.findElement(By.id(value)).click();
 };
 
-export const selectSSLMode = async (driver: WebDriver, value: string): Promise<void> => {
+/**
+ * Selects the SSL Mode on the Database Connection Configuration dialog
+ *
+ * @param value SSL Mode
+ * @returns Promise resolving when the select is made
+ */
+export const selectSSLMode = async (value: string): Promise<void> => {
     await driver.findElement(By.id("sslMode")).click();
     const dropDownList = await driver.findElement(By.css(".dropdownList"));
     await dropDownList.findElement(By.id(value)).click();
 };
 
-export interface IDbConfig {
-    dbType: string;
+/**
+ * DB Connection interface
+ *
+ */
+export interface IDBConnection {
+    dbType: string | undefined;
     caption: string;
     description: string;
     hostname: string;
     protocol: string;
     port: string;
+    portX: string | undefined;
     username: string;
     password: string;
     schema: string;
-    showAdvanced: boolean;
-    sslMode: string;
-    compression: string;
-    timeout: string;
-    attributes: string;
-    portX: string;
+    sslMode: string | undefined;
+    sslCA: string | undefined;
+    sslClientCert: string | undefined;
+    sslClientKey: string | undefined;
 }
 
-export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig,
+/**
+ * Creates a new database connection, from the DB Editor main page.
+ * It verifies that the Connection dialog is closed, at the end.
+ *
+ * @param dbConfig SSL Mode
+ * @param storePassword true saves the password
+ * @param clearPassword true cleares the password
+ * @returns Promise resolving when the connection is created
+ */
+export const createDBconnection = async (dbConfig: IDBConnection,
     storePassword?: boolean, clearPassword?: boolean): Promise<void> => {
-    await driver
-        .findElement(By.css(".connectionBrowser"))
-        .findElement(By.id("-1"))
-        .click();
+
+    const ctx = await driver.findElement(By.css(".connectionBrowser"));
+    await ctx.findElement(By.id("-1")).click();
     const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
     await driver.wait(async () => {
         await newConDialog.findElement(By.id("caption")).clear();
@@ -105,7 +154,7 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig,
         .sendKeys(dbConfig.description);
     await newConDialog.findElement(By.id("hostName")).clear();
     await newConDialog.findElement(By.id("hostName")).sendKeys(String(dbConfig.hostname));
-    await selectProtocol(driver, dbConfig.protocol);
+    await selectProtocol(dbConfig.protocol);
     await driver.findElement(By.css("#port input")).clear();
     await driver.findElement(By.css("#port input")).sendKeys(String(dbConfig.port));
     await newConDialog.findElement(By.id("userName")).sendKeys(String(dbConfig.username));
@@ -129,39 +178,40 @@ export const createDBconnection = async (driver: WebDriver, dbConfig: IDbConfig,
         await dialog.findElement(By.css("input")).sendKeys(String(dbConfig.password));
         await dialog.findElement(By.id("ok")).click();
     }
-    await selectDatabaseType(driver, dbConfig.dbType);
-    if (!dbConfig.showAdvanced) {
-        const okBtn = await driver.findElement(By.id("ok"));
-        await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-        await okBtn.click();
-        expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(
-            0,
-        );
-    } else {
-        await driver.executeScript(
-            "arguments[0].click();",
-            await newConDialog.findElement(By.css(".checkMark")),
-        );
-        if (dbConfig.sslMode) {
-            await selectSSLMode(driver, dbConfig.sslMode);
-        } else {
-            await selectSSLMode(driver, "Disable");
-        }
-        await newConDialog.findElement(By.id("page1")).click();
-        await newConDialog
-            .findElement(By.id("compressionType"))
-            .sendKeys(dbConfig.compression);
-        await newConDialog.findElement(By.id("timeout")).sendKeys(dbConfig.timeout);
-        await newConDialog
-            .findElement(By.id("others"))
-            .sendKeys(dbConfig.attributes);
-        const okBtn = await driver.findElement(By.id("ok"));
-        await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-        await okBtn.click();
+
+    if (dbConfig.dbType) {
+        await selectDatabaseType(dbConfig.dbType);
     }
+
+    if (dbConfig.sslMode) {
+        await newConDialog.findElement(By.id("page1")).click();
+        await newConDialog.findElement(By.id("sslMode")).click();
+        const dropDownList = await driver.findElement(By.css(".noArrow.dropdownList"));
+        await dropDownList.findElement(By.id(dbConfig.sslMode)).click();
+        expect(await newConDialog.findElement(By.css("#sslMode label")).getText())
+            .toBe(dbConfig.sslMode);
+
+        const certsPath = process.env.SSLCERTSPATH as string;
+        const paths = await newConDialog.findElements(By.css(".tabview.top input.msg"));
+        await paths[0].sendKeys(`${certsPath}/ca-cert.pem`);
+        await paths[1].sendKeys(`${certsPath}/client-cert.pem`);
+        await paths[2].sendKeys(`${certsPath}/client-key.pem`);
+    }
+
+    const okBtn = await driver.findElement(By.id("ok"));
+    await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
+    await okBtn.click();
+    expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
 };
 
-export const getDB = async (driver: WebDriver, name: string): Promise<WebElement | undefined> => {
+/**
+ * Returns the WebElement that represents the DB Connection, on the DB Connection main page
+ * Throws an exception if not found.
+ *
+ * @param name Connection caption
+ * @returns @returns Promise resolving with the DB Connection
+ */
+export const getDB = async (name: string): Promise<WebElement | undefined> => {
     return driver.wait(async () => {
         const hosts = await driver.findElements(By.css("#tilesHost button"));
         for (const host of hosts) {
@@ -179,19 +229,51 @@ export const getDB = async (driver: WebDriver, name: string): Promise<WebElement
     }, 5000, `No ${name} DB was found`);
 };
 
-export const closeDBconnection = async (driver: WebDriver, name: string): Promise<void> => {
+/**
+ * Verifies if the Connection Overview tab is selected/opened, on the DB Editor
+ *
+ * @returns Promise resolving to true if it's opened, false otherwise
+ */
+export const isConnectionOverviewOpened = async (): Promise<boolean> => {
+    const connections = await driver.findElement(By.id("connections"));
+    const classes = await connections.getAttribute("class");
 
-    const tabs = await driver.findElements(By.css(".hasAuxillary"));
-
-    for (const tab of tabs) {
-        if (await tab.findElement(By.css("label")).getText() === name) {
-            await tab.findElement(By.css("#auxillary > button")).click();
-        }
-    }
-
+    return classes.includes("selected");
 };
 
-export const getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
+/**
+ * Closes the current opened connection tab, or an existing connection tab
+ * Throws an exception if the existing connection tab is not found
+ *
+ * @param name Connection tab name
+ * @returns Promise resolving when the connection is closed
+ */
+export const closeDBconnection = async (name: string): Promise<void> => {
+    if (name === "current") {
+        const tab = await driver.findElement(By.css(".hasAuxillary.selected"));
+        await tab.findElement(By.css("#auxillary > button")).click();
+    } else {
+        const tabs = await driver.findElements(By.css(".hasAuxillary"));
+        for (const tab of tabs) {
+            const text = await tab.findElement(By.css("label")).getAttribute("innerHTML");
+            if (text.trim() === name) {
+                await tab.findElement(By.css("#auxillary > button")).click();
+
+                return;
+            }
+        }
+        throw new Error(`Could not find connection tab with name '${name}'`);
+    }
+};
+
+/**
+ * Returns the toolbar button on the DB Editor.
+ * Throws an exception if the button is not found.
+ *
+ * @param button Toolbar button tooltip
+ * @returns Promise resolving with the Toolbar button
+ */
+export const getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
     const buttons = await driver.findElements(By.css("#contentHost button"));
     for (const btn of buttons) {
         if ((await btn.getAttribute("data-tooltip")) === button) {
@@ -202,7 +284,13 @@ export const getToolbarButton = async (driver: WebDriver, button: string): Promi
     throw new Error(`Could not find button '${button}'`);
 };
 
-export const getResultStatus = async (driver: WebDriver, isSelect?: boolean): Promise<string> => {
+/**
+ * Returns the result status of a query or instruction on the DB Editor
+ *
+ * @param isSelect if the expected result is from a select statement
+ * @returns Promise resolving with the Result status. Ex. OK, 1 record returned
+ */
+export const getResultStatus = async (isSelect?: boolean): Promise<string> => {
     let results: WebElement[] | undefined;
     let obj = "";
     if (isSelect) {
@@ -238,14 +326,25 @@ export const getResultStatus = async (driver: WebDriver, isSelect?: boolean): Pr
     return block.getAttribute("innerHTML");
 };
 
-export const getSelectedConnectionTab = async (driver: WebDriver): Promise<WebElement> => {
+/**
+ * Returns the current selected connection tab, on the DB Editor
+ *
+ * @returns Promise resolving with the Connection tab name
+ */
+export const getSelectedConnectionTab = async (): Promise<WebElement> => {
     const tab = await driver.findElement(By.css(".selected.hasAuxillary"));
 
     return tab.findElement(By.css(".label"));
 };
 
-
-const getSettingArea = async (driver: WebDriver, title: string): Promise<WebElement | undefined> => {
+/**
+ * Returns the selected Setting (Theme Settings, Code Editor, etc), on the Settings page.
+ * Throws an exception if the setting is not found
+ *
+ * @param title name of the Setting
+ * @returns Promise resolving with the setting area
+ */
+const getSettingArea = async (title: string): Promise<WebElement> => {
     const settings = await driver.findElement(By.id("settingsHost"));
     const settingsTreeRows = await settings.findElements(
         By.css(".settingsTreeCell label"),
@@ -256,11 +355,20 @@ const getSettingArea = async (driver: WebDriver, title: string): Promise<WebElem
             return setting;
         }
     }
+    throw new Error(`Could not find the setting '${title}'`);
 };
 
-export const setStartLanguage = async (driver: WebDriver, section: string, value: string): Promise<void> => {
+/**
+ * Sets the start language on the Settings page
+ * Throws an exception if the setting is not found
+ *
+ * @param section DB Editor or Shell
+ * @param value Language
+ * @returns Promise resolving when the language is set
+ */
+export const setStartLanguage = async (section: string, value: string): Promise<void> => {
     await driver.findElement(By.id("settings")).click();
-    await (await getSettingArea(driver, section))!.click();
+    await (await getSettingArea(section))!.click();
     if (section === "DB Editor") {
         await driver.findElement(By.id("dbEditor.startLanguage")).click();
     } else {
@@ -271,7 +379,15 @@ export const setStartLanguage = async (driver: WebDriver, section: string, value
     await driver.findElement(By.id(value)).click();
 };
 
-export const openShellSession = async (driver: WebDriver, id?: Number): Promise<void> => {
+/**
+ * Opens a new Shell session, from the Shell Sessions page
+ * Throws an exception if the session was not opened
+ *
+ * @param id Id of the session. If this parameter is set, the function will open.
+ * the session with the provided id
+ * @returns Promise resolving when session is opened
+ */
+export const openShellSession = async (id?: number): Promise<void> => {
     if (id) {
         const buttons = await driver.findElements(By.css("#tilesHost button"));
         for (const button of buttons) {
@@ -291,7 +407,13 @@ export const openShellSession = async (driver: WebDriver, id?: Number): Promise<
     );
 };
 
-export const shellGetResult = async (driver: WebDriver): Promise<string> => {
+/**
+ * Returns the result of a shell session query or instruction
+ *
+ * @returns Promise resolving whith the result
+ *
+ */
+export const shellGetResult = async (): Promise<string> => {
     const zoneHost = await driver.findElements(By.css(".zoneHost"));
     const error = await zoneHost[zoneHost.length - 1].findElements(
         By.css(".error"),
@@ -323,7 +445,12 @@ export const shellGetResult = async (driver: WebDriver): Promise<string> => {
     }
 };
 
-export const shellGetLangResult = async (driver: WebDriver): Promise<string> => {
+/**
+ * Returns the result language of a shell session query or instruction. Ex. json
+ *
+ * @returns Promise resolving with the result language
+ */
+export const shellGetLangResult = async (): Promise<string> => {
     await driver.wait(until.elementLocated(By.css(".zoneHost")), 2000);
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     const zoneHost = zoneHosts[zoneHosts.length - 1];
@@ -333,7 +460,12 @@ export const shellGetLangResult = async (driver: WebDriver): Promise<string> => 
     return dataLang;
 };
 
-export const pressEnter = async (driver: WebDriver): Promise<void> => {
+/**
+ * Press the combination keys to execute a statement on the DB Editor or Shell session (CTRL+ENTER)
+ *
+ * @returns Promise resolving when the key combination is pressed
+ */
+export const pressEnter = async (): Promise<void> => {
     if (platform() === "win32") {
         await driver
             .actions()
@@ -353,7 +485,13 @@ export const pressEnter = async (driver: WebDriver): Promise<void> => {
     }
 };
 
-export const getPromptTextLine = async (driver: WebDriver, prompt: String): Promise<String> => {
+/**
+ * Returns the prompt text within a line, on the DB Editor
+ *
+ * @param prompt last (last line), last-1 (line before the last line), last-2 (line before the 2 last lines)
+ * @returns Promise resolving with the text on the selected line
+ */
+export const getPromptTextLine = async (prompt: string): Promise<String> => {
     const context = await driver.findElement(By.css(".monaco-editor-background"));
     const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
 
@@ -380,21 +518,35 @@ export const getPromptTextLine = async (driver: WebDriver, prompt: String): Prom
     return sentence;
 };
 
-export const writeSQL = async (driver: WebDriver, sql: string): Promise<void> => {
+/**
+ * Writes an SQL query on the DB Editor
+ *
+ * @param sql sql query
+ * @param dealWithBox True if the sql query should produce the context suggestion box.
+ * It will press Enter key to make it disappear.
+ * @returns Promise resolving when the sql query is written
+ */
+export const writeSQL = async (sql: string, dealWithBox?: boolean): Promise<void> => {
     const textArea = await driver.findElement(By.css("textarea"));
     await textArea.sendKeys(sql);
-    try {
-        await driver.wait(until.elementLocated(By.css("div.contents")), 500, "none");
-        await driver.wait(async () => {
-            return await getPromptTextLine(driver, "last") === sql;
-        }, 2000, "Last prompt does not have the inserted SQL");
-    } catch (e) {
-        return;
+    if (dealWithBox) {
+        try {
+            await driver.wait(until.elementLocated(By.css("div.contents")), 500, "none");
+        } catch (e) {
+            return;
+        }
+        await textArea.sendKeys(Key.ENTER);
     }
-    await textArea.sendKeys(Key.ENTER);
 };
 
-export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: string): Promise<void> => {
+/**
+ * Writes an SQL query and executes it
+ *
+ * @param textArea text area to send the query
+ * @param cmd command to execute
+ * @returns Promise resolving when the command is executed
+ */
+export const enterCmd = async (textArea: WebElement, cmd: string): Promise<void> => {
     cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
     const prevBlocks = await driver.findElements(By.css(".zoneHost"));
     await textArea.sendKeys(cmd);
@@ -407,7 +559,7 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
         await textArea.sendKeys(Key.ENTER);
     }
 
-    await pressEnter(driver);
+    await pressEnter();
 
     if (cmd !== "\\q" && cmd !== "\\d") {
         await driver.wait(async () => {
@@ -418,24 +570,12 @@ export const enterCmd = async (driver: WebDriver, textArea: WebElement, cmd: str
     }
 };
 
-export const shellGetResultTable = async (driver: WebDriver): Promise<WebElement | string> => {
-    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-    const zoneHost = zoneHosts[zoneHosts.length - 1];
-    const error = await zoneHost.findElements(
-        By.css(".error"),
-    );
-
-    if (error.length > 0) {
-        const last = error.length - 1;
-
-        return error[last].getText();
-    } else {
-
-        return zoneHost.findElement(By.css(".tabulator"));
-    }
-};
-
-export const shellGetTotalRows = async (driver: WebDriver): Promise<string> => {
+/**
+ * Returns the total number of rows affected, after executing a query on a Shell session
+ *
+ * @returns Promise resolving with the the total number of rows
+ */
+export const shellGetTotalRows = async (): Promise<string> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     const zoneHost = zoneHosts[zoneHosts.length - 1];
 
@@ -444,8 +584,13 @@ export const shellGetTotalRows = async (driver: WebDriver): Promise<string> => {
         .getText();
 };
 
-
-export const shellGetSession = async (driver: WebDriver, sessionNbr: string): Promise<WebElement | undefined> => {
+/**
+ * Returns the session with the provided session number, from the Shell Sessions main page
+ *
+ * @param sessionNbr the session number
+ * @returns Promise resolving with the session button
+ */
+export const shellGetSession = async (sessionNbr: string): Promise<WebElement | undefined> => {
     const buttons = await driver.findElements(By.css("#tilesHost button"));
     for (const button of buttons) {
         if ((await button.getAttribute("id")) === sessionNbr) {
@@ -456,7 +601,13 @@ export const shellGetSession = async (driver: WebDriver, sessionNbr: string): Pr
     return undefined;
 };
 
-const shellGetTab = async (driver: WebDriver, sessionNbr: string): Promise<WebElement> => {
+/**
+ * Returns the shell session tab
+ *
+ * @param sessionNbr the session number
+ * @returns Promise resolving with the the Session tab
+ */
+const shellGetTab = async (sessionNbr: string): Promise<WebElement> => {
     const tabArea = await driver.findElement(By.css(".tabArea"));
     await driver.wait(
         async () => {
@@ -477,22 +628,35 @@ const shellGetTab = async (driver: WebDriver, sessionNbr: string): Promise<WebEl
     );
 };
 
-export const closeSession = async (driver: WebDriver, sessionNbr: string): Promise<void> => {
-    const tab = await shellGetTab(driver, sessionNbr);
+/**
+ * Closes a shell session
+ *
+ * @param sessionNbr the session number
+ * @returns Promise resolving when the session is closed
+ */
+export const closeSession = async (sessionNbr: string): Promise<void> => {
+    const tab = await shellGetTab(sessionNbr);
     await tab.findElement(By.css(".closeButton")).click();
 };
 
-export const shellGetTech = async (driver: WebElement): Promise<string> => {
-    const divs = await driver.findElements(
-        By.css(".margin-view-overlays div div"),
-    );
-    const lastDiv = divs[divs.length - 1];
-    const classes = (await lastDiv.getAttribute("class")).split(" ");
+/**
+ * Returns the Shell tech/language after switching to javascript/python/mysql
+ *
+ * @returns Promise resolving with the the session shell language
+ */
+export const shellGetTech = async (): Promise<string> => {
+    const editorsPrompt = await driver.findElements(By.css(".editorPromptFirst"));
+    const lastEditorClasses = await editorsPrompt[editorsPrompt.length - 1].getAttribute("class");
 
-    return classes[2];
+    return lastEditorClasses.split(" ")[2];
 };
 
-export const getCurrentProfile = async (driver: WebDriver): Promise<string | undefined> => {
+/**
+ * Returns the current profile
+ *
+ * @returns Promise resolving with the the profile
+ */
+export const getCurrentProfile = async (): Promise<string | undefined> => {
     const btns = await driver.findElements(By.css(".leftItems button"));
     for (const button of btns) {
         if ((await button.getAttribute("title")) === "Change profile") {
@@ -501,7 +665,12 @@ export const getCurrentProfile = async (driver: WebDriver): Promise<string | und
     }
 };
 
-export const openProfileMenu = async (driver: WebDriver): Promise<WebElement | undefined> => {
+/**
+ * Opens the profile menu
+ *
+ * @returns Promise resolving with the the menu
+ */
+export const openProfileMenu = async (): Promise<WebElement | undefined> => {
     let isOpened;
     if ((await driver.findElements(By.css(".noArrow.menu"))).length > 0) {
         isOpened = true;
@@ -526,8 +695,14 @@ export const openProfileMenu = async (driver: WebDriver): Promise<WebElement | u
     }
 };
 
-export const getProfile = async (driver: WebDriver, profile: string): Promise<WebElement | undefined> => {
-    await openProfileMenu(driver);
+/**
+ * Returns the profile within the profiles menu
+ *
+ * @param profile profile name
+ * @returns Promise resolving with the the menu
+ */
+export const getProfile = async (profile: string): Promise<WebElement | undefined> => {
+    await openProfileMenu();
     const menu = await driver.findElement(By.css(".noArrow.menu"));
     const items = await menu.findElements(By.css("div.menuItem"));
 
@@ -541,9 +716,16 @@ export const getProfile = async (driver: WebDriver, profile: string): Promise<We
     }
 };
 
-export const addProfile = async (driver: WebDriver,
+/**
+ * Adds a profile
+ *
+ * @param profile profile name
+ * @param profile2copy profile to copy from
+ * @returns Promise resolving when the script is added
+ */
+export const addProfile = async (
     profile: string, profile2copy: string | undefined): Promise<void> => {
-    await openProfileMenu(driver);
+    await openProfileMenu();
     await driver.findElement(By.id("add")).click();
     const dialog = await driver.findElement(By.css(".valueEditDialog"));
     await dialog.findElement(By.id("profileName")).sendKeys(profile);
@@ -561,7 +743,13 @@ export const addProfile = async (driver: WebDriver,
     await dialog.findElement(By.id("ok")).click();
 };
 
-export const setProfilesToRemove = async (driver: WebDriver, profs: string[]): Promise<void> => {
+/**
+ * Mark the profiles to remove from the Delete Profile dialog
+ *
+ * @param profs profiles to mark to remove
+ * @returns Promise resolving when the profiles are marked
+ */
+export const setProfilesToRemove = async (profs: string[]): Promise<void> => {
     let els;
     let label;
     const profiles = await driver.findElements(
@@ -592,6 +780,13 @@ export const setProfilesToRemove = async (driver: WebDriver, profs: string[]): P
     }
 };
 
+/**
+ * Enables/Disables the Find in Selection button, on the Find and Replace box
+ *
+ * @param el find widget
+ * @param flag true to enable, false otherwise
+ * @returns Promise resolving when the find is made
+ */
 export const findInSelection = async (el: WebElement, flag: boolean): Promise<void> => {
     const actions = await el.findElements(By.css(".find-actions div"));
     for (const action of actions) {
@@ -615,6 +810,12 @@ export const findInSelection = async (el: WebElement, flag: boolean): Promise<vo
     }
 };
 
+/**
+ * Closes the finder on DB Editor
+ *
+ * @param el element to close
+ * @returns Promise resolving with the finder is closed
+ */
 export const closeFinder = async (el: WebElement): Promise<void> => {
     const actions = await el.findElements(By.css(".find-actions div"));
     for (const action of actions) {
@@ -624,6 +825,13 @@ export const closeFinder = async (el: WebElement): Promise<void> => {
     }
 };
 
+/**
+ * Expands the finder to show the Replace text box
+ *
+ * @param el the finder
+ * @param flag true to open, false otherwise
+ * @returns Promise resolving when the action is made
+ */
 export const expandFinderReplace = async (el: WebElement, flag: boolean): Promise<void> => {
     const divs = await el.findElements(By.css("div"));
     for (const div of divs) {
@@ -642,6 +850,13 @@ export const expandFinderReplace = async (el: WebElement, flag: boolean): Promis
     }
 };
 
+/**
+ * Returns a button on the finder box dialog
+ *
+ * @param el the finder
+ * @param button button name
+ * @returns Promise resolving with the button
+ */
 export const replacerGetButton = async (el: WebElement, button: string): Promise<WebElement | undefined> => {
     const replaceActions = await el.findElements(
         By.css(".replace-actions div"),
@@ -655,7 +870,14 @@ export const replacerGetButton = async (el: WebElement, button: string): Promise
     }
 };
 
-export const getSchemaObject = async (driver: WebDriver,
+/**
+ * Returns an object/item within the schema section on the DB Editor
+ *
+ * @param objType Schema/Tables/Views/Routines/Events/Triggers/Foreign Keys/Indexes
+ * @param objName Name of the object
+ * @returns Promise resolving with the object
+ */
+export const getSchemaObject = async (
     objType: string, objName: string): Promise<WebElement | undefined> => {
     const scroll = await driver
         .findElement(By.id("schemaSectionHost"))
@@ -729,14 +951,27 @@ export const getSchemaObject = async (driver: WebDriver,
     return item;
 };
 
-export const toggleSchemaObject = async (driver: WebDriver, objType: string, objName: string): Promise<void> => {
-    const obj = await getSchemaObject(driver, objType, objName);
+/**
+ * Toggles (expand or collapse) a schema object/item on the DB Editor
+ *
+ * @param objType Schema/Tables/Views/Routines/Events/Triggers/Foreign Keys/Indexes
+ * @param objName Name of the object
+ * @returns Promise resolving with the object
+ */
+export const toggleSchemaObject = async (objType: string, objName: string): Promise<void> => {
+    const obj = await getSchemaObject(objType, objName);
     const toggle = await obj!.findElement(By.css(".treeToggle"));
     await driver.executeScript("arguments[0].click()", toggle);
     await driver.sleep(1000);
 };
 
-export const addScript = async (driver: WebDriver, scriptType: string): Promise<string> => {
+/**
+ * Adds a script on the DB Editor
+ *
+ * @param scriptType JS/TS/SQL
+ * @returns Promise resolving with the name of the created script
+ */
+export const addScript = async (scriptType: string): Promise<string> => {
     const context = await driver.findElement(By.id("scriptSectionHost"));
     const items = await context.findElements(By.css("div.tabulator-row"));
 
@@ -768,7 +1003,14 @@ export const addScript = async (driver: WebDriver, scriptType: string): Promise<
     return entries[entries.length-1].getText();
 };
 
-export const existsScript = async (driver: WebDriver, scriptName: string, scriptType: string): Promise<boolean> => {
+/**
+ * Checks if a script exists on the DB Editor
+ *
+ * @param scriptName Script name
+ * @param scriptType javascript/typescript/mysql
+ * @returns Promise resolving with true if exists, false otherwise
+ */
+export const existsScript = async (scriptName: string, scriptType: string): Promise<boolean> => {
     const context = await driver.findElement(By.id("scriptSectionHost"));
     const items = await context.findElements(By.css("div.tabulator-row"));
     for (const item of items) {
@@ -782,7 +1024,13 @@ export const existsScript = async (driver: WebDriver, scriptName: string, script
     return false;
 };
 
-export const getOpenEditor = async (driver: WebDriver, editor: string): Promise<WebElement | undefined> => {
+/**
+ * Returns the open editor
+ *
+ * @param editor Editor name
+ * @returns Promise resolving with the Editor
+ */
+export const getOpenEditor = async (editor: string): Promise<WebElement | undefined> => {
     const context = await driver.findElement(By.id("editorSectionHost"));
     const editors = await context.findElements(
         By.css("div.accordionItem.closable"),
@@ -794,7 +1042,14 @@ export const getOpenEditor = async (driver: WebDriver, editor: string): Promise<
     }
 };
 
-export const selectCurrentEditor = async (driver: WebDriver, editorName: string, editorType: string): Promise<void> => {
+/**
+ * Selects an editor from the drop down list on the DB Editor
+ *
+ * @param editorName Editor name
+ * @param editorType javascript/typescript/mysql
+ * @returns Promise resolving when the select is made
+ */
+export const selectCurrentEditor = async (editorName: string, editorType: string): Promise<void> => {
     const selector = await driver.findElement(By.id("documentSelector"));
     await driver.executeScript("arguments[0].click()", selector);
 
@@ -841,7 +1096,13 @@ export const selectCurrentEditor = async (driver: WebDriver, editorName: string,
     throw new Error(`Coult not find ${editorName} with type ${editorType}`);
 };
 
-export const getResultTab = async (driver: WebDriver, tabName: string): Promise<WebElement | undefined> => {
+/**
+ * Returns the result tab or a multi-query result, on the DB Editor
+ *
+ * @param tabName Tab name
+ * @returns Promise resolving with the tab
+ */
+export const getResultTab = async (tabName: string): Promise<WebElement | undefined> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     const tabs = await zoneHosts[zoneHosts.length-1].findElements(By.css(".resultHost .tabArea div"));
 
@@ -856,7 +1117,14 @@ export const getResultTab = async (driver: WebDriver, tabName: string): Promise<
     }
 };
 
-export const getResultColumnName = async (driver: WebDriver, columnName: string,
+/**
+ * Returns the result column name of a sql query, on the DB Editor
+ *
+ * @param columnName Column name
+ * @param retry Number of retries to get the column (default = 2)
+ * @returns A promise resolving with the column
+ */
+export const getResultColumnName = async (columnName: string,
     retry?: number): Promise<WebElement | undefined> => {
     if (!retry) {
         retry = 0;
@@ -887,42 +1155,17 @@ export const getResultColumnName = async (driver: WebDriver, columnName: string,
                 throw e;
             }
         } else {
-            await getResultColumnName(driver, columnName, retry + 1);
+            await getResultColumnName(columnName, retry + 1);
         }
     }
 };
 
-export const findFreePort = async (): Promise<number> => {
-    return new Promise((resolve, reject) => {
-        const server = net.createServer();
-        let calledFn = false;
-
-        server.on("error", (err) => {
-            server.close();
-
-            if (!calledFn) {
-                calledFn = true;
-                reject(err);
-            }
-        });
-
-        server.listen(0, () => {
-            const address = server.address();
-            if (!address || typeof address === "string" || address.port === 0) {
-                reject(new Error("Unable to get a port for the backend"));
-            } else {
-                server.close();
-
-                if (!calledFn) {
-                    calledFn = true;
-                    resolve(address.port);
-                }
-            }
-        });
-    });
-};
-
-export const getGraphHost = async (driver: WebDriver): Promise<WebElement> => {
+/**
+ * Returns the graph resulting from a typescript script, on the DB Editor
+ *
+ * @returns A promise resolving with the graph
+ */
+export const getGraphHost = async (): Promise<WebElement> => {
     const resultHosts = await driver.findElements(By.css(".zoneHost"));
     const lastResult = resultHosts[resultHosts.length-1];
 
@@ -931,7 +1174,13 @@ export const getGraphHost = async (driver: WebDriver): Promise<WebElement> => {
     }, 10000, "Pie Chart was not displayed");
 };
 
-export const getOutput = async (driver: WebDriver, penultimate?: boolean): Promise<string> => {
+/**
+ * Returns the output of switching language on the DB Editor
+ *
+ * @param penultimate get the penultimate result
+ * @returns A promise resolving with the output
+ */
+export const getOutput = async (penultimate?: boolean): Promise<string> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     let context;
     if (penultimate) {
@@ -956,19 +1205,30 @@ export const getOutput = async (driver: WebDriver, penultimate?: boolean): Promi
     return text;
 };
 
-const getEditorLanguage = async (driver: WebDriver): Promise<string> => {
+/**
+ * Returns the current language of the prompt on the DB Editor
+ *
+ * @returns A promise resolving with the language
+ */
+const getEditorLanguage = async (): Promise<string> => {
     const editors = await driver.findElements(By.css(".editorPromptFirst"));
     const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
 
     return editorClasses[2].replace("my", "");
 };
 
-export const setEditorLanguage = async (driver: WebDriver, language: string): Promise<void> => {
-    const curLang = await getEditorLanguage(driver);
+/**
+ * Sets the language on the DB Editor
+ *
+ * @param language sql/js/ts
+ * @returns A promise resolving when the language is set
+ */
+export const setEditorLanguage = async (language: string): Promise<void> => {
+    const curLang = await getEditorLanguage();
     if (curLang !== language) {
         const contentHost = await driver.findElement(By.id("contentHost"));
         const textArea = await contentHost.findElement(By.css("textarea"));
-        await enterCmd(driver, textArea, "\\" + language.replace("my", ""));
+        await enterCmd(textArea, "\\" + language.replace("my", ""));
         const results = await driver.findElements(By.css(".message.info"));
         switch (language) {
             case "sql":
@@ -986,37 +1246,15 @@ export const setEditorLanguage = async (driver: WebDriver, language: string): Pr
     }
 };
 
-export const toggleExplorerHost = async (driver: WebDriver, action: string): Promise<void> => {
-    const guiSqlEditor = await driver.findElement(By.id("gui.sqleditor"));
-
-    const explorerWidth = async (driver: WebDriver) => {
-        const explorerHost = await driver.findElement(By.id("explorerHost"));
-        const styles = (await explorerHost.getAttribute("style")).split(";");
-        const getWidth = (element: string) => { return element.indexOf("width") !== -1; };
-        const widthIdx = styles.findIndex(getWidth);
-        const match = styles[widthIdx].match(/(\d+)/gm);
-
-        return parseInt(match![0], 10);
-    };
-
-    if (action === "open") {
-        if (await explorerWidth(driver) === 0) {
-            await guiSqlEditor.click();
-            await driver.wait(async () => {
-                return await explorerWidth(driver) > 0;
-            }, 3000, "Explorer was not opened");
-        }
-    } else {
-        if (await explorerWidth(driver) > 0) {
-            await guiSqlEditor.click();
-            await driver.wait(async () => {
-                return await explorerWidth(driver) === 0;
-            }, 3000, "Explorer was not closed");
-        }
-    }
-};
-
-export const toggleUiColorsMenu = async (driver: WebDriver, menu: string,
+/**
+ * Toggles a Theme Editor UI Colors menu
+ *
+ * @param menu Menu name
+ * @param action open/close
+ * @param scroll True to scroll down (menu is invisible)
+ * @returns A promise resolving when the toggel is made
+ */
+export const toggleUiColorsMenu = async (menu: string,
     action: string, scroll?: boolean): Promise<void> => {
     const isTabOpened = async (tab: WebElement) => {
         return (await tab.getAttribute("class")).includes("expanded");
@@ -1078,7 +1316,14 @@ export const toggleUiColorsMenu = async (driver: WebDriver, menu: string,
     }
 };
 
-export const isUiColorsMenuExpanded = async(driver: WebDriver,
+/**
+ * Checks if the UI Colors menu is expanded, on the Theme Editor
+ *
+ * @param menuName Menu name
+ * @param scroll True to scroll down (menu is invisible)
+ * @returns A promise resolving to true if it's expanded, false otherwise. Undefined if the menu is not found
+ */
+export const isUiColorsMenuExpanded = async(
     menuName: string, scroll?: boolean): Promise<boolean | undefined> => {
     const isTabOpened = async (tab: WebElement) => {
         return (await tab.getAttribute("class")).includes("expanded");
@@ -1122,13 +1367,22 @@ export const isUiColorsMenuExpanded = async(driver: WebDriver,
             }
         }
     }
-
 };
 
-export const setThemeEditorColors = async (driver: WebDriver, sectionColors: string, optionId: string,
+/**
+ * Sets the color (using the color pad) of a menu item, on the Theme Editor
+ *
+ * @param sectionColors Menu item name
+ * @param optionId the html id of the option color
+ * @param detail the field on the color pad
+ * @param value the value to set
+ * @param scroll True to scroll down (menu is invisible)
+ * @returns A promise resolving when the set is made
+ */
+export const setThemeEditorColors = async (sectionColors: string, optionId: string,
     detail: string, value: string, scroll?: boolean): Promise<void> => {
 
-    await toggleUiColorsMenu(driver, sectionColors, "open", scroll);
+    await toggleUiColorsMenu(sectionColors, "open", scroll);
 
     const openColorPad = async () => {
         await driver.wait(async () => {
@@ -1141,7 +1395,7 @@ export const setThemeEditorColors = async (driver: WebDriver, sectionColors: str
     try {
         await openColorPad();
     } catch (e) {
-        await toggleUiColorsMenu(driver, sectionColors, "open", scroll);
+        await toggleUiColorsMenu(sectionColors, "open", scroll);
         await openColorPad();
     }
 
@@ -1151,14 +1405,29 @@ export const setThemeEditorColors = async (driver: WebDriver, sectionColors: str
     await colorPopup.findElement(By.id(detail)).sendKeys(Key.ESCAPE);
 
     await driver.wait(async () => {
-        return !(await isUiColorsMenuExpanded(driver, sectionColors, scroll));
+        return !(await isUiColorsMenuExpanded(sectionColors, scroll));
     }, 7000, `${sectionColors} menu is not collapsed`);
 };
 
-export const getElementStyle = async (driver: WebDriver, element: WebElement, style: string): Promise<void> => {
+/**
+ * Returns the css computed style of an element
+ *
+ * @param element The Element
+ * @param style The style
+ * @returns A promise resolving with the element style
+ */
+export const getElementStyle = async (element: WebElement, style: string): Promise<string> => {
     return driver.executeScript("return window.getComputedStyle(arguments[0])." + style, element);
 };
 
+/**
+ * Converts and RGB code to hex
+ *
+ * @param r value
+ * @param g value
+ * @param b value
+ * @returns A promise resolving with the hex value
+ */
 export const rgbToHex = (r: string, g: string, b: string): string => {
 
     const componentToHex = (c: number) => {
@@ -1173,7 +1442,13 @@ export const rgbToHex = (r: string, g: string, b: string): string => {
     return result.toUpperCase();
 };
 
-export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig): Promise<void> => {
+/**
+ * Sets the DB Editor password for a connection, on the Password dialog
+ *
+ * @param dbConfig connection object
+ * @returns A promise resolving when the password is set
+ */
+export const setDBEditorPassword = async (dbConfig: IDBConnection): Promise<void> => {
     const dialog = await driver.wait(until.elementsLocated(By.css(".passwordDialog")),
         500, "No Password dialog was found");
 
@@ -1200,7 +1475,14 @@ export const setDBEditorPassword = async (driver: WebDriver, dbConfig: IDbConfig
     await dialog[0].findElement(By.id("ok")).click();
 };
 
-export const setConfirmDialog = async (driver: WebDriver, dbConfig: IDbConfig, value: string): Promise<void> => {
+/**
+ * Sets the DB Editor confirm dialog value, for a password storage
+ *
+ * @param dbConfig connection object
+ * @param value yes/no/never
+ * @returns A promise resolving when the set is made
+ */
+export const setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
     const confirmDialog = await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
         500, "No confirm dialog was found");
 
@@ -1229,7 +1511,13 @@ export const setConfirmDialog = async (driver: WebDriver, dbConfig: IDbConfig, v
     }
 };
 
-export const clickDBEditorContextItem = async (driver: WebDriver, itemName: string): Promise<void> => {
+/**
+ * Clicks on the DB Editor Context menu
+ *
+ * @param itemName Contex menu item name
+ * @returns A promise resolving when the click is made
+ */
+export const clickDBEditorContextItem = async (itemName: string): Promise<void> => {
     const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
     const el = lines[lines.length - 1];
     await driver
@@ -1256,26 +1544,39 @@ export const clickDBEditorContextItem = async (driver: WebDriver, itemName: stri
     throw new Error(`Could not find item '${itemName}'`);
 };
 
-export const clickSettingArea = async (driver: WebDriver, settingId: string): Promise<void> => {
+/**
+ * Clicks an item on the Settings page main items section
+ *
+ * @param settingId Setting name
+ * @returns A promise resolving when the click is made
+ */
+const clickSettingArea = async (settingId: string): Promise<void> => {
     if (settingId.indexOf("settings") !== -1) {
-        await (await getSettingArea(driver, "Settings"))!.click();
+        await (await getSettingArea("Settings"))!.click();
     } else if (settingId.indexOf("theming.") !== -1) {
-        await (await getSettingArea(driver, "Theme Settings"))!.click();
+        await (await getSettingArea("Theme Settings"))!.click();
     } else if (settingId.indexOf("editor.") !== -1) {
-        await (await getSettingArea(driver, "Code Editor"))!.click();
+        await (await getSettingArea("Code Editor"))!.click();
     } else if (settingId.indexOf("dbEditor.") !== -1) {
-        await (await getSettingArea(driver, "DB Editor"))!.click();
+        await (await getSettingArea("DB Editor"))!.click();
     } else if (settingId.indexOf("sql") !== -1) {
-        await (await getSettingArea(driver, "SQL Execution"))!.click();
+        await (await getSettingArea("SQL Execution"))!.click();
     } else if (settingId.indexOf("session") !== -1) {
-        await (await getSettingArea(driver, "Shell Session"))!.click();
+        await (await getSettingArea("Shell Session"))!.click();
     } else {
         throw new Error("unknown settingId: " + settingId);
     }
 };
 
-//there are inputs that become stale after inserting 1 element
-export const setInputValue = async (driver: WebDriver, inputId: string,
+/**
+ * Inserts texts on an input box or other element, on a safer way (avoiding Stale Elements)
+ *
+ * @param inputId html input id
+ * @param type input/selectList/checkbox
+ * @param value text to set
+ * @returns A promise resolving with the set is made
+ */
+const setInputValue = async (inputId: string,
     type: string | undefined, value: string): Promise<void> => {
     let el = await driver.findElement(By.id(inputId));
     const letters = value.split("");
@@ -1289,9 +1590,17 @@ export const setInputValue = async (driver: WebDriver, inputId: string,
     }
 };
 
-export const setSetting = async (driver: WebDriver, settingId: string, type: string, value: string): Promise<void> => {
+/**
+ * Sets a setting on the Settings page
+ *
+ * @param settingId html id
+ * @param type input/selectList/checkbox
+ * @param value text to set
+ * @returns A promise resolving with the set is made
+ */
+export const setSetting = async (settingId: string, type: string, value: string): Promise<void> => {
     const settingsValueList = driver.findElement(By.id("settingsValueList"));
-    await clickSettingArea(driver, settingId);
+    await clickSettingArea(settingId);
     const el = settingsValueList.findElement(By.id(settingId));
     await driver.executeScript("arguments[0].scrollIntoView(true)", el);
     const dropDownList = await driver.findElement(By.css(".dropdownList"));
@@ -1301,10 +1610,10 @@ export const setSetting = async (driver: WebDriver, settingId: string, type: str
             await driver.executeScript("arguments[0].click()", el);
             if ((await el.getTagName()) === "input") {
                 await el.clear();
-                await setInputValue(driver, settingId, undefined, value);
+                await setInputValue(settingId, undefined, value);
             } else {
                 await el.findElement(By.css(type)).clear();
-                await setInputValue(driver, settingId, type, value);
+                await setInputValue(settingId, type, value);
             }
             break;
         case "selectList":
@@ -1345,9 +1654,16 @@ export const setSetting = async (driver: WebDriver, settingId: string, type: str
     }
 };
 
-export const getSettingValue = async (driver: WebDriver, settingId: string, type: string): Promise<string> => {
+/**
+ * Returns the value of a setting on the Settings page
+ *
+ * @param settingId html id
+ * @param type input/selectList/checkbox
+ * @returns A promise resolving with the value of the setting
+ */
+export const getSettingValue = async (settingId: string, type: string): Promise<string> => {
     const settingsValueList = driver.findElement(By.id("settingsValueList"));
-    await clickSettingArea(driver, settingId);
+    await clickSettingArea(settingId);
     const el = settingsValueList.findElement(By.id(settingId));
     await driver.executeScript("arguments[0].scrollIntoView(true)", el);
     let settingValue = "";
@@ -1378,22 +1694,13 @@ export const getSettingValue = async (driver: WebDriver, settingId: string, type
     return settingValue;
 };
 
-export const setDBEditorStartLang = async (driver: WebDriver, lang: string): Promise<void> => {
-    await driver.findElement(By.id("settings")).click();
-    const settings = await driver.findElement(By.id("settingsHost"));
-    const settingsTreeRows = await settings.findElements(
-        By.css(".settingsTreeCell label"),
-    );
-    await settingsTreeRows[2].click();
-    await driver.findElement(By.id("dbEditor.startLanguage")).click();
-    const dropDown = await driver.wait(until.elementLocated(By.css(".dropdownList.manualFocus")),
-        3000, "dropDown not displayed");
-    await dropDown.findElement(By.id(lang)).click();
-};
-
-//This function checks if the Db Type drop down list is stale.
-//Because of the tests speed, sometimes we need to reload the dialog
-export const initConDialog = async (driver: WebDriver): Promise<void> => {
+/**
+ * Checks if the Db Type drop down list is stale, on the Connections dialog
+ * Because of the tests speed, sometimes we need to reload the dialog
+ *
+ * @returns A promise resolving when the init is made
+ */
+export const initConDialog = async (): Promise<void> => {
     await driver
         .findElement(By.css(".connectionBrowser"))
         .findElement(By.id("-1"))
@@ -1402,9 +1709,19 @@ export const initConDialog = async (driver: WebDriver): Promise<void> => {
     const dialog = driver.findElement(By.css(".valueEditDialog"));
     await dialog.findElement(By.id("cancel")).click();
     await driver.wait(until.stalenessOf(dialog), 2000, "Connection dialog is still displayed");
+    await driver.findElement(By.id("gui.shell")).click();
+    await driver.findElement(By.id("gui.sqleditor")).click();
 };
 
-export const expandCollapseSchemaMenus = async (driver: WebDriver, menu: string, expand: boolean,
+/**
+ * Expand or Collapses a menu on the DB Editor
+ *
+ * @param menu menu name (open editors/schemas/admin/scripts)
+ * @param expand True to expand, false to collapse
+ * @param retries number of retries to try to expand or collapse
+ * @returns A promise resolving when the expand or collapse is made
+ */
+export const expandCollapseDBEditorMenus = async (menu: string, expand: boolean,
     retries: number): Promise<void> => {
     if (retries === 3) {
         throw new Error(`Max retries reached on expanding collapse '${menu}'`);
@@ -1471,11 +1788,17 @@ export const expandCollapseSchemaMenus = async (driver: WebDriver, menu: string,
     } catch (e) {
         await driver.sleep(1000);
         console.log(e);
-        await expandCollapseSchemaMenus(driver, menu, expand, retries + 1);
+        await expandCollapseDBEditorMenus(menu, expand, retries + 1);
     }
 };
 
-export const getColorPadCss = async (driver: WebDriver, position: number): Promise<string> => {
+/**
+ * Returns the CSS value of a color pad
+ *
+ * @param position position of the color pad (1 for first, 2 for second...)
+ * @returns A promise resolving with the css value
+ */
+export const getColorPadCss = async (position: number): Promise<string> => {
     const colors = await driver.findElements(By.css("#colorPadCell > div"));
     await colors[position].click();
     const colorPopup = await driver.findElement(By.css(".colorPopup"));
@@ -1485,21 +1808,29 @@ export const getColorPadCss = async (driver: WebDriver, position: number): Promi
     return value;
 };
 
-export const scrollDBEditorDown = async (driver: WebDriver): Promise<void> => {
+/**
+ * Scrolls down on the DB Editor
+ *
+ * @returns A promise resolving when the scroll is made
+ */
+const scrollDBEditorDown = async (): Promise<void> => {
     const el = await driver.findElement(By.css(".codeEditor .monaco-scrollable-element"));
     await driver.executeScript("arguments[0].scrollBy(0, 5000)", el);
 };
 
-export const hasNewPrompt = async (driver: WebDriver): Promise<boolean | undefined> => {
+/**
+ * Verifies if a new prompt exists on the DB Editor
+ *
+ * @returns A promise resolving with true if exists, false otherwise
+ */
+export const hasNewPrompt = async (): Promise<boolean> => {
     let text: String;
     try {
-        await scrollDBEditorDown(driver);
+        await scrollDBEditorDown();
         const context = await driver.findElement(By.css(".monaco-editor-background"));
         const prompts = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
         const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
         text = await lastPrompt.getText();
-
-        return String(text).length === 0;
     } catch(e) {
         if (e instanceof Error) {
             if (String(e).indexOf("StaleElementReferenceError") === -1) {
@@ -1510,15 +1841,19 @@ export const hasNewPrompt = async (driver: WebDriver): Promise<boolean | undefin
                 const prompts = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
                 const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
                 text = await lastPrompt.getText();
-
-                return String(text).length === 0;
             }
         }
     }
 
+    return String(text!).length === 0;
 };
 
-export const cleanEditor = async (driver: WebDriver): Promise<void> => {
+/**
+ * Removes all the existing text on the DB Editor textarea
+ *
+ * @returns A promise resolving when the clean is made
+ */
+export const cleanEditor = async (): Promise<void> => {
     const textArea = await driver.findElement(By.css("textarea"));
     if (platform() === "win32") {
         await textArea
@@ -1529,17 +1864,17 @@ export const cleanEditor = async (driver: WebDriver): Promise<void> => {
     }
     await textArea.sendKeys(Key.BACK_SPACE);
     await driver.wait(async () => {
-        return await getPromptTextLine(driver, "last") === "";
+        return await getPromptTextLine("last") === "";
     }, 3000, "Prompt was not cleaned");
 };
 
-export const clickLastDBEditorPrompt = async (driver:WebDriver): Promise<void> => {
-    const context = await driver.findElement(By.css(".monaco-editor-background"));
-    const prompts = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-    await prompts[prompts.length-1].click();
-};
-
-export const getLastQueryResultId = async (driver: WebDriver): Promise<number> => {
+/**
+ * Returns the latest html query result id
+ * This function is useful to verify later if a new result id is displayed, after a query
+ *
+ * @returns A promise resolving with the Id
+ */
+export const getLastQueryResultId = async (): Promise<number> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     if (zoneHosts.length > 0) {
         const zones = await driver.findElements(By.css(".zoneHost"));
@@ -1550,7 +1885,13 @@ export const getLastQueryResultId = async (driver: WebDriver): Promise<number> =
     }
 };
 
-export const isValueOnDataSet = async (driver: WebDriver, value: String): Promise<boolean> => {
+/**
+ * Verifies if a value is present on a query result data set
+ *
+ * @param value value to search for
+ * @returns A promise resolving with true if exists, false otherwise
+ */
+export const isValueOnDataSet = async (value: string): Promise<boolean> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     const cells = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".zoneHost .tabulator-cell"));
     for (const cell of cells) {
@@ -1563,19 +1904,35 @@ export const isValueOnDataSet = async (driver: WebDriver, value: String): Promis
     return false;
 };
 
-export const getShellServerTabStatus = async (driver: WebDriver): Promise<string> => {
+/**
+ * Returns the text within the server tab on a shell session
+ *
+ * @returns A promise resolving with the text on the tab
+ */
+export const getShellServerTabStatus = async (): Promise<string> => {
     const server = await driver.findElement(By.id("server"));
 
     return server.getAttribute("data-tooltip");
 };
 
-export const getShellSchemaTabStatus = async (driver: WebDriver): Promise<string> => {
+/**
+ * Returns the text within the schema tab on a shell session
+ *
+ * @returns A promise resolving with the text on the tab
+ */
+export const getShellSchemaTabStatus = async (): Promise<string> => {
     const schema = await driver.findElement(By.id("schema"));
 
     return schema.getAttribute("innerHTML");
 };
 
-export const isValueOnJsonResult = async (driver: WebDriver, value: string): Promise<boolean> => {
+/**
+ * Verifies if a text is present on a json result, returned by a query
+ *
+ * @param value value to search for
+ * @returns A promise resolving with true if exists, false otherwise
+ */
+export const isValueOnJsonResult = async (value: string): Promise<boolean> => {
     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
     const zoneHost = zoneHosts[zoneHosts.length - 1];
     const spans = await zoneHost.findElements(By.css("label > span > span"));
@@ -1588,4 +1945,71 @@ export const isValueOnJsonResult = async (driver: WebDriver, value: string): Pro
     }
 
     return false;
+};
+
+/**
+ * Returns the result after executing a script, on the DB Editor
+ *
+ * @returns A promise resolving with the result
+ */
+export const getScriptResult = async (): Promise<string> => {
+    const host = await driver.findElement(By.id("resultPaneHost"));
+    const result = await host.findElement(By.css(".label"));
+
+    return result.getText();
+};
+
+/**
+ * Clicks on an item under the MySQL Administration section, on the DB Editor
+ *
+ * @param item Item name
+ * @returns A promise resolving when the click is made
+ */
+export const clickAdminItem = async (item: string): Promise<void> => {
+    const els = await driver.findElements(By.css("#adminSectionHost .accordionItem .label"));
+    for (const el of els) {
+        const label = await el.getText();
+        if (label === item) {
+            await el.click();
+
+            return;
+        }
+    }
+    throw new Error(`Could not find the item '${item}'`);
+};
+
+/**
+ * Returns the current selected Editor, on the select list, on the DB Editor
+ *
+ * @returns A promise resolving whith the editor
+ */
+export const getCurrentEditor = async (): Promise<string> => {
+    const selector = await driver.findElement(By.id("documentSelector"));
+    const label = await selector.findElement(By.css("label"));
+
+    return label.getText();
+};
+
+/**
+ * Selects an Editor from the drop down list, on the DB Editor
+ *
+ * @param editor The editor
+ * @returns A promise resolving when the select is made
+ */
+export const selectEditor = async (editor: string): Promise<void> => {
+    const selector = await driver.findElement(By.id("documentSelector"));
+    await selector.click();
+    const list = await driver.findElement(By.css(".dropdownList"));
+    const items = await list.findElements(By.css(".dropdownItem"));
+
+    for (const item of items) {
+        const label = await item.findElement(By.css("label"));
+        const text = await label.getAttribute("innerHTML");
+        if (text === editor) {
+            await item.click();
+
+            return;
+        }
+    }
+    throw new Error(`Could not find ${editor}`);
 };
