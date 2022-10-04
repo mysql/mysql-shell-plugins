@@ -1,5 +1,24 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.5.0+8.0.30
+
+### Additions
+
+- Added UI support for HeatWave Auto Parallel Load feature
+- Added support for ssh-remote VS Code session making the extension work with VS Code Server
+- Added support for MySQL connection compression settings
+- Added an error panel when the UI cannot be loaded and a warning panel when not using HTTPS
+- Added options to allow HTTP access to the UI in controlled environments
+
+### Fixes
+
+- Fixed an issue that caused connection errors of OCI Bastion session not being displayed correctly
+- The MDS tab on the connection dialog was missing when creating an OCI MDS connection
+- The color of the min-map in the SQL Notebooks and Script editors was fixed for light mode
+- Fixed issues when double-clicking a connection tile in the Connection Browser
+- Removal of the default toolbar when not applicable
+- Fixed issues with the Administration pages for MySQL connections in the Database Connection tree view
+
 ## Changes in 1.4.1+8.0.30
 
 ### Additions
