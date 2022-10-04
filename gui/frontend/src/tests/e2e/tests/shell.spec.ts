@@ -22,8 +22,8 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { getDriver, load } from "../lib/engine";
-import { By, WebDriver } from "selenium-webdriver";
+import { driver, loadDriver, loadPage } from "../lib/engine";
+import { By } from "selenium-webdriver";
 import {
     waitForHomePage,
     setStartLanguage,
@@ -37,49 +37,47 @@ import {
     shellGetLangResult,
     setDBEditorPassword,
     setConfirmDialog,
-    IDbConfig,
     cleanEditor,
     isValueOnDataSet,
     getShellServerTabStatus,
     getShellSchemaTabStatus,
     isValueOnJsonResult,
+    IDBConnection,
 } from "../lib/helpers";
-
-const dbConfig: IDbConfig = {
-    dbType: "MySQL",
-    caption: "ClientQA test",
-    description: "my connection",
-    hostname: String(process.env.DBHOSTNAME),
-    protocol: "mysql",
-    port: String(process.env.DBPORT),
-    username: String(process.env.DBUSERNAMESHELL),
-    password: String(process.env.DBPASSWORDSHELL),
-    schema: "sakila",
-    showAdvanced: false,
-    sslMode: "Disable",
-    compression: "",
-    timeout: "",
-    attributes: "",
-    portX: "33060",
-};
 
 describe("MySQL Shell Sessions", () => {
 
-    let driver: WebDriver;
     let testFailed: boolean;
 
+    const globalConn: IDBConnection = {
+        dbType: "MySQL",
+        caption: `ClientQA test`,
+        description: "Local connection",
+        hostname: String(process.env.DBHOSTNAME),
+        protocol: "mysql",
+        username: String(process.env.DBUSERNAMESHELL),
+        port: String(process.env.DBPORT),
+        portX: String(process.env.DBPORTX),
+        schema: "sakila",
+        password: String(process.env.DBPASSWORDSHELL),
+        sslMode: undefined,
+        sslCA: undefined,
+        sslClientCert: undefined,
+        sslClientKey: undefined,
+    };
+
     beforeAll(async () => {
-        driver = await getDriver();
+        await loadDriver();
         try {
-            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage(driver);
+            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage(driver);
+            await waitForHomePage();
         }
-        await setStartLanguage(driver, "Shell Session", "javascript");
+        await setStartLanguage("Shell Session", "javascript");
         await driver.findElement(By.id("gui.shell")).click();
-        await openShellSession(driver);
+        await openShellSession();
     });
 
     afterEach(async () => {
@@ -97,12 +95,12 @@ describe("MySQL Shell Sessions", () => {
         }
 
         const textArea = await driver.findElement(By.css("textArea"));
-        await enterCmd(driver, textArea, `\\d`);
+        await enterCmd(textArea, `\\d`);
         await driver.wait(async () => {
             return (await driver.findElements(By.css(".shellPromptItem"))).length === 1;
         }, 2000, "There are still more than 1 tab after disconnect");
-        expect(await getShellServerTabStatus(driver!)).toBe("The session is not connected to a MySQL server");
-        await cleanEditor(driver);
+        expect(await getShellServerTabStatus()).toBe("The session is not connected to a MySQL server");
+        await cleanEditor();
     });
 
     afterAll(async () => {
@@ -112,24 +110,24 @@ describe("MySQL Shell Sessions", () => {
     it("Open multiple sessions", async () => {
         try {
             await driver.findElement(By.id("sessions")).click();
-            const session1 = await shellGetSession(driver, "1");
+            const session1 = await shellGetSession("1");
             expect(await session1!.findElement(By.css(".tileCaption")).getText()).toBe("Session 1");
-            await openShellSession(driver);
+            await openShellSession();
             await driver.findElement(By.id("sessions")).click();
 
-            const session2 = await shellGetSession(driver, "2");
+            const session2 = await shellGetSession("2");
             expect(await session2!.findElement(By.css(".tileCaption")).getText()).toBe("Session 2");
-            await openShellSession(driver);
+            await openShellSession();
             await driver.findElement(By.id("sessions")).click();
 
-            const session3 = await shellGetSession(driver, "3");
+            const session3 = await shellGetSession("3");
             expect(await session3!.findElement(By.css(".tileCaption")).getText()).toBe("Session 3");
 
-            await closeSession(driver, "1");
-            expect(await shellGetSession(driver, "1")).toBeUndefined();
-            await closeSession(driver, "2");
-            expect(await shellGetSession(driver, "2")).toBeUndefined();
-            await openShellSession(driver, 3);
+            await closeSession("1");
+            expect(await shellGetSession("1")).toBeUndefined();
+            await closeSession("2");
+            expect(await shellGetSession("2")).toBeUndefined();
+            await openShellSession(3);
         } catch(e) {
             testFailed = true;
             throw e;
@@ -147,32 +145,28 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.port}/${dbConfig.schema}`;
+            let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${globalConn.port}/${globalConn.schema}`;
 
             await enterCmd(
-                driver,
                 textArea,
                 uri,
             );
 
-            const result = await shellGetResult(driver);
-
-            expect(result).toContain(
-                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}'`,
-            );
-
+            const result = await shellGetResult();
+            let toCheck = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            toCheck += `${globalConn.port}/${globalConn.schema}'`;
+            expect(result).toContain(toCheck);
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema set to \`${dbConfig.schema}\`.`,
+                `Default schema set to \`${globalConn.schema}\`.`,
             );
 
-            expect(await getShellServerTabStatus(driver))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
-
-            expect(await getShellSchemaTabStatus(driver))
-                .toContain(dbConfig.schema);
+            toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port}`;
+            toCheck += `, using the classic protocol`;
+            expect(await getShellServerTabStatus()).toBe(toCheck);
+            expect(await getShellSchemaTabStatus()).toContain(globalConn.schema);
 
         } catch(e) {
             testFailed = true;
@@ -192,32 +186,32 @@ describe("MySQL Shell Sessions", () => {
             const textArea = await editor.findElement(By.css("textArea"));
 
             await enterCmd(
-                driver,
                 textArea,
-                `\\c ${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}`);
+                `\\c ${globalConn.username}@${globalConn.hostname}:${globalConn.port}/${globalConn.schema}`);
 
-            await setDBEditorPassword(driver, dbConfig);
+            await setDBEditorPassword(globalConn);
 
-            await setConfirmDialog(driver, dbConfig, "no");
+            await setConfirmDialog(globalConn, "no");
 
-            const result = await shellGetResult(driver);
+            const result = await shellGetResult();
 
-            let uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.port}/${dbConfig.schema}'`;
+            let uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            uri += `${globalConn.port}/${globalConn.schema}'`;
 
             expect(result).toContain(uri);
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema set to \`${dbConfig.schema}\`.`,
+                `Default schema set to \`${globalConn.schema}\`.`,
             );
 
-            expect(await getShellServerTabStatus(driver))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
+            let toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port}`;
+            toCheck += `, using the classic protocol`;
 
-            expect(await getShellSchemaTabStatus(driver))
-                .toContain(dbConfig.schema);
+            expect(await getShellServerTabStatus()).toBe(toCheck);
+            expect(await getShellSchemaTabStatus()).toContain(globalConn.schema);
+
 
         } catch(e) {
             testFailed = true;
@@ -236,33 +230,32 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.port}/${dbConfig.schema}`;
+            let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${globalConn.port}/${globalConn.schema}`;
 
             await enterCmd(
-                driver,
                 textArea,
                 uri);
 
-            let result = await shellGetResult(driver);
+            let result = await shellGetResult();
+            let toCheck = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            toCheck += `${globalConn.port}/${globalConn.schema}'`;
+
+            expect(result).toContain(toCheck);
 
             expect(result).toContain(
-                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}'`,
+                `Default schema set to \`${globalConn.schema}\`.`,
             );
 
-            expect(result).toContain(
-                `Default schema set to \`${dbConfig.schema}\`.`,
-            );
+            toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port}`;
+            toCheck += `, using the classic protocol`;
 
-            expect(await getShellServerTabStatus(driver!))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
+            expect(await getShellServerTabStatus()).toBe(toCheck);
+            expect(await getShellSchemaTabStatus()).toContain(globalConn.schema);
 
-            expect(await getShellSchemaTabStatus(driver!))
-                .toContain(dbConfig.schema);
+            await enterCmd(textArea, "\\h");
 
-            await enterCmd(driver, textArea, "\\h");
-
-            result = await shellGetResult(driver);
+            result = await shellGetResult();
 
             expect(result).toContain(
                 "The Shell Help is organized in categories and topics.",
@@ -310,21 +303,21 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            await enterCmd(driver, textArea, "\\py");
+            await enterCmd(textArea, "\\py");
 
-            let result = await shellGetResult(driver);
+            let result = await shellGetResult();
 
             expect(result).toBe("Switching to Python mode...");
 
-            expect(await shellGetTech(editor)).toBe("python");
+            expect(await shellGetTech()).toBe("python");
 
-            await enterCmd(driver, textArea, "\\js");
+            await enterCmd(textArea, "\\js");
 
-            result = await shellGetResult(driver);
+            result = await shellGetResult();
 
             expect(result).toBe("Switching to JavaScript mode...");
 
-            expect(await shellGetTech(editor)).toBe("javascript");
+            expect(await shellGetTech()).toBe("javascript");
 
         } catch(e) {
             testFailed = true;
@@ -343,18 +336,17 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.portX}/${dbConfig.schema}`;
+            let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}`;
 
             await enterCmd(
-                driver,
                 textArea,
                 uri);
 
-            const result = await shellGetResult(driver);
+            const result = await shellGetResult();
 
-            uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.portX}/${dbConfig.schema}'`;
+            uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
 
             expect(result).toContain(uri);
 
@@ -363,30 +355,30 @@ describe("MySQL Shell Sessions", () => {
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema \`${dbConfig.schema}\` accessible through db.`,
+                `Default schema \`${globalConn.schema}\` accessible through db.`,
             );
 
-            expect(await getShellServerTabStatus(driver!))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+            let toCheck = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
+            toCheck += `, using the X protocol`;
+            expect(await getShellServerTabStatus()).toBe(toCheck);
 
-            expect(await getShellSchemaTabStatus(driver!))
-                .toContain(dbConfig.schema);
+            expect(await getShellSchemaTabStatus()).toContain(globalConn.schema);
 
-            await enterCmd(driver!, textArea, "db.actor.select()");
+            await enterCmd(textArea, "db.actor.select()");
 
-            expect(await shellGetLangResult(driver!)).toBe("json");
+            expect(await shellGetLangResult()).toBe("json");
 
-            expect(await isValueOnJsonResult(driver!, "PENELOPE")).toBe(true);
+            expect(await isValueOnJsonResult("PENELOPE")).toBe(true);
 
-            expect(await shellGetTotalRows(driver!)).toMatch(/Query OK, (\d+) rows affected/);
+            expect(await shellGetTotalRows()).toMatch(/Query OK, (\d+) rows affected/);
 
-            await enterCmd(driver!, textArea, "db.category.select()");
+            await enterCmd(textArea, "db.category.select()");
 
-            expect(await shellGetLangResult(driver!)).toBe("json");
+            expect(await shellGetLangResult()).toBe("json");
 
-            expect(await isValueOnJsonResult(driver!, "Action")).toBe(true);
+            expect(await isValueOnJsonResult("Action")).toBe(true);
 
-            expect(await shellGetTotalRows(driver!)).toMatch(/Query OK, (\d+) rows affected/);
+            expect(await shellGetTotalRows()).toMatch(/Query OK, (\d+) rows affected/);
 
         } catch(e) {
             testFailed = true;
@@ -405,48 +397,47 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            let uri = `shell.connect('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.portX}/${dbConfig.schema}')`;
+            let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
             await enterCmd(
-                driver,
                 textArea,
                 uri);
 
-            let result = await shellGetResult(driver);
+            let result = await shellGetResult();
 
-            uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.portX}/${dbConfig.schema}'`;
+            uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
 
             expect(result).toContain(uri);
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
             expect(result).toContain(
-                `Default schema \`${dbConfig.schema}\` accessible through db`,
+                `Default schema \`${globalConn.schema}\` accessible through db`,
             );
 
-            expect(await getShellServerTabStatus(driver!))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+            let toCheck = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
+            toCheck += `, using the X protocol`;
 
-            expect(await getShellSchemaTabStatus(driver!))
-                .toContain(dbConfig.schema);
+            expect(await getShellServerTabStatus()).toBe(toCheck);
+            expect(await getShellSchemaTabStatus()).toContain(globalConn.schema);
 
-            await enterCmd(driver, textArea, "shell.status()");
+            await enterCmd(textArea, "shell.status()");
 
-            result = await shellGetResult(driver);
+            result = await shellGetResult();
 
             expect(result).toMatch(
                 new RegExp(/MySQL Shell version (\d+).(\d+).(\d+)/),
             );
 
-            expect(result).toContain(`"CONNECTION":"${dbConfig.hostname} via TCP/IP"`);
+            expect(result).toContain(`"CONNECTION":"${globalConn.hostname} via TCP/IP"`);
 
-            expect(result).toContain(`"CURRENT_SCHEMA":"${dbConfig.schema}"`);
+            expect(result).toContain(`"CURRENT_SCHEMA":"${globalConn.schema}"`);
 
-            expect(result).toMatch(new RegExp(`"CURRENT_USER":"${dbConfig.username}`));
+            expect(result).toMatch(new RegExp(`"CURRENT_USER":"${globalConn.username}`));
 
-            expect(result).toContain(`"TCP_PORT":"${dbConfig.portX}"`);
+            expect(result).toContain(`"TCP_PORT":"${String(globalConn.portX)}"`);
 
         } catch(e) {
             testFailed = true;
@@ -465,42 +456,40 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            const cmd = `mysql.getClassicSession('${dbConfig.username}:${dbConfig.password}
-            @${dbConfig.hostname}:${dbConfig.port}/${dbConfig.schema}')`;
+            const cmd = `mysql.getClassicSession('${globalConn.username}:${globalConn.password}
+            @${globalConn.hostname}:${globalConn.port}/${globalConn.schema}')`;
 
-            await enterCmd(driver, textArea, cmd.replace(/ /g,""));
+            await enterCmd(textArea, cmd.replace(/ /g,""));
 
-            let result = await shellGetResult(driver);
-
-            expect(result).toContain("&lt;ClassicSession&gt;");
-
-            await enterCmd(driver, textArea, "shell.disconnect()");
-
-            result = await shellGetResult(driver);
-
-            let uri = `mysql.getSession('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.port}/${dbConfig.schema}')`;
-
-            await enterCmd(
-                driver,
-                textArea,
-                uri);
-
-            result = await shellGetResult(driver);
+            let result = await shellGetResult();
 
             expect(result).toContain("&lt;ClassicSession&gt;");
 
-            await enterCmd(driver, textArea, "shell.disconnect()");
+            await enterCmd(textArea, "shell.disconnect()");
 
-            uri = `mysqlx.getSession('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.portX}/${dbConfig.schema}')`;
+            result = await shellGetResult();
+
+            let uri = `mysql.getSession('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${globalConn.port}/${globalConn.schema}')`;
 
             await enterCmd(
-                driver,
                 textArea,
                 uri);
 
-            result = await shellGetResult(driver);
+            result = await shellGetResult();
+
+            expect(result).toContain("&lt;ClassicSession&gt;");
+
+            await enterCmd(textArea, "shell.disconnect()");
+
+            uri = `mysqlx.getSession('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
+
+            await enterCmd(
+                textArea,
+                uri);
+
+            result = await shellGetResult();
 
             expect(result).toContain("&lt;Session&gt;");
 
@@ -521,30 +510,28 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            let uri = `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.port}/${dbConfig.schema}`;
+            let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            uri += `${globalConn.port}/${globalConn.schema}`;
 
             await enterCmd(
-                driver,
                 textArea,
                 uri);
 
-            let result = await shellGetResult(driver);
+            let result = await shellGetResult();
 
-            uri = `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:`;
-            uri += `${dbConfig.port}/${dbConfig.schema}'`;
+            uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            uri += `${globalConn.port}/${globalConn.schema}'`;
 
             expect(result).toContain(
                 uri);
 
-            expect(await getShellServerTabStatus(driver))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.port}, using the classic protocol`);
+            let toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port},`;
+            toCheck += ` using the classic protocol`;
+            expect(await getShellServerTabStatus()).toBe(toCheck);
 
-            expect(await getShellSchemaTabStatus(driver!))
-                .toContain(dbConfig.schema);
+            expect(await getShellSchemaTabStatus()).toContain(globalConn.schema);
 
             await enterCmd(
-                driver,
                 textArea,
                 'util.exportTable("actor", "test.txt")',
             );
@@ -552,7 +539,7 @@ describe("MySQL Shell Sessions", () => {
             await driver.wait(
                 async () => {
                     return (
-                        (await shellGetResult(driver)).indexOf(
+                        (await shellGetResult()).indexOf(
                             "The dump can be loaded using",
                         ) !== -1
                     );
@@ -561,7 +548,7 @@ describe("MySQL Shell Sessions", () => {
                 "Export operation was not done in time",
             );
 
-            result = await shellGetResult(driver);
+            result = await shellGetResult();
 
             expect(result).toContain("Running data dump using 1 thread.");
 
@@ -596,15 +583,15 @@ describe("MySQL Shell Sessions", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            await enterCmd(
-                driver,
-                textArea,
-                `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:${dbConfig.portX}/world_x_cst`);
+            let text = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+            text += `${String(globalConn.portX)}/world_x_cst`;
+            await enterCmd(textArea, text);
 
-            const result = await shellGetResult(driver);
+            const result = await shellGetResult();
 
-            expect(result).toContain(
-                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.portX}/world_x_cst'`);
+            text = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+            text += `${String(globalConn.portX)}/world_x_cst'`;
+            expect(result).toContain(text);
 
             expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
@@ -612,14 +599,14 @@ describe("MySQL Shell Sessions", () => {
                 "Default schema `world_x_cst` accessible through db.",
             );
 
-            expect(await getShellServerTabStatus(driver))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+            text = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
+            text += `, using the X protocol`;
+            expect(await getShellServerTabStatus()).toBe(text);
 
-            expect(await getShellSchemaTabStatus(driver))
-                .toContain("world_x_cst");
+            expect(await getShellSchemaTabStatus()).toContain("world_x_cst");
 
-            await enterCmd(driver, textArea, "db.countryinfo.find()");
-            expect(await shellGetLangResult(driver)).toBe("json");
+            await enterCmd(textArea, "db.countryinfo.find()");
+            expect(await shellGetLangResult()).toBe("json");
 
         } catch(e) {
             testFailed = true;
@@ -639,22 +626,22 @@ describe("MySQL Shell Sessions", () => {
             const textArea = await editor.findElement(By.css("textArea"));
 
             await enterCmd(
-                driver,
                 textArea,
-                `\\c ${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:${dbConfig.portX}`);
+                `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:${String(globalConn.portX)}`);
 
-            let result = await shellGetResult(driver);
+            let result = await shellGetResult();
 
             expect(result).toContain(
-                `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.portX}`);
+                `Creating a session to '${globalConn.username}@${globalConn.hostname}:${String(globalConn.portX)}`);
 
             expect(result).toContain("No default schema selected");
 
-            expect(await getShellServerTabStatus(driver))
-                .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+            let text = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
+            text += `, using the X protocol`;
 
-            expect(await getShellSchemaTabStatus(driver))
-                .toContain("no schema selected");
+            expect(await getShellServerTabStatus()).toBe(text);
+
+            expect(await getShellSchemaTabStatus()).toContain("no schema selected");
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -670,14 +657,14 @@ describe("MySQL Shell Sessions", () => {
             const schema2 = (await menuItems[1].getText()).substring(1).trim();
             await menuItems[0].click();
             await driver.sleep(1000);
-            result = await shellGetResult(driver);
+            result = await shellGetResult();
             expect(result).toBe("Default schema `" + schema1 + "` accessible through db.");
 
             await driver.findElement(By.id("schema")).click();
             menuItems = await driver.findElements(By.css(".shellPromptSchemaMenu .menuItem .label"));
             await menuItems[1].click();
             await driver.sleep(1000);
-            result = await shellGetResult(driver);
+            result = await shellGetResult();
             expect(result).toBe("Default schema `" + schema2 + "` accessible through db.");
         } catch(e) {
             testFailed = true;
@@ -695,46 +682,47 @@ describe("MySQL Shell Sessions", () => {
 
         const textArea = await editor.findElement(By.css("textArea"));
 
-        let uri = `shell.connect('${dbConfig.username}:${dbConfig.password}@${dbConfig.hostname}:`;
-        uri += `${dbConfig.portX}/${dbConfig.schema}')`;
+        let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
+        uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
         await enterCmd(
-            driver,
             textArea,
             uri);
 
-        const result = await shellGetResult(driver);
+        const result = await shellGetResult();
 
-        expect(result).toContain(
-            `Creating a session to '${dbConfig.username}@${dbConfig.hostname}:${dbConfig.portX}/${dbConfig.schema}'`);
+        let text = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
+        text += `${String(globalConn.portX)}/${globalConn.schema}'`;
+        expect(result).toContain(text);
 
         expect(result).toMatch(new RegExp(/Server version: (\d+).(\d+).(\d+)/));
 
         expect(result).toContain(
-            `Default schema \`${dbConfig.schema}\` accessible through db`,
+            `Default schema \`${globalConn.schema}\` accessible through db`,
         );
 
-        expect(await getShellServerTabStatus(driver!))
-            .toBe(`Connection to server ${dbConfig.hostname} at port ${dbConfig.portX}, using the X protocol`);
+        text = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
+        text += `, using the X protocol`;
+        expect(await getShellServerTabStatus()).toBe(text);
 
-        expect(await getShellSchemaTabStatus(driver!))
-            .toContain(dbConfig.schema);
+        expect(await getShellSchemaTabStatus())
+            .toContain(globalConn.schema);
 
-        await enterCmd(driver, textArea, "\\sql");
+        await enterCmd(textArea, "\\sql");
 
-        await enterCmd(driver, textArea, "SHOW DATABASES;");
+        await enterCmd(textArea, "SHOW DATABASES;");
 
-        expect(await isValueOnDataSet(driver, "sakila")).toBe(true);
+        expect(await isValueOnDataSet("sakila")).toBe(true);
 
-        expect(await isValueOnDataSet(driver, "mysql")).toBe(true);
+        expect(await isValueOnDataSet("mysql")).toBe(true);
 
-        await enterCmd(driver, textArea, "\\js");
+        await enterCmd(textArea, "\\js");
 
-        await enterCmd(driver, textArea, "db.actor.select()");
+        await enterCmd(textArea, "db.actor.select()");
 
-        expect(await shellGetLangResult(driver!)).toBe("json");
+        expect(await shellGetLangResult()).toBe("json");
 
-        expect(await isValueOnJsonResult(driver!, "PENELOPE")).toBe(true);
+        expect(await isValueOnJsonResult("PENELOPE")).toBe(true);
     });
 
 });

@@ -43,7 +43,7 @@ import {
     createDBconnection,
     getLeftSection,
     getLeftSectionButton,
-    IDbConnection,
+    IDBConnection,
     getDB,
     startServer,
     getTreeElement,
@@ -86,7 +86,6 @@ import {
     hasNewPrompt,
     getLastQueryResultId,
     loadDriver,
-    switchToFrame,
     shellGetResult,
     cleanEditor,
     shellGetTech,
@@ -150,7 +149,7 @@ describe("MySQL Shell for VS Code", () => {
         throw new Error("Please define the environment variable SSLCERTSPATH");
     }
 
-    const conn: IDbConnection = {
+    const conn: IDBConnection = {
         caption: "conn",
         description: "Local connection",
         hostname: String(process.env.DBHOSTNAME),
@@ -166,7 +165,7 @@ describe("MySQL Shell for VS Code", () => {
     };
 
 
-    const shellConn: IDbConnection = {
+    const shellConn: IDBConnection = {
         caption: "shellConn",
         description: "Local connection for shell",
         hostname: String(process.env.DBHOSTNAME),
@@ -218,7 +217,7 @@ describe("MySQL Shell for VS Code", () => {
         before(async function () {
 
             try {
-                await initTreeSection("DATABASE CONNECTIONS");
+                await initTreeSection(dbTreeSection);
                 await toggleBottomBar(false);
             } catch (e) {
                 await takeScreenshot(this);
@@ -242,16 +241,16 @@ describe("MySQL Shell for VS Code", () => {
         it("Create and delete a Database connection", async () => {
             let flag = false;
             try {
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-                await toggleSection("MYSQL SHELL CONSOLES", false);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await toggleSection(ociTreeSection, false);
+                await toggleSection(consolesTreeSection, false);
+                await toggleSection(tasksTreeSection, false);
 
                 conn.caption += String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
                 await createDBconnection(conn);
                 flag = true;
                 expect(await getDB(conn.caption)).to.exist;
-                await reloadSection("DATABASE CONNECTIONS");
-                expect(await getTreeElement("DATABASE CONNECTIONS", conn.caption)).to.exist;
+                await reloadSection(dbTreeSection);
+                expect(await getTreeElement(dbTreeSection, conn.caption)).to.exist;
             } catch (e) {
                 throw new Error(String(e.stack));
             } finally {
@@ -263,24 +262,23 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Open DB Connection Browser", async () => {
 
-            const openConnBrw = await getLeftSectionButton("DATABASE CONNECTIONS", "Open the DB Connection Browser");
+            const openConnBrw = await getLeftSectionButton(dbTreeSection, "Open the DB Connection Browser");
             await openConnBrw?.click();
-
             const editorView = new EditorView();
             const editor = await editorView.openEditor("DB Connections");
             expect(await editor.getTitle()).to.equal("DB Connections");
 
-            await switchToFrame("DB Connections");
+            await switchToWebView();
 
             expect(
                 await driver.findElement(By.id("title")).getText(),
             ).to.equal("MySQL Shell - DB Notebooks");
 
             expect(
-                await driver
+                (await driver
                     .findElement(By.id("contentTitle"))
-                    .getText(),
-            ).to.equal("Database Connections");
+                    .getText()).toUpperCase())
+                .to.equal(dbTreeSection);
 
             expect(
                 await driver
@@ -301,7 +299,7 @@ describe("MySQL Shell for VS Code", () => {
             let prc: ChildProcess;
             try {
                 prc = await startServer();
-                await selectMoreActionsItem("DATABASE CONNECTIONS", "Connect to External MySQL Shell Process");
+                await selectMoreActionsItem(dbTreeSection, "Connect to External MySQL Shell Process");
                 const input = new InputBox();
                 await input.setText("http://localhost:8500");
                 await input.confirm();
@@ -333,7 +331,7 @@ describe("MySQL Shell for VS Code", () => {
             const outputView = await bottomBar.openOutputView();
             await outputView.clearText();
 
-            await selectMoreActionsItem("DATABASE CONNECTIONS", "Restart the Internal MySQL Shell Process");
+            await selectMoreActionsItem(dbTreeSection, "Restart the Internal MySQL Shell Process");
 
             const dialog = await driver.wait(until.elementLocated(By.css(".notification-toast-container")),
                 3000, "Restart dialog was not found");
@@ -364,7 +362,7 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Relaunch Welcome Wizard", async () => {
 
-            await selectMoreActionsItem("DATABASE CONNECTIONS", "Relaunch Welcome Wizard");
+            await selectMoreActionsItem(dbTreeSection, "Relaunch Welcome Wizard");
 
             const editor = new EditorView();
             const titles = await editor.getOpenEditorTitles();
@@ -388,10 +386,10 @@ describe("MySQL Shell for VS Code", () => {
 
         before(async function () {
             try {
-                await initTreeSection("DATABASE CONNECTIONS");
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-                await toggleSection("MYSQL SHELL CONSOLES", false);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await initTreeSection(dbTreeSection);
+                await toggleSection(ociTreeSection, false);
+                await toggleSection(consolesTreeSection, false);
+                await toggleSection(tasksTreeSection, false);
 
                 await toggleBottomBar(false);
 
@@ -401,8 +399,8 @@ describe("MySQL Shell for VS Code", () => {
                 expect(await getDB(conn.caption)).to.exist;
                 const edView = new EditorView();
                 await edView.closeEditor("DB Connections");
-                await reloadSection("DATABASE CONNECTIONS");
-                const el = await getTreeElement("DATABASE CONNECTIONS", conn.caption);
+                await reloadSection(dbTreeSection);
+                const el = await getTreeElement(dbTreeSection, conn.caption);
                 expect(el).to.exist;
 
             } catch (e) {
@@ -434,9 +432,9 @@ describe("MySQL Shell for VS Code", () => {
             try {
                 await postActions(this);
                 await driver.switchTo().defaultContent();
-                await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, false);
-                if (await existsTreeElement("DATABASE CONNECTIONS", "Dup")) {
-                    await toggleTreeElement("DATABASE CONNECTIONS", "Dup", false);
+                await toggleTreeElement(dbTreeSection, conn.caption, false);
+                if (await existsTreeElement(dbTreeSection, "Dup")) {
+                    await toggleTreeElement(dbTreeSection, "Dup", false);
                 }
             } catch (e) {
                 await takeScreenshot(this);
@@ -446,11 +444,11 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Connection Context Menu - Open DB Connection", async () => {
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption, "Open DB Connection");
+            await selectContextMenuItem(dbTreeSection, conn.caption, "Open DB Connection");
 
             await new EditorView().openEditor(conn.caption);
 
-            await switchToFrame(conn.caption);
+            await switchToWebView();
 
             const item = await driver.findElement(By.css(".zoneHost"));
             expect(item).to.exist;
@@ -460,10 +458,10 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Connection Context Menu - Open DB Connection in New Tab", async () => {
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open DB Connection");
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open DB Connection in New Tab");
 
             const editorView = new EditorView();
@@ -480,22 +478,22 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Connection Context Menu - Open MySQL Shell GUI Console for this connection", async () => {
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open MySQL Shell GUI Console for this Connection");
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             const item = await driver.wait(until
                 .elementLocated(By.css("code > span")), 10000, "MySQL Shell Console was not loaded");
             expect(await item.getText()).to.include("Welcome to the MySQL Shell - GUI Console");
             await driver.switchTo().defaultContent();
 
-            await toggleSection("MYSQL SHELL CONSOLES", true);
+            await toggleSection(consolesTreeSection, true);
             expect(await getTreeElement(
-                "ORACLE CLOUD INFRASTRUCTURE", "Session to " + conn.caption)).to.exist;
+                ociTreeSection, "Session to " + conn.caption)).to.exist;
 
         });
 
@@ -507,15 +505,15 @@ describe("MySQL Shell for VS Code", () => {
                 expect(await getDB(conn.caption)).to.exist;
                 const edView = new EditorView();
                 await edView.closeEditor("DB Connections");
-                await reloadSection("DATABASE CONNECTIONS");
+                await reloadSection(dbTreeSection);
 
-                await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption, "Edit MySQL Connection");
+                await selectContextMenuItem(dbTreeSection, conn.caption, "Edit MySQL Connection");
 
                 const editorView = new EditorView();
                 const editors = await editorView.getOpenEditorTitles();
                 expect(editors.includes("DB Connections")).to.be.true;
 
-                await switchToFrame("DB Connections");
+                await switchToWebView();
 
                 const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
                 await driver.wait(async () => {
@@ -532,9 +530,9 @@ describe("MySQL Shell for VS Code", () => {
                 await driver.switchTo().defaultContent();
 
                 await driver.wait(async () => {
-                    await reloadSection("DATABASE CONNECTIONS");
+                    await reloadSection(dbTreeSection);
                     try {
-                        await getTreeElement("DATABASE CONNECTIONS", edited);
+                        await getTreeElement(dbTreeSection, edited);
 
                         return true;
                     } catch (e) { return false; }
@@ -546,14 +544,14 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Connection Context Menu - Duplicate this MySQL connection", async () => {
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Duplicate this MySQL Connection");
 
             const editorView = new EditorView();
             const editors = await editorView.getOpenEditorTitles();
             expect(editors.includes("DB Connections")).to.be.true;
 
-            await switchToFrame("DB Connections");
+            await switchToWebView();
 
             const dialog = await driver.wait(until.elementLocated(
                 By.css(".valueEditDialog")), 5000, "Connection dialog was not found");
@@ -564,8 +562,8 @@ describe("MySQL Shell for VS Code", () => {
             await driver.switchTo().defaultContent();
 
             await driver.wait(async () => {
-                await reloadSection("DATABASE CONNECTIONS");
-                const db = await getLeftSection("DATABASE CONNECTIONS");
+                await reloadSection(dbTreeSection);
+                const db = await getLeftSection(dbTreeSection);
 
                 return (await db?.findElements(By.xpath("//div[contains(@aria-label, 'Dup')]")))!.length === 1;
             }, 10000, "Duplicated database was not found");
@@ -573,27 +571,27 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         it("Schema Context Menu - Copy name and create statement to clipboard", async () => {
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open MySQL Shell GUI Console for this Connection");
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Tables", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Tables", true);
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await setEditorLanguage("sql");
             let editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.switchTo().defaultContent();
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.schema,
+            await selectContextMenuItem(dbTreeSection, conn.schema,
                 "Copy To Clipboard -> Name");
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -614,10 +612,10 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver.switchTo().defaultContent();
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.schema,
+            await selectContextMenuItem(dbTreeSection, conn.schema,
                 "Copy To Clipboard -> Create Statement");
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             editor = await driver.findElement(By.id("shellEditorHost"));
 
@@ -645,15 +643,15 @@ describe("MySQL Shell for VS Code", () => {
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testSchema = `testschema${random}`;
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open MySQL Shell GUI Console for this Connection");
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await setEditorLanguage("sql");
             const editor = await driver.findElement(By.id("shellEditorHost"));
@@ -679,10 +677,10 @@ describe("MySQL Shell for VS Code", () => {
             await driver?.wait(async () => {
                 await reloadConnection(conn.caption);
 
-                return existsTreeElement("DATABASE CONNECTIONS", testSchema);
+                return existsTreeElement(dbTreeSection, testSchema);
             }, 5000, `${testSchema} was not found`);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", testSchema, "Drop Schema...");
+            await selectContextMenuItem(dbTreeSection, testSchema, "Drop Schema...");
 
             const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
             if (ntf.length > 0) {
@@ -698,8 +696,8 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
-            const sec = await getLeftSection("DATABASE CONNECTIONS");
-            await reloadSection("DATABASE CONNECTIONS");
+            const sec = await getLeftSection(dbTreeSection);
+            await reloadSection(dbTreeSection);
             await driver.wait(async () => {
                 return (await sec?.findElements(By.xpath(
                     `//div[contains(@aria-label, '${testSchema}') and contains(@role, 'treeitem')]`)))!.length === 0;
@@ -709,17 +707,17 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Table Context Menu - Show Data", async () => {
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Tables", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Tables", true);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", "actor", "Show Data...");
+            await selectContextMenuItem(dbTreeSection, "actor", "Show Data...");
 
             const ed = new EditorView();
             const activeTab = await ed.getActiveTab();
             expect(await activeTab!.getTitle()).equals(conn.caption);
 
-            await switchToFrame(conn.caption);
+            await switchToWebView();
 
             const resultHost = await driver.wait(until.elementLocated(
                 By.css(".resultHost")), 20000, "query results were not found");
@@ -730,27 +728,27 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         it("Table Context Menu - Copy name and create statement to clipboard", async () => {
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open MySQL Shell GUI Console for this Connection");
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Tables", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Tables", true);
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await setEditorLanguage("sql");
             let editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.switchTo().defaultContent();
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", "actor",
+            await selectContextMenuItem(dbTreeSection, "actor",
                 "Copy To Clipboard -> Name");
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -771,10 +769,10 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver.switchTo().defaultContent();
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", "actor",
+            await selectContextMenuItem(dbTreeSection, "actor",
                 "Copy To Clipboard -> Create Statement");
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             editor = await driver.findElement(By.id("shellEditorHost"));
 
@@ -802,17 +800,17 @@ describe("MySQL Shell for VS Code", () => {
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testTable = `testtable${random}`;
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Tables", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Tables", true);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open MySQL Shell GUI Console for this Connection");
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await setEditorLanguage("sql");
             const editor = await driver.findElement(By.id("shellEditorHost"));
@@ -849,10 +847,10 @@ describe("MySQL Shell for VS Code", () => {
             await driver?.wait(async () => {
                 await reloadConnection(conn.caption);
 
-                return existsTreeElement("DATABASE CONNECTIONS", testTable);
+                return existsTreeElement(dbTreeSection, testTable);
             }, 5000, `${testTable} was not found`);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", testTable, "Drop Table...");
+            await selectContextMenuItem(dbTreeSection, testTable, "Drop Table...");
 
             const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
             if (ntf.length > 0) {
@@ -868,8 +866,8 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
-            const sec = await getLeftSection("DATABASE CONNECTIONS");
-            await reloadSection("DATABASE CONNECTIONS");
+            const sec = await getLeftSection(dbTreeSection);
+            await reloadSection(dbTreeSection);
 
             await driver.wait(async () => {
                 return (await sec?.findElements(By.xpath(
@@ -879,17 +877,17 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         it("View Context Menu - Show Data", async () => {
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Views", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Views", true);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", "test_view", "Show Data...");
+            await selectContextMenuItem(dbTreeSection, "test_view", "Show Data...");
 
             const ed = new EditorView();
             const activeTab = await ed.getActiveTab();
             expect(await activeTab!.getTitle()).equals(conn.caption);
 
-            await switchToFrame(conn.caption);
+            await switchToWebView();
 
             const resultHost = await driver.wait(until.elementLocated(
                 By.css(".resultHost")), 20000, "query results were not found");
@@ -899,27 +897,27 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         it("View Context Menu - Copy name and create statement to clipboard", async () => {
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open MySQL Shell GUI Console for this Connection");
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Views", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Views", true);
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await setEditorLanguage("sql");
             let editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.switchTo().defaultContent();
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", "test_view",
+            await selectContextMenuItem(dbTreeSection, "test_view",
                 "Copy To Clipboard -> Name");
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -940,10 +938,10 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver.switchTo().defaultContent();
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", "test_view",
+            await selectContextMenuItem(dbTreeSection, "test_view",
                 "Copy To Clipboard -> Create Statement");
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             editor = await driver.findElement(By.id("shellEditorHost"));
 
@@ -967,17 +965,17 @@ describe("MySQL Shell for VS Code", () => {
         });
 
         it("View Context Menu - Drop View", async () => {
-            await selectContextMenuItem("DATABASE CONNECTIONS", conn.caption,
+            await selectContextMenuItem(dbTreeSection, conn.caption,
                 "Open MySQL Shell GUI Console for this Connection");
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Views", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Views", true);
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await setEditorLanguage("sql");
             const editor = await driver.findElement(By.id("shellEditorHost"));
@@ -1017,14 +1015,14 @@ describe("MySQL Shell for VS Code", () => {
             await driver?.wait(async () => {
                 await reloadConnection(conn.caption);
 
-                return existsTreeElement("DATABASE CONNECTIONS", testView);
+                return existsTreeElement(dbTreeSection, testView);
             }, 5000, `${testView} was not found`);
 
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.schema, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Views", true);
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, conn.schema, true);
+            await toggleTreeElement(dbTreeSection, "Views", true);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", testView, "Drop View...");
+            await selectContextMenuItem(dbTreeSection, testView, "Drop View...");
 
             const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
             if (ntf.length > 0) {
@@ -1040,8 +1038,8 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
-            const sec = await getLeftSection("DATABASE CONNECTIONS");
-            await reloadSection("DATABASE CONNECTIONS");
+            const sec = await getLeftSection(dbTreeSection);
+            await reloadSection(dbTreeSection);
 
             await driver.wait(async () => {
                 return (await sec?.findElements(By.xpath(
@@ -1059,10 +1057,10 @@ describe("MySQL Shell for VS Code", () => {
         before(async function () {
             try {
 
-                await initTreeSection("DATABASE CONNECTIONS");
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-                await toggleSection("MYSQL SHELL CONSOLES", false);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await initTreeSection(dbTreeSection);
+                await toggleSection(ociTreeSection, false);
+                await toggleSection(consolesTreeSection, false);
+                await toggleSection(tasksTreeSection, false);
 
                 await toggleBottomBar(false);
 
@@ -1085,10 +1083,10 @@ describe("MySQL Shell for VS Code", () => {
 
         beforeEach(async function () {
             try {
-                const openConnBrw = await getLeftSectionButton("DATABASE CONNECTIONS",
+                const openConnBrw = await getLeftSectionButton(dbTreeSection,
                     "Open the DB Connection Browser");
                 await openConnBrw?.click();
-                await switchToFrame("DB Connections");
+                await switchToWebView();
             } catch (e) {
                 await takeScreenshot(this);
                 throw new Error(String(e.stack));
@@ -1114,9 +1112,9 @@ describe("MySQL Shell for VS Code", () => {
 
         after(async function () {
             try {
-                await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, false);
-                if (await existsTreeElement("DATABASE CONNECTIONS", sqliteConName)) {
-                    await toggleTreeElement("DATABASE CONNECTIONS", sqliteConName, false);
+                await toggleTreeElement(dbTreeSection, conn.caption, false);
+                if (await existsTreeElement(dbTreeSection, sqliteConName)) {
+                    await toggleTreeElement(dbTreeSection, sqliteConName, false);
                 }
             } catch (e) {
                 await takeScreenshot(this);
@@ -1157,10 +1155,10 @@ describe("MySQL Shell for VS Code", () => {
 
             await closeDBconnection(conn.caption);
 
-            const openConnBrw = await getLeftSectionButton("DATABASE CONNECTIONS", "Open the DB Connection Browser");
+            const openConnBrw = await getLeftSectionButton(dbTreeSection, "Open the DB Connection Browser");
             await openConnBrw?.click();
 
-            await switchToFrame("DB Connections");
+            await switchToWebView();
 
             host = await getDB(conn.caption, false);
 
@@ -1208,10 +1206,10 @@ describe("MySQL Shell for VS Code", () => {
 
             await closeDBconnection(conn.caption);
 
-            const openConnBrw = await getLeftSectionButton("DATABASE CONNECTIONS", "Open the DB Connection Browser");
+            const openConnBrw = await getLeftSectionButton(dbTreeSection, "Open the DB Connection Browser");
             await openConnBrw?.click();
 
-            await switchToFrame("DB Connections");
+            await switchToWebView();
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -1347,15 +1345,15 @@ describe("MySQL Shell for VS Code", () => {
             expect(await isDBConnectionSuccessful(sqliteConName)).to.be.true;
 
             await driver.switchTo().defaultContent();
-            await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", sqliteConName, true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "main", true);
-            await toggleTreeElement("DATABASE CONNECTIONS", "Tables", true);
-            await hasTreeChildren("DATABASE CONNECTIONS", "Tables", "db_connection");
+            await toggleTreeElement(dbTreeSection, conn.caption, true);
+            await toggleTreeElement(dbTreeSection, sqliteConName, true);
+            await toggleTreeElement(dbTreeSection, "main", true);
+            await toggleTreeElement(dbTreeSection, "Tables", true);
+            await hasTreeChildren(dbTreeSection, "Tables", "db_connection");
 
-            await selectContextMenuItem("DATABASE CONNECTIONS", "db_connection", "Show Data...");
+            await selectContextMenuItem(dbTreeSection, "db_connection", "Show Data...");
 
-            await switchToFrame("DB Connections");
+            await switchToWebView();
 
             const result = await driver.findElement(By.css(".zoneHost label.label"));
             expect(await result.getText()).to.include("OK");
@@ -1452,10 +1450,10 @@ describe("MySQL Shell for VS Code", () => {
         before(async function () {
             try {
 
-                await initTreeSection("DATABASE CONNECTIONS");
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-                await toggleSection("MYSQL SHELL CONSOLES", false);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await initTreeSection(dbTreeSection);
+                await toggleSection(ociTreeSection, false);
+                await toggleSection(consolesTreeSection, false);
+                await toggleSection(tasksTreeSection, false);
 
                 await toggleBottomBar(false);
 
@@ -1469,11 +1467,11 @@ describe("MySQL Shell for VS Code", () => {
                     expect(await getDB(conn.caption)).to.exist;
                 }
 
-                const openConnBrw = await getLeftSectionButton("DATABASE CONNECTIONS",
+                const openConnBrw = await getLeftSectionButton(dbTreeSection,
                     "Open the DB Connection Browser");
                 await openConnBrw?.click();
 
-                await switchToFrame("DB Connections");
+                await switchToWebView();
 
                 await driver.executeScript(
                     "arguments[0].click();",
@@ -1501,7 +1499,7 @@ describe("MySQL Shell for VS Code", () => {
         after(async function () {
             try {
                 await driver.switchTo().defaultContent();
-                await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, false);
+                await toggleTreeElement(dbTreeSection, conn.caption, false);
                 const edView = new EditorView();
                 const editors = await edView.getOpenEditorTitles();
                 for (const editor of editors) {
@@ -2298,11 +2296,11 @@ describe("MySQL Shell for VS Code", () => {
 
         before(async function () {
             try {
-                await initTreeSection("ORACLE CLOUD INFRASTRUCTURE");
-                await toggleSection("DATABASE CONNECTIONS", false);
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", true);
-                await toggleSection("MYSQL SHELL CONSOLES", false);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await initTreeSection(ociTreeSection);
+                await toggleSection(dbTreeSection, false);
+                await toggleSection(ociTreeSection, true);
+                await toggleSection(consolesTreeSection, false);
+                await toggleSection(tasksTreeSection, false);
 
                 await toggleBottomBar(false);
             } catch (e) {
@@ -2316,9 +2314,9 @@ describe("MySQL Shell for VS Code", () => {
             try {
                 await postActions(this);
                 await driver.switchTo().defaultContent();
-                await toggleSection("MYSQL SHELL CONSOLES", false);
-                await toggleSection("MYSQL SHELL TASKS", false);
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", true);
+                await toggleSection(consolesTreeSection, false);
+                await toggleSection(tasksTreeSection, false);
+                await toggleSection(ociTreeSection, true);
 
                 await toggleBottomBar(false);
 
@@ -2352,7 +2350,7 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Configure the OCI profile list and refresh", async () => {
 
-            const btn = await getLeftSectionButton("ORACLE CLOUD INFRASTRUCTURE",
+            const btn = await getLeftSectionButton(ociTreeSection,
                 "Configure the OCI Profile list");
             await btn.click();
 
@@ -2367,17 +2365,17 @@ describe("MySQL Shell for VS Code", () => {
             await editor.sendKeys("[E2ETESTS]\nuser=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmyabcju2w5wlxcpq\nfingerprint=15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80\ntenancy=ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo5mmi2z3a\nregion=us-ashburn-1\nkey_file= ~/.oci/id_rsa_e2e.pem");
 
             await textEditor.save();
-            await reloadSection("ORACLE CLOUD INFRASTRUCTURE");
+            await reloadSection(ociTreeSection);
 
             await driver.wait(async () => {
-                return existsTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS (us-ashburn-1)");
+                return existsTreeElement(ociTreeSection, "E2ETESTS (us-ashburn-1)");
             }, 5000, "E2ETESTS (us-ashburn-1) tree item was not found");
 
         });
 
         it("View Config Profile Information", async () => {
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "E2ETESTS (us-ashburn-1)", "View Config Profile Information");
 
             const editors = await new EditorView().getOpenEditorTitles();
@@ -2394,32 +2392,32 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Set as New Default Config Profile", async () => {
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "E2ETESTS (us-ashburn-1)", "Set as New Default Config Profile");
 
-            expect(await isDefaultItem("ORACLE CLOUD INFRASTRUCTURE",
+            expect(await isDefaultItem(ociTreeSection,
                 "profile", "E2ETESTS (us-ashburn-1)")).to.equal(true);
         });
 
         it("View Compartment Information and set it as Current", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", undefined);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*", undefined);
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", undefined);
+            await hasTreeChildren(ociTreeSection, "Root Compartment*", undefined);
 
             await driver.wait(async () => {
-                return existsTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*");
+                return existsTreeElement(ociTreeSection, "QA*");
             }, 10000, "QA compartment does not exist");
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "QA*", "View Compartment Information");
 
             let editors = await new EditorView().getOpenEditorTitles();
@@ -2436,24 +2434,24 @@ describe("MySQL Shell for VS Code", () => {
             const parsed = JSON.parse(json);
             const compartmentId = parsed.id;
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "QA*", "Set as Current Compartment");
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            expect(await isDefaultItem("ORACLE CLOUD INFRASTRUCTURE", "compartment", "QA*")).to.be.true;
+            expect(await isDefaultItem(ociTreeSection, "compartment", "QA*")).to.be.true;
 
-            expect(await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            expect(await hasTreeChildren(ociTreeSection,
                 "E2ETESTS (us-ashburn-1)", "QA")).to.be.true;
 
-            await toggleSection("MYSQL SHELL CONSOLES", true);
-            const btn = await getLeftSectionButton("MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+            await toggleSection(consolesTreeSection, true);
+            const btn = await getLeftSectionButton(consolesTreeSection, "Add a New MySQL Shell Console");
             await btn.click();
 
             editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
@@ -2469,27 +2467,27 @@ describe("MySQL Shell for VS Code", () => {
 
         it("View DB System Information", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", undefined);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*", undefined);
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", "MDSforVSCodeExtension");
+            await hasTreeChildren(ociTreeSection, "MySQLShellTesting", "MDSforVSCodeExtension");
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "MDSforVSCodeExtension", "View DB System Information");
 
             await driver.wait(async () => {
@@ -2510,18 +2508,18 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Create connection with Bastion Service", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", "MDSforVSCodeExtension");
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "MySQLShellTesting", "MDSforVSCodeExtension");
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "MDSforVSCodeExtension", "Create Connection with Bastion Service");
 
             await driver.wait(async () => {
@@ -2574,7 +2572,7 @@ describe("MySQL Shell for VS Code", () => {
 
             try {
 
-                await switchToFrame("DB Connections");
+                await switchToWebView();
 
                 await mds.click();
 
@@ -2616,46 +2614,46 @@ describe("MySQL Shell for VS Code", () => {
 
                 await driver.switchTo().defaultContent();
 
-                expect(await existsTreeElement("ORACLE CLOUD INFRASTRUCTURE",
+                expect(await existsTreeElement(ociTreeSection,
                     "Bastion4PrivateSubnetStandardVnc"))
                     .to.be.true;
 
-                expect(await existsTreeElement("DATABASE CONNECTIONS", "MDSforVSCodeExtension"))
+                expect(await existsTreeElement(dbTreeSection, "MDSforVSCodeExtension"))
                     .to.be.true;
             } catch (e) {
                 throw new Error(String(e.stack));
             } finally {
                 await driver.switchTo().defaultContent();
-                await toggleSection("DATABASE CONNECTIONS", true);
-                await reloadSection("DATABASE CONNECTIONS");
-                await toggleSection("DATABASE CONNECTIONS", false);
+                await toggleSection(dbTreeSection, true);
+                await reloadSection(dbTreeSection);
+                await toggleSection(dbTreeSection, false);
             }
         });
 
         it("Start a DB System", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection,
                 "MySQLShellTesting", "MDSforVSCodeExtension");
 
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await outputView.clearText();
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "MDSforVSCodeExtension", "Start the DB System");
 
-            await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-            await toggleSection("MYSQL SHELL TASKS", true);
-            expect(await existsTreeElement("MYSQL SHELL TASKS", "Start DB System (running)")).to.be.true;
+            await toggleSection(ociTreeSection, false);
+            await toggleSection(tasksTreeSection, true);
+            expect(await existsTreeElement(tasksTreeSection, "Start DB System (running)")).to.be.true;
 
             await driver.wait(async () => {
                 try {
@@ -2678,34 +2676,34 @@ describe("MySQL Shell for VS Code", () => {
                 }
             }, 30000, "No logs were found to check that DB System was started successfully");
 
-            expect(await existsTreeElement("MYSQL SHELL TASKS", "Start DB System (done)")).to.be.true;
+            expect(await existsTreeElement(tasksTreeSection, "Start DB System (done)")).to.be.true;
 
         });
 
         it("Restart a DB System (and cancel)", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection,
                 "MySQLShellTesting", "MDSforVSCodeExtension");
 
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await outputView.clearText();
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "MDSforVSCodeExtension", "Restart the DB System");
 
-            await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-            await toggleSection("MYSQL SHELL TASKS", true);
-            expect(await existsTreeElement("MYSQL SHELL TASKS", "Restart DB System (running)")).to.be.true;
+            await toggleSection(ociTreeSection, false);
+            await toggleSection(tasksTreeSection, true);
+            expect(await existsTreeElement(tasksTreeSection, "Restart DB System (running)")).to.be.true;
 
             await driver.wait(async () => {
                 try {
@@ -2733,28 +2731,28 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Stop a DB System (and cancel)", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection,
                 "MySQLShellTesting", "MDSforVSCodeExtension");
 
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await outputView.clearText();
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "MDSforVSCodeExtension", "Stop the DB System");
 
-            await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-            await toggleSection("MYSQL SHELL TASKS", true);
-            expect(await existsTreeElement("MYSQL SHELL TASKS", "Stop DB System (running)")).to.be.true;
+            await toggleSection(ociTreeSection, false);
+            await toggleSection(tasksTreeSection, true);
+            expect(await existsTreeElement(tasksTreeSection, "Stop DB System (running)")).to.be.true;
 
             await driver.wait(async () => {
                 try {
@@ -2783,28 +2781,28 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Delete a DB System (and cancel)", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection,
                 "MySQLShellTesting", "MDSforVSCodeExtension");
 
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await outputView.clearText();
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "MDSforVSCodeExtension", "Delete the DB System");
 
-            await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-            await toggleSection("MYSQL SHELL TASKS", true);
-            expect(await existsTreeElement("MYSQL SHELL TASKS", "Delete DB System (running)")).to.be.true;
+            await toggleSection(ociTreeSection, false);
+            await toggleSection(tasksTreeSection, true);
+            expect(await existsTreeElement(tasksTreeSection, "Delete DB System (running)")).to.be.true;
 
             await driver.wait(async () => {
                 try {
@@ -2833,19 +2831,19 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Get Bastion Information and set it as current", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection,
                 "MySQLShellTesting", "Bastion4PrivateSubnetStandardVnc");
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "Bastion4PrivateSubnetStandardVnc", "Get Bastion Information");
 
             await driver.wait(async () => {
@@ -2865,22 +2863,22 @@ describe("MySQL Shell for VS Code", () => {
             const parsed = JSON.parse(json);
             const bastionId = parsed.id;
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "Bastion4PrivateSubnetStandardVnc", "Set as Current Bastion");
 
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
+            await waitForLoading(ociTreeSection, 10000);
 
-            expect(await isDefaultItem("ORACLE CLOUD INFRASTRUCTURE",
+            expect(await isDefaultItem(ociTreeSection,
                 "bastion", "Bastion4PrivateSubnetStandardVnc")).to.be.true;
 
-            await toggleSection("MYSQL SHELL CONSOLES", true);
-            const btn = await getLeftSectionButton("MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+            await toggleSection(consolesTreeSection, true);
+            const btn = await getLeftSectionButton(consolesTreeSection, "Add a New MySQL Shell Console");
             await btn.click();
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
@@ -2896,27 +2894,27 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Refresh When Bastion Reaches Active State", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection,
                 "MySQLShellTesting", "Bastion4PrivateSubnetStandardVnc");
 
-            await toggleSection("MYSQL SHELL TASKS", false);
+            await toggleSection(tasksTreeSection, false);
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "Bastion4PrivateSubnetStandardVnc", "Refresh When Bastion Reaches Active State");
 
-            await toggleSection("MYSQL SHELL TASKS", true);
+            await toggleSection(tasksTreeSection, true);
 
             expect(await existsTreeElement(
-                "MYSQL SHELL TASKS", "Refresh Bastion (running)")).to.be.true;
+                tasksTreeSection, "Refresh Bastion (running)")).to.be.true;
 
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
@@ -2931,33 +2929,33 @@ describe("MySQL Shell for VS Code", () => {
             }, 20000, "Not able to verify that bastion was refreshed successfully");
 
             expect(await existsTreeElement(
-                "MYSQL SHELL TASKS", "Refresh Bastion (done)")).to.be.true;
+                tasksTreeSection, "Refresh Bastion (done)")).to.be.true;
         });
 
         it("Delete Bastion", async () => {
 
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE", "E2ETESTS*");
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "Root Compartment*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "QA*", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await toggleTreeElement("ORACLE CLOUD INFRASTRUCTURE", "MySQLShellTesting", true);
-            await waitForLoading("ORACLE CLOUD INFRASTRUCTURE", 10000);
-            await hasTreeChildren("ORACLE CLOUD INFRASTRUCTURE",
+            await toggleTreeElement(ociTreeSection, "E2ETESTS*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection, "E2ETESTS*");
+            await toggleTreeElement(ociTreeSection, "Root Compartment*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "QA*", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await toggleTreeElement(ociTreeSection, "MySQLShellTesting", true);
+            await waitForLoading(ociTreeSection, 10000);
+            await hasTreeChildren(ociTreeSection,
                 "MySQLShellTesting", "MDSforVSCodeExtension");
 
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await outputView.clearText();
 
-            await selectContextMenuItem("ORACLE CLOUD INFRASTRUCTURE",
+            await selectContextMenuItem(ociTreeSection,
                 "Bastion4PrivateSubnetStandardVnc", "Delete Bastion");
 
-            await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-            await toggleSection("MYSQL SHELL TASKS", true);
-            expect(await existsTreeElement("MYSQL SHELL TASKS", "Delete Bastion (running)")).to.be.true;
+            await toggleSection(ociTreeSection, false);
+            await toggleSection(tasksTreeSection, true);
+            expect(await existsTreeElement(tasksTreeSection, "Delete Bastion (running)")).to.be.true;
 
             await driver.wait(async () => {
                 try {
@@ -2972,7 +2970,7 @@ describe("MySQL Shell for VS Code", () => {
             expect(await notifications[0].getMessage()).to.include("Are you sure you want to delete");
             await notifications[0].takeAction("NO");
 
-            expect(await existsTreeElement("MYSQL SHELL TASKS", "Delete Bastion (error)")).to.be.true;
+            expect(await existsTreeElement(tasksTreeSection, "Delete Bastion (error)")).to.be.true;
 
             await driver.wait(async () => {
                 try {
@@ -2991,11 +2989,11 @@ describe("MySQL Shell for VS Code", () => {
 
         before(async function () {
             try {
-                await initTreeSection("MYSQL SHELL CONSOLES");
-                await toggleSection("DATABASE CONNECTIONS", false);
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-                await toggleSection("MYSQL SHELL CONSOLES", true);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await initTreeSection(consolesTreeSection);
+                await toggleSection(dbTreeSection, false);
+                await toggleSection(ociTreeSection, false);
+                await toggleSection(consolesTreeSection, true);
+                await toggleSection(tasksTreeSection, false);
 
                 await toggleBottomBar(false);
             } catch (e) {
@@ -3024,35 +3022,35 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Add a new MySQL Shell Console", async () => {
 
-            const btn = await getLeftSectionButton("MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+            const btn = await getLeftSectionButton(consolesTreeSection, "Add a New MySQL Shell Console");
             await btn.click();
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
             await driver.switchTo().defaultContent();
 
-            expect(await existsTreeElement("MYSQL SHELL CONSOLES", "Session 1") as Boolean).to.equal(true);
+            expect(await existsTreeElement(consolesTreeSection, "Session 1") as Boolean).to.equal(true);
 
-            await selectContextMenuItem("MYSQL SHELL CONSOLES", "Session 1",
+            await selectContextMenuItem(consolesTreeSection, "Session 1",
                 "Close this MySQL Shell Console");
 
-            expect(await existsTreeElement("MYSQL SHELL CONSOLES", "Session 1")).to.equal(false);
+            expect(await existsTreeElement(consolesTreeSection, "Session 1")).to.equal(false);
 
         });
 
         it("Open MySQL Shell Console Browser", async () => {
             const btn = await getLeftSectionButton(
-                "MYSQL SHELL CONSOLES", "Open MySQL Shell Console Browser");
+                consolesTreeSection, "Open MySQL Shell Console Browser");
             await btn.click();
 
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             expect(await driver.findElement(By.css("#shellModuleTabview h2")).getText())
                 .to.equal("MySQL Shell - GUI Console");
@@ -3063,7 +3061,7 @@ describe("MySQL Shell for VS Code", () => {
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
             await driver.switchTo().defaultContent();
 
-            expect(await existsTreeElement("MYSQL SHELL CONSOLES", "Session 1")).to.equal(true);
+            expect(await existsTreeElement(consolesTreeSection, "Session 1")).to.equal(true);
         });
 
     });
@@ -3072,22 +3070,22 @@ describe("MySQL Shell for VS Code", () => {
 
         before(async function () {
             try {
-                await initTreeSection("MYSQL SHELL CONSOLES");
-                await toggleSection("DATABASE CONNECTIONS", false);
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-                await toggleSection("MYSQL SHELL CONSOLES", true);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await initTreeSection(consolesTreeSection);
+                await toggleSection(dbTreeSection, false);
+                await toggleSection(ociTreeSection, false);
+                await toggleSection(consolesTreeSection, true);
+                await toggleSection(tasksTreeSection, false);
 
                 await toggleBottomBar(false);
 
                 const btn = await getLeftSectionButton(
-                    "MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+                    consolesTreeSection, "Add a New MySQL Shell Console");
                 await btn.click();
 
                 const editors = await new EditorView().getOpenEditorTitles();
                 expect(editors).to.include.members(["MySQL Shell Consoles"]);
 
-                await switchToFrame("MySQL Shell Consoles");
+                await switchToWebView();
 
                 await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
             } catch (e) {
@@ -3134,23 +3132,23 @@ describe("MySQL Shell for VS Code", () => {
 
             await driver?.switchTo().defaultContent();
 
-            const btn = await getLeftSectionButton("MYSQL SHELL CONSOLES", "Add a New MySQL Shell Console");
+            const btn = await getLeftSectionButton(consolesTreeSection, "Add a New MySQL Shell Console");
             await btn.click();
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
 
             await driver.switchTo().defaultContent();
-            expect(await existsTreeElement("MYSQL SHELL CONSOLES", "Session 2") as Boolean).to.equal(true);
+            expect(await existsTreeElement(consolesTreeSection, "Session 2") as Boolean).to.equal(true);
 
             await btn.click();
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
             await driver.switchTo().defaultContent();
-            expect(await existsTreeElement("MYSQL SHELL CONSOLES", "Session 3") as Boolean).to.equal(true);
+            expect(await existsTreeElement(consolesTreeSection, "Session 3") as Boolean).to.equal(true);
 
             //SESSION1
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
             let editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.executeScript(
@@ -3188,10 +3186,10 @@ describe("MySQL Shell for VS Code", () => {
 
             //SESSION2
             await driver.switchTo().defaultContent();
-            const session2 = await getTreeElement("MYSQL SHELL CONSOLES", "Session 2");
+            const session2 = await getTreeElement(consolesTreeSection, "Session 2");
             await session2.click();
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
             editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.executeScript(
@@ -3229,10 +3227,10 @@ describe("MySQL Shell for VS Code", () => {
 
             //SESSION3
             await driver.switchTo().defaultContent();
-            const session3 = await getTreeElement("MYSQL SHELL CONSOLES", "Session 3");
+            const session3 = await getTreeElement(consolesTreeSection, "Session 3");
             await session3.click();
 
-            await switchToFrame("MySQL Shell Consoles");
+            await switchToWebView();
 
             editor = await driver.findElement(By.id("shellEditorHost"));
 
@@ -3811,11 +3809,11 @@ describe("MySQL Shell for VS Code", () => {
 
         before(async function () {
             try {
-                await initTreeSection("DATABASE CONNECTIONS");
-                await toggleSection("DATABASE CONNECTIONS", true);
-                await toggleSection("ORACLE CLOUD INFRASTRUCTURE", false);
-                await toggleSection("MYSQL SHELL CONSOLES", false);
-                await toggleSection("MYSQL SHELL TASKS", false);
+                await initTreeSection(dbTreeSection);
+                await toggleSection(dbTreeSection, true);
+                await toggleSection(ociTreeSection, false);
+                await toggleSection(consolesTreeSection, false);
+                await toggleSection(tasksTreeSection, false);
 
                 let randomCaption = "";
                 const connections = await getExistingConnections();
@@ -3829,20 +3827,20 @@ describe("MySQL Shell for VS Code", () => {
                     expect(await getDB(conn.caption)).to.exist;
                     const edView = new EditorView();
                     await edView.closeEditor("DB Connections");
-                    await reloadSection("DATABASE CONNECTIONS");
-                    const el = await getTreeElement("DATABASE CONNECTIONS", conn.caption);
+                    await reloadSection(dbTreeSection);
+                    const el = await getTreeElement(dbTreeSection, conn.caption);
                     expect(el).to.exist;
                 }
 
-                await toggleTreeElement("DATABASE CONNECTIONS", conn.caption, true);
+                await toggleTreeElement(dbTreeSection, conn.caption, true);
 
-                await selectContextMenuItem("DATABASE CONNECTIONS",
+                await selectContextMenuItem(dbTreeSection,
                     conn.caption, "Configure MySQL REST Service");
 
-                await toggleSection("MYSQL SHELL TASKS", true);
+                await toggleSection(tasksTreeSection, true);
 
                 expect(await getTreeElement(
-                    "MYSQL SHELL TASKS", "Configure MySQL REST Service (running)")).to.exist;
+                    tasksTreeSection, "Configure MySQL REST Service (running)")).to.exist;
 
                 const bottomBar = new BottomBarPanel();
                 const outputView = await bottomBar.openOutputView();
@@ -3861,32 +3859,32 @@ describe("MySQL Shell for VS Code", () => {
                 await toggleBottomBar(false);
 
                 expect(await getTreeElement(
-                    "MYSQL SHELL TASKS", "Configure MySQL REST Service (done)")).to.exist;
-                await toggleSection("MYSQL SHELL TASKS", false);
+                    tasksTreeSection, "Configure MySQL REST Service (done)")).to.exist;
+                await toggleSection(tasksTreeSection, false);
                 const item = await driver.wait(until.elementLocated(By.xpath(
                     "//div[contains(@aria-label, 'MySQL REST Service')]")),
                 5000, "MySQL REST Service tree item was not found");
                 await driver.wait(until.elementIsVisible(item), 5000, "MySQL REST Service tree item was not visible");
 
                 await selectContextMenuItem(
-                    "DATABASE CONNECTIONS", conn.caption, "Show MySQL System Schemas");
+                    dbTreeSection, conn.caption, "Show MySQL System Schemas");
 
-                expect(await existsTreeElement("DATABASE CONNECTIONS", "mysql_rest_service_metadata")).to.be.true;
+                expect(await existsTreeElement(dbTreeSection, "mysql_rest_service_metadata")).to.be.true;
 
-                await selectContextMenuItem("DATABASE CONNECTIONS",
+                await selectContextMenuItem(dbTreeSection,
                     "MySQL REST Service", "Add REST Service...");
 
                 randomService = `Service${randomCaption}`;
-                await switchToFrame("Add REST Service");
+                await switchToWebView();
                 await setRestService(`/${randomService}`, "", "localhost", true, true, true, true);
 
                 await driver?.switchTo().defaultContent();
 
-                await reloadSection("DATABASE CONNECTIONS");
+                await reloadSection(dbTreeSection);
 
-                await toggleTreeElement("DATABASE CONNECTIONS", "MySQL REST Service", true);
+                await toggleTreeElement(dbTreeSection, "MySQL REST Service", true);
 
-                expect(await existsTreeElement("DATABASE CONNECTIONS", `/${randomService}`)).to.be.true;
+                expect(await existsTreeElement(dbTreeSection, `/${randomService}`)).to.be.true;
 
                 await driver?.switchTo().defaultContent();
             } catch (e) {
@@ -3923,7 +3921,7 @@ describe("MySQL Shell for VS Code", () => {
 
         after(async function () {
             try {
-                await selectContextMenuItem("DATABASE CONNECTIONS",
+                await selectContextMenuItem(dbTreeSection,
                     "mysql_rest_service_metadata", "Drop Schema...");
 
                 const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
@@ -3949,7 +3947,7 @@ describe("MySQL Shell for VS Code", () => {
 
             const workbench = new Workbench();
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 `/${randomService}`, "Set as New Default REST Service");
 
             let notifications = await workbench.getNotifications();
@@ -3959,31 +3957,31 @@ describe("MySQL Shell for VS Code", () => {
             notifications = await workbench.getNotifications();
             await notifications[notifications.length - 1].dismiss();
 
-            expect(await isDefaultItem("DATABASE CONNECTIONS", "rest", `/${randomService}`)).to.equal(true);
+            expect(await isDefaultItem(dbTreeSection, "rest", `/${randomService}`)).to.equal(true);
         });
 
         it("Edit REST Service", async () => {
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 `/${randomService}`, "Edit REST Service...");
 
-            await switchToFrame("Edit REST Service");
+            await switchToWebView();
 
             await setRestService(`/edited${randomService}`, "edited", "localhost", false, false, false, false);
 
             await driver.switchTo().defaultContent();
 
             await driver.wait(async () => {
-                await reloadSection("DATABASE CONNECTIONS");
+                await reloadSection(dbTreeSection);
 
-                return (await existsTreeElement("DATABASE CONNECTIONS", `/edited${randomService}`)) === true;
+                return (await existsTreeElement(dbTreeSection, `/edited${randomService}`)) === true;
 
             }, 3000, `/edited${randomService} was not displayed on the tree`);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 `/edited${randomService}`, "Edit REST Service...");
 
-            await switchToFrame("Edit REST Service");
+            await switchToWebView();
 
             const dialog = await driver.findElement(By.id("mrsServiceDialog"));
             const inputServName = await dialog.findElement(By.id("serviceName"));
@@ -4011,63 +4009,63 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Add a REST Service Schema", async () => {
 
-            const service = await getFirstTreeChild("DATABASE CONNECTIONS", "MySQL REST Service");
+            const service = await getFirstTreeChild(dbTreeSection, "MySQL REST Service");
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 "sakila", "Add Schema to REST Service");
 
-            await switchToFrame("Enter Configuration Values for the New MySQL REST Schema");
+            await switchToWebView();
 
             await setRestSchema("sakila", `localhost${service}`, "/sakila", 1, true, true, "sakila");
 
             await driver.switchTo().defaultContent();
 
-            await reloadSection("DATABASE CONNECTIONS");
+            await reloadSection(dbTreeSection);
 
-            await toggleTreeElement("DATABASE CONNECTIONS", `${service}`, true);
+            await toggleTreeElement(dbTreeSection, `${service}`, true);
 
-            expect(await existsTreeElement("DATABASE CONNECTIONS", "sakila (/sakila)")).to.be.true;
+            expect(await existsTreeElement(dbTreeSection, "sakila (/sakila)")).to.be.true;
 
         });
 
         it("Edit REST Schema", async () => {
 
-            const service = await getFirstTreeChild("DATABASE CONNECTIONS", "MySQL REST Service");
+            const service = await getFirstTreeChild(dbTreeSection, "MySQL REST Service");
 
-            await toggleTreeElement("DATABASE CONNECTIONS", service, true);
+            await toggleTreeElement(dbTreeSection, service, true);
 
             let schema = "";
             try {
-                schema = await getFirstTreeChild("DATABASE CONNECTIONS", service);
+                schema = await getFirstTreeChild(dbTreeSection, service);
             } catch (e) {
-                await selectContextMenuItem("DATABASE CONNECTIONS",
+                await selectContextMenuItem(dbTreeSection,
                     "sakila", "Add Schema to REST Service");
 
-                await switchToFrame("Enter Configuration Values for the New MySQL REST Schema");
-                const service = await getFirstTreeChild("DATABASE CONNECTIONS", "MySQL REST Service");
+                await switchToWebView();
+                const service = await getFirstTreeChild(dbTreeSection, "MySQL REST Service");
                 await setRestSchema("sakila", `localhost${service}`, "/sakila", 1, true, true, "sakila");
                 await driver.switchTo().defaultContent();
-                await reloadSection("DATABASE CONNECTIONS");
-                await toggleTreeElement("DATABASE CONNECTIONS", `${service}`, true);
-                expect(await existsTreeElement("DATABASE CONNECTIONS", "sakila (/sakila)")).to.be.true;
+                await reloadSection(dbTreeSection);
+                await toggleTreeElement(dbTreeSection, `${service}`, true);
+                expect(await existsTreeElement(dbTreeSection, "sakila (/sakila)")).to.be.true;
                 schema = "sakila (/sakila)";
             }
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 schema, "Edit REST Schema...");
 
-            await switchToFrame("Adjust the MySQL REST Schema Configuration");
+            await switchToWebView();
 
             await setRestSchema("sakila", `localhost${service}`, "/edited", 5, false, false, "edited");
 
             await driver.switchTo().defaultContent();
 
-            await reloadSection("DATABASE CONNECTIONS");
+            await reloadSection(dbTreeSection);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 "sakila (/edited)", "Edit REST Schema...");
 
-            await switchToFrame("Adjust the MySQL REST Schema Configuration");
+            await switchToWebView();
 
             const dialog = await driver.findElement(By.id("mrsSchemaDialog"));
 
@@ -4090,13 +4088,13 @@ describe("MySQL Shell for VS Code", () => {
 
         it("Add Table to REST Service", async () => {
 
-            await toggleTreeElement("DATABASE CONNECTIONS", "sakila (/edited)", false);
+            await toggleTreeElement(dbTreeSection, "sakila (/edited)", false);
 
-            await toggleTreeElement("DATABASE CONNECTIONS", "sakila", true);
+            await toggleTreeElement(dbTreeSection, "sakila", true);
 
-            await toggleTreeElement("DATABASE CONNECTIONS", "Tables", true);
+            await toggleTreeElement(dbTreeSection, "Tables", true);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 "actor", "Add Table to REST Service");
 
             const input = new InputBox();
@@ -4108,22 +4106,22 @@ describe("MySQL Shell for VS Code", () => {
                 .to.include(`The Table actor has been added successfully.`);
             await notifications[notifications.length - 1].dismiss();
 
-            await toggleTreeElement("DATABASE CONNECTIONS", "sakila (/edited)", true);
+            await toggleTreeElement(dbTreeSection, "sakila (/edited)", true);
 
-            expect(await existsTreeElement("DATABASE CONNECTIONS", "actor (/actor)")).to.be.true;
+            expect(await existsTreeElement(dbTreeSection, "actor (/actor)")).to.be.true;
         });
 
         it("Delete REST Schema", async () => {
 
             const workbench = new Workbench();
 
-            const service = await getFirstTreeChild("DATABASE CONNECTIONS", "MySQL REST Service");
+            const service = await getFirstTreeChild(dbTreeSection, "MySQL REST Service");
 
-            await toggleTreeElement("DATABASE CONNECTIONS", service, true);
+            await toggleTreeElement(dbTreeSection, service, true);
 
-            const schema = await getFirstTreeChild("DATABASE CONNECTIONS", service);
+            const schema = await getFirstTreeChild(dbTreeSection, service);
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 schema, "Delete REST Schema...");
 
             let notifications = await workbench.getNotifications();
@@ -4137,9 +4135,9 @@ describe("MySQL Shell for VS Code", () => {
 
             await notifications[notifications.length - 1].dismiss();
 
-            await reloadSection("DATABASE CONNECTIONS");
+            await reloadSection(dbTreeSection);
 
-            expect(await existsTreeElement("DATABASE CONNECTIONS", schema)).to.be.false;
+            expect(await existsTreeElement(dbTreeSection, schema)).to.be.false;
 
         });
 
@@ -4147,9 +4145,9 @@ describe("MySQL Shell for VS Code", () => {
 
             const workbench = new Workbench();
 
-            const service = await getFirstTreeChild("DATABASE CONNECTIONS", "MySQL REST Service");
+            const service = await getFirstTreeChild(dbTreeSection, "MySQL REST Service");
 
-            await selectContextMenuItem("DATABASE CONNECTIONS",
+            await selectContextMenuItem(dbTreeSection,
                 service, "Delete REST Service...");
 
             let notifications = await workbench.getNotifications();
@@ -4165,9 +4163,9 @@ describe("MySQL Shell for VS Code", () => {
             await notifications[notifications.length - 1].dismiss();
 
             await driver.wait(async () => {
-                await reloadSection("DATABASE CONNECTIONS");
+                await reloadSection(dbTreeSection);
 
-                return (await existsTreeElement("DATABASE CONNECTIONS", service)) === false;
+                return (await existsTreeElement(dbTreeSection, service)) === false;
 
             }, 3000, `${service} is still displayed on the tree`);
 

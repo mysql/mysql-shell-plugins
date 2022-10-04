@@ -56,7 +56,7 @@ export const ociTreeSection = "ORACLE CLOUD INFRASTRUCTURE";
 export const consolesTreeSection = "MYSQL SHELL CONSOLES";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
-export interface IDbConnection {
+export interface IDBConnection {
     caption: string;
     description: string;
     hostname: string;
@@ -385,7 +385,7 @@ export const selectMoreActionsItem = async (
     }, 3000, "More Actions context menu is still displayed");
 };
 
-export const createDBconnection = async (dbConfig: IDbConnection): Promise<void> => {
+export const createDBconnection = async (dbConfig: IDBConnection): Promise<void> => {
     const createConnBtn = await getLeftSectionButton("DATABASE CONNECTIONS", "Create New MySQL Connection");
     await createConnBtn?.click();
 
@@ -494,7 +494,7 @@ export const startServer = async (): Promise<ChildProcess> => {
     return prc;
 };
 
-export const setDBEditorPassword = async (dbConfig: IDbConnection): Promise<void> => {
+export const setDBEditorPassword = async (dbConfig: IDBConnection): Promise<void> => {
     const dialog = await driver.wait(until.elementLocated(
         By.css(".passwordDialog")), 10000, "No password dialog was found");
     const title = await dialog.findElement(By.css(".title .label"));
@@ -521,7 +521,7 @@ export const setDBEditorPassword = async (dbConfig: IDbConnection): Promise<void
 };
 
 export const setFeedbackRequested = async (
-    dbConfig: IDbConnection, value: string): Promise<void> => {
+    dbConfig: IDBConnection, value: string): Promise<void> => {
 
     const feedbackDialog = await driver.wait(until.elementLocated(
         By.css(".valueEditDialog")), 5000, "Feedback Requested dialog was not found");
@@ -971,7 +971,7 @@ export const closeDBconnection = async (name: string): Promise<void> => {
     }
 };
 
-export const setConfirmDialog = async (dbConfig: IDbConnection, value: string): Promise<void> => {
+export const setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
 
     await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
         500, "No confirm dialog was found");
@@ -1316,13 +1316,6 @@ export const switchToWebView = async (): Promise<void> => {
     }, 10000, "WebView content was not loaded");
 };
 
-export const switchToFrame = async (frame: string): Promise<void> => {
-    await driver.wait(until.ableToSwitchToFrame(0), 5000, "Not able to switch to frame 0");
-    await driver.wait(until.ableToSwitchToFrame(
-        By.id("active-frame")), 5000, "Not able to switch to frame active-frame");
-    await driver.wait(until.ableToSwitchToFrame(
-        By.id(`frame:${frame}`)), 5000, `Not able to switch to frame ${frame}`);
-};
 
 export const shellGetResult = async (): Promise<string> => {
     const zoneHost = await driver.findElements(By.css(".zoneHost"));

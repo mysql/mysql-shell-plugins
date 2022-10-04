@@ -22,8 +22,8 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { getDriver, load } from "../lib/engine";
-import { By, until, WebDriver } from "selenium-webdriver";
+import { driver, loadDriver, loadPage } from "../lib/engine";
+import { By, until } from "selenium-webdriver";
 import {
     waitForHomePage,
     openProfileMenu,
@@ -37,17 +37,16 @@ import {
 } from "../lib/helpers";
 
 describe("Profiles", () => {
-    let driver: WebDriver;
     let testFailed: boolean;
 
     beforeEach(async () => {
-        driver = await getDriver();
+        await loadDriver();
         try {
-            await load(driver, String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage(driver);
+            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage(driver);
+            await waitForHomePage();
         }
     });
 
@@ -73,7 +72,7 @@ describe("Profiles", () => {
     // reason: Profiles section is under development
     xit("Add profile", async () => {
         try {
-            await openProfileMenu(driver);
+            await openProfileMenu();
 
             await driver.findElement(By.id("add")).click();
 
@@ -99,7 +98,7 @@ describe("Profiles", () => {
 
             await dialog.findElement(By.id("ok")).click();
 
-            expect(await getProfile(driver, "ClientQA1")).toBeDefined();
+            expect(await getProfile("ClientQA1")).toBeDefined();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -109,13 +108,13 @@ describe("Profiles", () => {
     // reason: Profiles section is under development
     xit("Edit profile - change profile name", async () => {
         try {
-            await addProfile(driver, "ClientQA1", undefined);
+            await addProfile("ClientQA1", undefined);
 
-            await (await getProfile(driver, "ClientQA1"))!.click();
+            await (await getProfile("ClientQA1"))!.click();
 
             await driver.wait(
                 async () => {
-                    const profile = await getCurrentProfile(driver);
+                    const profile = await getCurrentProfile();
 
                     return profile === "ClientQA1";
                 },
@@ -123,7 +122,7 @@ describe("Profiles", () => {
                 "Profile not loaded",
             );
 
-            const menu = await openProfileMenu(driver);
+            const menu = await openProfileMenu();
 
             await menu!.findElement(By.id("edit")).click();
 
@@ -137,9 +136,9 @@ describe("Profiles", () => {
 
             await dialog.findElement(By.id("ok")).click();
 
-            expect(await getProfile(driver, "ClientQA2")).toBeDefined();
+            expect(await getProfile("ClientQA2")).toBeDefined();
 
-            expect(await getProfile(driver, "ClientQA1")).toBeUndefined();
+            expect(await getProfile("ClientQA1")).toBeUndefined();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -149,13 +148,13 @@ describe("Profiles", () => {
     // reason: Profiles section is under development
     xit("Edit profile - set profile as default", async () => {
         try {
-            await addProfile(driver, "ClientQA1", undefined);
+            await addProfile("ClientQA1", undefined);
 
-            await (await getProfile(driver, "ClientQA1"))!.click();
+            await (await getProfile("ClientQA1"))!.click();
 
             await driver.wait(
                 async () => {
-                    const profile = await getCurrentProfile(driver);
+                    const profile = await getCurrentProfile();
 
                     return profile === "ClientQA1";
                 },
@@ -163,7 +162,7 @@ describe("Profiles", () => {
                 "Profile not loaded",
             );
 
-            const menu = await openProfileMenu(driver);
+            const menu = await openProfileMenu();
 
             await menu!.findElement(By.id("edit")).click();
 
@@ -175,9 +174,9 @@ describe("Profiles", () => {
 
             await driver.navigate().refresh();
 
-            await waitForHomePage(driver);
+            await waitForHomePage();
 
-            expect(await getCurrentProfile(driver)).toBe("ClientQA1");
+            expect(await getCurrentProfile()).toBe("ClientQA1");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -187,13 +186,13 @@ describe("Profiles", () => {
     // reason: Profiles section is under development
     xit("Delete active profile", async () => {
         try {
-            await addProfile(driver, "ClientQA1", undefined);
+            await addProfile("ClientQA1", undefined);
 
-            await (await getProfile(driver, "ClientQA1"))!.click();
+            await (await getProfile("ClientQA1"))!.click();
 
             await driver.wait(
                 async () => {
-                    const profile = await getCurrentProfile(driver);
+                    const profile = await getCurrentProfile();
 
                     return profile === "ClientQA1";
                 },
@@ -201,7 +200,7 @@ describe("Profiles", () => {
                 "Profile not loaded",
             );
 
-            const menu = await openProfileMenu(driver);
+            const menu = await openProfileMenu();
 
             await menu!.findElement(By.id("delete")).click();
 
@@ -210,7 +209,7 @@ describe("Profiles", () => {
             expect(await dialog.findElement(By.id("dialogHeading")).getText())
                 .toBe("Here you can activate/deactivate profiles for this application");
 
-            await setProfilesToRemove(driver, ["ClientQA1"]);
+            await setProfilesToRemove(["ClientQA1"]);
 
             await dialog.findElement(By.id("ok")).click();
 
@@ -231,15 +230,15 @@ describe("Profiles", () => {
     // reason: Profiles section is under development
     xit("Delete non active profile", async () => {
         try {
-            await addProfile(driver, "ClientQA1", undefined);
+            await addProfile("ClientQA1", undefined);
 
-            await addProfile(driver, "ClientQA2", undefined);
+            await addProfile("ClientQA2", undefined);
 
-            await (await getProfile(driver, "ClientQA1"))!.click();
+            await (await getProfile("ClientQA1"))!.click();
 
             await driver.wait(
                 async () => {
-                    const profile = await getCurrentProfile(driver);
+                    const profile = await getCurrentProfile();
 
                     return profile === "ClientQA1";
                 },
@@ -247,13 +246,13 @@ describe("Profiles", () => {
                 "Profile not loaded",
             );
 
-            const menu = await openProfileMenu(driver);
+            const menu = await openProfileMenu();
 
             await menu!.findElement(By.id("delete")).click();
 
             const dialog = await driver.findElement(By.css(".valueEditDialog"));
 
-            await setProfilesToRemove(driver, ["ClientQA2"]);
+            await setProfilesToRemove(["ClientQA2"]);
 
             expect((await dialog.findElements(By.css("label.error"))).length).toBe(0);
 
@@ -273,7 +272,7 @@ describe("Profiles", () => {
 
             await confirmDialog.findElement(By.id("accept")).click();
 
-            expect(await getProfile(driver, "ClientQA2")).toBeUndefined();
+            expect(await getProfile("ClientQA2")).toBeUndefined();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -283,13 +282,13 @@ describe("Profiles", () => {
     // reason: Profiles section is under development
     xit("Delete default profile", async () => {
         try {
-            await addProfile(driver, "ClientQA1", undefined);
+            await addProfile("ClientQA1", undefined);
 
-            await (await getProfile(driver, "ClientQA1"))!.click();
+            await (await getProfile("ClientQA1"))!.click();
 
             await driver.wait(
                 async () => {
-                    const profile = await getCurrentProfile(driver);
+                    const profile = await getCurrentProfile();
 
                     return profile === "ClientQA1";
                 },
@@ -297,7 +296,7 @@ describe("Profiles", () => {
                 "Profile not loaded",
             );
 
-            const menu = await openProfileMenu(driver);
+            const menu = await openProfileMenu();
 
             await menu!.findElement(By.id("delete")).click();
 
@@ -307,7 +306,7 @@ describe("Profiles", () => {
                 "Here you can activate/deactivate profiles for this application",
             );
 
-            await setProfilesToRemove(driver, ["Default"]);
+            await setProfilesToRemove(["Default"]);
 
             await dialog.findElement(By.id("ok")).click();
 
@@ -327,13 +326,13 @@ describe("Profiles", () => {
     // reason: Profiles section is under development
     xit("Saving profile settings", async () => {
         try {
-            await addProfile(driver, "ClientQA1", undefined);
+            await addProfile("ClientQA1", undefined);
 
-            await (await getProfile(driver, "ClientQA1"))!.click();
+            await (await getProfile("ClientQA1"))!.click();
 
             await driver.wait(
                 async () => {
-                    const profile = await getCurrentProfile(driver);
+                    const profile = await getCurrentProfile();
 
                     return profile === "ClientQA1";
                 },
@@ -343,47 +342,43 @@ describe("Profiles", () => {
 
             await driver.findElement(By.id("settings")).click();
 
-            await setSetting(driver, "settings.autoSaveInterval", "input", "500");
+            await setSetting("settings.autoSaveInterval", "input", "500");
 
             await setSetting(
-                driver,
                 "theming.currentTheme",
                 "selectList",
                 "Default Light",
             );
 
-            expect(String(await getBackgroundColor(driver)).trim()).toBe("#FFFFFF");
+            expect(String(await getBackgroundColor()).trim()).toBe("#FFFFFF");
 
-            await setSetting(driver, "dbEditor.startLanguage", "selectList", "python");
+            await setSetting("dbEditor.startLanguage", "selectList", "python");
 
-            await setSetting(driver, "editor.wordWrap", "selectList", "on");
+            await setSetting("editor.wordWrap", "selectList", "on");
 
-            await setSetting(driver, "editor.wordWrapColumn", "input", "130");
+            await setSetting("editor.wordWrapColumn", "input", "130");
 
-            await setSetting(driver, "editor.showHidden", "checkbox", "checked");
+            await setSetting("editor.showHidden", "checkbox", "checked");
 
-            await setSetting(driver, "editor.dbVersion", "input", "8.0.26");
+            await setSetting("editor.dbVersion", "input", "8.0.26");
 
-            await setSetting(driver, "editor.stopOnErrors", "checkbox", "checked");
+            await setSetting("editor.stopOnErrors", "checkbox", "checked");
 
             await setSetting(
-                driver,
                 "editor.theming.decorationSet",
                 "selectList",
                 "alternative",
             );
 
             await setSetting(
-                driver,
                 "dbEditor.connectionBrowser.showGreeting",
                 "checkbox",
                 "unchecked",
             );
 
-            await setSetting(driver, "sql.limitRowCount", "input", "500");
+            await setSetting("sql.limitRowCount", "input", "500");
 
             await setSetting(
-                driver,
                 "shellSession.sessionBrowser.showGreeting",
                 "checkbox",
                 "unchecked",
@@ -391,12 +386,12 @@ describe("Profiles", () => {
 
             await driver.wait(until.elementLocated(By.id("about")), 1000);
             await driver.navigate().refresh();
-            await waitForHomePage(driver);
-            expect(await getCurrentProfile(driver)).toBe("Default");
-            await (await getProfile(driver, "ClientQA1"))!.click();
+            await waitForHomePage();
+            expect(await getCurrentProfile()).toBe("Default");
+            await (await getProfile("ClientQA1"))!.click();
             await driver.wait(
                 async () => {
-                    const profile = await getCurrentProfile(driver);
+                    const profile = await getCurrentProfile();
 
                     return profile === "ClientQA1";
                 },
@@ -407,34 +402,33 @@ describe("Profiles", () => {
             await driver.findElement(By.id("settings")).click();
 
             expect(
-                await getSettingValue(driver, "settings.autoSaveInterval", "input"),
+                await getSettingValue("settings.autoSaveInterval", "input"),
             ).toBe("500");
 
             expect(
-                await getSettingValue(driver, "theming.currentTheme", "selectList"),
+                await getSettingValue("theming.currentTheme", "selectList"),
             ).toBe("Default Light");
 
             expect(
-                await getSettingValue(driver, "dbEditor.startLanguage", "selectList"),
+                await getSettingValue("dbEditor.startLanguage", "selectList"),
             ).toBe("Python");
 
-            expect(await getSettingValue(driver, "editor.wordWrap", "selectList")).toBe("On");
+            expect(await getSettingValue("editor.wordWrap", "selectList")).toBe("On");
 
             expect(
-                await getSettingValue(driver, "editor.wordWrapColumn", "input"),
+                await getSettingValue("editor.wordWrapColumn", "input"),
             ).toBe("130");
 
-            expect(await getSettingValue(driver, "editor.showHidden", "checkbox")).toBe("checked");
+            expect(await getSettingValue("editor.showHidden", "checkbox")).toBe("checked");
 
-            expect(await getSettingValue(driver, "editor.dbVersion", "input")).toBe("8.0.26");
+            expect(await getSettingValue("editor.dbVersion", "input")).toBe("8.0.26");
 
             expect(
-                await getSettingValue(driver, "editor.stopOnErrors", "checkbox"),
+                await getSettingValue("editor.stopOnErrors", "checkbox"),
             ).toBe("checked");
 
             expect(
                 await getSettingValue(
-                    driver,
                     "editor.theming.decorationSet",
                     "selectList",
                 ),
@@ -442,16 +436,15 @@ describe("Profiles", () => {
 
             expect(
                 await getSettingValue(
-                    driver,
                     "dbEditor.connectionBrowser.showGreeting",
                     "checkbox",
                 ),
             ).toBe("unchecked");
 
-            expect(await getSettingValue(driver, "sql.limitRowCount", "input")).toBe("500");
+            expect(await getSettingValue("sql.limitRowCount", "input")).toBe("500");
 
             expect(
-                await getSettingValue(driver, "shellSession.sessionBrowser.showGreeting", "checkbox"),
+                await getSettingValue("shellSession.sessionBrowser.showGreeting", "checkbox"),
             ).toBe("unchecked");
         } catch (e) {
             testFailed = true;
