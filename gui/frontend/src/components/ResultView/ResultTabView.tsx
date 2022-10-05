@@ -33,16 +33,20 @@ import React from "react";
 
 import {
     Button, Component, ComponentPlacement, Container, Divider, Dropdown, IComponentProperties, IComponentState, Icon,
-    IMenuItemProperties, ITabviewPage, Label, Menu, MenuItem, Orientation, TabPosition, Tabview, Toolbar,
+    IMenuItemProperties, ITabviewPage, Menu, MenuItem, Orientation, TabPosition, Tabview, Toolbar,
 } from "../ui";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution";
 import { IColumnInfo, MessageType } from "../../app-logic/Types";
 import { ResultView } from "./ResultView";
 import { ResultStatus } from ".";
+import { ActionOutput } from "./ActionOutput";
 
 export interface IResultTabViewProperties extends IComponentProperties {
-    // One set per tab page.
+    /** One set per tab page. */
     resultSets: IResultSets;
+
+    /** The ID of the executing context for this result view. */
+    contextId: string;
 
     currentSet?: number;
     resultPaneMaximized?: boolean;
@@ -53,16 +57,16 @@ export interface IResultTabViewProperties extends IComponentProperties {
 }
 
 interface IResultTabViewState extends IComponentState {
-    // Set to true when a result set was selected by the user.
+    /** Set to true when a result set was selected by the user. */
     manualTab: boolean;
 
     currentResultSet?: IResultSet;
 
-    // Have to keep track locally as the presentation interface cannot re-render this component on toggle.
+    /** Have to keep track locally as the presentation interface cannot re-render this component on toggle. */
     resultPaneMaximized: boolean;
 }
 
-// Holds a collection of result views and other output in a tabbed interface.
+/** Holds a collection of result views and other output in a tabbed interface. */
 export class ResultTabView extends Component<IResultTabViewProperties, IResultTabViewState> {
 
     private actionMenuRef = React.createRef<Menu>();
@@ -85,7 +89,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
             resultPaneMaximized: props.resultPaneMaximized ?? false,
         };
 
-        this.addHandledProperties("resultSets", "currentSet", "resultPaneMaximized",
+        this.addHandledProperties("resultSets", "contextId", "currentSet", "resultPaneMaximized",
             "onResultPageChange", "onSetResultPaneViewState", "onSelectTab");
     }
 
@@ -143,7 +147,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     }
 
     public render(): React.ReactNode {
-        const { resultSets } = this.props;
+        const { resultSets, contextId } = this.props;
         const { currentResultSet, resultPaneMaximized } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
@@ -152,38 +156,16 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
 
         const pages: ITabviewPage[] = [];
 
-        if ((resultSets?.output?.length ?? 0) > 0) {
-            const labels: React.ReactElement[] = [];
-
-            resultSets?.output?.forEach((entry, index, sets) => {
-                // Show an index number before an entry in the output tab, for easier reference (if given).
-                // However, do not add that if there's only a single output entry and no result set.
-                const addIndexLabel = entry.index !== undefined && (sets.length > 1 || resultSets?.sets.length > 0);
-                labels.push(
-                    <Container className="labelHost" orientation={Orientation.LeftToRight}>
-                        {
-                            addIndexLabel && <Label className="cmdIndex" caption={`#${entry.index! + 1}: `} />
-                        }
-                        <Label
-                            language={entry.language}
-                            key={`text${entry.index ?? index}`}
-                            caption={entry.content}
-                            type={entry.type}
-                        />
-                    </Container>,
-                );
-            });
-
+        if (resultSets?.output && resultSets.output.length > 0) {
             pages.push({
                 id: "output",
                 caption: `Output`,
                 content: (
-                    <Container
-                        className="outputHost"
-                        orientation={Orientation.TopDown}
-                    >
-                        {labels}
-                    </Container>
+                    <ActionOutput
+                        output={resultSets.output}
+                        contextId={contextId}
+                        showIndexes={resultSets.sets.length > 0 || resultSets.output.length > 1}
+                    />
                 ),
             });
         }

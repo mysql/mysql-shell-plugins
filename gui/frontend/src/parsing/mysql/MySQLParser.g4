@@ -1059,7 +1059,6 @@ replaceStatement:
 
 selectStatement:
     queryExpression lockingClauseList?
-    | {this.serverVersion < 80031}? queryExpressionParens
     | selectStatementWithInto
 ;
 
@@ -1072,12 +1071,7 @@ selectStatementWithInto:
 
 queryExpression:
     {this.serverVersion < 80031}? (
-        withClause? (
-            queryExpressionBody orderClause? limitClause?
-            | queryExpressionParens orderClause limitClause?
-        )
-        | queryExpressionParens limitClause
-        | queryExpressionParens limitClause?
+        withClause? (queryExpressionBody | queryExpressionParens) orderClause? limitClause?
     )
     | {this.serverVersion >= 80031}? (
         withClause? queryExpressionBodyNew orderClause? limitClause?

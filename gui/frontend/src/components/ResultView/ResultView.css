@@ -33,10 +33,6 @@
     border-radius: 8px;
 }
 
-.msg.textHost {
-    flex: 1 1 auto;
-}
-
 .msg.resultHost:not(.dropTarget) > .content {
     background: transparent;
 }
@@ -51,6 +47,11 @@
 
 .msg.codeEditor .zoneHost .renderTarget > .divider.maximum {
     cursor: n-resize;
+}
+
+/* Make the tabview expand to maximum size, without removing flex setting from result status. */
+.msg.resultHost .resultTabview {
+    flex: 100 100 auto;
 }
 
 .msg.resultHost .resultTabview .tabArea {
@@ -69,7 +70,7 @@
     background: var(--editorZone-background);
 }
 
-.msg.resultHost .resultTabview .outputHost .cmdIndex {
+.msg.resultHost .resultTabview .outputHost .commandIndex {
     color: var(--resultStatus-foreground);
     margin-right: 4px;
 }
@@ -330,4 +331,27 @@
     background-color: var(--editorPrompt-result);
     mask-size: 5px;
     mask-repeat: repeat-y;
+}
+
+.msg.connectionTabHost .renderTarget .resultStatus {
+    flex: 1 1 auto;
+}
+
+.msg.connectionTabHost .renderTarget .actionOutput .actionLabel.clickable:hover,
+.msg#shellEditorHost .renderTarget .actionOutput .actionLabel.clickable:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.msg.connectionTabHost .renderTarget .resultStatus > .message {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    flex: 1 1 auto;
+
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+}
+
+.msg.connectionTabHost .renderTarget .actionOutput {
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
 }

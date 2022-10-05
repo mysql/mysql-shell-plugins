@@ -31,8 +31,10 @@ import { LoadingState, PresentationInterface } from "./PresentationInterface";
 import { IExecuteResultReference, IExecutionResult } from ".";
 import { EditorLanguage, IExecutionContext } from "../supplement";
 
-// This class is the base building block for code management in a code editor.
-// A context can be linked to other code by an optional link ID.
+/**
+ * This class is the base building block for code management in a code editor.
+ * A context can be linked to other places by an optional link ID.
+ */
 export class ExecutionContext implements IExecutionContext {
     private static nextId = 1;
 
@@ -177,6 +179,16 @@ export class ExecutionContext implements IExecutionContext {
      */
     public get requestIds(): string[] {
         return this.presentation.requestIds;
+    }
+
+    /**
+     * Selects the statement with the given index (counting continuously from zero through all statements).
+     * This is however only supported for languages we parse and hence know their statement positions (like SQL).
+     *
+     * @param index The zero based index of the statement to select.
+     */
+    public selectStatement(index: number): void {
+        throw new Error(`Cannot select individual statements (index ${index})`);
     }
 
     /**

@@ -56,17 +56,25 @@ export const mapCompletionKind: Map<LanguageCompletionKind, languages.Completion
     [LanguageCompletionKind.Plugin, languages.CompletionItemKind.Module],
 ]);
 
+/**
+ * An interface comprising text output, a type and a language to form output shown for actions like code execution,
+ * query results and informational messages.
+ */
 export interface ITextResultEntry {
     type: MessageType;
+    language?: ResultTextLanguage;
 
-    // An optional index to map a text result entry to a command that produced it in an editor.
+    /**
+     * An optional index to map a text result entry to a command that produced it in an editor.
+     * If given this index will be shown in front of the text label and also makes the label clickable, to allow
+     * the UI to navigate to the origin of the text (e.q. a query which caused an error output).
+     */
     index?: number;
 
-    // An option value to denote the request from which this output was generated.
+    /** An option value to denote the request from which this output was generated. */
     requestId?: string;
 
     content: string;
-    language?: ResultTextLanguage;
 }
 
 export interface ITextResult {

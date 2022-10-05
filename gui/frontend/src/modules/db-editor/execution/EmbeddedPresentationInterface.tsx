@@ -28,7 +28,7 @@ import { Divider } from "../../../components/ui";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
 
-// Handling of UI related tasks in a code editor for embedded contexts.
+/** Handling of UI related tasks in a code editor for embedded contexts. */
 export class EmbeddedPresentationInterface extends PresentationInterface {
 
     // A list of property to copy to local models.

@@ -2,6 +2,7 @@
 
 exports[`Result Tabview Tests Rendering Only Output 1`] = `
 <ResultTabView
+  contextId="ec123"
   resultSets={
     Object {
       "output": Array [
@@ -42,29 +43,22 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
           Array [
             Object {
               "caption": "Output",
-              "content": <Container
-                className="outputHost"
-                orientation="column"
-              >
-                <Container
-                  className="labelHost"
-                  orientation="row"
-                >
-                  <Label
-                    caption="Message 1"
-                    type={0}
-                  />
-                </Container>
-                <Container
-                  className="labelHost"
-                  orientation="row"
-                >
-                  <Label
-                    caption="Message 2"
-                    type={4}
-                  />
-                </Container>
-              </Container>,
+              "content": <ActionOutput
+                contextId="ec123"
+                output={
+                  Array [
+                    Object {
+                      "content": "Message 1",
+                      "type": 0,
+                    },
+                    Object {
+                      "content": "Message 2",
+                      "type": 4,
+                    },
+                  ]
+                }
+                showIndexes={true}
+              />,
               "id": "output",
             },
           ]
@@ -132,93 +126,99 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   }
                 }
               >
-                <Container
-                  className="outputHost"
-                  orientation="column"
-                >
-                  <div
-                    className="msg container fixedScrollbar outputHost"
-                    style={
+                <ActionOutput
+                  contextId="ec123"
+                  output={
+                    Array [
                       Object {
-                        "alignItems": undefined,
-                        "flexDirection": "column",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
+                        "content": "Message 1",
+                        "type": 0,
+                      },
+                      Object {
+                        "content": "Message 2",
+                        "type": 4,
+                      },
+                    ]
+                  }
+                  showIndexes={true}
+                >
+                  <Grid
+                    className="msg actionOutput"
+                    columnGap={4}
+                    columns={
+                      Array [
+                        "fit-content(10%)",
+                        "auto",
+                      ]
                     }
                   >
-                    <Container
-                      className="labelHost"
-                      orientation="row"
+                    <div
+                      className="msg grid actionOutput"
+                      style={
+                        Object {
+                          "columnGap": "4px",
+                          "gridTemplateColumns": "fit-content(10%) auto",
+                          "rowGap": undefined,
+                        }
+                      }
                     >
-                      <div
-                        className="msg container fixedScrollbar labelHost"
+                      <Label
+                        caption="Message 1"
+                        className="actionLabel"
+                        onClick={[Function]}
                         style={
                           Object {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
+                            "gridColumn": "span 2",
                           }
                         }
+                        tabIndex={-1}
+                        type={0}
                       >
-                        <Label
-                          caption="Message 1"
-                          key="text0"
+                        <label
+                          className="msg label actionLabel"
+                          data-tooltip="expand"
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "gridColumn": "span 2",
+                            }
+                          }
+                          tabIndex={-1}
                           type={0}
                         >
-                          <label
-                            className="msg label"
-                            data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
-                            type={0}
-                          >
-                            Message 1
-                          </label>
-                        </Label>
-                      </div>
-                    </Container>
-                    <Container
-                      className="labelHost"
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar labelHost"
+                          Message 1
+                        </label>
+                      </Label>
+                      <Label
+                        caption="Message 2"
+                        className="actionLabel"
+                        onClick={[Function]}
                         style={
                           Object {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
+                            "gridColumn": "span 2",
                           }
                         }
+                        tabIndex={-1}
+                        type={4}
                       >
-                        <Label
-                          caption="Message 2"
-                          key="text1"
+                        <label
+                          className="msg label actionLabel"
+                          data-tooltip="expand"
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "gridColumn": "span 2",
+                            }
+                          }
+                          tabIndex={-1}
                           type={4}
                         >
-                          <label
-                            className="msg label"
-                            data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
-                            type={4}
-                          >
-                            Message 2
-                          </label>
-                        </Label>
-                      </div>
-                    </Container>
-                  </div>
-                </Container>
+                          Message 2
+                        </label>
+                      </Label>
+                    </div>
+                  </Grid>
+                </ActionOutput>
               </div>
             </Container>
           </div>
@@ -256,6 +256,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
 
 exports[`Result Tabview Tests Standard Rendering 1`] = `
 <ResultTabView
+  contextId="ec123"
   resultSets={
     Object {
       "sets": Array [],
@@ -382,6 +383,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
 
 exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
 <ResultTabView
+  contextId="ec123"
   resultSets={
     Object {
       "output": Array [
@@ -448,21 +450,19 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
           Array [
             Object {
               "caption": "Output",
-              "content": <Container
-                className="outputHost"
-                orientation="column"
-              >
-                <Container
-                  className="labelHost"
-                  orientation="row"
-                >
-                  <Label
-                    caption="Lorem ipsum dolor sit amet"
-                    language="ini"
-                    type={2}
-                  />
-                </Container>
-              </Container>,
+              "content": <ActionOutput
+                contextId="ec123"
+                output={
+                  Array [
+                    Object {
+                      "content": "Lorem ipsum dolor sit amet",
+                      "language": "ini",
+                      "type": 2,
+                    },
+                  ]
+                }
+                showIndexes={true}
+              />,
               "id": "output",
             },
             Object {

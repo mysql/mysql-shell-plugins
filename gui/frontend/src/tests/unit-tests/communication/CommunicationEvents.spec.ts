@@ -128,7 +128,7 @@ describe("Communication events tests", () => {
         event = CommunicationEvents.generateResponseEvent("myClass", data);
         expect(event).toStrictEqual({
             id: "888",
-            eventType: EventType.Unknown,
+            eventType: EventType.Notification,
             message: "dolor sit amet",
             context: {
                 messageClass: "myClass",

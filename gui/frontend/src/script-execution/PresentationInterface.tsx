@@ -28,16 +28,17 @@ import { isNil } from "lodash";
 import { ResultStatus } from "../components/ResultView";
 import { ResultTabView } from "../components/ResultView/ResultTabView";
 import { CodeEditor } from "../components/ui/CodeEditor/CodeEditor";
-import { IExecutionResult, IResultSet, IResultSetRows, ITextResult, SQLExecutionContext } from ".";
-import { DiagnosticSeverity, IDiagnosticEntry } from "../parsing/parser-common";
+import { IExecutionResult, IResultSet, IResultSetRows, SQLExecutionContext } from ".";
+import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common";
 import { Monaco } from "../components/ui/CodeEditor";
 import { ExecutionContext } from "./ExecutionContext";
 import { requisitions } from "../supplement/Requisitions";
-import { Container, ContentAlignment, Label, Orientation } from "../components/ui";
+import { Container, Orientation } from "../components/ui";
 import { EditorLanguage } from "../supplement";
 
 import { MessageType } from "../app-logic/Types";
 import { GraphHost } from "../components/graphs/GraphHost";
+import { ActionOutput } from "../components/ResultView/ActionOutput";
 
 // A flag telling if the result is currently being loaded.
 export enum LoadingState {
@@ -207,11 +208,17 @@ export class PresentationInterface {
         // Send out a notification that the current data is about to be replaced.
         this.onRemoveResult?.(this.requestIds);
 
+        // The execution context holding this presentation is set per DI, so it's always assigned.
+        const contextId = this.context!.id;
+
         let pendingPurge;
         if (data) {
             switch (data.type) {
                 case "text": {
-                    [data, element] = this.prepareTextEntries(undefined, data);
+                    element = <Container orientation={Orientation.TopDown} style={{ flex: "1 1 auto" }}>
+                        {data.text && <ActionOutput output={data.text} contextId={contextId} />}
+                        {data.executionInfo && <ResultStatus executionInfo={data.executionInfo} />}
+                    </Container>;
                     this.minHeight = 28;
 
                     break;
@@ -226,6 +233,7 @@ export class PresentationInterface {
                     element = <ResultTabView
                         ref={this.resultRef}
                         resultSets={data}
+                        contextId={contextId}
                         currentSet={currentSet}
                         resultPaneMaximized={this.maximizedResult}
                         onResultPageChange={this.handleResultPageChange}
@@ -333,6 +341,7 @@ export class PresentationInterface {
             this.currentHeight = undefined;
         }
 
+        const contextId = this.context!.id;
         switch (data.type) {
             // For now only result sets support multiple pages (e.g. for multiple queries).
             case "resultSets": {
@@ -385,6 +394,7 @@ export class PresentationInterface {
                 element = <ResultTabView
                     ref={this.resultRef}
                     resultSets={this.resultData}
+                    contextId={contextId}
                     resultPaneMaximized={this.maximizedResult}
                     onResultPageChange={this.handleResultPageChange}
                     onSetResultPaneViewState={this.handleResultPaneChange}
@@ -432,6 +442,7 @@ export class PresentationInterface {
             this.currentHeight = undefined;
         }
 
+        const contextId = this.context!.id;
         switch (data.type) {
             case "text": {
                 // Stop any wait animation if this is the last result.
@@ -470,6 +481,7 @@ export class PresentationInterface {
                     element = <ResultTabView
                         ref={this.resultRef}
                         resultSets={this.resultData}
+                        contextId={contextId}
                         resultPaneMaximized={this.maximizedResult}
                         onResultPageChange={this.handleResultPageChange}
                         onSetResultPaneViewState={this.handleResultPaneChange}
@@ -478,9 +490,11 @@ export class PresentationInterface {
 
                     break;
                 } else if (this.resultData.type !== "text") {
-                    [this.resultData, element] = this.prepareTextEntries(undefined, data);
-                } else {
-                    [this.resultData, element] = this.prepareTextEntries(this.resultData, data);
+                    element = <ActionOutput output={data.text} contextId={contextId} />;
+                    this.resultData = data;
+                } else if (data.text) {
+                    this.resultData.text?.push(...data.text);
+                    element = <ActionOutput output={this.resultData.text} contextId={contextId} />;
                 }
 
                 break;
@@ -642,6 +656,11 @@ export class PresentationInterface {
         return this.language === "sql" || this.language === "mysql";
     }
 
+    public selectRange(span: TextSpan): void {
+        const range = this.context!.fromLocal(span);
+        this.backend.setSelection(range);
+    }
+
     protected getMarginClass(line: number): string {
         if (this.markedLines.has(line)) {
             return this.markerClass;
@@ -673,69 +692,6 @@ export class PresentationInterface {
     protected defineRenderTarget(): HTMLDivElement | undefined {
         // Overridden by descendants.
         return undefined;
-    }
-
-    /**
-     * Takes the given data and merges that with existing data, by combining text entries with the same type and
-     * language together.
-     *
-     * @param existing The existing data to use.
-     * @param data The new data to merge.
-     *
-     * @returns A new text result record with combined data and the resulting React element structure.
-     */
-    private prepareTextEntries(existing: ITextResult | undefined, data: ITextResult): [ITextResult, React.ReactNode] {
-        const result = existing ?? { ...data };
-
-        const entries = existing?.text ?? [];
-        data.text?.forEach((entry) => {
-            if (entries.length === 0) {
-                entries.push(entry);
-            } else {
-                // If the last entry in the text list has the same type and language like this entry
-                // combine both. Otherwise add this entry as a new one to the list.
-                const last = entries[entries.length - 1];
-                if (last.type === entry.type && last.language === entry.language) {
-                    last.content += entry.content;
-                } else {
-                    entries.push(entry);
-                }
-            }
-        });
-
-        result.text = entries;
-        if (data.executionInfo) {
-            result.executionInfo = data.executionInfo;
-        }
-
-        const texts: React.ReactElement[] = [];
-        entries.forEach((entry, index) => {
-            texts.push(
-                <Label
-                    language={entry.language}
-                    key={`text${index}`}
-                    caption={entry.content}
-                    type={entry.type}
-                />,
-            );
-        });
-
-        const element = <>
-            <Container
-                innerRef={React.createRef<HTMLElement>()}
-                className="textHost"
-                orientation={Orientation.TopDown}
-                mainAlignment={ContentAlignment.Start}
-                scrollPosition={1e10}
-            >
-                {texts}
-            </Container>
-            {
-                data.executionInfo && <ResultStatus executionInfo={data.executionInfo} />
-            }
-        </>;
-
-        return [result, element];
     }
 
     private handleResultPageChange = (requestId: string, currentPage: number, sql: string): void => {
@@ -775,6 +731,7 @@ export class PresentationInterface {
             return false;
         }
 
+        const contextId = this.context!.id;
         const resultSets = this.resultData.sets;
         if (resultSets.length === 0 && data.executionInfo) {
             this.resultData.output?.push({
@@ -787,6 +744,7 @@ export class PresentationInterface {
             return <ResultTabView
                 ref={this.resultRef}
                 resultSets={this.resultData}
+                contextId={contextId}
                 resultPaneMaximized={this.maximizedResult}
                 onResultPageChange={this.handleResultPageChange}
                 onSetResultPaneViewState={this.handleResultPaneChange}
@@ -831,6 +789,7 @@ export class PresentationInterface {
                     return <ResultTabView
                         ref={this.resultRef}
                         resultSets={this.resultData}
+                        contextId={contextId}
                         resultPaneMaximized={this.maximizedResult}
                         onResultPageChange={this.handleResultPageChange}
                         onSetResultPaneViewState={this.handleResultPaneChange}

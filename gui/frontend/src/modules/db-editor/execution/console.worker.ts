@@ -60,27 +60,25 @@ worker.addEventListener("message", (event: MessageEvent) => {
         worker.sourceMap = sourceMap;
 
         execute({ worker, taskId, contextId: data.contextId ?? "" }, code).then((result) => {
-            //let result: unknown;
-            let isError = false;
-            try {
-                //result = execute({ worker, taskId, contextId: data.contextId ?? "" }, code);
-                if (typeof result === "object" || typeof result === "function" || Array.isArray(result)) {
-                    result = String(result);
-                }
-            } catch (error) {
-                result = String(error);
-                isError = true;
+            if (typeof result === "object" || typeof result === "function" || Array.isArray(result)) {
+                result = String(result);
             }
 
             worker.postContextMessage(taskId, {
                 api: ScriptingApi.Result,
                 contextId: data.contextId!,
                 result,
-                isError,
                 final: true,
             });
         }).catch((reason) => {
-            console.log(reason);
+            worker.postContextMessage(taskId, {
+                api: ScriptingApi.Result,
+                contextId: data.contextId ?? "",
+                result: reason.message,
+                isError: true,
+                final: true,
+            });
+
         });
     } else if (data.result) {
         // Query data sent back from the application.
@@ -106,6 +104,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
                 api: ScriptingApi.Print,
                 contextId: data.contextId ?? "",
                 value,
+                final: data.final,
             });
         }
     }

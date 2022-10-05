@@ -432,6 +432,19 @@ export class SQLExecutionContext extends ExecutionContext {
         }
     }
 
+    public selectStatement(index: number): void {
+        if (index < 0 || index >= this.statementDetails.length) {
+            return;
+        }
+
+        const details = this.statementDetails[index];
+        const span = { ...details.span };
+        span.length -= details.contentStart - span.start;
+        span.start = details.contentStart;
+
+        this.presentation.selectRange(span);
+    }
+
     /**
      * Removes text decorations from the editor in the given range (inclusive).
      *

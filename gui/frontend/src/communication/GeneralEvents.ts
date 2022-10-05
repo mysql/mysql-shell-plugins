@@ -594,7 +594,7 @@ export class CommunicationEvents {
             }
 
             default: {
-                eventType = EventType.Unknown;
+                eventType = EventType.Notification;
                 break;
             }
         }
