@@ -27,7 +27,7 @@ import { IConsoleWorkerTaskData, IConsoleWorkerResultData } from "../console.wor
 /* eslint import/no-webpack-loader-syntax: off */
 import ConsoleWorker from "worker-loader?filename=static/workers/[name].[contenthash].js!./console.worker";
 
-// A specialized worker pool for interactive console tasks.
+/** A specialized worker pool for interactive console tasks. */
 export class ExecutionWorkerPool extends WorkerPool<IConsoleWorkerTaskData, IConsoleWorkerResultData> {
 
     private static nextId = 0;

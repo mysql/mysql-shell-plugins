@@ -23,75 +23,88 @@
 
 import React from "react";
 
-import { Monaco } from "../ui/CodeEditor";
-import { Label, Component, IComponentProperties, Orientation, Container } from "../ui";
-import { ResultStatus } from ".";
-import { CodeEditor } from "../ui/CodeEditor/CodeEditor";
-import { ResultTextLanguage } from "./";
-import { IExecutionInfo } from "../../app-logic/Types";
+import { Label, Component, IComponentProperties, Grid } from "../ui";
+import { ITextResultEntry } from "../../script-execution";
+import { requisitions } from "../../supplement/Requisitions";
 
 interface IActionOutputProperties extends IComponentProperties {
-    text: string;
-    language?: ResultTextLanguage;
+    /** The output to display. */
+    output?: ITextResultEntry[];
 
-    executionInfo?: IExecutionInfo; // The status message to show. Can also be an error messages.
+    /** The ID of the executing context. */
+    contextId: string;
+
+    /** Show label indexes only when this is set to true (default: false). */
+    showIndexes?: boolean;
 }
 
-// A component to render a given text with syntax highlighting (depending on the given language).
+/**
+ * A component to render a list of formatted labels with optional numbering and timestamp.
+ * If given a line index and execution context ID for a label, this label becomes clickable and wil trigger
+ * a callback for further processing this event.
+ */
 export class ActionOutput extends Component<IActionOutputProperties> {
-
-    private labelRef = React.createRef<HTMLLabelElement>();
 
     public constructor(props: IActionOutputProperties) {
         super(props);
 
-        this.addHandledProperties("text", "language", "isError", "executionInfo");
-    }
-
-    public componentDidMount(): void {
-        this.colorize();
-    }
-
-    public componentDidUpdate(): void {
-        this.colorize();
+        this.addHandledProperties("output", "contextId", "showIndexes", "onLabelClick");
     }
 
     public render(): React.ReactNode {
-        const { text, language, executionInfo } = this.props;
-        const className = this.getEffectiveClassNames(["resultText"]);
+        const { output, showIndexes = false } = this.props;
+        const className = this.getEffectiveClassNames(["actionOutput"]);
+
+        // Note: no GridCell instance is used, as we always have only one entry per cell.
+        const cells: React.ReactElement[] = [];
+        output?.forEach((entry) => {
+            const index = entry.index !== undefined && entry.index >= 0 ? entry.index : undefined;
+
+            let columnSpan = 1;
+            if (index !== undefined && showIndexes) {
+                cells.push(
+                    <Label className="commandIndex" caption={`#${index + 1}: `} />,
+                );
+            } else {
+                columnSpan = 2;
+            }
+
+            cells.push(<Label
+                className={`actionLabel${index === undefined ? "" : " clickable"}`}
+                id={index?.toString()}
+                language={entry.language}
+                key={entry.requestId}
+                caption={entry.content}
+                type={entry.type}
+                style={{ gridColumn: `span ${columnSpan}` }}
+                tabIndex={index === undefined ? -1 : 0}
+                onClick={this.handleLabelClick}
+            />);
+        });
 
         return (
-            <Container
-                orientation={Orientation.TopDown}
-                className={className}
-            >
-                <Label
-                    innerRef={this.labelRef}
-                    data-lang={language}
-                    caption={text}
-                    data-tooltip=""
-                />
-                {executionInfo && <ResultStatus executionInfo={executionInfo} />}
-
-            </Container>
+            <Grid columns={["fit-content(10%)", "auto"]} columnGap={4} className={className}>
+                {cells}
+            </Grid>
         );
     }
 
-    /**
-     * Uses Monaco to convert text into colorized tokens, depending on the language property.
-     */
-    private colorize(): void {
-        /* istanbul ignore next */
-        if (!this.labelRef?.current) {
-            return;
+    private handleLabelClick = (e: React.SyntheticEvent): void => {
+        // The event may be sent from a child element of the label (because of auto generated content, depending
+        // on the text language specified in the render call above). That's why we walk up to find the label.
+        let label: HTMLLabelElement | undefined;
+        for (const element of e.nativeEvent.composedPath()) {
+            const target = element as HTMLElement;
+            if (target.classList.contains("actionLabel")) {
+                label = target as HTMLLabelElement;
+                break;
+            }
         }
 
-        const { language } = this.props;
+        if (label && label.id) {
+            const { contextId } = this.props;
 
-        if (language && language !== "ansi") {
-            void Monaco.colorizeElement(this.labelRef?.current, {
-                theme: CodeEditor.currentThemeId,
-            });
+            void requisitions.execute("editorSelectStatement", { contextId, statementIndex: parseInt(label.id, 10) });
         }
-    }
+    };
 }

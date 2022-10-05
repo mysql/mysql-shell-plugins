@@ -171,6 +171,7 @@ export interface IRequestTypeMap {
     "editorSaveScript": (details: IScriptRequest) => Promise<boolean>;
     "editorRenameScript": (details: IScriptRequest) => Promise<boolean>;
     "editorValidationDone": (id: string) => Promise<boolean>;
+    "editorSelectStatement": (details: { contextId: string; statementIndex: number }) => Promise<boolean>;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string }) => Promise<boolean>;
     "sqlTransactionChanged": SimpleCallback;

@@ -32,7 +32,9 @@ describe("Action Output Tests", (): void => {
     it("Standard Rendering", () => {
         const component = mount(
             <ActionOutput
-                text=""
+                output={[]}
+                showIndexes={false}
+                contextId="ec123"
             />,
         );
 
@@ -45,12 +47,14 @@ describe("Action Output Tests", (): void => {
         const component = mount(
             <ActionOutput
                 id="actionOutput1"
-                text="Lorem ipsum dolor sit amet"
-                language="ansi"
-                executionInfo={{
-                    type: MessageType.Error,
-                    text: "An error occurred",
-                }}
+                output={
+                    [{
+                        type: MessageType.Error,
+                        content: "Lorem ipsum dolor sit amet",
+                    }]
+                }
+                contextId="ec123"
+                showIndexes={true}
             />,
         );
 

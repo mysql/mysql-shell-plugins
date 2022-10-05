@@ -46,8 +46,6 @@ export enum EventType {
     FinalResponse = 3,
 
     Notification = 4,
-
-    Unknown = 0,
 }
 
 /**

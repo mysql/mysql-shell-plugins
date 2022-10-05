@@ -30,7 +30,7 @@ import { IStatementSpan } from "../parsing/parser-common";
 import { EditorLanguage, ITextRange } from "../supplement";
 import { PresentationInterface } from "./PresentationInterface";
 
-// A helper class to keep editor blocks that belong to a single text model together.
+/** A helper class to keep editor blocks that belong to a single text model together. */
 export class ExecutionContexts {
 
     // Updated from the editor, as models don't have this value.

@@ -78,13 +78,6 @@
     user-select: none;
 }
 
-.msg.connectionTabHost .renderTarget > .resultStatus > .message {
-    padding: 0;
-    border: none;
-    border-radius: 0;
-    flex: 1 1 auto;
-}
-
 .msg.dbModuleTabview .closeButton {
     margin-left: 4px;
     width: 16px;
@@ -170,10 +163,6 @@ msg.connectionTabHost #dashboardToolbar .image {
 
 .msg.connectionTabHost .editorHost .resultText,
 .msg.connectionTabHost .editorHost .resultText code {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
-}
-
-.msg.connectionTabHost .zoneHost > .textHost > .label[data-lang] {
     font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
 }
 

@@ -469,8 +469,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             this.editor.revealLineNearTop(position, Monaco.ScrollType.Immediate);
         }
 
-        requisitions.register("settingsChanged", this.handleSettingsChanged);
-
         Monaco.remeasureFonts();
 
         /*this.backend?.getSupportedActions().forEach((value: Monaco.IEditorAction) => {
@@ -491,6 +489,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         requisitions.unregister("editorExecuteCurrent", this.executeCurrent);
         requisitions.unregister("editorFind", this.find);
         requisitions.unregister("editorFormat", this.format);
+        requisitions.unregister("editorSelectStatement", this.handleSelectStatement);
 
         const editor = this.backend;
 
@@ -940,10 +939,12 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             onOptionsChanged?.();
         }));
 
+        requisitions.register("settingsChanged", this.handleSettingsChanged);
         requisitions.register("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
         requisitions.register("editorExecuteCurrent", this.executeCurrent);
         requisitions.register("editorFind", this.find);
         requisitions.register("editorFormat", this.format);
+        requisitions.register("editorSelectStatement", this.handleSelectStatement);
     }
 
     /**
@@ -1101,39 +1102,60 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         }
     };
 
+    private handleSelectStatement = (details: { contextId: string; statementIndex: number }): Promise<boolean> => {
+        return new Promise((resolve) => {
+
+            const model = this.model;
+            if (model) {
+                const contexts = model.executionContexts;
+                const context = contexts.contextWithId(details.contextId);
+                if (context) {
+                    context.selectStatement(details.statementIndex);
+                    resolve(true);
+
+                    return;
+                }
+            }
+
+            resolve(false);
+        });
+    };
+
     /**
      * Called whenever the content of the editor model changes.
      *
      * @param e The event with the change information.
      */
     private handleModelChange = (e: Monaco.IModelContentChangedEvent): void => {
-        const model = this.model!;
-        const contexts = model.executionContexts;
+        const model = this.model;
+        if (model) {
+            const contexts = model.executionContexts;
 
-        switch (model.getLanguageId()) {
-            case "msg": {
-                this.updateExecutionContexts(e.changes);
+            switch (model.getLanguageId()) {
+                case "msg": {
+                    this.updateExecutionContexts(e.changes);
 
-                break;
+                    break;
+                }
+
+                case "mysql":
+                case "sql": {
+                    const context = contexts.first;
+                    context?.applyEditorChanges(e.changes);
+
+                    break;
+                }
+
+                default: {
+                    // JavaScript and TypeScript, which have their own processing.
+                    break;
+                }
             }
 
-            case "mysql":
-            case "sql": {
-                const context = contexts.first;
-                context?.applyEditorChanges(e.changes);
+            const { onModelChange } = this.mergedProps;
 
-                break;
-            }
-
-            default: {
-                // JavaScript and TypeScript, which have their own processing.
-                break;
-            }
+            onModelChange?.();
         }
-
-        const { onModelChange } = this.mergedProps;
-
-        onModelChange?.();
     };
 
     private handlePaste = (e: Monaco.IPasteEvent): void => {

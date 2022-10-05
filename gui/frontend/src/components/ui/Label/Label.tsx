@@ -33,7 +33,7 @@ import { Monaco } from "../CodeEditor";
 import { CodeEditor } from "../CodeEditor/CodeEditor";
 import { MessageType } from "../../../app-logic/Types";
 
-// Semantically the same as ContentAlignment, but needs different values.
+/** Semantically the same as ContentAlignment, but needs different values. */
 export enum TextAlignment {
     Start = "start",
     Center = "center",
@@ -45,7 +45,9 @@ export interface ILabelProperties extends IComponentProperties {
     textAlignment?: TextAlignment;
     quoted?: boolean;
     code?: boolean;
-    heading?: boolean; // When set renders the text with larger font and the caption color.
+
+    /** When set renders the text with larger font and the caption color. */
+    heading?: boolean;
 
     language?: EditorLanguage | "ansi";
     type?: MessageType;
@@ -61,8 +63,7 @@ export class Label extends Component<ILabelProperties> {
         super(props);
 
         this.labelRef = props.innerRef ?? React.createRef<HTMLLabelElement>();
-
-        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "innerRef", "dataId");
+        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "innerRef");
     }
 
     public componentDidMount(): void {
@@ -99,6 +100,7 @@ export class Label extends Component<ILabelProperties> {
                 this.classFromProperty(code, "code"),
                 this.classFromProperty(heading, "heading"),
             ]);
+
             // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
             const ElementType: any = this.renderAs("label");
 
@@ -117,6 +119,7 @@ export class Label extends Component<ILabelProperties> {
         }
     }
 
+    /** Lets Monaco apply styling to all text in this label. Only applies to non-ansi text. */
     private colorizeText() {
         const { language } = this.props;
 

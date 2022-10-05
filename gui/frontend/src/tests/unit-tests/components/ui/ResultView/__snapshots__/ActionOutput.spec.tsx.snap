@@ -2,91 +2,67 @@
 
 exports[`Action Output Tests Action Full Rendering 1`] = `
 <ActionOutput
-  executionInfo={
-    Object {
-      "text": "An error occurred",
-      "type": 0,
-    }
-  }
+  contextId="ec123"
   id="actionOutput1"
-  language="ansi"
-  text="Lorem ipsum dolor sit amet"
+  output={
+    Array [
+      Object {
+        "content": "Lorem ipsum dolor sit amet",
+        "type": 0,
+      },
+    ]
+  }
+  showIndexes={true}
 >
-  <Container
-    className="msg resultText"
-    orientation="column"
+  <Grid
+    className="msg actionOutput"
+    columnGap={4}
+    columns={
+      Array [
+        "fit-content(10%)",
+        "auto",
+      ]
+    }
   >
     <div
-      className="msg container fixedScrollbar resultText"
+      className="msg grid actionOutput"
       style={
         Object {
-          "alignItems": undefined,
-          "flexDirection": "column",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
+          "columnGap": "4px",
+          "gridTemplateColumns": "fit-content(10%) auto",
+          "rowGap": undefined,
         }
       }
     >
       <Label
         caption="Lorem ipsum dolor sit amet"
-        data-lang="ansi"
-        data-tooltip=""
-        innerRef={
+        className="actionLabel"
+        onClick={[Function]}
+        style={
           Object {
-            "current": Object {},
+            "gridColumn": "span 2",
           }
         }
+        tabIndex={-1}
+        type={0}
       >
         <label
-          className="msg label"
-          data-lang="ansi"
-          data-tooltip=""
+          className="msg label actionLabel"
+          data-tooltip="expand"
+          onClick={[Function]}
           style={
             Object {
-              "textAlign": undefined,
+              "gridColumn": "span 2",
             }
           }
+          tabIndex={-1}
+          type={0}
         >
           Lorem ipsum dolor sit amet
         </label>
       </Label>
-      <ResultStatus
-        executionInfo={
-          Object {
-            "text": "An error occurred",
-            "type": 0,
-          }
-        }
-      >
-        <Container
-          className="msg resultStatus containsMessage"
-          orientation="row"
-        >
-          <div
-            className="msg container fixedScrollbar resultStatus containsMessage"
-            style={
-              Object {
-                "alignItems": undefined,
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Message
-              type={0}
-            >
-              <div
-                className="msg message error"
-              >
-                An error occurred
-              </div>
-            </Message>
-          </div>
-        </Container>
-      </ResultStatus>
     </div>
-  </Container>
+  </Grid>
 </ActionOutput>
 `;
 
@@ -95,61 +71,43 @@ HTMLCollection [
   <label
     __self="[object Object]"
     __source="[object Object]"
-    class="msg label Auto"
-    data-lang="json"
-    data-tooltip=""
+    class="msg label actionLabel"
+    data-tooltip="expand"
+    style="grid-column: span 2;"
+    tabindex="-1"
+    type="0"
   >
-    <span>
-      <span
-        class="mtk1"
-      >
-        { key: 'value' }
-      </span>
-    </span>
-    <br />
+    Lorem ipsum dolor sit amet
   </label>,
 ]
 `;
 
 exports[`Action Output Tests Standard Rendering 1`] = `
 <ActionOutput
-  text=""
+  contextId="ec123"
+  output={Array []}
+  showIndexes={false}
 >
-  <Container
-    className="msg resultText"
-    orientation="column"
+  <Grid
+    className="msg actionOutput"
+    columnGap={4}
+    columns={
+      Array [
+        "fit-content(10%)",
+        "auto",
+      ]
+    }
   >
     <div
-      className="msg container fixedScrollbar resultText"
+      className="msg grid actionOutput"
       style={
         Object {
-          "alignItems": undefined,
-          "flexDirection": "column",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
+          "columnGap": "4px",
+          "gridTemplateColumns": "fit-content(10%) auto",
+          "rowGap": undefined,
         }
       }
-    >
-      <Label
-        caption=""
-        data-tooltip=""
-        innerRef={
-          Object {
-            "current": Object {},
-          }
-        }
-      >
-        <label
-          className="msg label"
-          data-tooltip=""
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
-        />
-      </Label>
-    </div>
-  </Container>
+    />
+  </Grid>
 </ActionOutput>
 `;

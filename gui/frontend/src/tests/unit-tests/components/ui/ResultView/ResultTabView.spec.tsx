@@ -39,6 +39,7 @@ describe("Result Tabview Tests", (): void => {
                     type: "resultSets",
                     sets: [],
                 }}
+                contextId="ec123"
             />,
         );
 
@@ -58,6 +59,7 @@ describe("Result Tabview Tests", (): void => {
                     ],
                     sets: [],
                 }}
+                contextId="ec123"
             />,
         );
 
@@ -106,6 +108,7 @@ describe("Result Tabview Tests", (): void => {
                         },
                     ],
                 }}
+                contextId="ec123"
             />,
         );
 
@@ -143,6 +146,7 @@ describe("Result Tabview Tests", (): void => {
                         },
                     }],
                 }}
+                contextId="ec123"
             />,
         );
 
@@ -318,6 +322,7 @@ describe("Result Tabview Tests", (): void => {
         const component = mount<ResultTabView>(
             <ResultTabView
                 resultSets={resultSets}
+                contextId="ec123"
                 onResultPageChange={onResultPageChange}
             />,
         );

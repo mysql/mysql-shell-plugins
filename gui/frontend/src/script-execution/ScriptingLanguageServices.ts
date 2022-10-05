@@ -55,10 +55,10 @@ import { ICommShellCompletionEvent } from "../communication";
 import { EventType } from "../supplement/Dispatch";
 import { IDictionary } from "../app-logic/Types";
 
-// Provides language services like code completion, by reaching out to built-in or other sources.
+/** Provides language services like code completion, by reaching out to built-in or other sources. */
 export class CodeEditorLanguageServices {
 
-    public static readonly instance = new CodeEditorLanguageServices();
+    private static services: CodeEditorLanguageServices;
 
     private readonly workerPool: LanguageWorkerPool;
 
@@ -78,6 +78,14 @@ export class CodeEditorLanguageServices {
         this.mysqlService = new MySQLLanguageService(this.workerPool);
         this.sqliteService = new SQLiteLanguageService(this.workerPool);
         this.pythonService = new PythonLanguageService(this.workerPool);
+    }
+
+    public static get instance(): CodeEditorLanguageServices {
+        if (!CodeEditorLanguageServices.services) {
+            CodeEditorLanguageServices.services = new CodeEditorLanguageServices();
+        }
+
+        return CodeEditorLanguageServices.services;
     }
 
     /**

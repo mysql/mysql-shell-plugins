@@ -693,7 +693,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
     for (const candidate of context.completionCandidates.tokens) {
         let entry = vocabulary.getDisplayName(candidate[0]);
         if (entry.endsWith("_SYMBOL")) {
-            entry = entry.substr(0, entry.length - 7);
+            entry = entry.substring(0, entry.length - 7);
         } else {
             entry = unquote(entry);
         }
@@ -707,7 +707,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 for (const token of candidate[1]) {
                     let subEntry = vocabulary.getDisplayName(token);
                     if (subEntry.endsWith("_SYMBOL")) {
-                        subEntry = subEntry.substr(0, subEntry.length - 7);
+                        subEntry = subEntry.substring(0, subEntry.length - 7);
                     } else {
                         subEntry = unquote(subEntry);
                     }
@@ -732,7 +732,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
     }
 
     for (const candidate of context.completionCandidates.rules) {
-        // Restore the this.scanner position to the caret position and store that value again for the next round.
+        // Restore the scanner position to the caret position and store that value again for the next round.
         scanner.pop();
         scanner.push();
 
