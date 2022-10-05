@@ -186,6 +186,7 @@ describe("MySQL Shell for VS Code", () => {
 
     before(async function () {
         await loadDriver();
+        await reloadVSCode();
         try {
             let activityBar = new ActivityBar();
             await (await activityBar.getViewControl("MySQL Shell for VSCode"))?.openView();
@@ -2059,6 +2060,61 @@ describe("MySQL Shell for VS Code", () => {
 
         });
 
+        it("Output Tab for Result Views - editor", async () => {
+
+            await setDBEditorLanguage("sql");
+            const contentHost = await driver.findElement(By.id("contentHost"));
+            const textArea = await contentHost.findElement(By.css("textarea"));
+
+            const button = await getToolbarButton("Stop execution of the current statement/script in case of errors");
+            const btnDiv = await button?.findElement(By.css("div"));
+            const style = await btnDiv?.getAttribute("style");
+
+            if (style?.includes("active") && !style?.includes("inactive")) {
+                await button?.click();
+            }
+
+            await writeSQL("select a;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("select b;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("select * from sakila.address;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("use sakila;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("call clearSchemas();", true);
+            await textArea.sendKeys(Key.RETURN);
+
+            await pressEnter();
+            await waitForOutputResultViews();
+
+            const items = await getOutputTabItems();
+
+            expect(await items[0].getAttribute("class")).to.include("clickable", "1st line should be a link");
+            expect(await items[1].getAttribute("class")).to.include("clickable", "2nd line should be a link");
+            expect(await items[2].getAttribute("class")).to.include("clickable", "3rd line should be a link");
+            expect(await items[3].getAttribute("class")).to.include("clickable", "4th line should be a link");
+
+            expect(await items[0].findElement(By.css("code span")).getText()).to.include("Unknown column 'a'");
+            expect(await items[1].findElement(By.css("code span")).getText()).to.include("Unknown column 'b'");
+            expect(await items[2].findElement(By.css("code span")).getText()).to.match(/OK, (\d+) records retrieved/);
+            expect(await items[3].findElement(By.css("code span")).getText()).to.match(/OK, (\d+) records retrieved/);
+
+            await items[0].click();
+            expect(await isPromptLineFocused(1)).to.be.true;
+            await items[1].click();
+            expect(await isPromptLineFocused(2)).to.be.true;
+            await items[2].click();
+            expect(await isPromptLineFocused(4)).to.be.true;
+            await items[3].click();
+            expect(await isPromptLineFocused(5)).to.be.true;
+
+            const result = await getResultTab("Result #");
+            await result?.click();
+            expect(await getResultColumnName("address_id")).to.exist;
+
+        });
+
     });
 
     describe("DATABASE - Scripts tests", () => {
@@ -3810,6 +3866,82 @@ describe("MySQL Shell for VS Code", () => {
             expect(await shellGetLangResult()).equals("json");
 
             expect(await isValueOnJsonResult("Action")).to.be.true;
+        });
+
+        it("Output Tab for Result Views- shell", async () => {
+
+            const editor = await driver.findElement(By.id("shellEditorHost"));
+
+            await driver.executeScript(
+                "arguments[0].click();",
+                await editor.findElement(By.css(".current-line")),
+            );
+
+            const textArea = await editor.findElement(By.css("textArea"));
+
+            await enterCmd(
+
+                textArea,
+                `shell.connect('${conn.username}:${conn.password}@${conn.hostname}:${conn.portX}/${conn.schema}')`);
+
+            const shellResult = await shellGetResult();
+
+            expect(shellResult).to.include(
+                `Creating a session to '${conn.username}@${conn.hostname}:${conn.portX}/${conn.schema}'`);
+
+            expect(shellResult).to.match(/Server version: (\d+).(\d+).(\d+)/);
+
+            expect(shellResult).to.include(
+                `Default schema \`${conn.schema}\` accessible through db`,
+            );
+
+            expect(await getShellServerTabStatus())
+                .equals(`Connection to server ${conn.hostname} at port ${conn.portX}, using the X protocol`);
+
+            expect(await getShellSchemaTabStatus())
+                .to.include(conn.schema);
+
+            await enterCmd(textArea, "\\sql");
+
+
+            await writeSQL("select a;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("select b;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("select * from sakila.address;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("use sakila;", true);
+            await textArea.sendKeys(Key.RETURN);
+            await writeSQL("call clearSchemas();", true);
+            await textArea.sendKeys(Key.RETURN);
+
+            await pressEnter();
+            await waitForOutputResultViews(true);
+
+            const items = await getOutputTabItems();
+
+            expect(await items[0].getAttribute("class")).to.include("clickable", "1st line should be a link");
+            expect(await items[1].getAttribute("class")).to.include("clickable", "2nd line should be a link");
+            expect(await items[2].getAttribute("class")).to.include("clickable", "3rd line should be a link");
+            expect(await items[3].getAttribute("class")).to.include("clickable", "4th line should be a link");
+
+            expect(await items[0].findElement(By.css("code span")).getText()).to.include("Unknown column 'a'");
+            expect(await items[1].findElement(By.css("code span")).getText()).to.include("Unknown column 'b'");
+            expect(await items[2].findElement(By.css("code span")).getText())
+                .to.match(/OK, (\d+) records retrieved/);
+            expect(await items[3].findElement(By.css("code span")).getText())
+                .to.match(/OK, (\d+) records retrieved/);
+
+            await items[0].click();
+            expect(await isPromptLineFocused(5)).to.be.true;
+
+            const result = await getResultTab("Result #");
+            await result?.click();
+            expect(await getResultColumnName("address_id")).to.exist;
+
+            await enterCmd(textArea, `\\js`);
+
+
         });
 
     });
