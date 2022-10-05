@@ -101,6 +101,24 @@ export const loadDriver = async (): Promise<void> => {
     }
 };
 
+export const findElementNoWait = async (locator: Locator, context?: WebElement): Promise<WebElement | undefined> => {
+    let el: WebElement | undefined;
+    try {
+        await driver.manage().timeouts().implicitlyWait(0);
+        if (context) {
+            el = await context.findElement(locator);
+        } else {
+            el = await driver.findElement(locator);
+        }
+    } catch (e) {
+        el = undefined;
+    } finally {
+        await driver.manage().timeouts().implicitlyWait(5000);
+    }
+
+    return el;
+};
+
 export const takeScreenshot = async (context: Mocha.Context): Promise<void> => {
     const testName = context.currentTest?.title;
     const img = await driver.takeScreenshot();
