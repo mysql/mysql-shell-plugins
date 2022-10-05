@@ -26,11 +26,12 @@ import settingsIcon from "../../assets/images/settings.svg";
 
 import React from "react";
 import { render } from "preact";
+import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import { Component, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/Component";
 import {
     Orientation, Container, Tabview, ITabviewPage, AboutBox, TreeGrid, ITreeGridOptions, Search, Label,
-    ISearchValues, ISearchProperties, Checkbox, CheckState, ICheckboxProperties, ContentAlignment, Tabulator,
+    ISearchValues, ISearchProperties, Checkbox, CheckState, ICheckboxProperties, ContentAlignment,
 } from "../ui";
 import { requisitions } from "../../supplement/Requisitions";
 import { ThemeEditor } from "../Theming/ThemeEditor";
@@ -147,7 +148,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
     private renderSettings = (): React.ReactNode => {
         const { selectedTreeEntry, searchValues, filteredTree, foundEntries, showAdvancedSettings } = this.state;
 
-        const settingsTreeColumns: Tabulator.ColumnDefinition[] = [{
+        const settingsTreeColumns: ColumnDefinition[] = [{
             title: "",
             field: "title",
             resizable: false,
@@ -228,7 +229,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
         this.setState({ selectedTab: id });
     };
 
-    private formatSettingsTreeCell = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private formatSettingsTreeCell = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as ISettingCategory;
         const content = <Label caption={data.title} />;
 
@@ -255,7 +256,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
         }
     };
 
-    private handleSettingTreeRowSelected = (row: Tabulator.RowComponent): void => {
+    private handleSettingTreeRowSelected = (row: RowComponent): void => {
         if (!this.scrolling && this.valueListRef.current) {
             this.scrolling = true;
             try {
@@ -283,7 +284,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
             void this.treeRef.current?.table.then((table) => {
                 this.treeRef.current?.getSelectedRows().forEach((row) => {
                     if (!top.startsWith((row.getData() as IDictionary).id as string)) {
-                        let current: Tabulator.RowComponent | false = row;
+                        let current: RowComponent | false = row;
                         while (current) {
                             current.treeCollapse();
                             current = current.getTreeParent();

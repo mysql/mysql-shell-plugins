@@ -24,11 +24,12 @@
 import React from "react";
 import { render } from "preact";
 import { isNil } from "lodash";
+import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import { Component, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/Component";
 import {
     CheckState, Dropdown, TreeGrid, ITreeGridOptions, Label, Checkbox, Input, UpDown, Button, IUpDownProperties,
-    IDropdownProperties, ICheckboxProperties, IInputChangeProperties, Tabulator,
+    IDropdownProperties, ICheckboxProperties, IInputChangeProperties,
 } from "../ui";
 import { themeManager } from "../Theming/ThemeManager";
 import { settings } from "../../supplement/Settings/Settings";
@@ -102,7 +103,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
     public render(): React.ReactNode {
         const { settingsList } = this.state;
 
-        const settingsListColumns: Tabulator.ColumnDefinition[] = [{
+        const settingsListColumns: ColumnDefinition[] = [{
             title: "",
             field: "title",
             resizable: false,
@@ -194,7 +195,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
             const { onListScroll } = this.props;
 
             const rows = table?.getRows();
-            let foundRow: Tabulator.RowComponent | undefined;
+            let foundRow: RowComponent | undefined;
             rows?.forEach((row) => {
                 if (!foundRow && row.getElement().offsetTop > top) {
                     foundRow = row;
@@ -209,7 +210,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         });
     };
 
-    private formatSettingsListCell = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private formatSettingsListCell = (cell: CellComponent): string | HTMLElement => {
         let content;
         let usesDefault = true;
 

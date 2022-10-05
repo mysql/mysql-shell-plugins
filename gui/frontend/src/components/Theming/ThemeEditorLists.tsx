@@ -28,12 +28,13 @@ import React from "react";
 import { render } from "preact";
 
 import Color from "color";
+import { CellComponent, ColumnDefinition } from "tabulator-tables";
 import _ from "lodash";
 
 import {
     Component, Tabview, TabPosition, ITabviewPage, Container, Orientation, Icon,
     Label, IComponentProperties, ColorField, IColorFieldProperties, IComponentState, TreeGrid,
-    SelectionType, ITreeGridOptions, Tabulator,
+    SelectionType, ITreeGridOptions,
 } from "../ui";
 import { ITokenEntry, themeManager } from "./ThemeManager";
 import { TokenEditor } from "./TokenEditor";
@@ -159,7 +160,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
     private get renderUiColorsPage(): ITabviewPage {
         const { showUnusedColors } = this.props;
 
-        const colorTreeColumns: Tabulator.ColumnDefinition[] = [{
+        const colorTreeColumns: ColumnDefinition[] = [{
             title: "",
             field: "description",
             width: 300,
@@ -206,7 +207,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
             return { index, value };
         });
 
-        const tokenListColumns: Tabulator.ColumnDefinition[] = [{
+        const tokenListColumns: ColumnDefinition[] = [{
             title: "",
             field: "index",
             formatter: this.tokenListCellFormatter,
@@ -283,7 +284,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
         this.filteredColors = this.collectColors(colorDescriptions, false) ?? [];
     }
 
-    private tokenListCellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private tokenListCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as { index: number; value: ITokenEntry };
 
         const editor = <TokenEditor
@@ -303,7 +304,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
         return host;
     };
 
-    private colorTreeCellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private colorTreeCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as IDescriptionEntry;
         const column = cell.getColumn();
 

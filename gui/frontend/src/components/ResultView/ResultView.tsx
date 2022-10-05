@@ -28,12 +28,13 @@ import nullIcon from "../../assets/images/null.svg";
 
 import React from "react";
 import { render } from "preact";
+import { CellComponent, ColumnComponent, ColumnDefinition, Formatter } from "tabulator-tables";
 
 import {
     Component, Container, Orientation, IComponentProperties, SelectionType, Icon, Checkbox, CheckState, Menu, MenuItem,
     ComponentPlacement, IMenuItemProperties,
 } from "../ui";
-import { ITreeGridOptions, SetDataAction, Tabulator, TreeGrid } from "../ui/TreeGrid/TreeGrid";
+import { ITreeGridOptions, SetDataAction, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { IResultSet, IResultSetRows } from "../../script-execution";
 import { convertCamelToTitleCase } from "../../utilities/helpers";
 import { DBDataType, IColumnInfo, MessageType } from "../../app-logic/Types";
@@ -55,7 +56,7 @@ export class ResultView extends Component<IResultViewProperties> {
     private columnWidthCache = new Map<string, number>();
 
     private cellContextMenuRef = React.createRef<Menu>();
-    private currentCell?: Tabulator.CellComponent;
+    private currentCell?: CellComponent;
 
     public constructor(props: IResultViewProperties) {
         super(props);
@@ -258,14 +259,14 @@ export class ResultView extends Component<IResultViewProperties> {
      *
      * @param cell The cell to set as current.
      */
-    public setFakeCell(cell: Tabulator.CellComponent): void {
+    public setFakeCell(cell: CellComponent): void {
         this.currentCell = cell;
     }
 
-    private generateColumnDefinitions = (columns: IColumnInfo[]): Tabulator.ColumnDefinition[] => {
+    private generateColumnDefinitions = (columns: IColumnInfo[]): ColumnDefinition[] => {
         // Map column info from the backend to column definitions for Tabulator.
-        return columns.map((info): Tabulator.ColumnDefinition => {
-            let formatter: Tabulator.Formatter | undefined;
+        return columns.map((info): ColumnDefinition => {
+            let formatter: Formatter | undefined;
             let formatterParams = {};
             let minWidth = 50;
 
@@ -424,7 +425,7 @@ export class ResultView extends Component<IResultViewProperties> {
     };
     */
 
-    private handleColumnResized = (column: Tabulator.ColumnComponent): void => {
+    private handleColumnResized = (column: ColumnComponent): void => {
         const field = column.getDefinition().field;
         if (field) {
             // We don't remove cached widths currently, to allow having preset widths also when the user
@@ -519,7 +520,7 @@ export class ResultView extends Component<IResultViewProperties> {
 
     // We cannot test this method as it depends on Tabulator content (which is not rendered in tests).
     // istanbul ignore next
-    private handleCellContext = (e: Event, cell: Tabulator.CellComponent): void => {
+    private handleCellContext = (e: Event, cell: CellComponent): void => {
         if (this.currentCell) {
             this.currentCell.getElement().classList.remove("manualFocus");
         }
@@ -891,7 +892,7 @@ export class ResultView extends Component<IResultViewProperties> {
 
     // Also here: cannot test if it is not rendered.
     // istanbul ignore next
-    private stringFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private stringFormatter = (cell: CellComponent): string | HTMLElement => {
         let element;
         const value = cell.getValue();
         if (value === undefined || value === null) {
@@ -908,7 +909,7 @@ export class ResultView extends Component<IResultViewProperties> {
     };
 
     // istanbul ignore next
-    private binaryFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private binaryFormatter = (cell: CellComponent): string | HTMLElement => {
         let element;
         if (cell.getValue() === null) {
             const host = document.createElement("div");
@@ -934,7 +935,7 @@ export class ResultView extends Component<IResultViewProperties> {
     };
 
     // istanbul ignore next
-    private blobFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private blobFormatter = (cell: CellComponent): string | HTMLElement => {
         const source = cell.getValue() === null ? nullIcon : blobIcon;
         const icon = <Icon src={source} width={30} height={11} />;
 
@@ -947,7 +948,7 @@ export class ResultView extends Component<IResultViewProperties> {
     };
 
     // istanbul ignore next
-    private booleanFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private booleanFormatter = (cell: CellComponent): string | HTMLElement => {
         const host = document.createElement("div");
         let element;
         if (cell.getValue() === null) {

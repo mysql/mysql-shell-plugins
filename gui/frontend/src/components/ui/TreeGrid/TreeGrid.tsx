@@ -26,6 +26,7 @@ import "./TreeGrid.css";
 import {
     Tabulator, DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
     ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule, ResizeRowsModule,
+    RowComponent, ColumnComponent, ColumnDefinition, CellComponent, Options,
 } from "tabulator-tables";
 
 import React from "react";
@@ -37,57 +38,66 @@ import { appParameters } from "../../../supplement/Requisitions";
 
 export { Tabulator } from "tabulator-tables";
 
-// This type excludes methods from the Tabulator type, which are implemented in the TreeGrid.
+/** This type excludes methods from the Tabulator type, which are implemented in the TreeGrid. */
 export type TabulatorProxy = Omit<Tabulator, "setData" | "setColumns" | "getSelectedRows">;
 
 export enum SetDataAction {
-    Replace, // Like Set, but doesn't do any additional handling like scrolling, filtering, sorting and so on.
-    Update,  // Requires an index field in each row and updates only existing data (for matching indexes).
-    Add,     // Adds new records to existing data.
-    Set,     // Full update of the grid content.
+    /** Like Set, but doesn't do any additional handling like scrolling, filtering, sorting and so on. */
+    Replace,
+
+    /** Requires an index field in each row and updates only existing data (for matching indexes) */
+    Update,
+
+    /** Adds new records to existing data. */
+    Add,
+
+    /** Full update of the grid content. */
+    Set,
 }
 
 export interface ITreeGridMenuEntry {
-    label?: string | ((component: Tabulator.RowComponent) => string);
+    label?: string | ((component: RowComponent) => string);
     disabled?: boolean;
     separator?: boolean;
 
     menu?: ITreeGridMenuEntry[]; // For sub menus.
 
-    action?: (e: Event, column: Tabulator.ColumnComponent) => void;
+    action?: (e: Event, column: ColumnComponent) => void;
 }
 
-// Options to fine tune the behavior/look of the tree beyond the component properties.
+/** Options to fine tune the behavior/look of the tree beyond the component properties. */
 export interface ITreeGridOptions {
-    // The field name in the tree data, which uniquely identifies a record/row (default: "id")
+    /** The field name in the tree data, which uniquely identifies a record/row (default: "id") */
     index?: string;
 
-    // The field name in the tree data, which contains child node data (default: children).
+    /** The field name in the tree data, which contains child node data (default: children). */
     childKey?: string;
 
-    // The field name of the column to use for the outline.
-    // If specified it enables the display of a tree in that column.
+    /**
+     * The field name of the column to use for the outline.
+     * If specified it enables the display of a tree in that column.
+     */
     treeColumn?: string;
 
-    // Determines how columns are initially layed out (default: none).
+    /** Determines how columns are initially layed out (default: none). */
     layout?: "fitData" | "fitDataFill" | "fitDataStretch" | "fitDataTable" | "fitColumns";
 
-    // If true then columns are laid out again when new data arrives (default: false).
+    /** If true then columns are laid out again when new data arrives (default: false). */
     layoutColumnsOnNewData?: boolean;
 
-    // If false, no header is shown (default: true).
+    /** If false, no header is shown (default: true). */
     showHeader?: boolean;
 
-    // If true horizontal and/or vertical grid lines are shown.
+    /** If true horizontal and/or vertical grid lines are shown. */
     verticalGridLines?: boolean;
     horizontalGridLines?: boolean;
 
-    // If true, odd rows get a slightly lighter background.
+    /** If true, odd rows get a slightly lighter background. */
     alternatingRowBackgrounds?: boolean;
 
     selectionType?: SelectionType;
 
-    // Used to expand specific levels in the tree on first display.
+    /** Used to expand specific levels in the tree on first display. */
     expandedLevels?: boolean[];
 
     resizableRows?: boolean;
@@ -96,44 +106,50 @@ export interface ITreeGridOptions {
 export interface ITreeGridProperties extends IComponentProperties {
     height?: string | number;
 
-    // For convenience these fields allow to specify initial (or static) data.
-    // Most of the time you want to use `setColumns` and `setData` instead.
-    columns?: Tabulator.ColumnDefinition[];
+    /**
+     * For convenience these fields allow to specify initial (or static) data.
+     * Most of the time you want to use `setColumns` and `setData` instead.
+     */
+    columns?: ColumnDefinition[];
     tableData?: unknown[];
 
-    // A list of row IDs that should be selected initially.
-    // Note that the specified selection mode might limit that list (no selection or single selection).
+    /**
+     * A list of row IDs that should be selected initially.
+     * Note that the specified selection mode might limit that list (no selection or single selection).
+     */
     selectedIds?: string[];
     options?: ITreeGridOptions;
 
-    // Menu entries for Tabulator provided menu. Do not mix with the `onRowContext` member.
+    /** Menu entries for Tabulator provided menu. Do not mix with the `onRowContext` member. */
     rowContextMenu?: ITreeGridMenuEntry[];
 
-    onRowExpanded?: (row: Tabulator.RowComponent, level: number) => void;
-    onRowCollapsed?: (row: Tabulator.RowComponent, level: number) => void;
+    onRowExpanded?: (row: RowComponent, level: number) => void;
+    onRowCollapsed?: (row: RowComponent, level: number) => void;
 
-    // Return the initial expansion state of the given row.
-    isRowExpanded?: (row: Tabulator.RowComponent, level: number) => boolean;
+    /** Return the initial expansion state of the given row. */
+    isRowExpanded?: (row: RowComponent, level: number) => boolean;
 
-    onFormatRow?: (row: Tabulator.RowComponent) => void;
+    onFormatRow?: (row: RowComponent) => void;
 
-    // Triggered when a row context is required. It allows to show an own menu implementation.
-    onRowContext?: (event: Event, row: Tabulator.RowComponent) => void;
+    /** Triggered when a row context is required. It allows to show an own menu implementation. */
+    onRowContext?: (event: Event, row: RowComponent) => void;
 
-    // Ditto for single cells.
-    onCellContext?: (event: Event, cell: Tabulator.CellComponent) => void;
+    /** Ditto for single cells. */
+    onCellContext?: (event: Event, cell: CellComponent) => void;
 
-    onRowSelected?: (row: Tabulator.RowComponent) => void;
-    onRowDeselected?: (row: Tabulator.RowComponent) => void;
+    onRowSelected?: (row: RowComponent) => void;
+    onRowDeselected?: (row: RowComponent) => void;
 
     onVerticalScroll?: (top: number) => void;
 
-    onColumnResized?: (column: Tabulator.ColumnComponent) => void;
+    onColumnResized?: (column: ColumnComponent) => void;
 }
 
-// This component shows data in dynamic lists with or without a tree column, or can show only a tree.
-// It differs in the way data is added from other controls. Data (columns, rows) can be passed in as properties and
-// can also be added on demand using the methods `setColumns` and `setRows`.
+/**
+ * This component shows data in dynamic lists with or without a tree column, or can show only a tree.
+ * It differs in the way data is added from other controls. Data (columns, rows) can be passed in as properties and
+ * can also be added on demand using the methods `setColumns` and `setRows`.
+ */
 export class TreeGrid extends Component<ITreeGridProperties> {
 
     private hostRef = React.createRef<HTMLDivElement>();
@@ -273,7 +289,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         });
     }
 
-    public setColumns(columns: Tabulator.ColumnDefinition[]): Promise<void> {
+    public setColumns(columns: ColumnDefinition[]): Promise<void> {
         return new Promise((resolve, reject) => {
             this.table.then(() => {
                 this.tabulator?.setColumns(columns);
@@ -330,7 +346,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         });
     }
 
-    public getSelectedRows(): Tabulator.RowComponent[] {
+    public getSelectedRows(): RowComponent[] {
         if (this.tableReady && this.tabulator) {
             return this.tabulator.getSelectedRows();
         }
@@ -371,7 +387,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
      *
      * @returns The tabulator options.
      */
-    private get tabulatorOptions(): Tabulator.Options {
+    private get tabulatorOptions(): Options {
         const {
             height = "100%", columns = [], tableData = [], options, rowContextMenu, isRowExpanded, onFormatRow,
         } = this.mergedProps;
@@ -399,7 +415,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
             }
         }
 
-        const result: Tabulator.Options = {
+        const result: Options = {
             debugInvalidOptions: appParameters.inDevelopment,
 
             index: options?.index ?? "id",
@@ -446,14 +462,14 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         return result;
     }
 
-    private handleRowExpanded = (row: Tabulator.RowComponent, level: number): void => {
+    private handleRowExpanded = (row: RowComponent, level: number): void => {
         const { onRowExpanded } = this.mergedProps;
         row.getElement().classList.add("expanded");
 
         onRowExpanded?.(row, level);
     };
 
-    private handleRowCollapsed = (row: Tabulator.RowComponent, level: number): void => {
+    private handleRowCollapsed = (row: RowComponent, level: number): void => {
         const { onRowCollapsed } = this.mergedProps;
 
         row.getElement().classList.remove("expanded");
@@ -461,19 +477,19 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         onRowCollapsed?.(row, level);
     };
 
-    private handleRowContext = (event: Event, row: Tabulator.RowComponent): void => {
+    private handleRowContext = (event: Event, row: RowComponent): void => {
         const { onRowContext } = this.mergedProps;
 
         onRowContext?.(event, row);
     };
 
-    private handleCellContext = (event: Event, cell: Tabulator.CellComponent): void => {
+    private handleCellContext = (event: Event, cell: CellComponent): void => {
         const { onCellContext } = this.mergedProps;
 
         onCellContext?.(event, cell);
     };
 
-    private handleRowSelected = (row: Tabulator.RowComponent): void => {
+    private handleRowSelected = (row: RowComponent): void => {
         const { options } = this.mergedProps;
         if (!isNil(options?.treeColumn)) {
             // Toggle the selected row if this is actually a tree.
@@ -485,13 +501,13 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         onRowSelected?.(row);
     };
 
-    private handleRowDeselected = (row: Tabulator.RowComponent): void => {
+    private handleRowDeselected = (row: RowComponent): void => {
         const { onRowDeselected } = this.mergedProps;
 
         onRowDeselected?.(row);
     };
 
-    private handleColumnResized = (column: Tabulator.ColumnComponent): void => {
+    private handleColumnResized = (column: ColumnComponent): void => {
         const { onColumnResized } = this.mergedProps;
 
         onColumnResized?.(column);

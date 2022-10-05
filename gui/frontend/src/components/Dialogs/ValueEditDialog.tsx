@@ -27,13 +27,14 @@ import removeProperty from "../../assets/images/remove.svg";
 
 import React from "react";
 import { isNil } from "lodash";
+import { ColumnDefinition } from "tabulator-tables";
 
 import {
     Dialog, IComponentProperties, Component, Label, Button, IComponentState, Icon, Codicon, GridCell, Grid, Input,
     Checkbox, UpDown, CheckState, IInputChangeProperties, Message, Orientation, ICheckboxProperties, Dropdown,
     ContentAlignment, IDropdownProperties, Container, Tabview, ITabviewPage, DynamicList, IFileSelectorProperties,
     FileSelector, IUpDownProperties, TreeGrid, ITreeGridOptions, SelectionType, IPortalOptions, ProgressIndicator,
-    IInputProperties, Tabulator, IButtonProperties,
+    IInputProperties, IButtonProperties,
 } from "../ui";
 import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types";
 import { ParamDialog } from "./ParamDialog";
@@ -800,7 +801,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                     elements={entry.value.list}
                 />);
             } else if (entry.value.matrix) {
-                const settingsListColumns: Tabulator.ColumnDefinition[] = [
+                const settingsListColumns: ColumnDefinition[] = [
                     { title: "Option", field: "field1", resizable: true },
                     { title: "Value", field: "field2", resizable: true },
                 ];

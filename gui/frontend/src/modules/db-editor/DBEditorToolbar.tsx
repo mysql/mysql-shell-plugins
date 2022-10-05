@@ -173,7 +173,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 >
                     <Icon src={executeIcon} data-tooltip="inherit" />
                 </Button>);
-        } else if (!canExecuteSubparts) {
+        } else {
             leftItems.push(
                 <Button
                     key="executeFullBlock"
@@ -274,7 +274,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
             );
         }
 
-        leftItems.push(<Divider vertical={true} thickness={1} />);
+        leftItems.push(<Divider key="executionDivider" vertical={true} thickness={1} />);
 
         if (canExecuteSubparts) {
             leftItems.push(
@@ -304,7 +304,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
                 >
                     <Icon src={autoCommitIcon} data-tooltip="inherit" />
                 </Button>,
-                <Divider vertical={true} thickness={1} />,
+                <Divider key="commitDivider" vertical={true} thickness={1} />,
             );
         }
 
@@ -317,7 +317,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
             >
                 <Icon src={formatIcon} data-tooltip="inherit" />
             </Button>,
-            <Divider vertical={true} thickness={1} />,
+            <Divider key="formatDivider" vertical={true} thickness={1} />,
             <Button
                 key="editorFindButton"
                 data-tooltip="Find"

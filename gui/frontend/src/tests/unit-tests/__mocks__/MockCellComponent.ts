@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Tabulator } from "tabulator-tables";
+import { CellComponent, PopupPosition } from "tabulator-tables";
 
-export class MockCellComponent implements Tabulator.CellComponent {
+export class MockCellComponent implements CellComponent {
     public getElement = jest.fn();
     public getTable = jest.fn();
     public getRow = jest.fn();
@@ -91,5 +91,9 @@ export class MockCellComponent implements Tabulator.CellComponent {
 
     public isValid = (): boolean => {
         return true;
+    };
+
+    public popup = (_contents: string, _position: PopupPosition): void => {
+        //
     };
 }

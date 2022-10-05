@@ -37,6 +37,8 @@ import killQueryIcon from "../../assets/images/toolbar/toolbar-kill_query.svg";
 
 
 import React from "react";
+import { CellComponent, ColumnDefinition, Formatter, RowComponent } from "tabulator-tables";
+
 import { IToolbarItems } from ".";
 import {
     DBDataType, DialogResponseClosure, DialogType, IColumnInfo, IDialogRequest,
@@ -46,7 +48,7 @@ import { ICommResultSetEvent, IPromptReplyBackend } from "../../communication";
 
 import {
     Component, Container, ContentAlignment, IComponentProperties, IComponentState, Icon, ITreeGridOptions,
-    Orientation, SelectionType, Tabulator, TreeGrid, Toolbar, Button, Label, Dropdown,
+    Orientation, SelectionType, TreeGrid, Toolbar, Button, Label, Dropdown,
     ContentWrap, Tabview, TabPosition, Grid, GridCell, Divider,
 } from "../../components/ui";
 import { IResultSet } from "../../script-execution";
@@ -309,7 +311,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     private getClientConnectionLocks = (): React.ReactNode => {
         const { waitingText, grantedLocks } = this.state;
 
-        const columns: Tabulator.ColumnDefinition[] = [
+        const columns: ColumnDefinition[] = [
             { title: "Thread Id", field: "threadId" },
             { title: "Type", field: "type" },
             { title: "Duration", field: "duration" },
@@ -354,7 +356,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         const nameField = this.attrColumns.find((x) => { return x.title === "ATTR_NAME"; });
         const valueField = this.attrColumns.find((x) => { return x.title === "ATTR_VALUE"; });
-        const columns: Tabulator.ColumnDefinition[] = [
+        const columns: ColumnDefinition[] = [
             { title: "Name", field: nameField?.field ?? "1" },
             { title: "Value", field: valueField?.field ?? "2" },
         ];
@@ -482,9 +484,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
     };
 
-    private generateColumnDefinitions = (columns: IColumnInfo[]): Tabulator.ColumnDefinition[] => {
-        return columns.map((info): Tabulator.ColumnDefinition => {
-            let formatter: Tabulator.Formatter | undefined;
+    private generateColumnDefinitions = (columns: IColumnInfo[]): ColumnDefinition[] => {
+        return columns.map((info): ColumnDefinition => {
+            let formatter: Formatter | undefined;
             let formatterParams = {};
             let minWidth = 50;
 
@@ -550,7 +552,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         });
     };
 
-    private stringFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private stringFormatter = (cell: CellComponent): string | HTMLElement => {
         let element;
         if (cell.getValue() === null) {
             const host = document.createElement("div");
@@ -791,7 +793,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         return "";
     };
 
-    private handleClientConnectionTreeRowSelected = (row: Tabulator.RowComponent): void => {
+    private handleClientConnectionTreeRowSelected = (row: RowComponent): void => {
         const selectedOldRowId = this.getSelectedRowValue("PROCESSLIST_ID");
         this.selectedRow = row.getData() as IDictionary;
         if (selectedOldRowId !== this.getSelectedRowValue("PROCESSLIST_ID")) {

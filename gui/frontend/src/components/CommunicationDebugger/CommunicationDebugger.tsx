@@ -28,11 +28,12 @@ import disconnectedIcon from "../../assets/images/disconnected.svg";
 
 import React from "react";
 import { render } from "preact";
+import { CellComponent } from "tabulator-tables";
 
 import { Component, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/Component";
 import {
     Container, Accordion, SplitContainer, Orientation, Toolbar, Label, Button, Divider, ISplitterPane, Tabview,
-    ITabviewPage, Icon, Codicon, TreeGrid, ITreeGridOptions, ISplitterPaneSizeInfo, Tabulator, SetDataAction,
+    ITabviewPage, Icon, Codicon, TreeGrid, ITreeGridOptions, ISplitterPaneSizeInfo, SetDataAction,
 } from "../ui";
 
 import { ListenerEntry, EventType, IDispatchEvent } from "../../supplement/Dispatch";
@@ -336,7 +337,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         );
     };
 
-    private scriptTreeCellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private scriptTreeCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as IScriptTreeEntry;
         let icon;
         switch (data.type) {
@@ -396,7 +397,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         this.loadScripts();
     };
 
-    private handleScriptTreeDoubleClick = (e: Event, cell: Tabulator.CellComponent): void => {
+    private handleScriptTreeDoubleClick = (e: Event, cell: CellComponent): void => {
         const scriptEntry = cell.getData() as IScriptTreeEntry;
         if (!scriptEntry.fullPath) {
             // Double click on a folder -> ignore.
