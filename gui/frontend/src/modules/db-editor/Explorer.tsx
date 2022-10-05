@@ -65,6 +65,7 @@ import xmlIcon from "../../assets/images/file-icons/xml.svg";
 
 import React from "react";
 import { render } from "preact";
+import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import keyboardKey from "keyboard-key";
 import { isNil } from "lodash";
@@ -72,7 +73,7 @@ import { isNil } from "lodash";
 import {
     Accordion, Component, IComponentProperties, Label, Icon, IComponentState, Input, SelectionType,
     IAccordionProperties, Menu, ComponentPlacement, IMenuItemProperties, MenuItem, TreeGrid, ITreeGridOptions, Image,
-    Tabulator, TabulatorProxy, IAccordionItemProperties,
+    TabulatorProxy, IAccordionItemProperties,
 } from "../../components/ui";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
@@ -212,7 +213,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
         const className = this.getEffectiveClassNames(["scriptingExplorer"]);
 
-        const schemaTreeColumns: Tabulator.ColumnDefinition[] = [{
+        const schemaTreeColumns: ColumnDefinition[] = [{
             title: "",
             field: "caption",
             resizable: false,
@@ -726,7 +727,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         });
     };
 
-    private schemaTreeCellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private schemaTreeCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as ISchemaTreeEntry;
 
         let iconName = "";
@@ -840,7 +841,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return host;
     };
 
-    private scriptTreeCellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private scriptTreeCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as IDBDataEntry;
 
         let image;
@@ -883,7 +884,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return host;
     };
 
-    private removeDummyNode = (row: Tabulator.RowComponent): void => {
+    private removeDummyNode = (row: RowComponent): void => {
         const children = row.getTreeChildren();
         if (children.length > 0) {
             const firstEntry = children[0].getData() as ISchemaTreeEntry;
@@ -893,7 +894,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }
     };
 
-    private handleRowExpanded = (row: Tabulator.RowComponent): void => {
+    private handleRowExpanded = (row: RowComponent): void => {
         const entry = row.getData() as ISchemaTreeEntry;
         entry.expanded = true;
         if (entry.expanded && !entry.expandedOnce) {
@@ -980,12 +981,12 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return ret;
     };
 
-    private handleRowCollapsed = (row: Tabulator.RowComponent): void => {
+    private handleRowCollapsed = (row: RowComponent): void => {
         const entry = row.getData() as ISchemaTreeEntry;
         entry.expanded = false;
     };
 
-    private isRowExpanded = (row: Tabulator.RowComponent): boolean => {
+    private isRowExpanded = (row: RowComponent): boolean => {
         const { markedSchema } = this.props;
 
         const entry = row.getData() as ISchemaTreeEntry;
@@ -996,7 +997,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return entry.expanded;
     };
 
-    private handleFormatSchemaRow = (row: Tabulator.RowComponent): void => {
+    private handleFormatSchemaRow = (row: RowComponent): void => {
         const { markedSchema } = this.props;
 
         const entry = row.getData() as ISchemaTreeEntry;
@@ -1008,12 +1009,12 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }
     };
 
-    private handleSchemaTreeRowContext = (event: Event, row: Tabulator.RowComponent): void => {
+    private handleSchemaTreeRowContext = (event: Event, row: RowComponent): void => {
         const entry = row.getData() as ISchemaTreeEntry;
         this.showSchemaTreeContextMenu(entry, event as MouseEvent);
     };
 
-    private handleSchemaTreeDoubleClick = (e: Event, cell: Tabulator.CellComponent): void => {
+    private handleSchemaTreeDoubleClick = (e: Event, cell: CellComponent): void => {
         void requisitions.execute("explorerDoubleClick", cell.getData() as ISchemaTreeEntry);
     };
 
@@ -1027,7 +1028,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }
     };
 
-    private handleScriptItemClick = (e: UIEvent, cell: Tabulator.CellComponent): void => {
+    private handleScriptItemClick = (e: UIEvent, cell: CellComponent): void => {
         const { onSelectItem } = this.props;
 
         const data = cell.getData() as IDBDataEntry;
@@ -1200,11 +1201,11 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
             return <Accordion.Item caption="<no scripts>" />;
         }
 
-        const scriptTreeColumns: Tabulator.ColumnDefinition[] = [{
+        const scriptTreeColumns: ColumnDefinition[] = [{
             title: "",
             field: "name",
             resizable: false,
-            editable: (cell: Tabulator.CellComponent): boolean => {
+            editable: (cell: CellComponent): boolean => {
                 // Allow editing only if the row of this cell is already selected.
                 const rowElement = cell.getRow().getElement();
 
@@ -1236,14 +1237,14 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         />;
     };
 
-    private handleCellEdited = (cell: Tabulator.CellComponent): void => {
+    private handleCellEdited = (cell: CellComponent): void => {
         const { onChangeItem } = this.props;
         const data = cell.getData() as IDBDataEntry;
 
         onChangeItem?.(data.id, cell.getValue() as string);
     };
 
-    private handleScriptTreeRowContext = (event: Event, row: Tabulator.RowComponent): void => {
+    private handleScriptTreeRowContext = (event: Event, row: RowComponent): void => {
         const entry = row.getData() as IDBDataEntry;
         this.showScriptTreeContextMenu(entry, event as MouseEvent);
     };
@@ -1294,7 +1295,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return true;
     };
 
-    private async renderTablesOrViews(schema: string, tables: boolean, row: Tabulator.RowComponent,
+    private async renderTablesOrViews(schema: string, tables: boolean, row: RowComponent,
         tree?: TabulatorProxy): Promise<void> {
         const { backend } = this.props;
 
@@ -1337,7 +1338,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         tree?.restoreRedraw();
     }
 
-    private renderTableObjects = async (schema: string, table: string, type: string, row: Tabulator.RowComponent,
+    private renderTableObjects = async (schema: string, table: string, type: string, row: RowComponent,
         tree?: TabulatorProxy, filter?: string): Promise<void> => {
         const { backend } = this.props;
 
@@ -1374,7 +1375,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     };
 
     private renderSchemaObjects = async (schema: string, type: string,
-        row: Tabulator.RowComponent, tree?: TabulatorProxy, filter?: string): Promise<void> => {
+        row: RowComponent, tree?: TabulatorProxy, filter?: string): Promise<void> => {
 
         const { backend } = this.props;
 
@@ -1398,7 +1399,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         tree?.restoreRedraw();
     };
 
-    private addTreeChildren(row: Tabulator.RowComponent, list: string[], schema: string, type: SchemaTreeType): void {
+    private addTreeChildren(row: RowComponent, list: string[], schema: string, type: SchemaTreeType): void {
         this.removeDummyNode(row);
         for (const item of list) {
             const newChild = {

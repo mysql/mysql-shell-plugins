@@ -72,6 +72,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           </button>
         </Button>
         <Divider
+          key="executionDivider"
           thickness={1}
           vertical={true}
         >
@@ -126,6 +127,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           </button>
         </Button>
         <Divider
+          key="formatDivider"
           thickness={1}
           vertical={true}
         >
@@ -338,6 +340,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           </button>
         </Button>
         <Divider
+          key="executionDivider"
           thickness={1}
           vertical={true}
         >
@@ -392,6 +395,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           </button>
         </Button>
         <Divider
+          key="formatDivider"
           thickness={1}
           vertical={true}
         >

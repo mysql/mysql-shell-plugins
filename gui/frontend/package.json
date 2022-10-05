@@ -14,7 +14,7 @@
         "monaco-editor": "0.30.1",
         "preact": "10.7.1",
         "set-interval-async": "2.0.3",
-        "tabulator-tables": "5.2.7",
+        "tabulator-tables": "5.4.0",
         "topojson-client": "3.1.0",
         "ws": "8.5.0"
     },
@@ -33,7 +33,7 @@
         "@types/resize-observer-browser": "0.1.7",
         "@types/selenium-webdriver": "4.0.18",
         "@types/set-interval-async": "1.0.0",
-        "@types/tabulator-tables": "5.1.1",
+        "@types/tabulator-tables": "5.4.0",
         "@types/topojson-client": "3.1.1",
         "@types/ws": "8.5.3",
         "@typescript-eslint/eslint-plugin": "5.19.0",

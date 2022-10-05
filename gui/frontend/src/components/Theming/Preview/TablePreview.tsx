@@ -24,9 +24,10 @@
 import employees from "./assets/employees.json";
 
 import React from "react";
+import { ColumnDefinition } from "tabulator-tables";
 
 import { Component, SelectionType } from "../../ui";
-import { ITreeGridOptions, Tabulator, TreeGrid } from "../../ui/TreeGrid/TreeGrid";
+import { ITreeGridOptions, TreeGrid } from "../../ui/TreeGrid/TreeGrid";
 
 interface ITablePreviewState {
     data: unknown[];
@@ -69,7 +70,7 @@ export class TablePreview extends Component<{}, ITablePreviewState> {
                 field: title,
                 headerSort: index > 0,
                 editor: title === "role" ? true : (title === "reports" ? "number" : false),
-            } as Tabulator.ColumnDefinition;
+            } as ColumnDefinition;
         });
 
         const options: ITreeGridOptions = {

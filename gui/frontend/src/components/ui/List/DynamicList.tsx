@@ -25,10 +25,11 @@ import "./List.css";
 
 import React from "react";
 import { render } from "preact";
+import { CellComponent, ColumnDefinition } from "tabulator-tables";
 
 import { Component, IComponentProperties, IComponentState, SelectionType } from "../Component/Component";
 import { IDictionary } from "../../../app-logic/Types";
-import { ITreeGridOptions, Tabulator, TreeGrid } from "../TreeGrid/TreeGrid";
+import { ITreeGridOptions, TreeGrid } from "../TreeGrid/TreeGrid";
 
 export interface IDynamicListProperties extends IComponentProperties {
     // This control requires a fixed height.
@@ -78,7 +79,7 @@ export class DynamicList extends Component<IDynamicListProperties, IDynamicListS
 
         const className = this.getEffectiveClassNames(["dynamicList"]);
 
-        const columns: Tabulator.ColumnDefinition[] = [{
+        const columns: ColumnDefinition[] = [{
             title: "",
             field: columnField,
             formatter: this.cellFormatter,
@@ -105,7 +106,7 @@ export class DynamicList extends Component<IDynamicListProperties, IDynamicListS
         );
     }
 
-    private cellFormatter = (cell: Tabulator.CellComponent): string | HTMLElement => {
+    private cellFormatter = (cell: CellComponent): string | HTMLElement => {
         const { template, rowHeight } = this.mergedProps;
         const { columnField } = this.state;
 
