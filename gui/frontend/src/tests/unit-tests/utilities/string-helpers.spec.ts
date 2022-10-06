@@ -78,7 +78,9 @@ describe("String Helpers Tests", () => {
     });
 
     it("Formatting and Filtering", () => {
-        expect(formatTime()).toBe("unknown time");
+        expect(formatTime()).toBe("invalid time");
+        expect(formatTime(-100)).toBe("invalid time");
+
         expect(formatTime(0)).toBe("0s");
         expect(formatTime(0.123)).toBe("123ms");
         expect(formatTime(1)).toBe("1s");
@@ -87,6 +89,8 @@ describe("String Helpers Tests", () => {
 
         expect(formatTime(45)).toBe("45s");
         expect(formatTime(100)).toBe("01:40");
+        expect(formatTime(155)).toBe("02:35");
+        expect(formatTime(155.9999)).toBe("02:36");
         expect(formatTime(7600)).toBe("02:06:40");
         expect(formatTime(1000025)).toBe("11d 13:47:05");
 
