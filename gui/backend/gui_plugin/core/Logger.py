@@ -156,12 +156,15 @@ def exception(e, msg=None, tags=[]):
         error(e, tags)
     else:
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        exception_info = "".join(traceback.format_exception(exc_type, exc_value,
-                                                            exc_traceback))
-        # the shell seems to be stripping initial spaces on every log line,
-        # but I want indentation on exception reports
-        exception_info = exception_info.strip().replace('\n', '\n-')
-        error(f"Exception information:\n{exception_info}")
+        if exc_type is not None:
+            exception_info = "".join(traceback.format_exception(exc_type, exc_value,
+                                                                exc_traceback))
+            # the shell seems to be stripping initial spaces on every log line,
+            # but I want indentation on exception reports
+            exception_info = exception_info.strip().replace('\n', '\n-')
+            error(f"Exception information:\n{exception_info}")
+        else:
+            error(e, tags)
 
 
 def debug2(message, tags=[], sensitive=False, prefix=""):
