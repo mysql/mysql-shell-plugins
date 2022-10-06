@@ -123,7 +123,7 @@ export const isWhitespaceOnly = (str: string): boolean => {
  */
 export const formatTime = (time?: number): string => {
     if (time === undefined || time === null || isNaN(time) || !isFinite(time) || time < 0) {
-        return "unknown time";
+        return "invalid time";
     }
 
     if (time < 10) {
@@ -143,6 +143,8 @@ export const formatTime = (time?: number): string => {
         return `${seconds}s`;
     } else {
         // More than 10 secs: format as "d HH:MM:SS".
+        time = Math.round(time);
+
         // TODO: consider locales.
         const days = Math.floor(time / 86400);
         const hours = Math.floor(time / 3600) % 24;
