@@ -84,7 +84,7 @@ def mysql_connections_exists():  # pragma: no cover
         "options": connection
     }, 'tests')
 
-    connection_id = result['result']['db_connection_id']
+    connection_id = result
 
     results.append({
         "id": connection_id,

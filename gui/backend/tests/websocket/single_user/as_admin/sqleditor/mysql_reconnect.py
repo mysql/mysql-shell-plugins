@@ -63,13 +63,11 @@ ws.sendAndValidate({
             "type": "OK",
             "msg": ws.ignore
         },
-        "result": {
-            "db_connection_id": ws.matchRegexp("\\d+")
-        }
+        "result": ws.matchRegexp("\\d+")
     }
 ])
 
-connection_id = ws.lastResponse['result']['db_connection_id']
+connection_id = ws.lastResponse["result"]
 
 ws.sendAndValidate({
     "request": "execute",

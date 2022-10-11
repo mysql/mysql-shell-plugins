@@ -429,13 +429,13 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * add a new db_connection and associate the connection with a profile
+     * Add a new db_connection and associate the connection with a profile
      *
      * @param profileId The id of the profile
      * @param connection The connection information as a dict, e.g. { "db_type": "MySQL", "caption": "Local MySQL Server", "description": "Connection to local MySQL Server on 3306", "options": { "uri": "mysql://mike@localhost:3306/test", "password": "myPassword2BeStoredEncrypted" }}
      * @param folderPath The folder path used for grouping and nesting connections, optional
      *
-     * @returns string: The connection_id in a result JSON string
+     * @returns int: The connection ID
      */
     public static getRequestDbconnectionsAddDbConnection(profileId: number, connection: IShellDbConnection, folderPath = ""): IShellRequest {
 
@@ -457,14 +457,14 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * update the data for a database connection
+     * Update the data for a database connection
      *
      * @param profileId The id of the profile
      * @param connectionId The id of the connection to update
      * @param connection The connection information as a dict, e.g. { "caption": "Local MySQL Server", "description": "Connection to local MySQL Server on 3306", "options": { "uri": "mysql://mike@localhost:3306/test", "password": "myPassword2BeStoredEncrypted" }, }
      * @param folderPath The folder path used for grouping and nesting connections, optional
      *
-     * @returns Nothing
+     * @returns None
      */
     public static getRequestDbconnectionsUpdateDbConnection(profileId: number, connectionId: number, connection: IShellDbConnection, folderPath = ""): IShellRequest {
 
@@ -487,12 +487,12 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * remove a db_connection by disassociating the connection from a profile
+     * Remove a db_connection by disassociating the connection from a profile
      *
      * @param profileId The id of the profile
      * @param connectionId The connection id to remove
      *
-     * @returns Nothing
+     * @returns None
      */
     public static getRequestDbconnectionsRemoveDbConnection(profileId: number, connectionId: number): IShellRequest {
 
@@ -506,12 +506,12 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * lists the db_connections for the given profile
+     * Lists the db_connections for the given profile
      *
      * @param profileId The id of the profile
      * @param folderPath The folder path used for grouping and nesting connections, optional
      *
-     * @returns str: The list of connections in a result JSON string
+     * @returns list: the list of connections
      */
     public static getRequestDbconnectionsListDbConnections(profileId: number, folderPath = ""): IShellRequest {
 
@@ -525,11 +525,11 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * get the a db_connection
+     * Get the a db_connection
      *
      * @param dbConnectionId The id of the db_connection
      *
-     * @returns str: The db_connections in a result JSON string
+     * @returns dict: The db connection
      */
     public static getRequestDbconnectionsGetDbConnection(dbConnectionId: number): IShellRequest {
 
@@ -542,9 +542,9 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * get the list of db_types
+     * Get the list of db_types
      *
-     * @returns str: The list of db_types in a result JSON string
+     * @returns list: The list of db types
      */
     public static getRequestDbconnectionsGetDbTypes(): IShellRequest {
 
@@ -555,7 +555,7 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * set the password of a db_connection url
+     * Set the password of a db_connection url
      *
      * @param url The URL needs to be in the following form user@(host[:port]|socket).
      * @param password The password
@@ -574,7 +574,7 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * deletes the password of a db_connection url
+     * Deletes the password of a db_connection url
      *
      * @param url The URL needs to be in the following form user@(host[:port]|socket).
      *
@@ -591,7 +591,7 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * lists the db_connection urls that have a password stored
+     * Lists the db_connection urls that have a password stored
      *
      * @returns list: The list of db_connection urls that have a password stored
      */
@@ -618,7 +618,7 @@ export class ProtocolGui extends Protocol {
      *
      * <b>Returns:</b>
      *
-     *     A dict holding the result message.
+     *     None
      */
     public static getRequestDbconnectionsTestConnection(connection: IShellDbConnection | number, password?: string): IShellRequest {
 
@@ -632,7 +632,7 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * updates the connections sort order for the given profile
+     * Updates the connections sort order for the given profile
      *
      * @param profileId The id of the profile
      * @param folderPath The folder path used for grouping and nesting connections
@@ -640,7 +640,7 @@ export class ProtocolGui extends Protocol {
      * @param connectionIdOffset The id of the offset connection
      * @param before Indicates whether connection_id_to_move should be moved before connection_id_offset or after
      *
-     * @returns string: The connection_id in a result JSON string
+     * @returns None
      */
     public static getRequestDbconnectionsMoveConnection(profileId: number, folderPath: string, connectionIdToMove: number, connectionIdOffset: number, before = false): IShellRequest {
 
@@ -1777,7 +1777,7 @@ export class ProtocolGui extends Protocol {
      * @param folderPath The folder path f.e. "/scripts/server1"
      * @param profileId The id of profile
      *
-     * @returns The id of the new record.
+     * @returns int: the id of the new record.
      */
     public static getRequestModulesAddData(caption: string, content: string, dataCategoryId: number, treeIdentifier: string, folderPath?: string, profileId?: number): IShellRequest {
 
@@ -1800,7 +1800,7 @@ export class ProtocolGui extends Protocol {
      * @param folderId The id of the folder
      * @param dataCategoryId The id of data category
      *
-     * @returns The list of the data.
+     * @returns list: the list of the data.
      */
     public static getRequestModulesListData(folderId: number, dataCategoryId?: number): IShellRequest {
 
@@ -1814,11 +1814,11 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * Gets content for the given module
+     * Gets content of the given module
      *
      * @param id The id of the data
      *
-     * @returns The content of the data.
+     * @returns dict: the content of the data.
      */
     public static getRequestModulesGetDataContent(id: number): IShellRequest {
 
@@ -1839,7 +1839,7 @@ export class ProtocolGui extends Protocol {
      * @param treeIdentifier The identifier of the tree
      * @param folderPath The folder path f.e. "/scripts/server1"
      *
-     * @returns The id of the folder to which the data was shared.
+     * @returns int: the id of the folder to which the data was shared.
      */
     public static getRequestModulesShareDataToUserGroup(id: number, userGroupId: number, readOnly: number, treeIdentifier: string, folderPath?: string): IShellRequest {
 
@@ -1856,7 +1856,7 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * Shares data to user group
+     * Shares data to profile
      *
      * @param id The id of the data
      * @param profileId The id of profile
@@ -1881,13 +1881,13 @@ export class ProtocolGui extends Protocol {
     }
 
     /**
-     * Update data at the given module
+     * Update data of the given module
      *
      * @param id The id of the data
      * @param caption Caption
      * @param content The content data
      *
-     * @returns The id of the updated record..
+     * @returns int: the id of the updated record.
      */
     public static getRequestModulesUpdateData(id: number, caption?: string, content?: string): IShellRequest {
 
@@ -1907,7 +1907,7 @@ export class ProtocolGui extends Protocol {
      * @param id The id of the data
      * @param folderId The id of the folder
      *
-     * @returns The id of the deleted record.
+     * @returns int: the id of the deleted record.
      */
     public static getRequestModulesDeleteData(id: number, folderId: number): IShellRequest {
 
@@ -1943,7 +1943,7 @@ export class ProtocolGui extends Protocol {
      * @param name The name of the data category
      * @param parentCategoryId The id of the parent category
      *
-     * @returns The id of added category.
+     * @returns int: the id of added category.
      */
     public static getRequestModulesAddDataCategory(name: string, parentCategoryId?: number): IShellRequest {
 
@@ -1961,7 +1961,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param categoryId The id of the data category
      *
-     * @returns The id of the removed category.
+     * @returns int: the id of the removed category.
      */
     public static getRequestModulesRemoveDataCategory(categoryId: number): IShellRequest {
 
@@ -1978,7 +1978,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param name The name of the data category
      *
-     * @returns The id of the data category.
+     * @returns int: the id of the data category.
      */
     public static getRequestModulesGetDataCategoryId(name: string): IShellRequest {
 
@@ -1996,7 +1996,7 @@ export class ProtocolGui extends Protocol {
      * @param treeIdentifier The identifier of the tree
      * @param profileId The id of profile
      *
-     * @returns The id of the root folder.
+     * @returns int: the id of the root folder.
      */
     public static getRequestModulesCreateProfileDataTree(treeIdentifier: string, profileId?: number): IShellRequest {
 
@@ -2015,7 +2015,7 @@ export class ProtocolGui extends Protocol {
      * @param treeIdentifier The identifier of the tree
      * @param profileId The id of profile
      *
-     * @returns The list of all folders in data tree.
+     * @returns list: the list of all folders in data tree.
      */
     public static getRequestModulesGetProfileDataTree(treeIdentifier: string, profileId?: number): IShellRequest {
 
@@ -2034,7 +2034,7 @@ export class ProtocolGui extends Protocol {
      * @param treeIdentifier The identifier of the tree
      * @param userGroupId The id of user group
      *
-     * @returns The id of the root folder.
+     * @returns int: the id of the root folder.
      */
     public static getRequestModulesCreateUserGroupDataTree(treeIdentifier: string, userGroupId?: number): IShellRequest {
 
@@ -2053,7 +2053,7 @@ export class ProtocolGui extends Protocol {
      * @param treeIdentifier The identifier of the tree
      * @param userGroupId The id of user group
      *
-     * @returns The list of all folders in data tree.
+     * @returns list: the list of all folders in data tree.
      */
     public static getRequestModulesGetUserGroupDataTree(treeIdentifier: string, userGroupId?: number): IShellRequest {
 
@@ -2071,7 +2071,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param profileId The id of profile
      *
-     * @returns The list of tree identifiers.
+     * @returns list: the list of tree identifiers.
      */
     public static getRequestModulesGetProfileTreeIdentifiers(profileId?: number): IShellRequest {
 
@@ -2093,7 +2093,7 @@ export class ProtocolGui extends Protocol {
      * @param sourcePath The source folder path f.e. "/scripts/server1"
      * @param targetPath The target folder path f.e. "/scripts/server2"
      *
-     * @returns The id of the moved record.
+     * @returns int: the id of the moved record.
      */
     public static getRequestModulesMoveData(id: number, treeIdentifier: string, linkedTo: string, linkId: number, sourcePath: string, targetPath: string): IShellRequest {
 

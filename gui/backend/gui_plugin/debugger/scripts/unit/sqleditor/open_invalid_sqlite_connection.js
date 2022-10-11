@@ -44,12 +44,10 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ws.ignore
     },
-    "result": {
-        "db_connection_id": ws.matchRegexp("^[0-9]+$")
-    }
+    "result": ws.matchRegexp("\\d+")
 })
 
-ws.tokens["connectionId"] = ws.lastResponse['result']['db_connection_id']
+ws.tokens["connectionId"] = ws.lastResponse["result"]
 
 
 await ws.send({

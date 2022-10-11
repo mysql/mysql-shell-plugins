@@ -110,13 +110,11 @@ await ws.sendAndValidate({
         "type": "OK",
         "msg": ws.ignore
     },
-    "result": {
-        "db_connection_id": ws.matchRegexp("\\d+")
-    }
+    "result": ws.matchRegexp("\\d+")
 }])
 
 
-ws.tokens["connection_id"] = ws.lastResponse['result']['db_connection_id']
+ws.tokens["connection_id"] = ws.lastResponse["result"]
 
 await ws.sendAndValidate({
     "request": "execute",

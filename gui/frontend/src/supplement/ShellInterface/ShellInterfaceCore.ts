@@ -102,7 +102,7 @@ export class ShellInterfaceCore implements IShellInterface {
                 .then((event: ICommDbTypesEvent) => {
                     // istanbul ignore else
                     if (event.data) {
-                        result.push(...event.data.dbType);
+                        result.push(...event.data.result);
                     }
 
                     // istanbul ignore else

@@ -65,7 +65,7 @@ describe("ShellInterfaceDb Tests", () => {
             ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, testConnection, "")
                 .then((event: ICommAddConnectionEvent) => {
                     if (event.data) {
-                        testConnection.id = event.data.result.dbConnectionId;
+                        testConnection.id = event.data.result;
                     }
                     resolve();
                 });

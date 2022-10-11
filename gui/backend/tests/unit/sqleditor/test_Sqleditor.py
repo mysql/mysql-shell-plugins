@@ -69,7 +69,7 @@ def params():
     }, '', parameters._web_session.db)
 
     parameters._web_session.request_id = open_connection_cb.request_id
-    parameters._db_connection_id = result['result']['db_connection_id']
+    parameters._db_connection_id = result
     sqleditor.open_connection(
         parameters._db_connection_id, parameters._module_session)
 

@@ -143,6 +143,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     raise Exception(
                         "The message is missing the 'request_id' attribute.")
 
+                if not json_message["request_id"]:
+                        raise Exception('No request_id given. '
+                                        'Please provide the request_id.')
+
                 request_id = json_message["request_id"]
 
                 # log message, if logging does not work, do not process
@@ -394,6 +398,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         return self._session_user_personal_group_id
 
     @property
+    def user_personal_group_id(self):
+        return self._session_user_personal_group_id
+
+    @property
     def session_active_profile_id(self):
         return self._active_profile_id
 
@@ -407,7 +415,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             # open the database connection for this thread
             self._db = GuiBackendDb(
                 log_rotation=True, session_uuid=self.session_uuid)
-
         return self._db
 
     @contextmanager
@@ -637,6 +644,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 kwargs.update({"be_session": self.db})
 
             lock_session = False
+            if "be_session" in f_args:
+                kwargs.update({"be_session": self.db})
+
             if "session" in f_args:
                 # If the called function requires a session parameter,
                 # get it from the given module_session
@@ -716,6 +726,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         or cmd.startswith('gui.dbconnections.') \
                         or cmd.startswith('gui.users.') \
                         or cmd.startswith('gui.modules.') \
+                        or cmd.startswith('gui.dbconnections.') \
                         or cmd in ['gui.core.set_log_level', 'gui.core.get_log_level']:
 
                     confirm_complete = True

@@ -41,11 +41,11 @@ def add_data(caption, content, data_category_id, tree_identifier, folder_path=No
         tree_identifier (str): The identifier of the tree
         folder_path (str): The folder path f.e. "/scripts/server1"
         profile_id (int): The id of profile
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        The id of the new record.
+        int: the id of the new record.
     """
 
     if caption.strip() == "":
@@ -90,11 +90,11 @@ def list_data(folder_id, data_category_id=None, be_session=None):
     Args:
         folder_id (int): The id of the folder
         data_category_id (int): The id of data category
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        The list of the data.
+        list: the list of the data.
     """
 
     with BackendDatabase(be_session) as db:
@@ -116,23 +116,21 @@ def list_data(folder_id, data_category_id=None, be_session=None):
                                 SELECT DISTINCT id FROM categories"""
             sql += f" AND d.data_category_id in ({CATEGORIES_SQL})"
             args += (data_category_id,)
-        res = db.select(sql, args)
-
-        return res["rows"] if res else []
+        return db.select(sql, args)
 
 
 @plugin_function('gui.modules.getDataContent', shell=False, web=True)
 def get_data_content(id, be_session=None):
-    """Gets content for the given module
+    """Gets content of the given module
 
     Args:
         id (int): The id of the data
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The content of the data.
+        dict: the content of the data.
     """
     with BackendDatabase(be_session) as db:
         res = db.execute('''SELECT content
@@ -169,12 +167,12 @@ def share_data_to_user_group(id, user_group_id, read_only, tree_identifier, fold
         read_only (int): The flag that specifies whether the data is read only
         tree_identifier (str): The identifier of the tree
         folder_path (str): The folder path f.e. "/scripts/server1"
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The id of the folder to which the data was shared.
+        int: the id of the folder to which the data was shared.
     """
 
     if tree_identifier.strip() == "":
@@ -214,7 +212,7 @@ def share_data_to_user_group(id, user_group_id, read_only, tree_identifier, fold
 
 @plugin_function('gui.modules.addDataToProfile', shell=False, web=True)
 def add_data_to_profile(id, profile_id, read_only, tree_identifier, folder_path=None, be_session=None):
-    """Shares data to user group
+    """Shares data to profile
 
     Args:
         id (int): The id of the data
@@ -222,7 +220,7 @@ def add_data_to_profile(id, profile_id, read_only, tree_identifier, folder_path=
         read_only (int): The flag that specifies whether the data is read only
         tree_identifier (str): The identifier of the tree
         folder_path (str): The folder path f.e. "/scripts/server1"
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
@@ -272,17 +270,17 @@ def add_data_to_profile(id, profile_id, read_only, tree_identifier, folder_path=
 
 @plugin_function('gui.modules.updateData', shell=False, web=True)
 def update_data(id, caption=None, content=None, be_session=None):
-    """Update data at the given module
+    """Update data of the given module
 
     Args:
         id (int): The id of the data
         caption (str): Caption
         content (str): The content data
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        The id of the updated record..
+        int: the id of the updated record.
     """
 
     with BackendDatabase(be_session) as db:
@@ -316,11 +314,11 @@ def delete_data(id, folder_id, be_session=None):
     Args:
         id (int): The id of the data
         folder_id (int): The id of the folder
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        The id of the deleted record.
+        int: the id of the deleted record.
     """
 
     with BackendDatabase(be_session) as db:
@@ -338,7 +336,7 @@ def list_data_categories(category_id=None, be_session=None):
 
     Args:
         category_id (int): The id of the data category
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
@@ -347,11 +345,11 @@ def list_data_categories(category_id=None, be_session=None):
     """
     with BackendDatabase(be_session) as db:
         if category_id is None:
-            res = db.select("""SELECT id, name, parent_category_id
-                            FROM data_category
-                            WHERE parent_category_id is NULL""", ())
+            rows = db.select("""SELECT id, name, parent_category_id
+                                FROM data_category
+                                WHERE parent_category_id is NULL""", ())
         else:
-            res = db.select("""WITH RECURSIVE
+            rows = db.select("""WITH RECURSIVE
                                 categories(id, name, parent_category_id) AS (
                                     SELECT id, name, parent_category_id FROM data_category
                                         WHERE id=?
@@ -362,7 +360,7 @@ def list_data_categories(category_id=None, be_session=None):
                                 )
                                 SELECT DISTINCT id, name, parent_category_id FROM categories""",
                             (category_id,))
-            if not res["rows"]:
+            if not rows:
                 raise MSGException(
                     Error.MODULES_INVALID_DATA_CATEGORY, "Data category does not exist.")
 
@@ -370,7 +368,7 @@ def list_data_categories(category_id=None, be_session=None):
         if status['type'] != "OK":
             raise MSGException(Error.DB_ERROR, status['msg'])
 
-        return res["rows"] if res else []
+        return rows
 
 
 @plugin_function("gui.modules.addDataCategory", shell=False, web=True)
@@ -380,12 +378,12 @@ def add_data_category(name, parent_category_id=None, be_session=None):
     Args:
         name (str): The name of the data category
         parent_category_id (int): The id of the parent category
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The id of added category.
+        int: the id of added category.
     """
 
     if name.strip() == "":
@@ -419,12 +417,12 @@ def remove_data_category(category_id, be_session=None):
 
     Args:
         category_id (int): The id of the data category
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The id of the removed category.
+        int: the id of the removed category.
     """
     if category_id <= 100:
         raise MSGException(Error.MODULES_CANT_DELETE_MODULE_CATEGORY,
@@ -466,12 +464,12 @@ def get_data_category_id(name, be_session=None):
 
     Args:
         name (str): The name of the data category
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The id of the data category.
+        int: the id of the data category.
     """
 
     with BackendDatabase(be_session) as db:
@@ -494,12 +492,12 @@ def create_profile_data_tree(tree_identifier, profile_id=None, be_session=None):
     Args:
         tree_identifier (str): The identifier of the tree
         profile_id (int): The id of profile
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The id of the root folder.
+        int: the id of the root folder.
     """
 
     if tree_identifier.strip() == "":
@@ -523,12 +521,12 @@ def get_profile_data_tree(tree_identifier, profile_id=None, be_session=None):
     Args:
         tree_identifier (str): The identifier of the tree
         profile_id (int): The id of profile
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The list of all folders in data tree.
+        list: the list of all folders in data tree.
     """
 
     with BackendDatabase(be_session) as db:
@@ -538,9 +536,7 @@ def get_profile_data_tree(tree_identifier, profile_id=None, be_session=None):
                                                 'profile',
                                                 profile_id if profile_id else context.web_handler.session_active_profile_id)
 
-        res = db.select(backend.FOLDERS_TREE_SQL, (root_folder_id,))
-
-        return res["rows"] if res else []
+        return db.select(backend.FOLDERS_TREE_SQL, (root_folder_id,))
 
 
 @plugin_function("gui.modules.createUserGroupDataTree", shell=False, web=True)
@@ -550,12 +546,12 @@ def create_user_group_data_tree(tree_identifier, user_group_id=None, be_session=
     Args:
         tree_identifier (str): The identifier of the tree
         user_group_id (int): The id of user group
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The id of the root folder.
+        int: the id of the root folder.
     """
 
     if tree_identifier.strip() == "":
@@ -579,12 +575,12 @@ def get_user_group_data_tree(tree_identifier, user_group_id=None, be_session=Non
     Args:
         tree_identifier (str): The identifier of the tree
         user_group_id (int): The id of user group
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The list of all folders in data tree.
+        list: the list of all folders in data tree.
     """
 
     with BackendDatabase(be_session) as db:
@@ -594,9 +590,7 @@ def get_user_group_data_tree(tree_identifier, user_group_id=None, be_session=Non
                                                 'group',
                                                 user_group_id if user_group_id else context.web_handler.user_personal_group_id)
 
-        res = db.select(backend.FOLDERS_TREE_SQL, (root_folder_id,))
-
-        return res["rows"] if res else []
+        return db.select(backend.FOLDERS_TREE_SQL, (root_folder_id,))
 
 
 @plugin_function("gui.modules.getProfileTreeIdentifiers", shell=False, web=True)
@@ -605,22 +599,20 @@ def get_profile_tree_identifiers(profile_id=None, be_session=None):
 
     Args:
         profile_id (int): The id of profile
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        The list of tree identifiers.
+        list: the list of tree identifiers.
     """
 
     with BackendDatabase(be_session) as db:
         context = get_context()
-        res = db.select("""SELECT tree_identifier
-                           FROM data_profile_tree
-                           WHERE profile_id=?""",
-                           (profile_id if profile_id else context.web_handler.session_active_profile_id,))
-
-        return res["rows"] if res else []
+        return db.select("""SELECT tree_identifier
+                            FROM data_profile_tree
+                            WHERE profile_id=?""",
+                            (profile_id if profile_id else context.web_handler.session_active_profile_id,))
 
 
 @plugin_function("gui.modules.moveData", shell=False, web=True)
@@ -634,11 +626,11 @@ def move_data(id, tree_identifier, linked_to, link_id, source_path, target_path,
         link_id (int): The profile id or the group id (depending on linked_to)
         source_path (str): The source folder path f.e. "/scripts/server1"
         target_path (str): The target folder path f.e. "/scripts/server2"
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        The id of the moved record.
+        int: the id of the moved record.
     """
     if linked_to not in ['profile', 'group']:
         raise MSGException(Error.CORE_INVALID_PARAMETER,

@@ -81,9 +81,7 @@ export interface IOpenConnectionData extends IGenericResponse {
 }
 
 export interface IAddConnectionData extends IGenericResponse {
-    result: {
-        dbConnectionId: number;
-    };
+    result: number;
 }
 
 export type IResultSetStateData = IGenericResponse;
@@ -109,7 +107,7 @@ export interface IProfileData extends IGenericResponse {
 }
 
 export interface IDbTypesData extends IGenericResponse {
-    dbType: string[];
+    result: string[];
 }
 
 export interface IDebuggerScriptListData extends IGenericResponse {
@@ -125,7 +123,7 @@ export interface ISimpleResultData extends IGenericResponse {
 }
 
 export interface ISimpleRowData extends IGenericResponse {
-    rows: unknown[];
+    result: unknown[];
 }
 
 export interface IShellPromptValues {

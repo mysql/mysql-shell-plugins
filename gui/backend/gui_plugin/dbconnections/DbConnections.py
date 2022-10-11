@@ -21,7 +21,6 @@
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 import json
-from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.Db import BackendDatabase, BackendTransaction
@@ -29,13 +28,12 @@ import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.backenddb import dbconnections
-import threading
 
 
 @plugin_function('gui.dbconnections.addDbConnection', shell=False, web=True)
 def add_db_connection(profile_id, connection, folder_path='',
                       be_session=None):
-    """add a new db_connection and associate the connection with a profile
+    """Add a new db_connection and associate the connection with a profile
 
     Args:
         profile_id (int): The id of the profile
@@ -49,7 +47,7 @@ def add_db_connection(profile_id, connection, folder_path='',
             }}
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Allowed options for connection:
@@ -59,7 +57,7 @@ def add_db_connection(profile_id, connection, folder_path='',
         options (dict,required): The options specific for the current database type
 
     Returns:
-        string: The connection_id in a result JSON string
+        int: The connection ID
     """
     # Verify connection parameters
     if not 'caption' in connection \
@@ -101,15 +99,12 @@ def add_db_connection(profile_id, connection, folder_path='',
                 VALUES(?, ?, ?, ?)''',
                        (profile_id, connection_id, folder_path, index))
 
-        result = Response.fromStatus(db.get_last_status(), {
-                                     "result": {"db_connection_id": connection_id}})
-
-    return result
+    return connection_id
 
 
 @plugin_function('gui.dbconnections.updateDbConnection', shell=False, web=True)
 def update_db_connection(profile_id, connection_id, connection, folder_path='', be_session=None):
-    """update the data for a database connection
+    """Update the data for a database connection
 
     Args:
         profile_id (int): The id of the profile
@@ -124,7 +119,7 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
             }
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Allowed options for connection:
@@ -134,7 +129,7 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
         options (dict,required): The options specific for the current database type
 
     Returns:
-        Nothing
+        None
     """
 
     with BackendDatabase(be_session) as db:
@@ -163,24 +158,19 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
                               WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
                            (index, profile_id, connection['folder_path'], connection_id))
 
-            result = Response.fromStatus(db.get_last_status(), {
-                "result": {"db_connection_id": connection_id}})
-
-    return result
-
 
 @plugin_function('gui.dbconnections.removeDbConnection', shell=False, web=True)
 def remove_db_connection(profile_id, connection_id, be_session=None):
-    """remove a db_connection by disassociating the connection from a profile
+    """Remove a db_connection by disassociating the connection from a profile
 
     Args:
         profile_id (int): The id of the profile
         connection_id (int): The connection id to remove
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        Nothing
+        None
     """
 
     with BackendDatabase(be_session) as db:
@@ -195,33 +185,27 @@ def remove_db_connection(profile_id, connection_id, be_session=None):
                 WHERE db_connection_id=?''', (connection_id, ))
 
             # If no other profile is using this connection, remove it.
-            if result['rows'][0]['cnt'] == 0:
+            if result[0]['cnt'] == 0:
                 db.execute('''DELETE FROM db_connection
                     WHERE id=?''', (connection_id,))
-
-            result = Response.fromStatus(db.get_last_status(), {
-                "result": {"db_connection_id": connection_id}})
-
-    return result
 
 
 @plugin_function('gui.dbconnections.listDbConnections', shell=False, web=True)
 def list_db_connections(profile_id, folder_path='', be_session=None):
-    """lists the db_connections for the given profile
+    """Lists the db_connections for the given profile
 
     Args:
         profile_id (int): The id of the profile
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        str: The list of connections in a result JSON string
+        list: the list of connections
     """
-    result = None
     with BackendDatabase(be_session) as db:
-        result = db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
+        return db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
             dc.description, dc.db_type, dc.options, p_dc.`index`
             FROM profile_has_db_connection p_dc
                 LEFT JOIN db_connection dc ON
@@ -229,43 +213,38 @@ def list_db_connections(profile_id, folder_path='', be_session=None):
             WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ?''',
                            (profile_id, '%' if folder_path == '' else folder_path))
 
-    return result
-
 
 @plugin_function('gui.dbconnections.getDbConnection', shell=False, web=True)
 def get_db_connection(db_connection_id, be_session=None):
-    """get the a db_connection
+    """Get the a db_connection
 
     Args:
         db_connection_id (int): The id of the db_connection
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
     Returns:
-        str: The db_connections in a result JSON string
+        dict: The db connection
     """
-    result = None
     with BackendDatabase(be_session) as db:
-        result = db.select('SELECT * FROM db_connection WHERE id = ?',
+        return db.select('SELECT * FROM db_connection WHERE id = ?',
                            (db_connection_id,))
-
-    return result
 
 
 @plugin_function('gui.dbconnections.getDbTypes', shell=False, web=True)
 def get_db_types():
-    """get the list of db_types
+    """Get the list of db_types
 
     Returns:
-        str: The list of db_types in a result JSON string
+        list: The list of db types
     """
 
-    return Response.ok("Successfully obtained db session types", {"db_type": DbSessionFactory.getSessionTypes()})
+    return DbSessionFactory.getSessionTypes()
 
 
 @plugin_function('gui.dbconnections.setCredential', shell=False, web=True)
 def set_credential(url, password):
-    """set the password of a db_connection url
+    """Set the password of a db_connection url
 
     Args:
         url (str): The URL needs to be in the following form
@@ -283,7 +262,7 @@ def set_credential(url, password):
 
 @plugin_function('gui.dbconnections.deleteCredential', shell=False, web=True)
 def delete_credential(url):
-    """deletes the password of a db_connection url
+    """Deletes the password of a db_connection url
 
     Args:
         url (str): The URL needs to be in the following form
@@ -300,7 +279,7 @@ def delete_credential(url):
 
 @plugin_function('gui.dbconnections.listCredentials', shell=False, web=True)
 def list_credentials():
-    """lists the db_connection urls that have a password stored
+    """Lists the db_connection urls that have a password stored
 
     Returns:
         list: The list of db_connection urls that have a password stored
@@ -325,7 +304,7 @@ def test_connection(connection, password=None, web_session=None):
         options (dict,required): The options specific for the current database type
 
     Returns:
-        A dict holding the result message.
+        None
     """
 
     new_session = DbModuleSession(web_session)
@@ -338,7 +317,7 @@ def test_connection(connection, password=None, web_session=None):
 
 @plugin_function('gui.dbconnections.moveConnection', shell=False, web=True)
 def move_connection(profile_id, folder_path, connection_id_to_move, connection_id_offset, before=False, be_session=None):
-    """updates the connections sort order for the given profile
+    """Updates the connections sort order for the given profile
 
     Args:
         profile_id (int): The id of the profile
@@ -346,12 +325,12 @@ def move_connection(profile_id, folder_path, connection_id_to_move, connection_i
         connection_id_to_move (int): The id of the connection to move
         connection_id_offset (int): The id of the offset connection
         before (bool): Indicates whether connection_id_to_move should be moved before connection_id_offset or after
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
 
     Returns:
-        string: The connection_id in a result JSON string
+        None
     """
 
     with BackendDatabase(be_session) as db:

@@ -46,13 +46,11 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ws.ignore
         },
-        "result": {
-            "db_connection_id": ws.matchRegexp("\\d+")
-        }
+        "result": ws.matchRegexp("\\d+")
     }
 ])
 
-_this["connection_id_user1"] = ws.lastResponse['result']['db_connection_id']
+_this["connection_id_user1"] = ws.lastResponse["result"]
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -75,13 +73,11 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ws.ignore
         },
-        "result": {
-            "db_connection_id": ws.matchRegexp("\\d+")
-        }
+        "result": ws.matchRegexp("\\d+")
     }
 ])
 
-_this["connection_id_user2"] = ws.lastResponse['result']['db_connection_id']
+_this["connection_id_user2"] = ws.lastResponse["result"]
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -104,10 +100,8 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ws.ignore
         },
-        "result": {
-            "db_connection_id": ws.matchRegexp("\\d+")
-        }
+        "result": ws.matchRegexp("\\d+")
     }
 ])
 
-_this["connection_id_user2_nopwd"] = ws.lastResponse['result']['db_connection_id']
+_this["connection_id_user2_nopwd"] = ws.lastResponse["result"]

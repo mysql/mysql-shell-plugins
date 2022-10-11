@@ -165,13 +165,12 @@ class GuiBackendDb():
         except Exception as e:  # pragma: no cover
             # TODO(rennox): Is this the right way to set the last error?
             self._db.set_last_error(e)
+            raise
+        finally:
+            if close:
+                self.close()
 
-        status = self._db.get_last_status()
-
-        if close:
-            self.close()
-
-        return Response.fromStatus(status, {"rows": rows})
+        return rows
 
     def get_last_status(self):
         return self._db.get_last_status()
