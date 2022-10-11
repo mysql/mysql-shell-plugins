@@ -188,7 +188,7 @@ def list_user_roles(username, be_session=None):
                     ON u.id = u_r.user_id
                 INNER JOIN role r
                     ON u_r.role_id=r.id
-            WHERE upper(u.name) = upper(?)''', (username,))['rows']
+            WHERE upper(u.name) = upper(?)''', (username,))
 
 
 @plugin_function('gui.users.listRoles', web=True)
@@ -204,7 +204,7 @@ def list_roles(be_session=None):
     """
     with BackendDatabase(be_session) as db:
         return db.select("SELECT name, description "
-                         "FROM role")['rows']
+                         "FROM role")
 
 
 @plugin_function('gui.users.listRolePrivileges', web=True)
@@ -228,7 +228,7 @@ def list_role_privileges(role, be_session=None):
                     ON p.privilege_type_id=pt.id
                 INNER JOIN role r
                     ON r_p.role_id = r.id
-            WHERE r.name = ?''', (role,))['rows']
+            WHERE r.name = ?''', (role,))
 
 
 @plugin_function('gui.users.listUserPrivileges', web=True)
@@ -256,7 +256,7 @@ def list_user_privileges(username, be_session=None):
                     ON u_r.user_id = u.id
                 INNER JOIN role r
                     ON u_r.role_id = r.id
-            WHERE upper(u.name) = upper(?)''', (username,))['rows']
+            WHERE upper(u.name) = upper(?)''', (username,))
 
 
 @plugin_function('gui.users.getGuiModuleList', shell=False, web=True)
@@ -320,7 +320,7 @@ def list_profiles(user_id, be_session=None):
     """
     with BackendDatabase(be_session) as db:
         return db.select('''SELECT id, name FROM profile
-            WHERE user_id = ?''', (user_id,))['rows']
+            WHERE user_id = ?''', (user_id,))
 
 
 @plugin_function('gui.users.getProfile', shell=False, web=True)

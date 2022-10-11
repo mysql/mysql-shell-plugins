@@ -110,10 +110,10 @@ def test_GuiBackendDb_insert():
     assert count_step_1 == count_step_3
 
 
-def test_GuiBackendDb_select_json():
+def test_GuiBackendDb_select_rows():
     backend_db = GuiBackendDb()
 
-    result = backend_db.select('''SELECT * FROM db_connection''')
+    result = backend_db.select('''SELECT * FROM data_category''')
 
     assert len(result) > 0
 

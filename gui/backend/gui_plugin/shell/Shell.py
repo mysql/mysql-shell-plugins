@@ -57,7 +57,7 @@ def start_session(request_id, db_connection_id=None, shell_args=None, web_sessio
         db_connection_id (int): The id of the connection id to use on the shell session.
         shell_args (list): The list of command line arguments required to execute a specific operation.
         web_session (object): The web_session object this session will belong to
-        be_session (object):  A session to the GUI backend database 
+        be_session (object):  A session to the GUI backend database
             where the operation will be performed.
     Returns:
         A dict holding the result message

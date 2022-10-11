@@ -1951,7 +1951,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, details, "")
             .then((event: ICommAddConnectionEvent) => {
                 if (event.data) {
-                    details.id = event.data.result.dbConnectionId;
+                    details.id = event.data.result;
                     this.connectionId = details.id;
                     this.runTest(details);
                 }

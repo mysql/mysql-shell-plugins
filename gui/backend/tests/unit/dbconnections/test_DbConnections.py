@@ -25,16 +25,8 @@ import pytest
 
 
 def validate_response(response):
-    assert not response is None
-    assert "request_state" in response
-
-    request_state = response['request_state']
-
-    assert "type" in request_state
-    assert "msg" in request_state
-    assert isinstance(request_state['type'], str)
-    assert isinstance(request_state['msg'], str)
-    assert request_state['type'] == "OK"
+    assert response is not None
+    assert isinstance(response, list)
 
 
 def validate_rows(rows, validate_function):
@@ -72,7 +64,7 @@ def test_db_types():
     results = DbConnections.get_db_types()
 
     validate_response(results)
-    validate_rows(results['db_type'], validate_db_type_row)
+    validate_rows(results, validate_db_type_row)
 
 
 def validate_connections_sort_order(connections, expected):
@@ -104,15 +96,15 @@ class TestDbConnectionsSqlite:
         results2 = DbConnections.list_db_connections(1, 'tests')
 
         validate_response(results2)
-        validate_rows(results2['rows'], validate_connection_row)
+        validate_rows(results2, validate_connection_row)
 
-        assert len(results2['rows']) == len(results1['rows']) + 1
+        assert len(results2) == len(results1) + 1
 
         DbConnections.remove_db_connection(
-            1, result['result']['db_connection_id'])
+            1, result)
         results3 = DbConnections.list_db_connections(1, 'tests')
 
-        assert len(results3['rows']) == len(results1['rows'])
+        assert len(results3) == len(results1)
 
     def test_update_db_connection(self):
         result = DbConnections.add_db_connection(1, {
@@ -124,11 +116,11 @@ class TestDbConnectionsSqlite:
             }
         }, 'tests')
 
-        connection_id = result['result']['db_connection_id']
+        connection_id = result
 
         DbConnections.update_db_connection(
             1, connection_id, {"caption": "Altered caption"})
-        latest = DbConnections.get_db_connection(connection_id)['rows'][0]
+        latest = DbConnections.get_db_connection(connection_id)[0]
 
         assert latest['caption'] == "Altered caption"
         assert latest['description'] == "This is a test sqlite3 database description"
@@ -138,7 +130,7 @@ class TestDbConnectionsSqlite:
 
         DbConnections.update_db_connection(
             1, connection_id, {"description": "Altered description"})
-        latest = DbConnections.get_db_connection(connection_id)['rows'][0]
+        latest = DbConnections.get_db_connection(connection_id)[0]
 
         assert latest['caption'] == "Altered caption"
         assert latest['description'] == "Altered description"
@@ -148,7 +140,7 @@ class TestDbConnectionsSqlite:
 
         DbConnections.update_db_connection(
             1, connection_id, {"options": {"item": "empty"}})
-        latest = DbConnections.get_db_connection(connection_id)['rows'][0]
+        latest = DbConnections.get_db_connection(connection_id)[0]
 
         assert latest['caption'] == "Altered caption"
         assert latest['description'] == "Altered description"
@@ -178,15 +170,15 @@ class TestDbConnectionMySQL:
         results2 = DbConnections.list_db_connections(1, 'tests')
 
         validate_response(results2)
-        validate_rows(results2['rows'], validate_connection_row)
+        validate_rows(results2, validate_connection_row)
 
-        assert len(results2['rows']) == len(results1['rows']) + 1
+        assert len(results2) == len(results1) + 1
 
         DbConnections.remove_db_connection(
-            1, result['result']['db_connection_id'])
+            1, result)
         results3 = DbConnections.list_db_connections(1, 'tests')
 
-        assert len(results3['rows']) == len(results1['rows'])
+        assert len(results3) == len(results1)
 
     def test_add_wrong_db_connection_mysql(self):
         default_root_config = config.Config.get_instance(
@@ -265,7 +257,7 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn1_id = result['result']['db_connection_id']
+        conn1_id = result
 
         result = DbConnections.add_db_connection(profile_id, {
             "db_type": default_root_config['type'],
@@ -279,7 +271,7 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn2_id = result['result']['db_connection_id']
+        conn2_id = result
 
         result = DbConnections.add_db_connection(profile_id, {
             "db_type": default_root_config['type'],
@@ -293,7 +285,7 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn3_id = result['result']['db_connection_id']
+        conn3_id = result
 
         result = DbConnections.add_db_connection(profile_id, {
             "db_type": default_root_config['type'],
@@ -307,12 +299,12 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn4_id = result['result']['db_connection_id']
+        conn4_id = result
 
         # Before moving
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 1},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 2},
@@ -326,7 +318,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 2},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 3},
@@ -340,7 +332,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 1},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 3},
@@ -354,7 +346,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 1},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 4},
@@ -368,7 +360,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 1},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 3},
@@ -382,7 +374,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 1},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 2},
@@ -396,7 +388,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 1},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 3},
@@ -410,7 +402,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 1},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 4},
@@ -424,7 +416,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 2},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 4},
@@ -438,7 +430,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 3},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 4},
@@ -452,7 +444,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 3},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 4},
@@ -466,7 +458,7 @@ class TestDbConnectionMySQL:
 
         db_connections = DbConnections.list_db_connections(
             profile_id, 'sort_tests')
-        validate_connections_sort_order(db_connections['rows'],
+        validate_connections_sort_order(db_connections,
                                         [{'caption': "This is a test MySQL database 1", "index": 3},
                                          {'caption': "This is a test MySQL database 2",
                                              "index": 4},

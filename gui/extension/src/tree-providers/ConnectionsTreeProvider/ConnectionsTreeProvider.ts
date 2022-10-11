@@ -31,7 +31,7 @@ import {
 import {
     ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent,
     ICommOpenConnectionEvent, ICommSimpleRowEvent, IShellFeedbackRequest,
-    IShellResultType, ISimpleRowData, ShellPromptResponseType,
+    IShellResultType, ShellPromptResponseType,
 } from "../../../../frontend/src/communication";
 import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
@@ -51,7 +51,7 @@ import {
     SchemaTableColumnTreeItem, SchemaTableForeignKeyTreeItem, SchemaTableIndexTreeItem, SchemaTableMySQLTreeItem,
     SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
 } from ".";
-import { convertSnakeToCamelCase, stripAnsiCode } from "../../../../frontend/src/utilities/helpers";
+import { stripAnsiCode } from "../../../../frontend/src/utilities/helpers";
 import { SchemaListTreeItem } from "./SchemaListTreeItem";
 
 export interface IConnectionEntry {
@@ -240,25 +240,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 const details: IConnectionDetails[] = [];
                 ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
                     .then((event: ICommSimpleRowEvent) => {
-                        if (!event.data) {
-                            return;
-                        }
-
-                        const resultData = convertSnakeToCamelCase(event.data as object) as ISimpleRowData;
-                        const entries = resultData.rows as IConnectionDetails[];
+                        const entries = event.data.result as IConnectionDetails[];
                         switch (event.eventType) {
                             case EventType.DataResponse: {
-                                if (event.data.rows) {
-                                    details.push(...entries);
-                                }
+                                details.push(...entries);
 
                                 break;
                             }
 
                             case EventType.FinalResponse: {
-                                if (event.data.rows) {
-                                    details.push(...entries);
-                                }
+                                details.push(...entries);
 
                                 // Close and remove all open connections that are no longer in the new list.
                                 // Sort in new connection entries on the way.

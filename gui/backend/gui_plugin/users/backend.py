@@ -111,7 +111,7 @@ def create_user(db, username, password, role=None, allowed_hosts=None):
 
     search = db.select("SELECT * FROM user WHERE name = ?", (username, ))
 
-    if len(search['rows']) > 0:
+    if len(search) > 0:
         raise MSGException(Error.USER_CREATE, "User already exists.")
 
     salt = os.urandom(32).hex()
@@ -166,7 +166,7 @@ def get_user_id(db, username):
 
 
 def list_users(db):
-    return db.select("SELECT name FROM user")['rows']
+    return db.select("SELECT name FROM user")
 
 
 def add_profile(db, user_id, profile):
@@ -219,7 +219,7 @@ def get_profile(db, profile_id):
         raise MSGException(Error.USER_INVALID_PROFILE,
                            "The profile does not exist.")
 
-    return result['rows'][0]
+    return result[0]
 
 
 def get_default_profile(db, user_id):
@@ -308,7 +308,7 @@ def get_user_groups(db, user_id=None):
                   WHERE ughu.user_id=?'''
 
     args = (user_id,) if user_id is not None else None
-    return db.select(sql, args)['rows']
+    return db.select(sql, args)
 
 
 def get_id_personal_user_group(db, user_id):

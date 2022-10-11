@@ -58,13 +58,13 @@ import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Exp
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import {
     ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommDbDataContentEvent,
-    ICommOpenConnectionEvent, ICommSimpleRowEvent, ISimpleRowData,
+    ICommOpenConnectionEvent, ICommSimpleRowEvent,
 } from "../../communication";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
-import { convertSnakeToCamelCase, uuid } from "../../utilities/helpers";
+import { uuid } from "../../utilities/helpers";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { DBEditorModuleId } from "../ModuleInfo";
@@ -509,15 +509,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const connections: IConnectionDetails[] = [];
             ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
                 .then((event: ICommSimpleRowEvent) => {
-                    if (!event.data) {
-                        resolve(false);
-
-                        return;
-                    }
-
-                    // XXX: temporary workaround.
-                    const resultData = convertSnakeToCamelCase(event.data) as ISimpleRowData;
-                    connections.push(...resultData.rows as IConnectionDetails[]);
+                    connections.push(...event.data.result as IConnectionDetails[]);
 
                     if (event.eventType === EventType.FinalResponse) {
                         resolve(true);
@@ -539,7 +531,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 const { connections } = this.state;
 
                 if (event.data) {
-                    details.id = event.data.result.dbConnectionId;
+                    details.id = event.data.result;
                     connections.push(details);
 
                     this.setState({ connections });

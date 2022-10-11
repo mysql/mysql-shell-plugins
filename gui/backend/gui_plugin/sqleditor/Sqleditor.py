@@ -21,6 +21,7 @@
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.sqleditor.SqleditorModuleSession import SqleditorModuleSession
+from gui_plugin.core.Protocols import Response
 from gui_plugin.db import backend
 
 
