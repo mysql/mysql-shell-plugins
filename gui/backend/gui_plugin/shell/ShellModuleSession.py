@@ -19,15 +19,13 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gui_plugin.core.Protocols import Response
 from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 from gui_plugin.core.modules import ModuleSession
 from gui_plugin.core.BaseTask import CommandTask
 import subprocess
 import threading
-from queue import Queue, Empty
-import select
+from queue import Queue
 import json
 import os
 import sys
@@ -36,9 +34,9 @@ import mysqlsh
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 import os.path
-from gui_plugin.core.lib.OciUtils import BastionHandler
 import gui_plugin.core.Logger as logger
 from gui_plugin.core import Filtering
+from gui_plugin.core.Context import get_context
 
 
 def remove_dict_useless_items(data):
@@ -60,8 +58,8 @@ def remove_dict_useless_items(data):
 
 
 class ShellCommandTask(CommandTask):
-    def __init__(self, request_id, command, params=None, result_queue=None, result_callback=None, options=None):
-        super().__init__(request_id, command, params=params,  result_queue=result_queue,
+    def __init__(self, task_id, command, params=None, result_queue=None, result_callback=None, options=None):
+        super().__init__(task_id, command, params=params,  result_queue=result_queue,
                          result_callback=result_callback, options=options)
         self.dispatch_result("PENDING", message='Execution started...')
 
@@ -91,8 +89,8 @@ class ShellCommandTask(CommandTask):
 
 
 class ShellQuitTask(ShellCommandTask):
-    def __init__(self, request_id=None, params=None, result_queue=None, result_callback=None, options=None):
-        super().__init__(request_id, {"execute": "\\quit"},
+    def __init__(self, task_id=None, params=None, result_queue=None, result_callback=None, options=None):
+        super().__init__(task_id, {"execute": "\\quit"},
                          params, result_queue, result_callback, options)
 
 
@@ -105,7 +103,10 @@ class ShellDbSessionHandler(DbMysqlSession):
 
 
 class ShellModuleSession(ModuleSession):
-    def __init__(self, web_session, request_id, options=None, shell_args=None):
+    def __init__(self, options=None, shell_args=None):
+        context = get_context()
+        request_id = context.request_id if context else None
+        web_session = context.web_handler if context else None
         super().__init__(web_session)
 
         EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME = "mysqlsh-gui"
@@ -306,7 +307,7 @@ class ShellModuleSession(ModuleSession):
 
         super().close()
 
-    def execute(self, command: str, request_id=None, callback=None, options=None):
+    def execute(self, command: str, callback=None, options=None):
         if callback is None:
             callback = self._handle_api_response
 
@@ -319,18 +320,22 @@ class ShellModuleSession(ModuleSession):
         # Formats the command as expected by the shell
         command = {"execute": command}
 
-        self._request_queue.put(ShellCommandTask(
-            request_id, command, result_callback=callback, options=options))
+        self.add_task(command, callback, options)
 
-    def complete(self, data: str, offset=None, request_id=None, callback=None, options=None):
+    def complete(self, data: str, offset=None, callback=None, options=None):
         if callback is None:
             callback = self._handle_api_response
 
         command = {"complete": {"data": data,
                                 "offset": 0 if offset is None else offset}}
 
+        self.add_task(command, callback, options)
+
+    def add_task(self, command, callback, options):
+        context = get_context()
+        task_id = context.request_id if context else None
         self._request_queue.put(ShellCommandTask(
-            request_id, command, result_callback=callback, options=options))
+            task_id, command, result_callback=callback, options=options))
 
     def handle_shell_output(self):
         # Read characters from the shell stdout and build responses
@@ -376,8 +381,11 @@ class ShellModuleSession(ModuleSession):
 
                         # command complete
                         if not self._initialize_complete.is_set():
+                            data ={"last_prompt": self._last_prompt, "module_session_id": self.module_session_id}
+                            if self._last_prompt != reply_json:
+                                data.update(reply_json)
                             self._pending_request.complete(message="New Shell Interactive session created successfully.",
-                                                           data=None if self._last_prompt == reply_json else reply_json)
+                                                           data=data)
                             self._initialize_complete.set()
                         else:
                             self._pending_request.complete(
@@ -495,7 +503,9 @@ class ShellModuleSession(ModuleSession):
     def cancel_request(self, request_id):
         self._cancel_requests.append(request_id)
 
-    def kill_shell_task(self, request_id):
+    def kill_shell_task(self):
+        context = get_context()
+        request_id = context.request_id if context else None
         if not self._command_complete.is_set() and self._pending_request is not None:
             self.kill_command()
             self.send_command_response(request_id, 'Command killed')

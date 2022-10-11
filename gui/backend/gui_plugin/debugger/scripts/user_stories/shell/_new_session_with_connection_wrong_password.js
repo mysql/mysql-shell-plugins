@@ -46,17 +46,6 @@ await ws.sendAndValidate({
         "db_connection_id": ws.tokens["db_connection_id"]
     }
 }, ws.matchList([
-    {
-        "request_id": request_id,
-        "request_state": {
-            "type": "PENDING",
-            "msg": "New Shell session initiated..."
-        },
-        "result": {
-            "module_session_id": ws.lastModuleSessionId,
-            "last_prompt": {},
-        }
-    },
     Object.assign(Object(), responses.pending.executing, {
         "result":
         {

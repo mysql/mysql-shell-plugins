@@ -711,7 +711,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Indicates whether this module is a GUI backend module
      *
-     * @returns True
+     * @returns bool: True
      */
     public static getRequestShellIsGuiModuleBackend(): IShellRequest {
 
@@ -724,7 +724,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns display information about the module
      *
-     * @returns A dict with display information for the module
+     * @returns dict: display information for the module
      */
     public static getRequestShellGetGuiModuleDisplayInfo(): IShellRequest {
 
@@ -740,7 +740,7 @@ export class ProtocolGui extends Protocol {
      * @param dbConnectionId The id of the connection id to use on the shell session.
      * @param shellArgs The list of command line arguments required to execute a specific operation.
      *
-     * @returns A dict holding the result message
+     * @returns None
      */
     public static getRequestShellStartSession(dbConnectionId?: number, shellArgs?: unknown[]): IShellRequest {
 
@@ -758,7 +758,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param moduleSessionId The string id for the module session object that should be closed
      *
-     * @returns A dict holding the result message
+     * @returns None
      */
     public static getRequestShellCloseSession(moduleSessionId: string): IShellRequest {
 
@@ -776,7 +776,7 @@ export class ProtocolGui extends Protocol {
      * @param command The shell command to run in the interactive shell
      * @param moduleSessionId The string id for the module session object where the command will be executed
      *
-     * @returns A dict holding the result message
+     * @returns None
      */
     public static getRequestShellExecute(command: string, moduleSessionId: string): IShellRequest {
 
@@ -796,7 +796,7 @@ export class ProtocolGui extends Protocol {
      * @param offset Completion offset
      * @param moduleSessionId The string id for the module session object where the completion will be executed
      *
-     * @returns A string list with the completion options
+     * @returns None
      */
     public static getRequestShellComplete(data: string, offset: number, moduleSessionId: string): IShellRequest {
 
@@ -815,7 +815,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param moduleSessionId The module_session object that should be closed
      *
-     * @returns A dict holding the result message
+     * @returns None
      */
     public static getRequestShellKillTask(moduleSessionId: string): IShellRequest {
 
@@ -1040,7 +1040,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Indicates whether this module is a GUI backend module
      *
-     * @returns True
+     * @returns bool: True
      */
     public static getRequestSqleditorIsGuiModuleBackend(): IShellRequest {
 
@@ -1053,7 +1053,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Returns display information about the module
      *
-     * @returns A dict with display information for the module
+     * @returns dict: display information for the module
      */
     public static getRequestSqleditorGetGuiModuleDisplayInfo(): IShellRequest {
 
@@ -1066,7 +1066,7 @@ export class ProtocolGui extends Protocol {
     /**
      * Starts a SQL Editor Session
      *
-     * @returns A dict holding the result message
+     * @returns dict: contains module session ID
      */
     public static getRequestSqleditorStartSession(): IShellRequest {
 
@@ -1081,7 +1081,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param moduleSessionId The string id for the module session object that should be closed
      *
-     * @returns A dict holding the result message
+     * @returns None
      */
     public static getRequestSqleditorCloseSession(moduleSessionId: string): IShellRequest {
 
@@ -1100,7 +1100,7 @@ export class ProtocolGui extends Protocol {
      * @param moduleSessionId The session where the connection will open
      * @param password The password to use when opening the connection. If not supplied, then use the password defined in the database options.
      *
-     * @returns A dict holding the result message and the connection information     when available.
+     * @returns None
      */
     public static getRequestSqleditorOpenConnection(dbConnectionId: number, moduleSessionId: string, password?: string): IShellRequest {
 
@@ -1119,7 +1119,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param moduleSessionId The session where the session will be reconnected
      *
-     * @returns A dict holding the result message and the connection information     when available.
+     * @returns None
      */
     public static getRequestSqleditorReconnect(moduleSessionId: string): IShellRequest {
 
@@ -1139,7 +1139,7 @@ export class ProtocolGui extends Protocol {
      * @param params The parameters for the sql command.
      * @param options A dictionary that holds additional options, e.g. {"row_packet_size": -1}
      *
-     * @returns A dict holding the result message
+     * @returns dict: the result message
      */
     public static getRequestSqleditorExecute(moduleSessionId: string, sql: string, params?: unknown[], options?: IShellQueryOptions): IShellRequest {
 
@@ -1166,7 +1166,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param moduleSessionId The string id for the module session object where the query is running
      *
-     * @returns Nothing
+     * @returns None
      */
     public static getRequestSqleditorKillQuery(moduleSessionId: string): IShellRequest {
 
@@ -1183,7 +1183,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      *
-     * @returns Nothing
+     * @returns str: current schema name
      */
     public static getRequestSqleditorGetCurrentSchema(moduleSessionId: string): IShellRequest {
 
@@ -1201,7 +1201,7 @@ export class ProtocolGui extends Protocol {
      * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      * @param schemaName The name of the schema to use
      *
-     * @returns Nothing
+     * @returns None
      */
     public static getRequestSqleditorSetCurrentSchema(moduleSessionId: string, schemaName: string): IShellRequest {
 
@@ -1219,7 +1219,7 @@ export class ProtocolGui extends Protocol {
      *
      * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      *
-     * @returns Nothing
+     * @returns int: auto-commit status
      */
     public static getRequestSqleditorGetAutoCommit(moduleSessionId: string): IShellRequest {
 
@@ -1237,7 +1237,7 @@ export class ProtocolGui extends Protocol {
      * @param moduleSessionId The string id for the module session object, holding the database session to be used on the operation.
      * @param state The auto-commit state to set for the module session
      *
-     * @returns Nothing
+     * @returns None
      */
     public static getRequestSqleditorSetAutoCommit(moduleSessionId: string, state: boolean): IShellRequest {
 

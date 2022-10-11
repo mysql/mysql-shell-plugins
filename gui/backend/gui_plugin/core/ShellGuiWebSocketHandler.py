@@ -731,6 +731,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         or cmd.startswith('gui.users.') \
                         or cmd.startswith('gui.modules.') \
                         or cmd.startswith('gui.dbconnections.') \
+                        or cmd.startswith('gui.shell.') \
                         or cmd in ['gui.core.set_log_level', 'gui.core.get_log_level']:
 
                     confirm_complete = True
@@ -740,7 +741,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                                'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
                                'gui.db.get_catalog_object_names', 'gui.db.get_schema_object_names',
                                'gui.db.get_table_object_names', 'gui.db.get_catalog_object',
-                               'gui.db.get_schema_object', 'gui.db.get_table_object']:
+                               'gui.db.get_schema_object', 'gui.db.get_table_object',
+                               'gui.shell.start_session', 'gui.shell.execute', 'gui.shell.complete']:
                         confirm_complete = False
                     thread = RequestHandler(
                         request_id, func, kwargs, self, confirm_complete)

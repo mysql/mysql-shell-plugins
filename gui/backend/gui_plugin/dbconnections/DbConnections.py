@@ -21,7 +21,6 @@
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 import json
-from gui_plugin.core.Protocols import Response
 from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.Db import BackendDatabase, BackendTransaction
 import gui_plugin.core.Error as Error

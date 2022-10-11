@@ -20,18 +20,16 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-from gui_plugin.core.Protocols import Response
 from .ShellModuleSession import ShellModuleSession
 from gui_plugin.core.Db import BackendDatabase
 from gui_plugin.core import Error
-import mysqlsh
 
 
 @plugin_function('gui.shell.isGuiModuleBackend', web=True)
 def is_gui_module_backend():
     """Indicates whether this module is a GUI backend module
     Returns:
-        True
+        bool: True
     """
     return True
 
@@ -40,7 +38,7 @@ def is_gui_module_backend():
 def get_gui_module_display_info():
     """Returns display information about the module
     Returns:
-        A dict with display information for the module
+        dict: display information for the module
     """
     return {
         "name": "MySQL Shell Console",
@@ -50,17 +48,15 @@ def get_gui_module_display_info():
 
 
 @plugin_function('gui.shell.startSession', shell=False, web=True)
-def start_session(request_id, db_connection_id=None, shell_args=None, web_session=None, be_session=None):
+def start_session(db_connection_id=None, shell_args=None, be_session=None):
     """Starts a new Shell Interactive Session
     Args:
-        request_id (str): The request_id of the command.
         db_connection_id (int): The id of the connection id to use on the shell session.
         shell_args (list): The list of command line arguments required to execute a specific operation.
-        web_session (object): The web_session object this session will belong to
         be_session (object):  A session to the GUI backend database
             where the operation will be performed.
     Returns:
-        A dict holding the result message
+        None
     """
     options = None
     if db_connection_id is not None:
@@ -72,14 +68,7 @@ def start_session(request_id, db_connection_id=None, shell_args=None, web_sessio
             raise Error.MSGException(Error.DB_INVALID_DB_TYPE,
                                      f'Shell operations only work with MySQL database connections.')
 
-    new_session = ShellModuleSession(
-        web_session, request_id, options=options, shell_args=shell_args)
-    return Response.pending("New Shell session initiated...", {
-        "result": {
-            "last_prompt": new_session._last_prompt,
-            "module_session_id": new_session.module_session_id,
-        }
-    })
+    ShellModuleSession(options=options, shell_args=shell_args)
 
 
 @plugin_function('gui.shell.closeSession', shell=False, web=True)
@@ -88,48 +77,42 @@ def close_session(module_session):
     Args:
         module_session (object): The module session object that should be closed
     Returns:
-        A dict holding the result message
+        None
     """
     module_session.close()
-    return Response.ok("The Shell Interactive session has been closed successfully.", {
-        "module_session_id": module_session.module_session_id
-    })
 
 
 @plugin_function('gui.shell.execute', shell=False, web=True)
-def execute(command, module_session, request_id):
+def execute(command, module_session):
     """Execute a shell command
     Args:
         command (str): The shell command to run in the interactive shell
         module_session (object): The module session object where the command will be executed
-        request_id (str): The request_id of the command.
     Returns:
-        A dict holding the result message
+        None
     """
-    module_session.execute(command=command, request_id=request_id)
+    module_session.execute(command=command)
 
 
 @plugin_function('gui.shell.complete', shell=False, web=True)
-def complete(data, offset, module_session, request_id):
+def complete(data, offset, module_session):
     """Retrieve options to complete the given text on the shell context
     Args:
         data (str): The shell text to be completed
         offset (int): Completion offset
         module_session (object): The module session object where the completion will be executed
-        request_id (str): The request_id of the command.
     Returns:
-        A string list with the completion options
+        None
     """
-    module_session.complete(data=data, offset=offset, request_id=request_id)
+    module_session.complete(data=data, offset=offset)
 
 
 @plugin_function('gui.shell.killTask', shell=False, web=True)
-def kill_task(module_session, request_id):
+def kill_task(module_session):
     """Kill a shell task
     Args:
         module_session (object): The module_session object that should be closed
-        request_id (str): The request_id of the command.
     Returns:
-        A dict holding the result message
+        None
     """
-    module_session.kill_shell_task(request_id)
+    module_session.kill_shell_task()
