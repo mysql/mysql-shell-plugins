@@ -59,18 +59,10 @@ await ws.sendAndValidate({
         "request_state": { "type": "PENDING", "msg": "Execution started..." }
     },
     {
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": { "type": "PENDING", "msg": "New Shell session initiated..." },
-        "result": {
-            "module_session_id": ws.lastModuleSessionId,
-            "last_prompt": {},
-        }
-    },
-    {
         "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
         "request_state": { "msg": "New Shell Interactive session created successfully." },
-        "result": { "prompt_descriptor": { "mode": "Py" } }
+        "result": { "prompt_descriptor": { "mode": "Py" }, "module_session_id": ws.lastModuleSessionId, "last_prompt": {}}
     }
 ])
 

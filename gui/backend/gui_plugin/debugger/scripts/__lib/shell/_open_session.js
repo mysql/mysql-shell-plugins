@@ -14,24 +14,21 @@ await ws.sendAndValidate({
     "command": "gui.shell.start_session",
     "args": {}
 }, [
-    responses.pending.executionStarted,
     {
-        "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "PENDING",
-            "msg": "New Shell session initiated..."
+            "msg": "Execution started..."
         },
-        "result": {
-            "module_session_id": ws.lastModuleSessionId,
-            "last_prompt": {},
-        }
+        "request_id": ws.lastGeneratedRequestId
     },
     Object.assign(Object(), responses.ok.default, {
         "request_state": { "msg": "New Shell Interactive session created successfully." },
         "result": {
             "prompt_descriptor": {
                 "mode": "Py"
-            }
+            },
+            "module_session_id": ws.lastModuleSessionId,
+            "last_prompt": {},
         }
     })
 ])

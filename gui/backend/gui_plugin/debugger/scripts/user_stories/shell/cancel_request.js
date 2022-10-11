@@ -14,20 +14,13 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "PENDING",
-            "msg": "New Shell session initiated..."
+            "type": "OK",
+            "msg": "New Shell Interactive session created successfully."
         },
         "result": {
             "module_session_id": ws.lastModuleSessionId,
             "last_prompt": {},
         }
-    },
-    {
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": {
-            "type": "OK",
-            "msg": "New Shell Interactive session created successfully."
-        },
     }
 ])
 
@@ -106,11 +99,10 @@ await ws.sendAndValidate({
     }
 }, [
     {
-        "module_session_id": ws.lastModuleSessionId,
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": "The Shell Interactive session has been closed successfully."
+            "msg": ""
         }
     }
 ])

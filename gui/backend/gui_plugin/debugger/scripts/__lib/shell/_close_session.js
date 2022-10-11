@@ -10,11 +10,10 @@ await ws.sendAndValidate({
     }
 }, [
     {
-        "module_session_id": ws.lastModuleSessionId,
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": "The Shell Interactive session has been closed successfully."
+            "msg": ""
         }
     }
 ])

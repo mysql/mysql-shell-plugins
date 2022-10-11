@@ -30,7 +30,7 @@ def is_gui_module_backend():
     """Indicates whether this module is a GUI backend module
 
     Returns:
-        True
+        bool: True
     """
     return True
 
@@ -40,7 +40,7 @@ def get_gui_module_display_info():
     """Returns display information about the module
 
     Returns:
-        A dict with display information for the module
+        dict: display information for the module
     """
     return {"name": "SQL Editor",
             "description": "A graphical SQL Editor",
@@ -54,7 +54,7 @@ def start_session(web_session=None):
     Args:
         web_session (object): The web_session object this session will belong to
     Returns:
-        A dict holding the result message
+        dict: contains module session ID
     """
     new_session = SqleditorModuleSession(web_session)
 
@@ -68,7 +68,7 @@ def close_session(module_session):
     Args:
         module_session (object): The module session object that should be closed
     Returns:
-        A dict holding the result message
+        None
     """
     module_session.close()
 
@@ -83,8 +83,7 @@ def open_connection(db_connection_id, module_session, password=None):
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
 
     Returns:
-        A dict holding the result message and the connection information
-        when available.
+        None
     """
     module_session.open_connection(db_connection_id, password)
 
@@ -96,8 +95,7 @@ def reconnect(module_session):
         module_session (object): The session where the session will be reconnected
 
     Returns:
-        A dict holding the result message and the connection information
-        when available.
+        None
     """
     module_session.reconnect()
 
@@ -117,7 +115,7 @@ def execute(session, sql, params=None, options=None):
         row_packet_size (int): The pack size for each result segment
 
     Returns:
-        A dict holding the result message
+        dict: the result message
     """
     session = backend.get_db_session(session)
     return session.execute(sql=sql, params=params, options=options)
@@ -131,7 +129,7 @@ def kill_query(module_session):
         module_session (object): The module session object where the query is running
 
     Returns:
-        Nothing
+        None
     """
     module_session.kill_query()
 
@@ -144,7 +142,7 @@ def get_current_schema(session):
         session (object): The session used to execute the operation
 
     Returns:
-        Nothing
+        str: current schema name
     """
     session = backend.get_db_session(session)
     return session.get_current_schema()
@@ -159,7 +157,7 @@ def set_current_schema(session, schema_name):
         schema_name (str): The name of the schema to use
 
     Returns:
-        Nothing
+        None
     """
     session = backend.get_db_session(session)
     session.set_current_schema(schema_name=schema_name)
@@ -173,7 +171,7 @@ def get_auto_commit(session):
         session (object): The session used to execute the operation
 
     Returns:
-        Nothing
+        int: auto-commit status
     """
     session = backend.get_db_session(session)
     return session.get_auto_commit()
@@ -188,7 +186,7 @@ def set_auto_commit(session, state):
         state (bool): The auto-commit state to set for the module session
 
     Returns:
-        Nothing
+        None
     """
     session = backend.get_db_session(session)
-    return session.set_auto_commit(state=state)
+    session.set_auto_commit(state=state)

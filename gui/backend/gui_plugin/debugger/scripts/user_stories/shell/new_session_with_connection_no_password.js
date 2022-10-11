@@ -50,14 +50,6 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
     },
     {
-        "request_state": { "type": "PENDING", "msg": "New Shell session initiated..." },
-        "request_id": ws.lastGeneratedRequestId,
-        "result": {
-            "module_session_id": ws.lastModuleSessionId,
-            "last_prompt": {},
-        }
-    },
-    {
         "request_state": { "type": "PENDING", "msg": "Executing..." },
         "request_id": ws.lastGeneratedRequestId,
         "result":
