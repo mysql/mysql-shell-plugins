@@ -31,6 +31,7 @@ from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 import gui_plugin.core.Logger as logger
+import threading
 from gui_plugin.core.Context import get_context
 
 
@@ -122,6 +123,8 @@ class DbSqliteSession(DbSession):
         self._failed_cb = on_failed_cb
         self.session = None
 
+        self.lock = threading.Lock()
+
         self._databases = {}
 
         self._add_database(self._connection_options)
@@ -153,17 +156,16 @@ class DbSqliteSession(DbSession):
         try:
             self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=5, factory=SqliteConnection,
                                         isolation_level=None, check_same_thread=False)
-            self.cursor = self.conn.cursor()
+            # Cursor to be used for statements from the owner of this instance
+            self.cursor = None
 
-            init_cursor = self.conn.cursor()
-            init_cursor.execute("PRAGMA journal_mode = WAL")
+            init_cursor = self.conn.execute("PRAGMA journal_mode = WAL")
             init_cursor.close()
 
             for (database_name, db_file) in self._databases.items():
                 if database_name == self._current_schema:
                     continue
-                self.cursor.execute(
-                    f"ATTACH '{db_file}' AS '{database_name}';")
+                self.conn.execute(f"ATTACH '{db_file}' AS '{database_name}';")
 
             if not self._connected_cb is None and notify_success:
                 self._connected_cb(self)
@@ -186,7 +188,12 @@ class DbSqliteSession(DbSession):
     # DbSession overrides
 
     def do_execute(self, sql, params=None):
-        self.cursor = self.cursor.execute(sql, params)
+        try:
+            self.lock.acquire(True)
+            self.cursor = self.conn.execute(sql, params)
+        finally:
+            self.lock.release()
+
         return self.cursor
 
     def _get_stats(self, resultset):
