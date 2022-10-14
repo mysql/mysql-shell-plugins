@@ -197,37 +197,27 @@ try {
     New-Item -Path $configFile -ItemType File
     writeMsg "DONE"
 
-    # RUN OCI TESTS ?
     # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
-    if ($env:RUN_OCI_TESTS -eq $true){
-        $loaded = $false
-        $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"
-        Get-ChildItem -Path $extensionsPath | % {
-            if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
-                $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
-                writeMsg "Importing OCI Library..." "-NoNewLine"
-                $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
-                if ($prc.ExitCode -ne 0){
-                    Throw "Error importing OCI Library"
-                }
-                else{
-                    $loaded = $true
-                    writeMsg "DONE"
-                }
+    $loaded = $false
+    $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"
+    Get-ChildItem -Path $extensionsPath | % {
+        if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
+            $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
+            writeMsg "Importing OCI Library..." "-NoNewLine"
+            $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
+            if ($prc.ExitCode -ne 0){
+                Throw "Error importing OCI Library"
+            }
+            else{
+                $loaded = $true
+                writeMsg "DONE"
             }
         }
-        if ($loaded -eq $false){
-            Throw "OCI Library not loaded. Maybe the extension folder was not found."
-        }
     }
-    else {
-        $content = Get-Content $testsPath
-        writeMsg "Marking OCI tests to be skipped..." "-NoNewLine"
-        $content = $content.replace("describe(`"ORACLE CLOUD INFRASTRUCTURE tests`", () => {", "describe.skip(`"ORACLE CLOUD INFRASTRUCTURE tests`", () => {") 
-        Set-Content -Path $testsPath -Value $content
-        writeMsg "DONE"
+    if ($loaded -eq $false){
+        Throw "OCI Library not loaded. Maybe the extension folder was not found."
     }
-
+    
     # RERUN
     if ($env:RERUN -eq $true){
         $path2json = Join-Path $basePath "mochawesome-report" "test-report.json"
