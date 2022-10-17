@@ -24,6 +24,7 @@ import threading
 from gui_plugin.core.Protocols import Response
 import mysqlsh
 
+
 class RequestHandler(Thread):
     """
     This class will handle web requests to execute a specific API on the shell
@@ -42,7 +43,7 @@ class RequestHandler(Thread):
       responses to the caller.
     """
 
-    def __init__(self, request_id, func, kwargs, web_handler, confirm_complete):
+    def __init__(self, request_id, func, kwargs, web_handler, confirm_complete, lock_session=False):
         super().__init__()
         self._request_id = request_id
         self._func = func
@@ -51,6 +52,7 @@ class RequestHandler(Thread):
         self._text_cache = None
         self._thread_context = None
         self._confirm_complete = confirm_complete
+        self._lock_session = lock_session
 
         # Prompt handling members
         self._prompt_event = None
@@ -140,9 +142,14 @@ class RequestHandler(Thread):
     def _do_execute(self):
         result = None
         try:
+            if self._lock_session:
+                self._kwargs["session"].lock()
             result = self._func(**self._kwargs)
         except Exception as e:
             result = Response.exception(e)
+        finally:
+            if self._lock_session:
+                self._kwargs["session"].release()
 
         if result is not None:
             self.web_handler.send_command_response(

@@ -108,6 +108,15 @@ class DbSession(threading.Thread):
 
         self._setup_tasks = None
 
+    def lock(self):
+        self._mutex.acquire(True)
+
+    def release(self):
+        self._mutex.release()
+
+    def run_sql(self, sql, args=None):
+        raise NotImplementedError()
+
     def _initialize_setup_tasks(self):
         return []
 
