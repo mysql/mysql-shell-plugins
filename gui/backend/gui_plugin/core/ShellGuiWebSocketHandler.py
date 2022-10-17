@@ -86,26 +86,26 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 self.authenticate_session(json_message)
             else:
                 self.send_response_message('ERROR',
-                                            'This session was already '
-                                            'authenticated.',
-                                            json_message.get('request_id'))
+                                           'This session was already '
+                                           'authenticated.',
+                                           json_message.get('request_id'))
         elif request == 'logout':
-                if self.is_authenticated:
-                    self._session_user_id = None
-                    self.send_response_message('OK',
-                                               f'User successfully logged out.',
-                                               json_message.get('request_id'))
+            if self.is_authenticated:
+                self._session_user_id = None
+                self.send_response_message('OK',
+                                           f'User successfully logged out.',
+                                           json_message.get('request_id'))
 
-                else:
-                    self.send_response_message('ERROR',
-                                               'This session is not '
-                                               'authenticated.',
-                                               json_message.get('request_id'))
+            else:
+                self.send_response_message('ERROR',
+                                           'This session is not '
+                                           'authenticated.',
+                                           json_message.get('request_id'))
         elif not self.is_authenticated:
             self.send_response_message('ERROR',
-                                        'This session is not yet '
-                                        'authenticated.',
-                                        json_message.get('request_id'))
+                                       'This session is not yet '
+                                       'authenticated.',
+                                       json_message.get('request_id'))
         elif request == 'execute':
             self.execute_command_request(json_message)
         elif request == 'cancel':
@@ -114,8 +114,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self.prompt_reply(json_message)
         else:
             self.send_response_message('ERROR',
-                                        f'Unknown request: {request}.',
-                                        json_message.get('request_id'))
+                                       f'Unknown request: {request}.',
+                                       json_message.get('request_id'))
 
     def on_ws_message(self, frame: WebSocket.Frame):
         if frame.is_initial_fragment:
@@ -471,7 +471,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                             db, self._session_user_id)
 
                     # get default profile for the user
-                    default_profile = gui.users.get_default_profile(row[0], self.db)
+                    default_profile = gui.users.get_default_profile(
+                        row[0], self.db)
                     self.set_active_profile_id(default_profile["id"])
                     values = {"active_profile": default_profile}
 
@@ -635,6 +636,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             if "be_session" in f_args:
                 kwargs.update({"be_session": self.db})
 
+            lock_session = False
             if "session" in f_args:
                 # If the called function requires a session parameter,
                 # get it from the given module_session
@@ -650,9 +652,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         'argument set to a DbModuleSession.')
 
                 user_session_functions = ["gui.sqleditor.execute",
-                    "gui.sqleditor.default_user_schema", "gui.sqleditor.get_current_schema",
-                    "gui.sqleditor.set_current_schema", "gui.sqleditor.get_auto_commit",
-                    "gui.sqleditor.set_auto_commit"]
+                                          "gui.sqleditor.default_user_schema", "gui.sqleditor.get_current_schema",
+                                          "gui.sqleditor.set_current_schema", "gui.sqleditor.get_auto_commit",
+                                          "gui.sqleditor.set_auto_commit"]
                 if isinstance(module_session, SqleditorModuleSession) and cmd in user_session_functions:
                     db_module_session = module_session._db_user_session
                 else:
@@ -662,11 +664,16 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         f'The function {cmd} needs a module_session_id '
                         'argument set to a DbSession.')
 
-                self.register_module_request(request_id, kwargs['module_session_id'])
-                if found_objects[0] == 'gui':
-                    kwargs.update({"session": db_module_session})
-                else:
-                    kwargs.update({"session": db_module_session.session})
+                self.register_module_request(
+                    request_id, kwargs['module_session_id'])
+
+                kwargs.update({"session": db_module_session})
+
+                # The plugins written for the Shell that work with standard Shell session fall on this branch,
+                # the session must be locked while the function is executed to avoid race conditions that may
+                # lead to shell failures
+                if found_objects[0] != 'gui':
+                    lock_session = True
 
                 del kwargs['module_session_id']
 
@@ -680,7 +687,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 module_session = self.get_module_session_object(
                     kwargs['module_session_id'])
                 kwargs.update({"module_session": module_session})
-                self.register_module_request(request_id, kwargs['module_session_id'])
+                self.register_module_request(
+                    request_id, kwargs['module_session_id'])
                 del kwargs['module_session_id']
 
             # if the function has an async_web_session argument it needs to be
@@ -698,7 +706,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 thread.name = f'req-{request_id}'
                 thread.start()
             elif found_objects[0] != 'gui':
-                thread = RequestHandler(request_id, func, kwargs, self, True)
+                thread = RequestHandler(
+                    request_id, func, kwargs, self, True, lock_session=lock_session)
                 thread.start()
                 result = None
             else:
@@ -711,12 +720,12 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
                     confirm_complete = True
                     if cmd in ['gui.sqleditor.execute', 'gui.sqleditor.open_connection',
-                        'gui.sqleditor.set_auto_commit', 'gui.sqleditor.get_auto_commit',
-                        'gui.sqleditor.get_current_schema', 'gui.sqleditor.set_current_schema',
-                        'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
-                        'gui.db.get_catalog_object_names', 'gui.db.get_schema_object_names',
-                        'gui.db.get_table_object_names', 'gui.db.get_catalog_object',
-                        'gui.db.get_schema_object', 'gui.db.get_table_object']:
+                               'gui.sqleditor.set_auto_commit', 'gui.sqleditor.get_auto_commit',
+                               'gui.sqleditor.get_current_schema', 'gui.sqleditor.set_current_schema',
+                               'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
+                               'gui.db.get_catalog_object_names', 'gui.db.get_schema_object_names',
+                               'gui.db.get_table_object_names', 'gui.db.get_catalog_object',
+                               'gui.db.get_schema_object', 'gui.db.get_table_object']:
                         confirm_complete = False
                     thread = RequestHandler(
                         request_id, func, kwargs, self, confirm_complete)

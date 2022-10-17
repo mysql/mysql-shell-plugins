@@ -31,7 +31,6 @@ from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 import gui_plugin.core.Logger as logger
-import threading
 from gui_plugin.core.Context import get_context
 
 
@@ -123,8 +122,6 @@ class DbSqliteSession(DbSession):
         self._failed_cb = on_failed_cb
         self.session = None
 
-        self.lock = threading.Lock()
-
         self._databases = {}
 
         self._add_database(self._connection_options)
@@ -189,10 +186,10 @@ class DbSqliteSession(DbSession):
 
     def do_execute(self, sql, params=None):
         try:
-            self.lock.acquire(True)
+            self.lock()
             self.cursor = self.conn.execute(sql, params)
         finally:
-            self.lock.release()
+            self.release()
 
         return self.cursor
 

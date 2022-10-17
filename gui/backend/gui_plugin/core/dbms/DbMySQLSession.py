@@ -96,6 +96,9 @@ class DbMysqlSession(DbSession):
             return self.data[common.MySQLData.CONNECTION_ID]
         return None
 
+    def run_sql(self, sql, args=None):
+        return self.session.run_sql(sql, args)
+
     def on_shell_prompt(self, text, options):
         if 'type' in options and options['type'] == 'password':
             logger.add_filter({
@@ -137,7 +140,8 @@ class DbMysqlSession(DbSession):
         while attempts > 0:
             try:
                 # Open Shell connection
-                self.session = self._shell.open_session(self._connection_options)
+                self.session = self._shell.open_session(
+                    self._connection_options)
 
                 return True
             except Exception as e:
