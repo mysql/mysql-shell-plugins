@@ -149,14 +149,12 @@ html.themeSwitch *:after {
 
 /* The next two rules disable the number input spin buttons for all browsers. */
 .msg input[type="number"] {
-    -webkit-appearance: textfield;
-    -moz-appearance: textfield;
     appearance: textfield;
 }
 
 .msg input[type=number]::-webkit-inner-spin-button,
 .msg input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
+    appearance: none;
 }
 
 .msg::selection {
@@ -190,7 +188,7 @@ html.themeSwitch *:after {
 }
 
 .msg .fixedScrollbar::-webkit-scrollbar {
-    -webkit-appearance: none;
+    appearance: none;
     width: 7px;
     height: 7px;
 

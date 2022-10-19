@@ -1698,7 +1698,7 @@ Execute "\\sql" to switch to SQL mode, "\\ts" to switch to TypeScript mode.
 GLOBAL FUNCTIONS
     - \`print(value: any): void\`
       Send a value to the output area.
-    - \`runSql(code: string, callback?: (res:IResultSetRow[]) => void), params?: unknown): void\`
+    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown): void\`
       Run the given query.
     - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
       Run the given query and process the rows iteratively.
@@ -1710,11 +1710,11 @@ GLOBAL FUNCTIONS
 Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
 
 GLOBAL FUNCTIONS
-    - \`print(value: any): void\`
+    - \`print(value: unknown): void\`
       Send a value to the output area.
-    - \`runSql(code: string, callback?: (res:IResultSetRow[]) => void), params?: unknown): void\`
+    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown[]): void\`
       Run the given query.
-    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
+    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown[]): void\`
       Run the given query and process the rows iteratively.
 `;
             }

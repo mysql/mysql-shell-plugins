@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,13 +28,18 @@ import React from "react";
 import { Component, IComponentProperties } from "../Component/Component";
 
 export interface IListProperties extends IComponentProperties {
-    template: React.ReactElement;   // The UI structure to render for each element.
-    elements: object[]; // A list of objects with data to fill in.
+    /** The UI structure to render for each element. */
+    template: React.ReactElement;
+
+    /** A list of objects with data to fill in. */
+    elements: object[];
 }
 
-// This list class renders all items upfront and can hence be used to show complex entries and standard
-// ordered and unordered lists.
-// For a virtual list component see DynamicList.
+/**
+ * This list class renders all items upfront and can hence be used to show complex entries and standard
+ * ordered and unordered lists.
+ * For a virtual list component see DynamicList.
+ */
 export class List extends Component<IListProperties> {
 
     public constructor(props: IListProperties) {

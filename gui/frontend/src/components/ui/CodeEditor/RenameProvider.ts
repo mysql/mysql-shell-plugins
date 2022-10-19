@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,14 @@
 
 import { languages, Position, ProviderResult, WorkspaceEdit, Rejection } from ".";
 
-import { CodeEditorLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
 import { ICodeEditorModel } from "./CodeEditor";
 
 export class RenameProvider implements languages.RenameProvider {
 
     public provideRenameEdits(model: ICodeEditorModel, position: Position,
         newName: string): ProviderResult<WorkspaceEdit & Rejection> {
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         const block = model.executionContexts.contextFromPosition(position);
 
         if (block) {

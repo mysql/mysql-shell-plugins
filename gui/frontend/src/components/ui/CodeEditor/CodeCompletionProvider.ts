@@ -24,7 +24,7 @@
 import {
     languages, Position, ProviderResult, CompletionList, CompletionItem, IRange,
 } from ".";
-import { CodeEditorLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
 import { CodeEditorMode, ICodeEditorModel } from "./CodeEditor";
 
 export class CodeCompletionProvider implements languages.CompletionItemProvider {
@@ -33,7 +33,7 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
 
     public provideCompletionItems(model: ICodeEditorModel, position: Position): ProviderResult<CompletionList> {
 
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         const sourceContext = model.executionContexts.contextFromPosition(position);
         if (!sourceContext) {
             return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,14 +22,14 @@
  */
 
 import { languages, Position, ProviderResult, Hover } from ".";
-import { CodeEditorLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
 import { ICodeEditorModel } from "./CodeEditor";
 
 export class HoverProvider implements languages.HoverProvider {
 
     public provideHover(model: ICodeEditorModel, position: Position): ProviderResult<Hover> {
 
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         const sourceContext = model.executionContexts.contextFromPosition(position);
         if (!sourceContext) {
             return null;

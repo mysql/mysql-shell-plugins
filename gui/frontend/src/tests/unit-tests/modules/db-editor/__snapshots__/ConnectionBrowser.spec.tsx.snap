@@ -176,6 +176,28 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             onSelectTab={[Function]}
           />
         </Dialog>
+        <Menu
+          onItemClick={[Function]}
+          orientation="column"
+          placement="right-start"
+        >
+          <Popup
+            className="msg menu"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+            orientation="column"
+            pinned={false}
+            placement="right-start"
+            showArrow={false}
+          >
+            <Portal
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+            />
+          </Popup>
+        </Menu>
       </ValueEditDialog>
       <ConfirmDialog
         id="confirmClearPasswordDlg"

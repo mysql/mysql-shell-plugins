@@ -63,8 +63,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     public dispose(): void {
         super.dispose();
 
-        this.backend.deltaDecorations([this.promptFirstDecorationID], []);
-        this.backend.deltaDecorations([this.promptOtherDecorationID], []);
+        this.backend?.deltaDecorations([this.promptFirstDecorationID], []);
+        this.backend?.deltaDecorations([this.promptOtherDecorationID], []);
 
         if (this.internalModel) {
             this.internalModel.dispose();
@@ -137,7 +137,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     public get codeOffset(): number {
-        const editorModel = this.backend.getModel();
+        const editorModel = this.backend?.getModel();
         if (editorModel) {
             return editorModel.getOffsetAt({ lineNumber: this.startLineNumber, column: 1 });
         }
@@ -162,8 +162,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
         const lineCount = this.endLine - this.startLine + 1;
 
-        const model = this.backend.getModel();
-        if (model) {
+        const model = this.backend?.getModel();
+        if (this.backend && model) {
             let sourceIDs = this.promptFirstDecorationID === "" ? [] : [this.promptFirstDecorationID];
             let ids = this.backend.deltaDecorations(sourceIDs, [{
                 range: new Range(this.startLine, 1, this.startLine, model.getLineLength(this.startLine)),
@@ -198,7 +198,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         // If we have a result assigned, update that as well.
         if (this.resultInfo) {
             this.resultInfo.zone.afterLineNumber = this.endLine;
-            this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 this.resultInfo && changeAccessor.layoutZone(this.resultInfo.zoneId);
             });
         }
@@ -216,7 +216,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
     protected removeRenderTarget(): void {
         this.targetUpdated = false;
-        this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+        this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.resultInfo) {
                 changeAccessor.removeZone(this.resultInfo.zoneId);
                 this.resultInfo = undefined;
@@ -227,7 +227,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     protected updateRenderTarget(): void {
-        this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+        this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.resultInfo && this.renderTarget) {
                 if (this.currentHeight) {
                     this.resultInfo.zone.heightInPx = this.currentHeight;
@@ -274,7 +274,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         zoneNode.appendChild(result);
 
         result.addEventListener("wheel", (e) => {
-            if (!this.editor.isScrolling) {
+            if (!this.editor?.isScrolling) {
                 (e.currentTarget as HTMLElement).scrollLeft += Math.sign(e.deltaX) * 2;
                 (e.currentTarget as HTMLElement).scrollTop += Math.sign(e.deltaY) * 2;
                 e.stopPropagation();
@@ -308,7 +308,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 }
             },
         };
-        this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+        this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             zoneId = changeAccessor.addZone(zone);
         });
 
@@ -357,7 +357,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     this.resultInfo.zone.heightInPx = newHeight;
 
                     // Only adjust the zone height here. The manualHeight member is updated on mouse up.
-                    this.backend.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                    this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                         if (this.resultInfo) {
                             this.resultInfo.zone.heightInPx = newHeight;
                             changeAccessor.layoutZone(this.resultInfo.zoneId);

@@ -182,6 +182,7 @@ export class ScopeSelector extends Component<IScopeSelectorProperties, IScopeSel
                     ["", {
                         values: {
                             scopeName: {
+                                type: "text",
                                 caption: "Name",
                                 value: "",
                             },

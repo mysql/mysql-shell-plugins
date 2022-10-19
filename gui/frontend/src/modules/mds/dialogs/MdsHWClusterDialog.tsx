@@ -27,7 +27,7 @@ import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app
 import { IMySQLDbSystemShapeSummary } from "../../../communication/Oci";
 
 import {
-    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, DialogValueOption,
+    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, CommonDialogValueOption,
 } from "../../../components/Dialogs";
 
 export class MdsHWClusterDialog extends ValueDialogBase {
@@ -65,18 +65,20 @@ export class MdsHWClusterDialog extends ValueDialogBase {
             caption: title,
             values: {
                 clusterSize: {
+                    type: "number",
                     caption: "Cluster Size",
                     value: request.values?.clusterSize as number,
-                    span: 4,
-                    options: [DialogValueOption.AutoFocus],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.AutoFocus],
                 },
                 shapeName: {
+                    type: "choice",
                     caption: "Shape Name",
                     value: selectedShape?.name,
                     choices: shapes.map((shape) => {
                         return shape.name;
                     }),
-                    span: 4,
+                    horizontalSpan: 4,
                 },
             },
         };

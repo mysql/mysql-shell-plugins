@@ -76,7 +76,7 @@
                 "msg.workers.minWorkerCount": {
                     "type": "number",
                     "default": 3,
-                    "description": "The number of workers that are always available."
+                    "description": "The number of workers that are always available. Spinning up a worker can take a few seconds, so in order to avoid extra wait time it is advisable to keep at least 2 workers running all the time."
                 },
                 "msg.workers.maxWorkerCount": {
                     "type": "number",
@@ -150,12 +150,12 @@
                 "msg.editor.showMinimap": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Determines if code editors should show a minimap of the plain scrollbar for better navigation."
+                    "description": "Determines if code editors should show a minimap, instead of the plain scrollbar, for better navigation."
                 },
                 "msg.editor.defaultDbConnection": {
                     "type": "string",
                     "default": "",
-                    "description": "Specify the name (title) of a DB connection to be used when running SQL from a text editor and no connection is open yet. Leave empty to select a connection."
+                    "description": "Specify the name (title) of a DB connection to be used when running embedded SQL from a standard text editor and no connection is open yet. Leave empty to select a connection."
                 },
                 "msg.dbEditor.useMinimap": {
                     "type": "boolean",

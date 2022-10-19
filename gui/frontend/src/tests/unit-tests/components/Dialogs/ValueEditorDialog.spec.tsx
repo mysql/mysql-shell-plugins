@@ -26,7 +26,8 @@ import { mount } from "enzyme";
 import keyboardKey from "keyboard-key";
 
 import {
-    DialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+    CommonDialogValueOption, IChoiceDialogValue, IDialogSection, IDialogValidations, IDialogValues,
+    IStringInputDialogValue, ValueEditDialog,
 } from "../../../../components/Dialogs/ValueEditDialog";
 import {
     changeInputValue, nextProcessTick, sendBlurEvent, sendKeyPress, snapshotFromWrapper,
@@ -39,7 +40,7 @@ describe("Value Edit Dialog Tests", (): void => {
         // no-op
     });
 
-    const dropDownChange = jest.fn((): void => {
+    const dropDownChange = jest.fn<unknown, unknown[]>((_a): void => {
         // no-op
     });
 
@@ -55,9 +56,10 @@ describe("Value Edit Dialog Tests", (): void => {
     const nameSection: IDialogSection = {
         values: {
             input: {
+                type: "text",
                 caption: "input",
                 value: "",
-                span: 8,
+                horizontalSpan: 8,
             },
         },
     };
@@ -68,16 +70,17 @@ describe("Value Edit Dialog Tests", (): void => {
         contexts: ["myContext"],
         values: {
             title: { // A simple description label.
+                type: "description",
                 caption: "A caption for the section",
-                options: [DialogValueOption.Description],
             },
             yesNo: { // A checkbox.
+                type: "boolean",
                 caption: "Activate this",
                 value: false,
             },
             file: { // A file selector.
+                type: "resource",
                 caption: "Pick File",
-                options: [DialogValueOption.Resource],
                 value: "../relative/path",
                 filters: {
                     image: ["svg", "png"],
@@ -85,18 +88,21 @@ describe("Value Edit Dialog Tests", (): void => {
                 },
             },
             selectOne: { // A dropdown.
+                type: "choice",
                 caption: "Select One",
                 value: "One",
-                options: [DialogValueOption.Optional],
+                optional: true,
                 choices: ["One", "Two", "Three"],
                 onChange: dropDownChange,
             },
             clickMe: { // A simple button with click handler (there's another type with a command).
+                type: "button",
                 caption: "Do it!",
                 onClick: clickButton,
             },
-            listMe: { // A dynamic list (here with checkboxes).
-                list: ["Option 1", "Option 2", "Option 3"].map((k, index) => {
+            listMe: { // A checkbox list.
+                type: "checkList",
+                checkList: ["Option 1", "Option 2", "Option 3"].map((k, index) => {
                     const result: ICheckboxProperties = {
                         id: index === 0 ? undefined : k, // No ID for the first entry (to test early exit handling).
                         caption: k,
@@ -107,25 +113,90 @@ describe("Value Edit Dialog Tests", (): void => {
                 }),
             },
             matrix: { // A grid with a name and a value column.
-                matrix: [
-                    ["Option 11", 1],
-                    ["Option 22", 2],
+                type: "matrix",
+                value: [
+                    { key: "Option 11", value: 1 },
+                    { key: "Option 22", value: 2 },
                 ],
             },
             upDown: { // A number UpDown component.
+                type: "number",
                 value: 12345,
             },
             input: { // A simple text input field.
+                type: "text",
                 caption: "Give Me Text",
                 value: "",
-                span: 8,
+                horizontalSpan: 8,
                 onFocusLost: focusLost,
             },
             loadingInput: { // A text input field with a progress indicator.
+                type: "text",
                 caption: "Wait For Me",
                 value: "loading",
-                span: 8,
-                options: [DialogValueOption.ShowLoading],
+                horizontalSpan: 8,
+                showLoading: true,
+            },
+            testRelation: {
+                type: "relation",
+                caption: "Routine Parameters:",
+                value: [
+                    { id: "1", title: "customer", param1: "xyz" },
+                    { id: "2", title: "street", param1: "xyz", param2: ["Option 3"] },
+                    { id: "3", title: "number", param1: "xyz", param2: ["Option 2", "Option 3"] },
+                    { id: "4", title: "city", param1: "xyz", param3: true },
+                    { id: "5", title: "customersFromSales", param3: false, param4: 12345, param5: "abc" },
+                    {
+                        id: "6",
+                        title: "productPrices",
+                        param2: [],
+                        param4: -10,
+                        param5: "def",
+                        param1: "GHI",
+                        param3: true,
+                    },
+                ],
+                relations: {
+                    title: "edit0",
+                    param1: "edit1",
+                    param2: "edit2",
+                    param3: "edit3",
+                    param4: "edit4",
+                    param5: "edit5",
+                },
+                active: "1",
+                verticalSpan: 6,
+            },
+            edit0: {
+                type: "text",
+                caption: "Name",
+                value: "",
+            },
+            edit1: {
+                type: "text",
+                caption: "Parameter 1",
+                value: "",
+            },
+            edit2: {
+                type: "set",
+                caption: "Parameter 2",
+                value: [""],
+                tagSet: ["Option 1", "Option 2", "Option 3"],
+            },
+            edit3: {
+                type: "boolean",
+                caption: "Parameter 3",
+                value: false,
+            },
+            edit4: {
+                type: "number",
+                caption: "Parameter 4",
+                value: 0,
+            },
+            edit5: {
+                type: "text",
+                caption: "Parameter 5",
+                value: "",
             },
         },
     };
@@ -147,9 +218,10 @@ describe("Value Edit Dialog Tests", (): void => {
         const nameSection: IDialogSection = {
             values: {
                 input: {
+                    type: "text",
                     caption: "input",
                     value: "",
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -421,29 +493,32 @@ describe("Value Edit Dialog Tests", (): void => {
             component.instance().updateInputValue("Two", "selectOne");
             expect(section.values.selectOne.value).toBe("Two");
 
+            const loadingInput = section.values.loadingInput as IStringInputDialogValue;
             expect(section.values.loadingInput.value).toBe("loading");
-            expect(section.values.loadingInput.options).toContain(DialogValueOption.ShowLoading);
+            expect(loadingInput.showLoading).toBeTruthy();
             component.instance().updateInputValue("Done", "loadingInput");
-            expect(section.values.loadingInput.value).toBe("Done");
-            expect(section.values.loadingInput.options).not.toContain(DialogValueOption.ShowLoading);
+            expect(loadingInput.value).toBe("Done");
+            expect(loadingInput.showLoading).toBeFalsy();
 
             component.instance().beginValueUpdating("Driving", "loadingInput");
-            expect(section.values.loadingInput.value).toBe("Driving");
-            expect(section.values.loadingInput.options).toContain(DialogValueOption.ShowLoading);
+            expect(loadingInput.value).toBe("Driving");
+            expect(loadingInput.showLoading).toBeTruthy();
 
             // Reset to the original value for further tests.
             component.instance().updateInputValue("loading", "loadingInput");
 
             // Make the standard input loading too.
+            const input = section.values.input as IStringInputDialogValue;
             component.instance().beginValueUpdating("Flying", "input");
-            expect(section.values.input.value).toBe("Flying");
-            expect(section.values.input.options).toContain(DialogValueOption.ShowLoading);
+            expect(input.value).toBe("Flying");
+            expect(input.showLoading).toBeTruthy();
             component.instance().updateInputValue("", "input");
 
+            const selectOne = section.values.selectOne as IChoiceDialogValue;
             expect(section.values.selectOne.value).toBe("Two");
             component.instance().updateDropdownValue(["Tesla", "BMW", "Audi", "Mercedes"], "Tesla", "selectOne");
-            expect(section.values.selectOne.value).toBe("Tesla");
-            expect(section.values.selectOne.choices).toContain("Tesla");
+            expect(selectOne.value).toBe("Tesla");
+            expect(selectOne.choices).toContain("Tesla");
 
             // Reset to the original value for further tests.
             component.instance().updateDropdownValue(["One", "Two", "Three"], "One", "selectOne");
@@ -581,9 +656,10 @@ describe("Value Edit Dialog Tests", (): void => {
             caption: "My First Section",
             values: {
                 input: {
+                    type: "text",
                     caption: "input",
                     value: "",
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -594,9 +670,10 @@ describe("Value Edit Dialog Tests", (): void => {
             active: true,
             values: {
                 input: {
+                    type: "text",
                     caption: "output",
                     value: "",
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -607,9 +684,10 @@ describe("Value Edit Dialog Tests", (): void => {
             active: false,
             values: {
                 input: {
+                    type: "text",
                     caption: "error",
                     value: "",
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -620,9 +698,10 @@ describe("Value Edit Dialog Tests", (): void => {
             active: true,
             values: {
                 input: {
+                    type: "text",
                     caption: "something else",
                     value: "",
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -672,37 +751,43 @@ describe("Value Edit Dialog Tests", (): void => {
         const simpleSection: IDialogSection = {
             values: {
                 input: {
+                    type: "text",
                     caption: "Give Input",
                     value: "",
-                    span: 3,
-                    options: [DialogValueOption.Grouped],
+                    horizontalSpan: 3,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 output: {
+                    type: "text",
                     caption: "Print Output",
                     value: "",
-                    span: 4,
-                    options: [DialogValueOption.Grouped],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 help: {
+                    type: "description",
                     caption: "Print Help",
                     value: "",
-                    span: 5,
-                    options: [DialogValueOption.Description, DialogValueOption.NewGroup],
+                    horizontalSpan: 5,
+                    options: [CommonDialogValueOption.NewGroup],
                 },
                 title: {
+                    type: "description",
                     caption: "Helpers",
                     value: "",
-                    options: [DialogValueOption.Description, DialogValueOption.Grouped],
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 note: {
+                    type: "text",
                     caption: "Print Note",
                     value: "",
-                    options: [DialogValueOption.Grouped],
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 debug: {
+                    type: "text",
                     caption: "Print Debug",
                     value: "",
-                    options: [DialogValueOption.Grouped],
+                    options: [CommonDialogValueOption.Grouped],
                 },
             },
         };
@@ -821,7 +906,7 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals).toHaveLength(1);
 
         const inputs = portals[0].getElementsByClassName("input");
-        expect(inputs).toHaveLength(5);
+        expect(inputs).toHaveLength(7);
 
         const nameInput = inputs[0] as HTMLInputElement;
         expect(nameInput.value).toBe("");
@@ -834,13 +919,13 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(fileSelector.value).toBe("../relative/path");
         changeInputValue(fileSelector, "/absolutePath");
 
-        expect(stateSpy).toBeCalledTimes(9);
+        expect(stateSpy).toBeCalledTimes(10);
 
         const checkboxes = portals[0].getElementsByClassName("checkbox");
         expect(checkboxes).toHaveLength(1);
         (checkboxes[0] as HTMLInputElement).click();
 
-        expect(stateSpy).toBeCalledTimes(10);
+        expect(stateSpy).toBeCalledTimes(12);
 
         const state = component.state();
         const section = state.values.sections.get("full");
@@ -885,7 +970,7 @@ describe("Value Edit Dialog Tests", (): void => {
             portals = document.getElementsByClassName("portal");
             expect(portals).toHaveLength(1);
             expect(dropDownChange).toBeCalledTimes(1);
-            expect(dropDownChange).toBeCalledWith("Two");
+            expect(dropDownChange.mock.calls[0][0]).toBe("Two");
 
             elements = portals[0].getElementsByClassName("valueEditor fileSelector");
             expect(elements).toHaveLength(1);
@@ -897,16 +982,16 @@ describe("Value Edit Dialog Tests", (): void => {
             expect(close).toHaveBeenCalledTimes(count + 1);
 
             elements = portals[0].getElementsByClassName("valueEditor input");
-            expect(elements).toHaveLength(3);
+            expect(elements).toHaveLength(5);
             expect((elements[0] as HTMLInputElement).value).toBe("");
             (elements[0] as HTMLInputElement).focus();
+            (elements[1] as HTMLInputElement).focus();
 
             count = focusLost.mock.calls.length;
             sendBlurEvent();
-            expect(focusLost).toBeCalledTimes(count + 1);
+            expect(focusLost).toBeCalledTimes(1);
         }
 
         component.unmount();
     });
-
 });

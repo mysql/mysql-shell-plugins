@@ -1,9 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ScopeSelector testing Render test 1`] = `
+exports[`ScopeSelector testing Snapshot and properties 1`] = `
 <ScopeSelector
-  customScopes={Array []}
-  defaultScopes={Array []}
+  customScopes={
+    Array [
+      "sit",
+      "amet",
+      "consectetur",
+      "adipisci",
+    ]
+  }
+  defaultScopes={
+    Array [
+      "lorem",
+      "ipsum",
+      "dolor",
+    ]
+  }
 >
   <Popup
     className="scopeSelector"

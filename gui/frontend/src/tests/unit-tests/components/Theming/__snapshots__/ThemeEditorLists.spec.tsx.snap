@@ -801,7 +801,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     Object {
                       "children": undefined,
-                      "color": "#606060",
+                      "color": "#202020",
                       "description": "Grid lines color",
                       "id": "list.gridColor",
                       "preview": true,
@@ -6265,7 +6265,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       Object {
                         "children": undefined,
-                        "color": "#606060",
+                        "color": "#202020",
                         "description": "Grid lines color",
                         "id": "list.gridColor",
                         "preview": true,

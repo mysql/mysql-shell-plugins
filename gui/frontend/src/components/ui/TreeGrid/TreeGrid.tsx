@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import "tabulator-tables//dist/css/tabulator_simple.min.css";
 import "./TreeGrid.css";
 
 import {
@@ -100,7 +101,11 @@ export interface ITreeGridOptions {
     /** Used to expand specific levels in the tree on first display. */
     expandedLevels?: boolean[];
 
+    /** If true then the user can vertically resize rows using the mouse. */
     resizableRows?: boolean;
+
+    /** If true then the grid content is scrolled to the first selected item if the selection is modified. */
+    autoScrollOnSelect?: boolean;
 }
 
 export interface ITreeGridProperties extends IComponentProperties {
@@ -172,6 +177,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
             "onRowDeselected", "onVerticalScroll", "onColumnResized",
         );
 
+        // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(this.handleTabulatorResize);
         }
@@ -186,28 +192,26 @@ export class TreeGrid extends Component<ITreeGridProperties> {
     public componentDidMount(): void {
         const { onVerticalScroll } = this.mergedProps;
 
-        if (this.hostRef.current) {
-            // Defer the creation of the table a bit, because it directly manipulates the DOM and that randomly
-            // fails with preact, if the table is created directly on mount.
-            this.timeoutId = setTimeout(() => {
-
+        // Defer the creation of the table a bit, because it directly manipulates the DOM and that randomly
+        // fails with preact, if the table is created directly on mount.
+        this.timeoutId = setTimeout(() => {
+            // istanbul ignore else
+            if (this.hostRef.current) {
                 // The tabulator options can contain data, passed in as properties.
                 this.timeoutId = null;
-                this.tabulator = new Tabulator(this.hostRef.current!, this.tabulatorOptions);
+                this.tabulator = new Tabulator(this.hostRef.current, this.tabulatorOptions);
                 this.tabulator.on("tableBuilt", () => {
                     const { selectedIds } = this.mergedProps;
-                    if (this.tabulator) {
-                        this.tabulator.off("tableBuilt");
-                        if (selectedIds) {
-                            this.tabulator.selectRow(selectedIds);
-                        }
+
+                    // The tabulator field must be assigned. We are in one of its events.
+                    this.tabulator!.off("tableBuilt");
+                    if (selectedIds) {
+                        this.tabulator!.selectRow(selectedIds);
                     }
 
                     // Assign the table holder class our fixed scrollbar class too.
-                    if (this.hostRef.current) {
-                        this.resizeObserver?.observe(this.hostRef.current as Element);
-                        (this.hostRef.current.lastChild as HTMLElement).classList.add("fixedScrollbar");
-                    }
+                    this.resizeObserver?.observe(this.hostRef.current as Element);
+                    (this.hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
                     this.tableReady = true;
 
                 });
@@ -221,8 +225,8 @@ export class TreeGrid extends Component<ITreeGridProperties> {
                 if (onVerticalScroll) {
                     this.tabulator.on("scrollVertical", onVerticalScroll);
                 }
-            }, 10);
-        }
+            }
+        }, 10);
     }
 
     public componentWillUnmount(): void {
@@ -300,50 +304,34 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         });
     }
 
-    public setData(data: unknown[], action: SetDataAction): Promise<void> {
-        return new Promise((resolve) => {
-            void this.table.then((table) => {
-                if (!table) {
-                    resolve();
+    public async setData(data: unknown[], action: SetDataAction): Promise<void> {
+        const table = await this.table;
 
-                    return;
-                }
+        switch (action) {
+            case SetDataAction.Replace: {
+                await table?.replaceData(data as Array<{}>);
 
-                switch (action) {
-                    case SetDataAction.Add: {
-                        void table.addData(data as Array<{}>).then(() => {
-                            resolve();
-                        });
-                        break;
-                    }
+                break;
+            }
 
-                    case SetDataAction.Replace: {
-                        void table.replaceData(data as Array<{}>).then(() => {
-                            resolve();
-                        });
-                        break;
-                    }
+            case SetDataAction.Update: {
+                await table?.updateData(data as Array<{}>);
 
-                    case SetDataAction.Update: {
-                        void table.updateData(data as Array<{}>).then(() => {
-                            resolve();
-                        });
-                        break;
-                    }
+                break;
+            }
 
-                    case SetDataAction.Set: {
-                        void (table as Tabulator).setData(data as Array<{}>).then(() => {
-                            resolve();
-                        });
-                        break;
-                    }
+            case SetDataAction.Set: {
+                await (table as Tabulator)?.setData(data);
 
-                    default: {
-                        resolve();
-                    }
-                }
-            });
-        });
+                break;
+            }
+
+            default: { // Add
+                await table?.addData(data as Array<{}>);
+
+                break;
+            }
+        }
     }
 
     public getSelectedRows(): RowComponent[] {
@@ -491,9 +479,16 @@ export class TreeGrid extends Component<ITreeGridProperties> {
 
     private handleRowSelected = (row: RowComponent): void => {
         const { options } = this.mergedProps;
-        if (!isNil(options?.treeColumn)) {
+        if (options?.treeColumn) {
             // Toggle the selected row if this is actually a tree.
             row.treeToggle();
+        }
+
+        if (options?.autoScrollOnSelect) {
+            const selected = this.tabulator?.getSelectedRows() ?? [];
+            if (selected.length > 0) {
+                void this.tabulator?.scrollToRow(selected[0], "center", false);
+            }
         }
 
         const { onRowSelected } = this.mergedProps;

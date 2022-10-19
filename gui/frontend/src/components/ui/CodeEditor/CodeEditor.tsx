@@ -281,13 +281,13 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         const renameProvider = new RenameProvider();
 
         languages.onLanguage(msg.id, () => {
-            void msg.loader().then((module: ILanguageDefinition) => {
+            void msg.loader().then((definition: ILanguageDefinition) => {
                 // TODO: no longer needed once we switch away from Monarch.
-                module.language.start = "sql";
+                definition.language.start = "sql";
 
-                // Dynamically load the MySQL keywords.
+                // Dynamically load the MySQL keywords (modifying the keyword list in the language definition).
                 const keywordSet = mysqlKeywords.get(MySQLVersion.MySQL80);
-                const keywords = module.language.mysqlKeywords as string[];
+                const keywords = definition.language.mysqlKeywords as string[];
                 if (keywordSet && keywords) {
                     for (const entry of keywordSet.values()) {
                         // Push each keyword twice (lower and upper case), as we have to make the
@@ -296,8 +296,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                         keywords.push(entry.toLowerCase());
                     }
                 }
-                languages.setMonarchTokensProvider(msg.id, module.language);
-                languages.setLanguageConfiguration(msg.id, module.languageConfiguration);
+                languages.setMonarchTokensProvider(msg.id, definition.language);
+                languages.setLanguageConfiguration(msg.id, definition.languageConfiguration);
             });
         });
 

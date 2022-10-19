@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,23 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages, Position, ProviderResult, SignatureHelpResult } from ".";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
-import { ICodeEditorModel } from "./CodeEditor";
+import { Stack } from "../../../supplement";
 
+describe("Stack Helper Class Tests", (): void => {
+    it("Stack Base Tests", () => {
+        const s = new Stack<number>();
 
-export class SignatureHelpProvider implements languages.SignatureHelpProvider {
+        expect(s.empty).toBeTruthy();
+        expect(s.top).toBeUndefined();
 
-    public provideSignatureHelp(model: ICodeEditorModel, position: Position): ProviderResult<SignatureHelpResult> {
-        const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(position);
-
-        if (block) {
-            if (block.isInternal) {
-                return undefined;
-            }
-
-            return services.getSignatureHelp(block, position);
-        }
-    }
-}
+        s.push(1, 2, 3);
+        expect(s.empty).toBeFalsy();
+        expect(s.top).toBe(3);
+    });
+});

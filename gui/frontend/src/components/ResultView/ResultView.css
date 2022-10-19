@@ -133,7 +133,7 @@
     border-right: 1px solid var(--resultView-gridColor);
 }
 
-.msg.resultHost .resultView .tabulator.horizontalGrid .tabulator-row .tabulator-cell {
+.msg.resultHost .resultView .tabulator.horizontalGrid .tabulator-row {
     border-bottom: 1px solid var(--resultView-gridColor);
 }
 

@@ -27,9 +27,11 @@ import { Component, IComponentProperties } from "../Component/Component";
 import { Container, Orientation, ContentAlignment } from "..";
 import { IDictionary } from "../../../app-logic/Types";
 
-// Grid cells use a container as HTML element and hence support its content layout.
-// If a custom HTML element is used for a cell then it must be using the flex layout
-// for these settings to have an effect.
+/**
+ * Grid cells use a container as HTML element and hence support its content layout.
+ * If a custom HTML element is used for a cell then it must be using the flex layout
+ * for these settings to have an effect.
+ */
 interface IGridCellProperties extends IComponentProperties {
     columnSpan?: number;
     rowSpan?: number;

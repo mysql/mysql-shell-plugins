@@ -37,7 +37,7 @@ import {
 } from "../../components/ui";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContext, IExecutionResult, ITextResultEntry, SQLExecutionContext } from "../../script-execution";
-import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
 import { EventType } from "../../supplement/Dispatch";
@@ -313,7 +313,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         }
 
         return new Promise((resolve, reject) => {
-            const services = CodeEditorLanguageServices.instance;
+            const services = ScriptingLanguageServices.instance;
 
             void services.checkAndAddSemicolon(context, sql).then(([query]) => {
                 void this.doExecution(query, context, index, params)
