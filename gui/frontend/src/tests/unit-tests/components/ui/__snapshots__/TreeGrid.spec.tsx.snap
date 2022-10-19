@@ -2,7 +2,24 @@
 
 exports[`TreeGrid tests TreeGrid snapshot 1`] = `
 <TreeGrid
-  columns={Array []}
+  columns={
+    Array [
+      Object {
+        "field": "field1",
+        "title": "col1",
+      },
+      Object {
+        "field": "field2",
+        "title": "col2",
+      },
+    ]
+  }
+  onVerticalScroll={[Function]}
+  selectedIds={
+    Array [
+      "a",
+    ]
+  }
   tableData={Array []}
 >
   <div

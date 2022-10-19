@@ -61,9 +61,6 @@
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "sourceMaps": true,
             "preLaunchTask": "tsc: watch",
-            "sourceMapPathOverrides": {
-                "webpack:///./src/*": "${webRoot}/*"
-            },
             "runtimeArgs": [
                 "--allow-insecure-localhost",
             ]
@@ -78,9 +75,6 @@
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "sourceMaps": true,
             "preLaunchTask": "tsc: watch",
-            "sourceMapPathOverrides": {
-                "webpack:///build/*": "${webRoot}/*"
-            },
             "runtimeArgs": [
                 "--allow-insecure-localhost",
                 "--disable-brave-extension"

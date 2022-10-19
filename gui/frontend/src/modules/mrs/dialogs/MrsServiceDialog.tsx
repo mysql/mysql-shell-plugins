@@ -25,7 +25,7 @@ import React from "react";
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 
 import {
-    DialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog,
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog,
 } from "../../../components/Dialogs";
 
 export class MrsServiceDialog extends ValueDialogBase {
@@ -51,28 +51,29 @@ export class MrsServiceDialog extends ValueDialogBase {
             caption: title,
             values: {
                 serviceName: {
+                    type: "text",
                     caption: "Service Name",
                     value: request.values?.serviceName as string,
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 comments: {
+                    type: "text",
                     caption: "Comments",
                     value: request.values?.comments as string,
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 hostName: {
+                    type: "text",
                     caption: "Host Name",
                     value: request.values?.hostName as string,
-                    span: 8,
-                    options: [DialogValueOption.AutoFocus],
+                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.AutoFocus],
                 },
                 protocolsTitle: {
+                    type: "description",
                     caption: "Supported Protocols",
-                    span: 4,
-                    options: [
-                        DialogValueOption.Description,
-                        DialogValueOption.Grouped,
-                    ],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped],
                 },
             },
         };
@@ -80,41 +81,35 @@ export class MrsServiceDialog extends ValueDialogBase {
         const setProtocols = (request.values?.protocols as string).split(",") ?? [];
         (request.parameters?.protocols as string[])?.forEach((value: string) => {
             mainSection.values["protocol" + value] = {
+                type: "boolean",
                 caption: value,
                 value: setProtocols.includes(value),
-                span: 4,
-                options: [
-                    DialogValueOption.Grouped,
-                ],
+                horizontalSpan: 4,
+                options: [CommonDialogValueOption.Grouped],
             };
         });
 
         mainSection.values.makeDefaultTitle = {
+            type: "description",
             caption: "MRS Service Flags",
-            span: 4,
-            options: [
-                DialogValueOption.Description,
-                DialogValueOption.Grouped,
-                DialogValueOption.NewGroup,
-            ],
+            horizontalSpan: 4,
+            options: [CommonDialogValueOption.Grouped, CommonDialogValueOption.NewGroup],
         };
 
         mainSection.values.makeDefault = {
+            type: "boolean",
             caption: "Default",
-            value: (request.values?.isDefault ?? true) as boolean,
-            span: 4,
-            options: [
-                DialogValueOption.Grouped,
-            ],
+            value: request.values?.isDefault as boolean ?? true,
+            horizontalSpan: 4,
+            options: [CommonDialogValueOption.Grouped],
         };
 
         mainSection.values.enabled = {
+            type: "boolean",
             caption: "Enabled",
-            value: (request.values?.enabled ?? true) as boolean,
-            span: 4,
-            options: [
-                DialogValueOption.Grouped,
-            ],
+            value: request.values?.enabled as boolean ?? true,
+            horizontalSpan: 4,
+            options: [CommonDialogValueOption.Grouped],
         };
 
         return {

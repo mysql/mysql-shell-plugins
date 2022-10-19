@@ -24,7 +24,7 @@
 import { IPosition } from "monaco-editor";
 import { FormattingProvider } from "../../../../../components/ui/CodeEditor/FormattingProvider";
 import { ExecutionContext, PresentationInterface } from "../../../../../script-execution";
-import { CodeEditorLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
 import { mockTextModel, models } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
@@ -44,7 +44,7 @@ describe("DocumentHighlightProvider tests", () => {
 
         const execContext = new ExecutionContext(pi);
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
-            return { lineNumber: 0, column: 0};
+            return { lineNumber: 0, column: 0 };
         });
         models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
@@ -58,7 +58,7 @@ describe("DocumentHighlightProvider tests", () => {
         } else {
             jest.spyOn(execContext, "model", "get").mockReturnValue(mockTextModel);
         }
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         services.format = jest.fn().mockReturnValue({
             uri: "",
             range: null,

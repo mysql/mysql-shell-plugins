@@ -23,7 +23,7 @@
 
 import { ReferencesProvider } from "../../../../../components/ui/CodeEditor/ReferencesProvider";
 import { ExecutionContext, PresentationInterface } from "../../../../../script-execution";
-import { CodeEditorLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
 import { models, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
@@ -48,7 +48,7 @@ describe("ReferenceProvider tests", () => {
         result = referenceProvider.provideReferences(models, position);
         expect(result).toBe(undefined);
 
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         services.findReferences = jest.fn().mockReturnValue({
             uri: "",
             range: null,

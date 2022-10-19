@@ -24,31 +24,112 @@
 import { mount } from "enzyme";
 import React from "react";
 
-import { ITreeGridProperties, TreeGrid } from "../../../../components/ui";
+import { SetDataAction, TreeGrid } from "../../../../components/ui";
 import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("TreeGrid tests", (): void => {
 
-    it("Test TreeGrid instantiation", () => {
-        const component = mount<ITreeGridProperties>(
+    it("Test TreeGrid instantiation", async () => {
+        let component = mount<TreeGrid>(
             <TreeGrid
                 columns={[]}
                 tableData={[]}
             />,
         );
 
-        expect(component).toBeTruthy();
+        // Unmount it asap to test if the wait timer in the component is properly cancelled.
+        component.unmount();
+
+        component = mount<TreeGrid>(
+            <TreeGrid
+                columns={[]}
+                tableData={[]}
+            />,
+        );
+
+        // Wait for the underlying table to be created.
+        await component.instance().table;
+
         const props = component.props();
         expect(props.columns).toEqual([]);
+
+        component.unmount();
     });
 
-    it("TreeGrid snapshot", () => {
+    it("TreeGrid snapshot", async () => {
         const component = mount<TreeGrid>(
             <TreeGrid
-                columns={[]}
+                columns={[
+                    { title: "col1", field: "field1" },
+                    { title: "col2", field: "field2" },
+                ]}
                 tableData={[]}
+                selectedIds={["a"]}
+                onVerticalScroll={() => { /**/ }}
             />,
         );
+        await component.instance().table;
+
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
     });
+
+    it("TreeGrid updates", async () => {
+        const component = mount<TreeGrid>(
+            <TreeGrid
+                onVerticalScroll={() => { /**/ }}
+            />,
+        );
+
+        const grid = component.instance();
+
+        // Change the properties before the table is ready.
+        component.setProps({ height: "100%" });
+        expect(grid.getSelectedRows().length).toBe(0);
+        grid.beginUpdate();
+
+        // @ts-expect-error, because we are checking an internal member here.
+        expect(grid.updateCount).toBe(0);
+        grid.endUpdate();
+
+        await grid.table;
+
+        component.setProps({});
+        component.setProps({
+            columns: [{ title: "col1" }],
+            tableData: [{ id: "1", col1: "a", col2: "2" }],
+            selectedIds: ["1"],
+        });
+
+        await grid.setColumns([]);
+        await grid.setData([{ id: "1", col1: "b" }], SetDataAction.Add);
+        await grid.setData([{ id: "1", col1: "c" }], SetDataAction.Replace);
+        await grid.setData([{ id: "1", col1: "d" }], SetDataAction.Update);
+        await grid.setData([], SetDataAction.Set);
+
+        expect(grid.getSelectedRows().length).toBe(1);
+
+        grid.beginUpdate();
+        grid.beginUpdate();
+        grid.beginUpdate();
+
+        // @ts-expect-error, because we are checking an internal member here.
+        expect(grid.updateCount).toBe(3);
+        grid.endUpdate();
+        // @ts-expect-error, because we are checking an internal member here.
+        expect(grid.updateCount).toBe(2);
+        grid.endUpdate();
+        grid.endUpdate();
+        grid.endUpdate();
+        grid.endUpdate();
+        grid.endUpdate();
+        grid.endUpdate();
+        grid.endUpdate();
+        // @ts-expect-error, because we are checking an internal member here.
+        expect(grid.updateCount).toBe(0);
+
+        component.unmount();
+    });
+
 });

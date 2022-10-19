@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,7 @@
  */
 
 import { Monaco, languages, ProviderResult, FormattingOptions, TextEdit } from ".";
-import { CodeEditorLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
 import { ICodeEditorModel } from "./CodeEditor";
 
 // A formatter which can only format entire commands (with their sub models).
@@ -30,7 +30,7 @@ export class FormattingProvider implements languages.DocumentFormattingEditProvi
 
     public provideDocumentFormattingEdits(model: ICodeEditorModel,
         options: FormattingOptions): ProviderResult<TextEdit[]> {
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         const block = model.executionContexts.contextFromPosition(model.executionContexts.cursorPosition);
 
         if (block && block.model && !block.model.isDisposed()) {

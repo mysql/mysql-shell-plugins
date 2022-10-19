@@ -26,7 +26,7 @@ import React from "react";
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 
 import {
-    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, DialogValueOption,
+    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, CommonDialogValueOption,
 } from "../../../components/Dialogs";
 
 export class MdsHWLoadDataDialog extends ValueDialogBase {
@@ -53,72 +53,68 @@ export class MdsHWLoadDataDialog extends ValueDialogBase {
             caption: title,
             values: {
                 schemas: {
+                    type: "set",
                     caption: "Database Schemas to Load",
-                    set: request.values?.allSchemas as string[],
+                    tagSet: request.values?.allSchemas as string[],
                     value: request.values?.selectedSchemas as string[],
-                    span: 8,
-                    options: [DialogValueOption.AutoFocus],
+                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.AutoFocus],
                 },
                 mode: {
+                    type: "choice",
                     caption: "Operational Mode",
                     value: "normal",
                     // cSpell:ignore dryrun
                     choices: ["normal", "dryrun"],
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 output: {
+                    type: "choice",
                     caption: "Output",
                     value: "normal",
                     choices: ["normal", "compact", "silent", "help"],
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 optionsTitle: {
+                    type: "description",
                     caption: "Options",
-                    span: 4,
-                    options: [
-                        DialogValueOption.Description,
-                        DialogValueOption.Grouped,
-                    ],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 disableUnsupportedColumns: {
+                    type: "boolean",
                     caption: "Disable unsupported columns",
                     value: true,
-                    span: 4,
-                    options: [
-                        DialogValueOption.Grouped,
-                    ],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 optimizeLoadParallelism: {
+                    type: "boolean",
                     caption: "Optimize load parallelism",
                     value: true,
-                    span: 4,
-                    options: [
-                        DialogValueOption.Grouped,
-                    ],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 enableMemoryCheck: {
+                    type: "boolean",
                     caption: "Enable memory check",
                     value: true,
-                    span: 4,
-                    options: [
-                        DialogValueOption.Grouped,
-                    ],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 sqlMode: {
+                    type: "text",
                     caption: "SQL Mode",
                     value: "",
-                    span: 4,
-                    options: [
-                        DialogValueOption.MultiLine,
-                    ],
+                    horizontalSpan: 4,
+                    multiLine: true,
                 },
                 excludeList: {
+                    type: "text",
                     caption: "Exclude List",
                     value: "",
-                    span: 8,
-                    options: [
-                        DialogValueOption.MultiLine,
-                    ],
+                    horizontalSpan: 8,
+                    multiLine: true,
                 },
             },
         };
@@ -170,7 +166,7 @@ export class MdsHWLoadDataDialog extends ValueDialogBase {
                 const regEx = /^(".*?"\s*,\s*)*$/gm;
                 const excludeList = mainSection.values.excludeList.value as string;
 
-                if (excludeList !== "" && !regEx.test(excludeList + ",") ) {
+                if (excludeList !== "" && !regEx.test(excludeList + ",")) {
                     result.messages.excludeList =
                         "The Exclude List needs to contain a list of quoted object names, e.g."
                         + "\"mySchema.myTable\", \"myOtherSchema.myOtherTable\"";

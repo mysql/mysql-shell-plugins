@@ -41,7 +41,7 @@ import {
     GridCell, ContentAlignment, IBrowserTileProperties, IComponentState, ProgressIndicator, IButtonProperties,
 } from "../../components/ui";
 import {
-    ValueEditDialog, IDialogValues, IDialogValidations, DialogValueOption, DialogValueType, IDialogSection,
+    ValueEditDialog, IDialogValues, IDialogValidations, CommonDialogValueOption, DialogValueType, IDialogSection,
     ICallbackData,
 } from "../../components/Dialogs/ValueEditDialog";
 import { requisitions } from "../../supplement/Requisitions";
@@ -992,7 +992,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 }
             }
 
-            if (mysqlDetailsSection.port.value) {
+            if (typeof mysqlDetailsSection.port.value === "number") {
                 const port = this.checkValidInt(mysqlDetailsSection.port.value);
                 if (port === undefined || isNaN(port) || port < 0) {
                     result.messages.timeout = "The port must be a valid integer >= 0";
@@ -1000,7 +1000,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
             }
 
-            if (mysqlAdvancedSection.timeout.value) {
+            if (typeof mysqlAdvancedSection.timeout.value === "number") {
                 const timeout = this.checkValidInt(mysqlAdvancedSection.timeout.value);
                 if (timeout === undefined || isNaN(timeout) || timeout < 0) {
                     result.messages.timeout = "The timeout must be a valid integer >= 0";
@@ -1218,25 +1218,26 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         const generalSection: IDialogSection = {
             values: {
                 databaseType: {
+                    type: "choice",
                     caption: "Database Type:",
                     value: details.dbType,
                     choices: this.knowDbTypes,
-                    onChange: (value: DialogValueType): void => {
+                    onChange: (value: DialogValueType, dialog: ValueEditDialog): void => {
                         const availableNames = [...this.knowDbTypes]; // Need a copy.
                         const index = availableNames.findIndex((name) => {
                             return name === value as string;
                         });
                         availableNames.splice(index, 1);
-                        this.editorRef.current?.updateActiveContexts({
+                        dialog.updateActiveContexts({
                             add: [value as string],
                             remove: availableNames,
                         });
                     },
                 },
                 databaseTypeDescription: {
+                    type: "description",
                     caption: " ", // To vertically align the description with the type drop down.
                     value: "Choose a type for this database connection",
-                    options: [DialogValueOption.Description],
                 },
             },
         };
@@ -1244,12 +1245,14 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         const informationSection: IDialogSection = {
             values: {
                 caption: {
+                    type: "text",
                     caption: "Caption:",
                     value: details.caption,
                     placeholder: "<enter a unique caption>",
-                    options: [DialogValueOption.AutoFocus],
+                    options: [CommonDialogValueOption.AutoFocus],
                 },
                 description: {
+                    type: "text",
                     caption: "Description:",
                     value: details.description,
                     placeholder: "<describe the connection>",
@@ -1263,19 +1266,19 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             groupName: "groupSqlite",
             values: {
                 dbFilePath: {
+                    type: "resource",
                     caption: "Database Path:",
                     value: optionsSqlite.dbFile,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     filters: { "SQLite 3": ["sqlite3", "sqlite"] },
                     placeholder: "<Enter the DB file location>",
-                    span: 8,
-                    options: [DialogValueOption.Resource],
+                    horizontalSpan: 8,
                 },
                 dbName: {
+                    type: "text",
                     caption: "Database Name:",
                     value: optionsSqlite.dbName,
                     placeholder: "<enter a database name>",
-                    options: [],
                 },
             },
         };
@@ -1286,10 +1289,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             groupName: "groupSqlite",
             values: {
                 otherParameters: {
+                    type: "text",
                     caption: "Other Parameters:",
                     value: optionsSqlite.otherParameters,
-                    span: 8,
-                    options: [DialogValueOption.MultiLine],
+                    horizontalSpan: 8,
+                    multiLine: true,
                 },
             },
         };
@@ -1306,67 +1310,74 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             groupName: "group1",
             values: {
                 hostName: {
+                    type: "text",
                     caption: "Host Name or IP Address",
                     value: optionsMySQL.host,
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 scheme: {
+                    type: "choice",
                     caption: "Protocol",
                     value: optionsMySQL.scheme,
                     choices: [MySQLConnectionScheme.MySQL, MySQLConnectionScheme.MySQLx],
-                    span: 2,
+                    horizontalSpan: 2,
                 },
                 port: {
+                    type: "number",
                     caption: "Port",
                     value: optionsMySQL.port ?? 3306,
-                    span: 2,
+                    horizontalSpan: 2,
                 },
                 userName: {
+                    type: "text",
                     caption: "User Name",
                     value: optionsMySQL.user,
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 storePassword: {
+                    type: "button",
                     value: "Store Password",
                     onClick: this.storePassword,
-                    span: 2,
+                    horizontalSpan: 2,
                 },
                 clearPassword: {
+                    type: "button",
                     value: "Clear Password",
                     onClick: this.clearPassword,
-                    span: 2,
+                    horizontalSpan: 2,
                 },
                 defaultSchema: {
+                    type: "text",
                     caption: "Default Schema",
                     value: optionsMySQL.schema,
-                    span: 8,
+                    horizontalSpan: 8,
                 },
                 useSSH: {
+                    type: "boolean",
                     caption: "Connect using SSH Tunnel",
                     value: details.useSSH === true,
-                    span: 8,
-                    onChange: (value: DialogValueType): void => {
-                        const useSSH = value as boolean;
+                    horizontalSpan: 8,
+                    onChange: (value: boolean, dialog: ValueEditDialog): void => {
                         const contexts = {
-                            add: useSSH ? ["useSSH"] : [],
-                            remove: useSSH ? [] : ["useSSH"],
+                            add: value ? ["useSSH"] : [],
+                            remove: value ? [] : ["useSSH"],
                         };
-                        this.editorRef.current?.updateActiveContexts(contexts);
+                        dialog.updateActiveContexts(contexts);
                     },
                 },
                 useMDS: {
+                    type: "boolean",
                     caption: "Connect to OCI DB server using MDS settings",
                     value: details.useMDS === true,
-                    onChange: (value: DialogValueType): void => {
-                        const useMDS = value as boolean;
+                    onChange: (value: boolean, dialog: ValueEditDialog): void => {
                         // The MDS tab should be shown/hidden based on the checkbox value
                         const contexts = {
-                            add: useMDS ? ["useMDS"] : [],
-                            remove: useMDS ? [] : ["useMDS"],
+                            add: value ? ["useMDS"] : [],
+                            remove: value ? [] : ["useMDS"],
                         };
-                        this.editorRef.current?.updateActiveContexts(contexts);
+                        dialog.updateActiveContexts(contexts);
 
-                        if (useMDS) {
+                        if (value) {
                             this.getProfileNames().then((profiles) => {
                                 this.fillProfileDropdown(profiles);
                             }).catch((reason) => {
@@ -1375,7 +1386,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                             });
                         }
                     },
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -1386,33 +1397,35 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             groupName: "group1",
             values: {
                 sslMode: {
+                    type: "choice",
                     caption: "SSL Mode",
                     value: ConnectionBrowser.mysqlSslModeMap
                         .get(optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred),
                     choices: Array.from(ConnectionBrowser.mysqlSslModeMap.values()),
                 },
                 sslCaFile: {
+                    type: "resource",
                     caption: "Path to Certificate Authority file for SSL",
                     value: optionsMySQL["ssl-ca"],
-                    span: 8,
-                    options: [DialogValueOption.Resource],
+                    horizontalSpan: 8,
                 },
                 sslCertFile: {
+                    type: "resource",
                     caption: "Path to Client Certificate file for SSL",
                     value: optionsMySQL["ssl-cert"],
-                    span: 8,
-                    options: [DialogValueOption.Resource],
+                    horizontalSpan: 8,
                 },
                 sslKeyFile: {
+                    type: "resource",
                     caption: "Path to Client Key file for SSL",
                     value: optionsMySQL["ssl-key"],
-                    span: 8,
-                    options: [DialogValueOption.Resource],
+                    horizontalSpan: 8,
                 },
                 sslCipher: {
+                    type: "text",
                     caption: "Separated list of permissible ciphers to use for SSL encryption (optional)",
                     value: optionsMySQL["ssl-cipher"],
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -1423,21 +1436,22 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             groupName: "group1",
             values: {
                 ssh: {
+                    type: "text",
                     caption: "SSH URI (<user>@<host>:22)",
                     value: optionsMySQL.ssh,
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 sshKeyFile: {
+                    type: "resource",
                     caption: "SSH Private Key File",
                     value: optionsMySQL["ssh-identity-file"] ?? "id_rsa",
-                    span: 4,
-                    options: [DialogValueOption.Resource],
+                    horizontalSpan: 4,
                 },
                 sshConfigFilePath: {
+                    type: "resource",
                     caption: "Custom Path for the SSH Configuration File",
                     value: optionsMySQL["ssh-config-file"],
-                    span: 8,
-                    options: [DialogValueOption.Resource],
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -1448,22 +1462,25 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             groupName: "group1",
             values: {
                 compression: {
+                    type: "choice",
                     caption: "Compression",
                     value: optionsMySQL.compression,
                     choices: Object.keys(MySQLConnCompression),
-                    span: 2,
-                    options: [DialogValueOption.Optional],
+                    horizontalSpan: 2,
+                    optional: true,
                 },
                 compressionAlgorithms: {
+                    type: "set",
                     caption: "Compression Algorithms",
                     value: optionsMySQL["compression-algorithms"]?.split(","),
-                    set: ["zstd", "zlib", "lz4", "uncompressed"],
-                    span: 3,
+                    tagSet: ["zstd", "zlib", "lz4", "uncompressed"],
+                    horizontalSpan: 3,
                 },
                 compressionLevel: {
+                    type: "number",
                     caption: "Compression Level",
                     value: optionsMySQL["compression-level"] ?? 3,
-                    span: 3,
+                    horizontalSpan: 3,
 
                 },
                 // ansiQuotes: {
@@ -1477,9 +1494,10 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 //     options: [DialogValueOption.Grouped],
                 // },
                 sqlMode: {
+                    type: "checkList",
                     caption: "SQL Mode",
                     value: optionsMySQL["sql-mode"],
-                    list: Object.keys(MySQLSqlMode).map((k) => {
+                    checkList: Object.keys(MySQLSqlMode).map((k) => {
                         const result: ICheckboxProperties = {
                             id: k.toString(),
                             caption: MySQLSqlMode[k],
@@ -1488,22 +1506,25 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
                         return { data: result };
                     }),
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 timeout: {
+                    type: "number",
                     caption: "Timeout",
                     value: optionsMySQL["connect-timeout"],
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 disableHeatwaveCheck: {
+                    type: "boolean",
                     caption: "Disable HeatWave Check on Connection Startup",
                     value: optionsMySQL["disable-heat-wave-check"] ?? false,
-                    span: 8,
+                    horizontalSpan: 8,
                 },
                 others: {
+                    type: "matrix",
                     caption: "Other Options for Connection",
-                    matrix: this.parseConnectionAttributes(optionsMySQL["connection-attributes"] || {}),
-                    span: 8,
+                    value: this.parseConnectionAttributes(optionsMySQL["connection-attributes"] ?? {}),
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -1516,55 +1537,61 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             groupName: "group1",
             values: {
                 profileName: {
+                    type: "choice",
                     caption: "Profile Name",
                     value: this.activeOciProfileName,
-                    span: 4,
+                    horizontalSpan: 4,
                     choices: this.ociProfileNames ? this.ociProfileNames.map((item) => { return item.profile; }) : [],
                     onChange: this.handleProfileNameChange,
                 },
                 databaseTypeDescription: {
+                    type: "description",
                     caption: " ", // To vertically align the description with the type drop down.
                     value: "",
-                    options: [DialogValueOption.Description],
                 },
                 sshKeyFile: {
+                    type: "resource",
                     caption: "SSH Private Key File",
                     value: optionsMySQL["ssh-identity-file"] ?? "id_rsa",
-                    span: 4,
-                    options: [DialogValueOption.Resource],
+                    horizontalSpan: 4,
                 },
                 sshPublicKeyFile: {
+                    type: "resource",
                     caption: "SSH Public Key File",
                     value: details.useMDS ? optionsMySQL["ssh-public-identity-file"] ?? "id_rsa.pub" : "",
-                    span: 4,
-                    options: [(!details.useMDS) ? DialogValueOption.Disabled : DialogValueOption.Resource],
+                    horizontalSpan: 4,
+                    options: !details.useMDS ? [CommonDialogValueOption.Disabled] : [],
                 },
                 mysqlDbSystemId: {
+                    type: "text",
                     caption: "MySQL DB System OCID",
                     value: optionsMySQL["mysql-db-system-id"],
-                    span: 8,
+                    horizontalSpan: 8,
                     onFocusLost: this.handleDbSystemIdChange,
                 },
                 bastionId: {
+                    type: "text",
                     caption: "Bastion OCID",
                     value: this.liveUpdateFields.bastionId.value,
-                    span: 8,
-                    options: this.liveUpdateFields.bastionId.loading ? [DialogValueOption.ShowLoading] : [],
+                    horizontalSpan: 8,
+                    showLoading: this.liveUpdateFields.bastionId.loading,
                     onFocusLost: this.handleBastionIdChange,
                 },
                 mysqlDbSystemName: {
+                    type: "text",
                     caption: "MySQL DB System Name",
                     value: this.liveUpdateFields.mdsDatabaseName.value,
-                    options: this.liveUpdateFields.mdsDatabaseName.loading ?
-                        [DialogValueOption.Disabled, DialogValueOption.ShowLoading] : [DialogValueOption.Disabled],
-                    span: 4,
+                    showLoading: this.liveUpdateFields.mdsDatabaseName.loading,
+                    options: [CommonDialogValueOption.Disabled],
+                    horizontalSpan: 4,
                 },
                 bastionName: {
+                    type: "text",
                     caption: "Bastion Name",
                     value: this.liveUpdateFields.bastionName.value,
-                    options: this.liveUpdateFields.bastionName.loading ?
-                        [DialogValueOption.Disabled, DialogValueOption.ShowLoading] : [DialogValueOption.Disabled],
-                    span: 4,
+                    showLoading: this.liveUpdateFields.mdsDatabaseName.loading,
+                    options: [CommonDialogValueOption.Disabled],
+                    horizontalSpan: 4,
                 },
             },
         };
@@ -1586,7 +1613,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         };
     };
 
-    private handleBastionIdChange = (value: string, forceUpdate = false): void => {
+    private handleBastionIdChange = (value: string, _dialog: ValueEditDialog, forceUpdate = false): void => {
         if (value !== this.liveUpdateFields.bastionId.value || forceUpdate) {
             this.liveUpdateFields.bastionId.value = value;
             this.beginValueUpdating("Loading...", "bastionName");
@@ -1600,7 +1627,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         }
     };
 
-    private handleDbSystemIdChange = (value: string, forceUpdate = false): void => {
+    private handleDbSystemIdChange = (value: string, _dialog: ValueEditDialog, forceUpdate = false): void => {
         if (value !== this.liveUpdateFields.dbSystemId || forceUpdate) {
             this.liveUpdateFields.dbSystemId = value;
             this.beginValueUpdating("Loading...", "mysqlDbSystemName");
@@ -1616,12 +1643,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         }
     };
 
-    private handleProfileNameChange = (value: DialogValueType): void => {
+    private handleProfileNameChange = (value: DialogValueType, dialog: ValueEditDialog): void => {
         const entry = value as string;
         if (this.liveUpdateFields.profileName !== entry) {
             this.liveUpdateFields.profileName = entry;
-            this.handleBastionIdChange(this.liveUpdateFields.bastionId.value, true);
-            this.handleDbSystemIdChange(this.liveUpdateFields.dbSystemId, true);
+            this.handleBastionIdChange(this.liveUpdateFields.bastionId.value, dialog, true);
+            this.handleDbSystemIdChange(this.liveUpdateFields.dbSystemId, dialog, true);
         }
     };
 
@@ -1744,17 +1771,10 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         });
     }
 
-    private parseConnectionAttributes(value: { [key: string]: string }): string[][] {
-        const keys = Object.keys(value);
-        const dialogValue: string[][] = [["attribute name", "attribute value"]];
-        if (keys.length > 0) {
-            for (const key of keys) {
-                const item = [key, value[key]];
-                dialogValue.push(item);
-            }
-        }
-
-        return dialogValue;
+    private parseConnectionAttributes(value: { [key: string]: string }): IDictionary[] {
+        return Object.entries(value).map((entry) => {
+            return { key: entry[0], value: entry[1] };
+        });
     }
 
     /**

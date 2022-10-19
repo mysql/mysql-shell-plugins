@@ -970,6 +970,28 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
       onOpen={[Function]}
     />
   </Dialog>
+  <Menu
+    onItemClick={[Function]}
+    orientation="column"
+    placement="right-start"
+  >
+    <Popup
+      className="msg menu"
+      onClose={[Function]}
+      onKeyDown={[Function]}
+      onOpen={[Function]}
+      orientation="column"
+      pinned={false}
+      placement="right-start"
+      showArrow={false}
+    >
+      <Portal
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+      />
+    </Popup>
+  </Menu>
 </ValueEditDialog>
 `;
 
@@ -1368,6 +1390,14 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           <label
             __self="[object Object]"
             __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Activate this
+          </label>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
             class="msg checkbox unchecked valueEditor"
             id="yesNo"
             tabindex="0"
@@ -1498,8 +1528,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container fixedScrollbar"
-            id="matrixContainer"
+            class="msg container fixedScrollbar matrixContainer"
             style="flex-direction: row;"
           >
             <div
@@ -1689,6 +1718,110 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             </div>
           </div>
         </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-row: span 6; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Routine Parameters:
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg treeGrid verticalGrid relationalList"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Name
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="testRelation.title"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Parameter 1
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="testRelation.param1"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
       </div>
     </div>
     <div
@@ -1867,6 +2000,14 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           <label
             __self="[object Object]"
             __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Activate this
+          </label>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
             class="msg checkbox unchecked valueEditor"
             id="yesNo"
             tabindex="0"
@@ -1997,8 +2138,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           <div
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container fixedScrollbar"
-            id="matrixContainer"
+            class="msg container fixedScrollbar matrixContainer"
             style="flex-direction: row;"
           >
             <div
@@ -2188,6 +2328,110 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             </div>
           </div>
         </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-row: span 6; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Routine Parameters:
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg treeGrid verticalGrid relationalList"
+          />
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Name
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="testRelation.title"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Parameter 1
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="testRelation.param1"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        />
       </div>
     </div>
     <div

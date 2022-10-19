@@ -56,9 +56,9 @@ import { EventType } from "../supplement/Dispatch";
 import { IDictionary } from "../app-logic/Types";
 
 /** Provides language services like code completion, by reaching out to built-in or other sources. */
-export class CodeEditorLanguageServices {
+export class ScriptingLanguageServices {
 
-    private static services: CodeEditorLanguageServices;
+    private static services: ScriptingLanguageServices;
 
     private readonly workerPool: LanguageWorkerPool;
 
@@ -80,12 +80,12 @@ export class CodeEditorLanguageServices {
         this.pythonService = new PythonLanguageService(this.workerPool);
     }
 
-    public static get instance(): CodeEditorLanguageServices {
-        if (!CodeEditorLanguageServices.services) {
-            CodeEditorLanguageServices.services = new CodeEditorLanguageServices();
+    public static get instance(): ScriptingLanguageServices {
+        if (!ScriptingLanguageServices.services) {
+            ScriptingLanguageServices.services = new ScriptingLanguageServices();
         }
 
-        return CodeEditorLanguageServices.services;
+        return ScriptingLanguageServices.services;
     }
 
     /**

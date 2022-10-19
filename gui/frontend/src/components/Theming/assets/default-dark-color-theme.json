@@ -12,7 +12,7 @@
         "button.pressedBackground": "#3B3B3B",
         "dropdown.hoverBackground": "#3B3B3B",
         "list.headerBackground": "#38383E",
-        "list.gridColor": "#606060",
+        "list.gridColor": "#202020",
         "list.sortIndicatorForeground": "#0D66A2",
         "list.columnResizerForeground": "#BFBFBF",
         "list.emptyBackground": "#383838",

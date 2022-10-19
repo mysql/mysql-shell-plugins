@@ -24,7 +24,8 @@
 import React from "react";
 
 import {
-    ConfirmDialog, DialogValueOption, IDialogSection, IDialogValues, PasswordDialog, ValueDialogBase, ValueEditDialog,
+    ConfirmDialog, CommonDialogValueOption, IDialogSection, IDialogValues, PasswordDialog, ValueDialogBase,
+    ValueEditDialog, IChoiceDialogValue,
 } from "../components/Dialogs";
 import { Component } from "../components/ui";
 import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
@@ -175,10 +176,11 @@ export class DialogHost extends Component {
         const promptSection: IDialogSection = {
             values: {
                 input: {
+                    type: "text",
                     caption: request.values?.prompt as string,
                     value: "",
-                    span: 8,
-                    options: [DialogValueOption.AutoFocus],
+                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.AutoFocus],
                 },
             },
         };
@@ -251,20 +253,21 @@ export class DialogHost extends Component {
 
         request.description?.forEach((entry, index) => {
             promptSection.values[`description${index}`] = {
+                type: "description",
                 value: entry,
-                span: 8,
-                options: [DialogValueOption.Description],
+                horizontalSpan: 8,
             };
         });
 
         const choices = request.parameters?.options as string[];
         const defaultValue: number | undefined = request.parameters?.default as number;
         promptSection.values.input = {
+            type: "choice",
             caption: request.parameters?.prompt as string,
             value: defaultValue === undefined ? "" : choices[defaultValue - 1], // One-based value.
-            span: 8,
+            horizontalSpan: 8,
             choices,
-            options: [DialogValueOption.AutoFocus],
+            options: [CommonDialogValueOption.AutoFocus],
         };
 
         this.promptDialogRef.current?.show(
@@ -309,10 +312,11 @@ export class DialogHost extends Component {
 
         const promptSection = values.sections.get("prompt");
         if (promptSection) {
+            const value = promptSection.values.input as IChoiceDialogValue;
             let text = promptSection.values.input.value as string;
             if (type === DialogType.Select) {
                 // Convert the text to an index in the choice list.
-                const index = promptSection.values.input.choices?.findIndex((value) => {
+                const index = value.choices?.findIndex((value) => {
                     return value === text;
                 }) ?? -1;
 
@@ -326,7 +330,7 @@ export class DialogHost extends Component {
                 id: data?.id as string ?? "",
                 closure,
                 values: {
-                    input: text,
+                    input: value.value,
                 },
                 data,
             };

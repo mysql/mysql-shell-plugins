@@ -319,9 +319,10 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         const nameSection: IDialogSection = {
             values: {
                 themeName: {
+                    type: "text",
                     caption: "Enter a new theme name",
                     value: themeManager.activeTheme + "X",
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,23 +21,31 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages, Position, ProviderResult, SignatureHelpResult } from ".";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
-import { ICodeEditorModel } from "./CodeEditor";
+import { RequisitionPipeline } from "../../../supplement/RequisitionPipeline";
+import { RequisitionHub } from "../../../supplement/Requisitions";
+import { sleep } from "../../../utilities/helpers";
 
+describe("RequisitionPipeline Tests", () => {
+    beforeAll(() => {
+        jest.mock("../../../supplement/Requisitions");
+    });
 
-export class SignatureHelpProvider implements languages.SignatureHelpProvider {
+    afterAll(() => {
+        jest.unmock("../../../supplement/Requisitions");
+    });
 
-    public provideSignatureHelp(model: ICodeEditorModel, position: Position): ProviderResult<SignatureHelpResult> {
-        const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(position);
+    it("Add job", async () => {
+        const pipeline = new RequisitionPipeline(new RequisitionHub());
+        await pipeline.addJob([
+            {
+                requestType: "connectedToUrl",
+                parameter: [],
+            },
+        ]);
 
-        if (block) {
-            if (block.isInternal) {
-                return undefined;
-            }
+        // Give the pipeline time to announce the first task.
+        await sleep(5000);
 
-            return services.getSignatureHelp(block, position);
-        }
-    }
-}
+        // TODO: modify the hub mock to return useful values, to test other paths in the pipeline.
+    });
+});

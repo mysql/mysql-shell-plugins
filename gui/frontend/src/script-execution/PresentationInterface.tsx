@@ -77,7 +77,7 @@ export class PresentationInterface {
     public resultData?: IExecutionResult;
     public loadingState = LoadingState.Idle;
 
-    public readonly backend: Monaco.IStandaloneCodeEditor;
+    public readonly backend?: Monaco.IStandaloneCodeEditor;
     public context?: ExecutionContext;
 
     // A function to send a notification if the current result is being replaced by nothing.
@@ -105,22 +105,26 @@ export class PresentationInterface {
     // Only set for result set data.
     private resultRef = React.createRef<ResultTabView>();
 
-    public constructor(protected editor: CodeEditor, public language: EditorLanguage) {
-        this.backend = editor.backend!;
+    public constructor(protected editor: CodeEditor | undefined, public language: EditorLanguage) {
+        this.backend = editor?.backend;
     }
 
     public dispose(): void {
         this.onRemoveResult = undefined;
-        this.backend.deltaDecorations(this.marginDecorationIDs, []);
+        this.backend?.deltaDecorations(this.marginDecorationIDs, []);
         this.setResult();
     }
 
     public get model(): Monaco.ITextModel | null {
-        return this.backend.getModel();
+        if (this.backend) {
+            return this.backend.getModel();
+        }
+
+        return null;
     }
 
     public get code(): string {
-        return this.backend.getValue();
+        return this.backend?.getValue() ?? "";
     }
 
     public get codeLength(): number {
@@ -579,7 +583,7 @@ export class PresentationInterface {
             });
         }
 
-        this.marginDecorationIDs = this.backend.deltaDecorations(this.marginDecorationIDs, newDecorations);
+        this.marginDecorationIDs = this.backend?.deltaDecorations(this.marginDecorationIDs, newDecorations) ?? [];
     }
 
     /**
@@ -591,7 +595,7 @@ export class PresentationInterface {
      * @returns A set of decoration IDs that can be used for further updates (or removal).
      */
     public updateDiagnosticsDecorations(decorationIDs: string[], diagnostics: IDiagnosticEntry[]): string[] {
-        const model = this.backend.getModel();
+        const model = this.backend?.getModel();
 
         if (model) {
             const newDecorations = diagnostics.map((entry: IDiagnosticEntry) => {
@@ -621,7 +625,7 @@ export class PresentationInterface {
 
 
             // Update the decorations in the editor.
-            return this.backend.deltaDecorations(decorationIDs, newDecorations);
+            return this.backend?.deltaDecorations(decorationIDs, newDecorations) ?? [];
         }
 
         return [];
@@ -634,7 +638,7 @@ export class PresentationInterface {
         // Go through all lines until a non-empty one is found.
         // Check its text for a command starter.
         let run = this.startLine;
-        const model = this.backend.getModel();
+        const model = this.backend?.getModel();
         if (model) {
             while (run <= this.endLine) {
                 const text = model.getLineContent(run).trim();
@@ -658,7 +662,7 @@ export class PresentationInterface {
 
     public selectRange(span: TextSpan): void {
         const range = this.context!.fromLocal(span);
-        this.backend.setSelection(range);
+        this.backend?.setSelection(range);
     }
 
     protected getMarginClass(line: number): string {

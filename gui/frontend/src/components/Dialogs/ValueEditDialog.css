@@ -97,16 +97,36 @@
     white-space: initial;
 }
 
+.msg.valueEditDialog .gridCell .cellDescription {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    flex: 1 1 auto;
+    font-size: 10px;
+    white-space: initial;
+    color: var(--tag-background);
+}
+
 .msg.valueEditDialog .tabview > .content {
     padding: 16px;
 }
 
-.msg.valueEditDialog #matrixContainer .tabulator-col-title {
+.msg.valueEditDialog .relationalList {
+    min-height: calc(4em);
+    max-height: calc(11em);
+
+    border: 1px solid var(--input-border);
+    border-radius: 0.2rem;
+    background-color: var(--input-background);
+
+    padding: 4px;
+}
+
+.msg.valueEditDialog .matrixContainer .tabulator-col-title {
     font-weight: 400;
     font-size: 0.9em;
 }
 
-.msg.valueEditDialog #matrixContainer #valueGrid {
+.msg.valueEditDialog .matrixContainer #valueGrid {
     flex: 1;
     margin-right: 4px;
 }

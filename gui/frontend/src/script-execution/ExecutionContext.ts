@@ -25,7 +25,7 @@ import { IPosition } from "monaco-editor";
 
 import { IExecutionContextState, IRange, Monaco, Position } from "../components/ui/CodeEditor";
 import { isTextSpan } from "../utilities/ts-helpers";
-import { CodeEditorLanguageServices } from "./ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "./ScriptingLanguageServices";
 import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common";
 import { LoadingState, PresentationInterface } from "./PresentationInterface";
 import { IExecuteResultReference, IExecutionResult } from ".";
@@ -330,7 +330,7 @@ export class ExecutionContext implements IExecutionContext {
      */
     public validateAll(): void {
         if (!this.disposed) {
-            const services = CodeEditorLanguageServices.instance;
+            const services = ScriptingLanguageServices.instance;
             services.validate(this, "", (result: IDiagnosticEntry[]): void => {
                 // Update the decorations in the editor.
                 this.decorationIDs = this.presentation.updateDiagnosticsDecorations(this.decorationIDs, result);

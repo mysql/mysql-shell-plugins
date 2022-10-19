@@ -25,7 +25,7 @@ import { DefinitionProvider } from "../../../../../components/ui/CodeEditor/Defi
 import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
 import { IPosition } from "../../../../../components/ui/CodeEditor";
-import { CodeEditorLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
 import { models, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
@@ -45,7 +45,7 @@ describe("DefinitionProvider tests", () => {
 
         const execContext = new ExecutionContext(pi);
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
-            return { lineNumber: 0, column: 0};
+            return { lineNumber: 0, column: 0 };
         });
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
         models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
@@ -55,7 +55,7 @@ describe("DefinitionProvider tests", () => {
         expect(result).toBe(undefined);
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         services.findDefinition = jest.fn().mockReturnValue({
             uri: "",
             range: null,

@@ -8,7 +8,7 @@
         "window.headerBackground": "#F2F2F3",
         "window.footerBackground": "#E6E6E8",
         "text.captionForeground": "#998F8F",
-        "text.dimmedForeground": "#AFAFB7",
+        "text.dimmedForeground": "#707070",
         "button.pressedBackground": "#0062A3",
         "dropdown.hoverBackground": "#F0F0F0",
         "tooltip.foreground": "#484848",

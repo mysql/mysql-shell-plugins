@@ -26,15 +26,14 @@ import addProperty from "../../assets/images/add.svg";
 import removeProperty from "../../assets/images/remove.svg";
 
 import React from "react";
-import { isNil } from "lodash";
-import { ColumnDefinition } from "tabulator-tables";
+import { ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import {
     Dialog, IComponentProperties, Component, Label, Button, IComponentState, Icon, Codicon, GridCell, Grid, Input,
     Checkbox, UpDown, CheckState, IInputChangeProperties, Message, Orientation, ICheckboxProperties, Dropdown,
     ContentAlignment, IDropdownProperties, Container, Tabview, ITabviewPage, DynamicList, IFileSelectorProperties,
     FileSelector, IUpDownProperties, TreeGrid, ITreeGridOptions, SelectionType, IPortalOptions, ProgressIndicator,
-    IInputProperties, IButtonProperties,
+    IInputProperties, IButtonProperties, Menu, MenuItem, IMenuItemProperties,
 } from "../ui";
 import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types";
 import { ParamDialog } from "./ParamDialog";
@@ -46,66 +45,245 @@ export interface IContextUpdateData {
     remove?: string[];
 }
 
-export enum DialogValueOption {
-    ReadOnly,    // If set then the value is not editable.
-    Disabled,
-    Optional,    // If the value is optional.
-
-    AutoFocus,   // When set focus an element and select all content. Can only be set once and only for input fields.
-    Description, // If set then the value is just a description label (regardless of its type).
-    Resource,    // Set to denote the value references a resource (URI, file).
-    MultiLine,   // The value is a multi line string and needs a larger input control.
-    Password,    // If set then the actual value must be a string interpreted as password.
-
-    ShowLoading, // If set a progress indicator is displayed (only for input fields).
-
-    Grouped,     // If set then this value is grouped with all following using the same flag, into a single grid cell.
-    NewGroup,    // Set to break two consecutive groups apart (set on first member).
-}
-
-// Lists in the dialog use templated data.
+/** Lists in the dialog use templated data. */
 export interface IDialogListEntry {
     [key: string]: IComponentProperties;
 }
 
 export type DialogValueType = number | string | boolean | string[];
 
-/** A single editable value, with its description. */
-export interface IDialogValue {
+/** A collection of flags that influence the way a value is displayed or modifies its behavior. */
+export enum CommonDialogValueOption {
+    /** The value is currently not editable. */
+    ReadOnly,
+
+    /** The value shows up in a dimmed fashion. */
+    Disabled,
+
+    /** When set focus an element and select all content. This flag can only be used in one value definition. */
+    AutoFocus,
+
+    /** If set then this value is grouped with all following using the same flag, into a single grid cell. */
+    Grouped,
+
+    /** Set to break two consecutive groups apart (set on first member). */
+    NewGroup,
+}
+
+/** Contains fields that are common to all dialog values. */
+export interface IBaseDialogValue {
+    /** The discriminator for the different value types. */
+    type: string;
+
     caption?: string;
-    value?: DialogValueType;
-    placeholder?: string;
-
-    /** These members indicate special sources that limit the possible input value. */
-
-    /** Only one of the list of choices is possible. To make the choice optional, an empty string needs to be added. */
-    choices?: string[];
-
-    /** Any combination of the set values is possible. The value field must be a comma-separated list. */
-    set?: string[];
-
-    action?: string;    // Action name for button
-    matrix?: DialogValueType[][];
-
-    list?: IDialogListEntry[];
-
-    options?: DialogValueOption[];
+    options?: CommonDialogValueOption[];
 
     /** A value between 1 and 8 for the grid cells to span horizontally (default: 4). */
-    span?: number;
+    horizontalSpan?: number;
 
-    /** Used with the Resource value option, to limit user selectable files. */
+    /** Determines how many grid rows a value should take. Must be greater than 0 and an integer (default: 1). */
+    verticalSpan?: number;
+}
+
+/**
+ * This dialog value is the only one which supports no interaction. Instead it represents a description text, which
+ * takes the same place like any other dialog value (can span cells, flows with the cells etc.).
+ */
+export interface IDescriptionDialogValue extends IBaseDialogValue {
+    type: "description";
+
+    value?: string;
+}
+
+/**
+ * This value represents a button for triggering additional functionality, outside of the current dialog
+ * (e.g. to store a password or open a sub dialog).
+ */
+export interface IButtonDialogValue extends IBaseDialogValue {
+    type: "button";
+
+    value?: string;
+
+    /** Called when the button is clicked. The passed in id is what was used to define the button value entry. */
+    onClick?: (id: string, values: IDialogValues, dialog: ValueEditDialog) => void;
+}
+
+/** Represents a single string input value (including obfuscated input). */
+export interface IStringInputDialogValue extends IBaseDialogValue {
+    type: "text";
+
+    value?: string;
+
+    /** Provides a description specific to this value, which will be rendered as part of the value. */
+    description?: string;
+
+    /** Text to be shown in the input field, if no value is set yet. */
+    placeholder?: string;
+
+    /** The value is a multi line string and needs a larger input control. */
+    multiLine?: boolean;
+
+    /** The value is security sensitive and must be obfuscated (e.g. passwords or PINs). */
+    obfuscated?: boolean;
+
+    /**
+     * A special feature for text fields: set this to true to show an indeterminate progress indicator
+     * to denote a long lasting operation to get the actual value.
+     */
+    showLoading?: boolean;
+
+    /** Called when the value was changed. */
+    onChange?: (value: string, dialog: ValueEditDialog) => void;
+
+    /** Called when the input field lost focus. */
+    onFocusLost?: (value: string, dialog: ValueEditDialog) => void;
+}
+
+/** Represents a single numeric input value, which is rendered as an up-down spinner control. */
+export interface INumberInputDialogValue extends IBaseDialogValue {
+    type: "number";
+
+    value?: number;
+
+    /** The minimum number possible in this field. */
+    min?: number;
+
+    /** The maximum number possible in this field. */
+    max?: number;
+
+    /** Called when the value was changed. */
+    onChange?: (value: number, dialog: ValueEditDialog) => void;
+
+    /** Called when the input field lost focus. */
+    onFocusLost?: (value: string, dialog: ValueEditDialog) => void;
+}
+
+/** Represents a single numeric input value, which is rendered as an up-down spinner control. */
+export interface IBooleanInputDialogValue extends IBaseDialogValue {
+    type: "boolean";
+
+    value?: boolean;
+
+    /** Called when the value was changed. */
+    onChange?: (value: boolean, dialog: ValueEditDialog) => void;
+}
+
+/** A dialog value which represents a single entry out of a list of possible values. */
+export interface IChoiceDialogValue extends IBaseDialogValue {
+    type: "choice";
+
+    value?: string;
+
+    /** Only one of the list of choices is possible. */
+    choices: string[];
+
+    /** If set also no choice is a viable result. */
+    optional?: boolean;
+
+    /** Called when the selection was changed. */
+    onChange?: (value: string, dialog: ValueEditDialog) => void;
+}
+
+/** A dialog value which represents a set of (string) values out of a set of possible values. */
+export interface ISetDialogValue extends IBaseDialogValue {
+    type: "set";
+
+    value?: string[];
+
+    /** Any combination of entries in the list, represented as tags. */
+    tagSet: string[];
+
+    /** Called when the selection was changed. */
+    onChange?: (values: string[], dialog: ValueEditDialog) => void;
+}
+
+/** A dialog value which represents a simple key/value store. Both, keys and values must be strings. */
+export interface IKeyValueDialogValue extends IBaseDialogValue {
+    type: "matrix";
+
+    value?: IDictionary[];
+
+    /** Called when the selection was changed. */
+    onChange?: (value: string, dialog: ValueEditDialog) => void;
+}
+
+/** A dialog value which represents a file/folder selection. */
+export interface IResourceDialogValue extends IBaseDialogValue {
+    type: "resource";
+
+    value?: string;
+
+    /** Text to be shown in the input field, if no value is set yet. */
+    placeholder?: string;
+
+    /**Used to limit user selectable files. */
     filters?: IOpenDialogFilters;
 
-    /** Called for certain value types (checkbox, choice) when the value was changed. */
-    onChange?: (value: DialogValueType) => void;
-
-    /** Called for certain value types (checkbox, choice) when the value was changed. */
-    onClick?: (id: string, values: IDialogValues) => void;
-
-    /** Called for certain value types (input) when they lose focus. */
-    onFocusLost?: (value: string) => void;
+    /** Called when the selection was changed. */
+    onChange?: (value: string, dialog: ValueEditDialog) => void;
 }
+
+/**
+ * Similar to "set" this value represents a selection from a list of available values. However, with this type
+ * no tag set is used but a list of check boxes.
+ *
+ * TODO: the list of available values consists currently of component properties, which describe how the checkboxes
+ * have to be render. Change that to avoid the need for explicit component details in the dialog definition.
+ */
+export interface ICheckListDialogValue extends IBaseDialogValue {
+    type: "checkList";
+
+    value?: string[];
+
+    /** Any combination of entries in the list, represented as a list of checkboxes. */
+    checkList: IDialogListEntry[];
+
+    /** Called when one of the value was changed. */
+    onChange?: (value: boolean, dialog: ValueEditDialog) => void;
+}
+
+/**
+ * A dialog value which represents an object to be edited, which relates the object keys to other dialog values
+ * in the same section, with a simpler type. This value type is shown as overview list, from which the current
+ * set of values that are to be edited is selected.
+ */
+export interface IRelationDialogValue extends IBaseDialogValue {
+    type: "relation";
+
+    value?: IDictionary[];
+
+    /**
+     * Maps the keys of each entry to another dialog value in the same section, creating so a relation between
+     * a sub value to an editor somewhere else.
+     */
+    relations: { [key: string]: string };
+
+    /** The id of the current entry in the relations object. Only one set of values can be edited at a time. */
+    active?: string;
+
+    /** The fields shown in the overview list as individual columns. Default is ["title"]. */
+    listItemCaptionFields?: string[];
+
+    /** The name of the item in the relations objects that denotes the `id` field (default is "id"). */
+    listItemId?: string;
+
+    /** Called when the selection was changed. */
+    onChange?: (value: string, dialog: ValueEditDialog) => void;
+}
+
+export type IDialogValue =
+    IDescriptionDialogValue
+    | IChoiceDialogValue
+    | IResourceDialogValue
+    | IRelationDialogValue
+    | IStringInputDialogValue
+    | INumberInputDialogValue
+    | IBooleanInputDialogValue
+    | IButtonDialogValue
+    | ICheckListDialogValue
+    | ISetDialogValue
+    | IKeyValueDialogValue
+    ;
 
 /** A set of keys and their associated values, which can be edited in this dialog. */
 export interface IDialogSection {
@@ -137,7 +315,7 @@ export interface IDialogValues {
 }
 
 /**
- * Contains a set of validation messages for dialog value keys that did not validate ok.
+ * Contains a set of validation messages for dialog value keys that did not proof ok.
  * These messages are shown below the input field for that dialog value.
  */
 export interface IDialogValidations {
@@ -148,6 +326,18 @@ export interface IDialogValidations {
 interface IDialogValuePair {
     key: string;
     value: IDialogValue;
+}
+
+/** Holds the relations for data keys bound to a relational list. */
+interface IRelatedValues {
+    /** The name of the relational list entry in the data definition. */
+    source: string;
+
+    /**
+     * Mappings from value keys in the data definition to their actual values in the relational list
+     * and the name of the member in the relational list.
+     */
+    relations: Map<string, [DialogValueType, string]>;
 }
 
 export interface ICallbackData {
@@ -173,7 +363,7 @@ export interface IValueEditDialogShowOptions {
 }
 
 export interface IValueEditDialogProperties extends IComponentProperties {
-    /** A node where to mount the dialog to. */
+    /** A node where to mount the dialog to (default: <body>). */
     container?: HTMLElement;
 
     advancedActionCaption?: string;
@@ -208,6 +398,10 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
     private dialogRef = React.createRef<Dialog>();
     private paramDialogRef = React.createRef<ParamDialog>();
+    private relationListContextMenuRef = React.createRef<Menu>();
+
+    // Counts to negative infinity, to produce unique IDs for new relation list entries.
+    private relationListCounter = -1;
 
     public constructor(props: IValueEditDialogProperties) {
         super(props);
@@ -278,11 +472,10 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
         values.sections.forEach((section) => {
             const entry = section.values[id];
-            if (!isNil(entry)) {
+            if (entry && (entry.type === "text" || entry.type === "choice")) {
                 entry.value = value;
-                const index = entry.options?.indexOf(DialogValueOption.ShowLoading) ?? -1;
-                if (index > -1) {
-                    entry.options?.splice(index, 1);
+                if (entry.type === "text") {
+                    entry.showLoading = false;
                 }
 
                 const { onValidate } = this.props;
@@ -303,7 +496,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
         values.sections.forEach((section) => {
             const entry = section.values[id];
-            if (!isNil(entry)) {
+            if (entry?.type === "choice") {
                 entry.choices = items;
                 entry.value = active;
 
@@ -321,13 +514,9 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
         values.sections.forEach((section) => {
             const entry = section.values[id];
-            if (!isNil(entry)) {
+            if (entry?.type === "text") {
                 entry.value = value;
-                if (entry.options === undefined) {
-                    entry.options = [DialogValueOption.ShowLoading];
-                } else {
-                    entry.options?.push(DialogValueOption.ShowLoading);
-                }
+                entry.showLoading = true;
 
                 const { onValidate } = this.props;
                 const validations = onValidate?.(false, values, data) || { messages: {} };
@@ -411,51 +600,60 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
 
         return (
-            <Dialog
-                ref={this.dialogRef}
-                container={container}
-                id={values.id}
-                className={className}
-                caption={
-                    <>
-                        <Icon src={Codicon.Terminal} />
-                        <Label>{title}</Label>
-                    </>
-                }
-                header={header}
-                actions={{
-                    begin: customActions,
-                    end: [
-                        <Button
-                            caption="OK"
-                            id="ok"
-                            key="ok"
-                            disabled={Object.keys(validations.messages).length > 0 || preventConfirm}
-                            onClick={this.handleActionClick}
-                        />,
-                        <Button
-                            caption="Cancel"
-                            id="cancel"
-                            key="cancel"
-                            onClick={this.handleActionClick}
-                        />,
-                    ],
-                }}
-                content={
-                    <Grid
-                        columns={8}
-                        rowGap={16}
-                        columnGap={16}
-                    >
-                        {descriptionContent && <GridCell columnSpan={8}>{descriptionContent}</GridCell>}
-                        {groups}
-                    </Grid>
-                }
-                onClose={this.handleClose}
+            <>
+                <Dialog
+                    ref={this.dialogRef}
+                    container={container}
+                    id={values.id}
+                    className={className}
+                    caption={
+                        <>
+                            <Icon src={Codicon.Terminal} />
+                            <Label>{title}</Label>
+                        </>
+                    }
+                    header={header}
+                    actions={{
+                        begin: customActions,
+                        end: [
+                            <Button
+                                caption="OK"
+                                id="ok"
+                                key="ok"
+                                disabled={Object.keys(validations.messages).length > 0 || preventConfirm}
+                                onClick={this.handleActionClick}
+                            />,
+                            <Button
+                                caption="Cancel"
+                                id="cancel"
+                                key="cancel"
+                                onClick={this.handleActionClick}
+                            />,
+                        ],
+                    }}
+                    content={
+                        <Grid
+                            columns={8}
+                            rowGap={16}
+                            columnGap={16}
+                        >
+                            {descriptionContent && <GridCell columnSpan={8}>{descriptionContent}</GridCell>}
+                            {groups}
+                        </Grid>
+                    }
+                    onClose={this.handleClose}
 
-                {...this.unhandledProperties}
-            >
-            </Dialog>
+                    {...this.unhandledProperties}
+                >
+                </Dialog>
+                <Menu
+                    ref={this.relationListContextMenuRef}
+                    onItemClick={this.handleRelationListContextMenuItemClick}
+                >
+                    <MenuItem id="addEntry" caption="Add Entry" />
+                    <MenuItem id="removeEntry" caption="Remove Selected Entry" />
+                </Menu>
+            </>
         );
     }
 
@@ -473,7 +671,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
         const sectionGroups: ISectionGroup[] = [];
         let currentGroup = "";
-        values.sections.forEach((section: IDialogSection) => {
+        values.sections.forEach((section: IDialogSection, sectionId: string) => {
             const missingContexts = (section.contexts || []).filter((value: string) => {
                 return !activeContexts.has(value);
             });
@@ -483,7 +681,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 return;
             }
 
-            const node = this.renderSection(activeContexts, section);
+            const node = this.renderSection(sectionId, section);
 
             // Is this section grouped?
             if (!section.groupName || section.groupName.length === 0) {
@@ -522,7 +720,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             const pages = group.nodes.map((pair: ISectionNodePair, pageIndex: number): ITabviewPage => {
                 return {
                     id: `page${pageIndex}`,
-                    caption: pair.caption || "No Title",
+                    caption: pair.caption ?? "No Title",
                     content:
                         <Grid
                             columns={8}
@@ -564,7 +762,15 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         return groups;
     };
 
-    private renderSection = (contexts: Set<string>, section: IDialogSection): React.ReactNode => {
+    /**
+     * Renders all entries of the given dialog section as a list of grid cells.
+     *
+     * @param sectionId The name/id of the section.
+     * @param section The section definition.
+     *
+     * @returns The list of grid cells.
+     */
+    private renderSection = (sectionId: string, section: IDialogSection): React.ReactNode => {
         const result = [];
 
         // Render caption only if this section is not grouped.
@@ -577,6 +783,31 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
 
         const keys = Object.keys(section.values);
+
+        // Collect values from relational definitions, which is used to set values of the related edits.
+        const relatedValues: IRelatedValues = {
+            source: "",
+            relations: new Map<string, [DialogValueType, string]>(),
+        };
+
+        keys.forEach((key) => {
+            const value = section.values[key];
+            if (value.type === "relation" && value.value && value.value.length > 0) {
+                const entries = value.value;
+                const active = value.active ?? entries[0].id;
+                const activeData = entries.find((entry) => {
+                    return entry.id === active;
+                });
+
+                if (activeData) {
+                    relatedValues.source = key;
+                    for (const entry of Object.entries(value.relations)) {
+                        relatedValues.relations.set(entry[1], [activeData[entry[0]] as DialogValueType, entry[0]]);
+                    }
+                }
+            }
+        });
+
         let i = 0;
 
         while (i < keys.length) {
@@ -587,12 +818,12 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             group.push({ key, value });
 
             // Collect grouped values.
-            if (value.options?.includes(DialogValueOption.Grouped)) {
+            if (value.options?.includes(CommonDialogValueOption.Grouped)) {
                 while (i < keys.length) {
                     key = keys[i];
                     value = section.values[key];
-                    if (!value.options?.includes(DialogValueOption.Grouped)
-                        || value.options?.includes(DialogValueOption.NewGroup)) {
+                    if (!value.options?.includes(CommonDialogValueOption.Grouped)
+                        || value.options?.includes(CommonDialogValueOption.NewGroup)) {
                         break;
                     }
 
@@ -602,7 +833,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
             }
 
-            result.push(this.renderDialogValueGroup(i, group));
+            result.push(this.renderDialogValueGroup(i, group, sectionId, relatedValues));
         }
 
         return result;
@@ -613,29 +844,42 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      *
      * @param index The group/value index.
      * @param group The list of elements in the group.
+     * @param sectionId The name/id of the section which is currently being rendered.
+     * @param relatedValues A map with dialog value names and values that are taken from a relational value.
+     *
      * @returns The rendered node.
      */
-    private renderDialogValueGroup = (index: number, group: IDialogValuePair[]): React.ReactNode => {
+    private renderDialogValueGroup = (index: number, group: IDialogValuePair[], sectionId: string,
+        relatedValues: IRelatedValues): React.ReactNode => {
 
         const { validations } = this.state;
 
         const result = [];
 
-        // Search for the largest span in the group.
-        let groupSpan: number | undefined;
+        // Search for the largest spans in the group, which is then used for the entire cell.
+        let groupHorizontalSpan: number | undefined;
+        let groupVerticalSpan: number | undefined;
         group.forEach((pair: IDialogValuePair) => {
-            if (!groupSpan) {
-                groupSpan = pair.value.span;
-            } else if (pair.value.span && pair.value.span > groupSpan) {
-                groupSpan = pair.value.span;
+            if (!groupHorizontalSpan) {
+                groupHorizontalSpan = pair.value.horizontalSpan;
+            } else if (pair.value.horizontalSpan && pair.value.horizontalSpan > groupHorizontalSpan) {
+                groupHorizontalSpan = pair.value.horizontalSpan;
+            }
+
+            if (!groupVerticalSpan) {
+                groupVerticalSpan = pair.value.verticalSpan;
+            } else if (pair.value.verticalSpan && pair.value.verticalSpan > groupVerticalSpan) {
+                groupVerticalSpan = pair.value.verticalSpan;
             }
         });
-        groupSpan = groupSpan || 4; // Apply the default if no span value was found.
+
+        // Apply the default if no horizontal span value was found. The vertical span can stay undefined.
+        groupHorizontalSpan = Math.max(Math.round(groupHorizontalSpan ?? 4), 1);
 
         // If the group consists of more than one value and the first value is pure description,
         // use that as the group's caption.
-        const caption = (group.length === 1 && (typeof group[0].value.value !== "boolean"))
-            || group[0].value.options?.includes(DialogValueOption.Description)
+        const caption = (group.length === 1 && (typeof group[0].value.type !== "boolean"))
+            || group[0].value.type === "description"
             ? group[0].value.caption
             : undefined;
         if (caption && group.length > 1) {
@@ -651,16 +895,20 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             }
         });
 
+        const edits = this.renderEdits(group, sectionId, relatedValues);
+        const contentCount = React.Children.count(edits);
+
         result.push(
             <GridCell
                 key={`valueCell${index}`}
                 orientation={Orientation.TopDown}
                 mainAlignment={ContentAlignment.Start}
                 crossAlignment={ContentAlignment.Stretch}
-                columnSpan={groupSpan}
+                columnSpan={groupHorizontalSpan}
+                rowSpan={groupVerticalSpan}
             >
-                {caption && <Label className="valueTitle" caption={caption} />}
-                {this.renderEdits(group)}
+                {contentCount > 0 && caption && <Label className="valueTitle" caption={caption} />}
+                {contentCount > 0 && edits}
                 {errors.map((value: string, errorIndex: number) => {
                     return (
                         <Message
@@ -682,219 +930,317 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      * Renders a list of edit values for a single grid cell.
      *
      * @param edits The list of values to render.
+     * @param sectionId The name/id of the section which is currently being rendered.
+     * @param relatedValues A map with dialog value names and values that are taken from a relational value.
+     *
      * @returns An array with react nodes.
      */
-    private renderEdits = (edits: IDialogValuePair[]): React.ReactNode => {
+    private renderEdits = (edits: IDialogValuePair[], sectionId: string,
+        relatedValues: IRelatedValues): React.ReactNode => {
         const result: React.ReactNode[] = [];
 
-        edits.forEach((entry: IDialogValuePair): void => {
+        for (const entry of edits) {
             const options = entry.value.options;
 
-            if (options?.includes(DialogValueOption.Description)) {
+            if (entry.value.type === "description") {
                 const text = entry.value.value ?? entry.value.caption;
                 result.push(
                     <Label
-                        key={entry.key + "Description"}
+                        key={entry.key}
                         className="description"
                         caption={text?.toLocaleString()}
                     />,
                 );
-            } else if (typeof entry.value.value === "boolean") {
-                result.push(<Checkbox
-                    id={entry.key}
-                    key={entry.key}
-                    caption={entry.value.caption}
-                    className="valueEditor"
-                    checkState={entry.value.value ? CheckState.Checked : CheckState.Unchecked}
-                    onChange={this.checkboxChange}
-                />);
-            } else if (options?.includes(DialogValueOption.Resource)) {
-                result.push(<FileSelector
-                    className="valueEditor"
-                    id={entry.key}
-                    key={entry.key}
-                    path={entry.value.value as string}
-                    filters={entry.value.filters}
-                    multiSelection={false}
-                    onChange={this.fileChange}
-                    onConfirm={this.acceptOnConfirm}
-                />);
-            } else if (Array.isArray(entry.value.choices)) {
-                // A list of string values -> represented as dropdown.
-                // If an empty string is given, the value is optional.
-                const items = entry.value.choices.map((item: string, itemIndex: number) => {
-                    return <Dropdown.Item
-                        caption={item}
-                        key={itemIndex}
-                        id={item}
-                    />;
-                });
-
-                result.push(<Dropdown
-                    id={entry.key}
-                    key={entry.key}
-                    className="valueEditor"
-                    selection={entry.value.value as (string | undefined)}
-                    optional={options?.includes(DialogValueOption.Optional)}
-                    onSelect={this.dropdownChange}
-                    disabled={options?.includes(DialogValueOption.Disabled)}
-                    autoFocus={options?.includes(DialogValueOption.AutoFocus)}
-                >
-                    {items}
-                </Dropdown>);
-            } else if (Array.isArray(entry.value.set) && !(typeof entry.value.value === "number")) {
-                // A set of string values -> represented as tag input.
-                const items = entry.value.set.map((item: string, itemIndex: number) => {
-                    return <Dropdown.Item
-                        caption={item}
-                        key={itemIndex}
-                        id={item}
-                    />;
-                });
-
-                const selection = !entry.value.value
-                    ? undefined
-                    : (typeof entry.value.value === "string") ? entry.value.value : new Set(entry.value.value);
-                result.push(<Dropdown
-                    id={entry.key}
-                    key={entry.key}
-                    multiSelect={true}
-                    selection={selection}
-                    onSelect={this.dropdownChange}
-                    disabled={options?.includes(DialogValueOption.Disabled)}
-                    autoFocus={options?.includes(DialogValueOption.AutoFocus)}
-                >
-                    {items}
-                </Dropdown>);
-            } else if (entry.value.onClick !== undefined) {
-                const text = entry.value.value ?? entry.value.caption;
-                result.push(
-                    <Button
-                        className="valueEditor"
-                        caption={text?.toLocaleString()}
-                        id={entry.key}
-                        key={entry.key}
-                        onClick={this.btnClick}
-                    />);
-            } else if (entry.value.list) {
-                const containerListEntry = (
-                    <Container
-                        id="listContainer"
-                        className="verticalCenterContent"
-                    >
-                        <Checkbox
-                            // The id field will be set from the template data.
-                            dataId="data"
-                            className="stretch"
-                            checkState={CheckState.Unchecked}
-                            onChange={this.listCheckboxChange.bind(this, entry.key)}>
-                        </Checkbox>
-                    </Container>
-                );
-
-                result.push(<DynamicList
-                    id={entry.key}
-                    key={entry.key}
-                    height={150}
-                    rowHeight={29}
-                    template={containerListEntry}
-                    elements={entry.value.list}
-                />);
-            } else if (entry.value.matrix) {
-                const settingsListColumns: ColumnDefinition[] = [
-                    { title: "Option", field: "field1", resizable: true },
-                    { title: "Value", field: "field2", resizable: true },
-                ];
-
-                const options: ITreeGridOptions = {
-                    showHeader: true,
-                    selectionType: SelectionType.Multi,
-                    verticalGridLines: true,
-                    horizontalGridLines: false,
-                    layout: "fitColumns",
-                };
-
-                const containerGridEntry = (
-                    <Container id="matrixContainer" orientation={Orientation.LeftToRight}>
-                        <ParamDialog
-                            ref={this.paramDialogRef}
-                            id="paramDialog"
-                            caption="Add connection parameters"
-                        />
-                        <TreeGrid
-                            id="valueGrid"
-                            columns={settingsListColumns}
-                            tableData={entry.value.matrix}
-                            options={options}
-                        />
-
-                        <Container id="matrixActions">
-                            <Button
-                                id="buttonAddEntry"
-                                data-tooltip="Add new property entry"
-                                onClick={this.handleAddProperty}
-                            >
-                                <Icon src={addProperty} data-tooltip="inherit" />
-                            </Button>
-                            <Button
-                                id="buttonRemoveEntry"
-                                data-tooltip="Remove selected entries"
-                                onClick={this.handleRemoveProperty}
-                            >
-                                <Icon src={removeProperty} data-tooltip="inherit" />
-                            </Button>
-                        </Container>
-                    </Container>
-                );
-
-                result.push(containerGridEntry);
-            } else if (typeof entry.value.value === "number") {
-                result.push(<UpDown
-                    id={entry.key}
-                    key={entry.key}
-                    className="valueEditor"
-                    value={entry.value.value}
-                    step={1}
-                    min={0}
-                    max={65535}
-                    onChange={this.upDownChange}
-                />);
             } else {
-                const className = this.getEffectiveClassNames(["inputWithProgress"]);
-                let progress;
-                if (options?.includes(DialogValueOption.ShowLoading)) {
-                    progress = (<ProgressIndicator
-                        backgroundOpacity={0.95}
-                        indicatorWidth={40}
-                        indicatorHeight={7}
-                        linear={true}
-                    />);
+                // If the entry is part of a relation take its value from there or do not render it,
+                // if there's no valid value for it there.
+                let value = entry.value.value;
+
+                // If the entry is used modify the used key to point to the relational value, instead of the original
+                // data entry.
+                let key = entry.key;
+                if (relatedValues.relations.has(key)) {
+                    const tuple = relatedValues.relations.get(key)!;
+                    if (tuple === undefined || tuple[0] === undefined) {
+                        continue;
+                    }
+                    value = tuple[0] as typeof entry.value.type;
+                    key = relatedValues.source + "." + tuple[1];
                 }
 
-                result.push(
-                    <Container
-                        className={className}
-                        orientation={Orientation.LeftToRight}
-                    >
-                        <Input
-                            id={entry.key}
-                            key={entry.key}
+                switch (entry.value.type) {
+                    case "button": {
+                        const text = value ?? entry.value.caption;
+                        result.push(
+                            <Button
+                                className="valueEditor"
+                                caption={text?.toLocaleString()}
+                                id={key}
+                                key={key}
+                                onClick={this.btnClick.bind(this, sectionId)}
+                            />);
+
+                        break;
+                    }
+
+                    case "boolean": {
+                        result.push(<Checkbox
+                            id={key}
+                            key={key}
+                            caption={entry.value.caption}
                             className="valueEditor"
-                            value={Array.isArray(entry.value.value) ? "<invalid value>" : entry.value.value}
-                            onChange={this.inputChange}
-                            onConfirm={this.acceptOnConfirm}
-                            onBlur={this.onBlur}
+                            checkState={value ? CheckState.Checked : CheckState.Unchecked}
+                            onChange={this.checkboxChange.bind(this, sectionId)}
+                        />);
+
+                        break;
+                    }
+
+                    case "number": {
+                        result.push(<UpDown
+                            id={key}
+                            key={key}
+                            className="valueEditor"
+                            value={value as number}
+                            step={1}
+                            min={entry.value.min}
+                            max={entry.value.max}
+                            onChange={this.upDownChange.bind(this, sectionId)}
+                        />);
+
+                        break;
+                    }
+
+                    case "resource": {
+                        result.push(<FileSelector
+                            className="valueEditor"
+                            id={key}
+                            key={key}
+                            path={value as string}
+                            filters={entry.value.filters}
+                            multiSelection={false}
                             placeholder={entry.value.placeholder}
-                            disabled={options?.includes(DialogValueOption.Disabled)}
-                            multiLine={options?.includes(DialogValueOption.MultiLine)}
-                            password={options?.includes(DialogValueOption.Password)}
-                            autoFocus={options?.includes(DialogValueOption.AutoFocus)}
-                        />
-                        {progress}
-                    </Container>,
-                );
+                            onChange={this.fileChange.bind(this, sectionId)}
+                            onConfirm={this.acceptOnConfirm}
+                        />);
+
+                        break;
+                    }
+
+                    case "choice": {
+                        // A list of string values -> represented as dropdown.
+                        // If an empty string is given, the value is optional.
+                        const items = entry.value?.choices?.map((item: string, itemIndex: number) => {
+                            return <Dropdown.Item
+                                caption={item}
+                                key={itemIndex}
+                                id={item}
+                            />;
+                        });
+
+                        result.push(<Dropdown
+                            id={key}
+                            key={key}
+                            className="valueEditor"
+                            selection={value as string}
+                            optional={entry.value.optional}
+                            onSelect={this.handleChoiceChange.bind(this, sectionId)}
+                            disabled={options?.includes(CommonDialogValueOption.Disabled)}
+                            autoFocus={options?.includes(CommonDialogValueOption.AutoFocus)}
+                        >
+                            {items}
+                        </Dropdown>);
+
+                        break;
+                    }
+
+                    case "checkList": {
+                        const containerListEntry = (
+                            <Container
+                                id="listContainer"
+                                className="verticalCenterContent"
+                            >
+                                <Checkbox
+                                    // The id field will be set from the template data.
+                                    dataId="data"
+                                    className="stretch"
+                                    checkState={CheckState.Unchecked}
+                                    onChange={this.checkListCheckboxChange.bind(this, sectionId, key)}>
+                                </Checkbox>
+                            </Container>
+                        );
+
+                        result.push(<DynamicList
+                            id={key}
+                            key={key}
+                            height={150}
+                            rowHeight={29}
+                            template={containerListEntry}
+                            elements={entry.value.checkList ?? []}
+                        />);
+
+                        break;
+                    }
+
+                    case "set": {
+                        // A set of string values -> represented as tag input.
+                        const items = entry.value.tagSet?.map((item: string, itemIndex: number) => {
+                            return <Dropdown.Item
+                                caption={item}
+                                key={itemIndex}
+                                id={item}
+                            />;
+                        });
+
+                        const selection = new Set(value as string[]);
+                        result.push(<Dropdown
+                            id={key}
+                            key={key}
+                            multiSelect={true}
+                            selection={selection}
+                            onSelect={this.handleSetChange.bind(this, sectionId)}
+                            disabled={options?.includes(CommonDialogValueOption.Disabled)}
+                            autoFocus={options?.includes(CommonDialogValueOption.AutoFocus)}
+                        >
+                            {items}
+                        </Dropdown>);
+
+                        break;
+                    }
+
+                    case "relation": {
+                        // Here we render only the list of titles from each entry.
+                        const settingsListColumns = entry.value.listItemCaptionFields?.map((value) => {
+                            return { title: "", field: value, resizable: false };
+                        }) ?? [{ title: "", field: "caption", resizable: false }];
+
+                        const options: ITreeGridOptions = {
+                            showHeader: false,
+                            selectionType: SelectionType.Single,
+                            verticalGridLines: true,
+                            horizontalGridLines: false,
+                            layout: "fitDataStretch",
+                            autoScrollOnSelect: true,
+                        };
+
+                        const containerGridEntry = (<TreeGrid
+                            className="relationalList"
+                            columns={settingsListColumns}
+                            tableData={entry.value.value}
+                            options={options}
+                            selectedIds={[entry.value.active ?? ""]}
+                            height="12em"
+                            onRowSelected={this.handleRelationalListRowSelection.bind(this, sectionId, entry.value)}
+                            onRowContext={this.handleRelationListRowContext.bind(this, sectionId, entry.value)}
+                        />);
+
+                        result.push(containerGridEntry);
+
+                        break;
+                    }
+
+                    case "matrix": {
+                        const settingsListColumns: ColumnDefinition[] = [
+                            { title: "Option", field: "key", resizable: true },
+                            { title: "Value", field: "value", resizable: true },
+                        ];
+
+                        const options: ITreeGridOptions = {
+                            showHeader: true,
+                            selectionType: SelectionType.Multi,
+                            verticalGridLines: true,
+                            horizontalGridLines: false,
+                            layout: "fitColumns",
+                        };
+
+                        const containerGridEntry = (
+                            <Container className="matrixContainer" orientation={Orientation.LeftToRight}>
+                                <ParamDialog
+                                    ref={this.paramDialogRef}
+                                    id="paramDialog"
+                                    caption="Add connection parameters"
+                                />
+                                <TreeGrid
+                                    id="valueGrid"
+                                    columns={settingsListColumns}
+                                    tableData={value as IDictionary[]}
+                                    options={options}
+                                />
+
+                                <Container id="matrixActions">
+                                    <Button
+                                        id="buttonAddEntry"
+                                        data-tooltip="Add new property entry"
+                                        onClick={this.handleAddProperty}
+                                    >
+                                        <Icon src={addProperty} data-tooltip="inherit" />
+                                    </Button>
+                                    <Button
+                                        id="buttonRemoveEntry"
+                                        data-tooltip="Remove selected entries"
+                                        onClick={this.handleRemoveProperty}
+                                    >
+                                        <Icon src={removeProperty} data-tooltip="inherit" />
+                                    </Button>
+                                </Container>
+                            </Container>
+                        );
+
+                        result.push(containerGridEntry);
+                        break;
+                    }
+
+                    default: { // Text input.
+                        const className = this.getEffectiveClassNames(["inputWithProgress"]);
+                        let progress;
+                        if (entry.value.showLoading) {
+                            progress = (<ProgressIndicator
+                                backgroundOpacity={0.95}
+                                indicatorWidth={40}
+                                indicatorHeight={7}
+                                linear={true}
+                            />);
+                        }
+
+                        result.push(
+                            <Container
+                                className={className}
+                                orientation={Orientation.LeftToRight}
+                            >
+                                <Input
+                                    id={key}
+                                    key={key}
+                                    className="valueEditor"
+                                    value={value as string}
+                                    onChange={this.handleInputChange.bind(this, sectionId)}
+                                    onConfirm={this.acceptOnConfirm}
+                                    onBlur={this.onBlur.bind(this, sectionId)}
+                                    placeholder={entry.value.placeholder}
+                                    disabled={options?.includes(CommonDialogValueOption.Disabled)}
+                                    multiLine={entry.value.multiLine}
+                                    password={entry.value.obfuscated}
+                                    autoFocus={options?.includes(CommonDialogValueOption.AutoFocus)}
+                                />
+                                {progress}
+                            </Container>,
+                        );
+
+                        // Add cell specific description if given.
+                        if (entry.value.description) {
+                            result.push(
+                                <Label
+                                    key={key + "CellDescription"}
+                                    className="cellDescription"
+                                    caption={entry.value.description}
+                                />,
+                            );
+                        }
+
+                        break;
+                    }
+                }
             }
-        });
+        }
 
         return result;
     };
@@ -928,70 +1274,62 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         this.dialogRef.current?.close(!accepted);
     };
 
-    private inputChange = (_e: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private handleInputChange = (sectionId: string, _e: React.ChangeEvent, props: IInputChangeProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
-        values.sections.forEach((section) => {
-            if (props.id) {
-                const entry = section.values[props.id];
-                if (!isNil(entry)) {
-                    entry.value = props.value;
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            const value = this.setValue(props.id, props.value, section) as IStringInputDialogValue;
+            if (value) {
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
 
-                    const validations = onValidate?.(false, values, data) || { messages: {} };
-                    this.setState({ values, validations });
-                }
+                value.onChange?.(props.value, this);
             }
-        });
+        }
     };
 
-    private fileChange = (newValue: string[], props: IFileSelectorProperties): void => {
+    private fileChange = (sectionId: string, newValue: string[], props: IFileSelectorProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
         if (newValue.length > 0) {
-            values.sections.forEach((section) => {
-                if (props.id) {
-                    const entry = section.values[props.id];
-                    if (!isNil(entry)) {
-                        entry.value = newValue[0];
+            const section = values.sections.get(sectionId);
+            if (section && props.id) {
+                const value = this.setValue(props.id, newValue[0], section) as IResourceDialogValue;
+                if (value) {
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
+                    this.setState({ values, validations });
 
-                        const validations = onValidate?.(false, values, data) || { messages: {} };
-                        this.setState({ values, validations });
-                    }
+                    value.onChange?.(newValue[0], this);
                 }
-            });
+            }
         }
     };
 
     /**
      * Change handler for standalone check box components.
      *
+     * @param sectionId The name/id of the section in which the sending control is defined.
      * @param checkState The new check state to be set.
      * @param props The checkbox' properties.
      */
-    private checkboxChange = (checkState: CheckState, props: ICheckboxProperties): void => {
+    private checkboxChange = (sectionId: string, checkState: CheckState, props: ICheckboxProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
-        const id = props.id;
-
-        // The id is always assigned (in the edit construction code), so it's impossible to test a missing one.
-        /* istanbul ignore next */
-        if (!id) {
-            return;
-        }
-
-        values.sections.forEach((section) => {
-            const entry = section.values[id];
-            if (entry) {
-                entry.value = (checkState === CheckState.Checked) ? true : false;
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            const newValue = (checkState === CheckState.Checked) ? true : false;
+            const value = this.setValue(props.id, newValue, section) as IBooleanInputDialogValue;
+            if (value) {
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
 
-                entry.onChange?.(checkState === CheckState.Checked);
+                value.onChange?.(newValue, this);
             }
-        });
+        }
     };
 
     /**
@@ -1006,7 +1344,8 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      * @param props The checkbox' properties.
      */
     /* istanbul ignore next */
-    private listCheckboxChange = (valueId: string, checkState: CheckState, props: ICheckboxProperties): void => {
+    private checkListCheckboxChange = (sectionId: string, valueId: string, checkState: CheckState,
+        props: ICheckboxProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
@@ -1017,11 +1356,12 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             return;
         }
 
-        values.sections.forEach((section) => {
-            const entry = section.values[valueId];
+        const section = values.sections.get(sectionId);
+        if (section) {
+            const entry = section.values[valueId] as ICheckListDialogValue;
             if (entry) {
                 if (templateData) {
-                    const found = entry.list?.find((item) => {
+                    const found = entry.checkList?.find((item) => {
                         return item.data.id === templateData.id;
                     });
 
@@ -1034,22 +1374,21 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
 
-                entry.onChange?.(checkState === CheckState.Checked);
+                entry.onChange?.(checkState === CheckState.Checked, this);
             }
-        });
+        }
     };
 
-    private btnClick = (_e: React.SyntheticEvent, props: IButtonProperties): void => {
+    private btnClick = (sectionId: string, _e: React.SyntheticEvent, props: IButtonProperties): void => {
         const { values } = this.state;
 
-        values.sections.forEach((section) => {
-            if (props.id) {
-                const entry = section.values[props.id];
-                if (!isNil(entry)) {
-                    entry.onClick?.(props.id, values);
-                }
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            const entry = section.values[props.id] as IButtonDialogValue;
+            if (entry) {
+                entry.onClick?.(props.id, values, this);
             }
-        });
+        }
     };
 
     private advancedBtnClick = (_e: React.SyntheticEvent, props: IButtonProperties): void => {
@@ -1059,41 +1398,71 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         advancedAction?.(values, props);
     };
 
-    private upDownChange = (item: string | number, props: IUpDownProperties): void => {
+    private upDownChange = (sectionId: string, item: string | number, props: IUpDownProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
-        values.sections.forEach((section) => {
-            if (props.id) {
-                const entry = section.values[props.id];
-                if (!isNil(entry)) {
-                    entry.value = item;
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            const value = this.setValue(props.id, item, section) as INumberInputDialogValue;
+            if (value) {
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
 
-                    const validations = onValidate?.(false, values, data) || { messages: {} };
-                    this.setState({ values, validations });
-                }
+                value.onChange?.(item as number, this);
             }
-        });
+        }
     };
 
-    private dropdownChange = (selectedIds: Set<string>, props: IDropdownProperties): void => {
+    private handleChoiceChange = (sectionId: string, selectedIds: Set<string>, props: IDropdownProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
-        const value = props.multiSelect ? [...selectedIds] : (selectedIds.size > 0 ? [...selectedIds][0] : "");
-        values.sections.forEach((section) => {
-            if (props.id) {
-                const entry = section.values[props.id];
-                if (!isNil(entry)) {
-                    entry.value = value;
+        const newValue = selectedIds.size > 0 ? [...selectedIds][0] : "";
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            const value = this.setValue(props.id, newValue, section) as IChoiceDialogValue;
+            if (value) {
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
 
-                    const validations = onValidate?.(false, values, data) || { messages: {} };
-                    this.setState({ values, validations });
-
-                    entry.onChange?.(value);
-                }
+                value.onChange?.(newValue, this);
             }
-        });
+        }
+    };
+
+    private handleSetChange = (sectionId: string, selectedIds: Set<string>, props: IDropdownProperties): void => {
+        const { onValidate } = this.props;
+        const { values, data } = this.state;
+
+        const newValue = [...selectedIds];
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            const value = this.setValue(props.id, newValue, section) as ISetDialogValue;
+            if (value) {
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
+
+                value.onChange?.(newValue, this);
+            }
+        }
+    };
+
+    private handleRelationalListRowSelection = (sectionId: string, value: IRelationDialogValue,
+        row: RowComponent): void => {
+        const { onValidate } = this.props;
+        const { values, data } = this.state;
+
+        const entry = row.getData() as IDictionary;
+        const section = values.sections.get(sectionId);
+        if (section && value.active !== entry.id) {
+            const validations = onValidate?.(false, values, data) || { messages: {} };
+            if (Object.keys(validations.messages).length === 0) {
+                value.active = entry[value.listItemId ?? "id"] as string;
+            }
+
+            this.setState({ values, validations });
+        }
     };
 
     private advancedCheckboxChange = (checkState: CheckState): void => {
@@ -1123,17 +1492,16 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
     };
 
-    private onBlur = (_e: React.SyntheticEvent, props: IInputProperties): void => {
+    private onBlur = (sectionId: string, _e: React.SyntheticEvent, props: IInputProperties): void => {
         const { values } = this.state;
 
-        values.sections.forEach((section) => {
-            if (props.id) {
-                const entry = section.values[props.id];
-                if (!isNil(entry)) {
-                    entry.onFocusLost?.(props.value ?? "");
-                }
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            const entry = section.values[props.id];
+            if (entry?.type === "text" || entry?.type === "number") {
+                entry.onFocusLost?.(props.value ?? "", this);
             }
-        });
+        }
     };
 
     /**
@@ -1167,4 +1535,111 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
 
         return Object.keys(validations.messages).length === 0;
     }
+
+    /**
+     * Takes an id of a data entry and a new value and assigns that to the data entry.
+     *
+     * @param id The id of the data entry. Can have a qualified form (id.id).
+     * @param value The value to set.
+     * @param section The section which contains the data entries given by the id.
+     *
+     * @returns True if the value could be set (valid target data entry found), otherwise false.
+     */
+    private setValue(id: string, value: DialogValueType, section: IDialogSection): IDialogValue | undefined {
+        const { onValidate } = this.props;
+        const { values, data } = this.state;
+
+        // See if the id is actually a path.
+        const parts = id.split(".");
+        let dialogValue: IDialogValue | undefined;
+
+        if (parts.length === 1) {
+            dialogValue = section.values[id];
+            if (dialogValue) {
+                dialogValue.value = value;
+            }
+        } else {
+            // Currently we only support a path with 2 elements. Both must point into the given section,
+            // where the first part must represent a relational list.
+            if (parts.length < 2) {
+                return;
+            }
+
+            dialogValue = section.values[parts[0]];
+            if (!dialogValue || dialogValue.type !== "relation" || !dialogValue.active) {
+                return;
+            }
+
+            const activeData = dialogValue.value?.find((candidate) => {
+                return candidate.id === (dialogValue as IRelationDialogValue).active!;
+            });
+
+            if (!activeData) {
+                return;
+            }
+
+            activeData[parts[1]] = value;
+        }
+
+        const validations = onValidate?.(false, values, data) || { messages: {} };
+        this.setState({ values, validations });
+
+
+        return dialogValue;
+    }
+
+    private handleRelationListRowContext = (sectionId: string, value: IRelationDialogValue, event: Event): void => {
+        const e = event as MouseEvent;
+        const targetRect = new DOMRect(e.clientX, e.clientY, 2, 2);
+
+        this.relationListContextMenuRef.current?.open(targetRect, false, {}, { sectionId, value });
+    };
+
+    private handleRelationListContextMenuItemClick = (_e: React.MouseEvent, props: IMenuItemProperties,
+        payload: unknown): boolean => {
+
+        const itemData = payload as { sectionId: string; value: IRelationDialogValue };
+        const idName = itemData.value.listItemId ?? "id";
+        if (props.id === "addEntry") {
+            const titleName = (itemData.value.listItemCaptionFields ?? ["title"])[0];
+            itemData.value.value?.push({
+                [idName]: this.relationListCounter,
+                [titleName]: `New Item ${-this.relationListCounter}`,
+            });
+            itemData.value.active = String(this.relationListCounter--);
+
+            this.forceUpdate();
+        } else if ((itemData.value.value ?? []).length > 1) {
+            // Don't allow to remove the last element or we will no longer get row context menu events.
+            let index = itemData.value.value?.findIndex((candidate) => {
+                return candidate[idName] === itemData.value.active;
+            }) ?? -1;
+
+            if (index > -1) {
+                const { onValidate } = this.props;
+                const { values, data } = this.state;
+
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                if (Object.keys(validations.messages).length === 0) {
+                    // Select the entry which is now at the position where the deleted entry was.
+                    // If that was the last one then select the now last one.
+                    if (itemData.value.value?.length === 0) {
+                        itemData.value.active = undefined;
+                    } else {
+                        if (index === itemData.value.value?.length) {
+                            --index;
+                        }
+
+                        const entry = itemData.value.value?.[index] ?? {};
+                        itemData.value.active = entry[idName] as string;
+                    }
+
+                    itemData.value.value?.splice(index, 1);
+                    this.setState({ values, validations });
+                }
+            }
+        }
+
+        return true;
+    };
 }

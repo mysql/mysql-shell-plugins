@@ -426,6 +426,28 @@ exports[`Theme editor core testing Render test 1`] = `
                                 onOpen={[Function]}
                               />
                             </Dialog>
+                            <Menu
+                              onItemClick={[Function]}
+                              orientation="column"
+                              placement="right-start"
+                            >
+                              <Popup
+                                className="msg menu"
+                                onClose={[Function]}
+                                onKeyDown={[Function]}
+                                onOpen={[Function]}
+                                orientation="column"
+                                pinned={false}
+                                placement="right-start"
+                                showArrow={false}
+                              >
+                                <Portal
+                                  onClose={[Function]}
+                                  onKeyDown={[Function]}
+                                  onOpen={[Function]}
+                                />
+                              </Popup>
+                            </Menu>
                           </ValueEditDialog>
                           <Button
                             data-tooltip="Duplicate current theme"
@@ -1896,7 +1918,7 @@ exports[`Theme editor core testing Render test 1`] = `
                           },
                           Object {
                             "children": undefined,
-                            "color": "#606060",
+                            "color": "#202020",
                             "description": "Grid lines color",
                             "id": "list.gridColor",
                             "preview": true,
@@ -6059,7 +6081,7 @@ exports[`Theme editor core testing Render test 1`] = `
                             },
                             Object {
                               "children": undefined,
-                              "color": "#606060",
+                              "color": "#202020",
                               "description": "Grid lines color",
                               "id": "list.gridColor",
                               "preview": true,

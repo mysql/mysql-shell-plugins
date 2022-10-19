@@ -37,7 +37,8 @@ import addIcon from "../assets/images/add.svg";
 import defaultIcon from "../assets/images/chevron-right.svg";
 import currentIcon from "../assets/images/connections.svg";
 import {
-    ConfirmDialog, DialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+    ConfirmDialog, CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+    ICheckListDialogValue,
 } from "../components/Dialogs";
 import { ShellInterface } from "../supplement/ShellInterface";
 import { webSession } from "../supplement/WebSession";
@@ -274,7 +275,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         switch (sectionId) {
             case "add": {
                 const useExistingProfile = sectionValues.copyProfile.value;
-                sectionValues.definedProfiles.options = !useExistingProfile ? [DialogValueOption.ReadOnly] : [];
+                sectionValues.definedProfiles.options = !useExistingProfile ? [CommonDialogValueOption.ReadOnly] : [];
                 if (useExistingProfile && isNil(sectionValues.definedProfiles.value)) {
                     result.messages.databaseType = "Select one of the existing profile";
                 }
@@ -308,7 +309,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 }
 
                 if (this.defaultProfile.id === profile?.id) {
-                    sectionValues.setAsDefaultProfile.options = [DialogValueOption.ReadOnly];
+                    sectionValues.setAsDefaultProfile.options = [CommonDialogValueOption.ReadOnly];
                     sectionValues.setAsDefaultProfile.value = true;
                 } else {
                     sectionValues.setAsDefaultProfile.options = [];
@@ -331,7 +332,8 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
             }
 
             case "delete": {
-                const list = sectionValues.profileActivateDeactivate?.list;
+                const value = sectionValues.profileActivateDeactivate as ICheckListDialogValue;
+                const list = value.checkList;
                 list?.forEach((item) => {
                     const data = item.data as ICheckboxProperties;
                     if (String(this.defaultProfile.id) === data.id && data.checkState === CheckState.Checked) {
@@ -390,15 +392,15 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                         const tmpProfile = Object.assign({}, profile);
                         tmpProfile.name = sectionValues.profileNewName
                             .value as string;
-                        const setDefault =
-                            sectionValues.setAsDefaultProfile as boolean;
+                        const setDefault = sectionValues.setAsDefaultProfile.value as boolean;
                         this.updateProfile(tmpProfile, setDefault);
 
                         break;
                     }
 
                     case "delete": {
-                        const list = sectionValues.profileActivateDeactivate?.list;
+                        const value = sectionValues.profileActivateDeactivate as ICheckListDialogValue;
+                        const list = value.checkList;
                         this.deleteList = [];
                         list?.forEach((item) => {
                             const data = item.data as ICheckboxProperties;
@@ -557,25 +559,28 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
             contexts: ["add"],
             values: {
                 profileName: {
+                    type: "text",
                     caption: "New profile name:",
                     value: "",
                     placeholder: "<enter a unique profile name>",
-                    span: 8,
+                    horizontalSpan: 8,
                 },
                 copyProfile: {
+                    type: "boolean",
                     caption: "Copy values from exiting profile",
                     value: false,
-                    span: 8,
+                    horizontalSpan: 8,
                 },
                 definedProfiles: {
+                    type: "choice",
                     caption: "Existing profiles",
                     value:
                         this.activeProfiles.length > 0
                             ? this.activeProfiles[0].name
                             : "",
                     choices: this.activeProfiles.map((item) => { return item.name; }),
-                    options: [DialogValueOption.Disabled],
-                    span: 8,
+                    options: [CommonDialogValueOption.Disabled],
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -585,20 +590,22 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
             contexts: ["edit"],
             values: {
                 profileNewName: {
+                    type: "text",
                     caption: "Profile name:",
                     placeholder:
                         this.activeProfiles.find(
                             (p) => { return p.id === webSession.currentProfileId; },
                         )?.name ?? this.activeProfiles[0].name,
-                    span: 8,
+                    horizontalSpan: 8,
                 },
                 setAsDefaultProfile: {
+                    type: "boolean",
                     caption: "default profile",
                     value:
                         this.activeProfiles.find(
                             (p) => { return p.id === webSession.currentProfileId; },
                         )?.id === this.defaultProfile.id,
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -608,8 +615,9 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
             contexts: ["delete"],
             values: {
                 profileActivateDeactivate: {
+                    type: "checkList",
                     caption: "Select profile from the list to activate or deactivate",
-                    list: this.activeProfiles.map((item) => {
+                    checkList: this.activeProfiles.map((item) => {
                         const result: ICheckboxProperties = {
                             id: item.id.toString(),
                             caption: item.name,
@@ -618,7 +626,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
                         return { data: result };
                     }),
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };

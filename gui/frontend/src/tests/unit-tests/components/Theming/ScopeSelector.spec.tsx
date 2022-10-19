@@ -29,27 +29,35 @@ import { snapshotFromWrapper } from "../../test-helpers";
 describe("ScopeSelector testing", () => {
     const scopeSelectorRef = React.createRef<ScopeSelector>();
 
-    test("Test ScopeSelector properties", () => {
+    test("ScopeSelector instantiation", () => {
         const component = mount(
             <ScopeSelector
                 ref={scopeSelectorRef}
-                defaultScopes={[]} customScopes={[]}
+                defaultScopes={[]}
+                customScopes={[]}
             />,
         );
-        expect(component).toBeTruthy();
+
         const props = component.props();
         expect(props.defaultScopes).toEqual([]);
         expect(props.customScopes).toEqual([]);
     });
 
-    test("Render test", () => {
+    test("Snapshot and properties", () => {
         const component = mount(
             <ScopeSelector
                 ref={scopeSelectorRef}
-                defaultScopes={[]} customScopes={[]}
+                defaultScopes={["lorem", "ipsum", "dolor"]}
+                customScopes={["sit", "amet", "consectetur", "adipisci"]}
             />,
         );
-        expect (snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.setProps({ customScopes: ["sit", "amet", "consectetur", "adipisci"] });
+        expect(component.props().customScopes).toEqual(["sit", "amet", "consectetur", "adipisci"]);
+        component.setProps({ customScopes: ["sit"] });
+        expect(component.props().customScopes).toEqual(["sit"]);
+
         component.unmount();
     });
 

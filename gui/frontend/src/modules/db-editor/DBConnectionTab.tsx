@@ -50,7 +50,7 @@ import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../scr
 import { requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
-import { CodeEditorLanguageServices } from "../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
 import { DBEditorToolbar } from "./DBEditorToolbar";
 import { IExecutionInfo, MessageType } from "../../app-logic/Types";
@@ -561,7 +561,7 @@ Execute \\help or \\? for help;`;
 
             if (backend) {
                 // Extract embedded parameters.
-                const services = CodeEditorLanguageServices.instance;
+                const services = ScriptingLanguageServices.instance;
                 void services.extractQueryParameters(sql, context.dbVersion, context.sqlMode)
                     .then((embeddedParams: Array<[string, string]>) => {
                         // Create a list of parameter values (order is important) out from embedded parameters.
@@ -1007,7 +1007,7 @@ Execute \\help or \\? for help;`;
     private inspectQuery = (context: ExecutionContext, statement: string): void => {
         const { id, connectionId } = this.props;
         const { backend } = this.state;
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
 
         services.determineQueryType(context, statement).then((type) => {
             switch (type) {
@@ -1166,7 +1166,7 @@ Execute \\help or \\? for help;`;
             return;
         }
 
-        const services = CodeEditorLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
         const type = await services.determineQueryType(context, sql);
         if (type !== QueryType.ExplainStatement) {
             // If the statement is not an explain statement then make it one.

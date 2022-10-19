@@ -24,7 +24,7 @@
 import { IPosition } from "monaco-editor";
 
 import { IStatement, Monaco } from "../components/ui/CodeEditor";
-import { CodeEditorLanguageServices } from "./ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "./ScriptingLanguageServices";
 import { IDiagnosticEntry, IStatementSpan, StatementFinishState } from "../parsing/parser-common";
 import { ExecutionContext } from "./ExecutionContext";
 import { PresentationInterface } from "./PresentationInterface";
@@ -242,7 +242,7 @@ export class SQLExecutionContext extends ExecutionContext {
 
         const result: IStatement[] = [];
 
-        const selection = this.presentation.backend.getSelection();
+        const selection = this.presentation.backend?.getSelection();
         const startOffset = selection ? model.getOffsetAt(selection.getStartPosition()) : 0;
         const endOffset = selection ? model.getOffsetAt(selection.getEndPosition()) : 0;
         if (startOffset < endOffset) {
@@ -393,17 +393,19 @@ export class SQLExecutionContext extends ExecutionContext {
         // Go through all lines until a non-empty one is found.
         // Check its text for a command starter.
         let run = this.presentation.startLine;
-        const model = this.presentation.backend.getModel()!;
-        while (run <= this.presentation.endLine) {
-            const text = model.getLineContent(run).trim();
-            if (text.length > 0) {
-                if (text.startsWith("\\")) {
-                    return true;
-                } else {
-                    return false;
+        const model = this.presentation.backend?.getModel();
+        if (model) {
+            while (run <= this.presentation.endLine) {
+                const text = model.getLineContent(run).trim();
+                if (text.length > 0) {
+                    if (text.startsWith("\\")) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
+                ++run;
             }
-            ++run;
         }
 
         return false;
@@ -461,9 +463,11 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const editor = this.presentation.backend;
-        while (startIndex <= endIndex) {
-            const details = this.statementDetails[startIndex++];
-            editor.deltaDecorations(details.diagnosticDecorationIDs, []);
+        if (editor) {
+            while (startIndex <= endIndex) {
+                const details = this.statementDetails[startIndex++];
+                editor.deltaDecorations(details.diagnosticDecorationIDs, []);
+            }
         }
     }
 
@@ -481,7 +485,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const editor = this.presentation.backend;
-        const model = editor.getModel();
+        const model = editor?.getModel();
 
         if (model) {
             const next = this.pendingSplitActions.shift();
@@ -491,7 +495,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 return;
             }
 
-            const services = CodeEditorLanguageServices.instance;
+            const services = ScriptingLanguageServices.instance;
 
             const nextDetails = this.statementDetails[next];
             const start = nextDetails.span.start + this.presentation.codeOffset;
@@ -508,7 +512,7 @@ export class SQLExecutionContext extends ExecutionContext {
 
             if (sql.trimStart().startsWith("\\")) {
                 // This is (now) an internal command. Remove any decoration for it.
-                editor.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
+                editor?.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
                 this.updateLineStartMarkers();
 
                 return;
@@ -631,7 +635,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const editor = this.presentation.backend;
-        const model = editor.getModel();
+        const model = editor?.getModel();
 
         if (model) {
             const next = this.pendingValidations.shift();
@@ -642,12 +646,12 @@ export class SQLExecutionContext extends ExecutionContext {
                 return;
             }
 
-            const services = CodeEditorLanguageServices.instance;
+            const services = ScriptingLanguageServices.instance;
 
             const nextDetails = this.statementDetails[next];
             if (nextDetails.state === StatementFinishState.DelimiterChange) {
                 // The DELIMITER command is not valid SQL.
-                editor.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
+                editor?.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
                 this.updateLineStartMarkers();
 
                 // Trigger validation for the next statement.
@@ -707,7 +711,7 @@ export class SQLExecutionContext extends ExecutionContext {
                     // the validation ran.
                     if (next < this.statementDetails.length) {
                         nextDetails.diagnosticDecorationIDs =
-                            editor.deltaDecorations(nextDetails.diagnosticDecorationIDs, newDecorations);
+                            editor?.deltaDecorations(nextDetails.diagnosticDecorationIDs, newDecorations) ?? [];
                     }
                 }
 

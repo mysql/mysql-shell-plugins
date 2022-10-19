@@ -1682,27 +1682,9 @@ export const setRestSchema = async (schemaName: string,
         }
     }
 
-    if (itemsPerPage !== 0 || itemsPerPage !== undefined) {
-        if ((await dialog.findElements(By.id("up"))).length > 0) {
-            let ref: WebElement;
-            if (itemsPerPage > 0) {
-                ref = await dialog.findElement(By.id("up"));
-            } else {
-                ref = await dialog.findElement(By.id("down"));
-            }
-
-            const clicks = parseInt((String(itemsPerPage).replace("-", "")), 10);
-            let count = 1;
-
-            while (count < clicks) {
-                await ref.click();
-                count++;
-            }
-        } else {
-            const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
-            await inputItemsPerPage.sendKeys(itemsPerPage);
-        }
-    }
+    const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
+    await inputItemsPerPage.clear();
+    await inputItemsPerPage.sendKeys(itemsPerPage);
 
     const inputComments = await dialog.findElement(By.id("comments"));
     await inputComments.clear();
@@ -1825,4 +1807,21 @@ export const waitForNotification = async (): Promise<Notification> => {
     const notifications = await workbench.getNotifications();
 
     return notifications[notifications.length - 1];
+};
+
+export const waitForOutputText = async (view: OutputView, textToSearch: string, timeout: number): Promise<void> => {
+    await driver.wait(async () => {
+        try {
+            const scrollEl = await driver.findElements(By.css("#workbench.panel.output .editor-scrollable"));
+            if (scrollEl.length > 0) {
+                await driver.executeScript("arguments[0].scrollBy(0, 500)", scrollEl);
+            }
+            const text = await view.getText();
+
+            return text.includes(textToSearch);
+        } catch (e) {
+            return false;
+        }
+
+    }, timeout, `'${textToSearch}' was not found on Output view`);
 };

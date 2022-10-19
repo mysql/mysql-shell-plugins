@@ -188,6 +188,14 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
           <label
             __self="[object Object]"
             __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Enabled
+          </label>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
             class="msg checkbox checked valueEditor"
             id="enabled"
             tabindex="0"
@@ -214,21 +222,20 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
           >
             Requires Authentication
           </label>
-          <div
+          <label
             __self="[object Object]"
             __source="[object Object]"
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="msg checkbox checked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
           >
-            <input
+            <span
               __self="[object Object]"
               __source="[object Object]"
-              class="msg input valueEditor"
-              id="requiresAuth"
-              spellcheck="true"
-              type="text"
+              class="checkMark"
             />
-          </div>
+            Requires Authentication
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -749,6 +756,28 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         onOpen={[Function]}
       />
     </Dialog>
+    <Menu
+      onItemClick={[Function]}
+      orientation="column"
+      placement="right-start"
+    >
+      <Popup
+        className="msg menu"
+        onClose={[Function]}
+        onKeyDown={[Function]}
+        onOpen={[Function]}
+        orientation="column"
+        pinned={false}
+        placement="right-start"
+        showArrow={false}
+      >
+        <Portal
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+        />
+      </Popup>
+    </Menu>
   </ValueEditDialog>
   <ConfirmDialog
     key="confirmDialog"
@@ -849,6 +878,28 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           onOpen={[Function]}
         />
       </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
     </ValueEditDialog>
   </MrsServiceDialog>
   <MrsSchemaDialog
@@ -906,6 +957,28 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           onOpen={[Function]}
         />
       </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
     </ValueEditDialog>
   </MrsSchemaDialog>
   <MrsDbObjectDialog
@@ -963,6 +1036,28 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           onOpen={[Function]}
         />
       </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
     </ValueEditDialog>
   </MrsDbObjectDialog>
   <MdsHWClusterDialog
@@ -1020,6 +1115,28 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           onOpen={[Function]}
         />
       </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
     </ValueEditDialog>
   </MdsHWClusterDialog>
   <MdsHWLoadDataDialog
@@ -1077,6 +1194,28 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           onOpen={[Function]}
         />
       </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
     </ValueEditDialog>
   </MdsHWLoadDataDialog>
 </DialogHost>

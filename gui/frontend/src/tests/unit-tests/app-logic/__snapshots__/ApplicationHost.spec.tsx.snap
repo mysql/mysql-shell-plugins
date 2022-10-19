@@ -1164,6 +1164,28 @@ exports[`Application host tests Rendering About 1`] = `
               onOpen={[Function]}
             />
           </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+              orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
+            >
+              <Portal
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+              />
+            </Popup>
+          </Menu>
         </ValueEditDialog>
         <ConfirmDialog
           key="confirmDialog"
@@ -1264,6 +1286,28 @@ exports[`Application host tests Rendering About 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
@@ -1321,6 +1365,28 @@ exports[`Application host tests Rendering About 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
@@ -1378,6 +1444,28 @@ exports[`Application host tests Rendering About 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
         <MdsHWClusterDialog
@@ -1435,6 +1523,28 @@ exports[`Application host tests Rendering About 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWClusterDialog>
         <MdsHWLoadDataDialog
@@ -1492,6 +1602,28 @@ exports[`Application host tests Rendering About 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWLoadDataDialog>
       </DialogHost>
@@ -2664,6 +2796,28 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               onOpen={[Function]}
             />
           </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+              orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
+            >
+              <Portal
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+              />
+            </Popup>
+          </Menu>
         </ValueEditDialog>
         <ConfirmDialog
           key="confirmDialog"
@@ -2764,6 +2918,28 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
@@ -2821,6 +2997,28 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
@@ -2878,6 +3076,28 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
         <MdsHWClusterDialog
@@ -2935,6 +3155,28 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWClusterDialog>
         <MdsHWLoadDataDialog
@@ -2992,6 +3234,28 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWLoadDataDialog>
       </DialogHost>
@@ -4164,6 +4428,28 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               onOpen={[Function]}
             />
           </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+              orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
+            >
+              <Portal
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+              />
+            </Popup>
+          </Menu>
         </ValueEditDialog>
         <ConfirmDialog
           key="confirmDialog"
@@ -4264,6 +4550,28 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
@@ -4321,6 +4629,28 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
@@ -4378,6 +4708,28 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
         <MdsHWClusterDialog
@@ -4435,6 +4787,28 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWClusterDialog>
         <MdsHWLoadDataDialog
@@ -4492,6 +4866,28 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWLoadDataDialog>
       </DialogHost>
@@ -5664,6 +6060,28 @@ exports[`Application host tests Rendering Preferences 1`] = `
               onOpen={[Function]}
             />
           </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+              orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
+            >
+              <Portal
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+              />
+            </Popup>
+          </Menu>
         </ValueEditDialog>
         <ConfirmDialog
           key="confirmDialog"
@@ -5764,6 +6182,28 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
@@ -5821,6 +6261,28 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
@@ -5878,6 +6340,28 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
         <MdsHWClusterDialog
@@ -5935,6 +6419,28 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWClusterDialog>
         <MdsHWLoadDataDialog
@@ -5992,6 +6498,28 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWLoadDataDialog>
       </DialogHost>
@@ -7164,6 +7692,28 @@ exports[`Application host tests Standard Rendering 1`] = `
               onOpen={[Function]}
             />
           </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+              orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
+            >
+              <Portal
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+              />
+            </Popup>
+          </Menu>
         </ValueEditDialog>
         <ConfirmDialog
           key="confirmDialog"
@@ -7264,6 +7814,28 @@ exports[`Application host tests Standard Rendering 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsServiceDialog>
         <MrsSchemaDialog
@@ -7321,6 +7893,28 @@ exports[`Application host tests Standard Rendering 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
         <MrsDbObjectDialog
@@ -7378,6 +7972,28 @@ exports[`Application host tests Standard Rendering 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MrsDbObjectDialog>
         <MdsHWClusterDialog
@@ -7435,6 +8051,28 @@ exports[`Application host tests Standard Rendering 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWClusterDialog>
         <MdsHWLoadDataDialog
@@ -7492,6 +8130,28 @@ exports[`Application host tests Standard Rendering 1`] = `
                 onOpen={[Function]}
               />
             </Dialog>
+            <Menu
+              onItemClick={[Function]}
+              orientation="column"
+              placement="right-start"
+            >
+              <Popup
+                className="msg menu"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+                orientation="column"
+                pinned={false}
+                placement="right-start"
+                showArrow={false}
+              >
+                <Portal
+                  onClose={[Function]}
+                  onKeyDown={[Function]}
+                  onOpen={[Function]}
+                />
+              </Popup>
+            </Menu>
           </ValueEditDialog>
         </MdsHWLoadDataDialog>
       </DialogHost>

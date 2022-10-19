@@ -27,7 +27,7 @@ import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app
 import { IMrsServiceData } from "../../../communication";
 
 import {
-    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, DialogValueOption,
+    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, CommonDialogValueOption,
 } from "../../../components/Dialogs";
 
 export class MrsSchemaDialog extends ValueDialogBase {
@@ -65,43 +65,50 @@ export class MrsSchemaDialog extends ValueDialogBase {
             caption: title,
             values: {
                 name: {
+                    type: "text",
                     caption: "Schema Name",
                     value: request.values?.name as string,
-                    span: 4,
-                    options: [DialogValueOption.AutoFocus],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.AutoFocus],
                 },
                 service: {
+                    type: "choice",
                     caption: "MRS Service",
                     value: selectedService?.hostCtx,
                     choices: services.map((service) => {
                         return service.hostCtx;
                     }),
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 requestPath: {
+                    type: "text",
                     caption: "Request Path",
                     value: request.values?.requestPath as string,
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 itemsPerPage: {
+                    type: "text",
                     caption: "Items per Page",
-                    span: 4,
+                    horizontalSpan: 4,
                     value: request.values?.itemsPerPage as string,
                 },
                 enabled: {
+                    type: "boolean",
                     caption: "Enabled",
-                    span: 4,
+                    horizontalSpan: 4,
                     value: (request.values?.enabled ?? true) as boolean,
                 },
                 requiresAuth: {
+                    type: "boolean",
                     caption: "Requires Authentication",
-                    span: 4,
-                    value: request.values?.requiresAuth as string,
+                    horizontalSpan: 4,
+                    value: (request.values?.requiresAuth ?? true) as boolean,
                 },
                 comments: {
+                    type: "text",
                     caption: "Comments",
                     value: request.values?.comments as string,
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };

@@ -27,7 +27,7 @@ import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app
 import { IMrsServiceData } from "../../../communication";
 
 import {
-    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, DialogValueOption,
+    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, CommonDialogValueOption,
 } from "../../../components/Dialogs";
 
 export class MrsDbObjectDialog extends ValueDialogBase {
@@ -61,48 +61,55 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             selectedService = services[0];
         }
 
-        // ToDo!!! Add handling of DB Object specific params
+        // TODO: Add handling of DB Object specific params
         const mainSection: IDialogSection = {
             caption: title,
             values: {
                 name: {
+                    type: "text",
                     caption: "Object Name",
                     value: request.values?.name as string,
-                    span: 4,
-                    options: [DialogValueOption.AutoFocus],
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.AutoFocus],
                 },
                 service: {
+                    type: "choice",
                     caption: "MRS Service",
                     value: selectedService?.hostCtx,
                     choices: services.map((service) => {
                         return service.hostCtx;
                     }),
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 requestPath: {
+                    type: "text",
                     caption: "Request Path",
                     value: request.values?.requestPath as string,
-                    span: 4,
+                    horizontalSpan: 4,
                 },
                 itemsPerPage: {
+                    type: "text",
                     caption: "Items per Page",
-                    span: 4,
+                    horizontalSpan: 4,
                     value: request.values?.itemsPerPage as string,
                 },
                 enabled: {
+                    type: "boolean",
                     caption: "Enabled",
-                    span: 4,
-                    value: (request.values?.enabled ?? true) as boolean,
+                    horizontalSpan: 4,
+                    value: request.values?.enabled as boolean ?? true,
                 },
                 requiresAuth: {
+                    type: "text",
                     caption: "Requires Authentication",
-                    span: 4,
+                    horizontalSpan: 4,
                     value: request.values?.requiresAuth as string,
                 },
                 comments: {
+                    type: "text",
                     caption: "Comments",
                     value: request.values?.comments as string,
-                    span: 8,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -155,12 +162,13 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                 if (!mainSection.values.name.value) {
                     result.messages.name = "The object name must not be empty.";
                 }
+
                 if (!mainSection.values.requestPath.value) {
                     result.messages.requestPath = "The request path name must not be empty.";
                 } else {
                     const requestPath = mainSection.values.requestPath.value as string;
                     if (!requestPath.startsWith("/")) {
-                        result.messages.requestPath = "The request path name start with /.";
+                        result.messages.requestPath = "The request path name must start with '/'.";
                     }
                 }
             }
