@@ -59,7 +59,8 @@ export const consolesTreeSection = "MYSQL SHELL CONSOLES";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 export const explicitWait = 5000;
-export const ociExplicitWait = 50000;
+export const ociExplicitWait = 10000;
+export const ociTasksExplicitWait = 50000;
 
 export interface IDBConnection {
     caption: string;
@@ -250,28 +251,28 @@ export const selectItem = async (taps: Number): Promise<void> => {
 
 export const initTreeSection = async (section: string): Promise<void> => {
     switch (section) {
-        case "DATABASE CONNECTIONS":
+        case dbTreeSection:
             if (!dbTreeSectionCust) {
                 dbTreeSectionCust = await new SideBarView().getContent()
-                    .getSection("DATABASE CONNECTIONS") as CustomTreeSection;
+                    .getSection(dbTreeSection) as CustomTreeSection;
             }
             break;
-        case "ORACLE CLOUD INFRASTRUCTURE":
+        case ociTreeSection:
             if (!ociTreeSectionCust) {
                 ociTreeSectionCust = await new SideBarView().getContent()
-                    .getSection("ORACLE CLOUD INFRASTRUCTURE") as CustomTreeSection;
+                    .getSection(ociTreeSection) as CustomTreeSection;
             }
             break;
-        case "MYSQL SHELL CONSOLES":
+        case consolesTreeSection:
             if (!consolesTreeSectionCust) {
                 consolesTreeSectionCust = await new SideBarView().getContent()
-                    .getSection("MYSQL SHELL CONSOLES") as CustomTreeSection;
+                    .getSection(consolesTreeSection) as CustomTreeSection;
             }
             break;
-        case "MYSQL SHELL TASKS":
+        case tasksTreeSection:
             if (!tasksTreeSectionCust) {
                 tasksTreeSectionCust = await new SideBarView().getContent()
-                    .getSection("MYSQL SHELL TASKS") as CustomTreeSection;
+                    .getSection(tasksTreeSection) as CustomTreeSection;
             }
             break;
         default:
@@ -280,12 +281,15 @@ export const initTreeSection = async (section: string): Promise<void> => {
 };
 
 export const getExistingConnections = async (): Promise<string[]> => {
-    const sec = await getLeftSection("DATABASE CONNECTIONS");
-    const els = await sec?.findElements(By.xpath(`//div[contains(@aria-label, 'conn')]`));
+    const sec = await getLeftSection(dbTreeSection);
+    const els = await sec?.findElements(By.xpath(`//div[@role='treeitem']`));
     const connections = [];
     for (const el of els) {
-        const text = (await el.getAttribute("aria-label")).trim();
-        connections.push(text);
+        const icon = await el.findElement(By.css(".custom-view-tree-node-item-icon")).getAttribute("style");
+        if (icon.includes("connectionMySQL") || icon.includes("connectionSqlite")) {
+            const text = (await el.getAttribute("aria-label")).trim();
+            connections.push(text);
+        }
     }
 
     return connections;
@@ -299,16 +303,16 @@ export const selectContextMenuItem = async (
     let treeSection: CustomTreeSection | undefined;
 
     switch (section) {
-        case "DATABASE CONNECTIONS":
+        case dbTreeSection:
             treeSection = dbTreeSectionCust;
             break;
-        case "ORACLE CLOUD INFRASTRUCTURE":
+        case ociTreeSection:
             treeSection = ociTreeSectionCust;
             break;
-        case "MYSQL SHELL CONSOLES":
+        case consolesTreeSection:
             treeSection = consolesTreeSectionCust;
             break;
-        case "MYSQL SHELL TASKS":
+        case tasksTreeSection:
             treeSection = tasksTreeSectionCust;
             break;
         default:
@@ -410,7 +414,7 @@ export const selectMoreActionsItem = async (
 };
 
 export const createDBconnection = async (dbConfig: IDBConnection): Promise<void> => {
-    const createConnBtn = await getLeftSectionButton("DATABASE CONNECTIONS", "Create New MySQL Connection");
+    const createConnBtn = await getLeftSectionButton(dbTreeSection, "Create New MySQL Connection");
     await createConnBtn?.click();
 
     const editorView = new EditorView();
@@ -661,7 +665,7 @@ export const welcomeMySQLShell = async (): Promise<boolean> => {
 
 export const deleteDBConnection = async (dbName: string): Promise<void> => {
 
-    await selectContextMenuItem("DATABASE CONNECTIONS", dbName, "Delete MySQL Connection");
+    await selectContextMenuItem(dbTreeSection, dbName, "Delete MySQL Connection");
 
     const editorView = new EditorView();
     await driver.wait(async () => {
@@ -684,7 +688,7 @@ export const deleteDBConnection = async (dbName: string): Promise<void> => {
 };
 
 export const clearPassword = async (dbName: string): Promise<void> => {
-    const el = await getTreeElement("DATABASE CONNECTIONS", dbName);
+    const el = await getTreeElement(dbTreeSection, dbName);
     expect(el).to.exist;
 
     await driver.actions()
@@ -941,10 +945,10 @@ export const reloadSection = async (sectionName: string): Promise<void> => {
     await section.click();
     let btnName = "";
     switch (sectionName) {
-        case "DATABASE CONNECTIONS":
+        case dbTreeSection:
             btnName = "Reload the connection list";
             break;
-        case "ORACLE CLOUD INFRASTRUCTURE":
+        case ociTreeSection:
             btnName = "Reload the OCI Profile list";
             break;
         default:
@@ -956,7 +960,7 @@ export const reloadSection = async (sectionName: string): Promise<void> => {
 };
 
 export const reloadConnection = async (connName: string): Promise<void> => {
-    const context = await getTreeElement("DATABASE CONNECTIONS", connName);
+    const context = await getTreeElement(dbTreeSection, connName);
     await driver.actions().mouseMove(context).perform();
     const btns = await context.findElements(By.css(".actions a"));
     for (const btn of btns) {
@@ -1824,4 +1828,37 @@ export const waitForOutputText = async (view: OutputView, textToSearch: string, 
         }
 
     }, timeout, `'${textToSearch}' was not found on Output view`);
+};
+
+export const collapseAllConns = async (): Promise<void> => {
+    const connections = await getExistingConnections();
+    for (const conn of connections) {
+        await toggleTreeElement(dbTreeSection, conn, false);
+    }
+};
+
+export const hasLoadingBar = async (section: string): Promise<boolean> => {
+    const sectionObj = await getLeftSection(section);
+
+    return (await sectionObj.findElements(By.css(".monaco-progress-container.active"))).length > 0;
+};
+
+export const changeSchemaOnTab = async (schema: string): Promise<void> => {
+    const tabSchema = await driver.findElement(By.id("schema"));
+    await tabSchema.click();
+    const menu = await driver.wait(until.elementLocated(By.css(".shellPromptSchemaMenu")),
+        3000, "Schema list was not displayed");
+
+    const items = await menu.findElements(By.css("div.menuItem"));
+    for (const item of items) {
+        const label = await item.findElement(By.css("label"));
+        if ((await label.getAttribute("innerHTML")).includes(schema)) {
+            await label.click();
+            break;
+        }
+    }
+
+    await driver.wait(async () => {
+        return (await driver.findElement(By.id("schema")).getText()).includes(schema);
+    }, 3000, `${schema} was not selected`);
 };
