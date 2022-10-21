@@ -210,8 +210,12 @@
             "warn"
         ],
         "no-restricted-syntax": [
-            "warn",
-            "WithStatement"
+            "error",
+            "WithStatement",
+            {
+                "selector": "SwitchCase:has(*.consequent[type!=\"BlockStatement\"])",
+                "message": "Switch cases without blocks are disallowed."
+            }
         ],
         "no-script-url": [
             "warn"
