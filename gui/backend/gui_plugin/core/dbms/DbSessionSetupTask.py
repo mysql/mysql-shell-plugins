@@ -153,6 +153,13 @@ class DbSessionSetupTask:
         """
         pass
 
+    def on_close(self):
+        """
+        Override this function to implement what the task should do if te session is
+        closed
+        """
+        pass
+
 
 class DbPingHandlerTask(DbSessionSetupTask):
     def __init__(self, session, progress_cb=None) -> None:
@@ -164,9 +171,7 @@ class DbPingHandlerTask(DbSessionSetupTask):
     def reset(self):
         super().reset()
 
-        if not self._db_pinger is None:
-            self._db_pinger.stop()
-            self._db_pinger.join()
+        self.on_close()
 
     def on_connected(self):
         if self.session.has_data(DbSessionData.PING_INTERVAL):
@@ -174,3 +179,8 @@ class DbPingHandlerTask(DbSessionSetupTask):
             if interval is not None and interval > 0:
                 self._db_pinger = DbPingHandler(self.session, interval)
                 self._db_pinger.start()
+
+    def on_close(self):
+        if not self._db_pinger is None:
+            self._db_pinger.stop()
+            self._db_pinger.join()

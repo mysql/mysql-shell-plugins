@@ -20,10 +20,12 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gui_plugin.core.Logger as logger
+import threading
 
 
 class BaseTask():
     def __init__(self, task_id=None, result_queue=None, result_callback=None, options=None):
+        self.thread_id = threading.current_thread().native_id
         self.task_id = task_id
         self.result_queue = result_queue
         self.result_callback = result_callback

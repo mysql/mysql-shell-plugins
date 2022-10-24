@@ -143,12 +143,17 @@ class RequestHandler(Thread):
         result = None
         try:
             if self._lock_session:
+                # The session will be used by an external (non GUI) plugin,
+                # the session needs to be locked and it needs to notify a task
+                # will begin execution
                 self._kwargs["session"].lock()
+                self._kwargs["session"].notify_task_execution_state(None, "started")
             result = self._func(**self._kwargs)
         except Exception as e:
             result = Response.exception(e)
         finally:
             if self._lock_session:
+                self._kwargs["session"].notify_task_execution_state(None, "finished")
                 self._kwargs["session"].release()
 
         if result is not None:
