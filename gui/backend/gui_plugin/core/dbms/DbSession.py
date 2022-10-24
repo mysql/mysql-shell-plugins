@@ -106,7 +106,18 @@ class DbSession(threading.Thread):
         self._data = {} if data is None else data
         self._task_state_cb = task_state_cb
 
+        # Callbacks to keep track of task execution states
+        # syntax: callback(task, state)
+        self._task_execution_callbacks = []
+
         self._setup_tasks = None
+
+    def add_task_execution_callback(self, cb):
+        self._task_execution_callbacks.append(cb)
+
+    def notify_task_execution_state(self, task, state):
+        for cb in self._task_execution_callbacks:
+            cb(task, state)
 
     def lock(self):
         self._mutex.acquire(True)
@@ -261,6 +272,9 @@ class DbSession(threading.Thread):
         raise NotImplementedError()
 
     def close(self):
+        for setup_task in self._setup_tasks:
+            setup_task.on_close()
+
         if self.threaded:
             self.add_task(DBCloseTask())
             self._term_complete.wait()
@@ -396,7 +410,9 @@ class DbSession(threading.Thread):
                 self._killed = False
 
                 with lock_usage(self._mutex, 5):
+                    self.notify_task_execution_state(task, "started")
                     task.execute()
+                    self.notify_task_execution_state(task, "finished")
 
                     # These values are updated on the session to keep track of the result of the last executed task
                     self._last_error = task.last_error
