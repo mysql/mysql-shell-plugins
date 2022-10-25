@@ -28,6 +28,7 @@ import re
 import hashlib
 import base64
 import inspect
+import sys
 from gui_plugin.core.HTTPWebSocketsHandler import HTTPWebSocketsHandler
 from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.core.Protocols import Response
@@ -144,8 +145,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         "The message is missing the 'request_id' attribute.")
 
                 if not json_message["request_id"]:
-                        raise Exception('No request_id given. '
-                                        'Please provide the request_id.')
+                    raise Exception('No request_id given. '
+                                    'Please provide the request_id.')
 
                 request_id = json_message["request_id"]
 
@@ -510,6 +511,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self.send_response_message('ERROR', error_msg, request_id)
 
     def execute_command_request(self, json_msg):
+        # There's no reason to include the stack trace on the error messages for the FE
+        sys.tracebacklimit = 0
+
         request_id = json_msg.get('request_id')
         try:
             cmd = json_msg.get('command')
