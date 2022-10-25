@@ -497,7 +497,12 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     addResultData({
                                         type: "text",
                                         requestId: event.data.requestId,
-                                        executionInfo: { type: MessageType.Info, text: info },
+                                        text: [{
+                                            type: MessageType.Info,
+                                            index,
+                                            content: info,
+                                        }],
+                                        executionInfo: { type: MessageType.Info, text: "" },
                                     });
                                 }
                             } else {
