@@ -267,7 +267,7 @@ with pushd(paths.source.backend):
     if args.debug is not None:
         env['ATTACH_DEBUGGER'] = args.debug
 
-    command = f"{paths.shell} --pym pytest --color={COLOR} --cov={paths.source.code} --cov-append -v -c {paths.source.pytest_config} {LOGS} {paths.source.backend} {PATTERN}"
+    command = f"{paths.shell} --pym pytest --color={COLOR} --cov={paths.source.code} --cov-append -vvv -c {paths.source.pytest_config} {LOGS} {paths.source.backend} {PATTERN}"
     print(command)
     shell = subprocess.run(command, shell=True, env=env)
 

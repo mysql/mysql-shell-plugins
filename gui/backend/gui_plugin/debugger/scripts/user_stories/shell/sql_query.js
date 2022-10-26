@@ -137,14 +137,6 @@ await ws.sendAndValidate({
             "msg": "Execution started..."
         },
         "request_id": ws.lastGeneratedRequestId,
-    },
-    {
-        "request_state": {
-            "type": "PENDING",
-            "msg": "Executing..."
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "result": {}
     },{
         "request_state": {
             "type": "PENDING",
