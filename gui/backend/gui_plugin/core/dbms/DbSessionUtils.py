@@ -76,7 +76,7 @@ class DbPingHandler(threading.Thread):
         # main condition to guarantee the next condition notification ends
         #  the main loop
         if self.paused:
-            self.on_executed(None, None)
+            self.on_execute_state(None, "finished")
             time.sleep(0.5)
 
         # Ends the main loop
