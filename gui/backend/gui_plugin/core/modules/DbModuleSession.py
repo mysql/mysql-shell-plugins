@@ -24,6 +24,7 @@ import threading
 import mysqlsh
 from gui_plugin.core.modules.ModuleSession import ModuleSession
 from gui_plugin.core.dbms import DbSessionFactory
+from gui_plugin.core.dbms.DbSession import ReconnectionMode
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
@@ -42,12 +43,13 @@ def check_service_database_session(func):
 
 
 class DbModuleSession(ModuleSession):
-    def __init__(self, web_session):
+    def __init__(self, web_session, reconnection_mode=ReconnectionMode.STANDARD):
         super().__init__(web_session)
         self._db_type = None
         self._connection_options = None
         self._db_service_session = None
         self._bastion_options = None
+        self._reconnection_mode = reconnection_mode
 
     def __del__(self):
         self.close()
@@ -102,11 +104,11 @@ class DbModuleSession(ModuleSession):
 
         return path
 
-    def on_session_message(self, type, message):
+    def on_session_message(self, type, message, request_id=None):
         self._web_session.send_response_message(
             msg_type=type,
             msg=message,
-            request_id=self._current_request_id,
+            request_id=self._current_request_id if request_id is None else request_id,
             values=None, api=False)
 
     # Note that this function is executed in the DBSession thread
@@ -180,7 +182,7 @@ class DbModuleSession(ModuleSession):
             self._db_type, session_id, True,
             self._connection_options,
             None,
-            True,
+            self._reconnection_mode,
             self._handle_api_response,
             self.on_connected,
             lambda x: self.on_fail_connecting(x),

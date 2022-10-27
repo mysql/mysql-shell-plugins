@@ -22,7 +22,6 @@
 # pylint: disable-msg=W0631 for variable ws
 from tests.websocket.TestWebSocket import TWebSocket
 import mysqlsh
-
 ws: TWebSocket
 
 test_session_id = ws.generateRequestId()
@@ -30,22 +29,16 @@ test_session_id = ws.generateRequestId()
 default_mysql_options = ws.tokens.defaults.database_connections.mysql[0].options
 
 
-def get_session_ids(session, session_id):
+def get_session_id(session, session_id):
     res = session.run_sql(
         f"""SELECT pl.Id
             FROM performance_schema.session_connect_attrs AS attrs
             INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl
             ON attrs.PROCESSLIST_ID = pl.Id
             WHERE attrs.ATTR_NAME='test_session_id'
-            AND attrs.ATTR_VALUE='{session_id}'
-            ORDER BY pl.Id ASC""")
+            AND attrs.ATTR_VALUE='{session_id}'""")
 
-    user_session_id = None
-    service_session_id = None
-    id1 = res.fetch_one()[0]
-    id2 = res.fetch_one()[0]
-
-    return (id1, id2)
+    return res.fetch_one()[0]
 
 
 def kill_session(session, id):
@@ -62,7 +55,6 @@ connection_options = {
 }
 
 session = mysqlsh.globals.shell.open_session(connection_options)
-
 
 params = {
     "connection": {
@@ -100,87 +92,39 @@ connection_id = ws.lastResponse["result"]
 ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.start_session",
-    "args": {}
+    "command": "gui.db.start_session",
+    "args": {
+        "connection": connection_id,
+    }
 }, [
+    # TODO(Milosz): gui.db.start_session is returning double OK, should NOT
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {"type": "OK", "msg": ""},
         "result": {
             "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
         }
-    }
-])
-
-
-ws.sendAndValidate({
-    "request": "execute",
-    "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.open_connection",
-    "args": {
-        "db_connection_id": connection_id,
-        "module_session_id": ws.lastModuleSessionId,
-    }
-}, [{
-    "request_id": ws.lastGeneratedRequestId,
-    "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
-    "module_session_id": ws.lastModuleSessionId,
-    "info": {
-        "version": ws.matchRegexp("8.0.[0-9][0-9]"),
-        "edition": ws.ignore,
-        "sql_mode": ws.ignore
     },
-    "default_schema": params["connection"]["options"]["schema"]
-}
+    {
+        "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
+        "module_session_id": ws.lastModuleSessionId,
+        "info":
+            {
+                "version": ws.ignore,
+                "edition": ws.ignore,
+                "sql_mode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+                "heat_wave_available": false
+        },
+        "default_schema": "information_schema",
+        "request_id": ws.lastGeneratedRequestId
+    }
 ])
 
 
-# Kills user session and sends new statement which will retrigger automatic reconnection
-service_session_id, user_session_id = get_session_ids(session, test_session_id)
-kill_session(session, user_session_id)
+# Kills the session and sends new statement which will retrigger automatic reconnection
+session_id = get_session_id(session, test_session_id)
+kill_session(session, session_id)
 
-ws.sendAndValidate({
-    "request": "execute",
-    "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
-    "args": {
-        "sql": "SELECT 1 as result;",
-        "module_session_id": ws.lastModuleSessionId,
-        "params": []
-    }
-},
-    [
-        {
-            "request_id": ws.lastGeneratedRequestId,
-            "request_state": {"type": "PENDING", "msg": "Execution started..."}
-        },
-        {
-            "request_state": {"type": "PENDING", "msg": "Connection lost, reconnecting session..."},
-            "request_id": ws.lastGeneratedRequestId
-        },
-        {
-            "request_state": {"type": "OK", "msg": ""},
-            "request_id": ws.lastGeneratedRequestId,
-            "result": {
-                "rows": [[1]],
-                "columns": [{"name": "result", "type": "INTEGER", "length": ws.ignore}],
-                "done": true,
-                "total_row_count": 1,
-                "execution_time": ws.ignore
-            }
-        }
-]
-)
-
-# Validates that the user session is new (and so comes last)
-id1, id2 = get_session_ids(session, test_session_id)
-assert service_session_id == id1, "Unexpected Service Session ID"
-assert user_session_id != id2, "Unexpected User Session ID"
-user_session_id = id2
-
-# Kills the service session and executes command that uses the Service Session
-# Automatic reconnection happens with no notification for the FE
-kill_session(session, service_session_id)
 ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
@@ -195,29 +139,33 @@ ws.sendAndValidate({
         "request_state": {"type": "PENDING", "msg": "Execution started..."}
     },
     {
+        "request_state": {"type": "PENDING", "msg": "Connection lost, reconnecting session..."},
+        "request_id": ws.lastGeneratedRequestId
+    },
+    {
         "request_state": {"type": "OK", "msg": ""},
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["information_schema", "mysql", "performance_schema"], 0)
     }
 ])
 
-# Validates that the service session is new (and so comes last)
-id1, id2 = get_session_ids(session, test_session_id)
-assert service_session_id != id2, "Unexpected Service Session ID"
-assert user_session_id == id1, "Unexpected User Session ID"
-service_session_id = id2
+
+# Validates that the session is new
+id = get_session_id(session, test_session_id)
+assert session_id != id, "Unexpected Session ID"
 
 
 # Tests reconnection triggered by the user
 ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.reconnect",
+    "command": "gui.db.reconnect",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
     }
 },
     [
+        # TODO(Milosz): gui.db.reconnect is returning double OK, should NOT
         {
             "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
             "module_session_id": ws.lastModuleSessionId,
@@ -228,16 +176,18 @@ ws.sendAndValidate({
             },
             "default_schema": params["connection"]["options"]["schema"],
             "request_id": ws.lastGeneratedRequestId
+        },
+        {
+            'request_state': {'type': 'OK', 'msg': ''},
+            'request_id': ws.lastGeneratedRequestId,
+            'result': 'Completed'
         }
 ]
 )
 
-# Validates that both sessions are new (and so come in order)
-id1, id2 = get_session_ids(session, test_session_id)
-assert service_session_id != id1, "Unexpected Service Session ID"
-assert user_session_id != id2, "Unexpected User Session ID"
+# Validates that both sessions are new
+id = get_session_id(session, test_session_id)
+assert session_id != id, "Unexpected Service Session ID"
 
-kill_session(session, id1)
-kill_session(session, id2)
-
+kill_session(session, id)
 session.close()

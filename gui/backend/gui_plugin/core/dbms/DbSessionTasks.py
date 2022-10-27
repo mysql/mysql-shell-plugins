@@ -55,10 +55,6 @@ class DBCloseTask(BaseTask):
     pass
 
 
-class DBReconnectTask(BaseTask):
-    pass
-
-
 class DbTask(BaseTask):
     """
     Task base class for database operations, including:

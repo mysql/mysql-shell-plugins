@@ -24,7 +24,7 @@ import sqlite3
 import os.path
 import time
 from pathlib import Path
-from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory
+from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory, ReconnectionMode
 from gui_plugin.core.dbms.DbSqliteSessionTasks import SqliteOneFieldListTask, SqliteSetCurrentSchemaTask
 from gui_plugin.core.dbms.DbSqliteSessionTasks import SqliteBaseObjectTask, SqliteTableObjectTask, SqliteGetAutoCommit
 from gui_plugin.core.Error import MSGException
@@ -112,7 +112,7 @@ class DbSqliteSession(DbSession):
                         {"name": "Index",   "type": "TABLE_OBJECT"},
                         {"name": "Column",   "type": "TABLE_OBJECT"}]
 
-    def __init__(self, id, threaded, connection_options, data={}, auto_reconnect=True, task_state_cb=None,
+    def __init__(self, id, threaded, connection_options, data={}, auto_reconnect=ReconnectionMode.NONE, task_state_cb=None,
                  on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None,
                  message_callback=None):
         super().__init__(id, threaded, connection_options, data,
@@ -174,10 +174,10 @@ class DbSqliteSession(DbSession):
                 return False
         return True
 
-    def _reconnect(self, auto_reconnect=False):
-        logger.debug3(f"Reconnecting {self._id}...")
+    def _reconnect(self, is_auto_reconnect):
+        logger.debug3(f"Reconnecting session {self._id}...")
         self._close_database(False)
-        self._open_database(auto_reconnect is False)
+        self._open_database(is_auto_reconnect is False)
 
     def _do_close_database(self, finalize):
         self.conn.close()

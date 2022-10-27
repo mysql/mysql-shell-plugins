@@ -21,7 +21,7 @@
 
 from typing import Dict
 import mysqlsh
-from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory
+from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory, ReconnectionMode
 from gui_plugin.core.dbms import DbPingHandlerTask
 from gui_plugin.core.dbms.DbSessionTasks import DbExecuteTask, check_supported_type
 from gui_plugin.core.Error import MSGException
@@ -37,6 +37,9 @@ from gui_plugin.core.Context import get_context
 import base64
 import sys
 import time
+
+_MYSQL_INACTIVITY_TIMEOUT_ERROR = 4031
+_MYSQL_SERVER_LOST_ERROR = 2013
 
 
 @DbSessionFactory.register_session('MySQL')
@@ -57,7 +60,7 @@ class DbMysqlSession(DbSession):
                         {"name": "Column",        "type": "TABLE_OBJECT"}]
 
     def __init__(self, id, threaded, connection_options, data={},
-                 auto_reconnect=False, task_state_cb=None, on_connected_cb=None, on_failed_cb=None,
+                 auto_reconnect=ReconnectionMode.NONE, task_state_cb=None, on_connected_cb=None, on_failed_cb=None,
                  prompt_cb=None, message_callback=None, session=None):
         super().__init__(id, threaded if session is None else False,
                          connection_options if session is None else {},
@@ -95,6 +98,13 @@ class DbMysqlSession(DbSession):
         if common.MySQLData.CONNECTION_ID in self.data:
             return self.data[common.MySQLData.CONNECTION_ID]
         return None
+
+    def is_connection_error(self, error):
+        if self._auto_reconnect == ReconnectionMode.STANDARD:
+            return error == _MYSQL_SERVER_LOST_ERROR
+        elif self._auto_reconnect == ReconnectionMode.EXTENDED:
+            return error in [_MYSQL_SERVER_LOST_ERROR, _MYSQL_INACTIVITY_TIMEOUT_ERROR]
+        return False
 
     def run_sql(self, sql, args=None):
         return self.session.run_sql(sql, args)
@@ -167,11 +177,20 @@ class DbMysqlSession(DbSession):
         if finalize and not self._shell_ctx is None:
             self._shell_ctx.finalize()
 
-    def _reconnect(self, auto_reconnect=False):
+    def _reconnect(self, is_auto_reconnect):
+        logger.debug3(f"Reconnecting {self._id}...")
+
+        # Send a notification to the FE so the user is aware about a reconnection happening
+        if is_auto_reconnect and self._auto_reconnect == ReconnectionMode.STANDARD:
+            self._message_callback(
+                "PENDING", "Connection lost, reconnecting session...", self._current_task_id)
+
         self._close_database(False)
 
+        # Reconnection attempts change, if it  is automatic reconnection then
+        # uses 3 attempts, if it is user request then 1
         attempt_limit = 1
-        if auto_reconnect and self._auto_reconnect:
+        if is_auto_reconnect:
             attempt_limit = 3
 
         # Automatic reconnection loop only if enabled and required
@@ -185,7 +204,7 @@ class DbMysqlSession(DbSession):
                 self._on_connect()
 
                 if self._do_connect(False):
-                    self._on_connected(notify_success=True)
+                    self._on_connected(is_auto_reconnect is False)
                     return True
             except AssertionError as e:
                 raise
@@ -202,13 +221,14 @@ class DbMysqlSession(DbSession):
                 self.cursor = self.session.run_sql(sql, params)
                 return self.cursor
             except mysqlsh.DBError as e:
-                if e.code == 2013:
-                    if self._auto_reconnect and self._reconnect(auto_reconnect=True):
+                if self.is_connection_error(e.code):
+                    if self._auto_reconnect and self._reconnect(True):
                         continue
                 raise
+            # TODO(MiguelT): In what case we need to validate vs the error message?
             except RuntimeError as e:
                 if "Not connected." in str(e):
-                    if self._auto_reconnect and self._reconnect(auto_reconnect=True):
+                    if self._auto_reconnect and self._reconnect(True):
                         continue
                 raise
 
