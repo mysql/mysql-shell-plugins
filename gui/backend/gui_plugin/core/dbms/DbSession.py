@@ -24,11 +24,18 @@ import copy
 import time
 from queue import Queue
 from contextlib import contextmanager
-from .DbSessionTasks import DbSqlTask, DBCloseTask, DBReconnectTask
+from .DbSessionTasks import DbSqlTask, DBCloseTask
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
+import enum
 from gui_plugin.core.Context import get_context
+
+
+class ReconnectionMode(enum.Enum):
+    NONE = 0
+    STANDARD = 1
+    EXTENDED = 2
 
 
 class DbSessionFactory:
@@ -78,7 +85,7 @@ def lock_usage(lock_mutex, timeout=-1):
 class DbSession(threading.Thread):
     _cancel_requests = []
 
-    def __init__(self, id, threaded, connection_options, data={}, auto_reconnect=False, task_state_cb=None):
+    def __init__(self, id, threaded, connection_options, data={}, auto_reconnect=ReconnectionMode.NONE, task_state_cb=None):
         super().__init__()
         self._id = id
         # Enable auto-reconnect logic for this session
@@ -94,6 +101,7 @@ class DbSession(threading.Thread):
         self._last_execution_time = None
         self._last_insert_id = None
         self._rows_affected = None
+        self._task_mutex = threading.Lock()
         self._request_queue = Queue()
         self._mutex = threading.RLock()
         self._init_complete = threading.Event()
@@ -105,6 +113,7 @@ class DbSession(threading.Thread):
         self._opened = False
         self._data = {} if data is None else data
         self._task_state_cb = task_state_cb
+        self._current_task_id = None
 
         # Callbacks to keep track of task execution states
         # syntax: callback(task, state)
@@ -212,7 +221,7 @@ class DbSession(threading.Thread):
     def _do_close_database(self, finalize):
         raise NotImplementedError()
 
-    def _reconnect(self, auto_reconnect=False):
+    def _reconnect(self, is_auto_reconnect):
         raise NotImplementedError()
 
     def terminate_thread(self):
@@ -281,12 +290,18 @@ class DbSession(threading.Thread):
         else:
             self._close_database(True)
 
-    def reconnect(self):
-        if self.threaded:
-            self.add_task(DBReconnectTask())
-            self._term_complete.wait()
-        else:
-            self._reconnect(auto_reconnect=False)
+    def reconnect(self, new_connection_options=None):
+        # Locks the task execution mutex for the reconnection to happen before next task is executed
+        self._task_mutex.acquire(True)
+
+        # Updates the connection options for the reconnect operation if provided
+        if not new_connection_options is None:
+            self._connection_options = new_connection_options
+
+        try:
+            self._reconnect(False)
+        finally:
+            self._task_mutex.release()
 
     def add_task(self, task):
         self._request_queue.put(task)
@@ -394,31 +409,32 @@ class DbSession(threading.Thread):
 
         while self.thread_error is None:
             task = self._request_queue.get()
+            self._task_mutex.acquire(True)
+            self._current_task_id = task.task_id
 
             if isinstance(task, DBCloseTask):
                 break
 
-            if isinstance(task, DBReconnectTask):
-                self._reconnect(auto_reconnect=False)
-                self._term_complete.set()
-            else:
-                if task.task_id in DbSession._cancel_requests:
-                    task.cancel()
-                    DbSession._cancel_requests.remove(task.task_id)
+            if task.task_id in DbSession._cancel_requests:
+                task.cancel()
+                DbSession._cancel_requests.remove(task.task_id)
 
-                # Resets the killed flag for the next task
-                self._killed = False
+            # Resets the killed flag for the next task
+            self._killed = False
 
-                with lock_usage(self._mutex, 5):
-                    self.notify_task_execution_state(task, "started")
-                    task.execute()
-                    self.notify_task_execution_state(task, "finished")
+            with lock_usage(self._mutex, 5):
+                self.notify_task_execution_state(task, "started")
+                task.execute()
+                self.notify_task_execution_state(task, "finished")
 
-                    # These values are updated on the session to keep track of the result of the last executed task
-                    self._last_error = task.last_error
-                    self._last_execution_time = task.execution_time
-                    self._last_insert_id = task.last_insert_id
-                    self._rows_affected = task.rows_affected
+                # These values are updated on the session to keep track of the result of the last executed task
+                self._last_error = task.last_error
+                self._last_execution_time = task.execution_time
+                self._last_insert_id = task.last_insert_id
+                self._rows_affected = task.rows_affected
+
+            self._current_task_id = None
+            self._task_mutex.release()
 
         self.terminate_thread()
 

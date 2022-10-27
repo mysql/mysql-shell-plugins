@@ -424,7 +424,10 @@ class TWebSocket:
         except:
             pass
 
-        script = self.pythonize_script(self._script_reader(story))
+        if story.endswith(".py"):
+            script = self._script_reader(story)
+        else:
+            script = self.pythonize_script(self._script_reader(story))
 
         ws = self  # pylint: disable=unused-variable
 

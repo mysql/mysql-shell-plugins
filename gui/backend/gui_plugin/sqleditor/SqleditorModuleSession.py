@@ -23,6 +23,7 @@ from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.modules.DbModuleSession import check_service_database_session
 from gui_plugin.core.Error import MSGException
+from gui_plugin.core.dbms.DbSession import ReconnectionMode
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Protocols import Response
 
@@ -38,7 +39,7 @@ def check_user_database_session(func):
 
 class SqleditorModuleSession(DbModuleSession):
     def __init__(self, web_session):
-        super().__init__(web_session)
+        super().__init__(web_session, reconnection_mode=ReconnectionMode.EXTENDED)
         self._db_user_session = None
 
     def __del__(self):
@@ -53,11 +54,6 @@ class SqleditorModuleSession(DbModuleSession):
 
         super().close_connection()
 
-    def reconnect(self):
-        self._db_user_session.close()
-        self._db_user_session = None
-        super().reconnect()
-
     # Overrides the on_connected function at the DBModuleSession to actually
     # trigger the user session connection, on this one no prompts are expected
     # as they were resolved on the service session connection
@@ -68,12 +64,14 @@ class SqleditorModuleSession(DbModuleSession):
                 self._db_type, session_id, True,
                 db_session.connection_options,
                 db_session.data,
-                False,
+                ReconnectionMode.STANDARD,
                 self._handle_api_response,
                 self.on_user_session_connected,
                 lambda x: self.on_fail_connecting(x),
                 lambda x, o: self.on_shell_prompt(x, o),
                 self.on_session_message)
+        else:
+            self._db_user_session.reconnect(db_session.connection_options)
 
     def on_user_session_connected(self, db_session):
         data = Response.ok("Connection was successfully opened.", {
