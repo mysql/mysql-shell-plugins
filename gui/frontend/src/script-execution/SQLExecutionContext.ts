@@ -277,7 +277,7 @@ export class SQLExecutionContext extends ExecutionContext {
                     startColumn: rangeStart.column,
                     endLineNumber: rangeEnd.lineNumber,
                     endColumn: rangeEnd.column,
-                });
+                }, Monaco.EndOfLinePreference.LF);
 
                 result.push({
                     text,
@@ -304,7 +304,7 @@ export class SQLExecutionContext extends ExecutionContext {
                     startColumn: rangeStart.column,
                     endLineNumber: rangeEnd.lineNumber,
                     endColumn: rangeEnd.column,
-                });
+                }, Monaco.EndOfLinePreference.LF);
 
                 result.push({
                     text,
@@ -351,7 +351,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 startColumn: hitStart.column,
                 endLineNumber: hitEnd.lineNumber,
                 endColumn: hitEnd.column,
-            });
+            }, Monaco.EndOfLinePreference.LF);
 
             return {
                 text,
@@ -368,7 +368,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 startColumn: info.startColumn,
                 endLineNumber: position.lineNumber,
                 endColumn: info.endColumn,
-            });
+            }, Monaco.EndOfLinePreference.LF);
 
             return {
                 text,
@@ -508,7 +508,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 startColumn: rangeStart.column,
                 endLineNumber: rangeEnd.lineNumber,
                 endColumn: rangeEnd.column,
-            });
+            }, Monaco.EndOfLinePreference.LF);
 
             if (sql.trimStart().startsWith("\\")) {
                 // This is (now) an internal command. Remove any decoration for it.
@@ -676,7 +676,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 startColumn: rangeStart.column,
                 endLineNumber: rangeEnd.lineNumber,
                 endColumn: rangeEnd.column,
-            });
+            }, Monaco.EndOfLinePreference.LF);
 
             services.validate(this, sql, (result): void => {
                 // If the same statement was again scheduled for validation, while we validated it (keep in mind
