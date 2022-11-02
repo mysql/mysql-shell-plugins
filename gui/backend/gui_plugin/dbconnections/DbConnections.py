@@ -227,7 +227,7 @@ def get_db_connection(db_connection_id, be_session=None):
     """
     with BackendDatabase(be_session) as db:
         return db.select('SELECT * FROM db_connection WHERE id = ?',
-                           (db_connection_id,))
+                           (db_connection_id,))[0]
 
 
 @plugin_function('gui.dbconnections.getDbTypes', shell=False, web=True)

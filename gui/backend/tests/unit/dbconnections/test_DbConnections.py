@@ -120,7 +120,7 @@ class TestDbConnectionsSqlite:
 
         DbConnections.update_db_connection(
             1, connection_id, {"caption": "Altered caption"})
-        latest = DbConnections.get_db_connection(connection_id)[0]
+        latest = DbConnections.get_db_connection(connection_id)
 
         assert latest['caption'] == "Altered caption"
         assert latest['description'] == "This is a test sqlite3 database description"
@@ -130,7 +130,7 @@ class TestDbConnectionsSqlite:
 
         DbConnections.update_db_connection(
             1, connection_id, {"description": "Altered description"})
-        latest = DbConnections.get_db_connection(connection_id)[0]
+        latest = DbConnections.get_db_connection(connection_id)
 
         assert latest['caption'] == "Altered caption"
         assert latest['description'] == "Altered description"
@@ -140,7 +140,7 @@ class TestDbConnectionsSqlite:
 
         DbConnections.update_db_connection(
             1, connection_id, {"options": {"item": "empty"}})
-        latest = DbConnections.get_db_connection(connection_id)[0]
+        latest = DbConnections.get_db_connection(connection_id)
 
         assert latest['caption'] == "Altered caption"
         assert latest['description'] == "Altered description"
