@@ -33,6 +33,7 @@ import {
     toggleUiColorsMenu,
     rgbToHex,
     getColorPadCss,
+    explicitWait,
 } from "../lib/helpers";
 import { platform } from "os";
 
@@ -150,7 +151,8 @@ describe("Main pages", () => {
             await driver.findElement(By.id("gui.sqleditor")).click();
 
             expect(
-                await driver.findElement(By.css("#connections > .label")).getText(),
+                await driver.wait(until.elementLocated(By.css("#connections > .label")),
+                    explicitWait, "Connection Overview was not found").getText(),
             ).toBe("Connection Overview");
 
             expect(
@@ -353,11 +355,10 @@ describe("Main pages", () => {
 
             expect(await aboutLinks[2].getAttribute("outerHTML")).toContain("Read Docs");
 
-            expect(
-                await (
-                    await driver.findElements(By.css(".gridCell.heading > label"))
-                )[0].getText(),
-            ).toBe("Shell Build Information");
+            const heading = await driver.wait(until.elementLocated(By.css(".gridCell.heading > label")),
+                explicitWait, "Shell Build Information was not found");
+
+            expect(await heading.getText()).toBe("Shell Build Information");
 
             const leftElements = await driver.findElements(By.css(".gridCell.left"));
 
@@ -496,7 +497,8 @@ describe("Main pages", () => {
     it("Invalid token", async () => {
         try {
             await loadPage(`${String(process.env.SHELL_UI_HOSTNAME)}xpto`);
-            const errorPanel = await driver.findElement(By.css(".visible.errorPanel"));
+            const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
+                explicitWait, "Error label was not found");
 
             expect(await (await errorPanel.findElement(
                 By.css(".title label"))).getText()).toBe("Communication Error");
@@ -513,7 +515,8 @@ describe("Main pages", () => {
         try {
             const groups = String(process.env.SHELL_UI_HOSTNAME).match(/token=(.*)/);
             await loadPage(String(process.env.SHELL_UI_HOSTNAME).replace(groups![1], ""));
-            const errorPanel = await driver.findElement(By.css(".visible.errorPanel"));
+            const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
+                explicitWait, "Error label was not found");
 
             expect(await (await errorPanel.findElement(
                 By.css(".title label"))).getText()).toBe("Communication Error");

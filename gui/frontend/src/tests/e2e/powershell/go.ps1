@@ -24,9 +24,7 @@
 ##THIS SCRIPT WILL PERFORM THE FOLLOWING TASKS##
 # INSTALL NODE MODULES
 # RUN E2E UPDATE (GET CHROME DRIVER)
-# STARTS SELENIUM
 # EXECUTE TESTS
-# STOP SELENIUM
 #THESE TASKS WILL ENSURE THAT THE ENVIRONMENT IS OK TO RUN MYSQLSHELL UI TESTS
 
 Set-Location $PSScriptRoot
@@ -79,46 +77,10 @@ try {
         writeMsg "SKIPPED"
     }
     
-    writeMsg "Running Webdriver update..." "-NoNewLine"
     $env:PROXY = 'http://www-proxy.us.oracle.com:80'
     $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
-	Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-update" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
-    writeMsg "DONE"
 
     #############################EXEC TESTS#####################################################
-
-    #START SELENIUM
-    writeMsg "Starting Selenium..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-start" -RedirectStandardOutput "$env:WORKSPACE\selenium.log" -RedirectStandardError "$env:WORKSPACE\seleniumErr.log"
-    
-    function isSeleniumReady(){
-        return $null -ne (Get-Content -Path "$env:WORKSPACE\seleniumErr.log" | Select-String -Pattern "Selenium Server is up and running on port 4444" | % { $_.Matches.Groups[0].Value }) 
-    }
-
-    $counter = 0
-    $isReady = $false
-
-    while ($counter -le 20){
-        $isReady = isSeleniumReady
-        if ( $isReady ){
-            break
-        }
-        else{
-            Sleep 1
-            $counter++
-        }
-    }
-    
-    if (!$isReady){ Throw "Selenium was not ready after 20 tries!" }
-
-    $id = Get-Content -Path "$env:WORKSPACE\selenium.log" | Select-String -Pattern "seleniumProcess.pid: (\d+)" | % { $_.Matches.Groups[1].Value }
-
-    if ($id){
-        writeMsg "OK!"
-    }
-    else{
-        Throw "Could not get Selenium pid"
-    }
     
     #MANAGE THE RE-RUN
     $jsonReporter = Get-Content -Path "$basePath\jesthtmlreporter.config.json" | Out-String | ConvertFrom-Json
@@ -212,10 +174,6 @@ finally {
     try {
         Get-Process | Where-Object {$_.Name -like "*chromedriver*" } | Stop-Process -Force
         Get-Process | Where-Object {$_.Name -like "*chrome*" } | Stop-Process -Force
-        $prc = Get-Process -Id (Get-NetTCPConnection -LocalPort 4444).OwningProcess
-        writeMsg "Stopping Selenium..." "-NoNewLine"
-        Stop-Process -Id $prc.Id
-        writeMsg "DONE"
     }
     catch {
         writeMsg "Selenium is not running. All fine"

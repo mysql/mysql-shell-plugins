@@ -23,8 +23,8 @@
 
 import { promises as fsPromises } from "fs";
 import { loadDriver, loadPage, driver } from "../lib/engine";
-import { By } from "selenium-webdriver";
-import { waitForLoginPage } from "../lib/helpers";
+import { By, until } from "selenium-webdriver";
+import { waitForLoginPage, explicitWait } from "../lib/helpers";
 
 describe("Login", () => {
 
@@ -88,9 +88,11 @@ describe("Login", () => {
             await driver.findElement(By.id("loginPassword")).sendKeys("root");
             await driver.findElement(By.id("loginButton")).click();
 
-            expect( await (await driver.findElement(By.css("div.message.error"))).getText() )
+            const error = await driver.wait(until.elementLocated(By.css("div.message.error")),
+                explicitWait, "Error was not found");
 
-                .toBe("User could not be authenticated. Incorrect username or password.") ;
+            expect(await error.getText()).toBe("User could not be authenticated. Incorrect username or password.") ;
+
         } catch(e) {
             testFailed = true;
             throw e;

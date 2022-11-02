@@ -22,7 +22,7 @@
  */
 
 import { Builder, until, By, WebDriver } from "selenium-webdriver";
-import { Options } from "selenium-webdriver/chrome";
+import { Options, ServiceBuilder, setDefaultService } from "selenium-webdriver/chrome";
 
 export let driver: WebDriver;
 
@@ -36,17 +36,21 @@ export const loadDriver = async (): Promise<void> => {
             let driver: WebDriver;
             options.addArguments("--no-sandbox");
 
+            if (!process.env.CHROMEDRIVER_PATH) {
+                throw new Error("Please define the chrome driver path environment variable (CHROMEDRIVER_PATH)");
+            }
+
+            setDefaultService(new ServiceBuilder(String(process.env.CHROMEDRIVER_PATH)).build());
+
             if(headless === String("1")) {
                 options.headless().windowSize({width: 1024, height: 768});
                 driver = new Builder()
                     .forBrowser("chrome")
-                    .usingServer("http://localhost:4444/wd/hub")
                     .setChromeOptions(options)
                     .build();
             } else {
                 driver = new Builder()
                     .forBrowser("chrome")
-                    .usingServer("http://localhost:4444/wd/hub")
                     .setChromeOptions(options)
                     .build();
             }
@@ -56,7 +60,7 @@ export const loadDriver = async (): Promise<void> => {
     };
 
     driver = await prom();
-    await driver.manage().setTimeouts({ implicit: 5000 });
+    await driver.manage().setTimeouts({ implicit: 0 });
 };
 
 export const loadPage = async (url: String): Promise<void> => {
