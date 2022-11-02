@@ -67,6 +67,8 @@ import {
     clickAdminItem,
     getCurrentEditor,
     selectEditor,
+    explicitWait,
+    openNewNotebook,
 } from "../lib/helpers";
 
 describe("DB Editor", () => {
@@ -155,7 +157,8 @@ describe("DB Editor", () => {
                     await contextMenu.findElement(By.id("edit")),
                 );
 
-                const conDialog = await driver.findElement(By.css(".valueEditDialog"));
+                const conDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+                    explicitWait, "Dialog was not displayed");
                 await conDialog.findElement(By.id("clearPassword")).click();
                 await conDialog.findElement(By.id("ok")).click();
 
@@ -164,9 +167,13 @@ describe("DB Editor", () => {
                     await getDB(globalConn.caption),
                 );
 
-                expect(await driver.findElement(By.css(".passwordDialog"))).toBeDefined();
+                expect(await driver.wait(until.elementLocated(By.css(".passwordDialog")),
+                    explicitWait, "Password dialog was not displayed")).toBeDefined();
                 await driver.findElement(By.id("cancel")).click();
-                await driver.findElement(By.css(".errorPanel button")).click();
+                const error = await driver.wait(until.elementLocated(By.css(".errorPanel button")),
+                    explicitWait, "Error panel was not displayed");
+
+                await error.click();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -415,26 +422,7 @@ describe("DB Editor", () => {
         it("Edit a database connection and verify errors", async () => {
             try {
 
-                const localConn: IDBConnection = {
-                    dbType: undefined,
-                    caption: `conn${new Date().valueOf()}`,
-                    description: "Local connection",
-                    hostname: String(process.env.DBHOSTNAME),
-                    protocol: "mysql",
-                    username: String(process.env.DBUSERNAME),
-                    port: String(process.env.DBPORT),
-                    portX: String(process.env.DBPORTX),
-                    schema: "sakila",
-                    password: String(process.env.DBPASSWORD),
-                    sslMode: undefined,
-                    sslCA: undefined,
-                    sslClientCert: undefined,
-                    sslClientKey: undefined,
-                };
-
-                await createDBconnection(localConn);
-
-                const host = await getDB(localConn.caption);
+                const host = await getDB(globalConn.caption);
 
                 await driver.executeScript(
                     "arguments[0].click();",
@@ -577,11 +565,12 @@ describe("DB Editor", () => {
 
         it("Connect to SQLite database", async () => {
             try {
-                await driver
-                    .findElement(By.css(".connectionBrowser"))
-                    .findElement(By.id("-1"))
-                    .click();
-                const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
+                const connBrowser = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
+                    explicitWait, "Connection browser was not found");
+                await connBrowser.findElement(By.id("-1")).click();
+
+                const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+                    explicitWait, "Dialog was not displayed");
                 await selectDatabaseType("Sqlite");
                 await driver.wait(async () => {
                     await newConDialog.findElement(By.id("caption")).clear();
@@ -690,13 +679,13 @@ describe("DB Editor", () => {
 
         it("Connect to MySQL database using SSL", async () => {
             try {
+                const connBrowser = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
+                    explicitWait, "Connection browser was not found");
 
-                await driver
-                    .findElement(By.css(".connectionBrowser"))
-                    .findElement(By.id("-1"))
-                    .click();
+                await connBrowser.findElement(By.id("-1")).click();
 
-                const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
+                const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+                    explicitWait, "Dialog was not displayed");
                 await driver.wait(async () => {
                     await newConDialog.findElement(By.id("caption")).clear();
 
@@ -769,8 +758,13 @@ describe("DB Editor", () => {
                 const execSel = await getToolbarButton("Execute selection or full block and create a new block");
                 await execSel?.click();
 
-                const resultHost = await driver.findElement(By.css(".resultHost"));
-                const result = await resultHost.findElement(By.css(".resultStatus label"));
+                const resultHost = await driver.wait(until.elementLocated(By.css(".resultHost")),
+                    explicitWait, "Result host was not found");
+
+                const result = await driver.wait(until.elementLocated(async () => {
+                    return resultHost.findElements(By.css(".resultStatus label"));
+                }), explicitWait, "Label not found");
+
                 expect(await result.getText()).toContain("1 record retrieved");
 
                 expect( await resultHost.findElement(By.xpath("//div[contains(text(), 'TLS_AES_256')]")) )
@@ -820,7 +814,7 @@ describe("DB Editor", () => {
                 }
                 await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
             }
-            await cleanEditor();
+            await openNewNotebook();
         });
 
         afterAll(async () => {
@@ -873,10 +867,53 @@ describe("DB Editor", () => {
             }
         });
 
+        it("Context Menu - Execute", async () => {
+            try {
+
+                const textArea = await driver.findElement(By.css("textarea"));
+
+                await enterCmd(textArea, "select version();", 20000);
+
+                await writeSQL("select * from actor limit 1", true);
+
+                let lastId = await getLastQueryResultId();
+
+                await clickDBEditorContextItem("Execute Block");
+
+                await driver.wait(async() => {
+                    return (await getLastQueryResultId()) > lastId;
+                }, 3000, "No new results block was displayed");
+
+                expect(await getResultStatus(true)).toMatch(
+                    new RegExp(/OK, (\d+) record retrieved/),
+                );
+
+                expect(await hasNewPrompt()).toBe(false);
+
+                lastId = await getLastQueryResultId();
+
+                await clickDBEditorContextItem("Execute Block and Advance");
+
+                await driver.wait(async() => {
+                    return (await getLastQueryResultId()) > lastId;
+                }, 3000, "No new results block was displayed");
+
+                expect(await getResultStatus(true)).toMatch(
+                    new RegExp(/OK, (\d+) record retrieved/),
+                );
+
+                expect(await hasNewPrompt()).toBe(true);
+
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
         it("Switch between search tabs", async () => {
             try {
 
-                await writeSQL("select * from sakila.actor; select * from sakila.address;");
+                await writeSQL("select * from actor limit 1; select * from address limit 1;", true);
 
                 const lastId = await getLastQueryResultId();
 
@@ -915,45 +952,6 @@ describe("DB Editor", () => {
             }
         });
 
-        it("Context Menu - Execute", async () => {
-            try {
-
-                await writeSQL("select * from sakila.actor", true);
-
-                let lastId = await getLastQueryResultId();
-
-                await clickDBEditorContextItem("Execute Block");
-
-                await driver.wait(async() => {
-                    return (await getLastQueryResultId()) > lastId;
-                }, 3000, "No new results block was displayed");
-
-                expect(await getResultStatus(true)).toMatch(
-                    new RegExp(/OK, (\d+) records retrieved/),
-                );
-
-                expect(await hasNewPrompt()).toBe(false);
-
-                lastId = await getLastQueryResultId();
-
-                await clickDBEditorContextItem("Execute Block and Advance");
-
-                await driver.wait(async() => {
-                    return (await getLastQueryResultId()) > lastId;
-                }, 3000, "No new results block was displayed");
-
-                expect(await getResultStatus(true)).toMatch(
-                    new RegExp(/OK, (\d+) records retrieved/),
-                );
-
-                expect(await hasNewPrompt()).toBe(true);
-
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
         it("Verify default schema", async () => {
             try {
                 const defaultSchema = await driver.findElement(
@@ -971,7 +969,7 @@ describe("DB Editor", () => {
         it("Connection toolbar buttons - Execute selection or full block and create new block", async () => {
             try {
 
-                await writeSQL("select * from sakila.actor");
+                await writeSQL("select * from actor limit 1", true);
 
                 const lastId = await getLastQueryResultId();
 
@@ -1003,15 +1001,15 @@ describe("DB Editor", () => {
 
                 const textArea = await driver.findElement(By.css("textarea"));
 
-                await writeSQL("select * from sakila.actor;");
+                await writeSQL("select * from actor limit 1;");
 
                 await textArea.sendKeys(Key.RETURN);
 
-                await writeSQL("select * from sakila.address;");
+                await writeSQL("select * from address limit 1;");
 
                 await textArea.sendKeys(Key.RETURN);
 
-                await writeSQL("select * from sakila.category;");
+                await writeSQL("select * from category limit 1;");
 
                 await driver.wait(async () => {
                     return (await driver.findElements(By.css(".statementStart"))).length >= 3;
@@ -1079,7 +1077,7 @@ describe("DB Editor", () => {
                 const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
 
                 await writeSQL(
-                    `INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
+                    `INSERT INTO actor (first_name, last_name) VALUES ("${random}","${random}");`);
 
                 const commitBtn = await getToolbarButton("Commit DB changes");
 
@@ -1105,7 +1103,9 @@ describe("DB Editor", () => {
 
                 await rollBackBtn!.click();
 
-                await writeSQL(`SELECT * FROM sakila.actor WHERE first_name='${random}';`);
+                await cleanEditor();
+
+                await writeSQL(`SELECT * FROM actor WHERE first_name='${random}';`);
 
                 lastId = await getLastQueryResultId();
 
@@ -1120,8 +1120,10 @@ describe("DB Editor", () => {
                     "OK, 0 records retrieved",
                 );
 
+                await cleanEditor();
+
                 await writeSQL(
-                    `INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
+                    `INSERT INTO actor (first_name, last_name) VALUES ("${random}","${random}");`);
 
                 lastId = await getLastQueryResultId();
 
@@ -1136,7 +1138,9 @@ describe("DB Editor", () => {
 
                 await commitBtn!.click();
 
-                await writeSQL(`SELECT * FROM sakila.actor WHERE first_name='${random}';`);
+                await cleanEditor();
+
+                await writeSQL(`SELECT * FROM actor WHERE first_name='${random}';`);
 
                 lastId = await getLastQueryResultId();
 
@@ -1180,11 +1184,16 @@ describe("DB Editor", () => {
                 const findBtn = await getToolbarButton("Find");
                 await findBtn!.click();
 
-                const finder = await driver.findElement(By.css(".find-widget"));
+                const finder = await driver.wait(until.elementLocated(By.css(".find-widget")),
+                    explicitWait, "Finder was not found");
 
                 expect(await finder.getAttribute("aria-hidden")).toBe("false");
 
-                await finder.findElement(By.css("textarea")).sendKeys("xpto");
+                const textArea = await finder.findElement(By.css("textarea"));
+                await driver.wait(until.elementIsVisible(textArea),
+                    explicitWait, "Finder textarea is not visible");
+
+                await textArea.sendKeys("xpto");
 
                 await findInSelection(finder, false);
 
@@ -1522,12 +1531,14 @@ describe("DB Editor", () => {
 
                 await enterCmd(textArea, "SELECT VERSION();");
 
-                const resultHosts = await driver.findElements(By.css(".resultHost"));
+                const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
+                    explicitWait, "Result hosts not found");
 
-                const txt = await (await resultHosts[resultHosts.length-1]
-                    .findElement(By.css(".tabulator-cell"))).getText();
+                const txt = await driver.wait(until.elementLocated(async () => {
+                    return resultHosts[resultHosts.length-1].findElements(By.css(".tabulator-cell"));
+                }), explicitWait, "Table cell was not found");
 
-                const server = txt.match(/(\d+).(\d+).(\d+)/g)![0];
+                const server = (await txt.getText()).match(/(\d+).(\d+).(\d+)/g)![0];
 
                 const digits = server.split(".");
 
@@ -1537,15 +1548,15 @@ describe("DB Editor", () => {
 
                 digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
-                await enterCmd(textArea, `/*!${serverVer} select * from actor;*/`);
+                await enterCmd(textArea, `/*!${serverVer} select * from actor limit 1;*/`);
 
                 expect(await getResultStatus(true)).toMatch(
-                    new RegExp(/OK, (\d+) records retrieved/),
+                    new RegExp(/OK, (\d+) record retrieved/),
                 );
 
                 const higherServer = parseInt(serverVer, 10) + 1;
 
-                await enterCmd(textArea, `/*!${higherServer} select * from actor;*/`);
+                await enterCmd(textArea, `/*!${higherServer} select * from actor limit 1;*/`);
 
                 expect(await getResultStatus()).toContain(
                     "OK, 0 records retrieved",
@@ -1668,9 +1679,8 @@ describe("DB Editor", () => {
                     await driver.findElement(By.id("addConsole")),
                 );
 
-                const input = await driver
-                    .findElement(By.id("editorSectionHost"))
-                    .findElement(By.css("input"));
+                const input = await driver.wait(until.elementLocated(By.css("#editorSectionHost input")),
+                    explicitWait, "Editor host input was not found");
 
                 await input.sendKeys("myNewConsole");
 
@@ -1691,7 +1701,7 @@ describe("DB Editor", () => {
                 await driver
                     .findElement(By.id("contentHost"))
                     .findElement(By.css("textarea"))
-                    .sendKeys("select actor from sakila.actor");
+                    .sendKeys("select actor from actor");
 
                 await selectCurrentEditor("DB Notebook", "shell");
 
@@ -1705,7 +1715,7 @@ describe("DB Editor", () => {
 
                 expect(
                     await driver.findElement(By.css("#documentSelector label")).getText(),
-                ).toBe("DB Notebook");
+                ).toContain("DB Notebook");
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -1908,7 +1918,7 @@ describe("DB Editor", () => {
 
                 await driver.wait(async () => {
                     return (await getScriptResult()) !== "";
-                }, 7000, "No results from query were found");
+                }, 15000, "No results from query were found");
 
                 expect(await getScriptResult()).toMatch(/OK, (\d+) records/);
             } catch (e) {
@@ -2071,84 +2081,104 @@ describe("DB Editor", () => {
         });
 
         it("Server Status", async () => {
-            await clickAdminItem("Server Status");
-            expect(await getCurrentEditor()).toBe("Server Status");
+            try {
+                await clickAdminItem("Server Status");
+                expect(await getCurrentEditor()).toBe("Server Status");
 
-            const sections = await driver?.findElements(By.css(".grid .heading label"));
-            const headings = [];
-            for (const section of sections) {
-                headings.push(await section.getText());
+                const sections = await driver?.findElements(By.css(".grid .heading label"));
+                const headings = [];
+                for (const section of sections) {
+                    headings.push(await section.getText());
+                }
+                expect(headings).toContain("Main Settings");
+                expect(headings).toContain("Server Directories");
+                expect(headings).toContain("Server Features");
+                expect(headings).toContain("Server SSL");
+                expect(headings).toContain("Server Authentication");
+            } catch (e) {
+                testFailed = true;
+                throw e;
             }
-            expect(headings).toContain("Main Settings");
-            expect(headings).toContain("Server Directories");
-            expect(headings).toContain("Server Features");
-            expect(headings).toContain("Server SSL");
-            expect(headings).toContain("Server Authentication");
         });
 
         it("Client Connections", async ()  => {
-            await clickAdminItem("Client Connections");
+            try {
+                await clickAdminItem("Client Connections");
 
-            expect(await getCurrentEditor()).toBe("Client Connections");
+                expect(await getCurrentEditor()).toBe("Client Connections");
 
-            const properties = await driver?.findElements(By.css("#connectionProps label"));
-            const props = [];
-            for (const item of properties) {
-                props.push(await item.getAttribute("innerHTML"));
+                const properties = await driver?.findElements(By.css("#connectionProps label"));
+                const props = [];
+                for (const item of properties) {
+                    props.push(await item.getAttribute("innerHTML"));
+                }
+
+                const test = props.join(",");
+
+                expect(test).toContain("Threads Connected");
+                expect(test).toContain("Threads Running");
+                expect(test).toContain("Threads Created");
+                expect(test).toContain("Threads Cached");
+                expect(test).toContain("Rejected (over limit)");
+                expect(test).toContain("Total Connections");
+                expect(test).toContain("Connection Limit");
+                expect(test).toContain("Aborted Clients");
+                expect(test).toContain("Aborted Connections");
+                expect(test).toContain("Errors");
+
+                await driver.wait(until.elementsLocated(By.css("#connectionList .tabulator-row")),
+                    explicitWait, "Connections list items were not found");
+
+            } catch (e) {
+                testFailed = true;
+                throw e;
             }
 
-            const test = props.join(",");
-
-            expect(test).toContain("Threads Connected");
-            expect(test).toContain("Threads Running");
-            expect(test).toContain("Threads Created");
-            expect(test).toContain("Threads Cached");
-            expect(test).toContain("Rejected (over limit)");
-            expect(test).toContain("Total Connections");
-            expect(test).toContain("Connection Limit");
-            expect(test).toContain("Aborted Clients");
-            expect(test).toContain("Aborted Connections");
-            expect(test).toContain("Errors");
-
-            const list = await driver?.findElement(By.id("connectionList"));
-            const rows = await list?.findElements(By.css(".tabulator-row"));
-            expect(rows.length).toBeGreaterThan(0);
         });
 
         it("Performance Dashboard", async () => {
-            await clickAdminItem("Performance Dashboard");
+            try {
+                await clickAdminItem("Performance Dashboard");
 
-            expect(await getCurrentEditor()).toBe("Performance Dashboard");
+                expect(await getCurrentEditor()).toBe("Performance Dashboard");
 
-            const grid = await driver?.findElement(By.id("dashboardGrid"));
-            const gridItems = await grid?.findElements(By.css(".gridCell.title"));
-            const listItems = [];
+                const grid = await driver?.findElement(By.id("dashboardGrid"));
+                const gridItems = await grid?.findElements(By.css(".gridCell.title"));
+                const listItems = [];
 
-            for (const item of gridItems) {
-                const label = await item.findElement(By.css("label"));
-                listItems.push(await label.getAttribute("innerHTML"));
+                for (const item of gridItems) {
+                    const label = await item.findElement(By.css("label"));
+                    listItems.push(await label.getAttribute("innerHTML"));
+                }
+
+                expect(listItems).toContain("Network Status");
+                expect(listItems).toContain("MySQL Status");
+                expect(listItems).toContain("InnoDB Status");
+
+            } catch (e) {
+                testFailed = true;
+                throw e;
             }
-
-            expect(listItems).toContain("Network Status");
-            expect(listItems).toContain("MySQL Status");
-            expect(listItems).toContain("InnoDB Status");
-
         });
 
         it("Switch between MySQL Administration tabs", async () => {
-            await clickAdminItem("Server Status");
-            await clickAdminItem("Client Connections");
-            await clickAdminItem("Performance Dashboard");
+            try {
+                await clickAdminItem("Server Status");
+                await clickAdminItem("Client Connections");
+                await clickAdminItem("Performance Dashboard");
 
-            await selectEditor("Server Status");
-            await driver.switchTo().defaultContent();
+                await selectEditor("Server Status");
+                await driver.switchTo().defaultContent();
 
-            await selectEditor("Client Connections");
-            await driver.switchTo().defaultContent();
+                await selectEditor("Client Connections");
+                await driver.switchTo().defaultContent();
 
-            await selectEditor("Performance Dashboard");
-            await driver.switchTo().defaultContent();
-
+                await selectEditor("Performance Dashboard");
+                await driver.switchTo().defaultContent();
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
         });
     });
 

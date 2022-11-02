@@ -369,8 +369,20 @@ describe("MySQL Shell for VS Code", () => {
                 await Common.selectContextMenuItem(dbTreeSection, globalConn.caption,
                     "Connect to Database");
 
+                await Common.switchToWebView();  
+                
+                await driver.wait(until.elementLocated(By.css("textarea")), explicitWait);
+
+                await driver.switchTo().defaultContent();
+
                 await Common.selectContextMenuItem(dbTreeSection, globalConn.caption,
                     "Connect to Database on New Tab");
+
+                await Common.switchToWebView();  
+                
+                await driver.wait(until.elementLocated(By.css("textarea")), explicitWait);
+    
+                await driver.switchTo().defaultContent();    
 
                 await driver.wait(async () => {
                     const editorView = new EditorView();

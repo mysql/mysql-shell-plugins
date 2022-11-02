@@ -25,6 +25,8 @@ import { platform } from "os";
 import { By, until, Key, WebElement } from "selenium-webdriver";
 import { driver } from "../lib/engine";
 
+export const explicitWait = 5000;
+
 /**
  * Waits for the homepage to be loaded
  *
@@ -141,7 +143,8 @@ export const createDBconnection = async (dbConfig: IDBConnection,
 
     const ctx = await driver.findElement(By.css(".connectionBrowser"));
     await ctx.findElement(By.id("-1")).click();
-    const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
+    const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+        explicitWait, "Dialog was not displayed");
     await driver.wait(async () => {
         await newConDialog.findElement(By.id("caption")).clear();
 
@@ -300,8 +303,13 @@ export const getResultStatus = async (isSelect?: boolean): Promise<string> => {
     }
     await driver.wait(
         async (driver) => {
-            results = await driver.findElements(By.css(".zoneHost"));
-            const about = await results[0].findElement(By.css("span"));
+            results = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
+                explicitWait, "Zone hosts were not found");
+
+            const about = await driver.wait(until.elementLocated(async () => {
+                return results![0].findElements(By.css("span"));
+            }), explicitWait, "about info not found");
+
             //first element is usually the about info
             if ((await about.getText()).indexOf("Welcome") !== -1) {
                 results.shift();
@@ -321,7 +329,9 @@ export const getResultStatus = async (isSelect?: boolean): Promise<string> => {
         `Result Status is undefined`,
     );
 
-    const block = await results![results!.length - 1].findElement(By.css(obj));
+    const block = await driver.wait(until.elementLocated(async () => {
+        return results![results!.length - 1].findElements(By.css(obj));
+    }), explicitWait, `${obj} was not found`);
 
     return block.getAttribute("innerHTML");
 };
@@ -332,7 +342,8 @@ export const getResultStatus = async (isSelect?: boolean): Promise<string> => {
  * @returns Promise resolving with the Connection tab name
  */
 export const getSelectedConnectionTab = async (): Promise<WebElement> => {
-    const tab = await driver.findElement(By.css(".selected.hasAuxillary"));
+    const tab = await driver.wait(until.elementLocated(By.css(".selected.hasAuxillary")),
+        explicitWait, "Selected tab was not found");
 
     return tab.findElement(By.css(".label"));
 };
@@ -423,21 +434,33 @@ export const shellGetResult = async (): Promise<string> => {
         return error[error.length - 1].getText();
     } else {
         let text = "";
-        let results = await zoneHost[zoneHost.length - 1].findElements(
-            By.css("code span"),
-        );
+        let results = await zoneHost[zoneHost.length - 1].findElements(By.css("code span"));
+
         if (results.length > 0) {
-            for (const result of results) {
-                text += (await result.getAttribute("innerHTML")) + "\n";
+            try {
+                for (const result of results) {
+                    text += (await result.getAttribute("innerHTML")) + "\n";
+                }
+            } catch (e) {
+                results = await zoneHost[zoneHost.length - 1].findElements(By.css("code span"));
+                for (const result of results) {
+                    text += (await result.getAttribute("innerHTML")) + "\n";
+                }
             }
 
             return text.trim();
         } else {
-            results = await zoneHost[zoneHost.length - 1].findElements(
-                By.css("span span"),
-            );
-            for (const result of results) {
-                text += await result.getAttribute("innerHTML");
+            results = await zoneHost[zoneHost.length - 1].findElements(By.css("span span"));
+
+            try {
+                for (const result of results) {
+                    text += await result.getAttribute("innerHTML");
+                }
+            } catch (e) {
+                results = await zoneHost[zoneHost.length - 1].findElements(By.css("span span"));
+                for (const result of results) {
+                    text += await result.getAttribute("innerHTML");
+                }
             }
 
             return text.trim();
@@ -493,21 +516,28 @@ export const pressEnter = async (): Promise<void> => {
  */
 export const getPromptTextLine = async (prompt: string): Promise<String> => {
     const context = await driver.findElement(By.css(".monaco-editor-background"));
-    const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-
+    let lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+    let position: number;
     let tags;
     switch(prompt) {
         case "last":
-            tags = await lines[lines.length-1].findElements(By.css("span > span"));
+            position = 1;
             break;
         case "last-1":
-            tags = await lines[lines.length-2].findElements(By.css("span > span"));
+            position = 2;
             break;
         case "last-2":
-            tags = await lines[lines.length-3].findElements(By.css("span > span"));
+            position = 3;
             break;
         default:
             throw new Error("Error getting line");
+    }
+
+    try {
+        tags = await lines[lines.length - position].findElements(By.css("span > span"));
+    } catch (e) {
+        lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+        tags = await lines[lines.length - position].findElements(By.css("span > span"));
     }
 
     let sentence = "";
@@ -519,23 +549,37 @@ export const getPromptTextLine = async (prompt: string): Promise<String> => {
 };
 
 /**
+ * Returns the number of statement starts (blue dots) on the editor
+ *
+ * @returns Promise resolving with the number of statement starts
+ */
+export const getStatementStarts = async (): Promise<number> => {
+    return (await driver.findElements(By.css(".statementStart"))).length;
+};
+
+/**
  * Writes an SQL query on the DB Editor
  *
  * @param sql sql query
- * @param dealWithBox True if the sql query should produce the context suggestion box.
+ * @param wait True to wait for the statement start blue dot to be displayed
  * It will press Enter key to make it disappear.
  * @returns Promise resolving when the sql query is written
  */
-export const writeSQL = async (sql: string, dealWithBox?: boolean): Promise<void> => {
-    const textArea = await driver.findElement(By.css("textarea"));
-    await textArea.sendKeys(sql);
-    if (dealWithBox) {
-        try {
-            await driver.wait(until.elementLocated(By.css("div.contents")), 500, "none");
-        } catch (e) {
-            return;
-        }
-        await textArea.sendKeys(Key.ENTER);
+export const writeSQL = async (sql: string, wait?: boolean): Promise<void> => {
+    const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
+        explicitWait, "Could not find textarea");
+    const blueDots = await getStatementStarts();
+    await textArea.sendKeys(`${sql}`);
+
+    if (wait) {
+        await driver.wait(async () => {
+            return await getStatementStarts() > blueDots;
+        }, explicitWait, `'${sql}' did not generated a statement start`);
+    }
+
+    const suggestionBox = await driver.findElements(By.css("div.contents"));
+    if (suggestionBox.length > 0) {
+        await textArea.sendKeys(Key.ESCAPE);
     }
 };
 
@@ -544,9 +588,10 @@ export const writeSQL = async (sql: string, dealWithBox?: boolean): Promise<void
  *
  * @param textArea text area to send the query
  * @param cmd command to execute
+ * @param timeout wait for results
  * @returns Promise resolving when the command is executed
  */
-export const enterCmd = async (textArea: WebElement, cmd: string): Promise<void> => {
+export const enterCmd = async (textArea: WebElement, cmd: string, timeout?: number): Promise<void> => {
     cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
     const prevBlocks = await driver.findElements(By.css(".zoneHost"));
     await textArea.sendKeys(cmd);
@@ -561,12 +606,16 @@ export const enterCmd = async (textArea: WebElement, cmd: string): Promise<void>
 
     await pressEnter();
 
+    if (!timeout) {
+        timeout = 10000;
+    }
+
     if (cmd !== "\\q" && cmd !== "\\d") {
         await driver.wait(async () => {
             const blocks = await driver.findElements(By.css(".zoneHost"));
 
             return blocks.length > prevBlocks.length;
-        }, 10000, "Command '" + cmd + "' did not triggered a new results block");
+        }, timeout, "Command '" + cmd + "' did not triggered a new results block");
     }
 };
 
@@ -879,9 +928,8 @@ export const replacerGetButton = async (el: WebElement, button: string): Promise
  */
 export const getSchemaObject = async (
     objType: string, objName: string): Promise<WebElement | undefined> => {
-    const scroll = await driver
-        .findElement(By.id("schemaSectionHost"))
-        .findElement(By.css(".tabulator-tableholder"));
+    const scroll = await driver.wait(until.elementLocated(By.css("#schemaSectionHost .tabulator-tableholder")),
+        explicitWait, "Table scroll was not found");
 
     await driver.executeScript("arguments[0].scrollBy(0,-1000)", scroll);
 
@@ -1134,14 +1182,16 @@ export const getResultColumnName = async (columnName: string,
         }
     }
     try {
-        const resultHosts = await driver.findElements(By.css(".resultHost"));
-        const resultSet = await resultHosts[resultHosts.length-1].findElement(
-            By.css(".tabulator-headers"),
-        );
+        const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
+            explicitWait, "Result host was not found");
 
-        const resultHeaderRows = await resultSet.findElements(
-            By.css(".tabulator-col-title"),
-        );
+        const resultSet = await driver.wait(until.elementLocated(async () => {
+            return resultHosts[resultHosts.length-1].findElements(By.css(".tabulator-headers"));
+        }), explicitWait, "Table headers not found");
+
+        const resultHeaderRows = await driver.wait(until.elementsLocated(async () => {
+            return resultSet.findElements(By.css(".tabulator-col-title"));
+        }), explicitWait, "Table column titles not found");
 
         for (const row of resultHeaderRows) {
             if ((await row.getText()) === columnName) {
@@ -1701,10 +1751,11 @@ export const getSettingValue = async (settingId: string, type: string): Promise<
  * @returns A promise resolving when the init is made
  */
 export const initConDialog = async (): Promise<void> => {
-    await driver
-        .findElement(By.css(".connectionBrowser"))
-        .findElement(By.id("-1"))
-        .click();
+
+    const connBrowser = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
+        explicitWait, "Connection browser was not found");
+
+    await connBrowser.findElement(By.id("-1")).click();
 
     const dialog = driver.findElement(By.css(".valueEditDialog"));
     await dialog.findElement(By.id("cancel")).click();
@@ -1953,10 +2004,21 @@ export const isValueOnJsonResult = async (value: string): Promise<boolean> => {
  * @returns A promise resolving with the result
  */
 export const getScriptResult = async (): Promise<string> => {
-    const host = await driver.findElement(By.id("resultPaneHost"));
-    const result = await host.findElement(By.css(".label"));
+    const result = await driver.wait(until.elementLocated(By.css("#resultPaneHost .label")),
+        explicitWait, "No results were found");
 
-    return result.getText();
+    let text = "";
+    try {
+        text = await result.getText();
+    } catch (e) {
+        const result = await driver.wait(until.elementLocated(By.css("#resultPaneHost .label")),
+            explicitWait, "No results were found");
+
+        text = await result.getText();
+
+    }
+
+    return text;
 };
 
 /**
@@ -2012,4 +2074,60 @@ export const selectEditor = async (editor: string): Promise<void> => {
         }
     }
     throw new Error(`Could not find ${editor}`);
+};
+
+/**
+ * Waits for the text or regexp to include/match the result of a shell session query or instruction
+ *
+ * @param text text of regexp to verify
+ * @returns Promise resolving when the text or the regexp includes/matches the query result
+ *
+ */
+export const waitForShellResult = async (text: string | RegExp): Promise<void> => {
+    await driver.wait(async () => {
+        if (typeof text === "object") {
+            return (await shellGetResult()).match(text);
+        } else {
+            return (await shellGetResult()).includes(String(text));
+        }
+    }, explicitWait, `'${String(text)}' was not found on result`);
+};
+
+/**
+ * Waits for the connection tab (server/schema) includes the given text
+ *
+ * @param tab server or schema
+ * @param text to verify
+ * @returns Promise resolving when the text of the tab includes the given text
+ *
+ */
+export const waitForConnectionTabValue = async (tab: string, text: string): Promise<void> => {
+    if (tab === "server") {
+        await driver.wait(async () => {
+            return (await getShellServerTabStatus()).includes(text);
+        }, explicitWait, `'${text}' was not found on result`);
+    } else {
+        await driver.wait(async () => {
+            return (await getShellSchemaTabStatus()).includes(text);
+        }, explicitWait, `'${text}' was not found on result`);
+    }
+};
+
+/**
+ * Opens a new notebook
+ *
+ * @returns Promise resolving when the new notebook is opened
+ *
+ */
+export const openNewNotebook = async (): Promise<void> => {
+    await driver.executeScript(
+        "arguments[0].click()",
+        await driver.findElement(By.id("addConsole")),
+    );
+
+    const input = await driver.wait(until.elementLocated(By.css("#editorSectionHost input")),
+        explicitWait, "Editor host input was not found");
+
+    await input.sendKeys(Key.ESCAPE);
+
 };
