@@ -240,15 +240,6 @@ export class Common {
             const item = await this.getTreeElement(section, treeItem);
             const cstTreeItem = new CustomTreeItem(item, treeSection as TreeSection);
             const ctx = await cstTreeItem?.openContextMenu();
-
-            const items = await ctx.getItems();
-            console.log(`:::${ctxMenuItem}:::`);
-            console.log(`ITEMS LENGTH::: ${items.length}`);
-            for (const item of items) {
-                console.log(item.getLabel());
-                console.log("end ITEM");
-            }
-
             const ctxItem = await ctx?.getItem(ctxMenuItems[0].trim());
             const menu = await ctxItem!.select();
             if (ctxMenuItems.length > 1) {

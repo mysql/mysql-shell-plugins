@@ -215,21 +215,26 @@ export const createDBconnection = async (dbConfig: IDBConnection,
  * @returns @returns Promise resolving with the DB Connection
  */
 export const getDB = async (name: string): Promise<WebElement | undefined> => {
-    return driver.wait(async () => {
-        const hosts = await driver.findElements(By.css("#tilesHost button"));
-        for (const host of hosts) {
-            try {
-                const el = await host.findElement(By.css(".textHost .tileCaption"));
-                if ((await el.getText()) === name) {
-                    return host;
-                }
-            } catch (e) {
-                return undefined;
-            }
-        }
-
+    let hosts: WebElement[];
+    try {
+        hosts = await driver.wait(until.elementsLocated(By.css("#tilesHost button")), 1500, "");
+    } catch (e) {
         return undefined;
-    }, 5000, `No ${name} DB was found`);
+    }
+
+    for (const host of hosts) {
+        try {
+            const el = await host.findElement(By.css(".textHost .tileCaption"));
+            if ((await el.getText()).includes(name)) {
+                return host;
+            }
+        } catch (e) {
+            return undefined;
+        }
+    }
+
+    return undefined;
+
 };
 
 /**
@@ -533,16 +538,18 @@ export const getPromptTextLine = async (prompt: string): Promise<String> => {
             throw new Error("Error getting line");
     }
 
+    let sentence = "";
     try {
         tags = await lines[lines.length - position].findElements(By.css("span > span"));
+        for (const tag of tags) {
+            sentence += (await tag.getText()).replace("&nbsp;", " ");
+        }
     } catch (e) {
         lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
         tags = await lines[lines.length - position].findElements(By.css("span > span"));
-    }
-
-    let sentence = "";
-    for (const tag of tags) {
-        sentence += (await tag.getText()).replace("&nbsp;", " ");
+        for (const tag of tags) {
+            sentence += (await tag.getText()).replace("&nbsp;", " ");
+        }
     }
 
     return sentence;
@@ -2028,7 +2035,8 @@ export const getScriptResult = async (): Promise<string> => {
  * @returns A promise resolving when the click is made
  */
 export const clickAdminItem = async (item: string): Promise<void> => {
-    const els = await driver.findElements(By.css("#adminSectionHost .accordionItem .label"));
+    const els = await driver.wait(until.elementsLocated(By.css("#adminSectionHost .accordionItem .label")),
+        explicitWait, "Admin items not found");
     for (const el of els) {
         const label = await el.getText();
         if (label === item) {
@@ -2130,4 +2138,28 @@ export const openNewNotebook = async (): Promise<void> => {
 
     await input.sendKeys(Key.ESCAPE);
 
+};
+
+/**
+ * Clicks on the schema tab and selects a new schema
+ *
+ * @param schema schema to choose
+ * @returns Promise resolving when the new schema is selected
+ *
+ */
+export const changeSchemaOnTab = async (schema: string): Promise<void> => {
+    await driver.findElement(By.id("schema")).click();
+    const menuItems = await driver.wait(until.elementsLocated(By.css(".shellPromptSchemaMenu .menuItem .label")),
+        explicitWait, "Menu items were not found");
+
+    for (const item of menuItems) {
+        const label = await item.getText();
+        if (label.includes(schema)) {
+            await item.click();
+
+            return;
+        }
+    }
+
+    await waitForShellResult("Default schema `" + schema + "` accessible through db.");
 };

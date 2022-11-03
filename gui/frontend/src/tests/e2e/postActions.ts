@@ -33,11 +33,16 @@ const baseDir = "src/tests/e2e";
 const html = fs.readFileSync(join(baseDir, "test-report.html"));
 const parsedHtml = new JSDOM(html, { includeNodeLocations: true });
 const document = parsedHtml.window.document;
-const mainFile = fs.readFileSync(join(baseDir, "tests", "main.spec.ts"));
-const profilesFile = fs.readFileSync(join(baseDir, "tests", "profiles.spec.ts"));
-const dbEditorFile = fs.readFileSync(join(baseDir, "tests", "dbeditor.spec.ts"));
-const shellFile = fs.readFileSync(join(baseDir, "tests", "shell.spec.ts"));
-const loginFile = fs.readFileSync(join(baseDir, "tests", "login.spec.ts"));
+const mainFile = fs.readFileSync(join(baseDir, "tests", "main", "main.spec.ts"));
+const notebookFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "notebook.spec.ts"));
+const dbConnectionsFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "db_connections.spec.ts"));
+const scriptsFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "scripts.spec.ts"));
+const adminFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "admin.spec.ts"));
+
+const sessionsFile = fs.readFileSync(join(baseDir, "tests", "shell", "sessions.spec.ts"));
+const guiConsoleFile = fs.readFileSync(join(baseDir, "tests", "shell", "guiconsole.spec.ts"));
+const shellConnectionsFile = fs.readFileSync(join(baseDir, "tests", "shell", "shell_connections.spec.ts"));
+const loginFile = fs.readFileSync(join(baseDir, "tests", "login", "login.spec.ts"));
 
 if (fs.existsSync(join(baseDir, "screenshots"))) {
     const files = fs.readdirSync(join(baseDir, "screenshots"));
@@ -73,21 +78,34 @@ for (let i=0; i <= refDivs.length-1; i++) {
     const title = refDivs[i].querySelector(".test-title")!.textContent;
     if (!refDivs[i].querySelector("a") || !refDivs[i].querySelector("b")) {
         let codeLines: string[] = [];
-        switch(true) {
-            case (/Profiles/).test(String(suite)):
-                codeLines = profilesFile.toString().split("\n");
-                break;
-            case (/Login/).test(String(suite)):
+
+        switch(suite) {
+            case "Login":
                 codeLines = loginFile.toString().split("\n");
                 break;
-            case (/Main pages/).test(String(suite)):
+            case "Main pages":
                 codeLines = mainFile.toString().split("\n");
                 break;
-            case (/MySQL Shell Sessions/).test(String(suite)):
-                codeLines = shellFile.toString().split("\n");
+            case "Sessions":
+                codeLines = sessionsFile.toString().split("\n");
                 break;
-            case (/DB Editor/).test(String(suite)):
-                codeLines = dbEditorFile.toString().split("\n");
+            case "MySQL Shell Connections":
+                codeLines = shellConnectionsFile.toString().split("\n");
+                break;
+            case "GUI Console":
+                codeLines = guiConsoleFile.toString().split("\n");
+                break;
+            case "Notebook":
+                codeLines = notebookFile.toString().split("\n");
+                break;
+            case "Database Connections":
+                codeLines = dbConnectionsFile.toString().split("\n");
+                break;
+            case "MySQL Administration":
+                codeLines = adminFile.toString().split("\n");
+                break;
+            case "Scripts":
+                codeLines = scriptsFile.toString().split("\n");
                 break;
             default:
                 break;

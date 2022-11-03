@@ -22,9 +22,9 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { loadDriver, loadPage, driver } from "../lib/engine";
+import { loadDriver, loadPage, driver } from "../../lib/engine";
 import { By, until } from "selenium-webdriver";
-import { waitForLoginPage, explicitWait } from "../lib/helpers";
+import { waitForLoginPage, explicitWait } from "../../lib/helpers";
 
 describe("Login", () => {
 
