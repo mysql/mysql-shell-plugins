@@ -22,28 +22,10 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { loadDriver, loadPage, driver } from "../../lib/engine";
+import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { By, until, Key, WebElement } from "selenium-webdriver";
-import {
-    IDBConnection,
-    waitForHomePage,
-    selectDatabaseType,
-    selectProtocol,
-    getDB,
-    createDBconnection,
-    getSelectedConnectionTab,
-    getToolbarButton,
-    getResultStatus,
-    getSchemaObject,
-    toggleSchemaObject,
-    setEditorLanguage,
-    setDBEditorPassword,
-    closeDBconnection,
-    setConfirmDialog,
-    initConDialog,
-    isConnectionOverviewOpened,
-    explicitWait,
-} from "../../lib/helpers";
+import { DBConnection } from "../../lib/dbConnection";
+import { DBNotebooks } from "../../lib/dbNotebooks";
 
 describe("Database Connections", () => {
 
@@ -67,18 +49,18 @@ describe("Database Connections", () => {
     };
 
     beforeAll(async () => {
-        await loadDriver();
+        await Misc.loadDriver();
         try {
-            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage();
+            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await Misc.waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage();
+            await Misc.waitForHomePage();
         }
 
         await driver.findElement(By.id("gui.sqleditor")).click();
-        await initConDialog();
-        await createDBconnection(globalConn, true);
+        await DBNotebooks.initConDialog();
+        await DBNotebooks.createDBconnection(globalConn, true);
     });
 
     afterEach(async () => {
@@ -95,8 +77,8 @@ describe("Database Connections", () => {
             await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
         }
 
-        if (!await isConnectionOverviewOpened()) {
-            await closeDBconnection("current");
+        if (!await DBConnection.isConnectionOverviewOpened()) {
+            await DBConnection.closeDBconnection("current");
         }
     });
 
@@ -109,7 +91,7 @@ describe("Database Connections", () => {
 
         try {
 
-            const host = await getDB(globalConn.caption);
+            const host = await DBNotebooks.getDB(globalConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -135,7 +117,7 @@ describe("Database Connections", () => {
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await getDB(globalConn.caption),
+                await DBNotebooks.getDB(globalConn.caption),
             );
 
             expect(await driver.wait(until.elementLocated(By.css(".passwordDialog")),
@@ -172,28 +154,28 @@ describe("Database Connections", () => {
                 sslClientKey: undefined,
             };
 
-            await createDBconnection(localConn, false, true);
+            await DBNotebooks.createDBconnection(localConn, false, true);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await getDB(localConn.caption),
+                await DBNotebooks.getDB(localConn.caption),
             );
 
-            await setDBEditorPassword(localConn);
+            await Misc.setPassword(localConn);
 
-            await setConfirmDialog(localConn, "yes");
+            await Misc.setConfirmDialog(localConn, "yes");
 
-            expect(await (await getSelectedConnectionTab()).getText())
+            expect(await (await DBConnection.getSelectedConnectionTab()).getText())
                 .toBe(localConn.caption);
 
-            await closeDBconnection(localConn.caption);
+            await DBConnection.closeDBconnection(localConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await getDB(localConn.caption),
+                await DBNotebooks.getDB(localConn.caption),
             );
 
-            expect(await (await getSelectedConnectionTab()).getText())
+            expect(await (await DBConnection.getSelectedConnectionTab()).getText())
                 .toBe(localConn.caption);
 
         } catch (e) {
@@ -205,7 +187,7 @@ describe("Database Connections", () => {
     it("Duplicate a database connection", async () => {
         try {
 
-            const host = await getDB(globalConn.caption);
+            const host = await DBNotebooks.getDB(globalConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -248,7 +230,7 @@ describe("Database Connections", () => {
 
             expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
 
-            const conn = await getDB(dup);
+            const conn = await DBNotebooks.getDB(dup);
 
             expect(conn).toBeDefined();
 
@@ -280,9 +262,9 @@ describe("Database Connections", () => {
                 sslClientKey: undefined,
             };
 
-            await createDBconnection(localConn);
+            await DBNotebooks.createDBconnection(localConn);
 
-            let host = await getDB(localConn.caption);
+            let host = await DBNotebooks.getDB(localConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -323,7 +305,7 @@ describe("Database Connections", () => {
 
             await conDialog.findElement(By.id("hostName")).sendKeys("1.1.1.1");
 
-            await selectProtocol("mysqlx");
+            await DBNotebooks.setProtocol("mysqlx");
 
             expect(await conDialog.findElement(By.css("#scheme label")).getText()).toBe("mysqlx");
 
@@ -333,14 +315,14 @@ describe("Database Connections", () => {
 
             expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
 
-            const conn = await getDB(conName);
+            const conn = await DBNotebooks.getDB(conName);
 
             expect(conn).toBeDefined();
 
             expect(await conn!.findElement(By.css(".tileDescription")).getText())
                 .toBe("Another description");
 
-            host = await getDB(conName);
+            host = await DBNotebooks.getDB(conName);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -393,7 +375,7 @@ describe("Database Connections", () => {
     it("Edit a database connection and verify errors", async () => {
         try {
 
-            const host = await getDB(globalConn.caption);
+            const host = await DBNotebooks.getDB(globalConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -490,9 +472,9 @@ describe("Database Connections", () => {
                 sslClientKey: undefined,
             };
 
-            await createDBconnection(localConn);
+            await DBNotebooks.createDBconnection(localConn);
 
-            const host = await getDB(localConn.caption);
+            const host = await DBNotebooks.getDB(localConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -542,7 +524,7 @@ describe("Database Connections", () => {
 
             const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
                 explicitWait, "Dialog was not displayed");
-            await selectDatabaseType("Sqlite");
+            await DBNotebooks.selectDBType("Sqlite");
             await driver.wait(async () => {
                 await newConDialog.findElement(By.id("caption")).clear();
 
@@ -585,7 +567,7 @@ describe("Database Connections", () => {
             await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
             await newConDialog.findElement(By.id("ok")).click();
 
-            const conn = await getDB(localConn.caption);
+            const conn = await DBNotebooks.getDB(localConn.caption);
             expect(conn).toBeDefined();
             expect(await conn!.findElement(By.css(".tileDescription")).getText()).toBe(
                 "Local Sqlite connection",
@@ -596,17 +578,17 @@ describe("Database Connections", () => {
                 conn,
             );
 
-            expect(await (await getSelectedConnectionTab()).getText()).toBe(localConn.caption);
+            expect(await (await DBConnection.getSelectedConnectionTab()).getText()).toBe(localConn.caption);
 
-            await toggleSchemaObject("Schema", "main");
+            await DBConnection.toggleSchemaObject("Schema", "main");
 
-            const main = await getSchemaObject("Schema", "main");
+            const main = await DBConnection.getSchemaObject("Schema", "main");
             const attr = await main!.getAttribute("class");
             expect(attr.split(" ").includes("expanded")).toBe(true);
 
-            await toggleSchemaObject("Tables", "Tables");
+            await DBConnection.toggleSchemaObject("Tables", "Tables");
 
-            const tables = await getSchemaObject("Tables", "Tables");
+            const tables = await DBConnection.getSchemaObject("Tables", "Tables");
 
             expect(
                 await (
@@ -614,7 +596,7 @@ describe("Database Connections", () => {
                 ).getAttribute("class"),
             ).toContain("expanded");
 
-            const table = await getSchemaObject("obj", "db_connection");
+            const table = await DBConnection.getSchemaObject("obj", "db_connection");
 
             await driver.wait(async () => {
                 await driver
@@ -627,7 +609,7 @@ describe("Database Connections", () => {
 
             await driver.findElement(By.id("selectRowsMenuItem")).click();
 
-            expect(await getResultStatus(true)).toContain("OK");
+            expect(await DBConnection.getResultStatus(true)).toContain("OK");
 
             const resultSet = await driver.findElement(
                 By.css(".resultHost .tabulator-headers"),
@@ -702,7 +684,7 @@ describe("Database Connections", () => {
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
 
-            const conn = await getDB(conName);
+            const conn = await DBNotebooks.getDB(conName);
             expect(conn).toBeDefined();
 
             await driver.executeScript(
@@ -711,22 +693,23 @@ describe("Database Connections", () => {
             );
 
             try {
-                await setDBEditorPassword(globalConn);
-                await setConfirmDialog(globalConn, "yes");
+                await Misc.setPassword(globalConn);
+                await Misc.setConfirmDialog(globalConn, "yes");
             } catch (e) {
-                    //continue
+                //continue
             }
 
-            expect(await (await getSelectedConnectionTab()).getText()).toBe(conName);
+            expect(await (await DBConnection.getSelectedConnectionTab()).getText()).toBe(conName);
 
-            await setEditorLanguage("mysql");
+            await DBConnection.setEditorLanguage("mysql");
 
             const contentHost = await driver.findElement(By.id("contentHost"));
             await contentHost
                 .findElement(By.css("textarea"))
                 .sendKeys("SHOW STATUS LIKE 'Ssl_cipher';");
 
-            const execSel = await getToolbarButton("Execute selection or full block and create a new block");
+            const execSel = await DBConnection
+                .getToolbarButton("Execute selection or full block and create a new block");
             await execSel?.click();
 
             const resultHost = await driver.wait(until.elementLocated(By.css(".resultHost")),

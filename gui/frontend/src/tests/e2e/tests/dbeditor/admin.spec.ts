@@ -22,21 +22,10 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { loadDriver, loadPage, driver } from "../../lib/engine";
 import { By, until } from "selenium-webdriver";
-import {
-    IDBConnection,
-    waitForHomePage,
-    getDB,
-    createDBconnection,
-    setDBEditorPassword,
-    setConfirmDialog,
-    initConDialog,
-    clickAdminItem,
-    getCurrentEditor,
-    selectEditor,
-    explicitWait,
-} from "../../lib/helpers";
+import { Misc, explicitWait, driver, IDBConnection } from "../../lib/misc";
+import { DBConnection } from "../../lib/dbConnection";
+import { DBNotebooks } from "../../lib/dbNotebooks";
 
 describe("MySQL Administration", () => {
 
@@ -60,28 +49,28 @@ describe("MySQL Administration", () => {
     };
 
     beforeAll(async () => {
-        await loadDriver();
+        await Misc.loadDriver();
         try {
-            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage();
+            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await Misc.waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage();
+            await Misc.waitForHomePage();
         }
 
         await driver.findElement(By.id("gui.sqleditor")).click();
-        let db = await getDB("conn");
+        let db = await DBNotebooks.getDB("conn");
 
         if (!db) {
-            await initConDialog();
-            await createDBconnection(globalConn, true);
-            db = await getDB(globalConn.caption);
+            await DBNotebooks.initConDialog();
+            await DBNotebooks.createDBconnection(globalConn, true);
+            db = await DBNotebooks.getDB(globalConn.caption);
         }
 
         try {
             await driver.executeScript("arguments[0].click();", db);
-            await setDBEditorPassword(globalConn);
-            await setConfirmDialog(globalConn, "yes");
+            await Misc.setPassword(globalConn);
+            await Misc.setConfirmDialog(globalConn, "yes");
         } catch (e) {
             if (e instanceof Error) {
                 if (e.message.indexOf("dialog was found") === -1) {
@@ -114,8 +103,8 @@ describe("MySQL Administration", () => {
 
     it("Server Status", async () => {
         try {
-            await clickAdminItem("Server Status");
-            expect(await getCurrentEditor()).toBe("Server Status");
+            await DBConnection.clickAdminItem("Server Status");
+            expect(await DBConnection.getCurrentEditor()).toBe("Server Status");
 
             const sections = await driver?.findElements(By.css(".grid .heading label"));
             const headings = [];
@@ -135,9 +124,9 @@ describe("MySQL Administration", () => {
 
     it("Client Connections", async ()  => {
         try {
-            await clickAdminItem("Client Connections");
+            await DBConnection.clickAdminItem("Client Connections");
 
-            expect(await getCurrentEditor()).toBe("Client Connections");
+            expect(await DBConnection.getCurrentEditor()).toBe("Client Connections");
 
             const properties = await driver?.findElements(By.css("#connectionProps label"));
             const props = [];
@@ -170,9 +159,9 @@ describe("MySQL Administration", () => {
 
     it("Performance Dashboard", async () => {
         try {
-            await clickAdminItem("Performance Dashboard");
+            await DBConnection.clickAdminItem("Performance Dashboard");
 
-            expect(await getCurrentEditor()).toBe("Performance Dashboard");
+            expect(await DBConnection.getCurrentEditor()).toBe("Performance Dashboard");
 
             const grid = await driver?.findElement(By.id("dashboardGrid"));
             const gridItems = await grid?.findElements(By.css(".gridCell.title"));
@@ -195,17 +184,17 @@ describe("MySQL Administration", () => {
 
     it("Switch between MySQL Administration tabs", async () => {
         try {
-            await clickAdminItem("Server Status");
-            await clickAdminItem("Client Connections");
-            await clickAdminItem("Performance Dashboard");
+            await DBConnection.clickAdminItem("Server Status");
+            await DBConnection.clickAdminItem("Client Connections");
+            await DBConnection.clickAdminItem("Performance Dashboard");
 
-            await selectEditor("Server Status");
+            await DBConnection.selectEditor("Server Status");
             await driver.switchTo().defaultContent();
 
-            await selectEditor("Client Connections");
+            await DBConnection.selectEditor("Client Connections");
             await driver.switchTo().defaultContent();
 
-            await selectEditor("Performance Dashboard");
+            await DBConnection.selectEditor("Performance Dashboard");
             await driver.switchTo().defaultContent();
         } catch (e) {
             testFailed = true;

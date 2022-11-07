@@ -22,22 +22,21 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { loadDriver, loadPage, driver } from "../../lib/engine";
+import { Misc, explicitWait, driver } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
-import { waitForLoginPage, explicitWait } from "../../lib/helpers";
 
 describe("Login", () => {
 
     let testFailed = false;
 
     beforeAll(async () => {
-        await loadDriver();
+        await Misc.loadDriver();
         try {
-            await loadPage(String(process.env.SHELL_UI_MU_HOSTNAME));
-            await waitForLoginPage();
+            await Misc.loadPage(String(process.env.SHELL_UI_MU_HOSTNAME));
+            await Misc.waitForLoginPage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForLoginPage();
+            await Misc.waitForLoginPage();
         }
     });
 

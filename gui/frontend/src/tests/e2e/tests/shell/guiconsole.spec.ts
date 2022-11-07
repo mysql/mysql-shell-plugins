@@ -21,27 +21,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { promises as fsPromises } from "fs";
-import { driver, loadDriver, loadPage } from "../../lib/engine";
+import { Misc, driver } from "../../lib/misc";
 import { By } from "selenium-webdriver";
-import {
-    waitForHomePage,
-    openShellSession,
-    shellGetSession,
-    closeSession,
-} from "../../lib/helpers";
+import { GuiConsole } from "../../lib/guiConsole";
+import { ShellSession } from "../../lib/shellSession";
 
 describe("GUI Console", () => {
 
     let testFailed: boolean;
 
     beforeAll(async () => {
-        await loadDriver();
+        await Misc.loadDriver();
         try {
-            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage();
+            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await Misc.waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage();
+            await Misc.waitForHomePage();
         }
         await driver.findElement(By.id("gui.shell")).click();
     });
@@ -68,28 +64,28 @@ describe("GUI Console", () => {
     it("Open multiple sessions", async () => {
         try {
 
-            await openShellSession();
+            await GuiConsole.openSession();
             await driver.findElement(By.id("sessions")).click();
 
-            let session = await shellGetSession("1");
+            let session = await GuiConsole.getSession("1");
             expect(await session!.findElement(By.css(".tileCaption")).getText()).toBe("Session 1");
-            await openShellSession();
+            await GuiConsole.openSession();
             await driver.findElement(By.id("sessions")).click();
 
-            session = await shellGetSession("2");
+            session = await GuiConsole.getSession("2");
             expect(await session!.findElement(By.css(".tileCaption")).getText()).toBe("Session 2");
 
-            await openShellSession();
+            await GuiConsole.openSession();
             await driver.findElement(By.id("sessions")).click();
-            session = await shellGetSession("3");
+            session = await GuiConsole.getSession("3");
             expect(await session!.findElement(By.css(".tileCaption")).getText()).toBe("Session 3");
 
-            await closeSession("1");
-            expect(await shellGetSession("1")).toBeUndefined();
-            await closeSession("2");
-            expect(await shellGetSession("2")).toBeUndefined();
-            await closeSession("3");
-            expect(await shellGetSession("3")).toBeUndefined();
+            await ShellSession.closeSession("1");
+            expect(await GuiConsole.getSession("1")).toBeUndefined();
+            await ShellSession.closeSession("2");
+            expect(await GuiConsole.getSession("2")).toBeUndefined();
+            await ShellSession.closeSession("3");
+            expect(await GuiConsole.getSession("3")).toBeUndefined();
 
         } catch(e) {
             testFailed = true;

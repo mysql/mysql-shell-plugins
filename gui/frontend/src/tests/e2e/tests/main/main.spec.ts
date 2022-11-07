@@ -22,26 +22,21 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { driver, loadDriver, loadPage } from "../../lib/engine";
+import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
-import {
-    waitForHomePage,
-    selectAppColorTheme,
-    getBackgroundColor,
-    explicitWait,
-} from "../../lib/helpers";
+import { ThemeEditor } from "../../lib/themeEditor";
 
 describe("Main pages", () => {
     let testFailed = false;
 
     beforeAll(async () => {
-        await loadDriver();
+        await Misc.loadDriver();
         try {
-            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage();
+            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await Misc.waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage();
+            await Misc.waitForHomePage();
         }
     });
 
@@ -267,17 +262,17 @@ describe("Main pages", () => {
             //change background color
             await settingsTreeRows[0].click();
 
-            await selectAppColorTheme("Default Dark");
+            await ThemeEditor.selectAppColorTheme("Default Dark");
 
-            let color = String((await getBackgroundColor())).trim();
+            let color = String((await Misc.getBackgroundColor())).trim();
 
             expect(color).toBe("#2C2C2C");
 
             await settingsTreeRows[0].click();
 
-            await selectAppColorTheme("Default Light");
+            await ThemeEditor.selectAppColorTheme("Default Light");
 
-            color = String((await getBackgroundColor())).trim();
+            color = String((await Misc.getBackgroundColor())).trim();
 
             expect(color).toBe("#FFFFFF");
         } catch (e) {
@@ -449,7 +444,7 @@ describe("Main pages", () => {
 
     it("Invalid token", async () => {
         try {
-            await loadPage(`${String(process.env.SHELL_UI_HOSTNAME)}xpto`);
+            await Misc.loadPage(`${String(process.env.SHELL_UI_HOSTNAME)}xpto`);
             const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
                 explicitWait, "Error label was not found");
 
@@ -467,7 +462,7 @@ describe("Main pages", () => {
     it("No token", async () => {
         try {
             const groups = String(process.env.SHELL_UI_HOSTNAME).match(/token=(.*)/);
-            await loadPage(String(process.env.SHELL_UI_HOSTNAME).replace(groups![1], ""));
+            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME).replace(groups![1], ""));
             const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
                 explicitWait, "Error label was not found");
 
