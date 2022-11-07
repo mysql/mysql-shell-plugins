@@ -22,22 +22,11 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { driver, loadDriver, loadPage } from "../../lib/engine";
+import { Misc, driver, IDBConnection } from "../../lib/misc";
 import { By } from "selenium-webdriver";
-import {
-    waitForHomePage,
-    setStartLanguage,
-    openShellSession,
-    enterCmd,
-    setDBEditorPassword,
-    setConfirmDialog,
-    cleanEditor,
-    getShellServerTabStatus,
-    IDBConnection,
-    waitForShellResult,
-    waitForConnectionTabValue,
-    changeSchemaOnTab,
-} from "../../lib/helpers";
+import { GuiConsole } from "../../lib/guiConsole";
+import { ShellSession } from "../../lib/shellSession";
+import { Settings } from "../../lib/settings";
 
 describe("MySQL Shell Connections", () => {
 
@@ -61,17 +50,17 @@ describe("MySQL Shell Connections", () => {
     };
 
     beforeAll(async () => {
-        await loadDriver();
+        await Misc.loadDriver();
         try {
-            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage();
+            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await Misc.waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage();
+            await Misc.waitForHomePage();
         }
-        await setStartLanguage("Shell Session", "javascript");
+        await Settings.setStartLanguage("Shell Session", "javascript");
         await driver.findElement(By.id("gui.shell")).click();
-        await openShellSession();
+        await GuiConsole.openSession();
     });
 
     afterEach(async () => {
@@ -89,12 +78,12 @@ describe("MySQL Shell Connections", () => {
         }
 
         const textArea = await driver.findElement(By.css("textArea"));
-        await enterCmd(textArea, `\\d`);
+        await Misc.execCmd(textArea, `\\d`);
         await driver.wait(async () => {
             return (await driver.findElements(By.css(".shellPromptItem"))).length === 1;
         }, 2000, "There are still more than 1 tab after disconnect");
-        expect(await getShellServerTabStatus()).toBe("The session is not connected to a MySQL server");
-        await cleanEditor();
+        expect(await ShellSession.getServerTabStatus()).toBe("The session is not connected to a MySQL server");
+        await Misc.cleanPrompt();
     });
 
     afterAll(async () => {
@@ -116,7 +105,7 @@ describe("MySQL Shell Connections", () => {
             let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${globalConn.port}/${globalConn.schema}`;
 
-            await enterCmd(
+            await Misc.execCmd(
                 textArea,
                 uri,
             );
@@ -124,15 +113,15 @@ describe("MySQL Shell Connections", () => {
             let toCheck = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             toCheck += `${globalConn.port}/${globalConn.schema}'`;
 
-            await waitForShellResult(toCheck);
-            await waitForShellResult(/Server version: (\d+).(\d+).(\d+)/);
-            await waitForShellResult(`Default schema set to \`${globalConn.schema}\`.`);
+            await ShellSession.waitForResult(toCheck);
+            await ShellSession.waitForResult(/Server version: (\d+).(\d+).(\d+)/);
+            await ShellSession.waitForResult(`Default schema set to \`${globalConn.schema}\`.`);
 
             toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port}`;
             toCheck += `, using the classic protocol`;
 
-            await waitForConnectionTabValue("server", toCheck);
-            await waitForConnectionTabValue("schema", globalConn.schema);
+            await ShellSession.waitForConnectionTabValue("server", toCheck);
+            await ShellSession.waitForConnectionTabValue("schema", globalConn.schema);
 
         } catch(e) {
             testFailed = true;
@@ -151,26 +140,26 @@ describe("MySQL Shell Connections", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            await enterCmd(
+            await Misc.execCmd(
                 textArea,
                 `\\c ${globalConn.username}@${globalConn.hostname}:${globalConn.port}/${globalConn.schema}`);
 
-            await setDBEditorPassword(globalConn);
+            await Misc.setPassword(globalConn);
 
-            await setConfirmDialog(globalConn, "no");
+            await Misc.setConfirmDialog(globalConn, "no");
 
             let uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${globalConn.port}/${globalConn.schema}'`;
 
-            await waitForShellResult(uri);
-            await waitForShellResult(/Server version: (\d+).(\d+).(\d+)/);
-            await waitForShellResult(`Default schema set to \`${globalConn.schema}\`.`);
+            await ShellSession.waitForResult(uri);
+            await ShellSession.waitForResult(/Server version: (\d+).(\d+).(\d+)/);
+            await ShellSession.waitForResult(`Default schema set to \`${globalConn.schema}\`.`);
 
             let toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port}`;
             toCheck += `, using the classic protocol`;
 
-            await waitForConnectionTabValue("server", toCheck);
-            await waitForConnectionTabValue("schema", globalConn.schema);
+            await ShellSession.waitForConnectionTabValue("server", toCheck);
+            await ShellSession.waitForConnectionTabValue("schema", globalConn.schema);
 
 
         } catch(e) {
@@ -193,34 +182,34 @@ describe("MySQL Shell Connections", () => {
             let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
-            await enterCmd(
+            await Misc.execCmd(
                 textArea,
                 uri);
 
             uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
 
-            await waitForShellResult(uri);
-            await waitForShellResult(/Server version: (\d+).(\d+).(\d+)/);
-            await waitForShellResult(`Default schema \`${globalConn.schema}\` accessible through db`);
+            await ShellSession.waitForResult(uri);
+            await ShellSession.waitForResult(/Server version: (\d+).(\d+).(\d+)/);
+            await ShellSession.waitForResult(`Default schema \`${globalConn.schema}\` accessible through db`);
 
             let toCheck = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
             toCheck += `, using the X protocol`;
 
-            await waitForConnectionTabValue("server", toCheck);
-            await waitForConnectionTabValue("schema", globalConn.schema);
+            await ShellSession.waitForConnectionTabValue("server", toCheck);
+            await ShellSession.waitForConnectionTabValue("schema", globalConn.schema);
 
-            await enterCmd(textArea, "shell.status()");
+            await Misc.execCmd(textArea, "shell.status()");
 
-            await waitForShellResult(/MySQL Shell version (\d+).(\d+).(\d+)/);
+            await ShellSession.waitForResult(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
-            await waitForShellResult(`"CONNECTION":"${globalConn.hostname} via TCP/IP"`);
+            await ShellSession.waitForResult(`"CONNECTION":"${globalConn.hostname} via TCP/IP"`);
 
-            await waitForShellResult(`"CURRENT_SCHEMA":"${globalConn.schema}"`);
+            await ShellSession.waitForResult(`"CURRENT_SCHEMA":"${globalConn.schema}"`);
 
-            await waitForShellResult(new RegExp(`"CURRENT_USER":"${globalConn.username}`));
+            await ShellSession.waitForResult(new RegExp(`"CURRENT_USER":"${globalConn.username}`));
 
-            await waitForShellResult(`"TCP_PORT":"${String(globalConn.portX)}"`);
+            await ShellSession.waitForResult(`"TCP_PORT":"${String(globalConn.portX)}"`);
 
         } catch(e) {
             testFailed = true;
@@ -242,31 +231,31 @@ describe("MySQL Shell Connections", () => {
             const cmd = `mysql.getClassicSession('${globalConn.username}:${globalConn.password}
             @${globalConn.hostname}:${globalConn.port}/${globalConn.schema}')`;
 
-            await enterCmd(textArea, cmd.replace(/ /g,""));
+            await Misc.execCmd(textArea, cmd.replace(/ /g,""));
 
-            await waitForShellResult("&lt;ClassicSession&gt;");
+            await ShellSession.waitForResult("&lt;ClassicSession&gt;");
 
-            await enterCmd(textArea, "shell.disconnect()");
+            await Misc.execCmd(textArea, "shell.disconnect()");
 
             let uri = `mysql.getSession('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${globalConn.port}/${globalConn.schema}')`;
 
-            await enterCmd(
+            await Misc.execCmd(
                 textArea,
                 uri);
 
-            await waitForShellResult("&lt;ClassicSession&gt;");
+            await ShellSession.waitForResult("&lt;ClassicSession&gt;");
 
-            await enterCmd(textArea, "shell.disconnect()");
+            await Misc.execCmd(textArea, "shell.disconnect()");
 
             uri = `mysqlx.getSession('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
-            await enterCmd(
+            await Misc.execCmd(
                 textArea,
                 uri);
 
-            await waitForShellResult("&lt;Session&gt;");
+            await ShellSession.waitForResult("&lt;Session&gt;");
 
         } catch(e) {
             testFailed = true;
@@ -285,22 +274,22 @@ describe("MySQL Shell Connections", () => {
 
             const textArea = await editor.findElement(By.css("textArea"));
 
-            await enterCmd(
+            await Misc.execCmd(
                 textArea,
                 `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:${String(globalConn.portX)}`);
 
             let uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}`;
 
-            await waitForShellResult(uri);
+            await ShellSession.waitForResult(uri);
 
-            await waitForShellResult("No default schema selected");
+            await ShellSession.waitForResult("No default schema selected");
 
             let text = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
             text += `, using the X protocol`;
 
-            await waitForConnectionTabValue("server", text);
-            await waitForConnectionTabValue("schema", "no schema selected");
+            await ShellSession.waitForConnectionTabValue("server", text);
+            await ShellSession.waitForConnectionTabValue("schema", "no schema selected");
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -310,13 +299,13 @@ describe("MySQL Shell Connections", () => {
             const schemaLabel = await driver.findElement(By.id("schema")).getText();
             expect( schemaLabel.substring(1).trim() ).toBe("no schema selected");
 
-            await changeSchemaOnTab("world_x_cst");
+            await ShellSession.changeSchemaOnTab("world_x_cst");
 
-            await waitForShellResult("Default schema `world_x_cst` accessible through db.");
+            await ShellSession.waitForResult("Default schema `world_x_cst` accessible through db.");
 
-            await changeSchemaOnTab("sakila");
+            await ShellSession.changeSchemaOnTab("sakila");
 
-            await waitForShellResult("Default schema `sakila` accessible through db.");
+            await ShellSession.waitForResult("Default schema `sakila` accessible through db.");
 
         } catch(e) {
             testFailed = true;

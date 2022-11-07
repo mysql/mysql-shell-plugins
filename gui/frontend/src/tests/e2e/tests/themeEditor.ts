@@ -22,18 +22,10 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { driver, loadDriver, loadPage } from "../lib/engine";
+import { Misc, driver } from "../lib/misc";
 import { By, Key, until, WebElement } from "selenium-webdriver";
-import {
-    waitForHomePage,
-    getBackgroundColor,
-    setThemeEditorColors,
-    getElementStyle,
-    toggleUiColorsMenu,
-    rgbToHex,
-    getColorPadCss,
-} from "../lib/helpers";
 import { platform } from "os";
+import { ThemeEditor } from "../lib/themeEditor";
 
 const dragAndDrop = `
 function createEvent(typeOfEvent) {
@@ -82,13 +74,13 @@ describe("Theme Editor", () => {
     let themeLabel = "";
 
     beforeAll(async () => {
-        await loadDriver();
+        await Misc.loadDriver();
         try {
-            await loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await waitForHomePage();
+            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+            await Misc.waitForHomePage();
         } catch (e) {
             await driver.navigate().refresh();
-            await waitForHomePage();
+            await Misc.waitForHomePage();
         }
         await driver.findElement(By.id("settings")).click();
         await driver.findElement(By.id("themeEditor")).click();
@@ -127,9 +119,9 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            const colorPad0 = await getColorPadCss(0);
+            const colorPad0 = await ThemeEditor.getColorPadCss(0);
 
-            await toggleUiColorsMenu("Base Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
 
             let focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
 
@@ -137,7 +129,7 @@ describe("Theme Editor", () => {
                 await driver.executeScript(dragAndDrop, colors[0], focusBorder);
             } catch (e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await toggleUiColorsMenu("Base Colors", "open");
+                    await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
                     focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
                     colors = await driver.findElements(By.css("#colorPadCell > div"));
                     await driver.executeScript(dragAndDrop, colors[0], focusBorder);
@@ -154,22 +146,22 @@ describe("Theme Editor", () => {
             expect(focusBorderColor).toBe(colorPad0);
 
             let element = await driver.findElement(By.css(".manualFocus"));
-            let elStyle = String(await getElementStyle(element, "outlineColor"));
+            let elStyle = String(await Misc.getElementStyle(element, "outlineColor"));
             let arr = elStyle.match(/(\d+)/gm);
-            let hex = rgbToHex(arr![0], arr![1], arr![2]);
+            let hex = Misc.rgbToHex(arr![0], arr![1], arr![2]);
 
             expect(colorPad0).toContain(hex);
 
-            const colorPad1 = await getColorPadCss(1);
+            const colorPad1 = await ThemeEditor.getColorPadCss(1);
 
-            await toggleUiColorsMenu("Base Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
 
             let foreground = await driver.findElement(By.css("#--foreground > div"));
             colors = await driver.findElements(By.css("#colorPadCell > div"));
             await driver.executeScript(dragAndDrop, colors[1], foreground);
             await driver.wait(until.stalenessOf(foreground), 3000, "foreground did not became stale");
 
-            await toggleUiColorsMenu("Base Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
             foreground = await driver.findElement(By.css("#--foreground > div"));
 
             await foreground.click();
@@ -180,9 +172,9 @@ describe("Theme Editor", () => {
             expect(colorPad1).toBe(foregroundColor);
 
             element = await driver.findElement(By.xpath("//h2[contains(text(), 'Theme')]"));
-            elStyle = String(await getElementStyle(element, "color"));
+            elStyle = String(await Misc.getElementStyle(element, "color"));
             arr = elStyle.match(/(\d+)/gm);
-            hex = rgbToHex(arr![0], arr![1], arr![2]);
+            hex = Misc.rgbToHex(arr![0], arr![1], arr![2]);
 
             expect(colorPad1).toContain(hex);
         } catch (e) {
@@ -201,7 +193,7 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Base Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
 
             let focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
             await focusBorder.click();
@@ -213,7 +205,7 @@ describe("Theme Editor", () => {
                 await driver.executeScript(dragAndDrop, focusBorder, colors[0]);
             } catch (e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await toggleUiColorsMenu("Base Colors", "open");
+                    await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
                     focusBorder = await driver.findElement(By.css("#--focusBorder > div"));
                     colors = await driver.findElements(By.css("#colorPadCell > div"));
                     await driver.executeScript(dragAndDrop, focusBorder, colors[0]);
@@ -224,10 +216,10 @@ describe("Theme Editor", () => {
 
             let colorPad0 = "";
             try {
-                colorPad0 = await getColorPadCss(0);
+                colorPad0 = await ThemeEditor.getColorPadCss(0);
             } catch(e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    colorPad0 = await getColorPadCss(0);
+                    colorPad0 = await ThemeEditor.getColorPadCss(0);
                 } else {
                     throw e;
                 }
@@ -237,7 +229,7 @@ describe("Theme Editor", () => {
 
             await driver.wait(async() => {
                 try {
-                    await toggleUiColorsMenu("Base Colors", "open");
+                    await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
                     const foreground = await driver.findElement(By.css("#--foreground > div"));
                     await foreground.click();
 
@@ -254,17 +246,17 @@ describe("Theme Editor", () => {
 
             await colorPopup.findElement(By.id("hexValueInput")).sendKeys(Key.ESCAPE);
 
-            await toggleUiColorsMenu("Base Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
             const foreground = await driver.findElement(By.css("#--foreground > div"));
 
             await driver.executeScript(dragAndDrop, foreground, colors[1]);
 
             let colorPad1 = "";
             try {
-                colorPad1 = await getColorPadCss(1);
+                colorPad1 = await ThemeEditor.getColorPadCss(1);
             } catch(e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    colorPad1 = await getColorPadCss(1);
+                    colorPad1 = await ThemeEditor.getColorPadCss(1);
                 } else {
                     throw e;
                 }
@@ -286,27 +278,27 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu(menuName, "open");
+            await ThemeEditor.toggleUiColorsMenu(menuName, "open");
 
             let element = await driver.findElement(By.css(".manualFocus"));
-            let elStyle = await getElementStyle(element, "outlineColor");
+            let elStyle = await Misc.getElementStyle(element, "outlineColor");
 
-            await setThemeEditorColors(menuName, "--focusBorder", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors(menuName, "--focusBorder", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "outlineColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "outlineColor") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.css("body"));
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors(menuName, "--foreground", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors(menuName, "--foreground", "luminanceInput", "84");
 
             element = await driver.findElement(By.css("#previewRoot label.description"));
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors(menuName, "--descriptionForeground", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors(menuName, "--descriptionForeground", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
-            await toggleUiColorsMenu(menuName, "close");
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
+            await ThemeEditor.toggleUiColorsMenu(menuName, "close");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -323,25 +315,25 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Window/Dialog Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Window/Dialog Colors", "open");
 
             let element = await driver.findElement(By.css("#dialogHost .msg.dialog"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Window/Dialog Colors",
+            await ThemeEditor.setThemeEditorColors("Window/Dialog Colors",
                 "--window-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.css("#dialogHost .header"));
-            elStyle = await getElementStyle(element, "backgroundColor");
+            elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Window/Dialog Colors",
+            await ThemeEditor.setThemeEditorColors("Window/Dialog Colors",
                 "--window-headerBackground", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            await toggleUiColorsMenu("Window/Dialog Colors", "close");
+            await ThemeEditor.toggleUiColorsMenu("Window/Dialog Colors", "close");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -357,36 +349,36 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Popup Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Popup Colors", "open");
             await driver.findElement(By.id("--popup-border")).click();
             let element = await driver.findElement(By.css(".colorPopup"));
-            let elStyle = await getElementStyle(element, "borderColor");
+            let elStyle = await Misc.getElementStyle(element, "borderColor");
             await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
-            await setThemeEditorColors("Popup Colors", "--popup-border", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors("Popup Colors", "--popup-border", "luminanceInput", "84");
 
-            await toggleUiColorsMenu("Popup Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Popup Colors", "open");
             await driver.findElement(By.id("--popup-border")).click();
             element = await driver.findElement(By.css(".colorPopup"));
 
-            expect(await getElementStyle(element, "borderColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "borderColor") !== elStyle).toBe(true);
 
             await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
-            await toggleUiColorsMenu("Popup Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Popup Colors", "open");
             await driver.findElement(By.id("--popup-border")).click();
             element = await driver.findElement(By.css(".colorPopup"));
-            elStyle = await getElementStyle(element, "backgroundColor");
+            elStyle = await Misc.getElementStyle(element, "backgroundColor");
             await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
-            await setThemeEditorColors("Popup Colors", "--popup-background", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors("Popup Colors", "--popup-background", "luminanceInput", "84");
 
-            await toggleUiColorsMenu("Popup Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Popup Colors", "open");
 
             await driver.findElement(By.id("--popup-background")).click();
             element = await driver.findElement(By.css(".colorPopup"));
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             await element.findElement(By.id("luminanceInput")).sendKeys(Key.ESCAPE);
 
@@ -405,26 +397,26 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Button Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Button Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Button')]")));
 
             let element = await driver.findElement(By.id("button1"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Button Colors", "--button-background", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors("Button Colors", "--button-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.id("button1"));
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Button Colors", "--button-foreground", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors("Button Colors", "--button-foreground", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
 
-            await toggleUiColorsMenu("Button Colors", "close");
+            await ThemeEditor.toggleUiColorsMenu("Button Colors", "close");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -440,17 +432,17 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Dropdown Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Dropdown Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.css("#previewRoot .dropdown")));
 
             let element = await driver.findElement(By.css("#previewRoot .dropdown"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Dropdown Colors", "--dropdown-background", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors("Dropdown Colors", "--dropdown-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.css("#previewRoot .dropdown"));
 
@@ -461,7 +453,7 @@ describe("Theme Editor", () => {
             }).perform();
             await driver.sleep(1000);
 
-            elStyle = await getElementStyle(element, "backgroundColor");
+            elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
             await driver.actions().move({
                 x: parseInt(String((await uiColors.getRect()).x), 10),
@@ -469,7 +461,7 @@ describe("Theme Editor", () => {
             }).perform();
             await driver.sleep(1000);
 
-            await setThemeEditorColors("Dropdown Colors",
+            await ThemeEditor.setThemeEditorColors("Dropdown Colors",
                 "--dropdown-hoverBackground", "luminanceInput", "15");
 
             element = await driver.findElement(By.css("#previewRoot .dropdown"));
@@ -481,9 +473,9 @@ describe("Theme Editor", () => {
             }).perform();
             await driver.sleep(1000);
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            await toggleUiColorsMenu("Dropdown Colors", "close");
+            await ThemeEditor.toggleUiColorsMenu("Dropdown Colors", "close");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -499,25 +491,25 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Input Controls Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Input Controls Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Input')]")));
 
             let element = await driver.findElement(By.xpath("//input[contains(@placeholder, 'Enter something')]"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Input Controls Colors",
+            await ThemeEditor.setThemeEditorColors("Input Controls Colors",
                 "--input-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.xpath("//input[contains(@placeholder, 'Enter something')]"));
-            elStyle = await getElementStyle(element, "borderColor");
+            elStyle = await Misc.getElementStyle(element, "borderColor");
 
-            await setThemeEditorColors("Input Controls Colors", "--input-border", "luminanceInput", "21");
+            await ThemeEditor.setThemeEditorColors("Input Controls Colors", "--input-border", "luminanceInput", "21");
 
-            expect(await getElementStyle(element, "borderColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "borderColor") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -533,24 +525,24 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Tag Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Tag Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Tag List')]")));
 
             let element = (await driver.findElements(By.css("label.tag")))[0];
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Tag Colors", "--tag-background", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors("Tag Colors", "--tag-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             element = (await driver.findElements(By.css("label.tag")))[0];
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Tag Colors", "--tag-foreground", "luminanceInput", "21");
+            await ThemeEditor.setThemeEditorColors("Tag Colors", "--tag-foreground", "luminanceInput", "21");
 
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -566,18 +558,18 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Progress Bar Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Progress Bar Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Progress Indicator')]")));
 
             const element = (await driver.findElements(By.css(".msg.progressIndicatorHost .linear")))[0];
-            const elStyle = await getElementStyle(element, "background");
+            const elStyle = await Misc.getElementStyle(element, "background");
 
-            await setThemeEditorColors("Progress Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Progress Bar Colors",
                 "--progressBar-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "background") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "background") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -593,7 +585,7 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("List / Tree / Grid / Table Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("List / Tree / Grid / Table Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Grid / Table')]")));
@@ -603,18 +595,18 @@ describe("Theme Editor", () => {
             )[0];
 
 
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("List / Tree / Grid / Table Colors",
+            await ThemeEditor.setThemeEditorColors("List / Tree / Grid / Table Colors",
                 "--list-activeSelectionBackground", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("List / Tree / Grid / Table Colors",
+            await ThemeEditor.setThemeEditorColors("List / Tree / Grid / Table Colors",
                 "--list-activeSelectionForeground", "luminanceInput", "84");
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -630,25 +622,25 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Activity Bar Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Activity Bar Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Activity Bar + Side Bar')]")));
 
             let element = await driver.findElement(By.id("mainActivityBar"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Activity Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Activity Bar Colors",
                 "--activityBar-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.css(".msg.activityBar"));
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Activity Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Activity Bar Colors",
                 "--activityBar-foreground", "luminanceInput", "84");
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -664,22 +656,22 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Side Bar Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Side Bar Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Activity Bar + Side Bar')]")));
 
             const element = await driver.findElement(By.id("sidebar1"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Side Bar Colors", "--sideBar-background", "luminanceInput", "84");
+            await ThemeEditor.setThemeEditorColors("Side Bar Colors", "--sideBar-background", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Side Bar Colors", "--sideBar-foreground", "luminanceInput", "84");
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            await ThemeEditor.setThemeEditorColors("Side Bar Colors", "--sideBar-foreground", "luminanceInput", "84");
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -695,24 +687,24 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Tabview (Group) Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Tabview (Group) Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Tabview')]")));
 
             const element = (await driver.findElements(By.css("#appHostPaneHost .tabArea")))[0];
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Tabview (Group) Colors",
+            await ThemeEditor.setThemeEditorColors("Tabview (Group) Colors",
                 "--editorGroupHeader-tabsBackground", "luminanceInput", "84");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            elStyle = await getElementStyle(uiColors, "backgroundColor");
+            elStyle = await Misc.getElementStyle(uiColors, "backgroundColor");
 
-            await setThemeEditorColors("Tabview (Group) Colors",
+            await ThemeEditor.setThemeEditorColors("Tabview (Group) Colors",
                 "--tab-activeBackground", "luminanceInput", "84");
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -728,27 +720,27 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Editor Colors, except syntax highlighting", "open");
+            await ThemeEditor.toggleUiColorsMenu("Editor Colors, except syntax highlighting", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Code Editor')]")));
 
             const element = (await driver.findElements(By.css(".monaco-editor")))[0];
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Editor Colors, except syntax highlighting",
+            await ThemeEditor.setThemeEditorColors("Editor Colors, except syntax highlighting",
                 "--editor-background", "luminanceInput", "90");
 
             expect(await driver.wait(async () => {
-                return await getElementStyle(element, "backgroundColor") !== elStyle;
+                return await Misc.getElementStyle(element, "backgroundColor") !== elStyle;
             }, 5000, "backgroundColor did not changed on editor")).toBe(true);
 
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Editor Colors, except syntax highlighting",
+            await ThemeEditor.setThemeEditorColors("Editor Colors, except syntax highlighting",
                 "--editor-foreground", "luminanceInput", "84");
             expect(await driver.wait(async () => {
-                return await getElementStyle(element, "color") !== elStyle;
+                return await Misc.getElementStyle(element, "color") !== elStyle;
             }, 5000, "color did not changed on editor")).toBe(true);
         } catch (e) {
             testFailed = true;
@@ -765,19 +757,19 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Scrollbar (Slider) Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Scrollbar (Slider) Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Code Editor')]")));
 
             const element = (await driver.findElements(By.css(".monaco-editor .scroll-decoration")))[0];
-            const elStyle = await getElementStyle(element, "boxShadow");
+            const elStyle = await Misc.getElementStyle(element, "boxShadow");
 
-            await setThemeEditorColors("Scrollbar (Slider) Colors",
+            await ThemeEditor.setThemeEditorColors("Scrollbar (Slider) Colors",
                 "--scrollbar-shadow", "luminanceInput", "55");
 
             expect(await driver.wait(async () => {
-                return await getElementStyle(element, "boxShadow") !== elStyle;
+                return await Misc.getElementStyle(element, "boxShadow") !== elStyle;
             }, 3000, "boxShadow did not changed on editor")).toBe(true);
         } catch (e) {
             testFailed = true;
@@ -794,7 +786,7 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Hint / Info / Tooltip Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Hint / Info / Tooltip Colors", "open");
 
             const element = await driver.findElement(By.id("button3"));
 
@@ -809,9 +801,9 @@ describe("Theme Editor", () => {
 
             await driver.wait(isTooltipDisplayed(), 3000, "Tooltip was not displayed");
 
-            let elStyle = await getElementStyle(await driver.findElement(By.css(".tooltip")), "color");
+            let elStyle = await Misc.getElementStyle(await driver.findElement(By.css(".tooltip")), "color");
 
-            await setThemeEditorColors("Hint / Info / Tooltip Colors",
+            await ThemeEditor.setThemeEditorColors("Hint / Info / Tooltip Colors",
                 "--tooltip-foreground", "luminanceInput", "55");
 
             await driver.actions().move({
@@ -821,13 +813,13 @@ describe("Theme Editor", () => {
 
             await driver.wait(isTooltipDisplayed(), 3000, "Tooltip was not displayed");
 
-            expect(await getElementStyle(await driver.findElement(By.css(".tooltip")),
+            expect(await Misc.getElementStyle(await driver.findElement(By.css(".tooltip")),
                 "color") !== elStyle).toBe(true);
 
-            elStyle = await getElementStyle(await driver
+            elStyle = await Misc.getElementStyle(await driver
                 .findElement(By.css(".tooltip")), "backgroundColor");
 
-            await setThemeEditorColors("Hint / Info / Tooltip Colors",
+            await ThemeEditor.setThemeEditorColors("Hint / Info / Tooltip Colors",
                 "--tooltip-background", "luminanceInput", "55");
 
             await driver.actions().move({
@@ -837,7 +829,7 @@ describe("Theme Editor", () => {
 
             await driver.wait(isTooltipDisplayed(), 3000, "Tooltip was not displayed");
 
-            expect(await getElementStyle(await driver.findElement(By.css(".tooltip")),
+            expect(await Misc.getElementStyle(await driver.findElement(By.css(".tooltip")),
                 "backgroundColor") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
@@ -854,22 +846,22 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Status Bar Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Status Bar Colors", "open");
 
             const element = await driver.findElement(By.css(".statusbar"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Status Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Status Bar Colors",
                 "--statusBar-background", "luminanceInput", "55");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Status Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Status Bar Colors",
                 "--statusBar-foreground", "luminanceInput", "55");
 
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -885,28 +877,28 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Browser Tile Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Browser Tile Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Browser Tiles')]")));
 
             const element = (await driver.findElements(By.css("button.browserTile")))[1];
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Browser Tile Colors",
+            await ThemeEditor.setThemeEditorColors("Browser Tile Colors",
                 "--browserTile-background", "luminanceInput", "30");
 
             expect(await driver.wait(async () => {
-                return await getElementStyle(element, "backgroundColor") !== elStyle;
+                return await Misc.getElementStyle(element, "backgroundColor") !== elStyle;
             }, 3000, "background color did not changed")).toBe(true);
 
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Browser Tile Colors",
+            await ThemeEditor.setThemeEditorColors("Browser Tile Colors",
                 "--browserTile-foreground", "luminanceInput", "55");
 
             expect(await driver.wait(async () => {
-                return await getElementStyle(element, "color") !== elStyle;
+                return await Misc.getElementStyle(element, "color") !== elStyle;
             }, 3000, "background color did not changed")).toBe(true);
         } catch (e) {
             testFailed = true;
@@ -923,26 +915,26 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Title Bar Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Title Bar Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Title Bar')]")));
 
 
             const element = await driver.findElement(By.css("#toolbar1"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Title Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Title Bar Colors",
                 "--titleBar-activeBackground", "luminanceInput", "55");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Title Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Title Bar Colors",
                 "--titleBar-activeForeground", "luminanceInput", "55");
 
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -958,19 +950,19 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Menu Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Menu Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Menu + Menubar')]")));
 
 
             let element = await driver.findElement(By.css(".menubar"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Menu Colors",
+            await ThemeEditor.setThemeEditorColors("Menu Colors",
                 "--menubar-background", "luminanceInput", "55");
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.css("#fileMenu label"));
 
@@ -980,9 +972,9 @@ describe("Theme Editor", () => {
             }).perform();
             await driver.sleep(1000);
 
-            elStyle = await getElementStyle(element, "color");
+            elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Menu Colors",
+            await ThemeEditor.setThemeEditorColors("Menu Colors",
                 "--menubar-selectionForeground", "luminanceInput", "55");
 
             await driver.actions().move({
@@ -990,7 +982,7 @@ describe("Theme Editor", () => {
                 y: parseInt(String((await element.getRect()).y), 10),
             }).perform();
             await driver.sleep(1000);
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1006,28 +998,28 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await toggleUiColorsMenu("Integrated Terminal Colors", "open", true);
+            await ThemeEditor.toggleUiColorsMenu("Integrated Terminal Colors", "open", true);
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Terminal')]")));
 
             const element = await driver.findElement(By.id("terminalPreview"));
-            let elStyle = await getElementStyle(element, "backgroundColor");
+            let elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Integrated Terminal Colors",
+            await ThemeEditor.setThemeEditorColors("Integrated Terminal Colors",
                 "--terminal-background", "luminanceInput", "55");
 
             await driver.executeScript("arguments[0].scrollBy(0,500)",
                 await driver.findElement(By.css("#themeTabview .tabulator-tableholder")));
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
 
-            elStyle = await getElementStyle(element, "borderColor");
+            elStyle = await Misc.getElementStyle(element, "borderColor");
 
-            await setThemeEditorColors("Integrated Terminal Colors",
+            await ThemeEditor.setThemeEditorColors("Integrated Terminal Colors",
                 "--terminal-border", "luminanceInput", "55", true);
 
-            expect(await getElementStyle(element, "borderColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "borderColor") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1046,27 +1038,27 @@ describe("Theme Editor", () => {
             await driver.executeScript("arguments[0].scrollBy(0,500)",
                 await driver.findElement(By.css("#themeTabview .tabulator-tableholder")));
 
-            await toggleUiColorsMenu("Breadcrumb Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Breadcrumb Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Breadcrumb')]")));
 
             let element = await driver.findElement(By.id("base"));
-            let elStyle = await getElementStyle(element, "color");
+            let elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Breadcrumb Colors",
+            await ThemeEditor.setThemeEditorColors("Breadcrumb Colors",
                 "--breadcrumb-foreground", "luminanceInput", "55", true);
 
-            expect(await getElementStyle(element, "color") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elStyle).toBe(true);
 
             element = await driver.findElement(By.id("breadcrumb1"));
 
-            elStyle = await getElementStyle(element, "backgroundColor");
+            elStyle = await Misc.getElementStyle(element, "backgroundColor");
 
-            await setThemeEditorColors("Breadcrumb Colors",
+            await ThemeEditor.setThemeEditorColors("Breadcrumb Colors",
                 "--breadcrumb-background", "luminanceInput", "55", true);
 
-            expect(await getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elStyle).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1085,19 +1077,19 @@ describe("Theme Editor", () => {
             await driver.executeScript("arguments[0].scrollBy(0,500)",
                 await driver.findElement(By.css("#themeTabview .tabulator-tableholder")));
 
-            await toggleUiColorsMenu("Icon Colors", "open");
+            await ThemeEditor.toggleUiColorsMenu("Icon Colors", "open");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)",
                 await driver.findElement(By.xpath("//p[contains(text(), 'Symbols')]")));
 
             const element = await driver.findElement(By.css(".codicon-symbol-array"));
-            const elStyle = await getElementStyle(element, "color");
+            const elStyle = await Misc.getElementStyle(element, "color");
 
-            await setThemeEditorColors("Icon Colors",
+            await ThemeEditor.setThemeEditorColors("Icon Colors",
                 "--symbolIcon-arrayForeground", "luminanceInput", "55", true);
 
             expect(await driver.wait(async () => {
-                return await getElementStyle(element, "color") !== elStyle;
+                return await Misc.getElementStyle(element, "color") !== elStyle;
             }, 3000, "foreground color did not changed")).toBe(true);
 
         } catch (e) {
@@ -1169,7 +1161,7 @@ describe("Theme Editor", () => {
             await driver.wait(until.stalenessOf(identifier!), 5000, "'identifier' did not become stale'");
             expect(await driver.wait(async () => {
                 const element = await getCodeEditorWord("initialDiameter");
-                const elStyle = await getElementStyle(element!, "fontWeight");
+                const elStyle = await Misc.getElementStyle(element!, "fontWeight");
 
                 return String(elStyle) === "700";
             }, 3000, "Destination element is not bolded"));
@@ -1184,7 +1176,7 @@ describe("Theme Editor", () => {
 
             expect(await driver.wait(async () => {
                 const element = await getCodeEditorWord("initialDiameter");
-                const elStyle = await getElementStyle(element!, "fontStyle");
+                const elStyle = await Misc.getElementStyle(element!, "fontStyle");
 
                 return String(elStyle) === "italic";
             }, 3000, "Destination element is not in italic"));
@@ -1199,7 +1191,7 @@ describe("Theme Editor", () => {
 
             expect(await driver.wait(async () => {
                 const element = await getCodeEditorWord("initialDiameter");
-                const elStyle = await getElementStyle(element!, "textDecoration");
+                const elStyle = await Misc.getElementStyle(element!, "textDecoration");
 
                 return String(elStyle).indexOf("underline") !== -1;
             }, 3000, "Destination element is not underlined"));
@@ -1224,9 +1216,9 @@ describe("Theme Editor", () => {
 
             expect(await driver.wait(async () => {
                 const element = await getCodeEditorWord("initialDiameter");
-                const elStyle = String(await getElementStyle(element!, "color"));
+                const elStyle = String(await Misc.getElementStyle(element!, "color"));
                 const arr = elStyle.match(/(\d+)/gm);
-                const hex = rgbToHex(arr![0], arr![1], arr![2]);
+                const hex = Misc.rgbToHex(arr![0], arr![1], arr![2]);
 
                 return hex.toUpperCase() === "#C1D9C6";
             }, 3000, "Foreground color was not changed on destination"));
@@ -1257,15 +1249,15 @@ describe("Theme Editor", () => {
                 await uiColors.click();
             }
 
-            await setThemeEditorColors("Activity Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Activity Bar Colors",
                 "--activityBar-background", "luminanceInput", "50");
 
-            await setThemeEditorColors("Activity Bar Colors",
+            await ThemeEditor.setThemeEditorColors("Activity Bar Colors",
                 "--activityBar-foreground", "luminanceInput", "90");
 
             const element = await driver.findElement(By.id("mainActivityBar"));
-            const elBackgrd = await getElementStyle(element, "backgroundColor");
-            const elFgrd = await getElementStyle(element, "color");
+            const elBackgrd = await Misc.getElementStyle(element, "backgroundColor");
+            const elFgrd = await Misc.getElementStyle(element, "color");
             await driver.sleep(2000);
 
             //CHANGE BACKGROUND COLOR
@@ -1276,9 +1268,9 @@ describe("Theme Editor", () => {
                     By.css(".themeSelector label")).getText() === "Default Light";
             }, 5000, "Theme was not changed to Default Light")).toBe(true);
 
-            expect(String(await getBackgroundColor()).trim()).toBe("#FFFFFF");
-            expect(await getElementStyle(element, "backgroundColor") !== elBackgrd).toBe(true);
-            expect(await getElementStyle(element, "color") !== elFgrd).toBe(true);
+            expect(String(await Misc.getBackgroundColor()).trim()).toBe("#FFFFFF");
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elBackgrd).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elFgrd).toBe(true);
 
             await driver.findElement(By.css(".themeSelector")).click();
             await driver.findElement(By.id("Default Dark")).click();
@@ -1286,7 +1278,7 @@ describe("Theme Editor", () => {
                 return await driver.findElement(
                     By.css(".themeSelector label")).getText() === "Default Dark";
             }, 3000, "Theme was not changed to Default Dark")).toBe(true);
-            expect(String(await getBackgroundColor()).trim()).toBe("#2C2C2CFF");
+            expect(String(await Misc.getBackgroundColor()).trim()).toBe("#2C2C2CFF");
 
             await driver.findElement(By.css(".themeSelector")).click();
             await driver.findElement(By.id(themeName)).click();
@@ -1295,8 +1287,8 @@ describe("Theme Editor", () => {
                     By.css(".themeSelector label")).getText() === themeName;
             }, 3000, `Theme was not changed to ${themeName}`)).toBe(true);
 
-            expect(await getElementStyle(element, "backgroundColor")).toBe(elBackgrd);
-            expect(await getElementStyle(element, "color")).toBe(elFgrd);
+            expect(await Misc.getElementStyle(element, "backgroundColor")).toBe(elBackgrd);
+            expect(await Misc.getElementStyle(element, "color")).toBe(elFgrd);
         } catch (e) {
             testFailed = true;
             throw e;
