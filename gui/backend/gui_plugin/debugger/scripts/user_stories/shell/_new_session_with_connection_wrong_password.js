@@ -49,6 +49,7 @@ await ws.sendAndValidate({
     Object.assign(Object(), responses.pending.executing, {
         "result":
         {
+            'module_session_id': ws.ignore,
             'defaultValue': '',
             'prompt': "Please provide the password for '" + ws.tokens["uri"] + "': ",
             'type': 'password'

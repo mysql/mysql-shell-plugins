@@ -19,24 +19,27 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
-from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-from gui_plugin.core.modules import ModuleSession
-from gui_plugin.core.BaseTask import CommandTask
-import subprocess
-import threading
-from queue import Queue
 import json
 import os
-import sys
-import signal
-import mysqlsh
-from gui_plugin.core.Error import MSGException
-import gui_plugin.core.Error as Error
 import os.path
+import signal
+import subprocess
+import sys
+import threading
+from queue import Queue
+
+import mysqlsh
+from mysqlsh.plugin_manager import \
+    plugin_function  # pylint: disable=no-name-in-module
+
+import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
 from gui_plugin.core import Filtering
+from gui_plugin.core.BaseTask import CommandTask
 from gui_plugin.core.Context import get_context
+from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
+from gui_plugin.core.Error import MSGException
+from gui_plugin.core.modules import ModuleSession
 
 
 def remove_dict_useless_items(data):
@@ -381,7 +384,8 @@ class ShellModuleSession(ModuleSession):
 
                         # command complete
                         if not self._initialize_complete.is_set():
-                            data ={"last_prompt": self._last_prompt, "module_session_id": self.module_session_id}
+                            data = {"last_prompt": self._last_prompt,
+                                    "module_session_id": self.module_session_id}
                             if self._last_prompt != reply_json:
                                 data.update(reply_json)
                             self._pending_request.complete(message="New Shell Interactive session created successfully.",
@@ -403,6 +407,8 @@ class ShellModuleSession(ModuleSession):
                                 "expire": Filtering.FilterExpire.OnUse
                             })
 
+                        reply_json.update(
+                            {"module_session_id": self.module_session_id})
                         self.send_prompt_response(
                             self._pending_request.task_id, reply_json, lambda: prompt_event.set())
 
@@ -460,8 +466,10 @@ class ShellModuleSession(ModuleSession):
                 self._pending_request.fail(message=error_buffer, data={
                                            "exit_status": exit_status})
             else:
+                data = {"module_session_id": self.module_session_id,
+                        "exit_status": exit_status}
                 self._pending_request.complete(
-                    data={"exit_status": exit_status})
+                    data=data)
 
             self._command_complete.set()
 

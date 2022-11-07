@@ -88,9 +88,11 @@ export class ShellTask {
                         this.shellResult = result;
                     }
 
-                    if (result?.moduleSessionId) {
-                        this.shellSession = new ShellInterfaceShellSession(result.moduleSessionId as string);
-                    } else if (result) {
+                    if (result) {
+                        if (result.moduleSessionId) {
+                            this.shellSession = new ShellInterfaceShellSession(result.moduleSessionId as string);
+                        }
+
                         if (this.isShellPromptResult(result as IShellResultType)) {
                             void this.promptCallback(result.prompt as string, !isNil(result.password)).then((value) => {
                                 if (this.shellSession) {

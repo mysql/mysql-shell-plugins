@@ -48,11 +48,11 @@ await ws.sendAndValidate({
         "shell_args": ["--", "util", "dump-schemas", "test_user_story", "--outputUrl", target_path]
     }
 }, ws.matchList([
-    {"request_state": {"type": "PENDING", "msg": "Execution started..."}, "request_id": ws.lastGeneratedRequestId},
-    {"request_state": {"type": "PENDING", "msg": "Executing..."}, "request_id": ws.lastGeneratedRequestId, "result": {"status": "Initializing...\n"}},
-    {"request_state": {"type": "PENDING", "msg": "Executing..."}, "request_id": ws.lastGeneratedRequestId, "result": {"info": "Acquiring global read lock\n"}},
-    {"request_state": {"type": "PENDING", "msg": "Executing..."}, "request_id": ws.lastGeneratedRequestId, "result": {"status": "Running data dump using 4 threads.\n"}},
-    {"request_state": {"type": "OK", "msg": ""}, "request_id": ws.lastGeneratedRequestId, "result": {"exit_status": 0}}
+    { "request_state": { "type": "PENDING", "msg": "Execution started..." }, "request_id": ws.lastGeneratedRequestId },
+    { "request_state": { "type": "PENDING", "msg": "Executing..." }, "request_id": ws.lastGeneratedRequestId, "result": { "status": "Initializing...\n" } },
+    { "request_state": { "type": "PENDING", "msg": "Executing..." }, "request_id": ws.lastGeneratedRequestId, "result": { "info": "Acquiring global read lock\n" } },
+    { "request_state": { "type": "PENDING", "msg": "Executing..." }, "request_id": ws.lastGeneratedRequestId, "result": { "status": "Running data dump using 4 threads.\n" } },
+    { "request_state": { "type": "OK", "msg": "" }, "request_id": ws.lastGeneratedRequestId, "result": { "module_session_id": ws.ignore, "exit_status": 0 } }
 ], false))
 
 
@@ -66,6 +66,6 @@ await ws.sendAndValidate({
         "shell_args": ["--", "util", "dump-schemas", "test_user_story", "--outputUrl", target_path]
     }
 }, ws.matchList([
-    {"request_state": {"type": "PENDING", "msg": "Execution started..."}, "request_id": ws.lastGeneratedRequestId},
-    {"request_state": {"type": "ERROR", "msg": ws.matchRegexp("Cannot proceed with the dump, the specified directory '.*' already exists at the target location .* and is not empty.\n")}, "request_id": ws.lastGeneratedRequestId, "result": {"exit_status": 1}}
+    { "request_state": { "type": "PENDING", "msg": "Execution started..." }, "request_id": ws.lastGeneratedRequestId },
+    { "request_state": { "type": "ERROR", "msg": ws.matchRegexp("Cannot proceed with the dump, the specified directory '.*' already exists at the target location .* and is not empty.\n") }, "request_id": ws.lastGeneratedRequestId, "result": { "exit_status": 1 } }
 ], false))
