@@ -23,7 +23,7 @@
 
 import { promises as fsPromises } from "fs";
 import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
-import { By, until, Key } from "selenium-webdriver";
+import { By, until, Key, WebElement } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
 
@@ -60,12 +60,17 @@ describe("Notebook", () => {
 
         await driver.findElement(By.id("gui.sqleditor")).click();
 
-        let db = await DBNotebooks.getDB("conn");
+        let db: WebElement | undefined;
+        try {
+            db = await DBNotebooks.getConnection("conn");
+        } catch (e) {
+            db = undefined;
+        }
 
         if (!db) {
             await DBNotebooks.initConDialog();
             await DBNotebooks.createDBconnection(globalConn, true);
-            db = await DBNotebooks.getDB(globalConn.caption);
+            db = await DBNotebooks.getConnection(globalConn.caption);
         }
 
         try {
@@ -297,7 +302,7 @@ describe("Notebook", () => {
 
             await driver.wait(async () => {
                 return (await driver.findElements(By.css(".statementStart"))).length >= 3;
-            }, 3000, "Statement start (blue dot) was not found on all lines");
+            }, 7000, "Statement start (blue dot) was not found on all lines");
 
             const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
 

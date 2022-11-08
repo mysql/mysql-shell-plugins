@@ -22,7 +22,7 @@
  */
 
 import { promises as fsPromises } from "fs";
-import { By, until } from "selenium-webdriver";
+import { By, until, WebElement } from "selenium-webdriver";
 import { Misc, explicitWait, driver, IDBConnection } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
@@ -59,12 +59,18 @@ describe("MySQL Administration", () => {
         }
 
         await driver.findElement(By.id("gui.sqleditor")).click();
-        let db = await DBNotebooks.getDB("conn");
+
+        let db: WebElement | undefined;
+        try {
+            db = await DBNotebooks.getConnection("conn");
+        } catch (e) {
+            db = undefined;
+        }
 
         if (!db) {
             await DBNotebooks.initConDialog();
             await DBNotebooks.createDBconnection(globalConn, true);
-            db = await DBNotebooks.getDB(globalConn.caption);
+            db = await DBNotebooks.getConnection(globalConn.caption);
         }
 
         try {
