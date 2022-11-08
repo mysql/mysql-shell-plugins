@@ -135,11 +135,13 @@ export class DBConnection {
      *
      * @returns Promise resolving with the Connection tab name
      */
-    public static getSelectedConnectionTab = async (): Promise<WebElement> => {
+    public static getSelectedConnectionTab = async (): Promise<string> => {
         const tab = await driver.wait(until.elementLocated(By.css(".selected.hasAuxillary")),
             explicitWait, "Selected tab was not found");
 
-        return tab.findElement(By.css(".label"));
+        const label = await tab.findElement(By.css(".label"));
+
+        return label.getText();
     };
 
     /**
@@ -609,7 +611,8 @@ export class DBConnection {
      * @returns A promise resolving with the language
      */
     public static getEditorLanguage = async (): Promise<string> => {
-        const editors = await driver.findElements(By.css(".editorPromptFirst"));
+        const editors = await driver.wait(until.elementsLocated(By.css(".editorPromptFirst")),
+            explicitWait, "Could not find the editor prompts");
         const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
 
         return editorClasses[2].replace("my", "");

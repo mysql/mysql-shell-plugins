@@ -150,27 +150,19 @@ export class DBNotebooks {
      * @param name Connection caption
      * @returns @returns Promise resolving with the DB Connection
      */
-    public static getDB = async (name: string): Promise<WebElement | undefined> => {
-        let hosts: WebElement[];
-        try {
-            hosts = await driver.wait(until.elementsLocated(By.css("#tilesHost button")), 1500, "");
-        } catch (e) {
-            return undefined;
-        }
+    public static getConnection = async (name: string): Promise<WebElement> => {
+        const connections = await driver.wait(until.elementsLocated(By.css("#tilesHost button")),
+            explicitWait, "Could not find any connection");
 
-        for (const host of hosts) {
-            try {
-                const el = await host.findElement(By.css(".textHost .tileCaption"));
-                if ((await el.getText()).includes(name)) {
-                    return host;
-                }
-            } catch (e) {
-                return undefined;
+        for (const connection of connections) {
+            const el = await connection.findElement(By.css(".textHost .tileCaption"));
+            if ((await el.getText()).includes(name)) {
+                return connection;
             }
+
         }
 
-        return undefined;
-
+        throw new Error(`Could not find connection '${name}'`);
     };
 
     /**
