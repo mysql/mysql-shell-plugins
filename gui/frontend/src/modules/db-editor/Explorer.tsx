@@ -78,7 +78,6 @@ import {
 import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
 import { IOpenEditorState } from "./DBConnectionTab";
-import { ICommErrorEvent } from "../../communication";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { EditorLanguage } from "../../supplement";
@@ -722,8 +721,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
             });
 
             this.setState({ schemaList });
-        }).catch((errorEvent: ICommErrorEvent): void => {
-            void requisitions.execute("showError", ["Backend Error", String(errorEvent.message)]);
+        }).catch((reason): void => {
+            void requisitions.execute("showError", ["Backend Error", String(reason)]);
         });
     };
 
@@ -1416,7 +1415,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         row.treeExpand();
     }
 
-    private generateGroupNode(label: string, name: string, schema: string, table?: string): ISchemaTreeEntry<unknown> {
+    private generateGroupNode(label: string, name: string, schema: string, table?: string): ISchemaTreeEntry {
         return {
             type: SchemaTreeType.GroupNode,
             expanded: false,

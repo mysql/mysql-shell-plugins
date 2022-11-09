@@ -216,8 +216,12 @@
             "warn"
         ],
         "no-restricted-syntax": [
-            "warn",
-            "WithStatement"
+            "off",
+            "WithStatement",
+            {
+                "selector": "SwitchCase:has(*.consequent[type!=\"BlockStatement\"])",
+                "message": "Switch cases without blocks are disallowed."
+            }
         ],
         "no-script-url": [
             "warn"
@@ -786,6 +790,7 @@
                 ]
             }
         ],
+        "@typescript-eslint/triple-slash-reference": "off",
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
         "jsdoc/newline-after-description": "error",

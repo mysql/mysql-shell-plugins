@@ -23,9 +23,8 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { ThemeEditor } from "../../../../components/Theming/ThemeEditor";
-import { snapshotFromWrapper } from "../../test-helpers";
 
+import { ThemeEditor } from "../../../../components/Theming/ThemeEditor";
 
 describe("ThemeEditor testing", () => {
 

@@ -21,13 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ProtocolGui, IShellDbConnection, IShellDictionary, MessageScheduler } from "../../communication";
-import { ListenerEntry } from "../Dispatch";
-import { IConnectionDetails, IShellInterface } from ".";
-import { convertCamelToSnakeCase } from "../../utilities/helpers";
+import { IShellDictionary, MessageScheduler, ShellAPIGui } from "../../communication";
+import { IConnectionDetails } from ".";
+import { IDictionary } from "../../app-logic/Types";
 
-// Interface for connection management.
-export class ShellInterfaceDbConnection implements IShellInterface {
+/** Interface for connection management. */
+export class ShellInterfaceDbConnection {
 
     public readonly id = "dbConnection";
 
@@ -38,19 +37,27 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      * @param connection An object holding all data of the connection.
      * @param folderPath The folder path used for grouping and nesting connections, optional
      *
-     * @returns A listener for the response.
+     * @returns A promise resolving to the id of the new connection.
      */
-    public addDbConnection(profileId: number, connection: IConnectionDetails, folderPath: string): ListenerEntry {
-        const conn: IShellDbConnection = {
-            dbType: connection.dbType,
-            caption: connection.caption,
-            description: connection.description,
-            options: convertCamelToSnakeCase(connection.options) as IShellDictionary,
-        };
+    public async addDbConnection(profileId: number, connection: IConnectionDetails,
+        folderPath = ""): Promise<number | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsAddDbConnection,
+            parameters: {
+                args: {
+                    profileId,
+                    connection: {
+                        dbType: connection.dbType,
+                        caption: connection.caption,
+                        description: connection.description,
+                        options: connection.options as IDictionary,
+                    },
+                    folderPath,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(
-            ProtocolGui.getRequestDbconnectionsAddDbConnection(profileId, conn, folderPath),
-            { messageClass: "addDbConnection" });
+        return response.result;
     }
 
     /**
@@ -58,20 +65,28 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      *
      * @param profileId The id of the profile.
      * @param connection An object holding all data of the connection.
+     * @param folderPath The folder path used for grouping and nesting connections.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request was concluded.
      */
-    public updateDbConnection(profileId: number, connection: IConnectionDetails): ListenerEntry {
-        const conn: IShellDbConnection = {
-            dbType: connection.dbType,
-            caption: connection.caption,
-            description: connection.description,
-            options: convertCamelToSnakeCase(connection.options) as IShellDictionary,
-        };
-
-        return MessageScheduler.get.sendRequest(
-            ProtocolGui.getRequestDbconnectionsUpdateDbConnection(profileId, connection.id, conn),
-            { messageClass: "updateDbConnection" });
+    public async updateDbConnection(profileId: number, connection: IConnectionDetails,
+        folderPath = ""): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsUpdateDbConnection,
+            parameters: {
+                args: {
+                    profileId,
+                    connectionId: connection.id,
+                    connection: {
+                        dbType: connection.dbType,
+                        caption: connection.caption,
+                        description: connection.description,
+                        options: connection.options as IShellDictionary,
+                    },
+                    folderPath,
+                },
+            },
+        });
     }
 
     /**
@@ -80,37 +95,49 @@ export class ShellInterfaceDbConnection implements IShellInterface {
      * @param profileId The id of the profile.
      * @param connectionId The connection to remove.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request was concluded.
      */
-    public removeDbConnection(profileId: number, connectionId: number): ListenerEntry {
-        return MessageScheduler.get.sendRequest(
-            ProtocolGui.getRequestDbconnectionsRemoveDbConnection(profileId, connectionId),
-            { messageClass: "removeDbConnection" });
+    public async removeDbConnection(profileId: number, connectionId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsRemoveDbConnection,
+            parameters: { args: { profileId, connectionId } },
+        });
     }
 
     /**
      * Returns all database connections of a given profile and in a given folder path.
      *
      * @param profileId The id of the profile.
-     * @param folderPath A specific path, if required.
+     * @param folderPath The folder path used for grouping and nesting connections.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves to the list of existing connections.
      */
-    public listDbConnections(profileId: number, folderPath: string): ListenerEntry {
-        return MessageScheduler.get.sendRequest(
-            ProtocolGui.getRequestDbconnectionsListDbConnections(profileId, folderPath),
-            { messageClass: "listDbConnections" });
+    public async listDbConnections(profileId: number, folderPath = ""): Promise<IConnectionDetails[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsListDbConnections,
+            parameters: { args: { profileId, folderPath } },
+        });
+
+        const result: IConnectionDetails[] = [];
+        response.forEach((entry) => {
+            result.push(...entry.result);
+        });
+
+        return result;
     }
 
     /**
-     * Returns the db_connection for the given id.
+     * @param connectionId The id of the connection.
      *
-     * @param connectionId The id of the db_connection.
-     *
-     * @returns A listener for the response.
+     * @returns A promise resolving to the details of the requested connection or undefined, if no connection with the
+     *          given identifier exists.
      */
-    public getDbConnection(connectionId: number): ListenerEntry {
-        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbConnection(connectionId),
-            { messageClass: "getDbConnection" });
+    public async getDbConnection(connectionId: number): Promise<IConnectionDetails | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsGetDbConnection,
+            parameters: { args: { dbConnectionId: connectionId } },
+        });
+
+        return response.result;
     }
 }

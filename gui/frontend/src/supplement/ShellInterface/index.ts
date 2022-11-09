@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { IDictionary } from "../../app-logic/Types";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 
@@ -35,7 +36,7 @@ export * from "./ShellInterfaceUser";
 export * from "./ShellInterfaceMds";
 export * from "./ShellInterfaceMrs";
 
-// Database types we can handle.
+/** Database types we can handle. */
 export enum DBType {
     MySQL = "MySQL",
     Sqlite = "Sqlite",
@@ -49,20 +50,18 @@ export enum SSLUsage {
     RequireAndVerifyIdentity = "Require and Verify Identity",
 }
 
-// An empty object is allowed here to denote options for a connection of type "unknown".
-export type IConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOptions | {};
+export type IConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOptions | IDictionary;
 
 export interface IConnectionDetails {
     // A running number in the backend DB, where connections are stored.
     id: number;
 
     dbType: DBType;
-    folderPath: string;
     caption: string;
     description: string;
     options: IConnectionOptions;
-    useSSH: boolean;
-    useMDS: boolean;
+    useSSH?: boolean;
+    useMDS?: boolean;
 
     version?: number;     // The version of the server. Valid not before the connection is open.
     sqlMode?: string;     // Ditto, if the server supports sql modes (MySQL).
@@ -81,11 +80,6 @@ export interface IShellSessionDetails {
     sqlMode?: string;     // Ditto, if the server supports sql modes (MySQL).
 
     dbConnectionId?: number; // The id of the database connection to open
-}
-
-// Base interface for all specialized interfaces to access the functionality of the backend.
-export interface IShellInterface {
-    id: string; // Unique string to identify an interface. Has nothing to do with module names.
 }
 
 export interface IBackendInformation {

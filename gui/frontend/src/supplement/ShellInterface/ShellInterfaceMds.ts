@@ -21,109 +21,141 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ListenerEntry } from "../Dispatch";
 import {
-    ProtocolMds, IShellSetCurrentCompartmentKwargs, IShellSetCurrentBastionKwargs, MessageScheduler,
+    DataCallback,
+    IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMySQLDbSystem,
+    IMySQLDbSystemShapeSummary, MessageScheduler, ShellAPIMds,
 } from "../../communication";
+import { IMdsProfileData } from "../../communication/ShellResponseTypes";
+import {
+    IShellSetCurrentBastionKwargs, IShellSetCurrentCompartmentKwargs,
+} from "../../communication/ShellParameterTypes";
 
 export class ShellInterfaceMds {
 
-    public getMdsConfigProfiles(configFilePath?: string): ListenerEntry {
-        const request = ProtocolMds.getRequestListConfigProfiles({ configFilePath });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsConfigProfiles" });
-    }
-
-    public setDefaultConfigProfile(profile: string): ListenerEntry {
-        const request = ProtocolMds.getRequestSetDefaultConfigProfile(profile);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "setMdsDefaultConfigProfile" });
-    }
-
-    public getMdsCompartments(configProfile: string, compartmentId?: string): ListenerEntry {
-        const request = ProtocolMds.getRequestListCompartments({ configProfile, compartmentId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsCompartments" });
-    }
-
-    public getMdsMySQLDbSystems(configProfile: string, compartmentId: string): ListenerEntry {
-        const request = ProtocolMds.getRequestListDbSystems({ configProfile, compartmentId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsMySQLDbSystems" });
-    }
-
-    public getMdsMySQLDbSystem(configProfile: string, dbSystemId: string): ListenerEntry {
-        const request = ProtocolMds.getRequestGetDbSystem({ configProfile, dbSystemId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsMySQLDbSystem" });
-    }
-
-    public getMdsComputeInstances(configProfile: string, compartmentId: string): ListenerEntry {
-        const request = ProtocolMds.getRequestListComputeInstances({ configProfile, compartmentId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsComputeInstances" });
-    }
-
-    public getMdsBastions(configProfile: string, compartmentId: string, validForDbSystemId?: string): ListenerEntry {
-        const request = ProtocolMds.getRequestListBastions({ configProfile, compartmentId, validForDbSystemId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsBastions" });
-    }
-
-    public getMdsBastion(configProfile: string, bastionId: string): ListenerEntry {
-        const request = ProtocolMds.getRequestGetBastion({ configProfile, bastionId, raiseExceptions: true });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsBastion" });
-    }
-
-    public createBastion(configProfile: string, dbSystemId: string, awaitActiveState?: boolean): ListenerEntry {
-        const request = ProtocolMds.getRequestCreateBastion({ configProfile, dbSystemId, awaitActiveState });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "createBastion" });
-    }
-
-    public createBastionSession(
-        configProfile: string, targetId: string, sessionType: string, compartmentId: string,
-        awaitCreation: boolean): ListenerEntry {
-        const request = ProtocolMds.getRequestCreateBastionSession({
-            configProfile,
-            targetId,
-            sessionType,
-            compartmentId,
-            awaitCreation,
+    public async getMdsConfigProfiles(configFilePath?: string): Promise<IMdsProfileData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListConfigProfiles,
+            parameters: { kwargs: { configFilePath } },
         });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "createBastionSession" });
+        return response.result;
     }
 
-    public listLoadBalancers(configProfile: string, compartmentId: string): ListenerEntry {
-        const request = ProtocolMds.getRequestListLoadBalancers({
-            configProfile,
-            compartmentId,
+    public async setDefaultConfigProfile(profile: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsSetDefaultConfigProfile,
+            parameters: { args: { profileName: profile } },
+        });
+    }
+
+    public async getMdsCompartments(configProfile: string, compartmentId?: string): Promise<ICompartment[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListCompartments,
+            parameters: { kwargs: { configProfile, compartmentId } },
         });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getMdsLoadBalancers" });
+        return response.result;
     }
 
-    public setCurrentCompartment(parameters?: IShellSetCurrentCompartmentKwargs): ListenerEntry {
-        const request = ProtocolMds.getRequestSetCurrentCompartment(parameters);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "setCurrentCompartment" });
-    }
-
-    public setCurrentBastion(parameters?: IShellSetCurrentBastionKwargs): ListenerEntry {
-        const request = ProtocolMds.getRequestSetCurrentBastion(parameters);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "setCurrentBastion" });
-    }
-
-    public listDbSystemShapes(isSupportedFor: string, configProfile: string, compartmentId: string): ListenerEntry {
-        const request = ProtocolMds.getRequestListDbSystemShapes({
-            isSupportedFor,
-            configProfile,
-            compartmentId,
+    public async getMdsMySQLDbSystems(configProfile: string, compartmentId: string): Promise<IMySQLDbSystem[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListDbSystems,
+            parameters: { kwargs: { configProfile, compartmentId } },
         });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listDbSystemShapes" });
+        return response.result;
+    }
+
+    public async getMdsMySQLDbSystem(configProfile: string, dbSystemId: string): Promise<IMySQLDbSystem> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGetDbSystem,
+            parameters: { kwargs: { configProfile, dbSystemId } },
+        });
+
+        return response.result;
+    }
+
+    public async getMdsComputeInstances(configProfile: string, compartmentId: string): Promise<IComputeInstance[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListComputeInstances,
+            parameters: { kwargs: { configProfile, compartmentId } },
+        });
+
+        return response.result;
+    }
+
+    public async getMdsBastions(configProfile: string, compartmentId: string,
+        validForDbSystemId?: string): Promise<IBastionSummary[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListBastions,
+            parameters: { kwargs: { configProfile, compartmentId, validForDbSystemId } },
+        });
+
+        return response.result;
+    }
+
+    public async getMdsBastion(configProfile: string, bastionId: string): Promise<IBastionSummary> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGetBastion,
+            parameters: { kwargs: { configProfile, bastionId } },
+        });
+
+        return response.result;
+    }
+
+    public async createBastion(configProfile: string, dbSystemId: string,
+        awaitActiveState?: boolean): Promise<IBastionSummary> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsCreateBastion,
+            parameters: { kwargs: { configProfile, dbSystemId, awaitActiveState } },
+        });
+
+        return response.result;
+    }
+
+    public async createBastionSession(configProfile: string, targetId: string, sessionType: string,
+        compartmentId: string, awaitCreation: boolean,
+        callback: DataCallback<ShellAPIMds.MdsCreateBastionSession>): Promise<IBastionSession> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsCreateBastionSession,
+            parameters: { kwargs: { configProfile, targetId, sessionType, compartmentId, awaitCreation } },
+            onData: callback,
+        });
+
+        return response.result;
+    }
+
+    public async listLoadBalancers(configProfile: string, compartmentId: string): Promise<ILoadBalancer[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListLoadBalancers,
+            parameters: { kwargs: { configProfile, compartmentId } },
+        });
+
+        return response.result;
+    }
+
+    public async setCurrentCompartment(parameters?: IShellSetCurrentCompartmentKwargs): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsSetCurrentCompartment,
+            parameters: { kwargs: parameters },
+        });
+    }
+
+    public async setCurrentBastion(parameters?: IShellSetCurrentBastionKwargs): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsSetCurrentBastion,
+            parameters: { kwargs: parameters },
+        });
+    }
+
+    public async listDbSystemShapes(isSupportedFor: string, configProfile: string,
+        compartmentId: string): Promise<IMySQLDbSystemShapeSummary[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListDbSystemShapes,
+            parameters: { kwargs: { configProfile, isSupportedFor, compartmentId } },
+        });
+
+        return response.result;
     }
 }

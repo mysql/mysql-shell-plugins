@@ -24,17 +24,12 @@
 import {
     commands, ExtensionContext, window, workspace, Uri, TextDocument, Range, Selection, languages,
     WorkspaceEdit,
-    StatusBarAlignment,
 } from "vscode";
 
 import { homedir } from "os";
 import { existsSync } from "fs";
 
-import {
-    ICommErrorEvent, ICommOciBastionEvent, ICommOciMySQLDbSystemShapeListEvent, ICommOciSessionResultEvent,
-    ICompartment, IMdsProfileData,
-} from "../../frontend/src/communication";
-import { IDispatchEvent, EventType } from "../../frontend/src/supplement/Dispatch";
+import { ICompartment } from "../../frontend/src/communication";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface";
 import { taskOutputChannel } from "./extension";
 
@@ -48,10 +43,11 @@ import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoa
 import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem";
 import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model";
 
-import { DialogResponseClosure, DialogType, IDialogResponse } from "../../frontend/src/app-logic/Types";
+import { DialogResponseClosure, DialogType, IDictionary } from "../../frontend/src/app-logic/Types";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
+import { IMdsProfileData } from "../../frontend/src/communication/ShellResponseTypes";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();
@@ -107,29 +103,28 @@ export class MDSCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.createRouterEndpoint",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
-                    void window.showInputBox({
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
+                    const endpointName = await window.showInputBox({
                         title: `Please enter a name for this new MDS Endpoint [${item.name} Endpoint]:`,
                         value: `${item.name} Endpoint`,
-                    }).then((endpointName) => {
-                        if (endpointName) {
-                            const shellArgs: string[] = [
-                                "--",
-                                "mds",
-                                "util",
-                                "create-mds-endpoint",
-                                `--db_system_id=${item.dbSystem.id.toString()}`,
-                                `--config_profile=${item.profile.profile.toString()}`,
-                                `--instance_name=${endpointName}`,
-                                "--raise_exceptions=true",
-                            ];
-
-                            void host.addNewShellTask("Create new Router Endpoint", shellArgs).then(() => {
-                                void commands.executeCommand("msg.mds.refreshOciProfiles");
-                            });
-                        }
                     });
+
+                    if (endpointName) {
+                        const shellArgs: string[] = [
+                            "--",
+                            "mds",
+                            "util",
+                            "create-mds-endpoint",
+                            `--db_system_id=${item.dbSystem.id.toString()}`,
+                            `--config_profile=${item.profile.profile}`,
+                            `--instance_name=${endpointName}`,
+                            "--raise_exceptions=true",
+                        ];
+
+                        await host.addNewShellTask("Create new Router Endpoint", shellArgs);
+                        await commands.executeCommand("msg.mds.refreshOciProfiles");
+                    }
                 }
             }));
 
@@ -143,20 +138,16 @@ export class MDSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.setDefaultProfile",
-            (item?: OciConfigProfileTreeItem) => {
+            async (item?: OciConfigProfileTreeItem) => {
                 if (item && item.profile.profile) {
                     window.setStatusBarMessage(`Setting current config profile to ${item.profile.profile} ...`, 10000);
-                    this.shellSession.mds.setDefaultConfigProfile(item.profile.profile)
-                        .then((event: IDispatchEvent) => {
-                            if (event.eventType === EventType.FinalResponse) {
-                                void commands.executeCommand("msg.mds.refreshOciProfiles");
-                                window.setStatusBarMessage(`Default config profile set to ${item.profile.profile}.`,
-                                    5000);
-                            }
-                        }).catch((errorEvent: ICommErrorEvent): void => {
-                            void window.showErrorMessage(`Error while setting default config profile: ` +
-                                `${errorEvent.message ?? "<unknown>"}`);
-                        });
+                    try {
+                        await this.shellSession.mds.setDefaultConfigProfile(item.profile.profile);
+                        await commands.executeCommand("msg.mds.refreshOciProfiles");
+                        window.setStatusBarMessage(`Default config profile set to ${item.profile.profile}.`, 5000);
+                    } catch (reason) {
+                        await window.showErrorMessage(`Error while setting default config profile: ${String(reason)}`);
+                    }
                 }
             }));
 
@@ -170,46 +161,42 @@ export class MDSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.setCurrentCompartment",
-            (item?: OciCompartmentTreeItem) => {
+            async (item?: OciCompartmentTreeItem) => {
                 if (item && item.compartment.id) {
                     window.setStatusBarMessage(`Setting current compartment to ${item.compartment.name} ...`, 10000);
-                    this.shellSession.mds.setCurrentCompartment({
-                        compartmentId: item.compartment.id,
-                        configProfile: item.profile.profile,
-                        interactive: false,
-                        raiseExceptions: true,
-                    }).then((event: IDispatchEvent) => {
-                        if (event.eventType === EventType.FinalResponse) {
-                            void commands.executeCommand("msg.mds.refreshOciProfiles");
-                            window.setStatusBarMessage(`Current compartment set to ${item.compartment.name}.`, 5000);
-                        }
-                    }).catch((errorEvent: ICommErrorEvent): void => {
-                        void window.showErrorMessage(`Error while setting current compartment: ` +
-                            `${errorEvent.message ?? "<unknown>"}`);
-                    });
+                    try {
+                        await this.shellSession.mds.setCurrentCompartment({
+                            compartmentId: item.compartment.id,
+                            configProfile: item.profile.profile,
+                            interactive: false,
+                            raiseExceptions: true,
+                        });
+
+                        await commands.executeCommand("msg.mds.refreshOciProfiles");
+                        window.setStatusBarMessage(`Current compartment set to ${item.compartment.name}.`, 5000);
+                    } catch (reason) {
+                        await window.showErrorMessage(`Error while setting current compartment: ${String(reason)}`);
+                    }
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.getDbSystemInfo",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
-                    this.shellSession.mds.getMdsMySQLDbSystem(item.profile.profile, item.dbSystem.id)
-                        .then((event: ICommOciBastionEvent) => {
-                            if (event.eventType === EventType.FinalResponse) {
-                                this.showNewJsonDocument(
-                                    `${item.dbSystem.displayName ?? "<unknown>"} Info.json`,
-                                    JSON.stringify(event.data?.result, null, 4));
-                            }
-                        }).catch((errorEvent: ICommErrorEvent): void => {
-                            void window.showErrorMessage(`Error while fetching the DB System data: ` +
-                                `${errorEvent.message ?? "<unknown>"}`);
-                        });
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
+                    try {
+                        const system = await this.shellSession.mds.getMdsMySQLDbSystem(item.profile.profile,
+                            item.dbSystem.id);
+                        this.showNewJsonDocument(`${item.dbSystem.displayName ?? "<unknown>"} Info.json`,
+                            JSON.stringify(system, null, 4));
+                    } catch (reason) {
+                        void window.showErrorMessage(`Error while fetching the DB System data: ${String(reason)}`);
+                    }
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.startDbSystem",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -221,16 +208,14 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Start DB System", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
-
+                    await host.addNewShellTask("Start DB System", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.stopDbSystem",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -242,15 +227,14 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Stop DB System", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Stop DB System", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.restartDbSystem",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -262,22 +246,21 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Restart DB System", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Restart DB System", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.addHWCluster",
-            (item?: OciDbSystemTreeItem) => {
+            async (item?: OciDbSystemTreeItem) => {
                 if (item && item.dbSystem && item.dbSystem.id && item.compartment && item.profile) {
-                    this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
+                    await this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.deleteDbSystem",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -289,15 +272,14 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Delete DB System", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Delete DB System", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.startHWCluster",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -309,15 +291,14 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Start HeatWave Cluster", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Start HeatWave Cluster", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.stopHWCluster",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -329,15 +310,14 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Stop HeatWave Cluster", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Stop HeatWave Cluster", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.restartHWCluster",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -349,22 +329,21 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Restart HeatWave Cluster", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Restart HeatWave Cluster", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.rescaleHWCluster",
-            (item?: OciDbSystemTreeItem) => {
+            async (item?: OciDbSystemTreeItem) => {
                 if (item && item.dbSystem && item.dbSystem.id && item.compartment && item.profile) {
-                    this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
+                    await this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.deleteHWCluster",
-            (item?: OciDbSystemTreeItem) => {
-                if (item && item.dbSystem.id) {
+            async (item?: OciDbSystemTreeItem) => {
+                if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
                         "--",
                         "mds",
@@ -376,9 +355,8 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Delete HeatWave Cluster", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Delete HeatWave Cluster", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
@@ -392,19 +370,16 @@ export class MDSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.getBastion",
-            (item?: OciBastionTreeItem) => {
+            async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
-                    this.shellSession.mds.getMdsBastion(item.profile.profile, item.bastion.id)
-                        .then((event: ICommOciBastionEvent) => {
-                            if (event.eventType === EventType.FinalResponse) {
-                                this.showNewJsonDocument(
-                                    `${item.bastion.name ?? "<unknown>"} Info.json`,
-                                    JSON.stringify(event.data?.result, null, 4));
-                            }
-                        }).catch((errorEvent: ICommErrorEvent): void => {
-                            void window.showErrorMessage(`Error while fetching the bastion data: ` +
-                                `${errorEvent.message ?? "<unknown>"}`);
-                        });
+                    try {
+                        const bastion = await this.shellSession.mds.getMdsBastion(item.profile.profile,
+                            item.bastion.id);
+                        this.showNewJsonDocument(`${bastion.name ?? "<unknown>"} Info.json`,
+                            JSON.stringify(bastion, null, 4));
+                    } catch (reason) {
+                        await window.showErrorMessage(`Error while fetching the bastion data: ${String(reason)}`);
+                    }
                 }
             }));
 
@@ -422,7 +397,7 @@ export class MDSCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.deleteBastion",
-            (item?: OciBastionTreeItem) => {
+            async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     const shellArgs: string[] = [
                         "--",
@@ -435,35 +410,35 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Delete Bastion", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Delete Bastion", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
+
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.setCurrentBastion",
-            (item?: OciBastionTreeItem) => {
+            async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     window.setStatusBarMessage(`Setting current bastion to ${item.bastion.name} ...`, 10000);
-                    this.shellSession.mds.setCurrentBastion({
-                        bastionId: item.bastion.id,
-                        configProfile: item.profile.profile,
-                        interactive: false,
-                        raiseExceptions: true,
-                    }).then((event: IDispatchEvent) => {
-                        if (event.eventType === EventType.FinalResponse) {
-                            void commands.executeCommand("msg.mds.refreshOciProfiles");
-                            window.setStatusBarMessage(`Current compartment set to ${item.bastion.name}.`, 5000);
-                        }
-                    }).catch((errorEvent: ICommErrorEvent): void => {
-                        void window.showErrorMessage(`Error while setting current bastion: ` +
-                            `${errorEvent.message ?? "<unknown>"}`);
-                    });
+                    try {
+                        await this.shellSession.mds.setCurrentBastion({
+                            bastionId: item.bastion.id,
+                            configProfile: item.profile.profile,
+                            interactive: false,
+                            raiseExceptions: true,
+                        });
+
+                        await commands.executeCommand("msg.mds.refreshOciProfiles");
+                        window.setStatusBarMessage(`Current compartment set to ${item.bastion.name}.`, 5000);
+                    } catch (reason) {
+                        await window.showErrorMessage(`Error while setting current bastion: ` +
+                            `${String(reason)}`);
+                    }
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.refreshOnBastionActiveState",
-            (item?: OciBastionTreeItem) => {
+            async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     const shellArgs: string[] = [
                         "--",
@@ -476,14 +451,13 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Refresh Bastion", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Refresh Bastion", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.deleteComputeInstance",
-            (item?: OciComputeInstanceTreeItem) => {
+            async (item?: OciComputeInstanceTreeItem) => {
                 if (item && item.compute.id) {
                     const shellArgs: string[] = [
                         "--",
@@ -496,61 +470,45 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    void host.addNewShellTask("Delete Compute Instance", shellArgs).then(() => {
-                        void commands.executeCommand("msg.mds.refreshOciProfiles");
-                    });
+                    await host.addNewShellTask("Delete Compute Instance", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.openBastionSshSession",
-            (item?: OciComputeInstanceTreeItem) => {
+            async (item?: OciComputeInstanceTreeItem) => {
                 if (item && item.shellSession && item.shellSession.mds && item.compute.id) {
                     window.setStatusBarMessage("Opening Bastion Session ...", 10000);
-                    item.shellSession.mds.createBastionSession(
-                        item.profile.profile, item.compute.id, "MANAGED_SSH", item.compute.compartmentId, true)
-                        .then((event: ICommOciSessionResultEvent) => {
-                            switch (event.eventType) {
-                                case EventType.DataResponse: {
-                                    if (event.message) {
-                                        window.setStatusBarMessage(event.message/*, 5000*/);
-                                    }
-
-                                    break;
+                    try {
+                        const session = await item.shellSession.mds.createBastionSession(
+                            item.profile.profile, item.compute.id, "MANAGED_SSH", item.compute.compartmentId, true,
+                            (data: IDictionary) => {
+                                if (data.message) {
+                                    window.setStatusBarMessage(data.message as string);
                                 }
+                            });
 
-                                case EventType.FinalResponse: {
-                                    window.setStatusBarMessage("Bastion Session available, opening Terminal ...", 5000);
-                                    const res = event.data?.result;
-                                    if (res?.bastionId) {
-                                        const terminal = window.createTerminal(`Terminal ${item.name}`);
-                                        const sshHost = `${res.id}@host.bastion.` +
-                                            `${item.profile.region}.oci.oraclecloud.com`;
-                                        const sshTargetIp = res.targetResourceDetails.targetResourcePrivateIpAddress;
-                                        if (sshTargetIp) {
-                                            const sshTargetPort = res.targetResourceDetails.targetResourcePort;
-                                            terminal.sendText(`ssh -o ProxyCommand="ssh -W %h:%p -p 22 ${sshHost}"` +
-                                                ` -p ${sshTargetPort} opc@${sshTargetIp}`);
-                                            terminal.sendText("clear");
-                                            terminal.show();
-                                        }
-                                    }
-                                    break;
-                                }
-
-                                default: {
-                                    break;
-                                }
+                        window.setStatusBarMessage("Bastion Session available, opening Terminal ...", 5000);
+                        if (session?.bastionId) {
+                            const terminal = window.createTerminal(`Terminal ${item.name}`);
+                            const sshHost = `${session.id}@host.bastion. ${item.profile.region}.oci.oraclecloud.com`;
+                            const sshTargetIp = session.targetResourceDetails.targetResourcePrivateIpAddress;
+                            if (sshTargetIp) {
+                                const sshTargetPort = session.targetResourceDetails.targetResourcePort;
+                                terminal.sendText(`ssh -o ProxyCommand="ssh -W %h:%p -p 22 ${sshHost}"` +
+                                    ` -p ${sshTargetPort} opc@${sshTargetIp}`);
+                                terminal.sendText("clear");
+                                terminal.show();
                             }
-
-                        }).catch((errorEvent: ICommErrorEvent): void => {
-                            void window.showErrorMessage(`Error while creating the bastion session: ` +
-                                `${errorEvent.message ?? "<unknown>"}`);
-                        });
+                        }
+                    } catch (reason) {
+                        await window.showErrorMessage(`Error while creating the bastion session: ${String(reason)}`);
+                    }
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.loadToHeatWave",
-            (item?: SchemaMySQLTreeItem, items?: ConnectionsTreeBaseItem[]) => {
+            async (item?: SchemaMySQLTreeItem, items?: ConnectionsTreeBaseItem[]) => {
                 if (item) {
                     const schemas: string[] = [];
                     if (items && items.length > 0) {
@@ -566,11 +524,14 @@ export class MDSCommandHandler {
                     }
 
                     if (schemas.length > 0) {
-                        item?.entry?.backend?.getCatalogObjects("Schema").then((allSchemas) => {
-                            this.showMdsHWLoadDataDialog(item.entry.details.id, schemas, allSchemas, host);
-                        }).catch((reason) => {
-                            void window.showErrorMessage(`Error retrieving schema list: ${String(reason)}`);
-                        });
+                        try {
+                            const allSchemas = await item?.entry?.backend?.getCatalogObjects("Schema");
+                            if (allSchemas) {
+                                await this.showMdsHWLoadDataDialog(item.entry.details.id, schemas, allSchemas, host);
+                            }
+                        } catch (reason) {
+                            await window.showErrorMessage(`Error retrieving schema list: ${String(reason)}`);
+                        }
                     }
                 }
             }));
@@ -615,90 +576,88 @@ export class MDSCommandHandler {
      * @param profile The OCI profile
      * @param host The extension host
      */
-    private showMdsHWClusterDialog(dbSystem: DbSystem, compartment: ICompartment,
-        profile: IMdsProfileData, host: ExtensionHost): void {
+    private async showMdsHWClusterDialog(dbSystem: DbSystem, compartment: ICompartment,
+        profile: IMdsProfileData, host: ExtensionHost): Promise<void> {
 
         const statusbarItem = window.createStatusBarItem();
         statusbarItem.text = `$(loading~spin) Fetching List of MDS HeatWave Cluster Shapes...`;
         statusbarItem.show();
 
-        // cSpell:ignore HEATWAVECLUSTER
-        this.shellSession.mds.listDbSystemShapes("HEATWAVECLUSTER", profile.profile, compartment.id)
-            .then((event: ICommOciMySQLDbSystemShapeListEvent) => {
-                statusbarItem.hide();
+        try {
+            // cSpell:ignore HEATWAVECLUSTER
+            const summaries = await this.shellSession.mds.listDbSystemShapes("HEATWAVECLUSTER", profile.profile,
+                compartment.id);
 
-                const title = dbSystem.heatWaveCluster
-                    ? "Rescale the MySQL HeatWave Cluster"
-                    : "Configure the MySQL HeatWave Cluster";
+            statusbarItem.hide();
 
-                const request = {
-                    id: "mdsHWClusterDialog",
-                    type: DialogType.MdsHeatWaveCluster,
-                    title,
-                    parameters: { shapes: event.data?.result },
-                    values: {
-                        clusterSize: dbSystem?.heatWaveCluster?.clusterSize,
-                        shapeName: dbSystem?.heatWaveCluster?.shapeName,
-                    },
-                };
+            const title = dbSystem.heatWaveCluster
+                ? "Rescale the MySQL HeatWave Cluster"
+                : "Configure the MySQL HeatWave Cluster";
 
-                void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
-                    // The request was not sent at all (e.g. there was already one running).
-                    if (!response || response.closure !== DialogResponseClosure.Accept) {
-                        return;
+            const request = {
+                id: "mdsHWClusterDialog",
+                type: DialogType.MdsHeatWaveCluster,
+                title,
+                parameters: { shapes: summaries },
+                values: {
+                    clusterSize: dbSystem?.heatWaveCluster?.clusterSize,
+                    shapeName: dbSystem?.heatWaveCluster?.shapeName,
+                },
+            };
+
+            const response = await this.dialogManager.showDialog(request, title);
+            if (!response || response.closure !== DialogResponseClosure.Accept) {
+                // Either the request was not sent at all (e.g. there was already one running) or the user cancelled it.
+                return;
+            }
+
+            if (response.data) {
+                const clusterSize = response.data.clusterSize as number;
+                const shapeName = response.data.shapeName as string;
+
+                if (!dbSystem.heatWaveCluster || dbSystem.heatWaveCluster.lifecycleState === "DELETED") {
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "create",
+                        "heat-wave-cluster",
+                        `--db_system_id=${dbSystem.id.toString()}`,
+                        `--cluster_size=${clusterSize.toString()}`,
+                        `--shape_name=${shapeName}`,
+                        `--config_profile=${profile.profile.toString()}`,
+                        "--await_completion=true",
+                        "--raise_exceptions=true",
+                    ];
+
+                    await host.addNewShellTask("Create HeatWave Cluster", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
+                } else {
+                    if (dbSystem.heatWaveCluster && clusterSize === dbSystem.heatWaveCluster.clusterSize
+                        && shapeName === dbSystem.heatWaveCluster.shapeName) {
+                        window.setStatusBarMessage("The HeatWave Cluster parameters remained unchanged.", 6000);
+                    } else {
+                        const shellArgs: string[] = [
+                            "--",
+                            "mds",
+                            "update",
+                            "heat-wave-cluster",
+                            `--db_system_id=${dbSystem.id.toString()}`,
+                            `--cluster_size=${clusterSize.toString()}`,
+                            `--shape_name=${shapeName}`,
+                            `--config_profile=${profile.profile.toString()}`,
+                            "--await_completion=true",
+                            "--raise_exceptions=true",
+                        ];
+
+                        await host.addNewShellTask("Rescale HeatWave Cluster", shellArgs);
+                        await commands.executeCommand("msg.mds.refreshOciProfiles");
                     }
-
-                    if (response.data) {
-                        const clusterSize = response.data.clusterSize as number;
-                        const shapeName = response.data.shapeName as string;
-
-                        if (!dbSystem.heatWaveCluster || dbSystem.heatWaveCluster.lifecycleState === "DELETED") {
-                            const shellArgs: string[] = [
-                                "--",
-                                "mds",
-                                "create",
-                                "heat-wave-cluster",
-                                `--db_system_id=${dbSystem.id.toString()}`,
-                                `--cluster_size=${clusterSize.toString()}`,
-                                `--shape_name=${shapeName}`,
-                                `--config_profile=${profile.profile.toString()}`,
-                                "--await_completion=true",
-                                "--raise_exceptions=true",
-                            ];
-
-                            void host.addNewShellTask("Create HeatWave Cluster", shellArgs).then(() => {
-                                void commands.executeCommand("msg.mds.refreshOciProfiles");
-                            });
-                        } else {
-                            if (dbSystem.heatWaveCluster && clusterSize === dbSystem.heatWaveCluster.clusterSize
-                                && shapeName === dbSystem.heatWaveCluster.shapeName) {
-                                window.setStatusBarMessage("The HeatWave Cluster parameters remained unchanged.", 6000);
-                            } else {
-                                const shellArgs: string[] = [
-                                    "--",
-                                    "mds",
-                                    "update",
-                                    "heat-wave-cluster",
-                                    `--db_system_id=${dbSystem.id.toString()}`,
-                                    `--cluster_size=${clusterSize.toString()}`,
-                                    `--shape_name=${shapeName}`,
-                                    `--config_profile=${profile.profile.toString()}`,
-                                    "--await_completion=true",
-                                    "--raise_exceptions=true",
-                                ];
-
-                                void host.addNewShellTask("Rescale HeatWave Cluster", shellArgs).then(() => {
-                                    void commands.executeCommand("msg.mds.refreshOciProfiles");
-                                });
-                            }
-                        }
-                    }
-                });
-            }).catch((errorEvent: ICommErrorEvent) => {
-                statusbarItem.hide();
-                void window.showErrorMessage(`Error while listing MySQL REST services: ` +
-                    `${errorEvent.message ?? "<unknown>"}`);
-            });
+                }
+            }
+        } catch (reason) {
+            statusbarItem.hide();
+            await window.showErrorMessage(`Error while listing MySQL REST services: ${String(reason)}`);
+        }
     }
 
     /**
@@ -709,8 +668,8 @@ export class MDSCommandHandler {
      * @param allSchemas The list of all available schemas
      * @param host The extension host
      */
-    private showMdsHWLoadDataDialog(connectionId: number, selectedSchemas: string[],
-        allSchemas: string[], host: ExtensionHost): void {
+    private async showMdsHWLoadDataDialog(connectionId: number, selectedSchemas: string[],
+        allSchemas: string[], host: ExtensionHost): Promise<void> {
 
         const title = "Load Data to HeatWave";
 
@@ -718,52 +677,47 @@ export class MDSCommandHandler {
             id: "mdsHWLoadDataDialog",
             type: DialogType.MdsHeatWaveLoadData,
             title,
-            parameters: { },
+            parameters: {},
             values: {
                 selectedSchemas,
                 allSchemas,
             },
         };
 
-        void this.dialogManager.showDialog(request, title).then((response?: IDialogResponse) => {
-            // The request was not sent at all (e.g. there was already one running).
-            if (!response || response.closure !== DialogResponseClosure.Accept) {
-                return;
-            }
+        const response = await this.dialogManager.showDialog(request, title);
+        if (!response || response.closure !== DialogResponseClosure.Accept) {
+            return;
+        }
 
-            if (response.data) {
-                const schemaList = response.data.schemas as string[];
-                const mode = response.data.mode as string;
-                const output = response.data.output as string;
-                const disableUnsupportedColumns = response.data.disableUnsupportedColumns as boolean;
-                const optimizeLoadParallelism = response.data.optimizeLoadParallelism as boolean;
-                const enableMemoryCheck = response.data.enableMemoryCheck as boolean;
-                const sqlMode = response.data.sqlMode as string;
-                const excludeList = response.data.excludeList as string;
+        if (response.data) {
+            const schemaList = response.data.schemas as string[];
+            const mode = response.data.mode as string;
+            const output = response.data.output as string;
+            const disableUnsupportedColumns = response.data.disableUnsupportedColumns as boolean;
+            const optimizeLoadParallelism = response.data.optimizeLoadParallelism as boolean;
+            const enableMemoryCheck = response.data.enableMemoryCheck as boolean;
+            const sqlMode = response.data.sqlMode as string;
+            const excludeList = response.data.excludeList as string;
 
-                const shellArgs: string[] = [
-                    "--",
-                    "mds",
-                    "util",
-                    "heat-wave-load-data",
-                    `--schemas=${schemaList.join(",")}`,
-                    `--mode=${mode}`,
-                    `--output=${output}`,
-                    `--disable-unsupported-columns=${disableUnsupportedColumns ? "1" : "0"}`,
-                    `--optimize-load-parallelism=${optimizeLoadParallelism ? "1" : "0"}`,
-                    `--enable-memory-check=${enableMemoryCheck ? "1" : "0"}`,
-                    `--sql-mode="${sqlMode}"`,
-                    `--exclude-list=${excludeList}`,
-                    "--raise-exceptions=1",
-                    "--interactive=1",
-                ];
+            const shellArgs: string[] = [
+                "--",
+                "mds",
+                "util",
+                "heat-wave-load-data",
+                `--schemas=${schemaList.join(",")}`,
+                `--mode=${mode}`,
+                `--output=${output}`,
+                `--disable-unsupported-columns=${disableUnsupportedColumns ? "1" : "0"}`,
+                `--optimize-load-parallelism=${optimizeLoadParallelism ? "1" : "0"}`,
+                `--enable-memory-check=${enableMemoryCheck ? "1" : "0"}`,
+                `--sql-mode="${sqlMode}"`,
+                `--exclude-list=${excludeList}`,
+                "--raise-exceptions=1",
+                "--interactive=1",
+            ];
 
-                void host.addNewShellTask("Load Data to HeatWave Cluster", shellArgs, connectionId).then(() => {
-                    void window.showInformationMessage(
-                        "The data load to the HeatWave cluster operation has finished.");
-                });
-            }
-        });
-
+            await host.addNewShellTask("Load Data to HeatWave Cluster", shellArgs, connectionId);
+            await window.showInformationMessage("The data load to the HeatWave cluster operation has finished.");
+        }
     }
 }

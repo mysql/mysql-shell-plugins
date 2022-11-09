@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,10 +30,9 @@ import {
     Component, IComponentState, Container, Icon, Label, Orientation, ContentAlignment, ContentWrap, Grid, GridCell,
 } from "../";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface";
-import { IBackendInformation } from "../../../supplement/ShellInterface";
 import { Divider } from "../Divider/Divider";
 import { requisitions } from "../../../supplement/Requisitions";
-import { ICommErrorEvent } from "../../../communication";
+import { IBackendInformation } from "../../../supplement/ShellInterface";
 
 interface IAboutBoxState extends IComponentState {
     data?: IBackendInformation;
@@ -49,9 +48,8 @@ export class AboutBox extends Component<{}, IAboutBoxState> {
 
         ShellInterface.core.backendInformation.then((data) => {
             this.setState({ data });
-        }).catch((errorEvent: ICommErrorEvent) => {
-            void requisitions.execute("showError",
-                ["Backend Error", errorEvent.message ?? "No further details available."]);
+        }).catch((reason) => {
+            void requisitions.execute("showError", ["Backend Error", String(reason)]);
         });
     }
 

@@ -35,26 +35,24 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
 
         const services = ScriptingLanguageServices.instance;
         const sourceContext = model.executionContexts.contextFromPosition(position);
-        if (!sourceContext) {
-            return null;
+        if (sourceContext) {
+            if (sourceContext.isInternal) {
+                const info = model.getWordUntilPosition(position);
+                const replaceRange: IRange = {
+                    startLineNumber: position.lineNumber,
+                    startColumn: info.startColumn - 1,
+                    endLineNumber: position.lineNumber,
+                    endColumn: info.endColumn - 1,
+                };
+
+                return {
+                    incomplete: false,
+                    suggestions: this.createInternalCompletionItems(replaceRange, model.editorMode),
+                };
+            }
+
+            return services.getCodeCompletionItems(sourceContext, position);
         }
-
-        if (sourceContext.isInternal) {
-            const info = model.getWordUntilPosition(position);
-            const replaceRange: IRange = {
-                startLineNumber: position.lineNumber,
-                startColumn: info.startColumn - 1,
-                endLineNumber: position.lineNumber,
-                endColumn: info.endColumn - 1,
-            };
-
-            return {
-                incomplete: false,
-                suggestions: this.createInternalCompletionItems(replaceRange, model.editorMode),
-            };
-        }
-
-        return services.getCodeCompletionItems(sourceContext, position);
     }
 
     /*public resolveCompletionItem(item: CompletionItem, token: CancellationToken): ProviderResult<CompletionItem> {

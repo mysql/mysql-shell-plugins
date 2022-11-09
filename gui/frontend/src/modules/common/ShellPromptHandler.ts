@@ -24,10 +24,10 @@
 import {
     IServicePasswordRequest, IDialogRequest, DialogType, IDictionary, IDialogResponse, DialogResponseClosure,
 } from "../../app-logic/Types";
+import { IPromptReplyBackend, ShellPromptResponseType } from "../../communication";
 import {
-    IPromptReplyBackend, IShellFeedbackRequest, IShellPasswordFeedbackRequest, IShellResultType,
-    ShellPromptResponseType,
-} from "../../communication";
+    IShellFeedbackRequest, IShellPasswordFeedbackRequest, IShellResultType,
+} from "../../communication/ShellResponseTypes";
 import { requisitions } from "../../supplement/Requisitions";
 
 export interface IPromptData {
@@ -267,9 +267,11 @@ export class ShellPromptHandler {
     };
 
     private static isShellPromptResult(response?: IShellResultType): response is IShellFeedbackRequest {
-        const candidate = response as IShellFeedbackRequest;
+        if (!response) {
+            return false;
+        }
 
-        return candidate?.prompt !== undefined;
+        return (response as IShellFeedbackRequest).prompt !== undefined;
     }
 }
 

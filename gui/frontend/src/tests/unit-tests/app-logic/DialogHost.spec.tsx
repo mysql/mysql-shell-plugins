@@ -30,7 +30,7 @@ import { DialogHost } from "./../../../app-logic/DialogHost";
 import { JestReactWrapper, nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../test-helpers";
 import { DialogType, IDialogRequest } from "../../../app-logic/Types";
 import { requisitions } from "../../../supplement/Requisitions";
-import { IMrsDbObjectData, IMrsSchemaData, IMrsServiceData } from "../../../communication";
+import { IMrsDbObjectData, IMrsSchemaData, IMrsServiceData } from "../../../communication/ShellResponseTypes";
 
 describe("DialogHost Tests", () => {
     let host: JestReactWrapper;

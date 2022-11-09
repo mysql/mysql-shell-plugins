@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,7 +47,10 @@ export class ShellConsoleViewProvider extends WebviewProvider {
      * @returns A promise which resolves after the command was executed.
      */
     public show(caption: string, page: string): Promise<boolean> {
-        return this.runCommand("showPage", { module: ShellModuleId, page }, caption, "newShellConsole");
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: ShellModuleId },
+            { requestType: "showPage", parameter: { module: ShellModuleId, page } },
+        ], caption, "newShellConsole");
     }
 
     /**
@@ -59,11 +62,12 @@ export class ShellConsoleViewProvider extends WebviewProvider {
      * @returns A promise which resolves after the command was executed.
      */
     public openSession(caption: string, session: IShellSessionDetails): Promise<boolean> {
-        if (session.sessionId === -1) {
-            return this.runCommand("newSession", session, caption, "newShellConsole");
-        } else {
-            return this.runCommand("openSession", session, caption, "newShellConsole");
-        }
+        const command = session.sessionId === -1 ? "newSession" : "openSession";
+
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: ShellModuleId },
+            { requestType: command, parameter: session },
+        ], caption, "newShellConsole");
     }
 
     /**

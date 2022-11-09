@@ -36,16 +36,16 @@ import {
     ITabviewPage, Icon, Codicon, TreeGrid, ITreeGridOptions, ISplitterPaneSizeInfo, SetDataAction,
 } from "../ui";
 
-import { ListenerEntry, EventType, IDispatchEvent } from "../../supplement/Dispatch";
-import { ICommScriptContentEvent, ICommDebuggerScriptsEvent, ProtocolGui, MessageScheduler } from "../../communication";
+import { MessageScheduler } from "../../communication";
 import { ICodeEditorOptions, Monaco } from "../ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
-import { convertCamelToSnakeCase, sleep, strictEval } from "../../utilities/helpers";
-import { requisitions } from "../../supplement/Requisitions";
+import { strictEval } from "../../utilities/helpers";
+import { IDebuggerData, requisitions } from "../../supplement/Requisitions";
 import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor";
 import { IDictionary } from "../../app-logic/Types";
 import { EditorLanguage } from "../../supplement";
 import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment";
+import { ShellInterface } from "../../supplement/ShellInterface";
 
 /* eslint import/no-webpack-loader-syntax: off */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -86,9 +86,11 @@ export interface ICommunicationDebuggerProperties extends IComponentProperties {
 }
 
 interface ICommunicationDebuggerState extends IComponentState {
-    // Input area tabs.
+    /** Input area tabs. */
     activeInputTab: string;
-    scriptTabs: ITabviewPage[];      // Tabs for each open test/debugger script.
+
+    /** Tabs for each open test/debugger script. */
+    scriptTabs: ITabviewPage[];
 }
 
 export class CommunicationDebugger extends Component<ICommunicationDebuggerProperties, ICommunicationDebuggerState> {
@@ -116,16 +118,13 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             scriptTabs: [],
         };
 
+        MessageScheduler.get.traceMessages = true;
         requisitions.register("socketStateChanged", this.connectionStateChanged);
+        requisitions.register("webSessionStarted", this.webSessionStarted);
+        requisitions.register("debugger", this.handleTraceEvent);
+        requisitions.register("message", this.logMessage);
 
         CodeEditor.addTypings(typings as string, "debugger");
-
-        ListenerEntry.create({ persistent: true }).then((event: IDispatchEvent) => {
-            this.handleEvent(event);
-        }).catch((event: IDispatchEvent) => {
-            this.printOutput("ws.lastResponse = " +
-                JSON.stringify(convertCamelToSnakeCase(event.data as object), undefined, 4) + ";\n", OutputType.Error);
-        });
 
         // In order to keep all text in the editor, even if the debugger is updated, we use 2 editor models.
         this.outputState = this.createEditorState("");
@@ -347,13 +346,9 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             }
 
             case ScriptTreeType.Folder: {
-                // HACK: tabulator-tables provides no API to determine if a row is expanded, so we use internal
-                // structures here, to get this information.
                 const row = cell.getRow();
-                // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-explicit-any
-                const treeInfo = (row as any)._row.modules.dataTree;
                 icon = <Icon
-                    src={treeInfo.open ? Codicon.FolderOpened : Codicon.Folder}
+                    src={row.isTreeExpanded() ? Codicon.FolderOpened : Codicon.Folder}
                     width={20}
                     height={20}
                 />;
@@ -466,57 +461,55 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     };
 
     private loadScripts(): void {
-        MessageScheduler.get.sendRequest(ProtocolGui.getRequestDebuggerGetScripts(), { messageClass: "getScripts" })
-            .then((event: ICommDebuggerScriptsEvent) => {
-                const scripts: IScriptTreeEntry[] = [];
+        ShellInterface.core.getDebuggerScriptNames().then((scriptNames) => {
+            const scripts: IScriptTreeEntry[] = [];
 
-                const recursivelyAddScript = (parts: string[], fullPath: string, parent: IScriptTreeEntry[]): void => {
-                    const top = parts.shift();
+            const recursivelyAddScript = (parts: string[], fullPath: string, parent: IScriptTreeEntry[]): void => {
+                const top = parts.shift();
 
-                    if (top) {
-                        let entry = parent.find((candidate) => { return candidate.name === top; });
-                        if (!entry) {
-                            const isScript = parts.length === 0;
-                            entry = {
-                                type: isScript ? ScriptTreeType.Script : ScriptTreeType.Folder,
-                                id: top,
-                                name: top,
-                                fullPath: isScript ? fullPath : undefined,
-                                children: [],
-                            };
-                            parent.push(entry);
-                        }
-
-                        if (parts.length > 0) {
-                            recursivelyAddScript(parts, fullPath, entry.children!);
-                        } else {
-                            delete entry.children;
-                        }
+                if (top) {
+                    let entry = parent.find((candidate) => { return candidate.name === top; });
+                    if (!entry) {
+                        const isScript = parts.length === 0;
+                        entry = {
+                            type: isScript ? ScriptTreeType.Script : ScriptTreeType.Folder,
+                            id: top,
+                            name: top,
+                            fullPath: isScript ? fullPath : undefined,
+                            children: [],
+                        };
+                        parent.push(entry);
                     }
-                };
 
-                event.data?.scripts.forEach((entry: string) => {
-                    const parts = entry.split("/");
                     if (parts.length > 0) {
-                        recursivelyAddScript(parts, entry, scripts);
+                        recursivelyAddScript(parts, fullPath, entry.children!);
+                    } else {
+                        delete entry.children;
                     }
-                });
+                }
+            };
 
-                void this.scriptTreeRef.current?.setColumns([{
-                    title: "",
-                    field: "name",
-                    resizable: false,
-                    hozAlign: "left",
-                    cellDblClick: this.handleScriptTreeDoubleClick,
-                    formatter: this.scriptTreeCellFormatter,
-                }]).then(() => {
-                    void this.scriptTreeRef.current?.setData(scripts, SetDataAction.Set);
-                });
-
-            })
-            .catch((event) => {
-                void requisitions.execute("showError", ["Loading Debugger Scripts", String(event.message)]);
+            scriptNames.forEach((entry: string) => {
+                const parts = entry.split("/");
+                if (parts.length > 0) {
+                    recursivelyAddScript(parts, entry, scripts);
+                }
             });
+
+            void this.scriptTreeRef.current?.setColumns([{
+                title: "",
+                field: "name",
+                resizable: false,
+                hozAlign: "left",
+                cellDblClick: this.handleScriptTreeDoubleClick,
+                formatter: this.scriptTreeCellFormatter,
+            }]).then(() => {
+                void this.scriptTreeRef.current?.setData(scripts, SetDataAction.Set);
+            });
+
+        }).catch((event) => {
+            void requisitions.execute("showError", ["Loading Debugger Scripts", String(event.message)]);
+        });
     }
 
     /**
@@ -526,33 +519,15 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
      * @returns A promise fulfilled when the script text is available.
      */
     private async loadScript(path: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            void (async (): Promise<void> => {
-                const entry = this.scriptContent.get(path);
-                if (entry) {
-                    resolve(entry);
-                } else {
-                    let code;
-                    MessageScheduler.get.sendRequest(ProtocolGui.getRequestDebuggerGetScriptContent(path),
-                        { messageClass: "" })
-                        .then((event: ICommScriptContentEvent) => {
-                            code = event.data?.script;
-                        });
+        const entry = this.scriptContent.get(path);
+        if (entry) {
+            return entry;
+        } else {
+            const code = await ShellInterface.core.getDebuggerScriptContent(path);
+            this.scriptContent.set(path, code);
 
-                    let attempt = 0;
-                    while (attempt++ < 10 && !code) {
-                        await sleep(300);
-                    }
-
-                    if (code) {
-                        this.scriptContent.set(path, code);
-                        resolve(code);
-                    } else {
-                        reject("Couldn't retrieve script code within 3 seconds.");
-                    }
-                }
-            })();
-        });
+            return code;
+        }
     }
 
     private clearOutput = (): void => {
@@ -686,9 +661,16 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     };
 
     private clearContext = (): void => {
-        MessageScheduler.get.clearState();
+        // TODO: do we need to clear the context explicitly?
     };
 
+    /**
+     * Called when the connection state of the web socket changed.
+     *
+     * @param connected A flag indicating if the socket is connected or not.
+     *
+     * @returns A promise resolving to true.
+     */
     private connectionStateChanged = (connected: boolean): Promise<boolean> => {
         if (connected) {
             this.printOutput("ws.isConnected = true;\n");
@@ -700,52 +682,59 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     };
 
     /**
+     * Called when a new web session was established, which we use as signal to (re)load our debugger scripts.
+     *
+     * @returns A promise resolving to true.
+     */
+    private webSessionStarted = (): Promise<boolean> => {
+        this.loadScripts();
+
+        return Promise.resolve(false);
+    };
+
+    /**
      * Handles all triggered events that are requests or responses, except state and error responses.
      *
-     * @param event The event that was triggered.
+     * @param data The details of the trace event.
+     *
+     * @returns A promise which resolves to true.
      */
-    private handleEvent = (event: IDispatchEvent): void => {
-        const debuggerValidate = event.context.messageClass === "debuggerValidate";
+    private handleTraceEvent = (data: IDebuggerData): Promise<boolean> => {
+        const debuggerValidate = false; // TODO: event.context.messageClass === "debuggerValidate";
 
-        switch (event.eventType) {
-            case EventType.Request: {
-                // A request sent to the server.
-                const converted = convertCamelToSnakeCase(event.data);
-                this.printOutput("ws.send(" + JSON.stringify(converted, undefined, 4) + ");\n", OutputType.Command);
-
-                break;
-            }
-
-            default: {
-                switch (event.context.messageClass) {
-                    default: {
-                        if (event.context.messageClass === "webSession") {
-                            // "webSession" events are sent for each server response with a valid session UUID.
-                            // So, technically they are sent many times. However, the message class is replaced by
-                            // the one that was registered for a specific request sent to the server.
-                            // That causes the "webSession" event class to appear only once (when a web session
-                            // is established after authentication), not frequently.
-                            this.loadScripts();
-                        }
-
-                        if (!debuggerValidate) {
-                            // Don't print responses while doing a debugger validation run.
-                            const converted = convertCamelToSnakeCase(event.data);
-                            if (event.data.requestState.type === "log" && event.message) {
-                                this.printOutput((event.message) + "\n");
-                            } else {
-                                this.printOutput("ws.lastResponse = " +
-                                    JSON.stringify(converted, undefined, 4) + ";\n");
-                            }
-                        }
-
-                        break;
-                    }
-                }
-
-                break;
-            }
+        if (data.request) {
+            // A request sent to the server.
+            this.printOutput(`ws.send(${JSON.stringify(data.request, undefined, 4)});\n`, OutputType.Command);
         }
+
+        if (data.response) {
+            this.environment.lastResponse = data.response;
+
+            const outputType = data.response.request_state.type === "ERROR"
+                ? OutputType.Error
+                : OutputType.Normal;
+
+            // Don't print responses while doing a debugger validation run.
+            if (!debuggerValidate) {
+                this.printOutput(`ws.lastResponse = ${JSON.stringify(data.response, undefined, 4)};\n${outputType}`);
+            }
+
+        }
+
+        return Promise.resolve(true);
+    };
+
+    /**
+     * Log a message in the output and adds a line break.
+     *
+     * @param message The message to print.
+     *
+     * @returns A promise which resolves to true.
+     */
+    private logMessage = (message: string): Promise<boolean> => {
+        this.printOutput((message) + "\n");
+
+        return Promise.resolve(true);
     };
 
 }

@@ -21,89 +21,50 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    ICommOpenConnectionEvent, ShellPromptResponseType, ICommErrorEvent, IShellFeedbackRequest,
-    IShellResultType,
-} from "../../frontend/src/communication";
-import { EventType } from "../../frontend/src/supplement/Dispatch";
-import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
-import { stripAnsiCode } from "../../frontend/src/utilities/helpers";
 import { window } from "vscode";
 
-export const isShellPromptResult = (response?: IShellResultType): response is IShellFeedbackRequest => {
+import { ShellPromptResponseType } from "../../frontend/src/communication";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
+import { stripAnsiCode } from "../../frontend/src/utilities/helpers";
+import { IShellFeedbackRequest, IShellResultType } from "../../frontend/src/communication/ShellResponseTypes";
+
+const isShellPromptResult = (response?: IShellResultType): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;
 
     return candidate?.prompt !== undefined;
 };
-
 
 /**
  * Opens an sqlEditor connection
  *
  * @param sqlEditor A ShellInterfaceSqlEditor instance
  * @param connectionId The id of the connection to open
- * @param progress A callback that displays a progress message
+ * @param _progress A callback that displays a progress message
  */
-export const openSqlEditorConnection = (sqlEditor: ShellInterfaceSqlEditor, connectionId: number,
-    progress?: (message: string) => void): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        sqlEditor.openConnection(connectionId).then((event: ICommOpenConnectionEvent) => {
-            switch (event.eventType) {
-                case EventType.DataResponse: {
-                    const result = event.data.result;
-                    if (isShellPromptResult(result)) {
-                        if (result.type === "password") {
-                            void window.showInputBox({
-                                title: result.prompt,
-                                password: true,
-                            }).then((value) => {
-                                if (event.data && event.data.requestId) {
-                                    if (value) {
-                                        sqlEditor.sendReply(event.data.requestId,
-                                            ShellPromptResponseType.Ok, value);
-                                    } else {
-                                        sqlEditor.sendReply(event.data.requestId,
-                                            ShellPromptResponseType.Cancel, "");
-                                    }
-                                }
-                            });
-                        } else if (result.prompt) {
-                            void window.showInputBox({
-                                title: stripAnsiCode(result.prompt),
-                                password: false,
-                                value: "N",
-                            }).then((value) => {
-                                if (event.data && event.data.requestId) {
-                                    if (value) {
-                                        sqlEditor.sendReply(event.data.requestId,
-                                            ShellPromptResponseType.Ok, value);
-                                    } else {
-                                        sqlEditor.sendReply(event.data.requestId,
-                                            ShellPromptResponseType.Cancel, "");
-                                    }
-                                }
-                            });
-                        }
-                    } else if (event.message && progress) {
-                        progress(event.message);
+export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor, connectionId: number,
+    _progress?: (message: string) => void): Promise<void> => {
+
+    await sqlEditor.openConnection(connectionId, undefined, (data, requestId) => {
+        if (isShellPromptResult(data.result)) {
+            if (data.result.type === "password") {
+                void window.showInputBox({ title: data.result.prompt, password: true }).then((value) => {
+                    if (value) {
+                        void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
+                    } else {
+                        void sqlEditor.sendReply(requestId, ShellPromptResponseType.Cancel, "");
                     }
-
-                    break;
-                }
-
-                case EventType.FinalResponse: {
-                    resolve();
-
-                    break;
-                }
-
-                default: {
-                    break;
-                }
+                });
+            } else if (data.result.prompt) {
+                void window.showInputBox({ title: stripAnsiCode(data.result.prompt), password: false, value: "N" })
+                    .then((value) => {
+                        if (value) {
+                            void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
+                        } else {
+                            void sqlEditor.sendReply(requestId, ShellPromptResponseType.Cancel, "");
+                        }
+                    });
             }
-        }).catch((errorEvent: ICommErrorEvent) => {
-            reject(`Error during open connection: ${errorEvent.message ?? "<unknown>"}`);
-        });
+        }
     });
 };
 

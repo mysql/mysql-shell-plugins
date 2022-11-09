@@ -21,16 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IShellInterface } from ".";
-import {
-    ProtocolGui, ICommAuthenticationEvent, ShellAPIGui, ICommShellProfile, MessageScheduler,
-} from "../../communication";
-import { ListenerEntry } from "../Dispatch";
+import { ShellAPIGui, MessageScheduler, Protocol } from "../../communication";
+import { IShellProfile } from "../../communication/ShellResponseTypes";
 import { webSession } from "../WebSession";
 
-export class ShellInterfaceUser implements IShellInterface {
-
-    public readonly id = "user";
+export class ShellInterfaceUser {
 
     /**
      * Authenticate a user.
@@ -38,38 +33,36 @@ export class ShellInterfaceUser implements IShellInterface {
      * @param username The name of the user.
      * @param password The user's password.
      *
-     * @returns A listener for the response.
+     * @returns A promise resolving to the user's active profile.
      */
-    public authenticate(username: string, password: string): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersAuthenticate(username, password);
+    public async authenticate(username: string, password: string): Promise<IShellProfile | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: Protocol.UserAuthenticate,
+            parameters: { username, password },
+        }, false);
 
-        const listener = MessageScheduler.get.sendRequest(request, { messageClass: "authenticate" });
-        listener.then((event: ICommAuthenticationEvent) => {
-            webSession.userName = username;
-            if (event.data) {
-                webSession.userId = event.data.activeProfile.userId;
-                webSession.loadProfile(event.data.activeProfile);
-            }
-        }).catch(() => {
-            //  no need to do anything...just catch the error
-        });
+        webSession.userName = username;
+        webSession.userId = response.activeProfile.userId;
+        webSession.loadProfile(response.activeProfile);
 
-        return listener;
+        return response.activeProfile;
     }
 
     /**
      * Creates a new MySQL Shell GUI user account.
      *
-     * @param user The name of the user.
+     * @param username The name of the user.
      * @param password The user's password.
      * @param role The role that should be assigned to the user.
+     * @param allowedHosts Allowed hosts that user can connect from.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request was finished.
      */
-    public createUser(user: string, password: string, role: string): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersCreateUser(user, password, role);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "createUser" });
+    public async createUser(username: string, password: string, role?: string, allowedHosts?: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersCreateUser,
+            parameters: { username, password, role, allowedHosts },
+        });
     }
 
     /**
@@ -77,152 +70,17 @@ export class ShellInterfaceUser implements IShellInterface {
      *
      * @param userId The id of the user.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves with the profile data when the request was finished.
      */
-    public getDefaultProfile(userId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersGetDefaultProfile(userId);
+    public async getDefaultProfile(userId: number): Promise<IShellProfile | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersGetDefaultProfile,
+            parameters: { args: { userId } },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getDefaultProfile" });
-    }
-
-    /**
-     * Returns the list of modules for the given user.
-     *
-     * @param userId The id of the user.
-     *
-     * @returns A listener for the response.
-     */
-    public getGuiModuleList(userId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersGetGuiModuleList(userId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getGuiModuleList" });
-    }
-
-    /**
-     * Returns the specified profile.
-     *
-     * @param profileId The id of the profile.
-     *
-     * @returns A listener for the response.
-     */
-    public getProfile(profileId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersGetProfile(profileId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersGetProfile });
-    }
-
-    /**
-     * Updates the user profile.
-     *
-     * @param profile The profile to update.
-     *
-     * @returns A listener for the response.
-     */
-    public updateProfile(profile: ICommShellProfile): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersUpdateProfile(profile);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersUpdateProfile });
-    }
-
-    /**
-     * Adds a new user profile.
-     *
-     * @param profile The profile.
-     *
-     * @returns A listener for the response.
-     */
-    public addProfile(profile: ICommShellProfile): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersAddProfile(profile.userId, profile);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiUsersAddProfile });
-    }
-
-    /**
-     * Grant the given roles to the user.
-     *
-     * @param username The name of the user.
-     * @param role The list of roles that should be assigned to the user. Use listRoles() to list all available roles.
-     *
-     * @returns A listener for the response.
-     */
-    public grantRole(username: string, role: string): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersGrantRole(username, role);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "grantRole" });
-    }
-
-    /**
-     * Returns the list of profile for the given user
-     *
-     * @param userId The id of the user.
-     *
-     * @returns A listener for the response.
-     */
-    public listProfiles(userId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersListProfiles(userId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listProfiles" });
-    }
-
-    /**
-     * Lists all privileges of a role.
-     *
-     * @param role The name of the role.
-     *
-     * @returns A listener for the response.
-     */
-    public listRolePrivileges(role: string): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersListRolePrivileges(role);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listRoleProfiles" });
-    }
-
-    /**
-     * Lists all roles that can be assigned to users.
-     *
-     * @returns A listener for the response.
-     */
-    public listRoles(): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersListRoles();
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listRoles" });
-    }
-
-    /**
-     * Lists all privileges assigned to a user.
-     *
-     * @param username The name of the user.
-     *
-     * @returns A listener for the response.
-     */
-    public listUserPrivileges(username: string): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersListUserPrivileges(username);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listUserPrivileges" });
-    }
-
-    /**
-     * List the granted roles for a given user.
-     *
-     * @param username The name of the user.
-     *
-     * @returns A listener for the response.
-     */
-    public listUserRoles(username: string): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersListUserRoles(username);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listUserRoles" });
-    }
-
-    /**
-     * Lists all user accounts.
-     *
-     * @returns A listener for the response.
-     */
-    public listUsers(): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersListUsers();
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listUsers" });
+        if (!Array.isArray(response)) {
+            return response.profile;
+        }
     }
 
     /**
@@ -231,12 +89,184 @@ export class ShellInterfaceUser implements IShellInterface {
      * @param userId The id of the user.
      * @param profileId The profile_id that should be come the new default.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request was finished.
      */
-    public setDefaultProfile(userId: number, profileId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersSetDefaultProfile(userId, profileId);
+    public async setDefaultProfile(userId: number, profileId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersSetDefaultProfile,
+            parameters: { args: { userId, profileId } },
+        });
+    }
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "setDefaultProfile" });
+    /**
+     * Returns the list of modules for the given user.
+     *
+     * @param userId The id of the user.
+     *
+     * @returns A promise resolving to the list of known modules.
+     */
+    public async getGuiModuleList(userId: number): Promise<string[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersGetGuiModuleList,
+            parameters: { args: { userId } },
+        });
+
+        if (!Array.isArray(response)) {
+            return Promise.resolve(response.result);
+        }
+
+        return Promise.resolve([]);
+    }
+
+    /**
+     * Returns the specified profile.
+     *
+     * @param profileId The id of the profile.
+     *
+     * @returns A promise resolving to the profile details.
+     */
+    public async getProfile(profileId: number): Promise<IShellProfile | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersGetProfile,
+            parameters: { args: { profileId } },
+        });
+
+        if (!Array.isArray(response)) {
+            return Promise.resolve(response.result);
+        }
+    }
+
+    /**
+     * Updates the user profile.
+     *
+     * @param profile The profile to update.
+     *
+     * @returns A promise resolving to the updated profile data.
+     */
+    public async updateProfile(profile: IShellProfile): Promise<IShellProfile | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersUpdateProfile,
+            parameters: { args: { profile } },
+        });
+
+        if (!Array.isArray(response)) {
+            return Promise.resolve(response.result);
+        }
+    }
+
+    /**
+     * Adds a new user profile.
+     *
+     * @param profile The profile.
+     *
+     * @returns A promise resolving to the data of the just added profile.
+     */
+    public async addProfile(profile: IShellProfile): Promise<IShellProfile | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersAddProfile,
+            parameters: { args: { userId: profile.userId, profile } },
+        });
+
+        if (!Array.isArray(response)) {
+            return Promise.resolve(response.result);
+        }
+    }
+
+    /**
+     * Grant the given roles to the user.
+     *
+     * @param username The name of the user.
+     * @param role The list of roles that should be assigned to the user. Use listRoles() to list all available roles.
+     *
+     * @returns A promise which resolve when the request was finished.
+     */
+    public async grantRole(username: string, role: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersGrantRole,
+            parameters: { args: { username, role } },
+        });
+    }
+
+    /**
+     * Returns the list of profile for the given user
+     *
+     * @param userId The id of the user.
+     *
+     * @returns A promise resolving to the list of profiles.
+     */
+    public async listProfiles(userId: number): Promise<Array<{ id: number; name: string }>> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersListProfiles,
+            parameters: { args: { userId } },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Lists all privileges of a role.
+     *
+     * @param role The name of the role.
+     *
+     * @returns A promise which resolve when the request was finished.
+     */
+    public async listRolePrivileges(role: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersListRolePrivileges,
+            parameters: { args: { role } },
+        });
+    }
+
+    /**
+     * Lists all roles that can be assigned to users.
+     *
+     * @returns A promise which resolve when the request was finished.
+     */
+    public async listRoles(): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersListRoles,
+            parameters: {},
+        });
+    }
+
+    /**
+     * Lists all privileges assigned to a user.
+     *
+     * @param username The name of the user.
+     *
+     * @returns A promise which resolve when the request was finished.
+     */
+    public async listUserPrivileges(username: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersListUserPrivileges,
+            parameters: { args: { username } },
+        });
+    }
+
+    /**
+     * List the granted roles for a given user.
+     *
+     * @param username The name of the user.
+     *
+     * @returns A promise which resolve when the request was finished.
+     */
+    public async listUserRoles(username: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersListUserRoles,
+            parameters: { args: { username } },
+        });
+    }
+
+    /**
+     * Lists all user accounts.
+     *
+     * @returns A promise which resolve when the request was finished.
+     */
+    public async listUsers(): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersListUsers,
+            parameters: {},
+        });
     }
 
     /**
@@ -244,12 +274,13 @@ export class ShellInterfaceUser implements IShellInterface {
      *
      * @param profileId The id of the profile.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolve when the request was finished.
      */
-    public setCurrentProfile(profileId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestUsersSetCurrentProfile(profileId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "setCurrentProfile" });
+    public async setCurrentProfile(profileId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersSetCurrentProfile,
+            parameters: { args: { profileId } },
+        });
     }
 
     /**
@@ -258,11 +289,13 @@ export class ShellInterfaceUser implements IShellInterface {
      * @param url The URL needs to be in the following form user@(host[:port]|socket).
      * @param password The password
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolve when the request was finished.
      */
-    public storePassword(url: string, password: string): ListenerEntry {
-        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsSetCredential(url, password),
-            { messageClass: "storePassword" });
+    public async storePassword(url: string, password: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsSetCredential,
+            parameters: { args: { url, password } },
+        });
     }
 
     /**
@@ -270,21 +303,24 @@ export class ShellInterfaceUser implements IShellInterface {
      *
      * @param url The URL needs to be in the following form user@(host[:port]|socket).
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolve when the request was finished.
      */
-    public clearPassword(url: string): ListenerEntry {
-        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsDeleteCredential(url),
-            { messageClass: "clearPassword" });
+    public async clearPassword(url: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsDeleteCredential,
+            parameters: { args: { url } },
+        });
     }
 
     /**
      * lists the db_connection urls that have a password stored
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolve when the request was finished.
      */
-    public listCredentials(): ListenerEntry {
-        return MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsListCredentials(),
-            { messageClass: "clearPassword" });
+    public async listCredentials(): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsListCredentials,
+            parameters: {},
+        });
     }
-
 }

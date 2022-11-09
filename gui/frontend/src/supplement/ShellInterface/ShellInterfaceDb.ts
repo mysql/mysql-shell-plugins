@@ -21,26 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IShellInterface } from ".";
-import {
-    ICommErrorEvent, ICommObjectNamesEvent, ICommStartSessionEvent, IShellDbConnection,
-    MessageScheduler,
-    ProtocolGui, ShellAPIGui,
-} from "../../communication";
-import { EventType } from "../Dispatch";
+import { MessageScheduler, ShellAPIGui } from "../../communication";
+import { IShellDbConnection } from "../../communication/ShellParameterTypes";
 import { webSession } from "../WebSession";
 
 export type RoutineType = "function" | "procedure";
 
-// This interface serves as utility for DB related work (DB object retrieval and so on).
-// It cannot execute SQL, though. Use the SQL editor interface for that.
-export class ShellInterfaceDb implements IShellInterface {
+/**
+ * This interface serves as utility for DB related work (DB object retrieval and so on).
+ * It cannot execute SQL, though. Use the SQL editor interface for that.
+ */
+export class ShellInterfaceDb {
 
     protected moduleSessionLookupId = "";
-
-    public get id(): string {
-        return "dbSession";
-    }
 
     /**
      * Starts a simple DB session for certain DB object related work.
@@ -51,25 +44,15 @@ export class ShellInterfaceDb implements IShellInterface {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public startSession(id: string, connection: number | IShellDbConnection): Promise<void> {
-        this.moduleSessionLookupId = this.id + "." + id;
+    public async startSession(id: string, connection: number | IShellDbConnection): Promise<void> {
+        this.moduleSessionLookupId = `dbSession.${id}`;
 
-        return new Promise((resolve, reject) => {
-            const request = ProtocolGui.getRequestDbStartSession(connection);
-            const listener = MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbStartSession });
-            listener.then((event: ICommStartSessionEvent) => {
-                // istanbul ignore else
-                if (event.eventType === EventType.FinalResponse) {
-                    const id = event.data.result.moduleSessionId;
-                    webSession.setModuleSessionId(this.moduleSessionLookupId, id);
-
-                    resolve();
-                }
-            }).catch(/* istanbul ignore next */(event: ICommErrorEvent) => {
-                reject(event.message);
-            });
-
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbStartSession,
+            parameters: { args: { connection } },
         });
+
+        webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
     }
 
     /**
@@ -77,22 +60,16 @@ export class ShellInterfaceDb implements IShellInterface {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public closeSession(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
+    public async closeSession(): Promise<void> {
+        if (!this.moduleSessionId) {
+            return;
+        }
 
-            if (!id) {
-                resolve();
-            } else {
-                const request = ProtocolGui.getRequestDbCloseSession(id);
-                MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbCloseSession }).then(() => {
-                    webSession.setModuleSessionId(this.moduleSessionLookupId);
-                    resolve();
-                }).catch(/* istanbul ignore next */(event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-            }
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbCloseSession,
+            parameters: { args: { moduleSessionId: this.moduleSessionId } },
         });
+        webSession.setModuleSessionId(this.moduleSessionLookupId);
     }
 
     /**
@@ -103,29 +80,17 @@ export class ShellInterfaceDb implements IShellInterface {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public getCatalogObjects(type: string, filter?: string): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
+    public async getCatalogObjects(type: string, filter?: string): Promise<string[]> {
+        if (!this.moduleSessionId) {
+            return [];
+        }
 
-            if (!id) {
-                resolve([]);
-            } else {
-                const names: string[] = [];
-                const request = ProtocolGui.getRequestDbGetCatalogObjectNames(id, type, filter);
-                MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetCatalogObjectNames })
-                    .then((event: ICommObjectNamesEvent) => {
-                        if (event.data?.result) {
-                            names.push(...event.data.result);
-                        }
-
-                        if (event.eventType === EventType.FinalResponse) {
-                            resolve(names);
-                        }
-                    }).catch(/* istanbul ignore next */(event: ICommErrorEvent) => {
-                        reject(event.message);
-                    });
-            }
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetCatalogObjectNames,
+            parameters: { args: { type, filter, moduleSessionId: this.moduleSessionId } },
         });
+
+        return response.result;
     }
 
     /**
@@ -138,29 +103,31 @@ export class ShellInterfaceDb implements IShellInterface {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public getSchemaObjects(schema: string, type: string, routineType?: RoutineType,
+    public async getSchemaObjects(schema: string, type: string, routineType?: RoutineType,
         filter?: string): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                return resolve([]);
-            }
+        if (!this.moduleSessionId) {
+            return [];
+        }
 
-            const names: string[] = [];
-            const request = ProtocolGui.getRequestDbGetSchemaObjectNames(id, type, schema, filter, routineType);
-            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetSchemaObjectNames })
-                .then((event: ICommObjectNamesEvent) => {
-                    if (event.data?.result) {
-                        names.push(...event.data.result);
-                    }
-
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve(names);
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetSchemaObjectNames,
+            parameters: {
+                args: {
+                    type,
+                    filter,
+                    schemaName: schema,
+                    routineType,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
         });
+
+        const result: string[] = [];
+        response.forEach((entry) => {
+            result.push(...entry.result);
+        });
+
+        return result;
     }
 
     /**
@@ -173,30 +140,25 @@ export class ShellInterfaceDb implements IShellInterface {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public getTableObjects(schema: string, table: string, type: string, filter?: string): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            const id = this.moduleSessionId;
-            if (!id) {
-                resolve([]);
-            } else {
-                const request = ProtocolGui.getRequestDbGetTableObjectNames(id, type, schema, table, filter);
+    public async getTableObjects(schema: string, table: string, type: string, filter?: string): Promise<string[]> {
+        if (!this.moduleSessionId) {
+            return [];
+        }
 
-                const names: string[] = [];
-                MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiDbGetTableObjectNames })
-                    .then((event: ICommObjectNamesEvent) => {
-                        if (event.data?.result) {
-                            names.push(...event.data.result);
-                        }
-
-                        if (event.eventType === EventType.FinalResponse) {
-                            resolve(names);
-                        }
-                    })
-                    .catch((event) => {
-                        reject(event.message);
-                    });
-            }
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetTableObjectNames,
+            parameters: {
+                args: {
+                    type,
+                    filter,
+                    schemaName: schema,
+                    tableName: table,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
         });
+
+        return response.result;
     }
 
     protected get moduleSessionId(): string | undefined {

@@ -503,7 +503,6 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                         details={{
                             id: 1,
                             dbType: DBType.MySQL,
-                            folderPath: "",
                             version: 0,
                             useSSH: false,
                             useMDS: false,
@@ -526,7 +525,6 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                         details={{
                             id: 2,
                             dbType: DBType.MySQL,
-                            folderPath: "",
                             version: 0,
                             useSSH: false,
                             useMDS: false,

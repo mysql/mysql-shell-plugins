@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Button component tests Test checkbox output (Snapshot) 1`] = `
+exports[`Button component tests Test button output (Snapshot) 1`] = `
 <div>
   <Container
     orientation="row"

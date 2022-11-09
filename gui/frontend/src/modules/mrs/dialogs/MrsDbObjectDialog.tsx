@@ -24,7 +24,8 @@
 import React from "react";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsDbObjectParameterData, IMrsSchemaData, IMrsServiceData } from "../../../communication";
+import { IMrsDbObjectParameterData } from "../../../communication/ShellParameterTypes";
+import { IMrsSchemaData, IMrsServiceData } from "../../../communication/ShellResponseTypes";
 
 import {
     IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog,
@@ -191,6 +192,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             },
         };
 
+        const objectData = request.values?.parameters as Array<IMrsDbObjectParameterData & IDictionary>;
         const parameterSection: IDialogSection = {
             caption: "Parameters",
             groupName: "group1",
@@ -198,13 +200,10 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                 parameters: {
                     type: "relation",
                     caption: "Parameters:",
-                    value: request.values?.parameters as IMrsDbObjectParameterData[],
+                    value: objectData,
                     listItemCaptionFields: ["name"],
                     listItemId: "id",
-                    active: request.values?.parameters as IMrsDbObjectParameterData[]
-                        && (request.values?.parameters as IMrsDbObjectParameterData[]).length > 0
-                        ? String((request.values?.parameters as IMrsDbObjectParameterData[])[0].id)
-                        : undefined,
+                    active: objectData && objectData.length > 0 ? String(objectData[0].id) : undefined,
                     horizontalSpan: 2,
                     verticalSpan: 3,
                     relations: {
@@ -393,7 +392,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             const parameterSection = values.sections.get("parameterSection");
             if (parameterSection && parameterSection.values.parameters) {
                 const paramDlgValue = parameterSection.values.parameters as IRelationDialogValue;
-                const parameters = paramDlgValue.value as IMrsDbObjectParameterData[];
+                const parameters = paramDlgValue.value as Array<IMrsDbObjectParameterData & IDictionary>;
                 const newEntry = parameters.find((p) => {
                     return p.id === 0;
                 });

@@ -21,47 +21,52 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IShellInterface } from ".";
 import { ShellInterfaceCore } from "./ShellInterfaceCore";
 import { ShellInterfaceDbConnection } from "./ShellInterfaceDbConnection";
 import { ShellInterfaceModule } from "./ShellInterfaceModule";
 import { ShellInterfaceUser } from "./ShellInterfaceUser";
 
-// This class serves as central point for singleton shell interfaces like core or modules.
-// Singletons are all those shell interfaces, which don't need a session for their work.
+/**
+ * This class serves as central point for singleton shell interfaces like `core` or `modules`.
+ * Singletons are all those shell interfaces, which don't need a session for their work.
+ */
 export class ShellInterface {
-    private static interfaces: { [key: string]: IShellInterface } = {};
+    private static interfaces: {
+        core?: ShellInterfaceCore;
+        users?: ShellInterfaceUser;
+        modules?: ShellInterfaceModule;
+        dbConnections?: ShellInterfaceDbConnection;
+    } = {};
 
     public static get core(): ShellInterfaceCore {
-        if (ShellInterface.interfaces.core === undefined) {
+        if (!ShellInterface.interfaces.core) {
             ShellInterface.interfaces.core = new ShellInterfaceCore();
         }
 
-        return ShellInterface.interfaces.core as ShellInterfaceCore;
+        return ShellInterface.interfaces.core;
     }
 
     public static get users(): ShellInterfaceUser {
-        if (ShellInterface.interfaces.users === undefined) {
+        if (!ShellInterface.interfaces.users) {
             ShellInterface.interfaces.users = new ShellInterfaceUser();
         }
 
-        return ShellInterface.interfaces.users as ShellInterfaceUser;
+        return ShellInterface.interfaces.users;
     }
 
     public static get modules(): ShellInterfaceModule {
-        if (ShellInterface.interfaces.modules === undefined) {
+        if (!ShellInterface.interfaces.modules) {
             ShellInterface.interfaces.modules = new ShellInterfaceModule();
         }
 
-        return ShellInterface.interfaces.modules as ShellInterfaceModule;
+        return ShellInterface.interfaces.modules;
     }
 
     public static get dbConnections(): ShellInterfaceDbConnection {
-        if (ShellInterface.interfaces.dbConnections === undefined) {
+        if (!ShellInterface.interfaces.dbConnections) {
             ShellInterface.interfaces.dbConnections = new ShellInterfaceDbConnection();
         }
 
-        return ShellInterface.interfaces.dbConnections as ShellInterfaceDbConnection;
+        return ShellInterface.interfaces.dbConnections;
     }
-
 }

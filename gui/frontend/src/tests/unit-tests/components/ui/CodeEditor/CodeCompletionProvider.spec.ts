@@ -37,7 +37,7 @@ describe("CodeCompletionProvider basic test", () => {
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.\\@(".split(""),
         );
         let items = completionProvider.provideCompletionItems(models, position);
-        expect(items).toBeNull();
+        expect(items).toBeUndefined();
 
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
@@ -47,18 +47,18 @@ describe("CodeCompletionProvider basic test", () => {
 
         const execContext = new ExecutionContext(pi);
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
-            return { lineNumber: 0, column: 0};
+            return { lineNumber: 0, column: 0 };
         });
         models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
         items = completionProvider.provideCompletionItems(models, position);
-        expect(items).not.toBeNull();
+        expect(items).not.toBeUndefined();
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        models.getWordUntilPosition = jest.fn().mockReturnValue({ startColumn: 10, endColumn: 10} );
+        models.getWordUntilPosition = jest.fn().mockReturnValue({ startColumn: 10, endColumn: 10 });
         items = completionProvider.provideCompletionItems(models, position);
-        expect(items).not.toBeNull();
+        expect(items).not.toBeUndefined();
 
     });
 });

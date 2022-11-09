@@ -21,458 +21,251 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { EventType, ListenerEntry } from "../Dispatch";
-import {
-    ICommErrorEvent, ICommMrsAddContentSetEvent, ICommMrsAddDbObjectEvent, ICommMrsAddSchemaEvent,
-    ICommMrsAuthAppsEvent,
-    ICommMrsAuthVendorsEvent,
-    ICommMrsContentFileEvent,
-    ICommMrsContentSetEvent,
-    ICommMrsGetDbObjectFieldsEvent,
-    ICommMrsGetDbObjectRowOwnershipFieldsEvent,
-    ICommMrsSchemaEvent, ICommMrsServiceEvent,
-    ICommMrsServiceRequestPathAvailabilityEvent,
-    ICommMrsStatusEvent,
-    ICommSimpleResultEvent,
-    IMrsAddContentSetResultData,
-    IMrsAddDbObjectResultData, IMrsAddSchemaResultData, IMrsAuthAppData, IMrsAuthAppsResultData,
-    IMrsAuthVendorResultData,
-    IMrsContentFileResultData, IMrsContentSetResultData,
-    IMrsDbObjectFieldsResultData,
-    IMrsDbObjectParameterData,
-    IMrsGetDbObjectRowOwnershipFieldsResultData,
-    IMrsSchemaResultData, IMrsServiceRequestPathAvailabilityResultData, IMrsServiceResultData,
-    IMrsStatusResultData,
-    MessageScheduler, ProtocolMrs,
-} from "../../communication";
+import { MessageScheduler, ShellAPIMrs } from "../../communication";
 import { webSession } from "../WebSession";
+import {
+    IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
+    IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData,
+} from "../../communication/ShellResponseTypes";
+import { IMrsDbObjectParameterData } from "../../communication/ShellParameterTypes";
 
 export class ShellInterfaceMrs {
 
     // The key under which the module session is stored in the WebSession instance.
     public moduleSessionLookupId = "";
 
-    public configure(enableMrs?: boolean): ListenerEntry {
-        const request = ProtocolMrs.getRequestConfigure({ moduleSessionId: this.moduleSessionId, enableMrs });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsConfigure" });
-    }
-
-    public configureWithPromise(enableMrs?: boolean): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.configure(enableMrs).then((event: ICommSimpleResultEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve();
-
-                        break;
-                    }
-
-                    default:
-                }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
+    public async configure(enableMrs?: boolean, interactive?: boolean): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsConfigure,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    interactive,
+                    enableMrs,
+                },
+            },
         });
     }
 
-    public status(): ListenerEntry {
-        const request = ProtocolMrs.getRequestStatus({ moduleSessionId: this.moduleSessionId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsStatus" });
-    }
-
-    public statusWithPromise(): Promise<IMrsStatusResultData> {
-        return new Promise((resolve, reject) => {
-            this.status().then((event: ICommMrsStatusEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve(event.data);
-
-                        break;
-                    }
-
-                    default:
-                }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
-        });
-    }
-
-    public listServices(): ListenerEntry {
-        const request = ProtocolMrs.getRequestListServices({ moduleSessionId: this.moduleSessionId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListServices" });
-    }
-
-    public listServicesWithPromise(): Promise<IMrsServiceResultData> {
-        return new Promise((resolve, reject) => {
-            this.listServices().then((event: ICommMrsServiceEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve(event.data);
-
-                        break;
-                    }
-
-                    default:
-                }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
-        });
-    }
-
-    public addService(urlContextRoot: string, urlProtocol: string[], urlHostName: string, isDefault?: boolean,
-        comments?: string, enabled?: boolean, options?: string,
-        authPath?: string, authCompletedUrl?: string,
-        authCompletedUrlValidation?: string, authCompletedPageContent?: string,
-        authApps?: IMrsAuthAppData[]): ListenerEntry {
-        const request = ProtocolMrs.getRequestAddService(urlContextRoot, urlHostName, enabled, {
-            moduleSessionId: this.moduleSessionId,
-            urlProtocol,
-            isDefault,
-            comments,
-            options,
-            authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
-            authApps: JSON.stringify(authApps),
+    public async status(): Promise<IMrsStatusData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsStatus,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
         });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddService" });
+        return response.result;
     }
 
-    public addServiceWithPromise(
-        urlContextRoot: string, urlProtocol: string[], urlHostName: string, isDefault?: boolean,
+    public async listServices(interactive?: boolean, raiseExceptions?: boolean,
+        returnFormatted?: boolean): Promise<IMrsServiceData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListServices,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    interactive,
+                    raiseExceptions,
+                    returnFormatted,
+                },
+            },
+        });
+
+        const result: IMrsServiceData[] = [];
+        response.forEach((list) => {
+            result.push(...list.result);
+        });
+
+        return result;
+    }
+
+    public async addService(urlContextRoot: string, urlProtocol: string[], urlHostName: string, isDefault?: boolean,
         comments?: string, enabled?: boolean, options?: string,
         authPath?: string, authCompletedUrl?: string,
         authCompletedUrlValidation?: string, authCompletedPageContent?: string,
         authApps?: IMrsAuthAppData[]): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.addService(urlContextRoot, urlProtocol, urlHostName, isDefault,
-                comments, enabled, options,
-                authPath, authCompletedUrl,
-                authCompletedUrlValidation, authCompletedPageContent,
-                authApps)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsAddService,
+            parameters: {
+                args: {
+                    urlContextRoot,
+                    urlHostName,
+                    enabled,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    urlProtocol,
+                    isDefault,
+                    authPath,
+                    comments,
+                    options,
+                    authCompletedUrl,
+                    authCompletedUrlValidation,
+                    authCompletedPageContent,
+                    authApps: JSON.stringify(authApps),
+                },
+            },
         });
     }
 
-    public updateService(serviceId: number, urlContextRoot: string, urlHostName: string,
-        urlProtocol: string[], enabled: boolean, comments: string, options: string,
-        authPath: string, authCompletedUrl: string, authCompletedUrlValidation: string,
-        authCompletedPageContent: string,
-        authApps: IMrsAuthAppData[]): ListenerEntry {
-        const request = ProtocolMrs.getRequestUpdateService({
-            moduleSessionId: this.moduleSessionId,
-            serviceId,
-            urlContextRoot,
-            urlHostName,
-            urlProtocol,
-            enabled,
-            comments,
-            options,
-            authPath,
-            authCompletedUrl,
-            authCompletedUrlValidation,
-            authCompletedPageContent,
-            authApps: JSON.stringify(authApps),
-        });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsUpdateService" });
-    }
-
-    public updateServiceWithPromise(serviceId: number, urlContextRoot: string, urlHostName: string,
+    public async updateService(serviceId: number, urlContextRoot: string, urlHostName: string,
         urlProtocol: string[], enabled: boolean, comments: string, options: string,
         authPath: string, authCompletedUrl: string, authCompletedUrlValidation: string,
         authCompletedPageContent: string,
         authApps: IMrsAuthAppData[]): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.updateService(serviceId, urlContextRoot, urlHostName,
-                urlProtocol, enabled, comments, options,
-                authPath, authCompletedUrl, authCompletedUrlValidation,
-                authCompletedPageContent, authApps)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsUpdateService,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    urlContextRoot,
+                    urlHostName,
+                    enabled,
+                    serviceId,
+                    urlProtocol,
+                    comments,
+                    options,
+                    authPath,
+                    authCompletedUrl,
+                    authCompletedUrlValidation,
+                    authCompletedPageContent,
+                    authApps: JSON.stringify(authApps),
+                },
+            },
         });
     }
 
-    public deleteService(serviceId?: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestDeleteService({ moduleSessionId: this.moduleSessionId, serviceId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsDeleteService" });
-    }
-
-    public deleteServiceWithPromise(serviceId: number): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.deleteService(serviceId)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+    public async deleteService(serviceId?: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteService,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                },
+            },
         });
     }
 
-    public setDefaultService(serviceId: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestSetServiceDefault({
-            moduleSessionId: this.moduleSessionId,
-            serviceId,
-        });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsSetDefaultService" });
-    }
-
-    public getAuthVendors(): ListenerEntry {
-        const request = ProtocolMrs.getRequestGetAuthenticationVendors({ moduleSessionId: this.moduleSessionId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsGetAuthVendors" });
-    }
-
-    public getAuthVendorsWithPromise(): Promise<IMrsAuthVendorResultData> {
-        return new Promise((resolve, reject) => {
-            this.getAuthVendors().then((event: ICommMrsAuthVendorsEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve(event.data);
-
-                        break;
-                    }
-
-                    default:
-                }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
+    public async setDefaultService(serviceId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsSetServiceDefault,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                },
+            },
         });
     }
 
-    public getAuthApps(serviceId: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestListAuthenticationApps(serviceId,
-            { moduleSessionId: this.moduleSessionId });
+    public async getAuthVendors(): Promise<IMrsAuthVendorData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetAuthenticationVendors,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListAuthenticationApps" });
+        return response.result;
     }
 
-    public getAuthAppsWithPromise(serviceId: number): Promise<IMrsAuthAppsResultData> {
-        return new Promise((resolve, reject) => {
-            this.getAuthApps(serviceId).then((event: ICommMrsAuthAppsEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve(event.data);
+    public async getAuthApps(serviceId: number): Promise<IMrsAuthAppData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListAuthenticationApps,
+            parameters: {
+                args: {
+                    serviceId,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
 
-                        break;
-                    }
+        return response.result;
+    }
 
-                    default:
-                }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
+    public async listSchemas(serviceId: number): Promise<IMrsSchemaData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListSchemas,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                },
+            },
+        });
+
+        const result: IMrsSchemaData[] = [];
+        response.forEach((list) => {
+            result.push(...list.result);
+        });
+
+        return result;
+    }
+
+    public async deleteSchema(schemaId: number, serviceId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteSchema,
+            parameters: {
+                kwargs: {
+                    schemaId,
+                    serviceId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
         });
     }
 
-    public listSchemas(serviceId?: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestListSchemas({ serviceId, moduleSessionId: this.moduleSessionId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListSchemas" });
-    }
-
-    public listSchemasWithPromise(serviceId?: number): Promise<IMrsSchemaResultData> {
-        return new Promise((resolve, reject) => {
-            this.listSchemas(serviceId).then((event: ICommMrsSchemaEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve(event.data);
-
-                        break;
-                    }
-
-                    default:
-                }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
-        });
-    }
-
-    public deleteSchema(schemaId: number, serviceId: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestDeleteSchema({
-            moduleSessionId: this.moduleSessionId,
-            schemaId,
-            serviceId,
+    public async addSchema(schemaName: string, requestPath: string, requiresAuth: boolean, serviceId?: number,
+        itemsPerPage?: number, comments?: string, options?: string): Promise<number> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsAddSchema,
+            parameters: {
+                kwargs: {
+                    schemaName,
+                    requestPath,
+                    requiresAuth,
+                    serviceId,
+                    itemsPerPage,
+                    comments,
+                    options,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
         });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsDeleteSchema" });
+        return response.result;
     }
 
-    public deleteSchemaWithPromise(schemaId: number, serviceId: number): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.deleteSchema(schemaId, serviceId)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    public addSchema(schemaName: string, requestPath: string,
-        requiresAuth: boolean, serviceId?: number, itemsPerPage?: number, comments?: string,
-        options?: string): ListenerEntry {
-        const request = ProtocolMrs.getRequestAddSchema({
-            moduleSessionId: this.moduleSessionId,
-            schemaName,
-            requestPath,
-            requiresAuth,
-            serviceId,
-            itemsPerPage,
-            comments,
-            options,
-        });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddSchema" });
-    }
-
-    public addSchemaWithPromise(schemaName: string, requestPath: string,
-        requiresAuth: boolean, serviceId?: number, itemsPerPage?: number,
-        comments?: string, options?: string): Promise<IMrsAddSchemaResultData> {
-        return new Promise((resolve, reject) => {
-            this.addSchema(schemaName, requestPath,
-                requiresAuth, serviceId, itemsPerPage,
-                comments, options)
-                .then((event: ICommMrsAddSchemaEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve(event.data);
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    public updateSchema(schemaId: number, schemaName: string, requestPath: string,
-        requiresAuth: boolean, enabled: boolean, itemsPerPage: number, comments: string,
-        options: string): ListenerEntry {
-
-        const request = ProtocolMrs.getRequestUpdateSchema({
-            moduleSessionId: this.moduleSessionId,
-            schemaId,
-            schemaName,
-            requestPath,
-            requiresAuth,
-            enabled,
-            itemsPerPage,
-            comments,
-            options,
-        });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsUpdateSchema" });
-    }
-
-    public updateSchemaWithPromise(schemaId: number, schemaName: string, requestPath: string,
+    public async updateSchema(schemaId: number, schemaName: string, requestPath: string,
         requiresAuth: boolean, enabled: boolean, itemsPerPage: number, comments: string,
         options: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.updateSchema(schemaId, schemaName, requestPath,
-                requiresAuth, enabled, itemsPerPage, comments,
-                options)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsUpdateSchema,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    schemaId,
+                    schemaName,
+                    requestPath,
+                    requiresAuth,
+                    enabled,
+                    itemsPerPage,
+                    comments,
+                    options,
+                },
+            },
         });
     }
 
-    public addDbObject(dbObjectName: string, dbObjectType: string,
-        autoAddSchema: boolean, requestPath: string, enabled: boolean, crudOperations: string[],
-        crudOperationFormat: string, requiresAuth: boolean,
-        rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean,
-        rowUserOwnershipColumn?: string,
-        schemaId?: number, schemaName?: string, itemsPerPage?: number,
-        comments?: string, mediaType?: string,
-        authStoredProcedure?: string, options?: string, parameters?: IMrsDbObjectParameterData[]): ListenerEntry {
-        const request = ProtocolMrs.getRequestAddDbObject({
-            moduleSessionId: this.moduleSessionId,
-            dbObjectName,
-            dbObjectType,
-            schemaId,
-            schemaName,
-            autoAddSchema,
-            requestPath,
-            enabled,
-            crudOperations,
-            crudOperationFormat,
-            requiresAuth,
-            itemsPerPage,
-            rowUserOwnershipEnforced,
-            rowUserOwnershipColumn,
-            comments,
-            mediaType,
-            autoDetectMediaType,
-            authStoredProcedure,
-            options,
-            parameters: JSON.stringify(parameters),
-        });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddDbObject" });
-    }
-
-    public addDbObjectWithPromise(dbObjectName: string, dbObjectType: string,
+    public async addDbObject(dbObjectName: string, dbObjectType: string,
         autoAddSchema: boolean, requestPath: string, enabled: boolean, crudOperations: string[],
         crudOperationFormat: string, requiresAuth: boolean,
         rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean,
@@ -480,419 +273,251 @@ export class ShellInterfaceMrs {
         schemaId?: number, schemaName?: string, itemsPerPage?: number,
         comments?: string, mediaType?: string,
         authStoredProcedure?: string, options?: string,
-        parameters?: IMrsDbObjectParameterData[]): Promise<IMrsAddDbObjectResultData> {
-        return new Promise((resolve, reject) => {
-            this.addDbObject(dbObjectName, dbObjectType,
-                autoAddSchema, requestPath, enabled, crudOperations,
-                crudOperationFormat, requiresAuth,
-                rowUserOwnershipEnforced, autoDetectMediaType,
-                rowUserOwnershipColumn,
-                schemaId, schemaName, itemsPerPage, comments,
-                mediaType, authStoredProcedure,
-                options, parameters)
-                .then((event: ICommMrsAddDbObjectEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve(event.data);
+        parameters?: IMrsDbObjectParameterData[]): Promise<number> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsAddDbObject,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    dbObjectName,
+                    dbObjectType,
+                    schemaId,
+                    schemaName,
+                    autoAddSchema,
+                    requestPath,
+                    enabled,
+                    crudOperations,
+                    crudOperationFormat,
+                    requiresAuth,
+                    itemsPerPage,
+                    rowUserOwnershipEnforced,
+                    rowUserOwnershipColumn,
+                    comments,
+                    mediaType,
+                    autoDetectMediaType,
+                    authStoredProcedure,
+                    options,
+                    parameters: JSON.stringify(parameters),
+                },
+            },
+        });
 
-                            break;
-                        }
+        return response.result;
+    }
 
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+    public async updateDbObject(dbObjectId: number, dbObjectName: string, requiresAuth: boolean,
+        rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean, name: string, requestPath: string,
+        enabled: boolean, rowUserOwnershipColumn: string, schemaId: number, itemsPerPage: number, comments: string,
+        mediaType: string, authStoredProcedure: string, crudOperations: string[], crudOperationFormat: string,
+        options: string, parameters: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsUpdateDbObject,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    dbObjectId,
+                    dbObjectName,
+                    requiresAuth,
+                    rowUserOwnershipEnforced,
+                    autoDetectMediaType,
+                    name, requestPath, enabled,
+                    rowUserOwnershipColumn,
+                    schemaId, itemsPerPage, comments,
+                    mediaType, authStoredProcedure,
+                    crudOperations,
+                    crudOperationFormat,
+                    options,
+                    parameters,
+                },
+            },
         });
     }
 
-    public updateDbObject(dbObjectId: number, dbObjectName: string,
-        requiresAuth: boolean,
-        rowUserOwnershipEnforced: boolean,
-        autoDetectMediaType: boolean,
-        name: string,
-        requestPath: string,
-        enabled: boolean,
-        rowUserOwnershipColumn: string,
-        schemaId: number,
-        itemsPerPage: number,
-        comments: string,
-        mediaType: string,
-        authStoredProcedure: string,
-        crudOperations: string[],
-        crudOperationFormat: string,
-        options: string,
-        parameters: string): ListenerEntry {
-        const request = ProtocolMrs.getRequestUpdateDbObject({
-            moduleSessionId: this.moduleSessionId,
-            dbObjectId,
-            dbObjectName,
-            requiresAuth,
-            rowUserOwnershipEnforced,
-            autoDetectMediaType,
-            name, requestPath, enabled,
-            rowUserOwnershipColumn,
-            schemaId, itemsPerPage, comments,
-            mediaType, authStoredProcedure,
-            crudOperations,
-            crudOperationFormat,
-            options,
-            parameters,
+    public async listDbObjects(schemaId: number): Promise<IMrsDbObjectData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListDbObjects,
+            parameters: {
+                kwargs: {
+                    schemaId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
         });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsUpdateDbObject" });
+        return response.result;
     }
 
-    public updateDbObjectWithPromise(dbObjectId: number, dbObjectName: string,
-        requiresAuth: boolean,
-        rowUserOwnershipEnforced: boolean,
-        autoDetectMediaType: boolean,
-        name: string,
-        requestPath: string,
-        enabled: boolean,
-        rowUserOwnershipColumn: string,
-        schemaId: number,
-        itemsPerPage: number,
-        comments: string,
-        mediaType: string,
-        authStoredProcedure: string,
-        crudOperations: string[],
-        crudOperationFormat: string,
-        options: string,
-        parameters: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.updateDbObject(dbObjectId, dbObjectName,
-                requiresAuth,
-                rowUserOwnershipEnforced,
-                autoDetectMediaType,
-                name, requestPath, enabled,
-                rowUserOwnershipColumn,
-                schemaId, itemsPerPage, comments,
-                mediaType, authStoredProcedure,
-                crudOperations,
-                crudOperationFormat,
-                options,
-                parameters)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    public listDbObjects(schemaId: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestListDbObjects({ schemaId, moduleSessionId: this.moduleSessionId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListDbObjects" });
-    }
-
-    public getDbObjectRowOwnershipFields(requestPath?: string, dbObjectName?: string,
+    public async getDbObjectRowOwnershipFields(requestPath?: string, dbObjectName?: string,
         dbObjectId?: number, schemaId?: number, schemaName?: string, dbObjectType?: string,
-        interactive?: boolean): ListenerEntry {
-        const request = ProtocolMrs.getRequestGetDbObjectRowOwnershipFields(requestPath, dbObjectName,
-            {
-                moduleSessionId: this.moduleSessionId,
-                dbObjectId,
-                schemaId,
-                schemaName,
-                dbObjectType,
-                interactive,
-            });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsGetDbObjectRowOwnershipFields" });
-    }
-
-    public getDbObjectRowOwnershipFieldsWithPromise(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: number, schemaId?: number, schemaName?: string, dbObjectType?: string,
-        interactive?: boolean): Promise<IMrsGetDbObjectRowOwnershipFieldsResultData> {
-        return new Promise((resolve, reject) => {
-            this.getDbObjectRowOwnershipFields(requestPath, dbObjectName,
-                dbObjectId, schemaId, schemaName, dbObjectType,
-                interactive)
-                .then((event: ICommMrsGetDbObjectRowOwnershipFieldsEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve(event.data);
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+        interactive?: boolean): Promise<string[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetDbObjectRowOwnershipFields,
+            parameters: {
+                args: {
+                    requestPath,
+                    dbObjectName,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    dbObjectId,
+                    schemaId,
+                    schemaName,
+                    dbObjectType,
+                    interactive,
+                },
+            },
         });
+
+        return response.result;
     }
 
-    public getDbObjectParameters(requestPath?: string, dbObjectName?: string,
+    public async getDbObjectParameters(requestPath?: string, dbObjectName?: string,
         dbObjectId?: number, schemaId?: number, schemaName?: string,
-        interactive?: boolean): ListenerEntry {
-        const request = ProtocolMrs.getRequestGetDbObjectParameters(requestPath, dbObjectName,
-            {
-                moduleSessionId: this.moduleSessionId,
-                dbObjectId,
-                schemaId,
-                schemaName,
-                interactive,
-            });
+        interactive?: boolean): Promise<IMrsDbObjectParameterData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetDbObjectParameters,
+            parameters: {
+                args: {
+                    requestPath,
+                    dbObjectName,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    dbObjectId,
+                    schemaId,
+                    schemaName,
+                    interactive,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsGetDbObjectRowOwnershipFields" });
+        return response.result;
     }
 
-    public getDbObjectParametersWithPromise(requestPath?: string, dbObjectName?: string,
+    public async getDbObjectFields(requestPath?: string, dbObjectName?: string,
         dbObjectId?: number, schemaId?: number, schemaName?: string, dbObjectType?: string,
-        interactive?: boolean): Promise<IMrsDbObjectFieldsResultData> {
-        return new Promise((resolve, reject) => {
-            this.getDbObjectParameters(requestPath, dbObjectName,
-                dbObjectId, schemaId, schemaName,
-                interactive)
-                .then((event: ICommMrsGetDbObjectFieldsEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve(event.data);
+        interactive?: boolean): Promise<IMrsDbObjectParameterData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetDbObjectFields,
+            parameters: {
+                args: {
+                    requestPath,
+                    dbObjectName,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    dbObjectId,
+                    schemaId,
+                    schemaName,
+                    dbObjectType,
+                    interactive,
+                },
+            },
+        });
 
-                            break;
-                        }
+        return response.result;
+    }
 
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+    public async deleteDbObject(dbObjectId?: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteDbObject,
+            parameters: {
+                args: {},
+                kwargs: {
+                    dbObjectId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
         });
     }
 
-    public getDbObjectFields(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: number, schemaId?: number, schemaName?: string, dbObjectType?: string,
-        interactive?: boolean): ListenerEntry {
-        const request = ProtocolMrs.getRequestGetDbObjectFields(requestPath, dbObjectName,
-            {
-                moduleSessionId: this.moduleSessionId,
-                dbObjectId,
-                schemaId,
-                schemaName,
-                dbObjectType,
-                interactive,
-            });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsGetRequestGetDbObjectFields" });
-    }
-
-    public getDbObjectFieldsWithPromise(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: number, schemaId?: number, schemaName?: string, dbObjectType?: string,
-        interactive?: boolean): Promise<IMrsDbObjectFieldsResultData> {
-        return new Promise((resolve, reject) => {
-            this.getDbObjectFields(requestPath, dbObjectName,
-                dbObjectId, schemaId, schemaName, dbObjectType,
-                interactive)
-                .then((event: ICommMrsGetDbObjectFieldsEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve(event.data);
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    public deleteDbObject(dbObjectId?: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestDeleteDbObject(undefined, undefined,
-            { moduleSessionId: this.moduleSessionId, dbObjectId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsDeleteDbObject" });
-    }
-
-    public deleteDbObjectWithPromise(dbObjectId?: number): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.deleteDbObject(dbObjectId)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    public addContentSet(contentDir: string, requestPath: string,
-        requiresAuth: boolean, serviceId?: number, comments?: string,
-        options?: string, enabled?: boolean, replaceExisting?: boolean): ListenerEntry {
-        const request = ProtocolMrs.getRequestAddContentSet({
-            moduleSessionId: this.moduleSessionId,
-            contentDir, serviceId,
-            requestPath,
-            requiresAuth,
-            comments,
-            options,
-            enabled,
-            replaceExisting,
-        });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsAddContentSet" });
-    }
-
-    public addContentSetWithPromise(contentDir: string, requestPath: string,
+    public async addContentSet(contentDir: string, requestPath: string,
         requiresAuth: boolean, serviceId?: number, comments?: string,
         options?: string, enabled?: boolean, replaceExisting?: boolean,
-        progress?: (message: string) => void): Promise<IMrsAddContentSetResultData> {
-        return new Promise((resolve, reject) => {
-            this.addContentSet(contentDir, requestPath,
-                requiresAuth, serviceId, comments,
-                options, enabled, replaceExisting)
-                .then((event: ICommMrsAddContentSetEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve(event.data);
-
-                            break;
-                        }
-
-                        case EventType.DataResponse: {
-
-                            if (progress && event.data?.result?.info) {
-                                progress(event.data?.result?.info);
-                            }
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    public getServiceRequestPathAvailability(serviceId: number, requestPath: string): ListenerEntry {
-        const request = ProtocolMrs.getRequestGetServiceRequestPathAvailability({
-            moduleSessionId: this.moduleSessionId,
-            serviceId,
-            requestPath,
-        });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsGetServiceRequestPathAvailability" });
-    }
-
-    public getServiceRequestPathAvailabilityWithPromise(
-        serviceId: number, requestPath: string): Promise<IMrsServiceRequestPathAvailabilityResultData> {
-        return new Promise((resolve, reject) => {
-            this.getServiceRequestPathAvailability(serviceId, requestPath)
-                .then((event: ICommMrsServiceRequestPathAvailabilityEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve(event.data);
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
-    public listContentSets(serviceId: number, requestPath?: string): ListenerEntry {
-        const request = ProtocolMrs.getRequestListContentSets(serviceId,
-            { requestPath, moduleSessionId: this.moduleSessionId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListContentSets" });
-    }
-
-    public listContentSetsWithPromise(serviceId: number, requestPath?: string): Promise<IMrsContentSetResultData> {
-        return new Promise((resolve, reject) => {
-            this.listContentSets(serviceId, requestPath).then((event: ICommMrsContentSetEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve(event.data);
-
-                        break;
-                    }
-
-                    default:
+        progress?: (message: string) => void): Promise<IMrsAddContentSetData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsAddContentSet,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    contentDir,
+                    requestPath,
+                    requiresAuth,
+                    serviceId,
+                    comments,
+                    options,
+                    enabled,
+                    replaceExisting,
+                },
+            },
+            onData: (data) => {
+                if (progress && data.result.info) {
+                    progress(data.result.info);
                 }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getServiceRequestPathAvailability(serviceId: number, requestPath: string): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetServiceRequestPathAvailability,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                    requestPath,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async listContentSets(serviceId: number, requestPath?: string): Promise<IMrsContentSetData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListContentSets,
+            parameters: {
+                args: {
+                    serviceId,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    requestPath,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async listContentFiles(contentSetId: number, includeEnableState?: boolean): Promise<IMrsContentFileData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListContentFiles,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    contentSetId,
+                    includeEnableState,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async deleteContentSet(contentSetId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteContentSet,
+            parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    contentSetId,
+                },
+            },
         });
     }
-
-    public listContentFiles(contentSetId: number, includeEnableState?: boolean): ListenerEntry {
-        const request = ProtocolMrs.getRequestListContentFiles(
-            { contentSetId, includeEnableState, moduleSessionId: this.moduleSessionId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsListContentFiles" });
-    }
-
-    public listContentFilesWithPromise(contentSetId: number,
-        includeEnableState?: boolean): Promise<IMrsContentFileResultData> {
-        return new Promise((resolve, reject) => {
-            this.listContentFiles(contentSetId, includeEnableState).then((event: ICommMrsContentFileEvent) => {
-                switch (event.eventType) {
-                    case EventType.FinalResponse: {
-                        resolve(event.data);
-
-                        break;
-                    }
-
-                    default:
-                }
-            }).catch((event: ICommErrorEvent) => {
-                reject(event.message);
-            });
-        });
-    }
-
-    public deleteContentSet(contentSetId: number): ListenerEntry {
-        const request = ProtocolMrs.getRequestDeleteContentSet({ moduleSessionId: this.moduleSessionId, contentSetId });
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "mrsDeleteContentSet" });
-    }
-
-    public deleteContentSetWithPromise(contentSetId: number): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.deleteContentSet(contentSetId)
-                .then((event: ICommSimpleResultEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            resolve();
-
-                            break;
-                        }
-
-                        default:
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
-        });
-    }
-
 
     private get moduleSessionId(): string | undefined {
         return webSession.moduleSessionId(this.moduleSessionLookupId);

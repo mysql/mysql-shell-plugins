@@ -27,8 +27,6 @@ import Adapter from "enzyme-adapter-preact-pure";
 import "fake-indexeddb/auto";
 import "jest-canvas-mock";
 
-jest.setTimeout(10000);
-
 Enzyme.configure({ adapter: new Adapter() });
 jest.setTimeout(10000);
 

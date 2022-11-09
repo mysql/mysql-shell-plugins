@@ -54,7 +54,12 @@ export class BarGraphRenderer {
         const xPadding = config.xPadding ?? 0.1;
 
         const hostSvg = d3.select<SVGElement, DatumDataType>(target);
-        let svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        let svg;
+        try {
+            svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        } catch (reason) {
+            svg = hostSvg.select<SVGSVGElement>("__invalid__");
+        }
         let root;
 
         let firstRun = false;

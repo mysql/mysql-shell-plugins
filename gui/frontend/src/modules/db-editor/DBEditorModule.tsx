@@ -56,23 +56,18 @@ import { EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchem
 import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import {
-    ICommAddConnectionEvent, ICommErrorEvent, ICommModuleAddDataEvent, ICommDbDataContentEvent,
-    ICommOpenConnectionEvent, ICommSimpleRowEvent,
-} from "../../communication";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
-import { uuid } from "../../utilities/helpers";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
-import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { DBEditorModuleId } from "../ModuleInfo";
 import { EditorLanguage, IExecutionContext, IScriptRequest } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem";
+import { uuid } from "../../utilities/helpers";
 
 /* eslint import/no-webpack-loader-syntax: off */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -160,21 +155,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }).catch((error) => {
             void requisitions.execute("showError", ["Loading Error", "Cannot load user scripts:", String(error)]);
         });
-
-        ListenerEntry.createByClass("webSession", { persistent: true }).then(() => {
-            // A new web session was established while the module is active. That means previous editor sessions
-            // are invalid now and we have to reopen new sessions.
-            const { editorTabs } = this.state;
-
-            editorTabs.forEach((tab) => {
-                const state = this.connectionState.get(tab.tabId);
-                if (state) {
-                    void state.backend.startSession(tab.tabId).then(() => {
-                        void this.reOpenConnection(state.backend, tab.details);
-                    });
-                }
-            });
-        });
     }
 
     public static getDerivedStateFromProps(props: IDBEditorModuleProperties,
@@ -204,6 +184,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("editorShowConnections", this.showConnections);
         requisitions.register("editorRunCommand", this.runCommand);
         requisitions.register("profileLoaded", this.profileLoaded);
+        requisitions.register("webSessionStarted", this.webSessionStarted);
     }
 
     public componentWillUnmount(): void {
@@ -214,6 +195,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("editorShowConnections", this.showConnections);
         requisitions.unregister("editorRunCommand", this.runCommand);
         requisitions.unregister("profileLoaded", this.profileLoaded);
+        requisitions.unregister("webSessionStarted", this.webSessionStarted);
     }
 
     public render(): React.ReactNode {
@@ -504,56 +486,44 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
 
-    private loadConnections(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            const connections: IConnectionDetails[] = [];
-            ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
-                .then((event: ICommSimpleRowEvent) => {
-                    connections.push(...event.data.result as IConnectionDetails[]);
-
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve(true);
-                        this.setState({ connections, connectionsLoaded: true });
-                    }
-                }).catch((event) => {
-                    void requisitions.execute("showError",
-                        ["Loading Error", "Cannot load DB connections:", String(event.message)]);
-
-                    reject();
-                });
-
-        });
+    private async loadConnections(): Promise<void> {
+        await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
+            .then((connections) => {
+                this.setState({ connections, connectionsLoaded: true });
+            })
+            .catch((reason) => {
+                void requisitions.execute("showError", ["Loading Error", "Cannot load DB connections:",
+                    String(reason)]);
+            });
     }
 
     private handleAddConnection = (details: IConnectionDetails): void => {
-        ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, details, "")
-            .then((event: ICommAddConnectionEvent) => {
+        ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, details, "").then((connectionId) => {
+            if (connectionId !== undefined) {
                 const { connections } = this.state;
 
-                if (event.data) {
-                    details.id = event.data.result;
-                    connections.push(details);
+                details.id = connectionId;
+                connections.push(details);
 
-                    this.setState({ connections });
-                }
-            }).catch((event) => {
-                void requisitions.execute("showError",
-                    ["Add Connection Error", "Cannot add DB connection:", String(event.message)]);
+                this.setState({ connections });
+            }
+        }).catch((event) => {
+            void requisitions.execute("showError",
+                ["Add Connection Error", "Cannot add DB connection:", String(event.message)]);
 
-            });
+        });
     };
 
     private handleDropConnection = (connectionId: number): void => {
         const { connections } = this.state;
         const index = connections.findIndex((value: IConnectionDetails) => { return value.id === connectionId; });
         if (index > -1) {
-            ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connectionId)
-                .then(() => {
-                    connections.splice(index, 1);
-                    this.setState({ connections });
+            void ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connectionId).then(() => {
+                connections.splice(index, 1);
+                this.setState({ connections });
 
-                    void this.removeTabsForConnection(connectionId);
-                });
+                void this.removeTabsForConnection(connectionId);
+            });
         }
     };
 
@@ -651,8 +621,26 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
     };
 
-    private profileLoaded = (): Promise<boolean> => {
-        return this.loadConnections();
+    private profileLoaded = async (): Promise<boolean> => {
+        await this.loadConnections();
+
+        return true;
+    };
+
+    private webSessionStarted = async (): Promise<boolean> => {
+        // A new web session was established while the module is active. That means previous editor sessions
+        // are invalid now and we have to reopen new sessions.
+        const { editorTabs } = this.state;
+
+        for (const tab of editorTabs) {
+            const state = this.connectionState.get(tab.tabId);
+            if (state) {
+                await state.backend.startSession(tab.tabId);
+                await this.reOpenConnection(state.backend, tab.details);
+            }
+        }
+
+        return true;
     };
 
     /**
@@ -729,9 +717,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                         .then(() => {
                                             resolve(true);
                                         });
-                                }).catch((errorEvent: ICommErrorEvent) => {
+                                }).catch((reason) => {
                                     void requisitions.execute("showError",
-                                        ["DB Creation Error", String(errorEvent.message)]);
+                                        ["DB Creation Error", String(reason)]);
                                 });
                             });
                         } else {
@@ -740,9 +728,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                     handleOutcome(success);
                                 });
                         }
-                    }).catch((errorEvent: ICommErrorEvent) => {
+                    }).catch((reason) => {
                         this.hideProgress(true);
-                        void requisitions.execute("showError", ["Module Session Error", String(errorEvent.message)]);
+                        void requisitions.execute("showError", ["Module Session Error", String(reason)]);
                         reject();
                     });
                 } else {
@@ -772,115 +760,106 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      *
      * @returns A promise which fulfills once the connection is open.
      */
-    private openNewConnection(backend: ShellInterfaceSqlEditor, tabId: string, tabSuffix: string,
+    private async openNewConnection(backend: ShellInterfaceSqlEditor, tabId: string, tabSuffix: string,
         connection: IConnectionDetails, suppressAbout: boolean): Promise<boolean> {
-        return new Promise((resolve) => {
-            const { editorTabs } = this.state;
 
-            backend.openConnection(connection.id).then((event: ICommOpenConnectionEvent) => {
-                if (!event.data) {
-                    return;
+        const { editorTabs } = this.state;
+
+        try {
+            // Generate an own request ID, as we may need that for reply requests from the backend.
+            const requestId = uuid();
+            const data = await backend.openConnection(connection.id, requestId, ((data, requestId) => {
+                if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend,
+                    "Provide Password")) {
+                    this.setProgressMessage("Loading ...");
                 }
+            }));
 
-                switch (event.eventType) {
-                    case EventType.DataResponse: {
-                        const data = event.data;
-                        if (!ShellPromptHandler.handleShellPrompt(data.result, data.requestId!,
-                            backend)) {
-                            this.setProgressMessage(event.message ?? "Loading ...");
-                        }
+            if (!data) {
+                return false;
+            }
 
-                        break;
-                    }
+            this.setProgressMessage("Connection opened, creating the editor...");
 
-                    case EventType.FinalResponse: {
-                        this.setProgressMessage("Connection opened, creating the editor...");
+            // Once the connection is open we can create the editor.
+            let currentSchema = "";
+            if (data.currentSchema) {
+                currentSchema = data.currentSchema;
+            } else if (connection.dbType === DBType.MySQL) {
+                currentSchema = (connection.options as IMySQLConnectionOptions).schema ?? "";
+            }
 
-                        // Once the connection is open we can create the editor.
-                        let currentSchema = "";
-                        if (event.data.currentSchema) {
-                            currentSchema = event.data.currentSchema;
-                        } else if (connection.dbType === DBType.MySQL) {
-                            currentSchema = (connection.options as IMySQLConnectionOptions).schema ?? "";
-                        }
+            const info = data.info;
+            const sqlMode = info.sqlMode ?? settings.get("editor.sqlMode", "");
+            const serverVersion = info.version ? parseVersion(info.version) : settings.get("editor.dbVersion", 80024);
+            const serverEdition = info.edition ?? "";
+            const heatWaveEnabled = info.heatWaveAvailable ?? false;
 
-                        const info = event.data.info;
-                        const sqlMode = info.sqlMode ?? settings.get("editor.sqlMode", "");
-                        const serverVersion = info.version
-                            ? parseVersion(info.version)
-                            : settings.get("editor.dbVersion", 80024);
-                        const serverEdition = info.edition ?? "";
-                        const heatWaveEnabled = info.heatWaveAvailable ?? false;
+            const entryId = uuid();
+            const useNotebook = settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
 
-                        const entryId = uuid();
-                        const useNotebook = settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+            const model = this.createEditorModel(backend, "", useNotebook ? "msg" : "mysql", serverVersion, sqlMode,
+                currentSchema);
+            const connectionState: IDBConnectionTabPersistentState = {
+                activeEntry: entryId,
+                currentSchema,
+                schemaTree: [],
+                explorerState: new Map(),
+                editors: [{
+                    id: entryId,
+                    caption: useNotebook ? "DB Notebook" : "Script",
+                    type: useNotebook ? EntityType.Notebook : EntityType.Script,
+                    state: {
+                        model,
+                        viewState: null,
+                        options: defaultEditorOptions,
+                    },
+                    currentVersion: model.getVersionId(),
+                }],
+                scripts: this.scriptsTree,
+                backend,
+                serverVersion,
+                serverEdition,
+                sqlMode,
+                heatWaveEnabled,
 
-                        const model = this.createEditorModel(backend, "", useNotebook ? "msg" : "mysql", serverVersion,
-                            sqlMode, currentSchema);
-                        const connectionState: IDBConnectionTabPersistentState = {
-                            activeEntry: entryId,
-                            currentSchema,
-                            schemaTree: [],
-                            explorerState: new Map(),
-                            editors: [{
-                                id: entryId,
-                                caption: useNotebook ? "DB Notebook" : "Script",
-                                type: useNotebook ? EntityType.Notebook : EntityType.Script,
-                                state: {
-                                    model,
-                                    viewState: null,
-                                    options: defaultEditorOptions,
-                                },
-                                currentVersion: model.getVersionId(),
-                            }],
-                            scripts: this.scriptsTree,
-                            backend,
-                            serverVersion,
-                            serverEdition,
-                            sqlMode,
-                            heatWaveEnabled,
+                explorerWidth: -1,
 
-                            explorerWidth: -1,
+                graphData: {
+                    timestamp: 0,
+                    activeColorScheme: "classic",
+                    displayInterval: 50,
+                    currentValues: new Map(),
+                    computedValues: {},
+                    series: new Map(),
+                },
+            };
 
-                            graphData: {
-                                timestamp: 0,
-                                activeColorScheme: "classic",
-                                displayInterval: 50,
-                                currentValues: new Map(),
-                                computedValues: {},
-                                series: new Map(),
-                            },
-                        };
+            this.connectionState.set(tabId, connectionState);
 
-                        this.connectionState.set(tabId, connectionState);
-
-                        editorTabs.push({
-                            details: connection,
-                            tabId,
-                            caption: connection.caption + tabSuffix,
-                            suppressAbout,
-                        });
-
-                        this.hideProgress(false);
-                        this.setState({ editorTabs, selectedPage: tabId, loading: false }, () => {
-                            resolve(true);
-                        });
-
-                        break;
-                    }
-
-                    default: {
-                        break;
-                    }
-                }
-            }).catch((errorEvent: ICommErrorEvent) => {
-                void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
-
-                const { lastSelectedPage } = this.state;
-                this.setState({ selectedPage: lastSelectedPage ?? "connections" }, () => { resolve(false); });
-                this.hideProgress(true);
+            editorTabs.push({
+                details: connection,
+                tabId,
+                caption: connection.caption + tabSuffix,
+                suppressAbout,
             });
-        });
+
+            this.hideProgress(false);
+            await this.setStatePromise({ editorTabs, selectedPage: tabId, loading: false });
+
+
+            if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend)) {
+                this.setProgressMessage("Loading ...");
+            }
+        } catch (reason) {
+            void requisitions.execute("showError", ["Connection Error", String(reason)]);
+
+            const { lastSelectedPage } = this.state;
+            await this.setStatePromise({ selectedPage: lastSelectedPage ?? "connections" });
+            this.hideProgress(true);
+        }
+
+        return true;
     }
 
     /**
@@ -891,45 +870,23 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      *
      * @returns A promise which fulfills once the connection is open.
      */
-    private reOpenConnection(backend: ShellInterfaceSqlEditor, connection: IConnectionDetails): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            backend.openConnection(connection.id).then((event: ICommOpenConnectionEvent) => {
-                if (!event.data) {
-                    return;
+    private async reOpenConnection(backend: ShellInterfaceSqlEditor, connection: IConnectionDetails): Promise<void> {
+        try {
+            await backend.openConnection(connection.id, undefined, (data, requestId) => {
+                if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend)) {
+                    this.setProgressMessage("Loading ...");
                 }
-
-                switch (event.eventType) {
-                    case EventType.DataResponse: {
-                        const data = event.data;
-                        const result = data.result;
-                        if (!ShellPromptHandler.handleShellPrompt(result, data.requestId!, backend)) {
-                            this.setProgressMessage(event.message ?? "Loading ...");
-                        }
-
-                        break;
-                    }
-
-                    case EventType.FinalResponse: {
-                        this.setProgressMessage("Connection opened");
-
-                        resolve(true);
-
-                        break;
-                    }
-
-                    default: {
-                        break;
-                    }
-                }
-            }).catch((errorEvent: ICommErrorEvent) => {
-                void requisitions.execute("showError", ["Connection Error", String(errorEvent.message)]);
-
-                const { lastSelectedPage } = this.state;
-                this.setState({ selectedPage: lastSelectedPage ?? "connections" });
-                this.hideProgress(true);
-                reject();
             });
-        });
+            this.setProgressMessage("Connection opened");
+        } catch (reason) {
+            void requisitions.execute("showError", ["Connection Error", String(reason)]);
+
+            const { lastSelectedPage } = this.state;
+            this.setState({ selectedPage: lastSelectedPage ?? "connections" });
+            this.hideProgress(true);
+
+            throw reason;
+        }
     }
 
     /**
@@ -1309,18 +1266,16 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     if (script.dbDataId) {
                         // Defer the current entry update to the moment when script data has been loaded.
                         updateCurrentEntry = false;
-                        ShellInterface.modules.getDataContent(script.dbDataId)
-                            .then((event: ICommDbDataContentEvent) => {
-                                if (event.data) {
-                                    this.addEditorFromScript(connectionState, script, event.data.result);
-
-                                    connectionState.activeEntry = entryId;
-                                    this.forceUpdate();
-                                }
-                            }).catch((event) => {
-                                void requisitions.execute("showError",
-                                    ["Loading Error", "Cannot load scripts content:", String(event.message)]);
-                            });
+                        ShellInterface.modules.getDataContent(script.dbDataId).then((content) => {
+                            if (content) {
+                                this.addEditorFromScript(connectionState, script, content);
+                                connectionState.activeEntry = entryId;
+                                this.forceUpdate();
+                            }
+                        }).catch((reason) => {
+                            void requisitions.execute("showError",
+                                ["Loading Error", "Cannot load scripts content:", String(reason)]);
+                        });
                     } else {
                         // No script either? Create a new one.
                         this.addEditorFromScript(connectionState, script, "");
@@ -1430,7 +1385,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 const content = model.getValue();
                 if (editor.dbDataId > -1) {
                     // Represents a DB data entry.
-                    ShellInterface.modules.updateData(editor.dbDataId, undefined, content);
+                    void ShellInterface.modules.updateData(editor.dbDataId, undefined, content);
                 } else {
                     // Represents a script file from the extension.
                     const details: IScriptRequest = {
@@ -1475,7 +1430,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             if (needsUpdate) {
                 if (script?.dbDataId) {
-                    ShellInterface.modules.updateData(script.dbDataId, script.caption);
+                    void ShellInterface.modules.updateData(script.dbDataId, script.caption);
                 }
 
                 this.forceUpdate();
@@ -1529,40 +1484,36 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             // Add a data record for the new script.
             const category = ShellInterface.modules.scriptTypeFromLanguage(editorLanguage);
             if (category) {
-                ShellInterface.modules.addData(caption, "", category, "scripts", "")
-                    .then((event: ICommModuleAddDataEvent) => {
-                        if (event.data) {
-                            const dbDataId = event.data.result;
-                            const scriptId = uuid();
-                            connectionState.editors.push({
-                                id: scriptId,
-                                caption,
-                                type: EntityType.Script,
-                                state: {
-                                    model,
-                                    viewState: null,
-                                    options: defaultEditorOptions,
-                                },
-                                currentVersion: model.getVersionId(),
-                            });
-
-                            connectionState.scripts.push({
-                                id: scriptId,
-                                type: EntityType.Script,
-                                caption,
-                                language: editorLanguage,
-                                dbDataId,
-                                folderId: 1, // TODO: determine the real folder ID.
-                            } as IDBEditorScriptState);
-
-                            connectionState.activeEntry = scriptId;
-
-                            this.forceUpdate();
-                        }
-                    }).catch((event) => {
-                        void requisitions.execute("showError",
-                            ["Data Module Error", "Cannot add new user script:", String(event.message)]);
+                ShellInterface.modules.addData(caption, "", category, "scripts", "").then((dbDataId) => {
+                    const scriptId = uuid();
+                    connectionState.editors.push({
+                        id: scriptId,
+                        caption,
+                        type: EntityType.Script,
+                        state: {
+                            model,
+                            viewState: null,
+                            options: defaultEditorOptions,
+                        },
+                        currentVersion: model.getVersionId(),
                     });
+
+                    connectionState.scripts.push({
+                        id: scriptId,
+                        type: EntityType.Script,
+                        caption,
+                        language: editorLanguage,
+                        dbDataId,
+                        folderId: 1, // TODO: determine the real folder ID.
+                    } as IDBEditorScriptState);
+
+                    connectionState.activeEntry = scriptId;
+
+                    this.forceUpdate();
+                }).catch((reason) => {
+                    void requisitions.execute("showError",
+                        ["Data Module Error", "Cannot add new user script:", String(reason)]);
+                });
             }
         }
     };

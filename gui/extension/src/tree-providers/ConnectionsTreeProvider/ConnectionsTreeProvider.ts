@@ -28,12 +28,6 @@ import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 import {
     DBType, IConnectionDetails, ShellInterface, ShellInterfaceSqlEditor,
 } from "../../../../frontend/src/supplement/ShellInterface";
-import {
-    ICommErrorEvent, ICommMrsDbObjectEvent, ICommMrsSchemaEvent, ICommMrsServiceEvent,
-    ICommSimpleRowEvent, IShellFeedbackRequest,
-    IShellResultType,
-} from "../../../../frontend/src/communication";
-import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
 
 import { ConnectionTreeItem } from "./ConnectionTreeItem";
@@ -239,106 +233,81 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     /**
      * Queries the backend for a list of stored user DB connections and updates our connection entries.
      */
-    private updateConnections(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (webSession.currentProfileId === -1) {
-                this.closeAllConnections();
+    private async updateConnections(): Promise<void> {
+        if (webSession.currentProfileId === -1) {
+            this.closeAllConnections();
+        } else {
+            try {
+                const details = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "");
 
-                resolve();
-            } else {
-                const details: IConnectionDetails[] = [];
-                ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
-                    .then((event: ICommSimpleRowEvent) => {
-                        const entries = event.data.result as IConnectionDetails[];
-                        switch (event.eventType) {
-                            case EventType.DataResponse: {
-                                details.push(...entries);
-
-                                break;
+                // Close and remove all open connections that are no longer in the new list.
+                // Sort in new connection entries on the way.
+                let left = 0;  // The current index into the existing entries.
+                let right = 0; // The current index into the new entries while looking for a match.
+                while (left < this.connections.length && details.length > 0) {
+                    if (this.connections[left].details.caption === details[right].caption) {
+                        // Entries match.
+                        if (right > 0) {
+                            // We had to jump over other entries to arrive here. Add those
+                            // as new entries in our current list.
+                            for (let i = 0; i < right; ++i) {
+                                this.connections.splice(left, 0, {
+                                    id: String(ConnectionsTreeDataProvider.nextId++),
+                                    details: details[i],
+                                });
                             }
 
-                            case EventType.FinalResponse: {
-                                details.push(...entries);
+                            details.splice(0, right);
+                            right = 0;
+                        }
 
-                                // Close and remove all open connections that are no longer in the new list.
-                                // Sort in new connection entries on the way.
-                                let left = 0;  // The current index into the existing entries.
-                                let right = 0; // The current index into the new entries while looking for a match.
-                                while (left < this.connections.length && details.length > 0) {
-                                    if (this.connections[left].details.caption === details[right].caption) {
-                                        // Entries match.
-                                        if (right > 0) {
-                                            // We had to jump over other entries to arrive here. Add those
-                                            // as new entries in our current list.
-                                            for (let i = 0; i < right; ++i) {
-                                                this.connections.splice(left, 0, {
-                                                    id: String(ConnectionsTreeDataProvider.nextId++),
-                                                    details: details[i],
-                                                });
-                                            }
-
-                                            details.splice(0, right);
-                                            right = 0;
-                                        }
-
-                                        // Advance to the next entry.
-                                        ++left;
-                                        details.shift();
-                                    } else {
-                                        // Entries don't match. Check if we can find the current entry in the new
-                                        // list at a higher position (which would mean we have new entries before
-                                        // the current one).
-                                        while (++right < details.length) {
-                                            if (this.connections[left].details.caption === details[right].caption) {
-                                                break;
-                                            }
-                                        }
-
-                                        if (right === details.length) {
-                                            // Current entry no longer exists. Close the session (if one is open)
-                                            // and remove it from the current list.
-                                            const entry = this.connections.splice(left, 1)[0];
-                                            void entry.backend?.closeSession();
-
-                                            // Reset the right index to the top of the list and keep the current
-                                            // index where it is (points already to the next entry after removal).
-                                            right = 0;
-                                        }
-                                    }
-                                }
-
-                                // Take over all remaining entries from the new list.
-                                while (details.length > 0) {
-                                    ++left;
-
-                                    this.connections.push({
-                                        id: String(ConnectionsTreeDataProvider.nextId++),
-                                        details: details.shift()!,
-                                    });
-                                }
-
-                                // Remove all remaining entries we haven't touched yet.
-                                while (left < this.connections.length) {
-                                    const entry = this.connections.splice(left, 1)[0];
-                                    void entry.backend?.closeSession();
-                                }
-
-                                resolve();
-
-                                break;
-                            }
-
-                            default: {
+                        // Advance to the next entry.
+                        ++left;
+                        details.shift();
+                    } else {
+                        // Entries don't match. Check if we can find the current entry in the new
+                        // list at a higher position (which would mean we have new entries before
+                        // the current one).
+                        while (++right < details.length) {
+                            if (this.connections[left].details.caption === details[right].caption) {
                                 break;
                             }
                         }
-                    }).catch((event) => {
-                        const message = event.message as string ?? String(event);
-                        void window.showErrorMessage("Cannot load DB connections: " + message);
-                        reject();
+
+                        if (right === details.length) {
+                            // Current entry no longer exists. Close the session (if one is open)
+                            // and remove it from the current list.
+                            const entry = this.connections.splice(left, 1)[0];
+                            void entry.backend?.closeSession();
+
+                            // Reset the right index to the top of the list and keep the current
+                            // index where it is (points already to the next entry after removal).
+                            right = 0;
+                        }
+                    }
+                }
+
+                // Take over all remaining entries from the new list.
+                while (details.length > 0) {
+                    ++left;
+
+                    this.connections.push({
+                        id: String(ConnectionsTreeDataProvider.nextId++),
+                        details: details.shift()!,
                     });
+                }
+
+                // Remove all remaining entries we haven't touched yet.
+                while (left < this.connections.length) {
+                    const entry = this.connections.splice(left, 1)[0];
+                    void entry.backend?.closeSession();
+                }
+            } catch (reason) {
+                void window.showErrorMessage(`Cannot load DB connections: ${String(reason)}`);
+
+                throw reason;
             }
-        });
+        }
     }
 
     /**
@@ -419,10 +388,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                     if (entry.details.dbType === "MySQL") {
                         // If the schema is the MRS metadata schema, add the MRS tree item
                         if (schema === "mysql_rest_service_metadata") {
-                            const enabled = (await backend.mrs.statusWithPromise()).result.serviceEnabled;
-
+                            const status = await backend.mrs.status();
                             schemaList.unshift(
-                                new MrsTreeItem("MySQL REST Service", schema, entry, true, enabled));
+                                new MrsTreeItem("MySQL REST Service", schema, entry, true, status.enabled));
                         }
 
                         // Only show system schemas if the options is set
@@ -435,8 +403,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             schema !== "mysql_innodb_cluster_metadata" &&
                             schema !== "mysql_rest_service_metadata")
                             || !hideSystemSchemas) {
-                            schemaList.push(
-                                new SchemaMySQLTreeItem(schema, schema, entry, true));
+                            schemaList.push(new SchemaMySQLTreeItem(schema, schema, entry, true));
                         }
                     } else {
                         schemaList.push(new SchemaTreeItem(schema, schema, entry, true));
@@ -609,28 +576,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A promise that resolves to a list of tree items for the UI.
      */
-    private listMrsServices(element: MrsTreeItem): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
-            if (element.entry.backend) {
-                element.entry.backend.mrs.listServices().then((event: ICommMrsServiceEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            resolve(
-                                event.data.result.map((value) => {
-                                    return new MrsServiceTreeItem(`${value.urlContextRoot}`, value, element.entry);
-                                }),
-                            );
-                        } else {
-                            resolve([]);
-                        }
-                    }
-                }).catch((errorEvent: ICommErrorEvent) => {
-                    reject(`Error during retrieving MRS services: ${errorEvent.message ?? "<unknown>"}`);
-                });
-            } else {
-                resolve([]);
-            }
-        });
+    private async listMrsServices(element: MrsTreeItem): Promise<TreeItem[]> {
+        if (element.entry.backend) {
+            const services = await element.entry.backend.mrs.listServices();
+
+            return services.map((value) => {
+                return new MrsServiceTreeItem(`${value.urlContextRoot}`, value, element.entry);
+            });
+        }
+
+        return [];
     }
 
     /**
@@ -640,29 +595,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A promise that resolves to a list of tree items for the UI.
      */
-    private listMrsSchemas(element: MrsServiceTreeItem): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
-            if (element.entry.backend) {
-                element.entry.backend.mrs.listSchemas(element.value.id).then((event: ICommMrsSchemaEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            resolve(
-                                event.data.result.map((value) => {
-                                    return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value,
-                                        element.entry);
-                                }),
-                            );
-                        } else {
-                            resolve([]);
-                        }
-                    }
-                }).catch((errorEvent: ICommErrorEvent) => {
-                    reject(`Error during retrieving MRS schemas: ${errorEvent.message ?? "<unknown>"}`);
-                });
-            } else {
-                resolve([]);
-            }
-        });
+    private async listMrsSchemas(element: MrsServiceTreeItem): Promise<TreeItem[]> {
+        if (element.entry.backend) {
+            const schemas = await element.entry.backend.mrs.listSchemas(element.value.id);
+
+            return schemas.map((value) => {
+                return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value, element.entry);
+            });
+        }
+
+        return [];
     }
 
     /**
@@ -676,21 +618,15 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         if (element.entry.backend) {
             try {
                 // Get all MRS Schemas
-                const schemas =
-                    (await element.entry.backend.mrs.listSchemasWithPromise(element.value.id)).result;
-
+                const schemas = await element.entry.backend.mrs.listSchemas(element.value.id);
                 const treeItemList: TreeItem[] = schemas.map((value) => {
-                    return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value,
-                        element.entry);
+                    return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value, element.entry);
                 });
 
                 // Get all MRS ContentSets
-                const contentSets =
-                    (await element.entry.backend.mrs.listContentSetsWithPromise(element.value.id)).result;
-
+                const contentSets = await element.entry.backend.mrs.listContentSets(element.value.id);
                 const contentSetsTreeItemList = contentSets.map((value) => {
-                    return new MrsContentSetTreeItem(`${value.requestPath}`, value,
-                        element.entry);
+                    return new MrsContentSetTreeItem(`${value.requestPath}`, value, element.entry);
                 });
 
                 return treeItemList.concat(contentSetsTreeItemList);
@@ -698,9 +634,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 throw new Error("Error during retrieving MRS content sets. " +
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
             }
-        } else {
-            return [];
         }
+
+        return [];
     };
 
     /**
@@ -714,9 +650,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         if (element.entry.backend) {
             try {
                 // Get all MRS content files
-                const contentFiles =
-                    (await element.entry.backend.mrs.listContentFilesWithPromise(element.value.id)).result;
-
+                const contentFiles = await element.entry.backend.mrs.listContentFiles(element.value.id);
                 const treeItemList: TreeItem[] = contentFiles.map((value) => {
                     return new MrsContentFileTreeItem(`${value.requestPath} (${formatBytes(value.size)})`, value,
                         element.entry);
@@ -739,29 +673,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A promise that resolves to a list of tree items for the UI.
      */
-    private listMrsDbObjects(element: MrsSchemaTreeItem): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
-            if (element.entry.backend) {
-                element.entry.backend.mrs.listDbObjects(element.value.id).then((event: ICommMrsDbObjectEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            resolve(
-                                event.data.result.map((value) => {
-                                    return new MrsDbObjectTreeItem(`${value.name} (${value.requestPath})`, value,
-                                        element.entry);
-                                }),
-                            );
-                        } else {
-                            resolve([]);
-                        }
-                    }
-                }).catch((errorEvent: ICommErrorEvent) => {
-                    reject(`Error during retrieving MRS schema objects: ${errorEvent.message ?? "<unknown>"}`);
-                });
-            } else {
-                resolve([]);
-            }
-        });
+    private async listMrsDbObjects(element: MrsSchemaTreeItem): Promise<TreeItem[]> {
+        if (element.entry.backend) {
+            const objects = await element.entry.backend.mrs.listDbObjects(element.value.id);
+
+            return objects.map((value) => {
+                return new MrsDbObjectTreeItem(`${value.name} (${value.requestPath})`, value, element.entry);
+            });
+        }
+
+        return [];
     }
 
     private refreshConnections = (data?: IDictionary): Promise<boolean> => {
@@ -769,11 +690,5 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         return Promise.resolve(true);
     };
-
-    private isShellPromptResult(response?: IShellResultType): response is IShellFeedbackRequest {
-        const candidate = response as IShellFeedbackRequest;
-
-        return candidate?.prompt !== undefined;
-    }
 
 }

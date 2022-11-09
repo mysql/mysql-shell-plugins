@@ -24,7 +24,8 @@
 import * as path from "path";
 import { TreeItemCollapsibleState } from "vscode";
 
-import { IMdsProfileData, ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
+import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
 import { OciBaseTreeItem } from "./OciBaseTreeItem";
 
 export class OciHWClusterTreeItem extends OciBaseTreeItem {
@@ -34,15 +35,17 @@ export class OciHWClusterTreeItem extends OciBaseTreeItem {
         profile: IMdsProfileData,
         public compartment: ICompartment,
         public dbSystem: IMySQLDbSystem) {
-        super(`HeatWave Cluster (${dbSystem.heatWaveCluster?.clusterSize ?? ""} ` +
-                `node${((dbSystem.heatWaveCluster?.clusterSize ?? 0) > 1) ? "s" : ""})`,
-        profile, TreeItemCollapsibleState.None);
+        super(
+            `HeatWave Cluster (${dbSystem.heatWaveCluster?.clusterSize ?? ""} ` +
+            `node${((dbSystem.heatWaveCluster?.clusterSize ?? 0) > 1) ? "s" : ""})`,
+            profile, TreeItemCollapsibleState.None,
+        );
 
         let iconName = "ociComputeNotActive.svg";
         if (dbSystem.heatWaveCluster && dbSystem.heatWaveCluster.lifecycleState === "ACTIVE") {
             iconName = "ociCompute.svg";
-        } else if (dbSystem.heatWaveCluster && ( dbSystem.heatWaveCluster.lifecycleState === "INACTIVE" ||
-            dbSystem.heatWaveCluster.lifecycleState === "FAILED" )) {
+        } else if (dbSystem.heatWaveCluster && (dbSystem.heatWaveCluster.lifecycleState === "INACTIVE" ||
+            dbSystem.heatWaveCluster.lifecycleState === "FAILED")) {
             iconName = "ociComputeStopped.svg";
         }
 

@@ -604,12 +604,12 @@ describe("MySQL Shell for VS Code", () => {
                 const textArea = await editor.findElement(By.css("textArea"));
 
                 await Common.execCmd(textArea, "call clearSchemas();", 10000);
-                let result = await Database.getResultStatus(true);
+                let result = await Database.getResultStatus();
                 expect(result).to.include("OK");
 
                 await Common.execCmd(textArea, `create schema ${testSchema};`);
 
-                result = await Database.getResultStatus(true);
+                result = await Database.getResultStatus();
                 expect(result).to.include("OK");
 
                 await driver.switchTo().defaultContent();
@@ -767,7 +767,7 @@ describe("MySQL Shell for VS Code", () => {
                 const textArea = await editor.findElement(By.css("textArea"));
 
                 await Common.execCmd(textArea, "call clearTables();", 10000);
-                let result = await Database.getResultStatus(true);
+                let result = await Database.getResultStatus();
                 expect(result).to.include("OK");
 
                 const prevZoneHosts = await driver.findElements(By.css(".zoneHost"));
@@ -778,7 +778,7 @@ describe("MySQL Shell for VS Code", () => {
                     return (await driver.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
                 }, 7000, "New results block was not found");
 
-                result = await Database.getResultStatus(true);
+                result = await Database.getResultStatus();
                 expect(result).to.include("OK");
 
                 await driver.switchTo().defaultContent();
@@ -935,7 +935,7 @@ describe("MySQL Shell for VS Code", () => {
                 const testView = `testview${random}`;
 
                 await Common.execCmd(textArea, "call clearViews();", 10000);
-                let result = await Database.getResultStatus(true);
+                let result = await Database.getResultStatus();
                 expect(result).to.include("OK");
 
                 const prevZoneHosts = await driver.findElements(By.css(".zoneHost"));
@@ -946,7 +946,7 @@ describe("MySQL Shell for VS Code", () => {
                     return (await driver.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
                 }, 7000, "New results block was not found");
 
-                result = await Database.getResultStatus(true);
+                result = await Database.getResultStatus();
                 expect(result).to.include("OK");
 
                 await driver.switchTo().defaultContent();
@@ -1261,6 +1261,7 @@ describe("MySQL Shell for VS Code", () => {
                 expect(await Database.isConnectionSuccessful(sqliteConName)).to.be.true;
 
                 await driver.switchTo().defaultContent();
+                await Common.reloadSection(dbTreeSection);
                 await Common.toggleTreeElement(dbTreeSection, globalConn.caption, true);
                 await Common.toggleTreeElement(dbTreeSection, sqliteConName, true);
                 await Common.toggleTreeElement(dbTreeSection, "main", true);

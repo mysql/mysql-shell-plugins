@@ -21,96 +21,64 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-import { IBackendInformation, IShellInterface } from ".";
-import {
-    ICommDbTypesEvent, ICommErrorEvent, ICommShellInformationEvent, ICommSimpleResultEvent,
-    MessageScheduler,
-    ProtocolGui, ShellAPIGui,
-} from "../../communication";
+import { IBackendInformation } from ".";
+import { MessageScheduler, ShellAPIGui } from "../../communication";
 
 import { filterInt } from "../../utilities/string-helpers";
-import { EventType, IDispatchEvent } from "../Dispatch";
 
-export class ShellInterfaceCore implements IShellInterface {
-
-    public readonly id = "core";
-
+export class ShellInterfaceCore {
     /**
      * Returns information about the backend, e.g. for showing in the about box.
      *
      * @returns A promise with backend information.
      */
-    public get backendInformation(): Promise<IBackendInformation> {
-        return new Promise((resolve) => {
-            const request = ProtocolGui.getRequestCoreGetBackendInformation();
+    public get backendInformation(): Promise<IBackendInformation | undefined> {
+        return (async () => {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiCoreGetBackendInformation,
+                parameters: {},
+            });
 
-            MessageScheduler.get.sendRequest(request, { messageClass: "getBackendInformation" })
-                .then((event: ICommShellInformationEvent) => {
-                    // istanbul ignore if
-                    if (!event.data) {
-                        return;
-                    }
-
-                    resolve({
-                        architecture: event.data.info.architecture,
-                        major: filterInt(event.data.info.major),
-                        minor: filterInt(event.data.info.minor),
-                        patch: filterInt(event.data.info.patch),
-                        platform: event.data.info.platform,
-                        serverDistribution: event.data.info.serverDistribution,
-                        serverMajor: filterInt(event.data.info.serverMajor),
-                        serverMinor: filterInt(event.data.info.serverMinor),
-                        serverPatch: filterInt(event.data.info.serverPatch),
-                    });
-                });
-        });
+            return {
+                architecture: response.info.architecture,
+                major: filterInt(response.info.major),
+                minor: filterInt(response.info.minor),
+                patch: filterInt(response.info.patch),
+                platform: response.info.platform,
+                serverDistribution: response.info.serverDistribution,
+                serverMajor: filterInt(response.info.serverMajor),
+                serverMinor: filterInt(response.info.serverMinor),
+                serverPatch: filterInt(response.info.serverPatch),
+            };
+        })();
     }
 
-    public getLogLevel(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const request = ProtocolGui.getRequestCoreGetLogLevel();
-            MessageScheduler.get.sendRequest(request, { messageClass: "getLogLevel" })
-                .then((event: ICommSimpleResultEvent) => {
-                    resolve(event.data?.result as string);
-                }).catch(/* istanbul ignore next */(errorEvent) => {
-                    reject(errorEvent.message);
-                });
+    public async getLogLevel(): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiCoreGetLogLevel,
+            parameters: {},
         });
 
+        return response.result;
     }
 
-    public setLogLevel(level: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const request = ProtocolGui.getRequestCoreSetLogLevel(level);
-            MessageScheduler.get.sendRequest(request, { messageClass: "getLogLevel" })
-                .then(() => {
-                    resolve();
-                }).catch(/* istanbul ignore next */(errorEvent) => {
-                    reject(errorEvent.message);
-                });
+    public async setLogLevel(logLevel: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiCoreSetLogLevel,
+            parameters: { args: { logLevel } },
         });
     }
 
     /**
      * @returns Returns a promise resolving to a list of DB type names.
      */
-    public getDbTypes(): Promise<string[]> {
-        return new Promise((resolve) => {
-            const result: string[] = [];
-            const context = { messageClass: ShellAPIGui.GuiDbconnectionsGetDbTypes };
-            MessageScheduler.get.sendRequest(ProtocolGui.getRequestDbconnectionsGetDbTypes(), context)
-                .then((event: ICommDbTypesEvent) => {
-                    // istanbul ignore else
-                    if (event.data) {
-                        result.push(...event.data.result);
-                    }
-
-                    // istanbul ignore else
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve(result);
-                    }
-                });
+    public async getDbTypes(): Promise<string[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbconnectionsGetDbTypes,
+            parameters: {},
         });
+
+        return response.result;
     }
 
     /**
@@ -118,22 +86,20 @@ export class ShellInterfaceCore implements IShellInterface {
      *
      * @param path The path to check.
      *
-     * @returns A promise which resolves when the operation was concluded.
+     * @returns A promise which resolves to true if the path is valid, otherwise to false.
      */
-    public validatePath(path: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            const request = ProtocolGui.getRequestCoreValidatePath(path);
-            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreValidatePath })
-                .then((event: IDispatchEvent) => {
-                    // istanbul ignore else
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve(true);
-                    }
-                }).catch(() => {
-                    // Intentionally not using `reject` here, as we expect an error if the given path is wrong.
-                    resolve(false);
-                });
-        });
+    public async validatePath(path: string): Promise<boolean> {
+        try {
+            // Throws an error, if the path is invalid.
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiCoreValidatePath,
+                parameters: { args: { path } },
+            });
+
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     /**
@@ -143,19 +109,37 @@ export class ShellInterfaceCore implements IShellInterface {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public createDatabaseFile(path: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const request = ProtocolGui.getRequestCoreCreateFile(path);
-            MessageScheduler.get.sendRequest(request, { messageClass: ShellAPIGui.GuiCoreCreateFile })
-                .then((event: IDispatchEvent) => {
-                    // istanbul ignore else
-                    if (event.eventType === EventType.FinalResponse) {
-                        resolve();
-                    }
-                }).catch((event: ICommErrorEvent) => {
-                    reject(event.message);
-                });
+    public async createDatabaseFile(path: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiCoreCreateFile,
+            parameters: { args: { path } },
         });
     }
 
+    /**
+     * @returns A promise resolving to a list of scripts from the backend used to unit testing and for help in the
+     *          frontend communication debugger.
+     */
+    public async getDebuggerScriptNames(): Promise<string[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDebuggerGetScripts,
+            parameters: {},
+        });
+
+        return response.scripts;
+    }
+
+    /**
+     * @param path The name/path of the script.
+     *
+     * @returns The content of the script give by its name.
+     */
+    public async getDebuggerScriptContent(path: string): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDebuggerGetScriptContent,
+            parameters: { args: { path } },
+        });
+
+        return response.script;
+    }
 }

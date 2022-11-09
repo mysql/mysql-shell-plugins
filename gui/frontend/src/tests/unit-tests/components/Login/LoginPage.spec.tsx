@@ -31,8 +31,8 @@ import { LoginPage } from "../../../../components/Login/LoginPage";
 import keyboardKey from "keyboard-key";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { ShellInterface } from "../../../../supplement/ShellInterface";
-import { EventType, IDispatchEvent, ListenerEntry } from "../../../../supplement/Dispatch";
 import { MessageScheduler } from "../../../../communication";
+import { IShellProfile } from "../../../../communication/ShellResponseTypes";
 
 describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;
@@ -82,21 +82,21 @@ describe("Login Page Tests", (): void => {
             .mockImplementation((username: string, password: string) => {
                 if (username === "mike") {
                     if (password === "swordfish") {
-                        const event: IDispatchEvent = {
-                            id: "1234",
-                            eventType: EventType.FinalResponse,
-                            message: "Authentication successful",
-                            context: { messageClass: "test" },
-                            data: { requestState: { type: "", msg: "" } },
+                        const profile: IShellProfile = {
+                            id: 1234,
+                            userId: 1,
+                            name: "root",
+                            description: "Me myself and I",
+                            options: {},
                         };
 
-                        return ListenerEntry.resolve(event);
+                        return Promise.resolve(profile);
                     }
 
-                    return ListenerEntry.resolve(new Error("Wrong password"));
+                    return Promise.reject("Wrong password");
                 }
 
-                return ListenerEntry.resolve(new Error("User unknown"));
+                return Promise.reject("User unknown");
             });
 
         expect(component.state()).toStrictEqual({ errorMessage: "", userName: "", password: "" });

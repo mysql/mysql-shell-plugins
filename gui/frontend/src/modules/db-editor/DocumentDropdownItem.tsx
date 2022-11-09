@@ -27,7 +27,7 @@ export interface IDocumentDropdownItemProperties extends IDropdownItemProperties
     page: string;
 }
 
-// This class adds no different rendering output, but only data fields.
+/** This class adds no different rendering output, but only data fields. */
 export class DocumentDropdownItem extends DropdownItem<IDocumentDropdownItemProperties> {
 
     public constructor(props: IDocumentDropdownItemProperties) {

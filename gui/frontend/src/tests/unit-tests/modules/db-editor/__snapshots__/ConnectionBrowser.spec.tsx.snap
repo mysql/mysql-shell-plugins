@@ -8,9 +8,10 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         "caption": "",
         "dbType": "MySQL",
         "description": "",
-        "folderPath": "",
         "id": 0,
-        "options": Object {},
+        "options": Object {
+          "type": "unknown",
+        },
         "useMDS": false,
         "useSSH": false,
       },
@@ -495,9 +496,10 @@ Click on a Database Connection to open a new DB Notebook.
                           "caption": "",
                           "dbType": "MySQL",
                           "description": "",
-                          "folderPath": "",
                           "id": 0,
-                          "options": Object {},
+                          "options": Object {
+                            "type": "unknown",
+                          },
                           "useMDS": false,
                           "useSSH": false,
                         }
@@ -655,7 +657,6 @@ Click on a Database Connection to open a new DB Notebook.
                           "caption": "New Connection",
                           "dbType": "MySQL",
                           "description": "Add a new database connection",
-                          "folderPath": "",
                           "id": -1,
                           "options": Object {
                             "dbFile": "",

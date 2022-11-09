@@ -77,7 +77,7 @@ export type WorkspaceEdit = languages.WorkspaceEdit;
 export type RenameLocation = languages.RenameLocation;
 export type Rejection = languages.Rejection;
 
-export type TypescriptWorker = languages.typescript.TypeScriptWorker;
+export type TypeScriptWorker = languages.typescript.TypeScriptWorker;
 
 export type ICodeEditorViewState = editor.ICodeEditorViewState;
 

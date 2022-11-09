@@ -21,16 +21,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
+
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { default as NodeWebSocket } from "ws";
 
-import { CommunicationEvents, IShellRequest, IWebSessionData } from ".";
+import { EventType, IGenericResponse, Protocol, ShellAPIGui, ShellAPIMds, ShellAPIMrs } from ".";
 import { appParameters, requisitions } from "../supplement/Requisitions";
-import {
-    dispatcher, IDispatchEventContext, ListenerEntry, eventFilterNoRequests,
-} from "../supplement/Dispatch";
-import { convertSnakeToCamelCase } from "../utilities/helpers";
+import { convertSnakeToCamelCase, convertCamelToSnakeCase, uuid } from "../utilities/helpers";
+import { webSession } from "../supplement/WebSession";
+
+import { IProtocolResultMapper } from "./ProtocolResultMapper";
+import { IProtocolParameters } from "./ProtocolParameterMapper";
+import { IWebSessionData, multiResultAPIs } from "./ShellResponseTypes";
 
 export enum ConnectionEventType {
     Open = 1,
@@ -39,11 +43,65 @@ export enum ConnectionEventType {
     Message,
 }
 
+/** The type of responses returned by requests. */
+export type ResponseType<K extends keyof IProtocolResultMapper> = K extends typeof multiResultAPIs[number] ?
+    Array<IProtocolResultMapper[K]> : IProtocolResultMapper[K];
+
+/** The type of the promise returned when sending a backend request. */
+export type ResponsePromise<K extends keyof IProtocolResultMapper> = Promise<ResponseType<K>>;
+
+export type DataCallback<K extends keyof IProtocolResultMapper> =
+    (data: IProtocolResultMapper[K], requestId: string) => void;
+
+/** Parameters for sending requests to the backend. */
+export interface ISendRequestParameters<K extends keyof IProtocolResultMapper> {
+    /**
+     * If set, this request ID is used instead of an auto generated one. It's mandatory for the requisition distribution
+     * method because otherwise the consumer doesn't know for which request the requisition came in.
+     */
+    requestId?: string;
+
+    /** The type of the request to execute. */
+    requestType: K;
+
+    /** Parameters needed for the request. */
+    parameters: IProtocolParameters[K];
+
+    /**
+     * When specified this callback is used for data responses, instead of collecting and returning them in the
+     * promise. In this case the promise only returns the last sent response data (if any).
+     * Do not assign a function for this if you expect only a single response.
+     *
+     * @param requestId The ID for the request either generated implicitly or specified in the sendRequest call.
+     * @param data The data given by the current (intermediate) data response.
+     */
+    onData?: DataCallback<K>;
+}
+
+/** Keeps data and promise callbacks for an ongoing BE request together. */
+interface IOngoingRequest<K extends keyof IProtocolResultMapper> {
+    /** Holds the key in the protocol result mapper. */
+    protocolType: K;
+
+    /** Data from data responses is collected here, if no callback is given. */
+    result: Array<IProtocolResultMapper[K]>;
+
+    resolve: (value: ResponseType<K>) => void;
+    reject: (reason?: unknown) => void;
+
+    onData?: DataCallback<K>;
+}
+
+type IErrorInfo = IGenericResponse & { result: { info: string } };
+type APIListType = Protocol | ShellAPIGui | ShellAPIMds | ShellAPIMrs | "native";
+
 /** Wrapper around a web socket that performs (re)connection and message scheduling. */
 export class MessageScheduler {
     private static instance?: MessageScheduler;
+    private static readonly multiResultList: readonly APIListType[] = multiResultAPIs;
 
     private debugging = false;
+    private traceEnabled = false;
 
     private connectionEstablished = false;
     private autoReconnecting = false;
@@ -52,6 +110,7 @@ export class MessageScheduler {
     private reconnectTimer: ReturnType<typeof setTimeout> | null;
 
     private socket?: WebSocket | NodeWebSocket;
+    private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResultMapper }>();
 
     public static get get(): MessageScheduler {
         if (!MessageScheduler.instance) {
@@ -78,6 +137,10 @@ export class MessageScheduler {
 
     public set inDebugCall(value: boolean) {
         this.debugging = value;
+    }
+
+    public set traceMessages(value: boolean) {
+        this.traceEnabled = value;
     }
 
     /**
@@ -154,27 +217,171 @@ export class MessageScheduler {
     }
 
     /**
-     * Send a request to the shell. Create a listener so that the caller can wait for the response.
+     * Sends a request to the backend and returns a promise for the expected responses.
      *
-     * @param request The request to send to the shell. It must use snake case for its member fields.
-     * @param context Context data to supply to the listener when the response arrives.
-     * @returns a listener that waits for the shell response
+     * @param details The type and parameters for the request.
+     * @param useExecute A flag to indicate this is actually an execute request, but in the simple form.
+     *
+     * @returns A promise resolving with a list of responses or a single response received from the backend.
      */
-    public sendRequest(request: IShellRequest, context: IDispatchEventContext): ListenerEntry {
-        dispatcher.mapMessageContext(request.request_id, context);
-        const listener = ListenerEntry.createByID(request.request_id, { filters: [eventFilterNoRequests] });
+    public sendRequest<K extends keyof IProtocolResultMapper>(
+        details: ISendRequestParameters<K>, useExecute = true): ResponsePromise<K> {
 
-        this.socket?.send(JSON.stringify(request));
-
-        if (!this.debugging) {
-            dispatcher.triggerEvent(CommunicationEvents.generateRequestEvent(request));
-        }
-
-        return listener;
+        return this.constructAndSendRequest(useExecute, {
+            ...details,
+        });
     }
 
-    public clearState(): void {
-        // no-op
+    /**
+     * Sends a request to the backend which is not processed in any way (camel case conversion etc.).
+     * This is mostly useful for communication debugging.
+     *
+     * @param details The raw request structure.
+     * @param callback A callback for intermediate results.
+     *
+     * @returns A promise resolving with a single response received from the backend.
+     */
+    public sendRawRequest(details: INativeShellRequest,
+        callback?: DataCallback<"native">): Promise<INativeShellResponse> {
+        details.request_id = details.request_id ?? uuid();
+
+        return new Promise((resolve, reject) => {
+            if (this.traceEnabled) {
+                void requisitions.execute("debugger", { request: details });
+            }
+
+            const ongoingRequest: IOngoingRequest<"native"> = {
+                protocolType: "native",
+                result: [],
+                resolve,
+                reject,
+                onData: callback,
+            };
+            this.ongoingRequests.set(details.request_id, ongoingRequest);
+
+            this.socket?.send(JSON.stringify(details));
+        });
+    }
+
+    /**
+     * First entry point for messages sent from the backend. The message is parsed and converted to camel case keys.
+     * Depending on the response event type the result of this conversion is then returned in the associated promise
+     * or scheduled in the application via requisition execution.
+     *
+     * @param event The event containing the data sent by the backend.
+     */
+    private onMessage = (event: MessageEvent | NodeWebSocket.MessageEvent): void => {
+        const response = this.convertDataToResponse(event.data);
+
+        if (response) {
+            if (this.isWebSessionData(response) && !this.debugging) {
+                void requisitions.execute("webSessionStarted", response);
+            } else if (response.requestId) {
+                const record = this.ongoingRequests.get(response.requestId);
+                if (record) {
+                    const ongoing = record as IOngoingRequest<typeof record.protocolType>;
+                    const data = response as IProtocolResultMapper[typeof record.protocolType];
+
+                    switch (response.eventType) {
+                        case EventType.DataResponse: {
+                            // Some APIs do not return error responses, but data responses with an error field
+                            // and/or message. We have to handle them here manually.
+                            if (this.isErrorInfo(response)) {
+                                const index = response.result.info.indexOf("ERROR:");
+                                if (index > -1) {
+                                    const error = response.result.info.substring(index);
+
+                                    this.ongoingRequests.delete(response.requestId);
+                                    ongoing.reject(error);
+
+                                    break;
+                                }
+                            }
+
+                            // It's a normal data response.
+                            if (ongoing.onData) {
+                                ongoing.onData(data, response.requestId);
+                            } else {
+                                ongoing.result.push(data);
+                            }
+
+                            break;
+                        }
+
+                        case EventType.FinalResponse: {
+                            // For now we treat the final response like a done response, as not all responses
+                            // use the "done" field yet.
+                            this.ongoingRequests.delete(response.requestId);
+
+                            if (MessageScheduler.multiResultList.includes(record.protocolType)) {
+                                ongoing.result.push(data);
+                                ongoing.resolve(ongoing.result);
+                            } else {
+                                ongoing.resolve(data);
+                            }
+
+                            break;
+                        }
+
+                        case EventType.DoneResponse: {
+                            this.ongoingRequests.delete(response.requestId);
+                            ongoing.resolve(ongoing.result);
+
+                            break;
+                        }
+
+                        case EventType.ErrorResponse: {
+                            this.ongoingRequests.delete(response.requestId);
+                            ongoing.reject(response.requestState.msg);
+
+                            break;
+                        }
+
+                        default:
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * This is the core method to send a request to the backend.
+     *
+     * @param isExecuteRequest True if the request must be sent as execution request.
+     * @param details The type and parameters for the request.
+     *
+     * @returns A promise resolving with a list of responses received from the backend.
+     */
+    private constructAndSendRequest<K extends keyof IProtocolResultMapper>(isExecuteRequest: boolean,
+        details: ISendRequestParameters<K>): ResponsePromise<K> {
+
+        const requestId = details.requestId ?? uuid();
+
+        return new Promise((resolve, reject) => {
+            const record = {
+                requestId,
+                request: (isExecuteRequest ? "execute" : details.requestType),
+                command: (isExecuteRequest ? details.requestType : undefined),
+                ...details.parameters,
+            };
+
+            const data = convertCamelToSnakeCase(record, { ignore: ["rows"] }) as INativeShellRequest;
+
+            if (this.traceEnabled) {
+                void requisitions.execute("debugger", { request: data });
+            }
+
+            const ongoingRequest: IOngoingRequest<K> = {
+                protocolType: details.requestType,
+                result: [],
+                resolve,
+                reject,
+                onData: details.onData,
+            };
+            this.ongoingRequests.set(requestId, ongoingRequest);
+
+            this.socket?.send(JSON.stringify(data));
+        });
     }
 
     /**
@@ -215,6 +422,8 @@ export class MessageScheduler {
 
         this.connectionEstablished = false;
         this.autoReconnecting = false;
+
+        webSession.clearSessionData();
         void requisitions.execute("socketStateChanged", false);
 
         if (!this.disconnecting && !this.debugging) {
@@ -237,25 +446,6 @@ export class MessageScheduler {
         }
     };
 
-    private onMessage = (event: MessageEvent | NodeWebSocket.MessageEvent): void => {
-        // Convert message data string to object and also convert from snake case to camel case.
-        // However, ignore row data in this process, as it either comes as array (no keys to convert) or comes
-        // as object, whose keys are the real column names (which must stay as is).
-        if (event.data) { // Sanity check. Should never happen.
-            const data = JSON.parse(event.data as string) as object;
-            const serverData = convertSnakeToCamelCase(data, { ignore: ["rows"] }) as IWebSessionData;
-
-            // Note: the context given here by the event factories is replaced by the one specified for a specific
-            //       request in the sendRequest call. Only in error cases the context from here might be used.
-            if (serverData.sessionUuid) {
-                dispatcher.triggerEvent(CommunicationEvents.generateWebSessionEvent(serverData), this.debugging);
-            } else {
-                dispatcher.triggerEvent(CommunicationEvents.generateResponseEvent("serverResponse", serverData),
-                    this.debugging);
-            }
-        }
-    };
-
     /**
      * Called when an error occurred in the socket connection.
      *
@@ -274,4 +464,66 @@ export class MessageScheduler {
             "Could not establish a connection to the backend.",
         ]);
     };
+
+    /**
+     * Processes the raw backend data record and converts it to a response usable in the application.
+     * This involves convert snake casing to camel case and determining the type of the response.
+     *
+     * @param data The data received by the web socket.
+     *
+     * @returns The generated response object. Can be undefined if the incoming data does not conform to the expected
+     *          format.
+     */
+    private convertDataToResponse = (data: unknown): IGenericResponse | undefined => {
+        if (!data || !(typeof data === "string")) {
+            return undefined;
+        }
+
+        const responseObject = JSON.parse(data) as INativeShellResponse;
+        if (this.traceEnabled) {
+            void requisitions.execute("debugger", { response: responseObject });
+        }
+
+        const response = convertSnakeToCamelCase(responseObject, { ignore: ["rows"] }) as IGenericResponse;
+
+        switch (response.requestState.type) {
+            case "ERROR": {
+                response.eventType = EventType.ErrorResponse;
+                break;
+            }
+
+            case "PENDING": {
+                if (response.requestState.msg === "Execution started...") {
+                    response.eventType = EventType.StartResponse; // Carries no result data.
+                } else {
+                    response.eventType = EventType.DataResponse;
+                }
+                break;
+            }
+
+            case "OK": {
+                if (response.done) {
+                    response.eventType = EventType.DoneResponse;
+                } else {
+                    response.eventType = EventType.FinalResponse;
+                }
+                break;
+            }
+
+            default: {
+                response.eventType = EventType.Unknown;
+                break;
+            }
+        }
+
+        return response;
+    };
+
+    private isErrorInfo(response: IGenericResponse): response is IErrorInfo {
+        return (response as IErrorInfo).result && (response as IErrorInfo).result.info !== undefined;
+    }
+
+    private isWebSessionData(response: unknown): response is IWebSessionData {
+        return (response as IWebSessionData).sessionUuid !== undefined;
+    }
 }

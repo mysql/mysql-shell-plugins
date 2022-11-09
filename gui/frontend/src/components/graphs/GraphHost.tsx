@@ -84,10 +84,9 @@ export class GraphHost extends Component<IGraphHostProps> {
             // Remove previously rendered graphs which are not in the current configuration.
             const existing = this.svgRef.current.getElementsByTagName("svg");
 
-            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let i = 0; i < existing.length; ++i) {
                 const element = existing.item(i);
-                if (element) {
+                if (element && element.id) {
                     const index = options.series?.findIndex((candidate) => {
                         return candidate.id === element.id;
                     }) ?? -1;

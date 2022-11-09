@@ -27,11 +27,7 @@ import React from "react";
 
 import { ApplicationHost } from "./ApplicationHost";
 import { ModuleRegistry } from "../modules/ModuleRegistry";
-import {
-    ICommErrorEvent, ICommWebSessionEvent, ICommAuthenticationEvent, ICommShellProfile, ICommModuleListEvent,
-    MessageScheduler,
-} from "../communication";
-import { ListenerEntry, eventFilterNoRequests, EventType } from "../supplement/Dispatch";
+import { MessageScheduler } from "../communication";
 import { LoginPage } from "../components/Login/LoginPage";
 import { ErrorBoundary } from "./ErrorBoundary";
 import {
@@ -53,6 +49,7 @@ import { MDSModule } from "../modules/mds/MDSModule";
 import { MRSModule } from "../modules/mrs/MrsModule";
 import { ApplicationDB } from "./ApplicationDB";
 import { IDialogResponse } from "./Types";
+import { IShellProfile } from "../communication/ShellResponseTypes";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -66,7 +63,7 @@ interface IAppState extends IComponentState {
 export class App extends React.Component<{}, IAppState> {
 
     private actionMenuRef = React.createRef<ProfileSelector>();
-    private defaultProfile?: ICommShellProfile;
+    private defaultProfile?: IShellProfile;
 
     public constructor(props: {}) {
         super(props);
@@ -130,55 +127,46 @@ export class App extends React.Component<{}, IAppState> {
         // Register early to ensure this handler is called last.
         requisitions.register("dialogResponse", this.dialogResponse);
 
-        ListenerEntry.createByClass("serverResponse", { persistent: true }).catch((errorEvent: ICommErrorEvent) => {
-            void requisitions.execute("showError",
-                ["Backend Error", errorEvent.message]);
-        });
+        requisitions.register("webSessionStarted", (data) => {
+            webSession.sessionId = data.sessionUuid;
+            webSession.localUserMode = data.localUserMode ?? false;
 
-        ListenerEntry.createByClass("authenticate", { filters: [eventFilterNoRequests], persistent: true })
-            .then((event: ICommAuthenticationEvent) => {
-                this.defaultProfile = event.data?.activeProfile;
-                // istanbul ignore else
-                if (this.defaultProfile) {
-                    void this.enableModules(this.defaultProfile.userId).then(() => {
-                        this.setState({ loginInProgress: false });
+            // TODO: remove the check for the recover message and instead handle the session user name via
+            //       session storage. Requires individual solutions for both, standalone and embedded use.
+
+            // Session recovery is not supported in tests, so remove the else branch from test coverage.
+            // istanbul ignore else
+            if (webSession.userName === "" && data.requestState.msg !== "Session recovered") {
+                if (webSession.localUserMode) {
+                    ShellInterface.users.authenticate("LocalAdministrator", "").then((profile) => {
+                        if (profile) {
+                            // Detour via requisitions for the rest of the profile processing as we need the same
+                            // handling for authentication via the login page.
+                            void requisitions.execute("userAuthenticated", profile);
+                        }
+                    }).catch(() => {
+                        this.setState({ loginInProgress: true });
                     });
                 }
-            })
-            .catch( /* istanbul ignore next */() => {
-                this.setState({ loginInProgress: true });
-            });
-
-        ListenerEntry.createByClass("webSession", { filters: [eventFilterNoRequests], persistent: true }).then(
-            (event: ICommWebSessionEvent) => {
-                // istanbul ignore else
-                if (event.data) {
-                    webSession.sessionId = event.data.sessionUuid;
-                    webSession.localUserMode = event.data.localUserMode ?? false;
+            } else {
+                this.defaultProfile = data.activeProfile;
+                if (this.defaultProfile) {
+                    webSession.loadProfile(this.defaultProfile);
+                    this.enableModules(this.defaultProfile.userId);
                 }
+            }
 
-                // TODO: remove the check for the recover message and instead handle the session user name via
-                //       session storage. Requires individual solutions for both, standalone and embedded use.
-                // Session recovery is not supported in tests, so remove the else branch from test coverage.
-                // istanbul ignore else
-                if (webSession.userName === "" && event.message !== "Session recovered") {
-                    if (webSession.localUserMode) {
-                        ShellInterface.users.authenticate("LocalAdministrator", "");
-                    }
-                } else {
-                    this.defaultProfile = event.data.activeProfile;
-                    if (this.defaultProfile) {
-                        webSession.loadProfile(this.defaultProfile);
-                        void this.enableModules(this.defaultProfile.userId).then(() => {
-                            this.setState({ loginInProgress: false });
-                        });
-                    }
-                }
-            },
-        );
+            return Promise.resolve(true);
+        });
 
-        ListenerEntry.createByClass("socketClosed", { persistent: true }).then(() => {
-            webSession.clearSessionData();
+        requisitions.register("userAuthenticated", (profile: IShellProfile): Promise<boolean> => {
+            this.defaultProfile = profile;
+            if (this.defaultProfile) {
+                webSession.loadProfile(this.defaultProfile);
+                this.enableModules(this.defaultProfile.userId);
+            }
+
+            return Promise.resolve(true);
         });
 
         // Disable the default menu on all elements.
@@ -247,7 +235,7 @@ export class App extends React.Component<{}, IAppState> {
         );
     }
 
-    /*private initProfileList = (profile: ICommShellProfile): void => {
+    /*private initProfileList = (profile: IShellProfile): void => {
         this.actionMenuRef.current?.initProfileList(profile);
     };*/
 
@@ -324,34 +312,27 @@ export class App extends React.Component<{}, IAppState> {
      * Determines which modules a user is allowed to use and enables them in the UI.
      *
      * @param userId The ID of the user for which modules must be enabled.
-     * @returns A promise which fulfills when the modules list is loaded.
      */
-    private enableModules(userId: number): Promise<boolean> {
-        return new Promise((resolve) => {
-            ShellInterface.users.getGuiModuleList(userId).then((event: ICommModuleListEvent) => {
-                // istanbul ignore else
-                if (event.eventType === EventType.FinalResponse) {
-                    // Register the known modules first.
-                    ModuleRegistry.registerModule(ShellModule);
-                    ModuleRegistry.registerModule(DBEditorModule);
-                    ModuleRegistry.registerModule(MDSModule);
-                    ModuleRegistry.registerModule(MRSModule);
-                    ModuleRegistry.registerModule(InnoDBClusterModule);
+    private enableModules(userId: number): void {
+        ShellInterface.users.getGuiModuleList(userId).then((list) => {
+            // Register the known modules first.
+            ModuleRegistry.registerModule(DBEditorModule);
+            ModuleRegistry.registerModule(ShellModule);
+            ModuleRegistry.registerModule(MDSModule);
+            ModuleRegistry.registerModule(MRSModule);
+            ModuleRegistry.registerModule(InnoDBClusterModule);
 
-                    event.data?.result.forEach((id: string) => {
-                        ModuleRegistry.enableModule(id);
-                    });
-
-                    resolve(true);
-                }
-            }).catch( /* istanbul ignore next */(errorEvent: ICommErrorEvent) => {
-                void requisitions.execute("showError", [
-                    "Backend Error",
-                    `Cannot retrieve the module list: \n${errorEvent.message ?? ""}`,
-                ]);
-
-                resolve(true);
+            list.forEach((id: string) => {
+                ModuleRegistry.enableModule(id);
             });
+
+            // Now we have the login actually finished and can show the main UI.
+            this.setState({ loginInProgress: false });
+        }).catch( /* istanbul ignore next */(reason) => {
+            void requisitions.execute("showError", [
+                "Backend Error",
+                `Cannot retrieve the module list: \n${String(reason)}`,
+            ]);
         });
     }
 

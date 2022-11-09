@@ -460,8 +460,8 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         return new Promise((resolve, reject) => {
             const { backend } = this.props;
 
-            backend?.getAutoCommit().then((value: boolean): void => {
-                this.setState({ autoCommit: value }, () => {
+            backend?.getAutoCommit().then((value): void => {
+                this.setState({ autoCommit: value ?? false }, () => {
                     resolve();
                 });
             }).catch((reason) => {

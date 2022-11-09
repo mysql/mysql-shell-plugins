@@ -124,7 +124,7 @@ describe("Button component tests", (): void => {
         component.unmount();
     });
 
-    it("Test checkbox output (Snapshot)", () => {
+    it("Test button output (Snapshot)", () => {
         const component = mount(
             <div>
                 <Container>

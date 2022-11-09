@@ -70,7 +70,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               id="refreshSelector"
               key="selector"
               multiSelect={false}
-              onSelect={[Function]}
               optional={false}
               selection="5"
               showDescription={false}
@@ -769,7 +768,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               id="refreshSelector"
               key="selector"
               multiSelect={false}
-              onSelect={[Function]}
               optional={false}
               selection="5"
               showDescription={false}

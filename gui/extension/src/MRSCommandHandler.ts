@@ -23,12 +23,11 @@
 
 import { commands, ExtensionContext, Uri, window } from "vscode";
 import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
+import { IMrsDbObjectParameterData } from "../../frontend/src/communication/ShellParameterTypes";
 import {
-    ICommErrorEvent, ICommResultSetEvent, ICommSimpleResultEvent, IMrsAuthAppData, IMrsContentSetData,
-    IMrsDbObjectData, IMrsDbObjectParameterData, IMrsSchemaData, IMrsServiceData,
-} from "../../frontend/src/communication";
+    IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData,
+} from "../../frontend/src/communication/ShellResponseTypes";
 
-import { EventType } from "../../frontend/src/supplement/Dispatch";
 import { DBType, ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
 
 import { ExtensionHost } from "./ExtensionHost";
@@ -64,7 +63,7 @@ export class MRSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
-            if (item && item.entry.backend) {
+            if (item?.entry.backend) {
                 this.showMrsServiceDialog(item.entry.backend).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
@@ -72,7 +71,7 @@ export class MRSCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.editService", (item?: MrsServiceTreeItem) => {
-            if (item && item.entry.backend) {
+            if (item?.entry.backend) {
                 this.showMrsServiceDialog(item.entry.backend, item.value).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
@@ -87,44 +86,27 @@ export class MRSCommandHandler {
 
                     if (answer === "Yes") {
                         try {
-                            await item.entry.backend?.mrs.deleteServiceWithPromise(item.value.id);
-
-                            void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(
-                                "The MRS service has been deleted successfully.");
+                            await item.entry.backend?.mrs.deleteService(item.value.id);
+                            await commands.executeCommand("msg.refreshConnections");
+                            showMessageWithTimeout("The MRS service has been deleted successfully.");
                         } catch (error) {
-                            void window.showErrorMessage(`Error adding the MRS service: ` +
-                                `${String(error) ?? "<unknown>"}`);
+                            void window.showErrorMessage(`Error adding the MRS service: ${String(error)}`);
                         }
                     }
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.setDefaultService",
-            (item?: MrsServiceTreeItem) => {
+            async (item?: MrsServiceTreeItem) => {
                 if (item) {
-                    item.entry.backend?.mrs.setDefaultService(item.value.id)
-                        .then((setDefaultServiceEvent: ICommSimpleResultEvent) => {
-                            switch (setDefaultServiceEvent.eventType) {
-                                case EventType.DataResponse:
-                                case EventType.FinalResponse: {
-                                    void commands.executeCommand("msg.refreshConnections");
-                                    showMessageWithTimeout(
-                                        "The MRS service has been set as the new default service.");
+                    try {
+                        await item.entry.backend?.mrs.setDefaultService(item.value.id);
+                        await commands.executeCommand("msg.refreshConnections");
+                        showMessageWithTimeout("The MRS service has been set as the new default service.");
 
-                                    break;
-                                }
-
-                                default: {
-                                    break;
-                                }
-                            }
-
-                        })
-                        .catch((errorEvent: ICommErrorEvent): void => {
-                            void window.showErrorMessage(`Error setting the default MRS service: ` +
-                                `${errorEvent.message ?? "<unknown>"}`);
-                        });
+                    } catch (reason) {
+                        void window.showErrorMessage(`Error setting the default MRS service: ${String(reason)}`);
+                    }
                 }
             }));
 
@@ -136,21 +118,18 @@ export class MRSCommandHandler {
 
                     if (answer) {
                         try {
-                            await item.entry.backend?.mrs.deleteSchemaWithPromise(item.value.id, item.value.serviceId);
-
-                            void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(
-                                "The MRS schema has been deleted successfully.");
+                            await item.entry.backend?.mrs.deleteSchema(item.value.id, item.value.serviceId);
+                            await commands.executeCommand("msg.refreshConnections");
+                            showMessageWithTimeout("The MRS schema has been deleted successfully.");
                         } catch (error) {
-                            void window.showErrorMessage(`Error removing an MRS schema: ` +
-                                `${String(error) ?? "<unknown>"}`);
+                            void window.showErrorMessage(`Error removing an MRS schema: ${String(error)}`);
                         }
                     }
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.editSchema", (item?: MrsSchemaTreeItem) => {
-            if (item && item.entry.backend) {
+            if (item?.entry.backend) {
                 this.showMrsSchemaDialog(item.entry.backend, item.value.name, item.value).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
@@ -158,47 +137,39 @@ export class MRSCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addSchema", (item?: SchemaMySQLTreeItem) => {
-            if (item && item.entry.backend) {
+            if (item?.entry.backend) {
                 this.showMrsSchemaDialog(item.entry.backend, item.schema).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteDbObject", (item?: MrsDbObjectTreeItem) => {
-            if (item && item.entry.backend && item.value) {
-                const backend = item.entry.backend;
+        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteDbObject",
+            async (item?: MrsDbObjectTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const backend = item.entry.backend;
 
-                void showModalDialog(
-                    `Are you sure you want to delete the DB Object ${item.value.name}?`,
-                    "Delete DB Object",
-                    "This operation cannot be reverted!")
-                    .then((accepted) => {
-                        if (accepted) {
-                            backend.mrs.deleteDbObject(item.value.id).then((event: ICommResultSetEvent) => {
-                                switch (event.eventType) {
-                                    case EventType.FinalResponse: {
-                                        // TODO: refresh only the affected connection.
-                                        void commands.executeCommand("msg.refreshConnections");
-                                        showMessageWithTimeout(
-                                            `The DB Object ${item.value.name} has been deleted.`);
+                    const accepted = await showModalDialog(
+                        `Are you sure you want to delete the DB Object ${item.value.name}?`,
+                        "Delete DB Object",
+                        "This operation cannot be reverted!");
 
-                                        break;
-                                    }
+                    if (accepted) {
+                        try {
+                            await backend.mrs.deleteDbObject(item.value.id);
 
-                                    default:
-                                }
-                            }).catch((errorEvent): void => {
-                                void window.showErrorMessage(
-                                    `Error deleting the DB Object: ${errorEvent.message as string}`);
-                            });
+                            // TODO: refresh only the affected connection.
+                            void commands.executeCommand("msg.refreshConnections");
+                            showMessageWithTimeout(`The DB Object ${item.value.name} has been deleted.`);
+                        } catch (reason) {
+                            void window.showErrorMessage(`Error deleting the DB Object: ${String(reason)}`);
                         }
-                    });
-            }
-        }));
+                    }
+                }
+            }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject", (item?: MrsDbObjectTreeItem) => {
-            if (item && item.entry.backend) {
+            if (item?.entry.backend) {
                 this.showMrsDbObjectDialog(item.entry.backend, item.value, false).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
@@ -206,7 +177,7 @@ export class MRSCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject", (item?: ConnectionsTreeBaseItem) => {
-            if (item && item.entry.backend) {
+            if (item?.entry.backend) {
                 const backend = item.entry.backend;
                 const objectType = item.dbType.toUpperCase();
 
@@ -263,7 +234,7 @@ export class MRSCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteContentSet",
             async (item?: MrsContentSetTreeItem) => {
-                if (item && item.entry.backend && item.value) {
+                if (item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
 
                     const accepted = await showModalDialog(
@@ -273,7 +244,7 @@ export class MRSCommandHandler {
 
                     if (accepted) {
                         try {
-                            await backend.mrs.deleteContentSetWithPromise(item.value.id);
+                            await backend.mrs.deleteContentSet(item.value.id);
 
                             void commands.executeCommand("msg.refreshConnections");
                             showMessageWithTimeout(
@@ -294,7 +265,7 @@ export class MRSCommandHandler {
                 await openSqlEditorSessionAndConnection(sqlEditor, item.entry.details.id,
                     "msg.mrs.configureMySQLRestService");
 
-                await sqlEditor.mrs.configureWithPromise(enableMrs);
+                await sqlEditor.mrs.configure(enableMrs);
 
                 void commands.executeCommand("msg.refreshConnections");
                 showMessageWithTimeout("MySQL REST Service configured successfully.");
@@ -311,8 +282,9 @@ export class MRSCommandHandler {
     private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
         item: ConnectionsTreeBaseItem, objectType: string): Promise<IMrsDbObjectData> => {
 
-        const params = (await backend.mrs.getDbObjectFieldsWithPromise(
-            undefined, item.name, undefined, undefined, item.schema, objectType, false)).result;
+        const params = await backend.mrs.getDbObjectFields(undefined, item.name, undefined, undefined, item.schema,
+            objectType, false);
+
         // Add entry for <new> item
         params.push({
             id: 0,
@@ -342,20 +314,22 @@ export class MRSCommandHandler {
             parameters: params,
         };
 
-        const services = (await backend.mrs.listServicesWithPromise()).result;
+        const services = await backend.mrs.listServices();
         let service;
         if (services.length === 1) {
             service = services[0];
         } else if (services.length > 1) {
             // Lookup default service
-            service = services.find(
-                (service) => { return service.isDefault; });
+            service = services.find((service) => {
+                return service.isDefault;
+            });
 
             if (!service) {
                 // No default connection set. Show a picker.
                 const items = services.map((s) => {
                     return s.urlContextRoot;
                 });
+
                 const name = await window.showQuickPick(items, {
                     title: "Select a connection for SQL execution",
                     matchOnDescription: true,
@@ -372,7 +346,7 @@ export class MRSCommandHandler {
         }
 
         if (service) {
-            const schemas = (await backend.mrs.listSchemasWithPromise()).result;
+            const schemas = await backend.mrs.listSchemas(service.id);
             const schema = schemas.find((schema) => {
                 return schema.name === item.schema;
             });
@@ -386,8 +360,8 @@ export class MRSCommandHandler {
                     + "REST Service. Do you want to add the schema now?",
                     "Yes", "No");
                 if (answer === "Yes") {
-                    dbObject.dbSchemaId = (await backend.mrs.addSchemaWithPromise(item.schema, `/${item.schema}`,
-                        true, service.id)).result;
+                    dbObject.dbSchemaId = await backend.mrs.addSchema(item.schema, `/${item.schema}`,
+                        true, service.id);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);
@@ -415,7 +389,7 @@ export class MRSCommandHandler {
     private showMrsServiceDialog = async (backend: ShellInterfaceSqlEditor,
         service?: IMrsServiceData): Promise<void> => {
 
-        const authVendors = (await backend.mrs.getAuthVendorsWithPromise()).result;
+        const authVendors = await backend.mrs.getAuthVendors();
 
         const title = service
             ? "Adjust the MySQL REST Service Configuration"
@@ -441,12 +415,12 @@ export class MRSCommandHandler {
         };
 
         if (service && (!service.authApps)) {
-            service.authApps = (await backend.mrs.getAuthAppsWithPromise(service.id)).result;
+            service.authApps = await backend.mrs.getAuthApps(service.id);
 
-            // Add entry for <new> item
+            // Add entry for <new> item.
             service.authApps.push(authAppNewItem);
 
-            // Set the authVendorName fields of the app list so it can be used for the dropdown
+            // Set the authVendorName fields of the app list so it can be used for the dropdown.
             for (const app of service.authApps) {
                 app.authVendorName = authVendors.find((vendor) => {
                     return app.authVendorId === vendor.id;
@@ -499,12 +473,12 @@ export class MRSCommandHandler {
             const authCompletedUrlValidation = response.data.authCompletedUrlValidation as string;
             const authCompletedPageContent = response.data.authCompletedPageContent as string;
 
-            // Remove entry for <new> item
+            // Remove entry for <new> item.
             const authApps = (response.data.authApps as IMrsAuthAppData[]).filter((a: IMrsAuthAppData) => {
                 return a.id !== 0;
             });
 
-            // Set the authVendorId based on the authVendorName
+            // Set the authVendorId based on the authVendorName.
             for (const app of authApps) {
                 app.authVendorId = authVendors.find((vendor) => {
                     return app.authVendorName === vendor.name;
@@ -513,35 +487,27 @@ export class MRSCommandHandler {
 
             if (!service) {
                 try {
-                    await backend.mrs.addServiceWithPromise(
-                        urlContextRoot, protocols, hostName, isDefault, comments, enabled, options,
-                        authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
+                    await backend.mrs.addService(urlContextRoot, protocols, hostName, isDefault, comments, enabled,
+                        options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                         authApps);
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout(
-                        "The MRS service has been created.", 5000);
+                    showMessageWithTimeout("The MRS service has been created.", 5000);
                 } catch (error) {
-                    void window.showErrorMessage(`Error while adding MySQL REST service: ` +
-                        `${String(error)}`);
+                    void window.showErrorMessage(`Error while adding MySQL REST service: ${String(error)}`);
                 }
             } else {
                 // Send update request.
                 try {
-                    await backend.mrs.updateServiceWithPromise(
-                        service.id, urlContextRoot, hostName,
-                        protocols, enabled, comments, options,
-                        authPath, authCompletedUrl, authCompletedUrlValidation,
-                        authCompletedPageContent,
+                    await backend.mrs.updateService(service.id, urlContextRoot, hostName, protocols, enabled, comments,
+                        options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                         authApps);
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout(
-                        "The MRS service has been successfully updated.", 5000);
+                    showMessageWithTimeout("The MRS service has been successfully updated.", 5000);
 
                 } catch (error) {
-                    void window.showErrorMessage(`Error while updating MySQL REST service: ` +
-                        `${String(error)}`);
+                    void window.showErrorMessage(`Error while updating MySQL REST service: ${String(error)}`);
                 }
             }
         }
@@ -558,8 +524,7 @@ export class MRSCommandHandler {
         schema?: IMrsSchemaData): Promise<void> => {
 
         try {
-            const services = (await backend.mrs.listServicesWithPromise()).result;
-
+            const services = await backend.mrs.listServices();
             const title = schema
                 ? "Adjust the MySQL REST Schema Configuration"
                 : "Enter Configuration Values for the New MySQL REST Schema";
@@ -599,7 +564,7 @@ export class MRSCommandHandler {
 
                 if (!schema) {
                     try {
-                        await backend.mrs.addSchemaWithPromise(
+                        await backend.mrs.addSchema(
                             name, requestPath, requiresAuth, serviceId,
                             itemsPerPage, comments, options);
 
@@ -612,7 +577,7 @@ export class MRSCommandHandler {
                     }
                 } else {
                     try {
-                        await backend.mrs.updateSchemaWithPromise(schema.id, name, requestPath,
+                        await backend.mrs.updateSchema(schema.id, name, requestPath,
                             requiresAuth, enabled, itemsPerPage, comments, options);
 
                         void commands.executeCommand("msg.refreshConnections");
@@ -647,12 +612,11 @@ export class MRSCommandHandler {
             return;
         }
 
-        const services = (await backend.mrs.listServicesWithPromise()).result;
-        const schemas = (await backend.mrs.listSchemasWithPromise(dbObject.serviceId)).result;
-        const rowOwnershipFields = (await backend.mrs.getDbObjectRowOwnershipFieldsWithPromise(
-            dbObject.requestPath, dbObject.name,
-            dbObject.id, dbObject.dbSchemaId, schemaName, dbObject.objectType,
-        )).result;
+        const services = await backend.mrs.listServices();
+        const schemas = await backend.mrs.listSchemas(dbObject.serviceId);
+        const rowOwnershipFields = await backend.mrs.getDbObjectRowOwnershipFields(dbObject.requestPath, dbObject.name,
+            dbObject.id, dbObject.dbSchemaId, schemaName, dbObject.objectType);
+
         const title = dbObject
             ? "Adjust the MySQL REST Object Configuration"
             : "Enter Configuration Values for the New MySQL REST Object";
@@ -668,12 +632,10 @@ export class MRSCommandHandler {
         };
 
         if (dbObject.id && (!dbObject.parameters)) {
-            dbObject.parameters = (await backend.mrs.getDbObjectParametersWithPromise(
-                dbObject.requestPath, dbObject.name,
-                dbObject.id, dbObject.dbSchemaId, schemaName,
-            )).result;
+            dbObject.parameters = await backend.mrs.getDbObjectParameters(dbObject.requestPath, dbObject.name,
+                dbObject.id, dbObject.dbSchemaId, schemaName);
 
-            // Add entry for <new> item
+            // Add entry for <new> item.
             dbObject.parameters.push(parameterNewItem);
         }
 
@@ -735,7 +697,7 @@ export class MRSCommandHandler {
         if (createObject) {
             // Create new DB Object
             try {
-                await backend.mrs.addDbObjectWithPromise(name, objectType,
+                await backend.mrs.addDbObject(name, objectType,
                     false, requestPath, enabled, crudOperations,
                     crudOperationFormat, requiresAuth,
                     rowUserOwnershipEnforced, autoDetectMediaType,
@@ -753,7 +715,7 @@ export class MRSCommandHandler {
         } else {
             // Update existing DB Object
             try {
-                await backend.mrs.updateDbObjectWithPromise(
+                await backend.mrs.updateDbObject(
                     dbObject.id, dbObject.name,
                     requiresAuth,
                     rowUserOwnershipEnforced,
@@ -794,8 +756,7 @@ export class MRSCommandHandler {
         contentSet?: IMrsContentSetData): Promise<void> => {
 
         try {
-            const services = (await backend.mrs.listServicesWithPromise()).result;
-
+            const services = await backend.mrs.listServices();
             const title = contentSet
                 ? "Adjust the MRS Static Content Set Configuration"
                 : "Enter Configuration Values for the New MRS Static Content Set";
@@ -857,15 +818,10 @@ export class MRSCommandHandler {
                 let requestPathValid = false;
                 // Check if the request path is valid for this service and does not overlap with other services
                 try {
-                    requestPathValid =
-                        (await backend.mrs.getServiceRequestPathAvailabilityWithPromise(
-                            serviceId, requestPath)).result;
+                    requestPathValid = await backend.mrs.getServiceRequestPathAvailability(serviceId, requestPath);
                     if (!requestPathValid) {
                         // Check if the request path is taken by another content set
-                        const existingContentSets =
-                            (await backend.mrs.listContentSetsWithPromise(
-                                serviceId, requestPath)).result;
-
+                        const existingContentSets = await backend.mrs.listContentSets(serviceId, requestPath);
                         if (existingContentSets.length > 0) {
                             const answer = await window.showInformationMessage(
                                 `The request path ${requestPath} is already used by another ` +
@@ -893,7 +849,7 @@ export class MRSCommandHandler {
                             statusbarItem.text = `$(loading~spin) Starting to load static content set ...`;
                             statusbarItem.show();
 
-                            const res = await backend.mrs.addContentSetWithPromise(
+                            const contentSet = await backend.mrs.addContentSet(
                                 directory, requestPath,
                                 requiresAuth, serviceId, comments,
                                 options, enabled, true, (message) => {
@@ -905,8 +861,8 @@ export class MRSCommandHandler {
                             void commands.executeCommand("msg.refreshConnections");
                             showMessageWithTimeout(
                                 "The MRS static content set has been added successfully. " +
-                                `${res.result.numberOfFilesUploaded ?? ""} file` +
-                                `${res.result.numberOfFilesUploaded ?? 2 > 1 ? "s" : ""} have been uploaded`);
+                                `${contentSet.numberOfFilesUploaded ?? ""} file` +
+                                `${contentSet.numberOfFilesUploaded ?? 2 > 1 ? "s" : ""} have been uploaded`);
                         } catch (error) {
                             void window.showErrorMessage(`Error while adding MRS content set: ` +
                                 `${String(error) ?? "<unknown>"}`);

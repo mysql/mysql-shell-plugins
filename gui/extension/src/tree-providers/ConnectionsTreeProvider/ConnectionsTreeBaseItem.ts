@@ -25,8 +25,6 @@ import * as path from "path";
 
 import { Command, TreeItem, TreeItemCollapsibleState, env, window, commands } from "vscode";
 
-import { ICommResultSetEvent } from "../../../../frontend/src/communication";
-import { EventType } from "../../../../frontend/src/supplement/Dispatch";
 import { showMessageWithTimeout, showModalDialog } from "../../utilities";
 
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
@@ -55,20 +53,22 @@ export class ConnectionsTreeBaseItem extends TreeItem {
     }
 
     public copyCreateScriptToClipboard(): void {
-        this.entry.backend?.execute(`show create ${this.dbType} ${this.qualifiedName}`)
-            .then((event: ICommResultSetEvent) => {
-                if (event.data.result && event.data.result.rows && event.data.result.rows.length > 0) {
-                    const row = event.data.result.rows[0] as string[];
+        this.entry.backend?.execute(`show create ${this.dbType} ${this.qualifiedName}`).then((response) => {
+            if (response && response.length > 0) {
+                const data = response[0];
+                if (data.rows) {
+                    const firstRow = data.rows[0] as string[];
                     const index = this.createScriptResultIndex;
-                    if (row.length > index) {
-                        void env.clipboard.writeText(row[index]).then(() => {
+                    if (firstRow.length > index) {
+                        void env.clipboard.writeText(firstRow[index]).then(() => {
                             showMessageWithTimeout("The create script was copied to the system clipboard");
                         });
                     }
                 }
-            }).catch((event) => {
-                void window.showErrorMessage("Error while getting create script: " + (event.message as string));
-            });
+            }
+        }).catch((event) => {
+            void window.showErrorMessage("Error while getting create script: " + (event.message as string));
+        });
     }
 
     public dropItem(): void {
@@ -77,18 +77,10 @@ export class ConnectionsTreeBaseItem extends TreeItem {
         void showModalDialog(message, okText, "This operation cannot be reverted!").then((accepted) => {
             if (accepted) {
                 const query = `drop ${this.dbType} ${this.qualifiedName}`;
-                this.entry.backend?.execute(query).then((event: ICommResultSetEvent) => {
-                    switch (event.eventType) {
-                        case EventType.FinalResponse: {
-                            // TODO: refresh only the affected connection.
-                            void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(`The object ${this.name} has been dropped successfully.`);
-
-                            break;
-                        }
-
-                        default:
-                    }
+                this.entry.backend?.execute(query).then(() => {
+                    // TODO: refresh only the affected connection.
+                    void commands.executeCommand("msg.refreshConnections");
+                    showMessageWithTimeout(`The object ${this.name} has been dropped successfully.`);
                 }).catch((errorEvent): void => {
                     void window.showErrorMessage(`Error dropping the object: ${errorEvent.message as string}`);
                 });

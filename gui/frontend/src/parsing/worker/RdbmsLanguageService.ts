@@ -27,7 +27,7 @@ import { IPosition, IRange, languages } from "monaco-editor";
 import { ScopedSymbol, Symbol, SymbolTable } from "antlr4-c3";
 
 import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
-import { CompletionItem, CompletionList, ProviderResult } from "../../components/ui/CodeEditor";
+import { CompletionItem, CompletionList } from "../../components/ui/CodeEditor";
 import { mapCompletionKind, SQLExecutionContext } from "../../script-execution";
 import {
     ICompletionData, ICompletionObjectDetails, ILanguageWorkerResultData, ILanguageWorkerSuggestionData,
@@ -116,14 +116,15 @@ export class RdbmsLanguageService {
         this.localSymbols.addDependencies(this.globalSymbols);
     }
 
-    public getCodeCompletionItems(context: SQLExecutionContext, position: IPosition): ProviderResult<CompletionList> {
+    public async getCodeCompletionItems(context: SQLExecutionContext,
+        position: IPosition): Promise<CompletionList | undefined> {
         const model = context.model as ICodeEditorModel;
         this.localSymbols.addDependencies(model.symbols);
 
         return new Promise((resolve, reject) => {
             const statement = context.getStatementAtPosition(position);
             if (!statement) {
-                resolve(null);
+                resolve(undefined);
 
                 return;
             }
@@ -172,7 +173,7 @@ export class RdbmsLanguageService {
                         reject(reason);
                     });
                 } else {
-                    resolve(null);
+                    resolve(undefined);
                 }
             });
 

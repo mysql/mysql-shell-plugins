@@ -1,0 +1,162 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`] = `
+<ConnectionTile
+  caption="Tile 1"
+  className="connectionTile"
+  description="A description"
+  details={
+    Object {
+      "caption": "Tile 1",
+      "dbType": "MySQL",
+      "description": "A description",
+      "id": 1,
+      "options": Object {},
+    }
+  }
+  icon="mysql.svg"
+  id="tile1"
+  tileId={1}
+  type={0}
+>
+  <Button
+    className="msg browserTile connectionTile"
+    id="tile1"
+    onClick={[Function]}
+    onDragEnter={[Function]}
+    onDragLeave={[Function]}
+    onDragOver={[Function]}
+    onDragStart={[Function]}
+    onDrop={[Function]}
+    onKeyPress={[Function]}
+  >
+    <button
+      className="msg button browserTile connectionTile"
+      id="tile1"
+      onClick={[Function]}
+      onDragEnter={[Function]}
+      onDragLeave={[Function]}
+      onDragOver={[Function]}
+      onDragStart={[Function]}
+      onDrop={[Function]}
+      onKeyPress={[Function]}
+      onMouseDown={[Function]}
+      style={
+        Object {
+          "flexDirection": undefined,
+        }
+      }
+      tabIndex={0}
+    >
+      <Icon
+        disabled={false}
+        src="mysql.svg"
+      >
+        <div
+          className="msg icon"
+          style={
+            Object {
+              "WebkitMaskImage": "url(mysql.svg)",
+              "backgroundColor": undefined,
+              "height": undefined,
+              "maskImage": "url(mysql.svg)",
+              "width": undefined,
+            }
+          }
+        />
+      </Icon>
+      <Container
+        className="textHost"
+        orientation="column"
+      >
+        <div
+          className="msg container fixedScrollbar textHost"
+          style={
+            Object {
+              "alignItems": undefined,
+              "flexDirection": "column",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Label
+            className="tileCaption"
+          >
+            <label
+              className="msg label tileCaption"
+              data-tooltip="expand"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            >
+              Tile 1
+            </label>
+          </Label>
+          <Label
+            className="tileDescription"
+          >
+            <label
+              className="msg label tileDescription"
+              data-tooltip="expand"
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            >
+              A description
+            </label>
+          </Label>
+        </div>
+      </Container>
+      <Container
+        crossAlignment="center"
+        id="actions"
+        innerRef={
+          Object {
+            "current": Object {},
+          }
+        }
+        mainAlignment="center"
+        orientation="row"
+      >
+        <div
+          className="msg container fixedScrollbar"
+          id="actions"
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Label
+            caption="…"
+            id="triggerTileAction"
+            onClick={[Function]}
+          >
+            <label
+              className="msg label"
+              data-tooltip="expand"
+              id="triggerTileAction"
+              onClick={[Function]}
+              style={
+                Object {
+                  "textAlign": undefined,
+                }
+              }
+            >
+              …
+            </label>
+          </Label>
+        </div>
+      </Container>
+    </button>
+  </Button>
+</ConnectionTile>
+`;

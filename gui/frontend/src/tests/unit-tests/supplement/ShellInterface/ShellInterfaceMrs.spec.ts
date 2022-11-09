@@ -24,12 +24,12 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { MessageScheduler } from "../../../communication/MessageScheduler";
-import { ShellInterfaceMrs } from "../../../supplement/ShellInterface";
+import { MessageScheduler } from "../../../../communication/MessageScheduler";
+import { ShellInterfaceMrs } from "../../../../supplement/ShellInterface";
 import { WebSocketServer } from "ws";
 import { createServer, Server } from "http";
-import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
-import { ShellAPIMrs } from "../../../communication";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
+import { ShellAPIMrs } from "../../../../communication";
 
 describe("ShellInterfaceMrs Tests", (): void => {
     let webServer: Server;
@@ -47,17 +47,17 @@ describe("ShellInterfaceMrs Tests", (): void => {
 
                 if (data.command === ShellAPIMrs.MrsStatus) {
                     jsonStr = `{
-                        "request_state": {"type": "OK", "msg": ""}, 
-                        "request_id": "${data.request_id}", 
+                        "request_state": {"type": "OK", "msg": ""},
+                        "request_id": "${data.request_id}",
                         "result": {"service_configured": true, "service_count": 2, "service_enabled": true}}`;
                 } else if (data.command === ShellAPIMrs.MrsListServices) {
                     jsonStr = `{
-                        "request_state": {"type": "OK", "msg": ""}, 
-                        "request_id": "${data.request_id}", 
+                        "request_state": {"type": "OK", "msg": ""},
+                        "request_id": "${data.request_id}",
                         "result": [
                             {"auth_completed_page_content": "", "auth_completed_url": "",
-                            "auth_completed_url_validation": "", 
-                            "auth_path": "/authentication", "comments": "", "enabled": 1, "host_ctx": "/mrs", "id": 3, 
+                            "auth_completed_url_validation": "",
+                            "auth_path": "/authentication", "comments": "", "enabled": 1, "host_ctx": "/mrs", "id": 3,
                             "is_default": 1, "options": ` +
                         `"{\\"header\\": {\\"Access-Control-Allow-Origin\\": \\"*\\", ` +
                         `\\"Access-Control-Allow-Methods\\": \\"GET, POST, PUT, DELETE, OPTIONS\\"}}", ` +
@@ -70,13 +70,13 @@ describe("ShellInterfaceMrs Tests", (): void => {
                     data.command === ShellAPIMrs.MrsUpdateSchema ||
                     data.command === ShellAPIMrs.MrsDeleteSchema) {
                     jsonStr = `{
-                        "request_state": {"type": "OK", "msg": ""}, 
-                        "request_id": "${data.request_id}", 
+                        "request_state": {"type": "OK", "msg": ""},
+                        "request_id": "${data.request_id}",
                         "result": {}}`;
                 } else if (data.command === ShellAPIMrs.MrsListSchemas) {
                     jsonStr = `{
-                        "request_state": {"type": "OK", "msg": ""}, 
-                        "request_id": "${data.request_id}", 
+                        "request_state": {"type": "OK", "msg": ""},
+                        "request_id": "${data.request_id}",
                         "result": [
                             {"comments": "", "enabled": 1, "host_ctx": "/mrs", "id": 3, "items_per_page": 25,
                             "name": "sakila", "options": null, "request_path": "/sakila", "requires_auth": 0,
@@ -90,15 +90,12 @@ describe("ShellInterfaceMrs Tests", (): void => {
         });
 
         return new Promise((resolve) => {
-            console.log(`Starting WebServer on Port ${port} ...`);
             server.listen(port, () => { resolve(server); });
         });
 
     };
 
     beforeAll(async () => {
-        console.log("Starting WebSocketServer...");
-
         // Find free port
         webServerPort = await MySQLShellLauncher.findFreePort();
 
@@ -107,9 +104,7 @@ describe("ShellInterfaceMrs Tests", (): void => {
     });
 
     afterAll(() => {
-        console.log("Closing WebServer ...");
         webServer.close();
-        console.log("WebServer closed.");
     });
 
     it("Test MRS Service functions", async () => {
@@ -119,16 +114,16 @@ describe("ShellInterfaceMrs Tests", (): void => {
         try {
             await MessageScheduler.get.connect(new URL(`http://localhost:${webServerPort}`), "");
 
-            await mrs.configureWithPromise();
+            await mrs.configure();
 
-            const status = (await mrs.statusWithPromise()).result;
+            const status = await mrs.status();
             expect(status).toEqual({
                 serviceConfigured: true,
                 serviceCount: 2,
                 serviceEnabled: true,
             });
 
-            const services = (await mrs.listServicesWithPromise()).result;
+            const services = await mrs.listServices();
             expect(services).toEqual([{
                 authCompletedPageContent: "",
                 authCompletedUrl: "",
@@ -149,12 +144,12 @@ describe("ShellInterfaceMrs Tests", (): void => {
                 ],
             }]);
 
-            await mrs.addServiceWithPromise("/mrs2", ["HTTPS"], "", false,
+            await mrs.addService("/mrs2", ["HTTPS"], "", false,
                 "", false, "", "", "", "", "");
 
-            await mrs.updateServiceWithPromise(1, "/mrs2", "", ["HTTPS"], false, "", "", "", "", "", "", []);
+            await mrs.updateService(1, "/mrs2", "", ["HTTPS"], false, "", "", "", "", "", "", []);
 
-            await mrs.deleteServiceWithPromise(1);
+            await mrs.deleteService(1);
 
             MessageScheduler.get.disconnect();
         } catch (error) {
@@ -170,7 +165,7 @@ describe("ShellInterfaceMrs Tests", (): void => {
         try {
             await MessageScheduler.get.connect(new URL(`http://localhost:${webServerPort}`), "");
 
-            const services = (await mrs.listSchemasWithPromise(2)).result;
+            const services = await mrs.listSchemas(2);
             expect(services).toEqual([{
                 comments: "",
                 enabled: 1,
@@ -184,11 +179,9 @@ describe("ShellInterfaceMrs Tests", (): void => {
                 serviceId: 2,
             }]);
 
-            await mrs.addSchemaWithPromise("sakila", "/sakila", true, 1, 25, "", "");
-
-            await mrs.updateSchemaWithPromise(1, "sakila", "/sakila", true, true, 25, "", "");
-
-            await mrs.deleteSchemaWithPromise(1, 1);
+            await mrs.addSchema("sakila", "/sakila", true, 1, 25, "", "");
+            await mrs.updateSchema(1, "sakila", "/sakila", true, true, 25, "", "");
+            await mrs.deleteSchema(1, 1);
 
             MessageScheduler.get.disconnect();
         } catch (error) {
