@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-# Creates MySQL Shell for VSCode extension packages for the following platforms:
+# Creates MySQL Shell for VS Code extension packages for the following platforms:
 # darwin-arm64, darwin-x64, win32-x64
 # Usage: package_extension.sh [single-platform]
 #
@@ -53,7 +53,7 @@ function download_shell_mac_pkg(){
         macos_ver=11
     else
         macos_ver=$4
-    fi 
+    fi
 
     url="https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-$1-macos$macos_ver-$2.tar.gz"
     if `validate_url $url`; then
@@ -76,10 +76,10 @@ function download_shell_mac_pkg(){
         else
             return 1
         fi
-    fi 
+    fi
 }
 
-echo "Starting MySQL Shell for VSCode Extension packaging..."
+echo "Starting MySQL Shell for VS Code Extension packaging..."
 
 if [ ! -d "$HOME/.mysqlsh/plugins/gui_plugin" ]; then
     echo "ERROR: The gui_plugin is missing from ~/.mysqlsh/plugins/"

@@ -71,7 +71,7 @@ export interface IShellLaunchConfiguration {
 }
 
 // This class can be used to create new MySQL Shell processes which are managed elsewhere and can
-// create one process and manage it. Only usable in a Node.js environment (vscode extension or tests).
+// create one process and manage it. Only usable in a Node.js environment (VS Code extension or tests).
 export class MySQLShellLauncher {
     /**
      * When the extension is deployed with an embedded MySQL Shell, a custom shell user config dir is used, as
