@@ -331,7 +331,7 @@ describe("Value Edit Dialog Tests", (): void => {
         let advancedButton = document.getElementById("advanced-btn");
         expect(advancedButton).toBeNull();
         let showAdvancedCheckbox = document.getElementById("show-advanced");
-        expect(showAdvancedCheckbox).toBeDefined();
+        expect(showAdvancedCheckbox).not.toBeNull();
 
         expect(component.state().activeContexts).toStrictEqual(new Set(["myContext"]));
         (showAdvancedCheckbox as HTMLInputElement).click();
@@ -364,7 +364,7 @@ describe("Value Edit Dialog Tests", (): void => {
         await nextProcessTick();
 
         advancedButton = document.getElementById("advanced-btn");
-        expect(advancedButton).toBeDefined();
+        expect(advancedButton).not.toBeNull();
         showAdvancedCheckbox = document.getElementById("show-advanced");
         expect(showAdvancedCheckbox).toBeNull();
 
@@ -840,7 +840,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
         // Show add property dialog, which opens a second portal.
         let button = document.getElementById("buttonAddEntry");
-        expect(button).toBeDefined();
+        expect(button).not.toBeNull();
         button?.click();
         await nextProcessTick();
 
@@ -851,13 +851,13 @@ describe("Value Edit Dialog Tests", (): void => {
         await nextProcessTick();
 
         button = document.getElementById("buttonRemoveEntry");
-        expect(button).toBeDefined();
+        expect(button).not.toBeNull();
         button?.click(); // Doesn't do anything yet.
         await nextProcessTick();
 
         // Cancel the dialog.
         button = document.getElementById("cancel");
-        expect(button).toBeDefined();
+        expect(button).not.toBeNull();
         button?.click();
         await nextProcessTick();
 
@@ -881,7 +881,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
         // Confirm the dialog.
         button = document.getElementById("ok");
-        expect(button).toBeDefined();
+        expect(button).not.toBeNull();
         button?.click();
         await nextProcessTick();
 

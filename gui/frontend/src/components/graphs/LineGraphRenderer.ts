@@ -166,7 +166,12 @@ export class LineGraphRenderer {
         }
 
         const hostSvg = d3.select<SVGSVGElement, IXYDatum>(target);
-        let root = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        let root;
+        try {
+            root = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        } catch (reason) {
+            root = hostSvg.select<SVGSVGElement>("__invalid__");
+        }
 
         // TODO: instead of completely replacing the graph animate it to the new values.
         root.remove();

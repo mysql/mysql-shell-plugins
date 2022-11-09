@@ -35,16 +35,15 @@ import showDetailsInactiveIcon from "../../assets/images/toolbar/toolbar-show_de
 import killConnectionIcon from "../../assets/images/toolbar/toolbar-kill_connection.svg";
 import killQueryIcon from "../../assets/images/toolbar/toolbar-kill_query.svg";
 
-
 import React from "react";
+import { render } from "preact";
 import { CellComponent, ColumnDefinition, Formatter, RowComponent } from "tabulator-tables";
 
 import { IToolbarItems } from ".";
 import {
-    DBDataType, DialogResponseClosure, DialogType, IColumnInfo, IDialogRequest,
-    IDialogResponse, IDictionary,
+    DBDataType, DialogResponseClosure, DialogType, IColumnInfo, IDialogRequest, IDialogResponse, IDictionary,
 } from "../../app-logic/Types";
-import { ICommResultSetEvent, IPromptReplyBackend } from "../../communication";
+import { IPromptReplyBackend } from "../../communication";
 
 import {
     Component, Container, ContentAlignment, IComponentProperties, IComponentState, Icon, ITreeGridOptions,
@@ -52,11 +51,10 @@ import {
     ContentWrap, Tabview, TabPosition, Grid, GridCell, Divider,
 } from "../../components/ui";
 import { IResultSet } from "../../script-execution";
-import { EventType } from "../../supplement/Dispatch";
 import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
-import { render } from "preact";
 import { convertRows, generateColumnInfo } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
+import { uuid } from "../../utilities/helpers";
 
 interface IGlobalStatus {
     threadConnected?: number;
@@ -143,7 +141,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             .then((val: boolean) => {
                 if (val) {
                     this.gotPerformanceSchema = true;
-                    this.updateValues();
+                    void this.updateValues();
                 }
             })
             .catch((error) => {
@@ -158,13 +156,13 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         // If we reopen a connection a new backend is created then we need to refresh the page.
         if (backend !== prevProps.backend) {
-            this.updateValues();
+            void this.updateValues();
         }
     }
 
     public componentDidMount(): void {
         this.refreshTimer = setInterval(() => {
-            this.updateValues();
+            void this.updateValues();
         }, ClientConnections.sampleInterval);
         requisitions.register("dialogResponse", this.handleDialogResponse);
     }
@@ -241,7 +239,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                                     tabPosition={TabPosition.Top}
                                     tabBorderWidth={1}
                                     contentSeparatorWidth={2}
-                                    onSelectTab={this.handleSelectTab}
+                                    onSelectTab={void this.handleSelectTab}
                                     pages={[
                                         {
                                             caption: "Details",
@@ -422,7 +420,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             <Dropdown
                 id="refreshSelector"
                 key="selector"
-                onSelect={this.handleTimeRangeSelection}
+                onSelect={void this.handleTimeRangeSelection}
                 selection={`${this.interval / 1000}`}
             >
                 {items}
@@ -568,43 +566,36 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     };
 
 
-    private updateValues = (): void => {
+    private updateValues = async (): Promise<void> => {
         if (this.gotPerformanceSchema) {
-            this.updateProcessList();
+            await this.updateProcessList();
         }
     };
 
-    private checkIsPsAvailable = (): Promise<boolean> => {
+    private checkIsPsAvailable = async (): Promise<boolean> => {
         const { backend } = this.props;
 
-        return new Promise((resolve, reject) => {
-            backend.execute("select @@performance_schema").then((event: ICommResultSetEvent) => {
-                if (event.eventType === EventType.FinalResponse) {
-                    if (event.data.result.rows?.[0]) {
-                        resolve(true);
-                    } else {
-                        resolve(false);
-                    }
-                }
-            }).catch(() => {
-                reject(false);
-            });
-        });
+        const result = await backend.execute("select @@performance_schema");
+        if (!result || result.length === 0) {
+            return false;
+        }
+
+        const rows = result[0].rows;
+
+        return rows !== undefined && rows.length > 0 && rows[0] !== undefined;
     };
 
-    private updateProcessList = (): void => {
+    private updateProcessList = async (): Promise<void> => {
         const { backend } = this.props;
         const { globalStatus, version } = this.state;
 
         if (!version) {
-            backend.execute("show variables where VARIABLE_NAME like '%version_comment%'")
-                .then((event: ICommResultSetEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
-                        const value = `${values.get("version_comment") ?? "none"}`;
-                        this.setState({ version: value });
-                    }
-                });
+            const result = await backend.execute("show variables where VARIABLE_NAME like '%version_comment%'");
+            if (result && result.length > 0) {
+                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
+                const value = `${values.get("version_comment") ?? "none"}`;
+                this.setState({ version: value });
+            }
         }
 
         const cols: string[] = [];
@@ -631,64 +622,60 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             `LEFT OUTER JOIN performance_schema.session_connect_attrs a ON ` +
             `t.processlist_id = a.processlist_id AND (a.attr_name IS NULL OR a.attr_name = 'program_name') ${where}`;
 
-        backend.execute(query).then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                this.columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
-                const rows = convertRows(this.columns, event.data.result.rows);
-                const resultSet = {
-                    head: {
-                        requestId: event.data.requestId ?? "",
-                        sql: query,
-                    },
-                    data: {
-                        requestId: event.data.requestId ?? "",
-                        currentPage: 1,
-                        columns: this.columns,
-                        rows,
-                    },
-                };
+        const requestId = uuid();
+        const result = await backend.execute(query, undefined, requestId);
+        if (result && result.length > 0) {
+            this.columns = generateColumnInfo(DBType.MySQL, result[0].columns);
+            const rows = convertRows(this.columns, result[0].rows);
+            const resultSet = {
+                head: {
+                    requestId,
+                    sql: query,
+                },
+                data: {
+                    requestId,
+                    currentPage: 1,
+                    columns: this.columns,
+                    rows,
+                },
+            };
 
-                this.setState({ resultSet, gotResponse: true });
-            }
-        }).catch(() => {
-            //
-        });
+            this.setState({ resultSet, gotResponse: true });
+        }
 
-        backend.execute("show global status").then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
-                globalStatus.abortedClients = parseInt(`${values.get("Aborted_clients") ?? "0"}`, 10);
-                globalStatus.abortedConnections = parseInt(`${values.get("Aborted_connects") ?? "0"}`, 10);
-                globalStatus.threadConnected = parseInt(`${values.get("Threads_connected") ?? "0"}`, 10);
-                globalStatus.threadsCached = parseInt(`${values.get("Threads_cached") ?? "0"}`, 10);
-                globalStatus.threadRunning = parseInt(`${values.get("Threads_running") ?? "0"}`, 10);
-                globalStatus.threadsCreated = parseInt(`${values.get("Threads_created") ?? "0"}`, 10);
+        const status = await backend.execute("show global status");
+        if (status && status.length > 0) {
+            const values = new Map<string, string>(status[0].rows as Array<[string, string]>);
+            globalStatus.abortedClients = parseInt(`${values.get("Aborted_clients") ?? "0"}`, 10);
+            globalStatus.abortedConnections = parseInt(`${values.get("Aborted_connects") ?? "0"}`, 10);
+            globalStatus.threadConnected = parseInt(`${values.get("Threads_connected") ?? "0"}`, 10);
+            globalStatus.threadsCached = parseInt(`${values.get("Threads_cached") ?? "0"}`, 10);
+            globalStatus.threadRunning = parseInt(`${values.get("Threads_running") ?? "0"}`, 10);
+            globalStatus.threadsCreated = parseInt(`${values.get("Threads_created") ?? "0"}`, 10);
 
-                globalStatus.abortedConnections =
-                    parseInt(`${values.get("Connection_errors_max_connections") ?? "0"}`, 10);
-                globalStatus.totalConnections = parseInt(`${values.get("Connections") ?? "0"}`, 10);
-                globalStatus.connectionLimit = 0;
-                globalStatus.errors = 0;
+            globalStatus.abortedConnections =
+                parseInt(`${values.get("Connection_errors_max_connections") ?? "0"}`, 10);
+            globalStatus.totalConnections = parseInt(`${values.get("Connections") ?? "0"}`, 10);
+            globalStatus.connectionLimit = 0;
+            globalStatus.errors = 0;
 
-                this.setState({ globalStatus });
-            }
-        });
+            this.setState({ globalStatus });
+        }
     };
-
 
     private handleHideSleepConn = (): void => {
         this.hideSleepingConnections = !this.hideSleepingConnections;
-        this.updateValues();
+        void this.updateValues();
     };
 
     private handleHideBkgThreads = (): void => {
         this.hideBackgroundThreads = !this.hideBackgroundThreads;
-        this.updateValues();
+        void this.updateValues();
     };
 
     private handleNoFullInfo = (): void => {
         this.noFullInfo = !this.noFullInfo;
-        this.updateValues();
+        void this.updateValues();
     };
 
     private handleShowDetails = (): void => {
@@ -740,44 +727,43 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         void requisitions.execute("showDialog", request);
     };
 
-    private killConnection = (): void => {
+    private killConnection = async (): Promise<void> => {
         const { backend } = this.props;
         const id = this.getSelectedRowValue("PROCESSLIST_ID");
         if (id) {
-            backend.execute(`KILL CONNECTION ${id}`).then((event: ICommResultSetEvent) => {
-                if (event.eventType === EventType.FinalResponse) {
-                    this.updateValues();
-                }
-            }).catch((error: Error) => {
+            try {
+                await backend.execute(`KILL CONNECTION ${id}`);
+                await this.updateValues();
+            } catch (reason) {
                 void requisitions.execute("showError", ["Error Killing Query",
-                    `Error executing KILL CONNECTION on connectionId: ${id}, error: ${error.message}`]);
-            });
+                    `Error executing KILL CONNECTION on connectionId: ${id}, error: ${String(reason)}`]);
+            }
         }
     };
 
-    private killQuery = (): void => {
+    private killQuery = async (): Promise<void> => {
         const { backend } = this.props;
         const id = this.getSelectedRowValue("PROCESSLIST_ID");
         if (id) {
-            backend.execute(`KILL QUERY ${id}`).then((event: ICommResultSetEvent) => {
-                if (event.eventType === EventType.FinalResponse) {
-                    this.updateValues();
-                }
-            }).catch((error: Error) => {
+            try {
+                await backend.execute(`KILL QUERY ${id}`);
+                await this.updateValues();
+            } catch (reason) {
                 void requisitions.execute("showError", ["Error Killing Query",
                     `Error executing KILL QUERY on threadId:` +
-                    `${this.selectedRow?.THREAD_ID as string}, error: ${error.message}`]);
-            });
+                    `${this.selectedRow?.THREAD_ID as string}, error: ${String(reason)}`]);
+            }
         }
     };
 
-    private handleTimeRangeSelection = (selectedIds: Set<string>): void => {
+    private handleTimeRangeSelection = async (selectedIds: Set<string>): Promise<void> => {
         clearInterval(this.refreshTimer);
         this.interval = parseInt([...selectedIds][0], 10) * 1000;
-        this.updateValues();
+
+        await this.updateValues();
         if (this.interval > 0) {
             this.refreshTimer = setInterval(() => {
-                this.updateValues();
+                void this.updateValues();
             }, this.interval);
         }
     };
@@ -801,78 +787,78 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         }
     };
 
-    private updateAttributes = (id: string): void => {
+    private updateAttributes = async (id: string): Promise<void> => {
         const { backend } = this.props;
 
+        const requestId = uuid();
         const query = `SELECT * FROM performance_schema.session_connect_attrs` +
             ` WHERE processlist_id = ${id} ORDER BY ORDINAL_POSITION`;
-        backend.execute(query).then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                this.attrColumns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
-                const rows = convertRows(this.attrColumns, event.data.result.rows);
-                const resultSet = {
-                    head: {
-                        requestId: event.data.requestId ?? "",
-                        sql: query,
-                    },
-                    data: {
-                        requestId: event.data.requestId ?? "",
-                        currentPage: 1,
-                        columns: this.attrColumns,
-                        rows,
-                    },
-                };
-                this.setState({ attributes: resultSet });
-            }
-        });
+        const result = await backend.execute(query, undefined, requestId);
+        if (result && result.length > 0) {
+            this.attrColumns = generateColumnInfo(DBType.MySQL, result[0].columns);
+            const rows = convertRows(this.attrColumns, result[0].rows);
+            const resultSet = {
+                head: {
+                    requestId,
+                    sql: query,
+                },
+                data: {
+                    requestId,
+                    currentPage: 1,
+                    columns: this.attrColumns,
+                    rows,
+                },
+            };
+            this.setState({ attributes: resultSet });
+        }
+
     };
 
-    private updateLocks = (id: number): void => {
+    private updateLocks = async (id: number): Promise<void> => {
         const { backend } = this.props;
 
         const query = `SELECT * FROM performance_schema.metadata_locks WHERE owner_thread_id = ${id}`;
-        backend.execute(query).then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
-                const rows = convertRows(columns, event.data.result.rows);
-                const statusField = columns.find((x) => { return x.title === "LOCK_STATUS"; });
-                const typeField = columns.find((x) => { return x.title === "OBJECT_TYPE"; });
-                const schemaField = columns.find((x) => { return x.title === "OBJECT_SCHEMA"; });
-                const nameField = columns.find((x) => { return x.title === "OBJECT_NAME"; });
-                const durationField = columns.find((x) => { return x.title === "LOCK_DURATION"; });
+        const result = await backend.execute(query);
+        if (result && result.length > 0) {
+            const columns = generateColumnInfo(DBType.MySQL, result[0].columns);
+            const rows = convertRows(columns, result[0].rows);
+            const statusField = columns.find((x) => { return x.title === "LOCK_STATUS"; });
+            const typeField = columns.find((x) => { return x.title === "OBJECT_TYPE"; });
+            const schemaField = columns.find((x) => { return x.title === "OBJECT_SCHEMA"; });
+            const nameField = columns.find((x) => { return x.title === "OBJECT_NAME"; });
+            const durationField = columns.find((x) => { return x.title === "LOCK_DURATION"; });
 
-                rows.forEach((item) => {
-                    const status = item[statusField?.field ?? 0] as string;
-                    const type = item[typeField?.field ?? 0] as string;
-                    const schema = item[schemaField?.field ?? 0] as string;
-                    const name = item[nameField?.field ?? 3] as string;
-                    const duration = item[durationField?.field ?? 0] as string;
-                    let objectName = "";
-                    if (type === "GLOBAL") {
-                        objectName = "<global>";
-                    } else {
-                        objectName = [schema, name].filter(Boolean).join(".");
-                    }
-                    let query = `OBJECT_TYPE = '${type}'`;
-                    if (schema) {
-                        query += ` AND OBJECT_SCHEMA = '${this.escapeSqlString(schema)}'`;
-                    }
-                    if (name) {
-                        query += ` AND OBJECT_NAME = '${name}'`;
-                    }
-                    switch (status) {
-                        case "PENDING":
-                            this.generatePendingLocksInfo(query, type, duration, objectName);
-                            break;
-                        case "GRANTED":
-                            this.generateGrantedLocksInfo(query, type, duration, objectName);
-                            break;
-                        default:
-                            break;
-                    }
-                });
-            }
-        });
+            rows.forEach((item) => {
+                const status = item[statusField?.field ?? 0] as string;
+                const type = item[typeField?.field ?? 0] as string;
+                const schema = item[schemaField?.field ?? 0] as string;
+                const name = item[nameField?.field ?? 3] as string;
+                const duration = item[durationField?.field ?? 0] as string;
+                let objectName = "";
+                if (type === "GLOBAL") {
+                    objectName = "<global>";
+                } else {
+                    objectName = [schema, name].filter(Boolean).join(".");
+                }
+                let query = `OBJECT_TYPE = '${type}'`;
+                if (schema) {
+                    query += ` AND OBJECT_SCHEMA = '${this.escapeSqlString(schema)}'`;
+                }
+                if (name) {
+                    query += ` AND OBJECT_NAME = '${name}'`;
+                }
+                switch (status) {
+                    case "PENDING":
+                        this.generatePendingLocksInfo(query, type, duration, objectName);
+                        break;
+                    case "GRANTED":
+                        this.generateGrantedLocksInfo(query, type, duration, objectName);
+                        break;
+                    default:
+                        break;
+                }
+            });
+        }
     };
 
     private generatePendingLocksInfo = (subQuery: string, type: string, duration: string, objectName: string): void => {
@@ -880,10 +866,10 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         const query = `SELECT OWNER_THREAD_ID as ownerThreadId FROM performance_schema.metadata_locks` +
             `WHERE ${subQuery} AND LOCK_STATUS = 'GRANTED'`;
-        backend.execute(query).then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
-                const rows = convertRows(columns, event.data.result.rows);
+        backend.execute(query).then((result) => {
+            if (result && result.length > 0) {
+                const columns = generateColumnInfo(DBType.MySQL, result[0].columns);
+                const rows = convertRows(columns, result[0].rows);
                 const owners: string[] = [];
                 rows.forEach((item) => {
                     owners.push(item.ownerThreadId as string);
@@ -893,12 +879,11 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                     `\n${type.toLowerCase()} ${objectName},\nheld by thread(s) ${owners.join(", ")}.` +
                     `\nType: ${type}\nDuration: ${duration}`;
 
-
                 this.setState({ waitingText });
             }
-        }).catch((error: Error) => {
+        }).catch((reason) => {
             void requisitions.execute("showError", ["Lookup Metadata Locks",
-                `Error looking up metadata lock information error: ${error.message}`]);
+                `Error looking up metadata lock information error: ${String(reason)}`]);
         });
     };
 
@@ -906,21 +891,22 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         objectName: string): void => {
         const { backend } = this.props;
 
+        const requestId = uuid();
         const query = `SELECT OWNER_THREAD_ID as threadId, LOCK_TYPE as type, LOCK_DURATION as duration ` +
             `FROM performance_schema.metadata_locks WHERE ${subQuery} AND LOCK_STATUS = 'PENDING'`;
-        backend.execute(query).then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                const columns = generateColumnInfo(DBType.MySQL, event.data.result.columns);
-                const rows = convertRows(columns, event.data.result.rows);
+        backend.execute(query, undefined, requestId).then((result) => {
+            if (result && result.length > 0) {
+                const columns = generateColumnInfo(DBType.MySQL, result[0].columns);
+                const rows = convertRows(columns, result[0].rows);
                 rows.unshift({ threadId: objectName, type, duration });
 
                 const resultSet = {
                     head: {
-                        requestId: event.data.requestId ?? "",
+                        requestId,
                         sql: query,
                     },
                     data: {
-                        requestId: event.data.requestId ?? "",
+                        requestId,
                         currentPage: 1,
                         columns,
                         rows,
@@ -961,54 +947,55 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         }));
     };
 
-    private handleDialogResponse = (response: IDialogResponse): Promise<boolean> => {
+    private handleDialogResponse = async (response: IDialogResponse): Promise<boolean> => {
         if (response?.id !== "clientConnectionsConfirmDialog") {
             return Promise.resolve(false);
         }
 
-        return new Promise((resolve) => {
-            const backend = response.data?.backend as IPromptReplyBackend;
-            if (backend) {
-                switch (response.type) {
-                    case DialogType.Confirm: {
-                        if (response.closure === DialogResponseClosure.Accept) {
-                            if (response.data?.id === "killConnection") {
-                                this.killConnection();
-                                resolve(true);
-                            } else if (response.data?.id === "killQuery") {
-                                this.killQuery();
-                                resolve(true);
-                            }
-                        }
-                        break;
-                    }
+        const backend = response.data?.backend as IPromptReplyBackend;
+        if (backend) {
+            switch (response.type) {
+                case DialogType.Confirm: {
+                    if (response.closure === DialogResponseClosure.Accept) {
+                        if (response.data?.id === "killConnection") {
+                            await this.killConnection();
 
-                    default:
-                        resolve(false);
-                        break;
+                            return true;
+                        } else if (response.data?.id === "killQuery") {
+                            await this.killQuery();
+
+                            return true;
+                        }
+                    }
+                    break;
                 }
+
+                default:
             }
-        });
+        }
+
+        return false;
     };
 
-    private handleSelectTab = (id: string): void => {
+    private handleSelectTab = async (id: string): Promise<void> => {
         const { attributes, grantedLocks } = this.state;
         const currentSelectedRow = this.getSelectedRowValue("PROCESSLIST_ID");
         const currentSelectedThread = this.getSelectedRowValue("THREAD_ID");
+
         if (id === "attrTab") {
             const field = attributes?.data.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
             if (!attributes || !field ||
                 (field && attributes?.data.rows[0][field.field] as string !== currentSelectedRow)) {
-                this.updateAttributes(currentSelectedRow);
+                await this.updateAttributes(currentSelectedRow);
             }
-        }
-        if (id === "locksTab") {
+        } else if (id === "locksTab") {
             const field = grantedLocks?.data.columns.find((x) => { return x.title === "THREAD_ID"; });
             if (!grantedLocks || !field ||
                 (field && grantedLocks?.data.rows[0][field.field] as string !== currentSelectedThread)) {
-                this.updateLocks(parseInt(currentSelectedThread, 10));
+                await this.updateLocks(parseInt(currentSelectedThread, 10));
             }
         }
+
         this.setState({ selectedTab: id });
     };
 }

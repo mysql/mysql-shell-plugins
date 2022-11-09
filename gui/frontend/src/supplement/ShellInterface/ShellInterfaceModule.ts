@@ -21,14 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    ProtocolGui, ICommModuleDataEvent, ICommDataTreeContentEvent, IDBDataTreeEntry, MessageScheduler,
-} from "../../communication";
-import { EventType, ListenerEntry } from "../Dispatch";
+import { MessageScheduler, ShellAPIGui } from "../../communication";
 import { EditorLanguage } from "..";
-import { IShellInterface } from ".";
 import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/db-editor";
 import { uuid } from "../../utilities/helpers";
+import {
+    IDBDataTreeEntry, IShellModuleDataCategoriesEntry, IShellModuleDataEntry,
+} from "../../communication/ShellResponseTypes";
 
 // These are predefined data categories that always exist.
 export enum StandardDataCategories {
@@ -42,9 +41,7 @@ export enum StandardDataCategories {
     SQLiteScript = 8,     // Child of Script.
 }
 
-export class ShellInterfaceModule implements IShellInterface {
-
-    public readonly id = "module";
+export class ShellInterfaceModule {
 
     // Mappings between script category ids and editor languages.
     private scriptCategoryToLanguage = new Map<number, EditorLanguage>([
@@ -75,28 +72,47 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param folderPath The folder path f.e. "/scripts/server1"
      * @param profileId The id of profile
      *
-     * @returns The generated shell request record.
+     * @returns A promise resolving to the id of the added data entry.
      */
-    public addData(caption: string, content: string, dataCategoryId: number, treeIdentifier: string,
-        folderPath?: string, profileId?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesAddData(caption, content, dataCategoryId,
-            treeIdentifier, folderPath, profileId);
+    public async addData(caption: string, content: string, dataCategoryId: number, treeIdentifier: string,
+        folderPath?: string, profileId?: number): Promise<number> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesAddData,
+            parameters: {
+                args: {
+                    caption,
+                    content,
+                    dataCategoryId,
+                    treeIdentifier,
+                    folderPath,
+                    profileId,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "addData" });
+        return response.result;
     }
 
     /**
-     * Returns a list of data IDs from a given folder and the specified data category.
+     * Returns a list of data entries from a given folder and the specified data category.
      *
      * @param folderId The id of the folder.
      * @param dataCategoryId The id of the data category.
      *
-     * @returns A listener for the response.
+     * @returns A promise resolving to the list of data entries.
      */
-    public listData(folderId: number, dataCategoryId?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesListData(folderId, dataCategoryId);
+    public async listData(folderId: number, dataCategoryId?: number): Promise<IShellModuleDataEntry[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesListData,
+            parameters: {
+                args: {
+                    folderId,
+                    dataCategoryId,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listData" });
+        return response.result;
     }
 
     /**
@@ -104,12 +120,19 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @param dataId An id which identifies a data item (returned from list or add data).
      *
-     * @returns A listener for the response.
+     * @returns A promise resolving to the data content.
      */
-    public getDataContent(dataId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesGetDataContent(dataId);
+    public async getDataContent(dataId: number): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesGetDataContent,
+            parameters: {
+                args: {
+                    id: dataId,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getDataContent" });
+        return response.result;
     }
 
     /**
@@ -118,12 +141,18 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param profileId The id of profile
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request is finished.
      */
-    public createProfileDataTree(treeIdentifier: string, profileId?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesCreateProfileDataTree(treeIdentifier, profileId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "createProfileDataTree" });
+    public async createProfileDataTree(treeIdentifier: string, profileId?: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesCreateProfileDataTree,
+            parameters: {
+                args: {
+                    treeIdentifier,
+                    profileId,
+                },
+            },
+        });
     }
 
     /**
@@ -132,12 +161,25 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param profileId The id of profile
      *
-     * @returns A listener for the response.
+     * @returns A promise resolving to the list of tree entries.
      */
-    public getProfileDataTree(treeIdentifier: string, profileId?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesGetProfileDataTree(treeIdentifier, profileId);
+    public async getProfileDataTree(treeIdentifier: string, profileId?: number): Promise<IDBDataTreeEntry[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesGetProfileDataTree,
+            parameters: {
+                args: {
+                    treeIdentifier,
+                    profileId,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getProfileDataTree" });
+        const result: IDBDataTreeEntry[] = [];
+        response.forEach((list) => {
+            result.push(...list.result);
+        });
+
+        return result;
     }
 
     /**
@@ -146,12 +188,18 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param userGroupId The id of user group
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request is finished.
      */
-    public createUserGroupDataTree(treeIdentifier: string, userGroupId?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesCreateUserGroupDataTree(treeIdentifier, userGroupId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "createUserGroupDataTree" });
+    public async createUserGroupDataTree(treeIdentifier: string, userGroupId?: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesCreateUserGroupDataTree,
+            parameters: {
+                args: {
+                    treeIdentifier,
+                    userGroupId,
+                },
+            },
+        });
     }
 
     /**
@@ -160,12 +208,18 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param userGroupId The id of user group
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request is finished.
      */
-    public getUserGroupDataTree(treeIdentifier: string, userGroupId?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesGetUserGroupDataTree(treeIdentifier, userGroupId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getUserGroupDataTree" });
+    public async getUserGroupDataTree(treeIdentifier: string, userGroupId?: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesGetUserGroupDataTree,
+            parameters: {
+                args: {
+                    treeIdentifier,
+                    userGroupId,
+                },
+            },
+        });
     }
 
     /**
@@ -173,12 +227,17 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @param profileId The id of profile.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request is finished.
      */
-    public getProfileDataTreeIdentifiers(profileId?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesGetProfileTreeIdentifiers(profileId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getProfileDataTreeIdentifiers" });
+    public async getProfileDataTreeIdentifiers(profileId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesGetProfileTreeIdentifiers,
+            parameters: {
+                args: {
+                    profileId,
+                },
+            },
+        });
     }
 
     /**
@@ -190,14 +249,22 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param folderPath The folder path f.e. "/scripts/server1"
      *
-     * @returns The generated shell request record.
+     * @returns A promise which resolves when the request is finished.
      */
-    public shareDataToUserGroup(id: number, userGroupId: number, readOnly: number, treeIdentifier: string,
-        folderPath?: string): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesShareDataToUserGroup(id, userGroupId, readOnly,
-            treeIdentifier, folderPath);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "shareDataToUserGroup" });
+    public async shareDataToUserGroup(id: number, userGroupId: number, readOnly: number, treeIdentifier: string,
+        folderPath?: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesShareDataToUserGroup,
+            parameters: {
+                args: {
+                    id,
+                    userGroupId,
+                    readOnly,
+                    treeIdentifier,
+                    folderPath,
+                },
+            },
+        });
     }
 
     /**
@@ -209,14 +276,22 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param treeIdentifier The identifier of the tree.
      * @param folderPath The folder path f.e. "/scripts/server1"
      *
-     * @returns The generated shell request record.
+     * @returns A promise which resolves when the request is finished.
      */
-    public addDataToProfile(id: number, profileId: number, readOnly: number, treeIdentifier: string,
-        folderPath?: string): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesAddDataToProfile(id, profileId, readOnly,
-            treeIdentifier, folderPath);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "addDataToProfile" });
+    public async addDataToProfile(id: number, profileId: number, readOnly: number, treeIdentifier: string,
+        folderPath?: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesAddDataToProfile,
+            parameters: {
+                args: {
+                    id,
+                    profileId,
+                    readOnly,
+                    treeIdentifier,
+                    folderPath,
+                },
+            },
+        });
     }
 
     /**
@@ -226,12 +301,19 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param caption Caption
      * @param content The content data
      *
-     * @returns The generated shell request record.
+     * @returns A promise which resolves when the request is finished.
      */
-    public updateData(id: number, caption?: string, content?: string): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesUpdateData(id, caption, content);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "updateData" });
+    public async updateData(id: number, caption?: string, content?: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesUpdateData,
+            parameters: {
+                args: {
+                    id,
+                    caption,
+                    content,
+                },
+            },
+        });
     }
 
     /**
@@ -240,12 +322,18 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param id The id of the data
      * @param folderId The id of the folder
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request is finished.
      */
-    public deleteData(id: number, folderId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesDeleteData(id, folderId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "deleteData" });
+    public async deleteData(id: number, folderId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesDeleteData,
+            parameters: {
+                args: {
+                    id,
+                    folderId,
+                },
+            },
+        });
     }
 
     /**
@@ -253,12 +341,19 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @param parentID The ID of the parent data category. If not given, the root entries are returned.
      *
-     * @returns A listener for the response.
+     * @returns A promise resolving to the list of category entries.
      */
-    public listDataCategories(parentID?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesListDataCategories(parentID);
+    public async listDataCategories(parentID?: number): Promise<IShellModuleDataCategoriesEntry[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesListDataCategories,
+            parameters: {
+                args: {
+                    categoryId: parentID,
+                },
+            },
+        });
 
-        return MessageScheduler.get.sendRequest(request, { messageClass: "listDataCategories" });
+        return response.result;
     }
 
     /**
@@ -267,12 +362,18 @@ export class ShellInterfaceModule implements IShellInterface {
      * @param category A human readable string identifying the data category.
      * @param parent Specifies the parent category to which the new category belongs. Root categories have no parent.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request is finished.
      */
-    public addDataCategory(category: string, parent?: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesAddDataCategory(category, parent);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "addDataCategory" });
+    public async addDataCategory(category: string, parent?: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesAddDataCategory,
+            parameters: {
+                args: {
+                    name: category,
+                    parentCategoryId: parent,
+                },
+            },
+        });
     }
 
     /**
@@ -280,12 +381,17 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @param categoryId The id of the data category
      *
-     * @returns Returns OK on success. On failure, returns and error.
+     * @returns A promise which resolves when the request is finished.
      */
-    public removeDataCategory(categoryId: number): ListenerEntry {
-        const request = ProtocolGui.getRequestModulesRemoveDataCategory(categoryId);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "removeDataCategory" });
+    public async removeDataCategory(categoryId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiModulesRemoveDataCategory,
+            parameters: {
+                args: {
+                    categoryId,
+                },
+            },
+        });
     }
 
     /**
@@ -319,7 +425,7 @@ export class ShellInterfaceModule implements IShellInterface {
      * @returns A promise resolving to a list of script state entries, comprising the tree.
      */
     private async loadScriptTreeEntries(categoryId: number, profileId?: number): Promise<IDBDataEntry[]> {
-        const dataTree = await this.loadDataTree("scripts", profileId);
+        const dataTree = await this.getProfileDataTree("scripts", profileId);
 
         const createTree = async (parentId: number, target: IDBDataEntry[]): Promise<void> => {
             const result = dataTree.filter((entry, index, arr) => {
@@ -367,45 +473,6 @@ export class ShellInterfaceModule implements IShellInterface {
     }
 
     /**
-     * Promisified version of `getProfileDataTree`.
-     *
-     * @param treeIdentifier The identifier of the data tree to load.
-     * @param profileId The id of the profile for which to load the data structure.
-     *
-     * @returns A promise which resolves with the requested list.
-     */
-    private loadDataTree(treeIdentifier: string, profileId?: number): Promise<IDBDataTreeEntry[]> {
-        return new Promise((resolve, reject) => {
-            this.getProfileDataTree(treeIdentifier, profileId).then((treeIdentEvent: ICommDataTreeContentEvent) => {
-                const result = treeIdentEvent.data?.result;
-
-                const list: IDBDataTreeEntry[] = [];
-                switch (treeIdentEvent.eventType) {
-                    case EventType.DataResponse: {
-                        if (result) {
-                            list.push(...result);
-                        }
-
-                        break;
-                    }
-                    case EventType.FinalResponse:
-                        if (result) {
-                            list.push(...result);
-                        }
-
-                        resolve(list);
-
-                        break;
-
-                    default:
-                }
-            }).catch((reason) => {
-                reject(reason);
-            });
-        });
-    }
-
-    /**
      * Constructs script state entries from script data entries.
      *
      * @param folderId The ID of the folder from which to load the items.
@@ -413,46 +480,25 @@ export class ShellInterfaceModule implements IShellInterface {
      *
      * @returns A list of state entries for all found data entries.
      */
-    private loadScriptStates = (folderId: number, dataCategoryId: number): Promise<IDBEditorScriptState[]> => {
-        return new Promise((resolve, reject) => {
-            const listData: IDBEditorScriptState[] = [];
-            this.listData(folderId, dataCategoryId).then((scriptEvent: ICommModuleDataEvent) => {
-                if (!scriptEvent.data) {
-                    return;
-                }
+    private loadScriptStates = async (folderId: number, dataCategoryId: number): Promise<IDBEditorScriptState[]> => {
+        const listData: IDBEditorScriptState[] = [];
+        const dataEntries = await this.listData(folderId, dataCategoryId);
 
-                switch (scriptEvent.eventType) {
-                    case EventType.DataResponse:
-                    case EventType.FinalResponse: {
-                        listData.push(...scriptEvent.data.result.map((entry) => {
-                            // The language depends on the data category.
-                            const language = this.scriptCategoryToLanguage.get(entry.dataCategoryId) ?? "mysql";
+        listData.push(...dataEntries.map((entry) => {
+            // The language depends on the data category.
+            const language = this.scriptCategoryToLanguage.get(entry.dataCategoryId) ?? "mysql";
 
-                            return {
-                                id: uuid(),
-                                folderId,
-                                type: EntityType.Script,
-                                caption: entry.caption,
-                                language,
-                                dbDataId: entry.id,
-                            };
-                        }));
+            return {
+                id: uuid(),
+                folderId,
+                type: EntityType.Script,
+                caption: entry.caption,
+                language,
+                dbDataId: entry.id,
+            };
+        }));
 
-                        if (scriptEvent.eventType === EventType.FinalResponse) {
-                            resolve(listData);
-                        }
-
-                        break;
-                    }
-
-                    default: {
-                        break;
-                    }
-                }
-            }).catch((event) => {
-                reject(String(event.message));
-            });
-        });
+        return listData;
     };
 }
 

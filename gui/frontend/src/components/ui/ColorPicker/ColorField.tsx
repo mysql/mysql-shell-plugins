@@ -69,7 +69,9 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
     }
 
     public render(): React.ReactNode {
+        const { id } = this.mergedProps;
         const { currentColor } = this.state;
+
         const className = this.getEffectiveClassNames([
             "colorField",
             currentColor ? "" : " invalid",
@@ -95,6 +97,7 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
 
         return (
             <div
+                id={id}
                 role="button"
                 className={className}
                 tabIndex={0}
@@ -155,9 +158,7 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
                 break;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
 
         return true;

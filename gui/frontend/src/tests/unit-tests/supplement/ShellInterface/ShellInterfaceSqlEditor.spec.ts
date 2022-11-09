@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-export * from "./Dispatch";
-export * from "./ListenerEntry";
-export * from "./DispatchEvents";
-export * from "./ListenerExecutor";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
+import { nextRunLoop, setupShellForTests } from "../../test-helpers";
+
+describe("ShellInterfaceSqlEditor Tests", () => {
+    let launcher: MySQLShellLauncher;
+    let backend: ShellInterfaceSqlEditor;
+
+    beforeAll(async () => {
+        launcher = await setupShellForTests(false, true, "DEBUG2");
+        backend = new ShellInterfaceSqlEditor();
+    });
+
+    afterAll(async () => {
+        await launcher.exitProcess();
+    });
+
+    it("Base tests", async () => {
+        backend.closeSession().catch(() => {
+            throw new Error("Close session failed");
+        });
+        await nextRunLoop();
+
+    });
+});

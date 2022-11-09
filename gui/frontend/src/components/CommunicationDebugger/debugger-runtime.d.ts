@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,21 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types";
-
 /* eslint-disable @typescript-eslint/naming-convention */
 
-declare interface IShellDictionary {
-    [key: string]: string | number | boolean | undefined | IShellDictionary[] | IShellDictionary;
-}
-
-declare interface IRequestState {
-    type: string;
-    msg: string;
+declare interface INativeShellDictionary {
+    [key: string]: string | number | boolean | undefined | INativeShellDictionary[] | INativeShellDictionary;
 }
 
 /** A data record for requests sent to the backend. */
-declare interface IShellRequest extends IShellDictionary {
+declare interface INativeShellRequest extends INativeShellDictionary {
     /** A unique ID to identify this request. It's used for all responses. */
     request_id: string;
 
@@ -46,19 +39,21 @@ declare interface IShellRequest extends IShellDictionary {
     command?: string;
 
     /** Optional arguments for the command. */
-    args?: IShellDictionary;
+    args?: INativeShellDictionary;
 }
 
-declare interface IGenericResponse extends IDictionary {
+declare interface INativeShellResponse extends INativeShellDictionary {
     /** A unique ID to identify this request. It's used for all responses. */
     request_id: string;
 
     /** Information about the request (success or error, with a short response message). */
-    request_state: IRequestState;
+    request_state: {
+        type: string;
+        msg: string;
+    };
 }
 
 declare class DebuggerWebSocket {
-
     /** Indicates if a connection is currently being established. */
     public readonly isConnecting: boolean;
 
@@ -78,24 +73,22 @@ declare class DebuggerWebSocket {
      */
     public readonly tokens: object;
 
-     /** Returns the module session ID of the last server response that returned such an ID (usually start_session). */
+    /** Returns the module session ID of the last server response that returned such an ID (usually start_session). */
     public get lastModuleSessionId(): string | undefined;
 
     /** The full response last received for a given request (if any). */
-    public get lastResponse(): IGenericResponse | undefined;
+    public get lastResponse(): INativeShellResponse | undefined;
 
     /** The last returned backend error (if any). */
-    public get lastError(): IGenericResponse | undefined;
+    public get lastError(): INativeShellResponse | undefined;
 
     /**
-     * Returns a special value which indicates that the member in an object or array should be ignored
+     * @returns a special value which indicates that the member in an object or array should be ignored
      * when comparing the owning object/array to another object/array.
-     *
-     * @returns A special symbol.
      */
     public get ignore(): Symbol;
 
-     /** Opens the web socket connection to the backend (ignored if already connected). */
+    /** Opens the web socket connection to the backend (ignored if already connected). */
     public connect(): void;
 
     /** Closes the web socket connection to the backend (ignored if no connection exists). */
@@ -119,7 +112,7 @@ declare class DebuggerWebSocket {
      * @returns A promise with the data of the first response from the server for this request. All further responses
      *          are ignored.
      */
-    public send(data: IShellRequest): Promise<IGenericResponse>;
+    public send(data: INativeShellRequest): Promise<INativeShellResponse>;
 
     /**
      * Generates a new unique identifier (uuid) which can be used to identify requests to the backend.
@@ -165,7 +158,7 @@ declare class DebuggerWebSocket {
      *                 come in during a specific time frame (3 secs currently) the validation will fail.
      *                 Any extraneous response is ignore, once all items in the expected list have been processed.
      */
-    public sendAndValidate(data: IShellRequest, expected: IGenericResponse[]): Promise<void>;
+    public sendAndValidate(data: INativeShellRequest, expected: INativeShellResponse[]): Promise<void>;
 
     /**
      * Loads the script at the given path and executes it.
@@ -175,15 +168,12 @@ declare class DebuggerWebSocket {
     public execute(path: string): Promise<void>;
 
     /**
-     * Returns a special value which indicates that the member in an object or array should be matched against
+     * @returns a special value which indicates that the member in an object or array should be matched against
      * the given pattern, when comparing the owning object/array to another object/array.
      *
      * @param pattern The pattern to match.
-     *
-     * @returns A special symbol.
      */
     public matchRegexp(pattern: string): Symbol;
-
 }
 
 declare const ws: DebuggerWebSocket;

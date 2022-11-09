@@ -24,12 +24,37 @@
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { ListenerEntry } from "../supplement/Dispatch";
-import { uuid } from "../utilities/helpers";
-
+/** A type to describe arbitrary result data. */
 export type ShellDictionaryType = string | number | boolean | undefined | unknown | null | IShellDictionary;
 export interface IShellDictionary {
     [key: string]: ShellDictionaryType | ShellDictionaryType[];
+}
+
+/**
+ * Describes the type of a dispatched event. Also used for event logging/debugging.
+ */
+export enum EventType {
+    /** A request sent to the backend/server. */
+    Request = -1,
+
+    /** A response indicating that something went wrong. Ends the request processing. */
+    ErrorResponse = -2,
+
+    /** The first response send back, immediately after the BE has received a request. */
+    StartResponse = 1,
+
+    /** A response carrying result data. */
+    DataResponse = 2,
+
+    /** The response indicating the current data stream (sequence of data responses). */
+    FinalResponse = 3,
+
+    /** The response indicating that the entire request was finished. */
+    DoneResponse = 4,
+
+    Notification = 4,
+
+    Unknown = 0,
 }
 
 export enum ShellPromptResponseType {
@@ -37,52 +62,25 @@ export enum ShellPromptResponseType {
     Cancel = "CANCEL"
 }
 
-// The request structure sent to the backend. That's why it uses snake case.
-export interface IShellRequest extends IShellDictionary {
-    request_id: string; // A unique ID to identify this request. It's used for all responses.
-    request: string;    // The requested operation.
-
-    command?: string;        // Optional field to carry the command if this is an execution request.
-    args?: IShellDictionary; // Optional arguments for the command.
+export interface IRequestState {
+    type: string;
+    msg: string;
 }
 
-//  Begin auto generated types
+export interface IGenericResponse {
+    requestId: string;
+    requestState: IRequestState;
 
-//  End auto generated types
+    eventType: EventType;
+    done?: boolean;
+}
 
-export class Protocol {
+export enum Protocol {
+    UserAuthenticate = "authenticate",
+    PromptReply = "prompt_reply",
 
-    public static getRequestCommandExecute(command: string, rest: IShellDictionary): IShellRequest {
-        return Protocol.getStandardRequest("execute", { command, ...rest });
-    }
-
-    public static getRequestUsersAuthenticate(username: string, password: string): IShellRequest {
-        return Protocol.getStandardRequest("authenticate", {
-            username,
-            password,
-        });
-    }
-
-    public static getRequestPromptReply(request_id: string, type: ShellPromptResponseType, reply: string, moduleSessionId: string): IShellRequest {
-        const result = Protocol.getStandardRequest("prompt_reply", {
-            request_id,
-            type,
-            reply,
-            module_session_id: moduleSessionId,
-        });
-
-        return result;
-    }
-
-    public static getStandardRequest(request: string, rest?: IShellDictionary): IShellRequest {
-        return {
-            request_id: uuid(),
-            request,
-            ...rest,
-        };
-    }
 }
 
 export interface IPromptReplyBackend {
-    sendReply: (requestId: string, type: ShellPromptResponseType, reply: string) => ListenerEntry;
+    sendReply: (requestId: string, type: ShellPromptResponseType, reply: string) => Promise<void>;
 }

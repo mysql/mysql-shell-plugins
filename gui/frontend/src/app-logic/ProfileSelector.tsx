@@ -25,9 +25,6 @@ import React from "react";
 import { isNil } from "lodash";
 
 import {
-    ICommAuthenticationEvent, ICommListProfilesEvent, ICommProfileEvent, ICommShellProfile,
-} from "../communication";
-import {
     CheckState, ComponentPlacement, Container, ICheckboxProperties, IComponentState, ILabelProperties,
     IMenuItemProperties, Label, List, Menu, MenuItem, Orientation,
 } from "../components/ui";
@@ -43,8 +40,8 @@ import {
 import { ShellInterface } from "../supplement/ShellInterface";
 import { webSession } from "../supplement/WebSession";
 import { requisitions } from "../supplement/Requisitions";
-import { eventFilterNoRequests, ListenerEntry } from "../supplement/Dispatch";
 import { DialogResponseClosure } from "./Types";
+import { IShellProfile } from "../communication/ShellResponseTypes";
 
 interface IProfileSelectorState extends IComponentState {
     menuItems: React.ReactNode[];
@@ -58,18 +55,22 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
     private actionMenuRef = React.createRef<Menu>();
     private profileName = "";
 
-    private deleteList: ICommShellProfile[] = [];
-    private activeProfiles: ICommShellProfile[] = [];
-    private defaultProfile: ICommShellProfile;
+    private deleteList: IShellProfile[] = [];
+    private activeProfiles: IShellProfile[] = [];
+    private defaultProfile: IShellProfile;
 
     public constructor(props: {}) {
         super(props);
 
-        ListenerEntry.createByClass("authenticate", { filters: [eventFilterNoRequests], persistent: true })
-            .then((event: ICommAuthenticationEvent) => {
-                this.defaultProfile = event.data.activeProfile;
-                this.initProfileList(event.data.activeProfile);
-            }).catch(/* istanbul ignore next*/() => { /* Handled elsewhere */ });
+        requisitions.register("userAuthenticated", async (profile: IShellProfile): Promise<boolean> => {
+            this.defaultProfile = profile;
+            if (this.defaultProfile) {
+                this.defaultProfile = profile;
+                await this.initProfileList(profile);
+            }
+
+            return Promise.resolve(true);
+        });
 
         this.state = { menuItems: [] };
     }
@@ -83,9 +84,9 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         this.actionMenuRef?.current?.open(currentTarget, false);
     }
 
-    public initProfileList(profile: ICommShellProfile): void {
-        this.getProfileList(profile.userId);
-        void requisitions.execute("updateStatusbar", [{
+    public async initProfileList(profile: IShellProfile): Promise<void> {
+        await this.getProfileList(profile.userId);
+        await requisitions.execute("updateStatusbar", [{
             id: "message",
             visible: true,
             text: "Login Successful",
@@ -142,9 +143,9 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
     private handleProfileAction = (action: string, profileId: string): void => {
         switch (action) {
             case "current": {
-                ShellInterface.users.getProfile(parseInt(profileId, 10)).then((event: ICommProfileEvent) => {
-                    if (event.data?.result) {
-                        webSession.loadProfile(event.data.result);
+                void ShellInterface.users.getProfile(parseInt(profileId, 10)).then((profile) => {
+                    if (profile) {
+                        webSession.loadProfile(profile);
                     }
                 });
 
@@ -181,26 +182,25 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         return Promise.resolve(true);
     };
 
-    private getProfileList = (userId: number): void => {
-        ShellInterface.users.listProfiles(userId).then((event: ICommListProfilesEvent) => {
-            this.activeProfiles = event.data.result.map((profile) => {
-                return {
-                    id: profile.id,
-                    userId,
-                    name: profile.name,
-                    description: "",
-                    options: {},
-                };
-            });
-            this.sendUpdateProfileInfoMsg();
-            this.generatePopupMenuEntries();
+    private getProfileList = async (userId: number): Promise<void> => {
+        const profiles = await ShellInterface.users.listProfiles(userId);
+        this.activeProfiles = profiles.map((profile) => {
+            return {
+                id: profile.id,
+                userId,
+                name: profile.name,
+                description: "",
+                options: {},
+            };
         });
+        this.sendUpdateProfileInfoMsg();
+        this.generatePopupMenuEntries();
     };
 
     private generatePopupMenuEntries = (): void => {
         const menuItems: React.ReactNode[] = [];
         this.activeProfiles?.forEach(
-            (value: ICommShellProfile, index: number) => {
+            (value: IShellProfile, index: number) => {
                 let icon;
                 if (value.id === webSession.currentProfileId) {
                     icon = currentIcon;
@@ -286,7 +286,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                     }
                 } else {
                     const profileName = this.activeProfiles.find(
-                        (element: ICommShellProfile): boolean => {
+                        (element: IShellProfile): boolean => {
                             return element.name === sectionValues.profileName.value;
                         },
                     );
@@ -299,7 +299,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
             case "edit": {
                 const profile = this.activeProfiles.find(
-                    (item: ICommShellProfile) => {
+                    (item: IShellProfile) => {
                         return item.name === sectionValues.definedProfilesToEdit.value;
                     },
                 );
@@ -320,7 +320,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                         result.messages.profileNewName = "The profile name cannot be empty";
                     }
                 } else {
-                    const profileNewName = this.activeProfiles.find((element: ICommShellProfile): boolean => {
+                    const profileNewName = this.activeProfiles.find((element: IShellProfile): boolean => {
                         return element.name === sectionValues.profileNewName.value && element.id !== profile?.id;
                     });
 
@@ -369,12 +369,12 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                             .value as string;
                         const useExistingProfile =
                             sectionValues.copyProfile.value;
-                        let baseProfile: ICommShellProfile | undefined;
+                        let baseProfile: IShellProfile | undefined;
                         if (useExistingProfile) {
                             const baseProfileName = sectionValues
                                 .definedProfiles.value as string;
                             baseProfile = this.activeProfiles.find(
-                                (item: ICommShellProfile) => { return item.name === baseProfileName; },
+                                (item: IShellProfile) => { return item.name === baseProfileName; },
                             );
                         }
                         this.insertProfile(profileName, baseProfile);
@@ -384,7 +384,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
                     case "edit": {
                         const profile = this.activeProfiles.find(
-                            (item: ICommShellProfile) => {
+                            (item: IShellProfile) => {
                                 return item.name ===
                                     sectionValues.definedProfilesToEdit.value;
                             },
@@ -393,7 +393,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                         tmpProfile.name = sectionValues.profileNewName
                             .value as string;
                         const setDefault = sectionValues.setAsDefaultProfile.value as boolean;
-                        this.updateProfile(tmpProfile, setDefault);
+                        void this.updateProfile(tmpProfile, setDefault);
 
                         break;
                     }
@@ -406,7 +406,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                             const data = item.data as ICheckboxProperties;
                             if (data.checkState === 1) {
                                 const profile = this.activeProfiles.find(
-                                    (profile: ICommShellProfile) => {
+                                    (profile: IShellProfile) => {
                                         return String(profile.id) === data.id;
                                     },
                                 );
@@ -428,14 +428,12 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         }
     };
 
-    private updateProfile = (profileToEdit: ICommShellProfile, setDefault: boolean): void => {
-        ShellInterface.users.updateProfile(profileToEdit).then((event: ICommProfileEvent) => {
-            if (!event.data?.result) {
-                return;
-            }
-
-            const index = this.activeProfiles.findIndex(
-                (item: ICommShellProfile) => { return item.id === event.data?.result?.id; },
+    private updateProfile = async (profileToEdit: IShellProfile, setDefault: boolean): Promise<void> => {
+        const profile = await ShellInterface.users.updateProfile(profileToEdit);
+        if (profile) {
+            const index = this.activeProfiles.findIndex((item: IShellProfile) => {
+                return item.id === profile.id;
+            },
             );
 
             if (index > -1) {
@@ -443,29 +441,20 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
             }
 
             if (setDefault) {
-                const defaultId = event.data.result?.id;
-                ShellInterface.users.setDefaultProfile(webSession.userId, defaultId)
-                    .then((event: ICommProfileEvent) => {
-                        if (!event.data?.requestState || event.data.requestState.type !== "OK") {
-                            return;
-                        }
-
-                        this.defaultProfile = this.activeProfiles.find((p) => {
-                            return p.id === defaultId;
-                        }) ?? this.defaultProfile;
-                        this.sendUpdateProfileInfoMsg();
-                        this.generatePopupMenuEntries();
-                    });
-            } else {
-                this.sendUpdateProfileInfoMsg();
-                this.generatePopupMenuEntries();
+                await ShellInterface.users.setDefaultProfile(webSession.userId, profile.id);
+                this.defaultProfile = this.activeProfiles.find((p) => {
+                    return p.id === profile.id;
+                }) ?? this.defaultProfile;
             }
-        });
+
+            this.sendUpdateProfileInfoMsg();
+            this.generatePopupMenuEntries();
+        }
     };
 
     private deleteProfileConfirm = (): void => {
         const simpleListEntry = <Label dataId="data" />;
-        const listElements = this.deleteList.map((item: ICommShellProfile) => {
+        const listElements = this.deleteList.map((item: IShellProfile) => {
             const labelContent: ILabelProperties = {
                 caption: item.name,
             };
@@ -490,49 +479,48 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
     private handleProfileDelete = (closure: DialogResponseClosure): void => {
         if (closure === DialogResponseClosure.Accept) {
-            this.deleteList.forEach((item: ICommShellProfile) => {
-                ShellInterface.users.updateProfile(item).then((event: ICommProfileEvent) => {
-                    if (!event.data?.result) {
-                        return;
-                    }
-                    const index = this.activeProfiles.findIndex(
-                        (item: ICommShellProfile) => { return item.id === event.data?.result?.id; },
-                    );
-                    if (index > -1) {
-                        this.activeProfiles.splice(index, 1);
-                    }
-                    this.sendUpdateProfileInfoMsg();
-                    this.generatePopupMenuEntries();
-                });
-            });
-        }
-    };
+            this.deleteList.forEach((item: IShellProfile) => {
+                void ShellInterface.users.updateProfile(item).then((profile) => {
+                    if (profile) {
+                        const index = this.activeProfiles.findIndex(
+                            (item: IShellProfile) => { return item.id === profile.id; },
+                        );
 
-    private insertProfile = (profileName: string, baseProfile?: ICommShellProfile): void => {
-        if (baseProfile) {
-            ShellInterface.users.getProfile(baseProfile.id).then((event: ICommProfileEvent) => {
-                if (!event.data?.result) {
-                    return;
-                }
+                        if (index > -1) {
+                            this.activeProfiles.splice(index, 1);
+                        }
 
-                // Make a copy for the insertion.
-                const newProfile: ICommShellProfile = {
-                    ...event.data.result,
-                    name: profileName,
-                    id: -1,
-                };
-
-                ShellInterface.users.addProfile(newProfile).then((addEvent: ICommProfileEvent) => {
-                    if (addEvent.data?.result) {
-                        newProfile.id = addEvent.data.result.id;
-                        this.activeProfiles.push(newProfile);
                         this.sendUpdateProfileInfoMsg();
                         this.generatePopupMenuEntries();
                     }
                 });
             });
+        }
+    };
+
+    private insertProfile = (profileName: string, baseProfile?: IShellProfile): void => {
+        if (baseProfile) {
+            void ShellInterface.users.getProfile(baseProfile.id).then((profile) => {
+                if (profile) {
+                    // Make a copy for the insertion.
+                    const newProfile: IShellProfile = {
+                        ...profile,
+                        name: profileName,
+                        id: -1,
+                    };
+
+                    void ShellInterface.users.addProfile(newProfile).then((profile) => {
+                        if (profile) {
+                            newProfile.id = profile.id;
+                            this.activeProfiles.push(newProfile);
+                            this.sendUpdateProfileInfoMsg();
+                            this.generatePopupMenuEntries();
+                        }
+                    });
+                }
+            });
         } else {
-            const newProfile: ICommShellProfile = {
+            const newProfile: IShellProfile = {
                 id: -1,
                 userId: webSession.userId,
                 name: profileName,
@@ -540,15 +528,13 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
                 options: webSession.profile.options,
             };
 
-            ShellInterface.users.addProfile(newProfile).then((addEvent: ICommProfileEvent) => {
-                if (!addEvent.data?.result) {
-                    return;
+            void ShellInterface.users.addProfile(newProfile).then((profile) => {
+                if (profile) {
+                    newProfile.id = profile.id;
+                    this.activeProfiles.push(newProfile);
+                    this.sendUpdateProfileInfoMsg();
+                    this.generatePopupMenuEntries();
                 }
-
-                newProfile.id = addEvent.data?.result.id;
-                this.activeProfiles.push(newProfile);
-                this.sendUpdateProfileInfoMsg();
-                this.generatePopupMenuEntries();
             });
         }
     };

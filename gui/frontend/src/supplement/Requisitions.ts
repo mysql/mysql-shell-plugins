@@ -30,9 +30,8 @@ import {
 import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
 } from "../app-logic/Types";
-import {
-    IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem, IShellPromptValues,
-} from "../communication";
+import { IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem } from "../communication";
+import { IShellProfile, IShellPromptValues, IWebSessionData } from "../communication/ShellResponseTypes";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
 import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
@@ -53,6 +52,9 @@ interface IAppParameters {
 
     /** Indicates if unit tests are running. */
     testsRunning?: boolean;
+
+    /** The communication debugger is by default off while running tests. This flag allows to switch it on. */
+    launchWithDebugger?: boolean;
 }
 
 /**
@@ -131,15 +133,25 @@ export interface IEditorExecutionOptions {
     forceSecondaryEngine: boolean;
 }
 
+/** A special set of data for the communication debugger/listener. */
+export interface IDebuggerData {
+    request?: INativeShellRequest;
+    response?: INativeShellResponse;
+}
+
 /**
  * The map containing possible requests and their associated callback.
  * The return value in the promise determines if the request was handled or not.
- * Watch out when adding new callbacks! There must be exactly one parameter.
+ *
+ * Watch out when adding new callbacks! There must be exactly one parameter, because of the way we extract parameters
+ * in `IRequisitionCallbackValues`.
  */
 export interface IRequestTypeMap {
     "applicationDidStart": SimpleCallback;
     "applicationWillFinish": SimpleCallback;
     "socketStateChanged": (connected: boolean) => Promise<boolean>;
+    "webSessionStarted": (data: IWebSessionData) => Promise<boolean>;
+    "userAuthenticated": (activeProfile: IShellProfile) => Promise<boolean>;
 
     "updateStatusbar": (items: IStatusbarInfo[]) => Promise<boolean>;
     "profileLoaded": SimpleCallback;
@@ -236,6 +248,7 @@ export interface IRequestTypeMap {
     /** For unit tests only. */
     "testButtonClick": SimpleCallback;
 
+    "debugger": (data: IDebuggerData) => Promise<boolean>;
 }
 
 /** A function that can be use to send messages between host and client parts in embedded scenarios. */

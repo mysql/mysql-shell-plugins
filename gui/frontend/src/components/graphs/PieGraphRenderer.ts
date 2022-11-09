@@ -68,7 +68,13 @@ export class PieGraphRenderer {
         let labels: PieChartSelection;
         let lines: PieChartSelection;
 
-        let svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        let svg;
+        try {
+            svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
+        } catch (reason) {
+            svg = hostSvg.select<SVGSVGElement>("__invalid__");
+        }
+
         if (svg.empty()) {
             svg = hostSvg.append("svg").attr("id", config.id);
 

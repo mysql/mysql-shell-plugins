@@ -29,8 +29,6 @@ export * from "./ProtocolMds";
 export * from "./ProtocolMrs";
 
 export * from "./MessageScheduler";
-export * from "./GeneralEvents";
-export * from "./OciEvents";
 export * from "./Oci";
 
 // Types for communication in various environments, like a browser, native platform wrappers or Visual Studio Code.

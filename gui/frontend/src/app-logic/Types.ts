@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// TODO: check if we can switch to camel case for those DB data types that use snake case.
+// This file is exclusively focused on types. Never import any file with code in it (or enums)!
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -36,6 +36,7 @@ export interface IDictionary {
 /**
  * Types of columns in a table column definition, which we support in the application.
  * Also used for column affinities in SQLite(instead of column types).
+ * TODO: check if we can switch to camel case for those DB data types that use snake case.
  */
 export enum DBDataType {
     Unknown,

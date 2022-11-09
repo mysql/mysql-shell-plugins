@@ -266,19 +266,21 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
     }
 
     /**
-     * Enabled this method if you need to find out what causes a state update for a component.
+     * Promisified version of `setState`.
      *
      * @param state The new state to set.
-     * @param callback The callback to trigger when the state update is finished.
+     *
+     * @returns A promise which resolves when the `setState` action finished.
      */
-    /*
-    public setState<K extends keyof S>(
+    public setStatePromise<K extends keyof S>(
         state: ((prevState: Readonly<S>, props: Readonly<P>) => (Pick<S, K> | S | null)) | (Pick<S, K> | S | null),
-        callback?: () => void,
-    ): void {
-        super.setState(state, callback);
+    ): Promise<void> {
+        return new Promise((resolve) => {
+            super.setState(state, () => {
+                resolve();
+            });
+        });
     }
-    */
 
     /**
      * Constructs a CSS class name value out of the given base names, the framework class name,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -39,7 +39,7 @@ export interface IModuleProperties {
 
 export type IModuleState = IDictionary;
 
-// The base class for registerable modules.
+/** The base class for registerable modules. */
 export class ModuleBase<P extends IModuleProperties, S extends IModuleState = {}, SS = unknown>
     extends Component<P, S, SS> {
 
@@ -49,6 +49,23 @@ export class ModuleBase<P extends IModuleProperties, S extends IModuleState = {}
             caption: "Base Module",
             icon: "",
         };
+    }
+
+    /**
+     * Promisified version of `setState`. This is the same code as in our own `Component` implementation.
+     *
+     * @param state The new state to set.
+     *
+     * @returns A promise which resolves when the `setState` action finished.
+     */
+    public setStatePromise<K extends keyof S>(
+        state: ((prevState: Readonly<S>, props: Readonly<P>) => (Pick<S, K> | S | null)) | (Pick<S, K> | S | null),
+    ): Promise<void> {
+        return new Promise((resolve) => {
+            super.setState(state, () => {
+                resolve();
+            });
+        });
     }
 
 }

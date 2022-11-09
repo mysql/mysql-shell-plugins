@@ -22,11 +22,12 @@
  */
 
 import { mount } from "enzyme";
+import keyboardKey from "keyboard-key";
 import { act } from "preact/test-utils";
 import React from "react";
 
 import { Radiobutton, CheckState, IRadiobuttonProperties } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../../test-helpers";
 import { eventMock } from "../../__mocks__/MockEvents";
 
 describe("Radiobutton component tests", (): void => {
@@ -59,12 +60,33 @@ describe("Radiobutton component tests", (): void => {
                 name="rbx"
                 disabled
                 checkState={CheckState.Checked}
-            >
-                Disabled radio button
-            </Radiobutton>,
+                caption="Disabled Radiobutton"
+            />,
         );
 
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        component.unmount();
+    });
+
+    it("Radiobutton interaction", async () => {
+        const component = mount<Radiobutton>(
+            <Radiobutton
+                id="rb4"
+                name="rbx"
+                disabled
+                checkState={CheckState.Checked}
+                caption="Disabled Radiobutton"
+            />,
+        );
+
+        await nextProcessTick();
+
+        const button = component.find(Radiobutton);
+        expect(button).not.toBeNull();
+
+        sendKeyPress(keyboardKey.Spacebar);
+        await nextProcessTick();
 
         component.unmount();
     });

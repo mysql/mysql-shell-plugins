@@ -21,19 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { EventType, ListenerEntry } from "../Dispatch";
 import {
-    ProtocolGui, ICommErrorEvent, ICommStartSessionEvent, ShellPromptResponseType,
-    IPromptReplyBackend,
-    MessageScheduler,
+    ShellPromptResponseType, IPromptReplyBackend, MessageScheduler, ShellAPIGui, Protocol, DataCallback,
 } from "../../communication";
 import { webSession } from "../WebSession";
-import { IShellInterface } from ".";
 import { ShellInterfaceMds } from "./ShellInterfaceMds";
+import { IShellResultType } from "../../communication/ShellResponseTypes";
 
-export class ShellInterfaceShellSession implements IShellInterface, IPromptReplyBackend {
-
-    public readonly id = "shellSession";
+export class ShellInterfaceShellSession implements IPromptReplyBackend {
 
     public mds: ShellInterfaceMds = new ShellInterfaceMds();
 
@@ -47,7 +42,7 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
      */
     public constructor(sessionId?: string) {
         if (sessionId) {
-            this.moduleSessionLookupId = this.id + ".temporary";
+            this.moduleSessionLookupId = "shellSession.temporary";
             webSession.setModuleSessionId(this.moduleSessionLookupId, sessionId);
         }
     }
@@ -64,69 +59,90 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
      *
      * @param id The id of the shell session tab.
      * @param dbConnectionId The id of the connection the shell tab should open.
+     * @param shellArgs Additional arguments for the backend.
+     * @param requestId An explicit request ID (instead of using the implicitly created one), to allow the caller
+     *                  to associate the execution request and the various results.
+     * @param callback The callback for intermediate results.
      *
-     * @returns A listener for the response.
+     * @returns A promise resolving to an optional set of results which might require additional handling,
+     *          like a shell prompt.
      */
-    public startShellSession(id: string, dbConnectionId?: number): ListenerEntry {
-        this.moduleSessionLookupId = this.id + "." + id;
+    public async startShellSession(id: string, dbConnectionId?: number, shellArgs?: unknown[], requestId?: string,
+        callback?: DataCallback<ShellAPIGui.GuiShellStartSession>): Promise<IShellResultType | undefined> {
+        this.moduleSessionLookupId = `shellSession.${id}`;
 
         if (this.hasSession) {
-            return ListenerEntry.resolve();
+            return;
         }
 
-        const request = ProtocolGui.getRequestShellStartSession(dbConnectionId);
-        const listener = MessageScheduler.get.sendRequest(request, { messageClass: "startShellModuleSession" });
-
-        listener.then((event: ICommStartSessionEvent) => {
-            if (event.data && event.eventType === EventType.FinalResponse && event.data.result.moduleSessionId) {
-                webSession.setModuleSessionId(this.moduleSessionLookupId, event.data.result.moduleSessionId);
-            }
-        }).catch(() => {
-            // Ignore errors here. They must be handled by the caller of this method.
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiShellStartSession,
+            requestId,
+            parameters: {
+                args: {
+                    dbConnectionId,
+                    shellArgs,
+                },
+            },
+            onData: callback,
         });
 
-        return listener;
+        if (response.result?.moduleSessionId) {
+            webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
+        }
+
+        return response.result;
     }
 
     /**
      * Closes the current session.
      *
-     * @returns A listener for the response.
+     * @returns A promise which resolves when the request is finished.
      */
-    public closeShellSession(): ListenerEntry {
-        const sessionId = this.moduleSessionId;
-        if (sessionId) {
-            const request = ProtocolGui.getRequestShellCloseSession(sessionId);
-            const listener = MessageScheduler.get.sendRequest(request, { messageClass: "closeModuleSession" });
-
-            listener.then(() => {
-                webSession.setModuleSessionId(this.moduleSessionLookupId);
-            }).catch((event: ICommErrorEvent) => {
-                throw new Error(event.message);
+    public async closeShellSession(): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiShellCloseSession,
+                parameters: {
+                    args: {
+                        moduleSessionId,
+                    },
+                },
             });
 
-            return listener;
+            webSession.setModuleSessionId(this.moduleSessionLookupId);
         }
-
-        return ListenerEntry.resolve();
     }
 
     /**
      * Sends the shell command to the backend for execution.
      *
      * @param command The shell command to execute.
+     * @param requestId An explicit request ID (instead of using the implicitly created one), to allow the caller
+     *                  to associate the execution request and the various results.
+     * @param callback The callback for intermediate results.
      *
      * @returns A listener for the response.
      */
-    public execute(command: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
+    public async execute(command: string, requestId?: string,
+        callback?: DataCallback<ShellAPIGui.GuiShellExecute>): Promise<IShellResultType | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiShellExecute,
+                requestId,
+                parameters: {
+                    args: {
+                        command,
+                        moduleSessionId,
+                    },
+                },
+                onData: callback,
+            });
+
+            return response.result;
         }
-
-        const request = ProtocolGui.getRequestShellExecute(command, id);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "execute" });
     }
 
     /**
@@ -138,15 +154,14 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
      *
      * @returns A listener for the response.
      */
-    public sendReply(requestId: string, type: ShellPromptResponseType, reply: string): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
+    public async sendReply(requestId: string, type: ShellPromptResponseType, reply: string): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: Protocol.PromptReply,
+                parameters: { moduleSessionId, requestId, type, reply },
+            }, false);
         }
-
-        const request = ProtocolGui.getRequestPromptReply(requestId, type, reply, id);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "sendReply" });
     }
 
     /**
@@ -157,15 +172,32 @@ export class ShellInterfaceShellSession implements IShellInterface, IPromptReply
      *
      * @returns A listener for the response.
      */
-    public getCompletionItems(text: string, offset: number): ListenerEntry {
-        const id = this.moduleSessionId;
-        if (!id) {
-            return ListenerEntry.resolve();
+    public async getCompletionItems(text: string,
+        offset: number): Promise<Array<{ offset?: number; options?: string[] }>> {
+        const moduleSessionId = this.moduleSessionId;
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiShellComplete,
+                parameters: {
+                    args: {
+                        data: text,
+                        offset,
+                        moduleSessionId,
+                    },
+                },
+            });
+
+            const result: Array<{ offset: number; options: string[] }> = [];
+            response.forEach((list) => {
+                if (list.result) {
+                    result.push(list.result);
+                }
+            });
+
+            return result;
         }
 
-        const request = ProtocolGui.getRequestShellComplete(text, offset, id);
-
-        return MessageScheduler.get.sendRequest(request, { messageClass: "getCompletionItems" });
+        return [];
     }
 
     private get moduleSessionId(): string | undefined {

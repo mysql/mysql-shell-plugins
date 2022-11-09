@@ -21,11 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IGenericResponse, IShellRequest, Protocol, ICommStartSessionEvent } from "../../communication";
 import { IDictionary } from "../../app-logic/Types";
-import { dispatcher, DispatchEvents, EventType } from "../../supplement/Dispatch";
-import { convertCamelToSnakeCase, deepEqual, sleep, strictEval, uuid } from "../../utilities/helpers";
+import { deepEqual, strictEval, uuid } from "../../utilities/helpers";
 import { MessageScheduler } from "../../communication/MessageScheduler";
+import { requisitions } from "../../supplement/Requisitions";
 
 /** The environment injected as global in the debugger scripts. */
 export class CommunicationDebuggerEnvironment {
@@ -34,7 +33,7 @@ export class CommunicationDebuggerEnvironment {
 
     private lastGeneratedId: string;
     private lastReceivedModuleSessionId: string;
-    private lastReceivedResponse: IGenericResponse | undefined;
+    private lastReceivedResponse: INativeShellResponse | undefined;
 
     public constructor(private loadedScripts: Map<string, string>) {
     }
@@ -43,12 +42,24 @@ export class CommunicationDebuggerEnvironment {
         return this.lastGeneratedId;
     }
 
+    public set lastGeneratedRequestId(id: string) {
+        this.lastGeneratedId = id;
+    }
+
     public get lastModuleSessionId(): string {
         return this.lastReceivedModuleSessionId;
     }
 
-    public get lastResponse(): IGenericResponse | undefined {
+    public get lastResponse(): INativeShellResponse | undefined {
         return this.lastReceivedResponse;
+    }
+
+    public set lastResponse(response: INativeShellResponse | undefined) {
+        this.lastReceivedResponse = response;
+
+        if ((response as IDictionary).module_session_id) {
+            this.lastReceivedModuleSessionId = (response as IDictionary).module_session_id as string;
+        }
     }
 
     public clearState(): void {
@@ -56,40 +67,6 @@ export class CommunicationDebuggerEnvironment {
         this.lastGeneratedId = "";
         this.lastReceivedModuleSessionId = "";
         this.lastReceivedResponse = undefined;
-    }
-
-    public async doSend(data: IShellRequest): Promise<IGenericResponse> {
-        return new Promise((resolve) => {
-            const request = Protocol.getStandardRequest(data.request, data);
-
-            let timedOut = false;
-            const timer = setTimeout(() => {
-                timedOut = true;
-
-                resolve({
-                    requestId: data.request_id,
-                    requestState: { type: "error", msg: "No response from backend in 3 seconds" },
-                });
-            }, 3000);
-
-            const setLastResponse = (event: IDictionary): void => {
-                clearTimeout(timer);
-                if (!timedOut) { // Ignore results from timed-out responses.
-                    this.lastReceivedResponse = convertCamelToSnakeCase(event.data as object) as IGenericResponse;
-                    if ((event.data as IDictionary).moduleSessionId) {
-                        this.lastReceivedModuleSessionId = (event.data as IDictionary).moduleSessionId as string;
-                    }
-                    resolve(this.lastReceivedResponse);
-                }
-
-            };
-
-            MessageScheduler.get.sendRequest(request, { messageClass: "debugger" }).then((event) => {
-                setLastResponse(event as IDictionary);
-            }).catch((event) => {
-                setLastResponse(event as IDictionary);
-            });
-        });
     }
 
     /**
@@ -100,7 +77,7 @@ export class CommunicationDebuggerEnvironment {
      * @param data The request details.
      * @returns A promise to handle the response of the server.
      */
-    public async send(data: IShellRequest): Promise<IGenericResponse> {
+    public async send(data: INativeShellRequest): Promise<INativeShellResponse> {
         let result;
         try {
             MessageScheduler.get.inDebugCall = true;
@@ -124,11 +101,10 @@ export class CommunicationDebuggerEnvironment {
         return this.lastGeneratedId;
     }
 
-    public log(output: string): void {
-        const event = DispatchEvents.baseEvent(EventType.Notification, { requestState: { type: "log", msg: "" } },
-            undefined, "debugger");
-        event.message = output;
-        dispatcher.triggerEvent(event);
+    public log(output: string | object): void {
+        const message = typeof output === "string" ? output : JSON.stringify(output, undefined, 4);
+
+        void requisitions.execute("message", message);
     }
 
     /**
@@ -143,7 +119,9 @@ export class CommunicationDebuggerEnvironment {
      * @param responseIndex An optional index which, when given, adds the number to the output.
      * @returns True if both values are semantically equal, otherwise false.
      */
-    public validateResponse(actual?: IGenericResponse, expected?: IGenericResponse, responseIndex?: number): boolean {
+    public validateResponse(actual?: INativeShellResponse, expected?: INativeShellResponse,
+        responseIndex?: number): boolean {
+
         const result = deepEqual(expected, actual);
         const indexText = responseIndex !== undefined ? ` (response ${responseIndex})` : "";
         if (result) {
@@ -166,7 +144,7 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
      * @param responseIndex An optional index which, when given, adds the number to the output.
      * @returns True if both values are semantically equal, otherwise false.
      */
-    public validateLastResponse(expected: IGenericResponse, responseIndex?: number): boolean {
+    public validateLastResponse(expected: INativeShellResponse, responseIndex?: number): boolean {
         return this.validateResponse(this.lastReceivedResponse, expected, responseIndex);
     }
 
@@ -180,41 +158,39 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
      *                 came in during a specific time frame (3 secs currently) the validation will fail.
      *                 Any extraneous response is ignored, once all items in the expected list have been processed.
      */
-    public async sendAndValidate(data: IShellRequest, expected: IGenericResponse[]): Promise<void> {
-        if (expected.length === 0) {
-            this.log("/* WARNING: No expectations found. */");
+    public async sendAndValidate(data?: INativeShellRequest, expected?: INativeShellResponse[]): Promise<void> {
+        if (!data) {
+            this.log("/* WARNING: No request data was given. */");
+
+            return;
+        }
+
+        if (!expected || expected.length === 0) {
+            this.log("/* WARNING: No expectations where given. */");
+
+            return;
         }
 
         MessageScheduler.get.inDebugCall = true;
         try {
-            const request = Protocol.getStandardRequest(data.request, data);
-
             let currentIndex = 0;
             this.lastReceivedResponse = undefined;
             let failed = false;
 
-            MessageScheduler.get.sendRequest(request, { messageClass: "debuggerValidate" })
-                .then((event: ICommStartSessionEvent) => {
-                    // Ignore any extraneous responses.
+            try {
+                const response = await MessageScheduler.get.sendRawRequest(data, (data: INativeShellResponse) => {
                     if (currentIndex < expected.length) {
-                        this.lastReceivedResponse = convertCamelToSnakeCase(event.data as object) as IGenericResponse;
-                        failed = failed ||
-                            !this.validateResponse(this.lastReceivedResponse, expected[currentIndex], currentIndex++);
-
-                        if (event.data.result.moduleSessionId) {
-                            this.lastReceivedModuleSessionId = event.data.result.moduleSessionId;
-                        }
+                        failed = failed || !this.validateResponse(data, expected[currentIndex], currentIndex++);
                     }
-                }).catch((event) => {
-                    this.lastReceivedResponse = convertCamelToSnakeCase(event.data as object) as IGenericResponse;
-                    failed = true;
 
-                    // No error printout here. The debugger has a global event listener doing that.
                 });
 
-            let attempt = 0;
-            while (attempt++ < 10 && !failed && currentIndex < expected.length) {
-                await sleep(300);
+                // The last check for the final response.
+                if (currentIndex < expected.length) {
+                    failed = failed || !this.validateResponse(response, expected[currentIndex], currentIndex++);
+                }
+            } catch (_) {
+                failed = true;
             }
 
             if (failed) {
@@ -277,18 +253,21 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
     }
 
     /**
-     * Returns a marker value which indicates that the member in an object or array should be matched against
+     * @returns a marker value which indicates that the member in an object or array should be matched against
      * the given list, when comparing the owning object/array to another object/array.
      *
      * @param list The list to match.
      * @param full A flag stating if
-     * @returns A special symbol.
      */
     public matchList(list: unknown[], full = true): object {
         return {
             symbol: Symbol("list"),
             parameters: { list, full },
         };
+    }
+
+    private async doSend(data: INativeShellRequest): Promise<INativeShellResponse> {
+        return MessageScheduler.get.sendRawRequest(data);
     }
 
 }

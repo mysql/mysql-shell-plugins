@@ -27,12 +27,6 @@ import {
 
 import { isNil } from "lodash";
 
-import {
-    ICommAuthenticationEvent, ICommErrorEvent, ICommListDataCategoriesEvent, ICommListProfilesEvent, ICommShellProfile,
-    ICommWebSessionEvent, IShellModuleDataCategoriesEntry,
-} from "../../frontend/src/communication";
-
-import { eventFilterNoRequests, ListenerEntry } from "../../frontend/src/supplement/Dispatch";
 import { DBType, ShellInterface } from "../../frontend/src/supplement/ShellInterface";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { ISettingCategory, settingCategories } from "../../frontend/src/supplement/Settings/SettingsRegistry";
@@ -52,15 +46,16 @@ import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
 import { MRSCommandHandler } from "./MRSCommandHandler";
 import { ConnectionsTreeDataProvider, IConnectionEntry } from "./tree-providers/ConnectionsTreeProvider";
+import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ShellResponseTypes";
 
 // This class manages some extension wide things like authentication handling etc.
 export class ExtensionHost {
-    private activeProfile?: ICommShellProfile;
+    private activeProfile?: IShellProfile;
     private updatingSettings = false;
 
     private connectionsProvider = new ConnectionsTreeDataProvider();
 
-    private dbEditorCommandHandler  = new DBEditorCommandHandler(this.connectionsProvider);
+    private dbEditorCommandHandler = new DBEditorCommandHandler(this.connectionsProvider);
     private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
     private mrsCommandHandler = new MRSCommandHandler();
     private mdsCommandHandler = new MDSCommandHandler();
@@ -77,41 +72,31 @@ export class ExtensionHost {
     // A mapping from data type captions to data type ids.
     private moduleDataCategories = new Map<string, IShellModuleDataCategoriesEntry>();
 
-    // Listeners.
-    private serverResponseListener: ListenerEntry;
-    private sessionListener: ListenerEntry;
-
     public constructor(public context: ExtensionContext) {
         this.setupEnvironment();
 
         requisitions.register("settingsChanged", this.updateVscodeSettings);
 
-        this.serverResponseListener = ListenerEntry.createByClass("serverResponse", { persistent: true });
-        this.serverResponseListener.catch((errorEvent: ICommErrorEvent) => {
-            void window.showErrorMessage(`Backend Error: ${errorEvent.data.result.requestState.msg}`);
-        });
-
-        this.sessionListener = ListenerEntry.createByClass("webSession",
-            { filters: [eventFilterNoRequests], persistent: true });
-        this.sessionListener.then((event: ICommWebSessionEvent) => {
-            if (event.data?.sessionUuid) {
-                webSession.sessionId = event.data.sessionUuid;
-                webSession.localUserMode = event.data.localUserMode;
-            }
+        requisitions.register("webSessionStarted", (data) => {
+            webSession.sessionId = data.sessionUuid;
+            webSession.localUserMode = data.localUserMode ?? false;
 
             if (webSession.userName === "") {
-                if (event.data?.localUserMode) {
-                    ShellInterface.users.authenticate("LocalAdministrator", "")
-                        .then((authEvent: ICommAuthenticationEvent) => {
-                            this.onAuthentication(authEvent);
-                        });
+                if (webSession.localUserMode) {
+                    ShellInterface.users.authenticate("LocalAdministrator", "").then((profile) => {
+                        if (profile) {
+                            void this.onAuthentication(profile);
+                        }
+                    }).catch((reason) => {
+                        printChannelOutput("Internal error: " + String(reason), true);
+                    });
                 }
-            } else if (event.data) {
-                webSession.loadProfile(event.data.activeProfile);
-                this.activeProfile = event.data.activeProfile;
+            } else {
+                webSession.loadProfile(data.activeProfile);
+                this.activeProfile = data.activeProfile;
             }
-        }).catch((event) => {
-            printChannelOutput("Internal error: " + String(event.stack), true);
+
+            return Promise.resolve(true);
         });
     }
 
@@ -123,16 +108,15 @@ export class ExtensionHost {
         this.shellConsoleCommandHandler.closeProviders();
     }
 
-    public addNewShellTask(caption: string, shellArgs: string[], dbConnectionId?: number): Promise<unknown> {
+    public async addNewShellTask(caption: string, shellArgs: string[], dbConnectionId?: number): Promise<void> {
         const task = new ShellTask(caption, this.taskPromptCallback, this.taskMessageCallback);
         this.shellTasks.push(task);
         this.shellTasksTreeDataProvider.refresh();
 
         taskOutputChannel.show();
 
-        return task.runTask(shellArgs, dbConnectionId).then(() => {
-            this.shellTasksTreeDataProvider.refresh();
-        });
+        await task.runTask(shellArgs, dbConnectionId);
+        this.shellTasksTreeDataProvider.refresh();
     }
 
 
@@ -234,8 +218,8 @@ export class ExtensionHost {
         // The scripts provider needs a module data category id and is created later, when this info is available.
 
         // Handling of extension commands.
-        this.context.subscriptions.push(commands.registerCommand("msg.selectProfile", () => {
-            this.selectProfile();
+        this.context.subscriptions.push(commands.registerCommand("msg.selectProfile", async () => {
+            await this.selectProfile();
         }));
 
         this.context.subscriptions.push(commands.registerCommand("msg.dumpSchemaToDisk",
@@ -339,33 +323,31 @@ export class ExtensionHost {
             }));
     }
 
-    private onAuthentication(event: ICommAuthenticationEvent): void {
-        this.activeProfile = event.data?.activeProfile;
-        ShellInterface.modules.listDataCategories().then((list: ICommListDataCategoriesEvent) => {
-            list.data.result.forEach((row) => {
-                this.moduleDataCategories.set(row.name, row);
-            });
-
-            // TODO: Finish the SCRIPT tree,
-            // leave the current implementation commented out for now on purpose
-            /*if (!this.scriptsTreeDataProvider) {
-                const category = this.moduleDataCategories.get("Script");
-                if (category) {
-                    this.scriptsTreeDataProvider = new ScriptsTreeDataProvider(category.id);
-                    this.context.subscriptions.push(window.registerTreeDataProvider("msg.scripts",
-                        this.scriptsTreeDataProvider));
-                }
-            } else {
-                this.scriptsTreeDataProvider.refresh();
-            }*/
-
-            // Refresh relevant tree providers.
-            this.dbEditorCommandHandler.refreshConnectionTree();
-            this.consoleTreeDataProvider.refresh([]);
-
-            void commands.executeCommand("msg.mds.refreshOciProfiles");
+    private async onAuthentication(profile: IShellProfile): Promise<void> {
+        this.activeProfile = profile;
+        const categories = await ShellInterface.modules.listDataCategories();
+        categories.forEach((row) => {
+            this.moduleDataCategories.set(row.name, row);
         });
 
+        // TODO: Finish the SCRIPT tree,
+        // leave the current implementation commented out for now on purpose
+        /*if (!this.scriptsTreeDataProvider) {
+            const category = this.moduleDataCategories.get("Script");
+            if (category) {
+                this.scriptsTreeDataProvider = new ScriptsTreeDataProvider(category.id);
+                this.context.subscriptions.push(window.registerTreeDataProvider("msg.scripts",
+                    this.scriptsTreeDataProvider));
+            }
+        } else {
+            this.scriptsTreeDataProvider.refresh();
+        }*/
+
+        // Refresh relevant tree providers.
+        this.dbEditorCommandHandler.refreshConnectionTree();
+        this.consoleTreeDataProvider.refresh([]);
+
+        void commands.executeCommand("msg.mds.refreshOciProfiles");
     }
 
     /**
@@ -473,28 +455,30 @@ export class ExtensionHost {
         return true;
     };
 
-    private selectProfile(): void {
+    private async selectProfile(): Promise<void> {
         if (this.activeProfile) {
-            ShellInterface.users.listProfiles(this.activeProfile.userId).then((event: ICommListProfilesEvent) => {
-                const items = event.data.result.map((profile) => {
-                    return profile.name;
+            const profiles = await ShellInterface.users.listProfiles(this.activeProfile.userId);
+            const items = profiles.map((profile) => {
+                return profile.name;
+            });
+
+            const name = await window.showQuickPick(items, {
+                title: "Activate a Profile",
+                matchOnDescription: true,
+                placeHolder: "Type the name of an existing profile",
+            });
+
+            if (name) {
+                const row = profiles.find((candidate) => {
+                    return candidate.name === name;
                 });
 
-                void window.showQuickPick(items, {
-                    title: "Activate a Profile",
-                    matchOnDescription: true,
-                    placeHolder: "Type the name of an existing profile",
-                }).then((name) => {
-                    if (name) {
-                        const row = event.data.result.find((candidate) => { return candidate.name === name; });
-                        if (row) {
-                            ShellInterface.users.setCurrentProfile(row.id).then(() => {
-                                window.setStatusBarMessage("Profile set successfully", 5000);
-                            });
-                        }
-                    }
-                });
-            });
+                if (row) {
+                    await ShellInterface.users.setCurrentProfile(row.id);
+                    window.setStatusBarMessage("Profile set successfully", 5000);
+
+                }
+            }
         }
     }
 

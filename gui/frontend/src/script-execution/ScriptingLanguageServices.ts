@@ -30,8 +30,8 @@ import ts, {
 
 import {
     CompletionItem, CompletionList, Definition, DocumentHighlight, FormattingOptions, Hover, IRange,
-    languages, Location, Monaco, ParameterInformation, ProviderResult, Range, SignatureHelp,
-    SignatureHelpResult, SignatureInformation, TextEdit, TypescriptWorker, Uri, WorkspaceEdit, WorkspaceTextEdit,
+    languages, Location, Monaco, ParameterInformation, Range, SignatureHelp,
+    SignatureHelpResult, SignatureInformation, TextEdit, TypeScriptWorker, Uri, WorkspaceEdit, WorkspaceTextEdit,
 } from "../components/ui/CodeEditor";
 import { CodeEditorMode, ICodeEditorModel } from "../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContext } from "./ExecutionContext";
@@ -51,8 +51,6 @@ import { isWhitespaceOnly } from "../utilities/string-helpers";
 
 import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool";
 import { IShellEditorModel } from "../modules/shell";
-import { ICommShellCompletionEvent } from "../communication";
-import { EventType } from "../supplement/Dispatch";
 import { IDictionary } from "../app-logic/Types";
 
 /** Provides language services like code completion, by reaching out to built-in or other sources. */
@@ -96,101 +94,81 @@ export class ScriptingLanguageServices {
      *
      * @returns A suggestion list.
      */
-    public getCodeCompletionItems(context: ExecutionContext, position: IPosition): ProviderResult<CompletionList> {
+    public async getCodeCompletionItems(context: ExecutionContext,
+        position: IPosition): Promise<CompletionList | undefined> {
         const localPosition = context.toLocal(position);
         const model = context.model as ICodeEditorModel;
 
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const offset = model.getOffsetAt(localPosition);
-                            const promise = service.getCompletionsAtPosition(model.uri.toString(), offset);
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const offset = model.getOffsetAt(localPosition);
 
-                            void promise.then((completions?: CompletionInfo) => {
-                                const suggestions: CompletionItem[] = [];
-                                const info = model.getWordUntilPosition(localPosition);
-                                const replaceRange: IRange = {
-                                    startLineNumber: position.lineNumber,
-                                    startColumn: info.startColumn,
-                                    endLineNumber: position.lineNumber,
-                                    endColumn: info.endColumn,
-                                };
+                const completions: CompletionInfo =
+                    await service.getCompletionsAtPosition(model.uri.toString(), offset);
+                const suggestions: CompletionItem[] = [];
+                const info = model.getWordUntilPosition(localPosition);
+                const replaceRange: IRange = {
+                    startLineNumber: position.lineNumber,
+                    startColumn: info.startColumn,
+                    endLineNumber: position.lineNumber,
+                    endColumn: info.endColumn,
+                };
 
-                                if (completions) {
-                                    completions.entries.forEach((entry) => {
-                                        suggestions.push({
-                                            label: entry.name,
-                                            kind: this.convertKind(entry.kind),
-                                            range: replaceRange,
-                                            insertText: entry.insertText || entry.name,
-                                        });
-                                    });
-                                }
-
-                                // See if we also need additional items from the shell backend.
-                                if (model.editorMode === CodeEditorMode.Terminal) {
-                                    if (info.word.length > 1) {
-                                        // User typing ongoing. Use was we retrieved on last fresh word start.
-                                        suggestions.push(...this.lastShellCompletions);
-                                        resolve({ incomplete: false, suggestions });
-                                    } else {
-                                        const session = (model as IShellEditorModel).session;
-                                        if (session) {
-                                            const content = model.getValue();
-
-                                            const shellSuggestions: CompletionItem[] = [];
-                                            session.getCompletionItems(content, offset)
-                                                .then((event: ICommShellCompletionEvent) => {
-                                                    if (!event.data) {
-                                                        return;
-                                                    }
-
-                                                    switch (event.eventType) {
-                                                        case EventType.DataResponse: {
-                                                            event.data.result.options.forEach((option) => {
-                                                                let kind = languages.CompletionItemKind.Field;
-                                                                if (option.endsWith("()")) {
-                                                                    kind = languages.CompletionItemKind.Function;
-                                                                }
-                                                                shellSuggestions.push({
-                                                                    label: option,
-                                                                    kind,
-                                                                    range: replaceRange,
-                                                                    insertText: option,
-                                                                });
-                                                            });
-
-                                                            break;
-                                                        }
-
-                                                        case EventType.FinalResponse: {
-                                                            this.lastShellCompletions = shellSuggestions;
-                                                            suggestions.push(...shellSuggestions);
-                                                            resolve({ incomplete: false, suggestions });
-
-                                                            break;
-                                                        }
-
-                                                        default: {
-                                                            break;
-                                                        }
-                                                    }
-                                                });
-                                        }
-                                    }
-                                } else {
-                                    resolve({ incomplete: false, suggestions });
-                                }
-                            });
+                if (completions) {
+                    completions.entries.forEach((entry) => {
+                        suggestions.push({
+                            label: entry.name,
+                            kind: this.convertKind(entry.kind),
+                            range: replaceRange,
+                            insertText: entry.insertText || entry.name,
                         });
                     });
-                });
+                }
+
+                // See if we also need additional items from the shell backend.
+                if (model.editorMode === CodeEditorMode.Terminal) {
+                    if (info.word.length > 1) {
+                        // User typing ongoing. Use was we retrieved on last fresh word start.
+                        suggestions.push(...this.lastShellCompletions);
+
+                        return { incomplete: false, suggestions };
+                    } else {
+                        const session = (model as IShellEditorModel).session;
+                        if (session) {
+                            const content = model.getValue();
+
+                            const shellSuggestions: CompletionItem[] = [];
+                            const items = await session.getCompletionItems(content, offset);
+                            items.forEach((entry) => {
+                                entry.options?.forEach((option) => {
+                                    let kind = languages.CompletionItemKind.Field;
+                                    if (option.endsWith("()")) {
+                                        kind = languages.CompletionItemKind.Function;
+                                    }
+
+                                    shellSuggestions.push({
+                                        label: option,
+                                        kind,
+                                        range: replaceRange,
+                                        insertText: option,
+                                    });
+                                });
+                            });
+
+                            this.lastShellCompletions = shellSuggestions;
+                            suggestions.push(...shellSuggestions);
+
+                            return { incomplete: false, suggestions };
+                        }
+                    }
+                } else {
+                    return { incomplete: false, suggestions };
+                }
+
+                break;
             }
 
             case "sql": {
@@ -201,9 +179,7 @@ export class ScriptingLanguageServices {
                 return this.mysqlService.getCodeCompletionItems(context as SQLExecutionContext, localPosition);
             }
 
-            default: {
-                break;
-            }
+            default:
         }
     }
 
@@ -215,7 +191,7 @@ export class ScriptingLanguageServices {
      *
      * @returns The updated item.
      */
-    public resolve(context: ExecutionContext, item: CompletionItem): ProviderResult<CompletionItem> {
+    public async resolve(context: ExecutionContext, item: CompletionItem): Promise<CompletionItem | undefined> {
         const model = context.model;
 
         switch (context.language) {
@@ -225,37 +201,26 @@ export class ScriptingLanguageServices {
                     return item;
                 }
 
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const range = item.range as IRange;
+                const offset = model.getOffsetAt({ lineNumber: range.endLineNumber, column: range.endColumn });
+                const label = typeof item.label === "string" ? item.label : item.label.label;
 
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const range = (item.range as IRange);
-                            const position = { lineNumber: range.endLineNumber, column: range.endColumn };
-                            const offset = model.getOffsetAt(position);
-                            const label = typeof item.label === "string" ? item.label : item.label.label;
+                const details: CompletionEntryDetails =
+                    await service.getCompletionEntryDetails(model.uri.toString(), offset, label);
+                if (details) {
+                    // For some unknown reason is the detail part not allowed to be a Markdown,
+                    // string, but we need syntax highlighting for the code part (in displayParts).
+                    // So swap the entries here (as the documentation is allowed to contain
+                    // Markdown).
+                    item.documentation = {
+                        value: "```ts\n" + ts.displayPartsToString(details.displayParts) + "\n```",
+                    };
+                    item.detail = ts.displayPartsToString(details.documentation);
+                }
 
-                            void service.getCompletionEntryDetails(model.uri.toString(), offset, label)
-                                .then((details?: CompletionEntryDetails) => {
-                                    if (details) {
-                                        // For some unknown reason is the detail part not allowed to be a Markdown,
-                                        // string, but we need syntax highlighting for the code part (in displayParts).
-                                        // So swap the entries here (as the documentation is allowed to contain
-                                        // Markdown).
-                                        item.documentation = {
-                                            value: "```ts\n" + ts.displayPartsToString(details.displayParts) + "\n```",
-                                        };
-                                        item.detail = ts.displayPartsToString(details.documentation);
-                                    }
-
-                                    resolve(item);
-
-                                });
-                        });
-                    });
-                });
+                return item;
             }
 
             default: {
@@ -272,43 +237,31 @@ export class ScriptingLanguageServices {
      *
      * @returns A hover entry with details about the symbol at the cursor position.
      */
-    public getHover(context: ExecutionContext, position: IPosition): ProviderResult<Hover> {
+    public async getHover(context: ExecutionContext, position: IPosition): Promise<Hover | undefined> {
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
-            return null;
+            return;
         }
 
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const offset = model.getOffsetAt(position);
-                            void service.getQuickInfoAtPosition(model.uri.toString(), offset)
-                                .then((info?: QuickInfo) => {
-                                    if (info) {
-                                        resolve({
-                                            range: context.fromLocal(info.textSpan) as Range,
-                                            contents: [
-                                                {
-                                                    value: "```ts\n" +
-                                                        ts.displayPartsToString(info.displayParts) + "\n```",
-                                                },
-                                                { value: ts.displayPartsToString(info.documentation) },
-                                            ],
-                                        });
-                                    } else {
-                                        resolve(null);
-                                    }
-                                });
-                        });
-                    });
-                });
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const offset = model.getOffsetAt(position);
+                const info: QuickInfo = await service.getQuickInfoAtPosition(model.uri.toString(), offset);
+                if (info) {
+                    return {
+                        range: context.fromLocal(info.textSpan) as Range,
+                        contents: [
+                            { value: "```ts\n" + ts.displayPartsToString(info.displayParts) + "\n```" },
+                            { value: ts.displayPartsToString(info.documentation) },
+                        ],
+                    };
+                }
+
+                return;
             }
 
             case "sql":
@@ -316,8 +269,7 @@ export class ScriptingLanguageServices {
                 const sqlContext = context as SQLExecutionContext;
                 const statement = sqlContext.getStatementAtPosition(position);
                 if (statement) {
-                    const start = model.getOffsetAt(
-                        { lineNumber: statement.line, column: statement.column });
+                    const start = model.getOffsetAt({ lineNumber: statement.line, column: statement.column });
 
                     return new Promise((resolve) => {
                         const infoData: ILanguageWorkerInfoData = {
@@ -340,7 +292,7 @@ export class ScriptingLanguageServices {
                                         }),
                                     });
                                 } else {
-                                    resolve(null);
+                                    resolve(undefined);
                                 }
                             });
                     });
@@ -349,9 +301,7 @@ export class ScriptingLanguageServices {
                 break;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
     }
 
@@ -362,8 +312,8 @@ export class ScriptingLanguageServices {
      * @param statement Used for SQL-like languages. It's a specific statement within the context.
      * @param callback A function to be triggered for found diagnostics. Can be called more than once.
      */
-    public validate = (context: ExecutionContext, statement: string,
-        callback: (result: IDiagnosticEntry[]) => void): void => {
+    public validate = async (context: ExecutionContext, statement: string,
+        callback: (result: IDiagnosticEntry[]) => void): Promise<void> => {
 
         if (context.isInternal) {
             return;
@@ -372,48 +322,42 @@ export class ScriptingLanguageServices {
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                // Manual JS/TS validation is only necessary for a mixed language editor.
-                const workerPromise = (context.language === "javascript")
-                    ? languages.typescript.getJavaScriptWorker()
-                    : languages.typescript.getTypeScriptWorker();
-                void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                    const model = context.model;
-                    if (model && !model.isDisposed()) {
-                        void worker(model.uri).then((service: TypescriptWorker) => {
-                            if (!model.isDisposed()) {
-                                const result: IDiagnosticEntry[] = [];
-                                const syntaxPromise = service.getSyntacticDiagnostics(model.uri.toString());
-                                const semanticPromise = service.getSemanticDiagnostics(model.uri.toString());
-                                void Promise.all([syntaxPromise, semanticPromise]).then((values) => {
-                                    values[0].forEach((value) => {
-                                        result.push({
-                                            span: {
-                                                start: value.start || 0,
-                                                length: value.length || 0,
-                                            },
-                                            severity: value.category,
-                                            source: "Shell GUI",
-                                            message: ts.flattenDiagnosticMessageText(value.messageText, "\n"),
-                                        });
-                                    });
-                                    values[1].forEach((value) => {
-                                        result.push({
-                                            span: {
-                                                start: value.start || 0,
-                                                length: value.length || 0,
-                                            },
-                                            severity: value.category,
-                                            source: "Shell GUI",
-                                            message: ts.flattenDiagnosticMessageText(value.messageText, "\n"),
-                                        });
-                                    });
-
-                                    callback(result);
-                                });
-                            }
+                const model = context.model;
+                if (model && !model.isDisposed()) {
+                    // Manual JS/TS validation is only necessary for a mixed language editor.
+                    const worker = await this.workerForLanguage(context.language);
+                    const service = await worker(model.uri);
+                    if (!model.isDisposed()) {
+                        const result: IDiagnosticEntry[] = [];
+                        const syntaxDiagnostics = await service.getSyntacticDiagnostics(model.uri.toString());
+                        syntaxDiagnostics.forEach((value) => {
+                            result.push({
+                                span: {
+                                    start: value.start || 0,
+                                    length: value.length || 0,
+                                },
+                                severity: value.category,
+                                source: "Shell GUI",
+                                message: ts.flattenDiagnosticMessageText(value.messageText, "\n"),
+                            });
                         });
+
+                        const semanticDiagnostics = await service.getSemanticDiagnostics(model.uri.toString());
+                        semanticDiagnostics.forEach((value) => {
+                            result.push({
+                                span: {
+                                    start: value.start || 0,
+                                    length: value.length || 0,
+                                },
+                                severity: value.category,
+                                source: "Shell GUI",
+                                message: ts.flattenDiagnosticMessageText(value.messageText, "\n"),
+                            });
+                        });
+
+                        callback(result);
                     }
-                });
+                }
 
                 break;
             }
@@ -453,9 +397,7 @@ export class ScriptingLanguageServices {
                 break;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
     };
 
@@ -467,72 +409,63 @@ export class ScriptingLanguageServices {
      *
      * @returns A list of diagnostic records each describing a problem in the code (if any).
      */
-    public getSignatureHelp(context: ExecutionContext, position: IPosition): ProviderResult<SignatureHelpResult> {
+    public async getSignatureHelp(context: ExecutionContext,
+        position: IPosition): Promise<SignatureHelpResult | undefined> {
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
-            return null;
+            return;
         }
 
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const offset = model.getOffsetAt(position);
-                            void service.getSignatureHelpItems(model.uri.toString(), offset, {})
-                                .then((signHelp?: SignatureHelpItems) => {
-                                    if (signHelp) {
-                                        const helpEntries: SignatureHelp = {
-                                            activeSignature: signHelp.selectedItemIndex,
-                                            activeParameter: signHelp.argumentIndex,
-                                            signatures: [],
-                                        };
-                                        signHelp.items.forEach((item) => {
-                                            const signature: SignatureInformation = {
-                                                label: "",
-                                                documentation: undefined,
-                                                parameters: [],
-                                            };
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const offset = model.getOffsetAt(position);
+                const signHelp: SignatureHelpItems =
+                    await service.getSignatureHelpItems(model.uri.toString(), offset, {});
+                if (signHelp) {
+                    const helpEntries: SignatureHelp = {
+                        activeSignature: signHelp.selectedItemIndex,
+                        activeParameter: signHelp.argumentIndex,
+                        signatures: [],
+                    };
+                    signHelp.items.forEach((item) => {
+                        const signature: SignatureInformation = {
+                            label: "",
+                            documentation: undefined,
+                            parameters: [],
+                        };
 
-                                            signature.label += ts.displayPartsToString(item.prefixDisplayParts);
-                                            item.parameters.forEach((parameter, index, array) => {
-                                                const label = ts.displayPartsToString(parameter.displayParts);
-                                                const info: ParameterInformation = {
-                                                    label,
-                                                    documentation: ts.displayPartsToString(parameter.documentation),
-                                                };
-                                                signature.label += label;
-                                                signature.parameters.push(info);
-                                                if (index < array.length - 1) {
-                                                    signature.label +=
-                                                        ts.displayPartsToString(item.separatorDisplayParts);
-                                                }
-                                            });
-                                            signature.label += ts.displayPartsToString(item.suffixDisplayParts);
-                                            helpEntries.signatures.push(signature);
-                                        });
-
-                                        resolve({
-                                            value: helpEntries,
-                                            dispose: () => { /* nothing to do */ },
-                                        });
-                                    } else {
-                                        resolve(null);
-                                    }
-                                });
+                        signature.label += ts.displayPartsToString(item.prefixDisplayParts);
+                        item.parameters.forEach((parameter, index, array) => {
+                            const label = ts.displayPartsToString(parameter.displayParts);
+                            const info: ParameterInformation = {
+                                label,
+                                documentation: ts.displayPartsToString(parameter.documentation),
+                            };
+                            signature.label += label;
+                            signature.parameters.push(info);
+                            if (index < array.length - 1) {
+                                signature.label +=
+                                    ts.displayPartsToString(item.separatorDisplayParts);
+                            }
                         });
+                        signature.label += ts.displayPartsToString(item.suffixDisplayParts);
+                        helpEntries.signatures.push(signature);
                     });
-                });
-            }
 
-            default: {
+                    return {
+                        value: helpEntries,
+                        dispose: () => { /* nothing to do */ },
+                    };
+                }
+
                 break;
             }
+
+            default:
         }
     }
 
@@ -544,44 +477,37 @@ export class ScriptingLanguageServices {
      *
      * @returns A list of document highlights.
      */
-    public findDocumentHighlight(context: ExecutionContext, position: IPosition): ProviderResult<DocumentHighlight[]> {
+    public async findDocumentHighlight(context: ExecutionContext,
+        position: IPosition): Promise<DocumentHighlight[] | undefined> {
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
-            return null;
+            return;
         }
 
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const offset = model.getOffsetAt(position);
-                            void service.getOccurrencesAtPosition(model.uri.toString(), offset)
-                                .then((occurrences?: readonly ReferenceEntry[]) => {
-                                    const result: DocumentHighlight[] = [];
-                                    for (const entry of occurrences || []) {
-                                        result.push({
-                                            range: context.fromLocal(entry.textSpan) as Range,
-                                            kind: entry.isWriteAccess
-                                                ? languages.DocumentHighlightKind.Write
-                                                : languages.DocumentHighlightKind.Read,
-                                        });
-                                    }
-                                    resolve(result);
-                                });
-                        });
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const offset = model.getOffsetAt(position);
+                const occurrences: readonly ReferenceEntry[] | undefined =
+                    await service.getOccurrencesAtPosition(model.uri.toString(), offset);
+
+                const result: DocumentHighlight[] = [];
+                for (const entry of occurrences || []) {
+                    result.push({
+                        range: context.fromLocal(entry.textSpan) as Range,
+                        kind: entry.isWriteAccess
+                            ? languages.DocumentHighlightKind.Write
+                            : languages.DocumentHighlightKind.Read,
                     });
-                });
+                }
+
+                return result;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
     }
 
@@ -594,47 +520,36 @@ export class ScriptingLanguageServices {
      * @param newName The new name of the entity.
      * @returns A workspace edit with a list of edits..
      */
-    public getRenameLocations(context: ExecutionContext, position: IPosition,
-        newName: string): ProviderResult<WorkspaceEdit> {
+    public async getRenameLocations(context: ExecutionContext, position: IPosition,
+        newName: string): Promise<WorkspaceEdit | undefined> {
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
-            return null;
+            return;
         }
 
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const offset = model.getOffsetAt(position);
-                            void service.findRenameLocations(model.uri.toString(), offset, false, true, false)
-                                .then((locations?: readonly RenameLocation[]) => {
-                                    const edits: WorkspaceTextEdit[] = [];
-                                    for (const entry of locations || []) {
-                                        edits.push({
-                                            resource: model.uri,
-                                            modelVersionId: model.getVersionId(),
-                                            edit: {
-                                                range: context.fromLocal(entry.textSpan) as Range,
-                                                text: newName,
-                                            },
-                                        });
-                                    }
-                                    resolve({ edits });
-                                });
-                        });
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const offset = model.getOffsetAt(position);
+                const locations: readonly RenameLocation[] | undefined =
+                    await service.findRenameLocations(model.uri.toString(), offset, false, true, false);
+
+                const edits: WorkspaceTextEdit[] = [];
+                for (const entry of locations || []) {
+                    edits.push({
+                        resource: model.uri,
+                        modelVersionId: model.getVersionId(),
+                        edit: { range: context.fromLocal(entry.textSpan) as Range, text: newName },
                     });
-                });
+                }
+
+                return { edits };
             }
 
-            default: {
-                break;
-            }
+            default:
         }
     }
 
@@ -646,47 +561,35 @@ export class ScriptingLanguageServices {
      *
      * @returns Definition info.
      */
-    public findDefinition(context: ExecutionContext, position: IPosition): ProviderResult<Definition> {
+    public async findDefinition(context: ExecutionContext, position: IPosition): Promise<Definition | undefined> {
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
-            return null;
+            return;
         }
 
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const offset = model.getOffsetAt(position);
-                            const name = model.uri.toString(); // Not a filename, but close enough.
-                            void service.getDefinitionAtPosition(name, offset)
-                                .then((definition?: readonly DefinitionInfo[]) => {
-                                    if (definition) {
-                                        resolve(definition.filter((d) => {
-                                            return d.fileName === name;
-                                        }).map((d) => {
-                                            return {
-                                                uri: model.uri,
-                                                range: context.fromLocal(d.textSpan) as Range,
-                                            };
-                                        }));
-                                    } else {
-                                        resolve(null);
-                                    }
-                                });
-                        });
-                    });
-                });
-            }
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const offset = model.getOffsetAt(position);
+                const name = model.uri.toString(); // Not a filename, but close enough.
+                const definition: readonly DefinitionInfo[] | undefined =
+                    await service.getDefinitionAtPosition(name, offset);
 
-            default: {
+                if (definition) {
+                    return definition.filter((d) => {
+                        return d.fileName === name;
+                    }).map((d) => {
+                        return { uri: model.uri, range: context.fromLocal(d.textSpan) as Range };
+                    });
+                }
+
                 break;
             }
+
+            default:
         }
     }
 
@@ -698,46 +601,37 @@ export class ScriptingLanguageServices {
      *
      * @returns Location info for references.
      */
-    public findReferences(context: ExecutionContext, position: IPosition): ProviderResult<Location[]> {
+    public async findReferences(context: ExecutionContext, position: IPosition): Promise<Location[] | undefined> {
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
-            return null;
+            return;
         }
 
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            const offset = model.getOffsetAt(position);
-                            const name = model.uri.toString(); // Not a filename, but close enough.
-                            void service.getReferencesAtPosition(name, offset).then((references?: ReferenceEntry[]) => {
-                                if (references) {
-                                    resolve(references.filter((d) => {
-                                        return d.fileName === name;
-                                    }).map((d) => {
-                                        return {
-                                            uri: model.uri,
-                                            range: context.fromLocal(d.textSpan) as Range,
-                                        };
-                                    }));
-                                } else {
-                                    resolve(null);
-                                }
-                            });
-                        });
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const offset = model.getOffsetAt(position);
+                const name = model.uri.toString(); // Not a filename, but close enough.
+                const references: ReferenceEntry[] | undefined =
+                    await service.getReferencesAtPosition(name, offset);
+                if (references) {
+                    return references.filter((d) => {
+                        return d.fileName === name;
+                    }).map((d) => {
+                        return {
+                            uri: model.uri,
+                            range: context.fromLocal(d.textSpan) as Range,
+                        };
                     });
-                });
-            }
+                }
 
-            default: {
                 break;
             }
+
+            default:
         }
     }
 
@@ -751,18 +645,18 @@ export class ScriptingLanguageServices {
      *
      * @returns A list of edits.
      */
-    public format(context: ExecutionContext, range: Range, formatParams: FormattingOptions,
-        formatterSettings = {}): ProviderResult<TextEdit[]> {
+    public async format(context: ExecutionContext, range: Range, formatParams: FormattingOptions,
+        formatterSettings = {}): Promise<TextEdit[] | undefined> {
         const model = context.model;
         if (!model || model.isDisposed()) {
-            return null;
+            return;
         }
 
         const initialIndentLevel = this.computeInitialIndent(model, range, formatParams);
         const formatSettings = this.convertOptions(formatParams, formatterSettings, initialIndentLevel);
         const start = model.getOffsetAt({ lineNumber: range.startLineNumber, column: range.startColumn });
         let end = model.getOffsetAt({ lineNumber: range.endLineNumber, column: range.endColumn });
-        let lastLineRange: Range;
+        let lastLineRange: Range | undefined;
         if (range.endLineNumber > range.startLineNumber
             && (range.endColumn === 0
                 || isWhitespaceOnly(model.getValue().substr(end - range.endColumn, range.endColumn),
@@ -774,44 +668,36 @@ export class ScriptingLanguageServices {
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                return new Promise((resolve) => {
-                    const workerPromise = (context.language === "javascript")
-                        ? languages.typescript.getJavaScriptWorker()
-                        : languages.typescript.getTypeScriptWorker();
-                    void workerPromise.then((worker: (...uris: Uri[]) => Promise<TypescriptWorker>) => {
-                        void worker(model.uri).then((service) => {
-                            void service.getFormattingEditsForRange(model.uri.toString(), start, end, formatSettings)
-                                .then((edits: TextChange[]) => {
-                                    if (edits) {
-                                        const result = [];
-                                        for (const edit of edits) {
-                                            if (edit.span.start >= start && edit.span.start + edit.span.length <= end) {
-                                                result.push({
-                                                    range: context.fromLocal(edit.span) as Range,
-                                                    text: edit.newText,
-                                                });
-                                            }
-                                        }
-                                        if (lastLineRange) {
-                                            result.push({
-                                                range: lastLineRange,
-                                                text: this.generateIndent(initialIndentLevel, formatParams),
-                                            });
-                                        }
+                const worker = await this.workerForLanguage(context.language);
+                const service = await worker(model.uri);
+                const edits: TextChange[] | undefined =
+                    await service.getFormattingEditsForRange(model.uri.toString(), start, end, formatSettings);
 
-                                        resolve(result);
-                                    } else {
-                                        resolve(null);
-                                    }
-                                });
+                if (edits) {
+                    const result = [];
+                    for (const edit of edits) {
+                        if (edit.span.start >= start && edit.span.start + edit.span.length <= end) {
+                            result.push({
+                                range: context.fromLocal(edit.span) as Range,
+                                text: edit.newText,
+                            });
+                        }
+                    }
+
+                    if (lastLineRange) {
+                        result.push({
+                            range: lastLineRange,
+                            text: this.generateIndent(initialIndentLevel, formatParams),
                         });
-                    });
-                });
-            }
+                    }
 
-            default: {
+                    return result;
+                }
+
                 break;
             }
+
+            default:
         }
     }
 
@@ -859,9 +745,7 @@ export class ScriptingLanguageServices {
                 break;
             }
 
-            default: {
-                break;
-            }
+            default:
         }
     };
 
@@ -873,7 +757,7 @@ export class ScriptingLanguageServices {
      *
      * @returns A promise that resolves to the type of the query.
      */
-    public determineQueryType = (context: ExecutionContext, sql: string): Promise<QueryType> => {
+    public determineQueryType = async (context: ExecutionContext, sql: string): Promise<QueryType> => {
         return new Promise((resolve) => {
             const sqlContext = context as SQLExecutionContext;
             const queryTypeData: ILanguageWorkerQueryTypeData = {
@@ -904,7 +788,7 @@ export class ScriptingLanguageServices {
      * @returns The rewritten query if the original query is error free and contained no top-level LIMIT clause.
      *          Otherwise the original query is returned.
      */
-    public preprocessStatement = (context: ExecutionContext, sql: string, offset: number,
+    public preprocessStatement = async (context: ExecutionContext, sql: string, offset: number,
         count: number, forceSecondaryEngine?: boolean): Promise<[string, boolean]> => {
         return new Promise((resolve, reject) => {
             const sqlContext = context as SQLExecutionContext;
@@ -937,7 +821,7 @@ export class ScriptingLanguageServices {
      * @returns The rewritten query if the original query is error free and contained no final semicolon.
      *          Otherwise the original query is returned.
      */
-    public checkAndAddSemicolon = (context: ExecutionContext, sql: string): Promise<[string, boolean]> => {
+    public checkAndAddSemicolon = async (context: ExecutionContext, sql: string): Promise<[string, boolean]> => {
         return new Promise((resolve, reject) => {
             const sqlContext = context as SQLExecutionContext;
             const applySemicolonData: ILanguageWorkerApplySemicolonData = {
@@ -967,7 +851,7 @@ export class ScriptingLanguageServices {
      *
      * @returns The list of found parameters.
      */
-    public extractQueryParameters = (sql: string, version: number,
+    public extractQueryParameters = async (sql: string, version: number,
         sqlMode: string): Promise<Array<[string, string]>> => {
         return new Promise((resolve) => {
             const queryData: ILanguageWorkerParameterData = {
@@ -1110,5 +994,12 @@ export class ScriptingLanguageServices {
         } else {
             return "\t".repeat(level);
         }
+    }
+
+    private async workerForLanguage(language: string): Promise<(...uris: Uri[]) => Promise<TypeScriptWorker>> {
+        return (language === "javascript")
+            ? languages.typescript.getJavaScriptWorker()
+            : languages.typescript.getTypeScriptWorker();
+
     }
 }

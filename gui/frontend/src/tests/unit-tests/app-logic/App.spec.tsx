@@ -31,7 +31,7 @@ import { IEditorStatusInfo } from "../../../modules/db-editor";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { waitFor } from "../../../utilities/helpers";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
-import { dispatchErrorResponse, setupShellForTests, snapshotFromWrapper } from "../test-helpers";
+import { setupShellForTests, snapshotFromWrapper } from "../test-helpers";
 import { eventMock } from "../__mocks__/MockEvents";
 
 describe("Application tests", () => {
@@ -86,10 +86,6 @@ describe("Application tests", () => {
         expect(app.state("loginInProgress")).toEqual(false);
 
         expect(snapshotFromWrapper(app)).toMatchSnapshot();
-    });
-
-    it("Fake error event", async () => {
-        await dispatchErrorResponse();
     });
 
     it("Handling status bar click events", async () => {

@@ -46,55 +46,58 @@ describe("ShellInterfaceCore Tests", () => {
 
     it("Backend information", async () => {
         const info = await core.backendInformation;
+        expect(info).toBeDefined();
 
-        switch (platform()) {
-            case "darwin": {
-                expect(info.architecture === "arm64" || info.architecture === "x86_64").toBeTruthy();
-                break;
+        if (info) {
+            switch (platform()) {
+                case "darwin": {
+                    expect(info.architecture === "arm64" || info.architecture === "x86_64").toBeTruthy();
+                    break;
+                }
+
+                case "win32": {
+                    expect(info.architecture === "Win32" || info.architecture === "Win64").toBeTruthy();
+                    break;
+                }
+
+                case "linux": {
+                    expect(info.architecture).toBe("x86_64");
+                    break;
+                }
+
+                default:
             }
 
-            case "win32": {
-                expect(info.architecture === "Win32" || info.architecture === "Win64").toBeTruthy();
-                break;
+            switch (arch()) {
+                case "arm": {
+                    expect(info.architecture).toBe("arm");
+                    break;
+                }
+
+                case "arm64": {
+                    expect(info.architecture).toBe("arm64");
+                    break;
+                }
+
+                case "x32": {
+                    expect(info.architecture).toBe("x86");
+                    break;
+                }
+
+                case "x64": {
+                    expect(info.architecture).toBe("x86_64");
+                    break;
+                }
+
+                default: {
+                    // Anything else we cannot test.
+                    break;
+                }
             }
 
-            case "linux": {
-                expect(info.architecture).toBe("x86_64");
-                break;
-            }
-
-            default:
+            expect(info.major).toBe(8);
+            expect(info.minor).toBe(0);
         }
-
-        switch (arch()) {
-            case "arm": {
-                expect(info.architecture).toBe("arm");
-                break;
-            }
-
-            case "arm64": {
-                expect(info.architecture).toBe("arm64");
-                break;
-            }
-
-            case "x32": {
-                expect(info.architecture).toBe("x86");
-                break;
-            }
-
-            case "x64": {
-                expect(info.architecture).toBe("x86_64");
-                break;
-            }
-
-            default: {
-                // Anything else we cannot test.
-                break;
-            }
-        }
-
-        expect(info.major).toBe(8);
-        expect(info.minor).toBe(0);
     });
 
     it("Log levels", async () => {
@@ -143,5 +146,15 @@ describe("ShellInterfaceCore Tests", () => {
         expect(existsSync(home + "/local-test/test.sqlite3")).toBeTruthy();
 
         rmSync(home + "/local-test", { force: true, recursive: true });
+    });
+
+    it("Debugger", async () => {
+        const names = await core.getDebuggerScriptNames();
+        expect(names.length).toBeGreaterThan(20);
+        expect(names).toContain("unit/authenticate/success_user.js");
+
+        const content = await core.getDebuggerScriptContent("unit/authenticate/success_user.js");
+        expect(content.length).toBeGreaterThan(100);
+        expect(content).toContain(`"request": "authenticate",\n    "username": "user1",\n`);
     });
 });

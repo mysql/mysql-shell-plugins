@@ -21,14 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { isNil } from "lodash";
-import { IDictionary } from "../app-logic/Types";
-import {
-    ICommShellEvent, ICommStartSessionEvent, IShellFeedbackRequest, IShellResultType, MessageScheduler, ProtocolGui,
-    ShellPromptResponseType,
-} from "../communication";
-import { EventType } from "../supplement/Dispatch";
+import { MessageScheduler, ShellAPIGui, ShellPromptResponseType } from "../communication";
+import { IShellFeedbackRequest, IShellResultType, IShellSimpleResult } from "../communication/ShellResponseTypes";
 import { ShellInterfaceShellSession } from "../supplement/ShellInterface";
+import { uuid } from "../utilities/helpers";
 
 export type ShellTaskStatusType = "pending" | "running" | "done" | "error";
 
@@ -38,10 +34,8 @@ export type MessageCallback = (message: string) => void;
 
 export class ShellTask {
 
-    private shellSession: ShellInterfaceShellSession;
     private currentStatus: ShellTaskStatusType;
     private statusCallback?: StatusCallback;
-    private shellResult: unknown;
 
     public constructor(
         public readonly caption: string,
@@ -62,68 +56,71 @@ export class ShellTask {
         this.statusCallback = callback;
     }
 
-    public runTask(shellArgs: string[], dbConnectionId?: number): Promise<unknown> {
-        return new Promise((resolve) => {
-            this.setStatus("running");
+    public async runTask(shellArgs: string[], dbConnectionId?: number): Promise<void> {
+        this.setStatus("running");
+        this.sendMessage(`[${ShellTask.getCurrentTimeStamp()}] [INFO] Starting Task: ${this.caption}\n\n`);
 
-            this.sendMessage(`[${ShellTask.getCurrentTimeStamp()}] [INFO] Starting Task: ${this.caption}\n\n`);
+        const requestId = uuid();
+        let shellSession: ShellInterfaceShellSession | undefined;
 
-            const request = ProtocolGui.getRequestShellStartSession(dbConnectionId, shellArgs);
+        const handleData = (data: IShellResultType & { moduleSessionId?: string }, final: boolean) => {
+            if (data.moduleSessionId) {
+                shellSession = new ShellInterfaceShellSession(data.moduleSessionId);
+            }
 
-            MessageScheduler.get.sendRequest(request, { messageClass: "executeShellCommand" })
-                .then((event: ICommStartSessionEvent | ICommShellEvent) => {
-                    if (!event.data) {
-                        return;
-                    }
-
-                    const requestId = event.data.requestId!;
-                    const result = event.data.result as IDictionary | undefined;
-                    if (result?.info) {
-                        this.sendMessage(result.info as string);
-                    } else if (result?.status) {
-                        this.sendMessage(result.status as string);
-                    } else if (result && Object.keys(result).length !== 0
-                        && !(this.isShellPromptResult(event.data.result as IShellResultType))
-                        && event.eventType === EventType.DataResponse) {
-                        this.shellResult = result;
-                    }
-
-                    if (result) {
-                        if (result.moduleSessionId) {
-                            this.shellSession = new ShellInterfaceShellSession(result.moduleSessionId as string);
-                        }
-
-                        if (this.isShellPromptResult(result as IShellResultType)) {
-                            void this.promptCallback(result.prompt as string, !isNil(result.password)).then((value) => {
-                                if (this.shellSession) {
-                                    if (!isNil(value)) {
-                                        this.shellSession.sendReply(requestId, ShellPromptResponseType.Ok, value);
-                                    } else {
-                                        this.shellSession.sendReply(requestId, ShellPromptResponseType.Cancel, "");
-                                    }
-                                }
-                            });
+            if (this.isShellFeedbackRequest(data)) {
+                void this.promptCallback(data.prompt, data.type === "password").then((value) => {
+                    if (shellSession) {
+                        if (value) {
+                            void shellSession.sendReply(requestId, ShellPromptResponseType.Ok, value);
+                        } else {
+                            void shellSession.sendReply(requestId, ShellPromptResponseType.Cancel, "");
                         }
                     }
-
-                    if (event.eventType === EventType.FinalResponse) {
-                        this.setStatus("done");
-                        this.sendMessage(`\n[${ShellTask.getCurrentTimeStamp()}] [INFO] ` +
-                            `Task '${this.caption}' completed successfully.\n\n`);
-                        resolve(this.shellResult);
-                    } else if (event.eventType === EventType.ErrorResponse) {
-                        this.currentStatus = "error";
-                        this.sendMessage(`[${ShellTask.getCurrentTimeStamp()}] [ERROR]:` +
-                            `${event.data.result as string}\n\n`);
-                        resolve(undefined);
-                    }
-                }).catch((event) => {
-                    this.currentStatus = "error";
-                    this.sendMessage(`[${ShellTask.getCurrentTimeStamp()}] [ERROR]:` +
-                        `${event.message as string} (${event.data.result?.exitStatus as number})\n\n`);
-                    resolve(undefined);
                 });
-        });
+            } else if (this.isShellSimpleResult(data)) {
+                this.sendMessage(data.info ?? data.status);
+            }
+
+            if (final) {
+                this.setStatus("done");
+                this.sendMessage(`\n[${ShellTask.getCurrentTimeStamp()}] [INFO] ` +
+                    `Task '${this.caption}' completed successfully.\n\n`);
+
+                if (shellSession) {
+                    void shellSession.closeShellSession();
+                }
+            }
+        };
+
+        try {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiShellStartSession,
+                requestId,
+                parameters: {
+                    args: {
+                        dbConnectionId,
+                        shellArgs,
+                    },
+                },
+                onData: (data) => {
+                    if (data.result) {
+                        handleData(data.result, false);
+                    }
+                },
+            });
+
+            if (response.result) {
+                handleData(response.result, true);
+            }
+        } catch (reason) {
+            this.currentStatus = "error";
+            this.sendMessage(`[${ShellTask.getCurrentTimeStamp()}] [ERROR]: ${String(reason)}\n\n`);
+
+            if (shellSession) {
+                void shellSession.closeShellSession();
+            }
+        }
     }
 
     private setStatus(status: ShellTaskStatusType): void {
@@ -131,14 +128,22 @@ export class ShellTask {
         this.statusCallback?.(status);
     }
 
-    private sendMessage(message: string): void {
-        this.messageCallback(message);
+    private sendMessage(message?: string): void {
+        if (message) {
+            this.messageCallback(message);
+        }
     }
 
-    private isShellPromptResult(response: IShellResultType): response is IShellFeedbackRequest {
-        const candidate = response as IShellFeedbackRequest;
+    private isShellFeedbackRequest(response: IShellResultType): response is IShellFeedbackRequest {
+        return (response as IShellFeedbackRequest).type !== undefined;
+    }
 
-        return candidate.prompt !== undefined;
+    private isShellSimpleResult(response: IShellResultType): response is IShellSimpleResult {
+        const candidate = response as IShellSimpleResult;
+
+        return candidate.info !== undefined || candidate.error !== undefined || candidate.note !== undefined ||
+            candidate.promptDescriptor !== undefined || candidate.status !== undefined
+            || candidate.warning !== undefined;
     }
 
 }

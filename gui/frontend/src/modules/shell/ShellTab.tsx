@@ -29,10 +29,6 @@ import {
 } from "../../app-logic/Types";
 
 import {
-    ICommShellEvent, IShellDocumentData, IShellObjectResult, IShellResultType, IShellRowData,
-    IShellSimpleResult, IShellValueResult, IShellPromptValues, IShellColumnsMetaData,
-} from "../../communication";
-import {
     Component, Container, ContentAlignment, IComponentProperties, Orientation,
 } from "../../components/ui";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
@@ -40,10 +36,9 @@ import { ExecutionContext, IExecutionResult, ITextResultEntry, SQLExecutionConte
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
-import { EventType } from "../../supplement/Dispatch";
 import { settings } from "../../supplement/Settings/Settings";
 import { DBType, ShellInterfaceDb, ShellInterfaceShellSession } from "../../supplement/ShellInterface";
-import { flattenObject } from "../../utilities/helpers";
+import { flattenObject, uuid } from "../../utilities/helpers";
 import { ShellConsole } from "./ShellConsole";
 import { ShellPrompt } from "./ShellPrompt";
 import { unquote } from "../../utilities/string-helpers";
@@ -51,6 +46,10 @@ import { MySQLConnectionScheme } from "../../communication/MySQL";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { ResultTextLanguage } from "../../components/ResultView";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
+import {
+    IShellColumnsMetaData, IShellDocumentData, IShellObjectResult, IShellPromptValues, IShellResultType, IShellRowData,
+    IShellSimpleResult, IShellValueResult,
+} from "../../communication/ShellResponseTypes";
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
@@ -156,16 +155,13 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             const language = settings.get("shellSession.startLanguage", "javascript").toLowerCase() as EditorLanguage;
             const languageSwitch = ShellTab.languageMap.get(language) ?? "\\js";
             this.currentLanguage = language;
-            savedState.backend.execute(languageSwitch).then((event: ICommShellEvent) => {
+
+            savedState.backend.execute(languageSwitch).then((result) => {
                 // Update the prompt after executing the first command. This is important
                 // if the shell session was started with a dbConnectionId to connect to.
-                if (event && event.data && event.eventType === EventType.FinalResponse) {
-                    // Need to cast to any, as some of the result types do not have a prompt descriptor.
-                    const result = event.data.result;
-                    if (result && this.hasPromptDescriptor(result)) {
-                        savedState.promptDescriptor = result.promptDescriptor;
-                        void requisitions.execute("updateShellPrompt", result);
-                    }
+                if (result && this.hasPromptDescriptor(result)) {
+                    savedState.promptDescriptor = result.promptDescriptor;
+                    void requisitions.execute("updateShellPrompt", result);
                 }
             }).catch((event) => {
                 void requisitions.execute("showError", ["Shell Language Switch Error", String(event.message)]);
@@ -245,16 +241,14 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         const languageSwitch = ShellTab.languageMap.get(context.language);
                         if (languageSwitch) {
                             return new Promise((resolve) => {
-                                savedState.backend.execute(languageSwitch).then((event: ICommShellEvent) => {
-                                    if (event.eventType === EventType.FinalResponse) {
-                                        this.currentLanguage = language;
-                                        void this.processCommand(command, context, options.params).then(() => {
-                                            resolve(true);
-                                        });
-                                    }
-                                }).catch((event) => {
+                                savedState.backend.execute(languageSwitch).then(() => {
+                                    this.currentLanguage = language;
+                                    void this.processCommand(command, context, options.params).then(() => {
+                                        resolve(true);
+                                    });
+                                }).catch((reason) => {
                                     void requisitions.execute("showError",
-                                        ["Shell Language Switch Error", String(event.message)]);
+                                        ["Shell Language Switch Error", String(reason)]);
 
                                     resolve(false);
                                 });
@@ -312,57 +306,206 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             return;
         }
 
-        return new Promise((resolve, reject) => {
-            const services = ScriptingLanguageServices.instance;
+        const services = ScriptingLanguageServices.instance;
 
-            void services.checkAndAddSemicolon(context, sql).then(([query]) => {
-                void this.doExecution(query, context, index, params)
-                    .then(() => { resolve(); })
-                    .catch((reason) => { reject(reason); });
-            });
-        });
+        const [query] = await services.checkAndAddSemicolon(context, sql);
+        await this.doExecution(query, context, index, params);
     };
 
-    private doExecution(command: string, context: ExecutionContext, index: number,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        params?: Array<[string, string]>): Promise<void> {
+    private async doExecution(command: string, context: ExecutionContext, index: number,
+        _params?: Array<[string, string]>): Promise<void> {
         const { savedState } = this.props;
         const columns: IColumnInfo[] = [];
 
         savedState.lastCommand = command;
 
-        return new Promise((resolve, reject) => {
-            savedState.backend.execute(command).then((event: ICommShellEvent) => {
-                if (!event.data) {
+        try {
+            const requestId = uuid();
+
+            const { id = "" } = this.props;
+
+            const addResultData = (data: IExecutionResult): void => {
+                void context.addResultData(data).then((added) => {
+                    if (added) {
+                        context.updateResultDisplay();
+                    }
+                });
+            };
+
+            if (index < 0) {
+                // For anything but SQL.
+                context.setResult();
+            } else if (index === 0) {
+                // For the first SQL result.
+                context.setResult({
+                    type: "resultSets",
+                    sets: [{
+                        index,
+                        head: {
+                            requestId,
+                            sql: "",
+                        },
+                        data: {
+                            requestId,
+                            rows: [],
+                            columns: [],
+                            currentPage: 0,
+                        },
+                    }],
+                });
+            } else {
+                // For any further SQL result from the same execution context.
+                context.addResultPage({
+                    type: "resultSets",
+                    sets: [{
+                        index,
+                        head: {
+                            requestId,
+                            sql: "",
+                        },
+                        data: {
+                            requestId,
+                            rows: [],
+                            columns: [],
+                            currentPage: 0,
+                        },
+                    }],
+                });
+            }
+
+            const finalResult = await savedState.backend.execute(command, requestId, (data) => {
+                if (!data.result) {
                     return;
                 }
 
-                const { id = "" } = this.props;
+                const result = data.result;
 
-                const requestId = event.data.requestId!;
-                const result = event.data.result;
+                // Shell response results can have many different fields. There's no other way but to test
+                // for each possible field to see what a response is about.
+                if (this.isShellShellDocumentData(result)) {
+                    // Document data must be handled first, as that includes an info field,
+                    // like the simple result.
+                    if (result.hasData) {
+                        const documentString = result.documents.length === 1 ? "document" : "documents";
+                        const status = {
+                            type: MessageType.Info,
+                            text: `${result.documents.length} ${documentString} in set ` +
+                                `(${result.executionTime})`,
+                        };
 
-                const addResultData = (data: IExecutionResult): void => {
-                    void context.addResultData(data).then((added) => {
-                        if (added) {
-                            context.updateResultDisplay();
+                        if (result.warningCount > 0) {
+                            status.type = MessageType.Warning;
+                            status.text += `, ${result.warningCount} ` +
+                                `${result.warningCount === 1 ? "warning" : "warnings"}`;
                         }
-                    });
-                };
 
-                switch (event.eventType) {
-                    case EventType.ErrorResponse: {
-                        // This is just here to complete the picture. Shell execute responses don't use ERROR types,
-                        // but instead return error conditions in the normal OK/PENDING responses.
-                        break;
+                        const text: ITextResultEntry[] = [{
+                            type: MessageType.Info,
+                            index,
+                            content: JSON.stringify(result.documents, undefined, "\t"),
+                            language: "json",
+                        }];
+
+                        result.warnings.forEach((warning) => {
+                            text.push({
+                                type: MessageType.Warning,
+                                index,
+                                content: `\n${warning.message}`,
+                            });
+                        });
+
+                        addResultData({
+                            type: "text",
+                            text,
+                            executionInfo: status,
+                        });
+                    } else {
+                        // No data was returned. Use the info field for the status message then.
+                        addResultData({
+                            type: "text",
+                            text: [{
+                                type: MessageType.Info,
+                                index,
+                                content: result.info,
+                                language: "ansi",
+                            }],
+                            executionInfo: { text: "" },
+                        });
                     }
+                } else if (this.isShellShellColumnsMetaData(result)) {
+                    const rawColumns = Object.values(result).map((value) => {
+                        return {
+                            name: unquote(value.Name),
+                            type: value.Type,
+                            length: value.Length,
+                        };
+                    });
+                    columns.push(...generateColumnInfo(
+                        context.language === "mysql" ? DBType.MySQL : DBType.Sqlite, rawColumns, true));
+                } else if (this.isShellShellRowData(result)) {
+                    // If we have column info at this point then we got SQL mode results (show the result grid).
+                    // Otherwise display the result as JSON text.
+                    if (!result.hasData || columns.length === 0) {
+                        const resultText = result.warningCount > 0 ?
+                            `finished with warnings (${result.warningCount})` : "OK";
+                        const info = `Query ${resultText}, ${result.affectedRowCount || result.rows.length} ` +
+                            `rows affected (${result.executionTime})`;
 
-                    case EventType.StartResponse: {
-                        if (index < 0) {
-                            // For anything but SQL.
-                            context.setResult();
-                        } else if (index === 0) {
-                            // For the first SQL result.
+                        // If we have data show it as result otherwise only the execution info.
+                        if (result.hasData) {
+                            const content = JSON.stringify(result.rows, undefined, "\t") + "\n";
+
+                            addResultData({
+                                type: "text",
+                                requestId,
+                                text: [{
+                                    type: MessageType.Info,
+                                    index,
+                                    content,
+                                    language: "json",
+                                }],
+                                executionInfo: { type: MessageType.Response, text: info },
+                            });
+                        } else {
+                            addResultData({
+                                type: "text",
+                                requestId,
+                                executionInfo: { type: MessageType.Info, text: info },
+                            });
+                        }
+                    } else {
+                        const rowString = result.rows.length === 1 ? "row" : "rows";
+                        const status = {
+                            type: MessageType.Info,
+                            text: `${result.rows.length} ${rowString} in set (${result.executionTime})`,
+                        };
+
+                        if (result.warningCount > 0) {
+                            status.type = MessageType.Warning;
+                            status.text += `, ${result.warningCount} ` +
+                                `${result.warningCount === 1 ? "warning" : "warnings"}`;
+                        }
+
+                        // Flatten nested objects + arrays.
+                        result.rows.forEach((value) => {
+                            flattenObject(value as IDictionary);
+                        });
+
+                        const rows = convertRows(columns, result.rows);
+
+                        void ApplicationDB.db.add("shellModuleResultData", {
+                            tabId: id,
+                            requestId,
+                            rows,
+                            columns,
+                            executionInfo: status,
+                            index,
+                        });
+
+                        if (index === -1) {
+                            // An index of -1 indicates that we are handling non-SQL mode results and have not
+                            // set an initial result record in the execution context. Have to do that now.
+                            index = -2;
                             context.setResult({
                                 type: "resultSets",
                                 sets: [{
@@ -373,225 +516,133 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     },
                                     data: {
                                         requestId,
-                                        rows: [],
-                                        columns: [],
-                                        currentPage: 0,
-                                    },
-                                }],
-                            });
-                        } else {
-                            // For any further SQL result from the same execution context.
-                            context.addResultPage({
-                                type: "resultSets",
-                                sets: [{
-                                    index,
-                                    head: {
-                                        requestId,
-                                        sql: "",
-                                    },
-                                    data: {
-                                        requestId,
-                                        rows: [],
-                                        columns: [],
-                                        currentPage: 0,
-                                    },
-                                }],
-                            });
-                        }
-
-                        break;
-                    }
-
-                    case EventType.DataResponse: {
-                        if (!result) {
-                            break;
-                        }
-
-                        // Shell response results can have many different fields. There's no other way but to test
-                        // for each possible field to see what a response is about.
-                        if (this.isShellShellDocumentData(result)) {
-                            // Document data must be handled first, as that includes an info field,
-                            // like the simple result.
-                            if (result.hasData) {
-                                const documentString = result.documents.length === 1 ? "document" : "documents";
-                                const status = {
-                                    type: MessageType.Info,
-                                    text: `${result.documents.length} ${documentString} in set ` +
-                                        `(${result.executionTime})`,
-                                };
-
-                                if (result.warningCount > 0) {
-                                    status.type = MessageType.Warning;
-                                    status.text += `, ${result.warningCount} ` +
-                                        `${result.warningCount === 1 ? "warning" : "warnings"}`;
-                                }
-
-                                const text: ITextResultEntry[] = [{
-                                    type: MessageType.Info,
-                                    index,
-                                    content: JSON.stringify(result.documents, undefined, "\t"),
-                                    language: "json",
-                                }];
-
-                                result.warnings.forEach((warning) => {
-                                    text.push({
-                                        type: MessageType.Warning,
-                                        index,
-                                        content: `\n${warning.message}`,
-                                    });
-                                });
-
-                                addResultData({
-                                    type: "text",
-                                    text,
-                                    executionInfo: status,
-                                });
-                            } else {
-                                // No data was returned. Use the info field for the status message then.
-                                addResultData({
-                                    type: "text",
-                                    text: [{
-                                        type: MessageType.Info,
-                                        index,
-                                        content: result.info,
-                                        language: "ansi",
-                                    }],
-                                    executionInfo: { text: "" },
-                                });
-                            }
-                        } else if (this.isShellShellColumnsMetaData(result)) {
-                            const rawColumns = Object.values(result).map((value) => {
-                                return {
-                                    name: unquote(value.Name),
-                                    type: value.Type,
-                                    length: value.Length,
-                                };
-                            });
-                            columns.push(...generateColumnInfo(
-                                context.language === "mysql" ? DBType.MySQL : DBType.Sqlite, rawColumns, true));
-                        } else if (this.isShellShellRowData(result)) {
-                            // If we have column info at this point then we got SQL mode results (show the result grid).
-                            // Otherwise display the result as JSON text.
-                            if (!result.hasData || columns.length === 0) {
-                                const resultText = result.warningCount > 0 ?
-                                    `finished with warnings (${result.warningCount})` : "OK";
-                                const info = `Query ${resultText}, ${result.affectedRowCount || result.rows.length} ` +
-                                    `rows affected (${result.executionTime})`;
-
-                                // If we have data show it as result otherwise only the execution info.
-                                if (result.hasData) {
-                                    const content = JSON.stringify(result.rows, undefined, "\t") + "\n";
-
-                                    addResultData({
-                                        type: "text",
-                                        requestId: event.data.requestId,
-                                        text: [{
-                                            type: MessageType.Info,
-                                            index,
-                                            content,
-                                            language: "json",
-                                        }],
-                                        executionInfo: { type: MessageType.Response, text: info },
-                                    });
-                                } else {
-                                    addResultData({
-                                        type: "text",
-                                        requestId: event.data.requestId,
-                                        text: [{
-                                            type: MessageType.Info,
-                                            index,
-                                            content: info,
-                                        }],
-                                        executionInfo: { type: MessageType.Info, text: "" },
-                                    });
-                                }
-                            } else {
-                                const rowString = result.rows.length === 1 ? "row" : "rows";
-                                const status = {
-                                    type: MessageType.Info,
-                                    text: `${result.rows.length} ${rowString} in set (${result.executionTime})`,
-                                };
-
-                                if (result.warningCount > 0) {
-                                    status.type = MessageType.Warning;
-                                    status.text += `, ${result.warningCount} ` +
-                                        `${result.warningCount === 1 ? "warning" : "warnings"}`;
-                                }
-
-                                // Flatten nested objects + arrays.
-                                result.rows.forEach((value) => {
-                                    flattenObject(value as IDictionary);
-                                });
-
-                                const rows = convertRows(columns, result.rows);
-
-                                void ApplicationDB.db.add("shellModuleResultData", {
-                                    tabId: id,
-                                    requestId,
-                                    rows,
-                                    columns,
-                                    executionInfo: status,
-                                    index,
-                                });
-
-                                if (index === -1) {
-                                    // An index of -1 indicates that we are handling non-SQL mode results and have not
-                                    // set an initial result record in the execution context. Have to do that now.
-                                    index = -2;
-                                    context.setResult({
-                                        type: "resultSets",
-                                        sets: [{
-                                            index,
-                                            head: {
-                                                requestId,
-                                                sql: "",
-                                            },
-                                            data: {
-                                                requestId,
-                                                rows,
-                                                columns,
-                                                currentPage: 0,
-                                                executionInfo: status,
-                                            },
-                                        }],
-                                    });
-                                } else {
-                                    addResultData({
-                                        type: "resultSetRows",
-                                        requestId,
                                         rows,
                                         columns,
                                         currentPage: 0,
                                         executionInfo: status,
-                                    });
-                                }
-                            }
-                        } else if (this.isShellShellData(result)) {
-                            // Unspecified shell data (no documents, no rows). Just print the info as status, for now.
-                            addResultData({
-                                type: "text",
-                                requestId: event.data.requestId,
-                                text: [{
-                                    type: MessageType.Info,
-                                    index,
-                                    content: result.info,
-                                    language: "ansi",
+                                    },
                                 }],
-                                executionInfo: { text: "" },
                             });
-                        } else if (this.isShellObjectListResult(result)) {
-                            let text = "[\n";
-                            result.forEach((value) => {
-                                text += "\t<" + value.class;
-                                if (value.name) {
-                                    text += ":" + value.name;
-                                }
-                                text += ">\n";
+                        } else {
+                            addResultData({
+                                type: "resultSetRows",
+                                requestId,
+                                rows,
+                                columns,
+                                currentPage: 0,
+                                executionInfo: status,
                             });
-                            text += "]";
+                        }
+                    }
+                } else if (this.isShellShellData(result)) {
+                    // Unspecified shell data (no documents, no rows). Just print the info as status, for now.
+                    addResultData({
+                        type: "text",
+                        requestId,
+                        text: [{
+                            type: MessageType.Info,
+                            index,
+                            content: result.info,
+                            language: "ansi",
+                        }],
+                        executionInfo: { text: "" },
+                    });
+                } else if (this.isShellObjectListResult(result)) {
+                    let text = "[\n";
+                    result.forEach((value) => {
+                        text += "\t<" + value.class;
+                        if (value.name) {
+                            text += ":" + value.name;
+                        }
+                        text += ">\n";
+                    });
+                    text += "]";
+                    addResultData({
+                        type: "text",
+                        requestId,
+                        text: [{
+                            type: MessageType.Info,
+                            index,
+                            content: text,
+                            language: "xml",
+                        }],
+                    });
+                } else if (this.isShellSimpleResult(result)) {
+                    if (result.error) {
+                        // Errors can be a string or an object with a string.
+                        const text = typeof result.error === "string" ? result.error : result.error.message;
+                        addResultData({
+                            type: "text",
+                            requestId,
+                            text: [{
+                                type: MessageType.Error,
+                                index,
+                                content: text,
+                                language: "ansi",
+                            }],
+                            executionInfo: { type: MessageType.Error, text: "" },
+                        });
+                    } else if (result.warning) {
+                        // Errors can be a string or an object with a string.
+                        addResultData({
+                            type: "text",
+                            requestId,
+                            text: [{
+                                type: MessageType.Info,
+                                index,
+                                content: result.warning,
+                                language: "ansi",
+                            }],
+                            executionInfo: { type: MessageType.Warning, text: "" },
+                        });
+                    } else {
+                        // See if a new session is going to be established. That's our sign to
+                        // remove a previously stored password.
+                        if (result.info && result.info.startsWith("Creating a session to")) {
+                            this.closeDbSession(result.info);
+                        }
+
+                        const content = (result.info ?? result.note ?? result.status)!;
+                        addResultData({
+                            type: "text",
+                            requestId,
+                            text: [{
+                                type: MessageType.Info,
+                                index,
+                                content,
+                                language: "ansi",
+                            }],
+                            executionInfo: { type: MessageType.Interactive, text: "" },
+                        });
+                    }
+                } else if (this.isShellValueResult(result)) {
+                    addResultData({
+                        type: "text",
+                        requestId,
+                        text: [{
+                            type: MessageType.Info,
+                            index,
+                            content: String(result.value),
+                            language: "ansi",
+                        }],
+                    });
+                } else {
+                    // Temporarily listen to password requests, to be able to record any new password for this
+                    // session.
+                    requisitions.register("acceptPassword", this.acceptPassword);
+
+                    if (!ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend)) {
+                        requisitions.unregister("acceptPassword", this.acceptPassword);
+
+                        if (this.isShellObjectResult(result)) {
+                            let text = "<" + result.class;
+                            if (result.name) {
+                                text += ":" + result.name;
+                            }
+                            text += ">";
                             addResultData({
                                 type: "text",
-                                requestId: event.data.requestId,
+                                requestId,
                                 text: [{
                                     type: MessageType.Info,
                                     index,
@@ -599,214 +650,95 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     language: "xml",
                                 }],
                             });
-                        } else if (this.isShellSimpleResult(result)) {
-                            if (result.error) {
-                                // Errors can be a string or an object with a string.
-                                const text = typeof result.error === "string" ? result.error : result.error.message;
-                                addResultData({
-                                    type: "text",
-                                    requestId: event.data.requestId,
-                                    text: [{
-                                        type: MessageType.Error,
-                                        index,
-                                        content: text,
-                                        language: "ansi",
-                                    }],
-                                    executionInfo: { type: MessageType.Error, text: "" },
-                                });
-                            } else if (result.warning) {
-                                // Errors can be a string or an object with a string.
-                                addResultData({
-                                    type: "text",
-                                    requestId: event.data.requestId,
-                                    text: [{
-                                        type: MessageType.Info,
-                                        index,
-                                        content: result.warning,
-                                        language: "ansi",
-                                    }],
-                                    executionInfo: { type: MessageType.Warning, text: "" },
-                                });
-                            } else {
-                                // See if a new session is going to be established. That's our sign to
-                                // remove a previously stored password.
-                                if (result.info && result.info.startsWith("Creating a session to")) {
-                                    this.closeDbSession(result.info);
-                                }
+                        } else {
+                            // If no specialized result then print as is.
+                            const executionInfo: IExecutionInfo = {
+                                text: result ? "" : JSON.stringify(result, undefined, "\t"),
+                            };
 
-                                const content = (result.info ?? result.note ?? result.status)!;
-                                addResultData({
-                                    type: "text",
-                                    requestId: event.data.requestId,
-                                    text: [{
-                                        type: MessageType.Info,
-                                        index,
-                                        content,
-                                        language: "ansi",
-                                    }],
-                                    executionInfo: { type: MessageType.Interactive, text: "" },
-                                });
-                            }
-                        } else if (this.isShellValueResult(result)) {
+                            const text = !result ? [] : [{
+                                type: MessageType.Info,
+                                index,
+                                content: JSON.stringify(result, undefined, "\t"),
+                                language: "json" as ResultTextLanguage,
+                            }];
+
                             addResultData({
                                 type: "text",
-                                requestId: event.data.requestId,
-                                text: [{
-                                    type: MessageType.Info,
-                                    index,
-                                    content: String(result.value),
-                                    language: "ansi",
-                                }],
+                                text,
+                                executionInfo,
                             });
-                        } else {
-                            // Temporarily listen to password requests, to be able to record any new password for this
-                            // session.
-                            requisitions.register("acceptPassword", this.acceptPassword);
-
-                            if (!ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend)) {
-                                requisitions.unregister("acceptPassword", this.acceptPassword);
-
-                                if (this.isShellObjectResult(result)) {
-                                    let text = "<" + result.class;
-                                    if (result.name) {
-                                        text += ":" + result.name;
-                                    }
-                                    text += ">";
-                                    addResultData({
-                                        type: "text",
-                                        requestId: event.data.requestId,
-                                        text: [{
-                                            type: MessageType.Info,
-                                            index,
-                                            content: text,
-                                            language: "xml",
-                                        }],
-                                    });
-                                } else {
-                                    // no data and pending
-                                    if (event.data.requestState.type === "PENDING" && result &&
-                                        typeof result === "object" && Object.keys(result).length === 0) {
-                                        break;
-                                    }
-                                    // If no specialized result then print as is.
-                                    const executionInfo: IExecutionInfo = {
-                                        text: result ? "" : JSON.stringify(event.data.requestState, undefined, "\t"),
-                                    };
-
-                                    const text = !result ? [] : [{
-                                        type: MessageType.Info,
-                                        index,
-                                        content: JSON.stringify(result, undefined, "\t"),
-                                        language: "json" as ResultTextLanguage,
-                                    }];
-
-                                    addResultData({
-                                        type: "text",
-                                        text,
-                                        executionInfo,
-                                    });
-                                }
-                            }
                         }
-
-                        break;
-                    }
-
-                    case EventType.FinalResponse: {
-                        if (result && this.hasPromptDescriptor(result)) {
-                            // A descriptor change occurs when any of the following change types occur:
-                            // 1) Changes involving an active session update:
-                            //    1.1) A new active shell session was established
-                            //    1.2) The active shell session got disconnected
-                            // 2) Changes not involving changes on the active session:
-                            //   2.1) The active schema changed
-                            //   2.2) The Shell Console mode changed
-                            const hadOpenSession = savedState.dbSession !== undefined;
-                            const needsOpenSession = (result.promptDescriptor?.host !== undefined)
-                                || (result.promptDescriptor?.socket !== undefined);
-
-                            const existing = savedState.promptDescriptor;
-                            let newSessionRequired = (!hadOpenSession && needsOpenSession);
-                            if (!newSessionRequired) {
-                                newSessionRequired = (existing?.user !== result.promptDescriptor?.user)
-                                    || (existing?.host !== result.promptDescriptor?.host)
-                                    || (existing?.port !== result.promptDescriptor?.port)
-                                    || (existing?.socket !== result.promptDescriptor?.socket)
-                                    || (existing?.ssl !== result.promptDescriptor?.ssl)
-                                    || (existing?.session !== result.promptDescriptor?.session);
-                            }
-
-
-                            // Prompt needs to be updated the first time a descriptor comes in.
-                            let refreshRequired = !savedState.promptDescriptor
-                                || newSessionRequired
-                                || (hadOpenSession !== needsOpenSession);
-
-                            if (!refreshRequired) {
-                                refreshRequired = (existing?.isProduction !== result.promptDescriptor?.isProduction)
-                                    || (existing?.mode !== result.promptDescriptor?.mode)
-                                    || (existing?.schema !== result.promptDescriptor?.schema);
-                            }
-
-                            savedState.promptDescriptor = result.promptDescriptor;
-
-                            if (hadOpenSession && !needsOpenSession) {
-                                // 1.2) There was an active session and got closed
-                                this.closeDbSession("");
-                                void requisitions.execute("updateShellPrompt", result);
-                                resolve();
-
-                            } else if (newSessionRequired) {
-                                // A new session will be created, however if password is not available, it attempts to
-                                // get it from the last executed command (common case when password is given in the
-                                // connection string)
-                                if (savedState.lastPassword === undefined) {
-                                    savedState.lastPassword = this.getPasswordFromLastCommand();
-                                }
-
-                                // Only trigger the creation of the Session if the password was defined (even if empty)
-                                // otherwise the start session will be requiring shell prompt handling
-                                if (savedState.lastPassword !== undefined) {
-                                    // 1.1) The active session got created or updated
-                                    void this.openDbSession().then(() => {
-                                        void requisitions.execute("updateShellPrompt", result);
-
-                                        resolve();
-                                    });
-                                } else {
-                                    void requisitions.execute("updateShellPrompt", result);
-                                    resolve();
-                                }
-                            } else if (refreshRequired) {
-                                // 2) Changes not related to a session update were detected
-                                void requisitions.execute("updateShellPrompt", result);
-                                resolve();
-                            } else {
-                                resolve();
-                            }
-                        } else {
-
-                            // Note: we don't send a final result display update call from here. Currently the shell
-                            //       sends all relevant data in data responses. The final response doesn't really add
-                            //       anything, so we do updates in the data responses instead (and get live resizes).
-                            resolve();
-                        }
-
-                        break;
-                    }
-
-                    default: {
-                        break;
                     }
                 }
-
-            }).catch((event) => {
-                const message = event.message ? String(event.message) : "No further information";
-                void requisitions.execute("showError", ["Shell Execution Error", message]);
-                reject(message);
             });
 
-        });
+            // Handling the final response here.
+            if (finalResult && this.hasPromptDescriptor(finalResult)) {
+                // A descriptor change occurs when any of the following change types occur:
+                // 1) Changes involving an active session update:
+                //    1.1) A new active shell session was established
+                //    1.2) The active shell session got disconnected
+                // 2) Changes not involving changes on the active session:
+                //   2.1) The active schema changed
+                //   2.2) The Shell Console mode changed
+                const hadOpenSession = savedState.dbSession !== undefined;
+                const needsOpenSession = (finalResult.promptDescriptor?.host !== undefined)
+                    || (finalResult.promptDescriptor?.socket !== undefined);
+
+                const existing = savedState.promptDescriptor;
+                let newSessionRequired = (!hadOpenSession && needsOpenSession);
+                if (!newSessionRequired) {
+                    newSessionRequired = (existing?.user !== finalResult.promptDescriptor?.user)
+                        || (existing?.host !== finalResult.promptDescriptor?.host)
+                        || (existing?.port !== finalResult.promptDescriptor?.port)
+                        || (existing?.socket !== finalResult.promptDescriptor?.socket)
+                        || (existing?.ssl !== finalResult.promptDescriptor?.ssl)
+                        || (existing?.session !== finalResult.promptDescriptor?.session);
+                }
+
+                // Prompt needs to be updated the first time a descriptor comes in.
+                let refreshRequired = !savedState.promptDescriptor
+                    || newSessionRequired
+                    || (hadOpenSession !== needsOpenSession);
+
+                if (!refreshRequired) {
+                    refreshRequired = (existing?.isProduction !== finalResult.promptDescriptor?.isProduction)
+                        || (existing?.mode !== finalResult.promptDescriptor?.mode)
+                        || (existing?.schema !== finalResult.promptDescriptor?.schema);
+                }
+
+                savedState.promptDescriptor = finalResult.promptDescriptor;
+
+                if (hadOpenSession && !needsOpenSession) {
+                    // 1.2) There was an active session and got closed
+                    this.closeDbSession("");
+                    void requisitions.execute("updateShellPrompt", finalResult);
+                } else if (newSessionRequired) {
+                    // A new session will be created, however if password is not available, it attempts to
+                    // get it from the last executed command (common case when password is given in the
+                    // connection string)
+                    if (savedState.lastPassword === undefined) {
+                        savedState.lastPassword = this.getPasswordFromLastCommand();
+                    }
+
+                    // Only trigger the creation of the Session if the password was defined (even if empty)
+                    // otherwise the start session will be requiring shell prompt handling
+                    if (savedState.lastPassword !== undefined) {
+                        // 1.1) The active session got created or updated
+                        await this.openDbSession();
+                    }
+                    await requisitions.execute("updateShellPrompt", finalResult);
+                } else if (refreshRequired) {
+                    // 2) Changes not related to a session update were detected
+                    await requisitions.execute("updateShellPrompt", finalResult);
+                }
+            }
+        } catch (reason) {
+            void requisitions.execute("showError", ["Shell Execution Error", String(reason)]);
+
+            throw reason;
+        }
     }
 
     /**
@@ -965,7 +897,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     private isShellShellColumnsMetaData(response: IShellResultType): response is IShellColumnsMetaData {
-        return (response as IShellColumnsMetaData)["Field 1"] !== undefined;
+        return response["Field 1"] !== undefined;
     }
 
     private isShellShellRowData(response: IShellResultType): response is IShellRowData {

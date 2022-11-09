@@ -23,7 +23,7 @@
 
 import React from "react";
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsAuthAppData, IMrsAuthVendorData } from "../../../communication/GeneralEvents";
+import { IMrsAuthAppData, IMrsAuthVendorData } from "../../../communication/ShellResponseTypes";
 
 import {
     CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, IRelationDialogValue, ValueDialogBase,
@@ -149,6 +149,7 @@ export class MrsServiceDialog extends ValueDialogBase {
             },
         };
 
+        const appData = request.values?.authApps as Array<IMrsAuthAppData & IDictionary> ?? [];
         const authAppSection: IDialogSection = {
             caption: "Authentication Apps",
             groupName: "group1",
@@ -156,13 +157,10 @@ export class MrsServiceDialog extends ValueDialogBase {
                 authApps: {
                     type: "relation",
                     caption: "Apps:",
-                    value: request.values?.authApps as IMrsAuthAppData[] || [],
+                    value: appData,
                     listItemCaptionFields: ["name"],
                     listItemId: "id",
-                    active: request.values?.authApps as IMrsAuthAppData[]
-                        && (request.values?.authApps as IMrsAuthAppData[]).length > 0
-                        ? String((request.values?.authApps as IMrsAuthAppData[])[0].id)
-                        : undefined,
+                    active: appData.length > 0 ? String(appData[0].id) : undefined,
                     horizontalSpan: 2,
                     verticalSpan: 5,
                     relations: {
@@ -316,7 +314,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                     authSection.values.authCompletedUrlValidation.value as string;
                 values.authCompletedUrl = authSection.values.authCompletedUrl.value as string;
                 values.authCompletedPageContent = authSection.values.authCompletedPageContent.value as string;
-                values.authApps = authAppSection.values.authApps.value as IMrsAuthAppData[];
+                values.authApps = authAppSection.values.authApps.value as Array<IMrsAuthAppData & IDictionary>;
 
                 onClose(closure, values);
             }
@@ -348,7 +346,7 @@ export class MrsServiceDialog extends ValueDialogBase {
             const authAppSection = values.sections.get("authAppSection");
             if (authAppSection && authAppSection.values.authApps) {
                 const authAppsDlgValue = authAppSection.values.authApps as IRelationDialogValue;
-                const authApps = authAppsDlgValue.value as IMrsAuthAppData[];
+                const authApps = authAppsDlgValue.value as Array<IMrsAuthAppData & IDictionary>;
                 const newEntry = authApps.find((p) => {
                     return p.id === 0;
                 });

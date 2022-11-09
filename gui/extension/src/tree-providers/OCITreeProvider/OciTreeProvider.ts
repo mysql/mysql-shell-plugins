@@ -25,14 +25,7 @@ import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window
 
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
-import {
-    ICommOciBastionsEvent, ICommOciCompartmentEvent, ICommOciComputeInstanceEvent,
-    ICommMdsConfigProfileEvent, ICommOciMySQLDbSystemListEvent, IMdsProfileData, ICompartment,
-    ICommOciLoadBalancersEvent,
-    MessageScheduler,
-} from "../../../../frontend/src/communication";
-
-import { EventType } from "../../../../frontend/src/supplement/Dispatch";
+import { ICompartment, MessageScheduler } from "../../../../frontend/src/communication";
 
 import { ShellInterfaceShellSession } from "../../../../frontend/src/supplement/ShellInterface";
 import {
@@ -42,6 +35,7 @@ import {
 import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem";
 import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem";
 import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
 
 // An interface for the compartment cache
 interface IConfigProfileCompartments {
@@ -113,7 +107,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
 
             if (element instanceof OciDbSystemHWTreeItem) {
                 if (element.dbSystem.heatWaveCluster
-                    && element.dbSystem.heatWaveCluster.lifecycleState !== "DELETED" ) {
+                    && element.dbSystem.heatWaveCluster.lifecycleState !== "DELETED") {
                     return [new OciHWClusterTreeItem(element.profile, element.compartment, element.dbSystem)];
                 } else {
                     return [];
@@ -122,23 +116,11 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         }
     }
 
-    private listConfigProfiles(): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
-            this.shellSession.mds.getMdsConfigProfiles().then((event: ICommMdsConfigProfileEvent) => {
-                if (event.eventType === EventType.FinalResponse) {
-                    if (event.data) {
-                        const items = event.data.result.map((profile) => {
-                            return new OciConfigProfileTreeItem(profile);
-                        });
+    private async listConfigProfiles(): Promise<TreeItem[]> {
+        const profiles = await this.shellSession.mds.getMdsConfigProfiles();
 
-                        resolve(items);
-                    }
-
-                    resolve([]);
-                }
-            }).catch((reason) => {
-                reject(reason);
-            });
+        return profiles.map((profile) => {
+            return new OciConfigProfileTreeItem(profile);
         });
     }
 
@@ -153,157 +135,111 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         }
     }
 
-    private listCompartments(profile: IMdsProfileData,
-        startWithCurrent?: boolean, compartmentId?: string): Promise<TreeItem[]> {
-        return new Promise((resolve) => {
-            const items: OciCompartmentTreeItem[] = [];
+    private async listCompartments(profile: IMdsProfileData, startWithCurrent?: boolean,
+        compartmentId?: string): Promise<TreeItem[]> {
+        const items: OciCompartmentTreeItem[] = [];
 
-            // If the compartments for the given profile are already cached, use the cache.
-            if (this.compartmentCache[profile.profile]) {
-                this.compartmentCache[profile.profile].forEach((subCompartment) => {
-                    this.addOciCompartmentTreeItem(
-                        items, profile, subCompartment, startWithCurrent, compartmentId);
-                });
+        // If the compartments for the given profile are already cached, use the cache.
+        if (this.compartmentCache[profile.profile]) {
+            this.compartmentCache[profile.profile].forEach((subCompartment) => {
+                this.addOciCompartmentTreeItem(
+                    items, profile, subCompartment, startWithCurrent, compartmentId);
+            });
 
-                resolve(items);
-            } else {
-                // If the compartments have not been cached yet, fetch them.
-                this.shellSession.mds.getMdsCompartments(profile.profile).then((event: ICommOciCompartmentEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            this.compartmentCache[profile.profile] = event.data.result;
+            return items;
+        }
 
-                            this.compartmentCache[profile.profile].forEach((subCompartment) => {
-                                this.addOciCompartmentTreeItem(
-                                    items, profile, subCompartment, startWithCurrent, compartmentId);
-                            });
-                        }
-
-                        resolve(items);
-                    }
-                }).catch((reason) => {
-                    const msg: string = reason?.data?.requestState?.msg;
-                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
-                        window.setStatusBarMessage(
-                            "Not authorized to list the sub-compartment of this compartment.", 5000);
-                    }
-                    resolve(items);
-                });
+        // If the compartments have not been cached yet, fetch them.
+        try {
+            const compartments = await this.shellSession.mds.getMdsCompartments(profile.profile);
+            this.compartmentCache[profile.profile] = compartments;
+            this.compartmentCache[profile.profile].forEach((subCompartment) => {
+                this.addOciCompartmentTreeItem(items, profile, subCompartment, startWithCurrent, compartmentId);
+            });
+        } catch (reason) {
+            const msg: string = reason?.data?.requestState?.msg;
+            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                window.setStatusBarMessage("Not authorized to list the sub-compartment of this compartment.", 5000);
             }
-        });
+        }
+
+        return items;
     }
 
-    private listDatabases(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve) => {
-            const items: OciDbSystemTreeItem[] = [];
+    private async listDatabases(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
+        const items: OciDbSystemTreeItem[] = [];
 
-            this.shellSession.mds.getMdsMySQLDbSystems(profile.profile, compartment.id)
-                .then((event: ICommOciMySQLDbSystemListEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            event.data.result.forEach((dbSystem) => {
-                                if (dbSystem.heatWaveCluster === null) {
-                                    items.push(new OciDbSystemStandaloneTreeItem(profile, compartment, dbSystem));
-                                } else {
-                                    items.push(new OciDbSystemHWTreeItem(profile, compartment, dbSystem));
-                                }
-                            });
-                        }
+        try {
+            const systems = await this.shellSession.mds.getMdsMySQLDbSystems(profile.profile, compartment.id);
+            systems.forEach((dbSystem) => {
+                if (!dbSystem.heatWaveCluster) {
+                    items.push(new OciDbSystemStandaloneTreeItem(profile, compartment, dbSystem));
+                } else {
+                    items.push(new OciDbSystemHWTreeItem(profile, compartment, dbSystem));
+                }
+            });
+        } catch (reason) {
+            const msg: string = reason?.data?.requestState?.msg;
+            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                window.setStatusBarMessage("Not authorized to list the MySQL DB Systems in this compartment.", 5000);
+            }
+        }
 
-                        resolve(items);
-                    }
-                }).catch((reason) => {
-                    const msg: string = reason?.data?.requestState?.msg;
-                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
-                        window.setStatusBarMessage(
-                            "Not authorized to list the MySQL DB Systems in this compartment.", 5000);
-                    }
-                    resolve(items);
-                });
-        });
-
+        return items;
     }
 
-    private listComputeInstances(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve) => {
-            const items: OciComputeInstanceTreeItem[] = [];
+    private async listComputeInstances(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
+        const items: OciComputeInstanceTreeItem[] = [];
 
-            this.shellSession.mds.getMdsComputeInstances(
-                profile.profile, compartment.id)
-                .then((event: ICommOciComputeInstanceEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            event.data.result.forEach((compute) => {
-                                items.push(new OciComputeInstanceTreeItem(
-                                    profile, compartment, compute, this.shellSession));
-                            });
-                        }
+        try {
+            const instances = await this.shellSession.mds.getMdsComputeInstances(profile.profile, compartment.id);
+            instances.forEach((compute) => {
+                items.push(new OciComputeInstanceTreeItem(profile, compartment, compute, this.shellSession));
+            });
+        } catch (reason) {
+            const msg: string = reason?.data?.requestState?.msg;
+            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                window.setStatusBarMessage("Not authorized to list the compute instances in this compartment.", 5000);
+            }
+        }
 
-                        resolve(items);
-                    }
-                }).catch((reason) => {
-                    const msg: string = reason?.data?.requestState?.msg;
-                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
-                        window.setStatusBarMessage(
-                            "Not authorized to list the compute instances in this compartment.", 5000);
-                    }
-                    resolve(items);
-                });
-        });
+        return items;
     }
 
-    private listBastionHosts(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve) => {
-            const items: OciBastionTreeItem[] = [];
+    private async listBastionHosts(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
+        const items: OciBastionTreeItem[] = [];
 
-            this.shellSession.mds.getMdsBastions(
-                profile.profile, compartment.id)
-                .then((event: ICommOciBastionsEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            event.data.result.forEach((bastion) => {
-                                items.push(new OciBastionTreeItem(profile, compartment, bastion));
-                            });
-                        }
+        try {
+            const bastions = await this.shellSession.mds.getMdsBastions(profile.profile, compartment.id);
+            bastions.forEach((bastion) => {
+                items.push(new OciBastionTreeItem(profile, compartment, bastion));
+            });
+        } catch (reason) {
+            const msg: string = reason?.data?.requestState?.msg;
+            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                window.setStatusBarMessage("Not authorized to list the bastions in this compartment.", 5000);
+            }
+        }
 
-                        resolve(items);
-                    }
-                }).catch((reason) => {
-                    const msg: string = reason?.data?.requestState?.msg;
-                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
-                        window.setStatusBarMessage(
-                            "Not authorized to list the bastions in this compartment.", 5000);
-                    }
-                    resolve(items);
-                });
-        });
+        return items;
     }
 
-    private listLoadBalancers(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
-        return new Promise((resolve) => {
-            const items: OciLoadBalancerTreeItem[] = [];
+    private async listLoadBalancers(profile: IMdsProfileData, compartment: ICompartment): Promise<TreeItem[]> {
+        const items: OciLoadBalancerTreeItem[] = [];
 
-            this.shellSession.mds.listLoadBalancers(
-                profile.profile, compartment.id)
-                .then((event: ICommOciLoadBalancersEvent) => {
-                    if (event.eventType === EventType.FinalResponse) {
-                        if (event.data) {
-                            event.data.result.forEach((loadBalancer) => {
-                                items.push(new OciLoadBalancerTreeItem(profile, compartment, loadBalancer));
-                            });
-                        }
+        try {
+            const loadBalancers = await this.shellSession.mds.listLoadBalancers(profile.profile, compartment.id);
+            loadBalancers.forEach((loadBalancer) => {
+                items.push(new OciLoadBalancerTreeItem(profile, compartment, loadBalancer));
+            });
+        } catch (reason) {
+            const msg: string = reason?.data?.requestState?.msg;
+            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+                window.setStatusBarMessage("Not authorized to list the load balancers in this compartment.", 5000);
+            }
+        }
 
-                        resolve(items);
-                    }
-                }).catch((reason) => {
-                    const msg: string = reason?.data?.requestState?.msg;
-                    if (msg && msg.includes("NotAuthorizedOrNotFound")) {
-                        window.setStatusBarMessage(
-                            "Not authorized to list the load balancers in this compartment.", 5000);
-                    }
-                    resolve(items);
-                });
-        });
+        return items;
     }
 
     private refreshOciTree = (): Promise<boolean> => {

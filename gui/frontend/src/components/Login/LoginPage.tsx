@@ -31,9 +31,9 @@ import {
     Component, Container, Icon, Label, Button, Input, Grid, GridCell, IInputChangeProperties,
     ContentAlignment, ContentWrap, Message, Orientation,
 } from "../ui";
-import { ICommErrorEvent } from "../../communication";
 import { ShellInterface } from "../../supplement/ShellInterface";
 import { MessageType } from "../../app-logic/Types";
+import { requisitions } from "../../supplement/Requisitions";
 
 interface ILoginPageState extends React.ComponentState {
     userName: string;
@@ -141,10 +141,13 @@ export class LoginPage extends Component<{}, ILoginPageState> {
     private login = (): void => {
         const { userName, password } = this.state;
 
-        ShellInterface.users.authenticate(userName, password).then(() => {
+        ShellInterface.users.authenticate(userName, password).then((profile) => {
             this.setState({ errorMessage: "" });
-        }).catch((event: ICommErrorEvent) => {
-            this.setState({ errorMessage: event.message });
+            if (profile) {
+                void requisitions.execute("userAuthenticated", profile);
+            }
+        }).catch((reason) => {
+            this.setState({ errorMessage: reason });
         });
     };
 

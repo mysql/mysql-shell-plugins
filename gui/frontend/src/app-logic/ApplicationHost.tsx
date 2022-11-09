@@ -143,7 +143,8 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
 
         let content = pages;
         let allowDebugger = false;
-        if (webSession.localUserMode && !appParameters.embedded) {
+        if (webSession.localUserMode && !appParameters.embedded &&
+            (!appParameters.testsRunning || appParameters.launchWithDebugger)) {
             allowDebugger = true;
 
             content = [

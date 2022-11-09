@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DocumentDropDownItem tests Standard initialization 1`] = `
+<DocumentDropdownItem
+  page="page1"
+>
+  <Container
+    className="msg dropdownItem ellipsis verticalCenterContent"
+    orientation="row"
+  >
+    <div
+      className="msg container fixedScrollbar dropdownItem ellipsis verticalCenterContent"
+      style={
+        Object {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    >
+      <Label>
+        <label
+          className="msg label"
+          data-tooltip="expand"
+          style={
+            Object {
+              "textAlign": undefined,
+            }
+          }
+        />
+      </Label>
+    </div>
+  </Container>
+</DocumentDropdownItem>
+`;

@@ -23,15 +23,15 @@
 
 import { mount } from "enzyme";
 import React from "react";
-import { ScriptEditor } from "../../../../modules/db-editor/ScriptEditor";
-import { Monaco } from "../../../../components/ui/CodeEditor";
+import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor";
+import { Monaco } from "../../../../../components/ui/CodeEditor";
 import {
     CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState,
-} from "../../../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts";
+} from "../../../../../components/ui/CodeEditor/CodeEditor";
+import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts";
 import {
     StandalonePresentationInterface,
-} from "../../../../modules/db-editor/execution/StandalonePresentationInterface";
+} from "../../../../../modules/db-editor/execution/StandalonePresentationInterface";
 
 describe("Standalone presentation interface tests", (): void => {
 

@@ -35,8 +35,6 @@ import {
     Label, Orientation, Toolbar,
 } from "../../components/ui";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
-import { ICommResultSetEvent } from "../../communication";
-import { EventType } from "../../supplement/Dispatch";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem";
 import { formatBytes } from "../../utilities/string-helpers";
 
@@ -191,16 +189,12 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
 
         // Get the initial values to allow computing changes on each query step.
         // But first check if the user has access to the performance_schema.
-        props.backend.execute("select * from performance_schema.log_status")
-            .then((event: ICommResultSetEvent) => {
-                if (event.eventType === EventType.FinalResponse) {
-                    this.hasPSAccess = true;
-                    this.queryAndUpdate();
-                }
-            })
-            .catch(() => {
-                this.queryAndUpdate();
-            });
+        props.backend.execute("select * from performance_schema.log_status").then(() => {
+            this.hasPSAccess = true;
+            void this.queryAndUpdate();
+        }).catch(() => {
+            void this.queryAndUpdate();
+        });
     }
 
     public static getDerivedStateFromProps(newProps: IPerformanceDashboardProperties): IPerformanceDashboardState {
@@ -291,7 +285,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
                 clearInterval(this.refreshTimer);
             }
 
-            this.queryAndUpdate();
+            void this.queryAndUpdate();
         }, PerformanceDashboard.sampleInterval);
     }
 
@@ -970,36 +964,31 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         );
     }
 
-    private queryAndUpdate(): void {
+    private async queryAndUpdate(): Promise<void> {
         const { backend } = this.props;
 
         const list = this.variableNames.join("\",\"");
-        backend.execute(`show global status where variable_name in ("${list}")`).then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse && event.data.result.rows) {
-                const variables = event.data.result.rows as Array<[string, string]>;
+        try {
+            const result = await backend.execute(`show global status where variable_name in ("${list}")`);
+            if (result && result.length > 0 && result[0].rows) {
+                const variables = result[0].rows as Array<[string, string]>;
 
                 if (this.hasPSAccess) {
-                    backend.execute("SELECT STORAGE_ENGINES->>'$.\"InnoDB\".\"LSN\"' - STORAGE_ENGINES->>'$." +
-                        "\"InnoDB\".\"LSN_checkpoint\"' FROM performance_schema.log_status")
-                        .then((event: ICommResultSetEvent) => {
-                            if (event.eventType === EventType.FinalResponse && event.data.result.rows) {
-                                const row = event.data.result.rows?.[0] as number[];
-                                this.updateData(variables, row[0]);
-                            }
-                        }).catch(() => {
-                            // There shouldn't be any errors here, as we checked access in the c-tor.
-                            this.updateData(variables);
-                        });
+                    const data = await backend.execute(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
+                        `STORAGE_ENGINES->>'$."InnoDB"."LSN_checkpoint"' FROM performance_schema.log_status`);
+
+                    if (data && data.length > 0 && data[0].rows) {
+                        const row = data[0].rows[0] as number[];
+                        this.updateData(variables, row[0]);
+                    }
                 } else {
                     this.updateData(variables);
                 }
             }
-        })
-            .catch(() => {
-                // Update with empty data, to show unreachable servers etc.
-                this.updateData([]);
-            });
-
+        } catch (_) {
+            // Update with empty data, to show unreachable servers etc.
+            this.updateData([]);
+        }
     }
 
     /**

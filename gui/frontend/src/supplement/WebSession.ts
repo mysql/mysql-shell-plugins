@@ -22,10 +22,9 @@
  */
 
 import { Cookies } from "./Storage";
-import { IDispatchEvent } from "./Dispatch";
-import { ICommShellProfile } from "../communication";
 import { ShellInterface } from "./ShellInterface";
 import { requisitions } from "./Requisitions";
+import { IShellProfile } from "../communication/ShellResponseTypes";
 
 // Data specific to a module. This is the base structure which will be extended for individual modules.
 export interface IModuleData {
@@ -45,7 +44,7 @@ export class WebSession {
     public localUserMode = false;
 
     private cookies = new Cookies();
-    private shellProfile: ICommShellProfile = {
+    private shellProfile: IShellProfile = {
         description: "",
         id: -1,
         name: "",
@@ -84,7 +83,7 @@ export class WebSession {
     /**
      * @returns The profile data for the current session/user.
      */
-    public get profile(): ICommShellProfile {
+    public get profile(): IShellProfile {
         return this.shellProfile;
     }
 
@@ -94,7 +93,7 @@ export class WebSession {
      *
      * @param newProfile The new profile data.
      */
-    public set profile(newProfile: ICommShellProfile) {
+    public set profile(newProfile: IShellProfile) {
         this.loadProfile(newProfile);
 
         this.saveProfile();
@@ -167,7 +166,7 @@ export class WebSession {
      *
      * @param newProfile the profile object to be loaded
      */
-    public loadProfile(newProfile: ICommShellProfile): void {
+    public loadProfile(newProfile: IShellProfile): void {
         this.shellProfile = newProfile;
         this.sessionData.profileId = newProfile.id;
 
@@ -183,8 +182,8 @@ export class WebSession {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
             // TODO: log success.
-        }).catch((errorEvent: IDispatchEvent) => {
-            void requisitions.execute("showError", ["Profile Update Error", String(errorEvent.message)]);
+        }).catch((reason) => {
+            void requisitions.execute("showError", ["Profile Update Error", String(reason)]);
         });
 
     }

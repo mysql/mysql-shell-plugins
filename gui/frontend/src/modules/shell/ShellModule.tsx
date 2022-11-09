@@ -38,9 +38,6 @@ import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { IShellSessionDetails } from "../../supplement/ShellInterface";
 import { IShellTabPersistentState, ShellTab } from "./ShellTab";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
-import {
-    ICommErrorEvent, ICommShellEvent,
-} from "../../communication";
 import { settings } from "../../supplement/Settings/Settings";
 import { CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
 import { Monaco } from "../../components/ui/CodeEditor";
@@ -49,8 +46,8 @@ import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ShellModuleId } from "../ModuleInfo";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { IShellEditorModel } from ".";
-import { EventType, ListenerEntry } from "../../supplement/Dispatch";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
+import { uuid } from "../../utilities/helpers";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -97,19 +94,6 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             progressMessage: "",
             pendingConnectionProgress: "inactive",
         };
-
-        ListenerEntry.createByClass("webSession", { persistent: true }).then(() => {
-            // A new web session was established while the module is active. That means previous shell sessions
-            // are invalid now and we have to reopen new sessions.
-            const { shellTabs } = this.state;
-
-            shellTabs.forEach((tab) => {
-                const state = this.sessionState.get(tab.id)!;
-                if (state) {
-                    this.restartShellSession(tab.id, tab.details);
-                }
-            });
-        });
     }
 
     public static getDerivedStateFromProps(props: IShellModuleProperties,
@@ -138,6 +122,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         requisitions.register("newSession", this.newSession);
         requisitions.register("openSession", this.openSession);
         requisitions.register("removeSession", this.removeSession);
+        requisitions.register("webSessionStarted", this.webSessionStarted);
 
         const { pendingSession } = this.state;
         if (pendingSession) {
@@ -150,6 +135,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         requisitions.unregister("newSession", this.newSession);
         requisitions.unregister("openSession", this.openSession);
         requisitions.unregister("removeSession", this.removeSession);
+        requisitions.unregister("webSessionStarted", this.webSessionStarted);
     }
 
     public componentDidUpdate(): void {
@@ -305,19 +291,19 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
     };
 
-    private newSession = (details: IShellSessionDetails): Promise<boolean> => {
-        this.addTabForNewSession(details);
+    private newSession = async (details: IShellSessionDetails): Promise<boolean> => {
+        await this.addTabForNewSession(details);
 
-        return Promise.resolve(true);
+        return true;
     };
 
-    private openSession = (details: IShellSessionDetails): Promise<boolean> => {
-        this.addShellTab(details);
+    private openSession = async (details: IShellSessionDetails): Promise<boolean> => {
+        await this.addShellTab(details);
 
-        return Promise.resolve(true);
+        return true;
     };
 
-    private removeSession = (details: IShellSessionDetails): Promise<boolean> => {
+    private removeSession = async (details: IShellSessionDetails): Promise<boolean> => {
         const { shellTabs } = this.state;
 
         const tab = shellTabs.find((info: IShellTabInfo) => {
@@ -325,10 +311,29 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         });
 
         if (tab) {
-            this.doCloseTab(tab.id);
+            await this.doCloseTab(tab.id);
         }
 
-        return Promise.resolve(true);
+        return true;
+    };
+
+    /**
+     * Called when a new web session was established. That means previous shell sessions
+     * are invalid now and we have to open new sessions.
+     *
+     * @returns A promise which resolves after all current shell session have been restarted.
+     */
+    private webSessionStarted = async (): Promise<boolean> => {
+        const { shellTabs } = this.state;
+
+        for (const tab of shellTabs) {
+            const state = this.sessionState.get(tab.id)!;
+            if (state) {
+                await this.restartShellSession(tab.id, tab.details);
+            }
+        }
+
+        return true;
     };
 
     private addTabForSessionId(sessionId: number): void {
@@ -343,13 +348,13 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 // A real session id was given. Activate the respective tab (add it, if it doesn't exist yet).
                 const session = shellTabs.find((candidate) => { return candidate.details.sessionId === sessionId; });
                 if (session) {
-                    this.addShellTab(session.details);
+                    void this.addShellTab(session.details);
                 }
             }
         }
     }
 
-    private addTabForNewSession(session?: IShellSessionDetails): void {
+    private async addTabForNewSession(session?: IShellSessionDetails): Promise<void> {
         const details = session ?? {
             sessionId: -1,
         };
@@ -359,7 +364,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             details.caption = `Session ${details.sessionId}`;
         }
 
-        this.addShellTab(details);
+        return this.addShellTab(details);
     }
 
     /**
@@ -367,7 +372,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
      *
      * @param session The connection for which to open/activate the tab.
      */
-    private addShellTab = (session: IShellSessionDetails): void => {
+    private addShellTab = async (session: IShellSessionDetails): Promise<void> => {
         const { shellTabs } = this.state;
 
         const id = `session_${session.sessionId}`;
@@ -376,14 +381,11 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         });
 
         if (existing) {
-            this.setState({
-                selectedTab: existing.id,
-                pendingConnectionProgress: "inactive",
-            });
+            this.setState({ selectedTab: existing.id, pendingConnectionProgress: "inactive" });
         } else {
             this.setState({ pendingConnectionProgress: "inProgress" });
 
-            // Create a caption suffix if the new tab connections to the same DB connection as an existing tab.
+            // Create a caption suffix if the new tab connections to the same DB connection has an existing tab.
             let counter = 1;
             if (session.dbConnectionId) {
                 shellTabs.forEach((tab) => {
@@ -411,77 +413,59 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 const backend = new ShellInterfaceShellSession();
 
                 this.setProgressMessage("Starting shell session...");
-                backend.startShellSession(id, session.dbConnectionId).then((event: ICommShellEvent) => {
-                    if (!event.data) {
-                        return;
-                    }
-
-                    switch (event.eventType) {
-                        case EventType.StartResponse: {
-                            this.setProgressMessage("Session created, opening new connection...");
-                            break;
-                        }
-
-                        case EventType.DataResponse: {
-                            const data = event.data;
-                            if (!ShellPromptHandler.handleShellPrompt(data.result!, data.requestId!, backend)) {
-                                this.setProgressMessage(event.message ?? "Loading ...");
+                const requestId = uuid();
+                try {
+                    await backend.startShellSession(id, session.dbConnectionId, undefined, requestId,
+                        (result) => {
+                            if (result && result.result) {
+                                if (!ShellPromptHandler.handleShellPrompt(result.result, requestId, backend)) {
+                                    this.setProgressMessage("Loading ...");
+                                }
                             }
+                        });
 
-                            break;
-                        }
+                    // Once the connection is open we can create the editor.
+                    const currentSchema = "";
+                    /*if (event.data.currentSchema) {
+                        currentSchema = event.data.currentSchema;
+                    } else if (connection.dbType === DBType.MySQL) {
+                        currentSchema = (connection.options as IMySQLConnectionOptions).schema ?? "";
+                    }*/
 
-                        case EventType.FinalResponse: {
-                            // Once the connection is open we can create the editor.
-                            const currentSchema = "";
-                            /*if (event.data.currentSchema) {
-                                currentSchema = event.data.currentSchema;
-                            } else if (connection.dbType === DBType.MySQL) {
-                                currentSchema = (connection.options as IMySQLConnectionOptions).schema ?? "";
-                            }*/
+                    // TODO: we need server information for code completion.
+                    const serverVersion = settings.get("editor.dbVersion", 80024);
+                    const serverEdition = "";
+                    const sqlMode = settings.get("editor.sqlMode", "");
 
-                            // TODO: we need server information for code completion.
-                            const serverVersion = settings.get("editor.dbVersion", 80024);
-                            const serverEdition = "";
-                            const sqlMode = settings.get("editor.sqlMode", "");
+                    const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode,
+                        currentSchema);
 
-                            const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode,
-                                currentSchema);
+                    const sessionState: IShellTabPersistentState = {
+                        state: {
+                            model,
+                            viewState: null,
+                            options: defaultEditorOptions,
+                        },
+                        backend,
+                        serverVersion,
+                        serverEdition,
+                        sqlMode,
+                    };
 
-                            const sessionState: IShellTabPersistentState = {
-                                state: {
-                                    model,
-                                    viewState: null,
-                                    options: defaultEditorOptions,
-                                },
-                                backend,
-                                serverVersion,
-                                serverEdition,
-                                sqlMode,
-                            };
+                    this.sessionState.set(id, sessionState);
+                    shellTabs.push({ details: session, id, caption });
+                    this.setState({
+                        shellTabs,
+                        pendingConnectionProgress: "inactive",
+                    });
 
-                            this.sessionState.set(id, sessionState);
-                            shellTabs.push({ details: session, id, caption });
-                            this.setState({
-                                shellTabs,
-                                pendingConnectionProgress: "inactive",
-                            });
-
-                            requisitions.executeRemote("sessionAdded", session);
-                            this.hideProgress(id);
-
-                            break;
-                        }
-
-                        default: {
-                            break;
-                        }
-                    }
-                }).catch((errorEvent: ICommErrorEvent) => {
-                    void requisitions.execute("showError", ["Shell Session Error", String(errorEvent.message)]);
+                    requisitions.executeRemote("sessionAdded", session);
+                    this.hideProgress(id);
+                } catch (reason) {
+                    void requisitions.execute("showError", ["Shell Session Error", String(reason)]);
 
                     this.hideProgress("sessions");
-                });
+                }
             } else {
                 shellTabs.push({
                     details: session,
@@ -504,61 +488,43 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
      * @param id The ID of the tab the must be re-activated.
      * @param session The session to re-open
      */
-    private restartShellSession = (id: string, session: IShellSessionDetails): void => {
+    private restartShellSession = async (id: string, session: IShellSessionDetails): Promise<void> => {
         const state = this.sessionState.get(id)!;
         const backend = state.backend;
 
         this.showProgress();
 
         this.setProgressMessage("Starting shell session...");
-        backend.startShellSession(id, session.dbConnectionId).then((event: ICommShellEvent) => {
-            if (!event.data || !event.data.result) {
-                return;
-            }
-
-            switch (event.eventType) {
-                case EventType.StartResponse: {
-                    this.setProgressMessage("Session created, opening new connection...");
-                    break;
-                }
-
-                case EventType.DataResponse: {
-                    if (!ShellPromptHandler.handleShellPrompt(event.data.result, event.data.requestId!, backend)) {
-                        this.setProgressMessage(event.message ?? "Loading ...");
+        try {
+            const requestId = uuid();
+            await backend.startShellSession(id, session.dbConnectionId, undefined, requestId, (result) => {
+                if (result && result.result) {
+                    if (!ShellPromptHandler.handleShellPrompt(result.result, requestId, backend)) {
+                        this.setProgressMessage("Loading ...");
                     }
-
-                    break;
                 }
+            });
 
-                case EventType.FinalResponse: {
-                    this.hideProgress(id);
-
-                    break;
-                }
-
-                default: {
-                    break;
-                }
-            }
-        }).catch((errorEvent: ICommErrorEvent) => {
-            void requisitions.execute("showError", ["Shell Session Error", String(errorEvent.message)]);
+            this.hideProgress(id);
+        } catch (reason) {
+            void requisitions.execute("showError", ["Shell Session Error", String(reason)]);
 
             this.hideProgress("sessions");
-        });
+        }
     };
 
     private handleQuit = (id: string): void => {
-        this.doCloseTab(id);
+        void this.doCloseTab(id);
     };
 
     private closeTab = (e: React.SyntheticEvent): void => {
         e.stopPropagation();
 
         const id = (e.currentTarget as HTMLElement).id;
-        this.doCloseTab(id);
+        void this.doCloseTab(id);
     };
 
-    private doCloseTab = (id: string): void => {
+    private doCloseTab = async (id: string): Promise<void> => {
         const { selectedTab, shellTabs } = this.state;
 
         // Remove all result data from the application DB.
@@ -572,7 +538,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             const sessionState = this.sessionState.get(id);
             if (sessionState) {
                 this.sessionState.delete(id);
-                sessionState.backend.closeShellSession();
+                await sessionState.backend.closeShellSession();
             }
 
             const tabs = shellTabs.splice(index, 1);

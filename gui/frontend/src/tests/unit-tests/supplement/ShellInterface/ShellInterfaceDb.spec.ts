@@ -21,11 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ICommAddConnectionEvent, IShellDbConnection } from "../../../../communication";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL";
+import { IShellDbConnection } from "../../../../communication/ShellParameterTypes";
 import { DBType, IConnectionDetails, ShellInterface, ShellInterfaceDb } from "../../../../supplement/ShellInterface";
 import { webSession } from "../../../../supplement/WebSession";
-import { sleep } from "../../../../utilities/helpers";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers";
 
@@ -46,7 +45,6 @@ describe("ShellInterfaceDb Tests", () => {
             id: -1,
 
             dbType: DBType.MySQL,
-            folderPath: "",
             caption: "ShellInterfaceDb Test Connection 1",
             description: "ShellInterfaceDb Test Connection",
             options: {
@@ -61,30 +59,20 @@ describe("ShellInterfaceDb Tests", () => {
 
         };
 
-        await new Promise<void>((resolve) => {
-            ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, testConnection, "")
-                .then((event: ICommAddConnectionEvent) => {
-                    if (event.data) {
-                        testConnection.id = event.data.result;
-                    }
-                    resolve();
-                });
-        });
+        testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
+            testConnection, "") ?? -1;
+        expect(testConnection.id).toBeGreaterThan(-1);
 
         db = new ShellInterfaceDb();
-        expect(db.id).toBe("dbSession");
     });
 
     afterAll(async () => {
-        await new Promise<void>((resolve) => {
-            ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id)
-                .then(() => {
-                    resolve();
-                });
-        });
-
-        await sleep(2000);
+        await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id);
         await launcher.exitProcess();
+    });
+
+    it("Close session without opening one", async () => {
+        await db.closeSession(); // Must not throw an error.
     });
 
     it("Stored connection, catalog objects", async () => {

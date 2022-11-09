@@ -39,7 +39,7 @@ import { Grid } from "../Grid/Grid";
 import { GridCell } from "../Grid/GridCell";
 import { IDictionary } from "../../../app-logic/Types";
 
-// The color callback passes a color to a listener, which can return an adjusted value to be set in the popup.
+/** The color callback passes a color to a listener, which can return an adjusted value to be set in the popup. */
 export type ColorChangeCallback = (color: Color | undefined) => Color | undefined;
 
 interface IColorPopupState extends IComponentState {
@@ -412,6 +412,7 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
     private updateHueRing(): void {
         const { currentColor, isValid } = this.state;
 
+        // istanbul ignore else
         if (this.hueRingRef.current && this.handleRef.current) {
             const components = isValid ? currentColor.hsl().array() : [0, 0, 0, 0];
             const angle = components[0] * 2 * Math.PI / 360;
@@ -431,6 +432,7 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
         this.updating = true;
         const { currentColor, isValid } = this.state;
 
+        // istanbul ignore else
         if (this.saturationSliderRef.current && this.luminanceSliderRef.current && this.alphaSliderRef.current) {
             const components = isValid ? currentColor.hsl().array() : [0, 0, 0, 0];
             this.saturationSliderRef.current.value = components[1] / 100;

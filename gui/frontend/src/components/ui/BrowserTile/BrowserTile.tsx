@@ -46,7 +46,6 @@ export interface IBrowserTileProperties extends IComponentProperties {
     type: BrowserTileType;
     icon: string;
 
-    // TODO: find a way to specify: P extends IBrowserTileProperties for the props parameters.
     onAction?: (action: string, props: IBrowserTileProperties, options: unknown) => void;
     onTileReorder?: (draggedTileId: number, props: unknown) => void;
 }

@@ -26,12 +26,10 @@ import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
 import { platform } from "os";
 import React from "react";
 
-import { ICommResultSetEvent } from "../../communication";
 import {
     CheckState, Component, Container, ContentAlignment, ContentWrap, Divider, Grid, GridCell,
     IComponentProperties, IComponentState, Icon, Label, Orientation, Toolbar,
 } from "../../components/ui";
-import { EventType } from "../../supplement/Dispatch";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
 import { IToolbarItems } from ".";
@@ -145,7 +143,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
     }
 
     public componentDidMount(): void {
-        this.updateValues();
+        void this.updateValues();
     }
 
     public componentDidUpdate(prevProps: IServerStatusProperties, _prevState: IServerStatusState): void {
@@ -153,7 +151,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         // If we reopen a connection, a new backend is created and we need to refresh the page.
         if (backend !== prevProps.backend) {
-            this.updateValues();
+            void this.updateValues();
         }
     }
 
@@ -505,7 +503,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         }
     };
 
-    private updateValues(): void {
+    private async updateValues(): Promise<void> {
         const { backend } = this.props;
         const {
             serverStatus, serverDirectories, serverFeatures, serverAuthentication,
@@ -518,9 +516,10 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
             this.setState({ runStatus: "stopped" });
         });
 
-        backend.execute("show variables").then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
+        try {
+            let result = await backend.execute("show variables");
+            if (result && result[0] && result[0].rows) {
+                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
 
                 serverStatus.connectionName = values.get("connection") ?? "none";
                 serverStatus.host = values.get("hostname") ?? "none";
@@ -603,13 +602,10 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                     serverFeatures, serverAuthentication, serverSsl, firewall,
                 });
             }
-        }).catch(() => {
-            this.setState({ runStatus: "stopped" });
-        });
 
-        backend.execute("show global status").then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
+            result = await backend.execute("show global status");
+            if (result && result[0] && result[0].rows) {
+                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
                 const ut = Number(values.get("Uptime") ?? 0);
                 if (ut > 0) {
                     const uptime = new Date(ut);
@@ -619,21 +615,18 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                 }
                 this.setState({ serverStatus });
             }
-        }).catch(() => {
-            this.setState({ runStatus: "stopped" });
-        });
 
-        backend.execute("show plugins").then((event: ICommResultSetEvent) => {
-            if (event.eventType === EventType.FinalResponse) {
-                const values = new Map<string, string>(event.data.result.rows as Array<[string, string]>);
+            result = await backend.execute("show plugins");
+            if (result && result[0] && result[0].rows) {
+                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
                 serverFeatures.memCachePlugin = this.checkTriState(values.get("daemon_memcached"), "ACTIVE");
                 serverFeatures.windowsAuth = this.checkTriState(values.get("authentication_windows"), "ACTIVE");
                 serverFeatures.pamAuth = this.checkTriState(values.get("authentication_pam"), "ACTIVE");
                 this.setState({ serverFeatures });
             }
-        }).catch(() => {
+        } catch (_) {
             this.setState({ runStatus: "stopped" });
-        });
+        }
     }
 
     private formatDuration = (value: number): string => {

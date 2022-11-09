@@ -23,7 +23,8 @@
 
 import { TreeItemCollapsibleState } from "vscode";
 
-import { IMdsProfileData, ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
+import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
 import { OciBaseTreeItem } from "./OciBaseTreeItem";
 
 export class OciDbSystemTreeItem extends OciBaseTreeItem {

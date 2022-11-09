@@ -34,10 +34,9 @@ describe("Connection browser tests", (): void => {
         const connection1: IConnectionDetails = {
             id: 0,
             dbType: DBType.MySQL,
-            folderPath: "",
             caption: "",
             description: "",
-            options: {},
+            options: { type: "unknown" },
             useSSH: false,
             useMDS: false,
         };

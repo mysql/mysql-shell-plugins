@@ -23,16 +23,12 @@
 
 import { CommonWrapper, ReactWrapper } from "enzyme";
 import toJson, { Json } from "enzyme-to-json";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from "fs";
-import keyboardKey from "keyboard-key";
+
+import fs from "fs";
 import path from "path";
 import os from "os";
+import keyboardKey from "keyboard-key";
 
-import {
-    CommunicationEvents, ICommAuthenticationEvent, ICommErrorEvent, ICommWebSessionEvent,
-    IGenericResponse, IShellDictionary,
-} from "../../communication";
-import { dispatcher, eventFilterNoRequests, ListenerEntry } from "../../supplement/Dispatch";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { ShellInterface } from "../../supplement/ShellInterface";
 import { webSession } from "../../supplement/WebSession";
@@ -50,40 +46,6 @@ export interface ITestDbCredentials {
     host: string;
     password?: string;
 }
-
-const createResponse = (type: string, msg: string, requestId?: string,
-    data?: IShellDictionary): IGenericResponse => {
-
-    return {
-        requestId,
-        requestState: { type, msg },
-        ...data,
-    };
-};
-
-/**
- * Simulates an event for the dispatcher.
- *
- * @param context The context to use. This describes what an event handler is subscribed to.
- * @param data The data to send with the event.
- */
-export const dispatchTestEvent = <T extends IGenericResponse>(context: string, data: T): void => {
-    dispatcher.triggerEvent(CommunicationEvents.generateResponseEvent(context, data), false);
-};
-
-export const dispatchErrorResponse = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-        const callback = (_values: string[]): Promise<boolean> => {
-            requisitions.unregister("showError", callback);
-            resolve(true);
-
-            return Promise.resolve(true);
-        };
-
-        requisitions.register("showError", callback);
-        dispatchTestEvent("serverResponse", createResponse("ERROR", "Something went wrong.", "1234"));
-    });
-};
 
 /**
  * Converts a single value, by either forwarding it to specialized functions or just returning the value itself.
@@ -431,6 +393,35 @@ export const sendBlurEvent = (): void => {
 };
 
 /**
+ * Simulates a left click on the given element.
+ *
+ * @param element The element for which to simulate the left click event.
+ */
+export const sendLeftClick = (element: Element): void => {
+    const ev1 = new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        button: 0,
+        buttons: 0,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(ev1);
+
+    const ev2 = new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: false,
+        view: window,
+        button: 0,
+        buttons: 0,
+        clientX: element.getBoundingClientRect().x,
+        clientY: element.getBoundingClientRect().y,
+    });
+    element.dispatchEvent(ev2);
+};
+
+/**
  * Simulates a right click (including context menu event) on the given element.
  *
  * @param element The element for which to simulate the right click event.
@@ -554,19 +545,19 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
 export const setupShellForTests = (showOutput: boolean, handleEvents = true,
     logLevel?: LogLevel): Promise<MySQLShellLauncher> => {
     // Create a test folder name with a random part, in the system's temp folder.
-    const targetDir = mkdtempSync(path.join(os.tmpdir(), "msg-unit-tests"));
+    const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), "msg-unit-tests"));
 
     return new Promise((resolve, reject) => {
         try {
             // Create that folder and add links to the shell plugins.
-            mkdirSync(targetDir + "/plugins", { recursive: true });
-            symlinkSync(path.resolve("../../../../backend/gui_plugin"), targetDir + "/plugins/gui_plugin");
-            symlinkSync(path.resolve("../../../../../mrs_plugin"), targetDir + "/plugins/mrs_plugin");
-            symlinkSync(path.resolve("../../../../../mds_plugin"), targetDir + "/plugins/mds_plugin");
+            fs.mkdirSync(targetDir + "/plugins", { recursive: true });
+            fs.symlinkSync(path.resolve("../../../../backend/gui_plugin"), targetDir + "/plugins/gui_plugin");
+            fs.symlinkSync(path.resolve("../../../../../mrs_plugin"), targetDir + "/plugins/mrs_plugin");
+            fs.symlinkSync(path.resolve("../../../../../mds_plugin"), targetDir + "/plugins/mds_plugin");
 
             // And create a web root link in the gui_plugin, if not yet done.
-            if (!existsSync(targetDir + "/plugins/gui_plugin/core/webroot")) {
-                symlinkSync(path.resolve("../../../build"), targetDir + "/plugins/gui_plugin/core/webroot");
+            if (!fs.existsSync(targetDir + "/plugins/gui_plugin/core/webroot")) {
+                fs.symlinkSync(path.resolve("../../../build"), targetDir + "/plugins/gui_plugin/core/webroot");
             }
 
             appParameters.set("shellUserConfigDir", path.resolve(targetDir));
@@ -586,37 +577,36 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
                 console.error(`\nError while setting up MySQL Shell connection: ${error.message}\n`);
             },
             () => { // Called on exit of the shell process.
-                rmSync(targetDir, { recursive: true, force: true });
+                fs.rmSync(targetDir, { recursive: true, force: true });
             },
         );
 
         if (handleEvents) {
-            const serverResponseListener = ListenerEntry.createByClass("serverResponse", { persistent: true });
-            serverResponseListener.catch((errorEvent: ICommErrorEvent) => {
-                console.error(errorEvent.message);
-            });
+            requisitions.register("webSessionStarted", (data) => {
+                webSession.sessionId = data.sessionUuid;
+                webSession.localUserMode = data.localUserMode ?? false;
 
-            const webSessionListener = ListenerEntry.createByClass("webSession",
-                { filters: [eventFilterNoRequests], persistent: true });
-
-            webSessionListener.then((event: ICommWebSessionEvent) => {
-                if (event.data?.sessionUuid) {
-                    webSession.sessionId = event.data.sessionUuid;
-                    webSession.localUserMode = event.data.localUserMode;
-                }
-
+                // Session recovery is not supported in tests, so remove the else branch from test coverage.
+                // istanbul ignore else
                 if (webSession.userName === "") {
-                    if (event.data?.localUserMode) {
-                        ShellInterface.users.authenticate("LocalAdministrator", "")
-                            .then((_authEvent: ICommAuthenticationEvent) => {
+                    if (webSession.localUserMode) {
+                        void ShellInterface.users.authenticate("LocalAdministrator", "")
+                            .then((profile) => {
                                 if (showOutput) {
                                     console.log("Shell connection established and user authenticated");
                                 }
+
+                                if (profile) {
+                                    webSession.loadProfile(profile);
+                                    void requisitions.execute("userAuthenticated", profile);
+                                }
                             });
                     }
-                } else if (event.data) {
-                    webSession.loadProfile(event.data.activeProfile);
+                } else {
+                    webSession.loadProfile(data.activeProfile);
                 }
+
+                return Promise.resolve(true);
             });
 
             const loaded = (): Promise<boolean> => {
@@ -652,3 +642,20 @@ export const getDbCredentials = (): ITestDbCredentials => {
 };
 
 export const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/**
+ * Copies an entire folder structure from `from` to `to`, recursively.
+ *
+ * @param from The source folder to copy from.
+ * @param to The target folder to place the copy in.
+ */
+export const copyFolderSync = (from: string, to: string): void => {
+    fs.mkdirSync(to);
+    fs.readdirSync(from).forEach((element) => {
+        if (fs.lstatSync(path.join(from, element)).isFile()) {
+            fs.copyFileSync(path.join(from, element), path.join(to, element));
+        } else {
+            copyFolderSync(path.join(from, element), path.join(to, element));
+        }
+    });
+};

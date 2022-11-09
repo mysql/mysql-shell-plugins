@@ -44,6 +44,14 @@ import { CommunicationDebugger } from "../../../components/CommunicationDebugger
 const toggleOptions = (): void => { };
 
 describe("Application host tests", () => {
+    beforeAll(() => {
+        appParameters.launchWithDebugger = true;
+    });
+
+    afterAll(() => {
+        appParameters.launchWithDebugger = false;
+    });
+
     it("Base tests", async (): Promise<void> => {
         const component = mount<ApplicationHost>(
             <ApplicationHost
@@ -257,7 +265,7 @@ describe("Application host tests", () => {
         expect(component.state().debuggerVisible).toBe(false);
 
         let wrapper = component.find(".activityBarItem#debugger");
-        expect(wrapper.length).not.toBe(0);
+        expect(wrapper.length).toBe(2);
 
         let onClick = (wrapper.at(0).props() as IActivityBarItemProperties).onClick;
         await act(() => {

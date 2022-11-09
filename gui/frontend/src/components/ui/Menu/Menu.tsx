@@ -162,7 +162,7 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
                     active = itemIndex++ === activeItemIndex;
                 }
 
-                return React.cloneElement(child, {
+                return React.cloneElement(child as React.ReactElement, {
                     ref: itemRef,
                     onMouseEnter: this.handleItemMouseEnter,
                     onClick: (e: React.MouseEvent, props: IMenuItemProperties): void => {
