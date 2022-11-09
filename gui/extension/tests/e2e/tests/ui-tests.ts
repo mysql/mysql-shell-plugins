@@ -91,7 +91,7 @@ describe("MySQL Shell for VS Code", () => {
 
         try {
             let activityBar = new ActivityBar();
-            await (await activityBar.getViewControl("MySQL Shell for VSCode"))?.openView();
+            await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
             const openEditors = new EditorView();
 
             await driver.wait(async () => {
@@ -101,7 +101,7 @@ describe("MySQL Shell for VS Code", () => {
             await Common.reloadVSCode();
             await new EditorView().closeAllEditors();
             activityBar = new ActivityBar();
-            await (await activityBar.getViewControl("MySQL Shell for VSCode"))?.openView();
+            await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
             await Common.waitForExtensionChannel();
 
             if (!(await Common.isCertificateInstalled())) {
@@ -109,7 +109,7 @@ describe("MySQL Shell for VS Code", () => {
             }
 
             await Common.hideSection(consolesTreeSection, false);
-        } catch(e) {
+        } catch (e) {
             await Common.processFailure(this);
             throw e;
         }
@@ -1275,7 +1275,7 @@ describe("MySQL Shell for VS Code", () => {
                     const res = await Database.getResultStatus(true);
                     if (res.length > 0) {
                         return res;
-                    }  else {
+                    } else {
                         return false;
                     }
                 }, explicitWait, "No results were found");
@@ -1929,11 +1929,11 @@ describe("MySQL Shell for VS Code", () => {
 
         describe("Scripts", () => {
 
-            before(async function() {
+            before(async function () {
                 try {
                     await Common.selectContextMenuItem(dbTreeSection, globalConn.caption, "Connect to Database");
                     await Common.switchToWebView();
-                } catch(e) {
+                } catch (e) {
                     await Common.processFailure(this);
                     throw e;
                 }
@@ -2056,7 +2056,7 @@ describe("MySQL Shell for VS Code", () => {
                 expect(headings).to.include("Server Authentication");
             });
 
-            it("Client Connections", async ()  => {
+            it("Client Connections", async () => {
 
                 const clientConn = await Common.getTreeElement(dbTreeSection, "Client Connections");
                 await clientConn.click();
@@ -2119,7 +2119,7 @@ describe("MySQL Shell for VS Code", () => {
 
             let randomService = "";
 
-            before(async function() {
+            before(async function () {
                 try {
                     const randomCaption = "";
                     await Common.toggleTreeElement(dbTreeSection, globalConn.caption, true);
@@ -2656,7 +2656,7 @@ describe("MySQL Shell for VS Code", () => {
                 }
             });
 
-            beforeEach(async function() {
+            beforeEach(async function () {
                 try {
                     await driver.wait(async () => {
                         return !(await Common.hasLoadingBar(ociTreeSection));
@@ -2854,11 +2854,11 @@ describe("MySQL Shell for VS Code", () => {
 
             });
 
-            after(async function() {
+            after(async function () {
                 try {
                     await Common.toggleBottomBar(false);
                     await Common.toggleSection(tasksTreeSection, false);
-                } catch(e) {
+                } catch (e) {
                     await Common.processFailure(this);
                     throw e;
                 }
@@ -3180,7 +3180,7 @@ describe("MySQL Shell for VS Code", () => {
 
                 const btn = await Common.getSectionToolbarButton(consolesTreeSection, "Add a New MySQL Shell Console");
 
-                for (let i=1; i<= 3; i++) {
+                for (let i = 1; i <= 3; i++) {
                     await btn.click();
                     await Common.switchToWebView();
                     await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");

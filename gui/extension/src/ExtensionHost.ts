@@ -198,7 +198,7 @@ export class ExtensionHost {
     };
 
     /**
-     * Prepares all vscode providers for first use.
+     * Prepares all VS Code providers for first use.
      */
     private setupEnvironment(): void {
         this.dbEditorCommandHandler.setup(this.context, this);
@@ -369,7 +369,7 @@ export class ExtensionHost {
     }
 
     /**
-     * Triggered when the user changed a vscode setting. Updates the current profile.
+     * Triggered when the user changed a VS Code setting. Updates the current profile.
      */
     private updateProfileSettings(): void {
         if (!this.updatingSettings) {

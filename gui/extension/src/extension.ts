@@ -88,7 +88,7 @@ const handleShellOutput = (output: string): void => {
         if (output.includes("Certificate is not installed.")) {
             // If the web certificate is not installed, ask the user if he wants to run the wizard
             void window.showInformationMessage(
-                "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
+                "The MySQL Shell for VS Code extension cannot run because the web certificate is " +
                 "not installed. Do you want to run the Welcome Wizard to install it?",
                 "Run Welcome Wizard", "Cancel")
                 .then((answer) => {
@@ -99,7 +99,7 @@ const handleShellOutput = (output: string): void => {
         } else if (output.includes("Certificate is not correctly installed.")) {
             // If the web certificate is not installed correctly, ask the user if he wants to run the wizard to fix it
             void window.showInformationMessage(
-                "The MySQL Shell for VSCode extension cannot run because the web certificate is " +
+                "The MySQL Shell for VS Code extension cannot run because the web certificate is " +
                 "incorrectly installed. Do you want to run the Welcome Wizard to fix it?",
                 "Run Welcome Wizard", "Cancel")
                 .then((answer) => {
@@ -131,7 +131,7 @@ const forwardPortThroughSshSession = async (dynamicUrl: URL): Promise<URL> => {
 /**
  * Entry function for the extension. Called when the extension is activated.
  *
- * @param context The extension context from vscode.
+ * @param context The extension context from VS Code.
  */
 export const activate = (context: ExtensionContext): void => {
     outputChannel = window.createOutputChannel("MySQL Shell for VS Code");

@@ -1193,7 +1193,7 @@
             "activitybar": [
                 {
                     "id": "msg-view",
-                    "title": "MySQL Shell for VSCode",
+                    "title": "MySQL Shell for VS Code",
                     "icon": "images/mysqlShellForVsCode.svg"
                 }
             ]

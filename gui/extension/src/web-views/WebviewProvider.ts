@@ -62,7 +62,7 @@ export class WebviewProvider {
      * @param requestType The type of the request to be sent.
      * @param parameter The data for the request.
      * @param caption A caption for the webview tab.
-     * @param settingName For positioning in vscode, if a new webview must be opened.
+     * @param settingName For positioning in VS Code, if a new webview must be opened.
      *
      * @returns A promise that resolves when the panel is up and running.
      */
@@ -278,13 +278,13 @@ export class WebviewProvider {
         hideWaitForContentDiv();
 
         if ("${this.url.protocol}" === "https:") {
-            showFloatingLabel("Failed to Connect", 
+            showFloatingLabel("Failed to Connect",
                 "Please check if you have the<br>" +
                 "MySQL Shell rootCA.crt certificate<br>" +
                 "<a href='https://dev.mysql.com/doc/mysql-shell-for-vs-code/en/certificate-handling.html'>" +
                 "installed</a> on your local system.", false);
         } else {
-            showFloatingLabel("Failed to Connect", 
+            showFloatingLabel("Failed to Connect",
                 "Unable to connect to MySQL Shell.<br>" +
                 "Please check if the MySQL Shell<br>" +
                 "process is running.", false);
@@ -308,7 +308,7 @@ export class WebviewProvider {
     width="100%">
 </iframe>
 <div id="waitForContent"><div class="pingEffect"><div></div><div></div></div></div>
-<img src="${testImgUrl.toString()}" onerror="showLoadingError()" 
+<img src="${testImgUrl.toString()}" onerror="showLoadingError()"
     width="0" height="0">
 <script>
     let frame;
@@ -371,7 +371,7 @@ export class WebviewProvider {
     });
 
     if ("${this.url.protocol}" !== "https:" && ${String(showUnsecuredConnectionWarning)} === true) {
-        showFloatingLabel("Warning: Unsecured Connection", 
+        showFloatingLabel("Warning: Unsecured Connection",
             "MySQL Shell is currently using HTTP.<br>" +
             "Open the VS Code Settings and enable <br>" +
             "Msg &gt; Shell: Enforce Https.",

@@ -45,7 +45,7 @@ Keep in mind that the connection to the web server runs over a secure channel (h
 
 It is strongly recommended to use Visual Studio code for development on all platforms, also because of the excellent support for React development. All the instructions below focus on this IDE.
 
-Use the `frontend/` folder as the root folder in your vscode project. It contains all necessary files for frontend development.
+Use the `frontend/` folder as the root folder in your VS Code project. It contains all necessary files for frontend development.
 
 ## Recommended extensions
 

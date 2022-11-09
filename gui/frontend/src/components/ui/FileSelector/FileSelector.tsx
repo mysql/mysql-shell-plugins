@@ -147,7 +147,7 @@ export class FileSelector extends Component<IFileSelectorProperties> {
             return Promise.resolve(false);
         }
 
-        // Only called in single user mode, from a native wrapper or vscode.
+        // Only called in single user mode, from a native wrapper or VS Code.
         const result = openFileResult.path.map((value) => {
             return decodeURI(value.startsWith("file://") ? value.substring("file://".length) : value);
         });

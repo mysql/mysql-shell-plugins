@@ -47,18 +47,21 @@ export interface ITokenEntry {
     };
 }
 
-// This is the structure of a vscode theme file.
+/** This is the structure of a VS Code theme file. */
 export interface IThemeObject {
     name: string;
     type?: string;
     include?: string;
     colors?: IColors;
 
-    settings?: ITokenEntry[];    // Old style specification.
-    tokenColors?: ITokenEntry[]; // This is how it should be done now.
+    /** Old style specification. */
+    settings?: ITokenEntry[];
+
+    /** This is how it should be done now. */
+    tokenColors?: ITokenEntry[];
 }
 
-// This is how we store a theme object, loaded from a file (including our defaults).
+/** This is how we store a theme object, loaded from a file (including our defaults). */
 interface IThemeDefinition {
     type: "dark" | "light";
     css: string;
@@ -71,7 +74,7 @@ export interface IThemeChangeData {
     values: IThemeObject;
 }
 
-// A class to manage application themes.
+/** A class to manage application themes. */
 export class ThemeManager {
 
     private themeDefinitions: Map<string, IThemeDefinition> = new Map();
@@ -413,7 +416,7 @@ export class ThemeManager {
     /**
      * Checks all given colors for validity and assigns a signal color to those that are not.
      * For background, foreground and border colors we try to find a useful value if they have not been assigned.
-     * Finally we also assign meaningful default colors for entries that don't exist in vscode color themes,
+     * Finally we also assign meaningful default colors for entries that don't exist in VS Code color themes,
      * but are used by us.
      *
      * @param colors A list of colors to check.
@@ -451,7 +454,7 @@ export class ThemeManager {
             }
         }
 
-        // 5. Step: assign initial values for non-vscode colors we use and don't match any of the above patterns.
+        // 5. Step: assign initial values for non - VS Code colors we use and don't match any of the above patterns.
         if (!colors["list.gridColor"]) {
             colors["list.gridColor"] = colors["tree.indentGuidesStroke"];
         }

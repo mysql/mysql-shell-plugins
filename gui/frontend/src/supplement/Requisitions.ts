@@ -87,7 +87,7 @@ export interface IOpenDialogFilters {
     [key: string]: string[];
 }
 
-/** This is essentially a copy of the vscode OpenDialogOptions interface. */
+/** This is essentially a copy of the VS Code OpenDialogOptions interface. */
 export interface IOpenDialogOptions {
     /** Resource Id which trigger open dialog */
     id?: string;
@@ -306,7 +306,7 @@ export class RequisitionHub {
                 });
 
                 if (appParameters.embedded) {
-                    // If we are running embedded in vscode, we have to forward keyboard events, to allow vscode
+                    // If we are running embedded in VS Code, we have to forward keyboard events, to allow VS Code
                     // to handle these, if needed.
                     // See extension code (WebviewProvider.ts) how these messages are treated.
                     document.addEventListener("keydown", (e) => {
@@ -324,7 +324,7 @@ export class RequisitionHub {
                             shiftKey: e.shiftKey,
                         };
 
-                        // Forward event to the window parent, which will forward to vscode.
+                        // Forward event to the window parent, which will forward to VS Code.
                         window.parent.postMessage(obj, "*");
 
                         // Additionally, we have to take care for clipboard actions here.

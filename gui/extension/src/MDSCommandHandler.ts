@@ -578,7 +578,7 @@ export class MDSCommandHandler {
     };
 
     /**
-     * Opens a new text document on a vscode tab, with the given text.
+     * Opens a new text document on a VS Code tab, with the given text.
      *
      * @param title The title of the tab.
      * @param text The text to show, interpreted as JSON.
