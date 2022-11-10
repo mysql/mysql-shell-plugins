@@ -46,7 +46,7 @@ import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
 import { MRSCommandHandler } from "./MRSCommandHandler";
 import { ConnectionsTreeDataProvider, IConnectionEntry } from "./tree-providers/ConnectionsTreeProvider";
-import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ShellResponseTypes";
+import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/";
 
 // This class manages some extension wide things like authentication handling etc.
 export class ExtensionHost {

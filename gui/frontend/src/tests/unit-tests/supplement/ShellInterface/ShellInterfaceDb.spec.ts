@@ -22,7 +22,7 @@
  */
 
 import { MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { IShellDbConnection } from "../../../../communication/ShellParameterTypes";
+import { IShellDbConnection } from "../../../../communication/";
 import { DBType, IConnectionDetails, ShellInterface, ShellInterfaceDb } from "../../../../supplement/ShellInterface";
 import { webSession } from "../../../../supplement/WebSession";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";

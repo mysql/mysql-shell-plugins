@@ -33,7 +33,7 @@ export * from "./Oci";
 
 // Types for communication in various environments, like a browser, native platform wrappers or Visual Studio Code.
 
-// Determines the origin of the message.
+/** Determines the origin of the message. */
 export type IEmbeddedSourceType =
     "app" | // The app itself.
     "host"  // The host where the app is embedded.

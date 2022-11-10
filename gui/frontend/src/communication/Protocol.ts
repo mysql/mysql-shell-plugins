@@ -21,9 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /** A type to describe arbitrary result data. */
 export type ShellDictionaryType = string | number | boolean | undefined | unknown | null | IShellDictionary;
 export interface IShellDictionary {
@@ -46,7 +43,7 @@ export enum EventType {
     /** A response carrying result data. */
     DataResponse = 2,
 
-    /** The response indicating the current data stream (sequence of data responses). */
+    /** The response ending the current data stream (sequence of data responses). */
     FinalResponse = 3,
 
     /** The response indicating that the entire request was finished. */

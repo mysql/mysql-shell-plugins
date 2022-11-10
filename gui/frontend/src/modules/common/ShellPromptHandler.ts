@@ -24,10 +24,10 @@
 import {
     IServicePasswordRequest, IDialogRequest, DialogType, IDictionary, IDialogResponse, DialogResponseClosure,
 } from "../../app-logic/Types";
-import { IPromptReplyBackend, ShellPromptResponseType } from "../../communication";
 import {
-    IShellFeedbackRequest, IShellPasswordFeedbackRequest, IShellResultType,
-} from "../../communication/ShellResponseTypes";
+    IPromptReplyBackend, IShellFeedbackRequest, IShellPasswordFeedbackRequest, IShellResultType,
+    ShellPromptResponseType,
+} from "../../communication";
 import { requisitions } from "../../supplement/Requisitions";
 
 export interface IPromptData {

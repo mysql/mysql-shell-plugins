@@ -22,10 +22,9 @@
  */
 
 import * as path from "path";
-
 import { TreeItemCollapsibleState } from "vscode";
-import { ICompartment } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
+
+import { ICompartment, IMdsProfileData } from "../../../../frontend/src/communication";
 import { OciBaseTreeItem } from "./OciBaseTreeItem";
 
 export class OciCompartmentTreeItem extends OciBaseTreeItem {

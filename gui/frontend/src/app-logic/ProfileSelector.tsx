@@ -41,7 +41,7 @@ import { ShellInterface } from "../supplement/ShellInterface";
 import { webSession } from "../supplement/WebSession";
 import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure } from "./Types";
-import { IShellProfile } from "../communication/ShellResponseTypes";
+import { IShellProfile } from "../communication";
 
 interface IProfileSelectorState extends IComponentState {
     menuItems: React.ReactNode[];

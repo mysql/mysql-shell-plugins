@@ -23,7 +23,7 @@
 
 import { IDictionary } from "../../../../app-logic/Types";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { IShellPromptValues } from "../../../../communication/ShellResponseTypes";
+import { IShellPromptValues } from "../../../../communication/";
 import {
     DBType, IConnectionDetails, ShellInterface, ShellInterfaceShellSession,
 } from "../../../../supplement/ShellInterface";

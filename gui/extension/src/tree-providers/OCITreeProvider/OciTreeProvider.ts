@@ -25,7 +25,7 @@ import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window
 
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
-import { ICompartment, MessageScheduler } from "../../../../frontend/src/communication";
+import { ICompartment, MessageScheduler, IMdsProfileData } from "../../../../frontend/src/communication";
 
 import { ShellInterfaceShellSession } from "../../../../frontend/src/supplement/ShellInterface";
 import {
@@ -35,7 +35,6 @@ import {
 import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem";
 import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem";
 import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
 
 // An interface for the compartment cache
 interface IConfigProfileCompartments {

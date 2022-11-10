@@ -24,12 +24,9 @@
 import {
     DataCallback,
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMySQLDbSystem,
-    IMySQLDbSystemShapeSummary, MessageScheduler, ShellAPIMds,
-} from "../../communication";
-import { IMdsProfileData } from "../../communication/ShellResponseTypes";
-import {
+    IMySQLDbSystemShapeSummary, MessageScheduler, ShellAPIMds, IMdsProfileData,
     IShellSetCurrentBastionKwargs, IShellSetCurrentCompartmentKwargs,
-} from "../../communication/ShellParameterTypes";
+} from "../../communication";
 
 export class ShellInterfaceMds {
 

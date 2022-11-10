@@ -24,7 +24,7 @@
 import { Cookies } from "./Storage";
 import { ShellInterface } from "./ShellInterface";
 import { requisitions } from "./Requisitions";
-import { IShellProfile } from "../communication/ShellResponseTypes";
+import { IShellProfile } from "../communication/";
 
 // Data specific to a module. This is the base structure which will be extended for individual modules.
 export interface IModuleData {

@@ -22,8 +22,8 @@
  */
 
 import { /*Command,*/ TreeItemCollapsibleState } from "vscode";
-import { ICompartment, IComputeInstance } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
+
+import { ICompartment, IComputeInstance, IMdsProfileData } from "../../../../frontend/src/communication";
 import { ShellInterfaceShellSession } from "../../../../frontend/src/supplement/ShellInterface";
 import { OciBaseTreeItem } from "./OciBaseTreeItem";
 

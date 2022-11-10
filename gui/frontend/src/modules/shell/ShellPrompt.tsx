@@ -23,7 +23,7 @@
 
 import React from "react";
 
-import { IShellPromptValues } from "../../communication/ShellResponseTypes";
+import { IShellPromptValues } from "../../communication/";
 
 import {
     Breadcrumb, Component, IComponentProperties, IComponentState, IMenuItemProperties, Label, Menu, MenuItem,

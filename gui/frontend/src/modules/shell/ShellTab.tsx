@@ -49,7 +49,7 @@ import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import {
     IShellColumnsMetaData, IShellDocumentData, IShellObjectResult, IShellPromptValues, IShellResultType, IShellRowData,
     IShellSimpleResult, IShellValueResult,
-} from "../../communication/ShellResponseTypes";
+} from "../../communication/";
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
