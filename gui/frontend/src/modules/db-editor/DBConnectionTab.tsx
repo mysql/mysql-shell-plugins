@@ -59,7 +59,7 @@ import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
 import { PerformanceDashboard } from "./PerformanceDashboard";
 import { uuid } from "../../utilities/helpers";
-import { IDbEditorResultSetData } from "../../communication/ShellResponseTypes";
+import { IDbEditorResultSetData } from "../../communication/";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
@@ -688,21 +688,20 @@ Execute \\help or \\? for help;`;
             });
 
             // Handling of the final response.
-            if (finalData && finalData.length > 0) {
+            if (finalData) {
                 const { dbType } = this.props;
-                const result = finalData[0];
 
                 await this.inspectQuery(context, sql);
 
                 let hasMoreRows = false;
-                let rowCount = result.totalRowCount ?? 0;
+                let rowCount = finalData.totalRowCount ?? 0;
                 if (explicitPaging) {
                     // We added 1 to the total count for the LIMIT clause to allow determining if
                     // more pages are available. That's why we have to decrement the row count for display.
                     const pageSize = settings.get("sql.limitRowCount", 1000);
                     if (pageSize < rowCount) {
                         --rowCount;
-                        result.rows?.pop();
+                        finalData.rows?.pop();
 
                         hasMoreRows = true;
                     }
@@ -710,7 +709,7 @@ Execute \\help or \\? for help;`;
 
                 const status: IExecutionInfo = {
                     text: "OK, " + formatWithNumber("record", rowCount) + " retrieved in " +
-                        formatTime(result.executionTime),
+                        formatTime(finalData.executionTime),
                 };
 
                 if (rowCount === 0) {
@@ -718,8 +717,8 @@ Execute \\help or \\? for help;`;
                     status.type = MessageType.Response;
                 }
 
-                const columns = generateColumnInfo(dbType, result.columns);
-                const rows = convertRows(columns, result.rows);
+                const columns = generateColumnInfo(dbType, finalData.columns);
+                const rows = convertRows(columns, finalData.rows);
 
                 void ApplicationDB.db.add("dbModuleResultData", {
                     tabId: id,
@@ -739,7 +738,7 @@ Execute \\help or \\? for help;`;
                     columns,
                     hasMoreRows,
                     currentPage,
-                    totalRowCount: result.totalRowCount ?? 0,
+                    totalRowCount: finalData.totalRowCount ?? 0,
                     executionInfo: status,
                 });
             }
@@ -1086,9 +1085,8 @@ Execute \\help or \\? for help;`;
             await backend.execute("SET @@optimizer_trace = @old_optimizer_trace, @@optimizer_trace_offset = " +
                 "@old_optimizer_trace_offset;", [], requestId);
 
-            if (result && result.length > 0) {
-                const data = result[result.length - 1];
-                const rows = data.rows as string[][];
+            if (result) {
+                const rows = result.rows as string[][];
                 if (rows && rows.length > 0) {
                     const info = (rows[0][1] ?? rows[0][2]);
 
@@ -1250,9 +1248,9 @@ Execute \\help or \\? for help;`;
                                     handleResult(data.result);
                                 });
 
-                            finalData?.forEach((data) => {
-                                handleResult(data);
-                            });
+                            if (finalData) {
+                                handleResult(finalData);
+                            }
 
                             // Send back the result data to the worker to allow the user to act on
                             // that in their JS code. If the `final` member of the data is set to

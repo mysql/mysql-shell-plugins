@@ -24,8 +24,8 @@
 import * as path from "path";
 
 import { TreeItemCollapsibleState } from "vscode";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
 
+import { IMdsProfileData } from "../../../../frontend/src/communication/";
 import { OciBaseTreeItem } from "./OciBaseTreeItem";
 
 export class OciConfigProfileTreeItem extends OciBaseTreeItem {

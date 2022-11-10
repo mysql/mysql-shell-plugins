@@ -24,7 +24,7 @@
 import React from "react";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsServiceData } from "../../../communication/ShellResponseTypes";
+import { IMrsServiceData } from "../../../communication/";
 
 import {
     IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, CommonDialogValueOption,

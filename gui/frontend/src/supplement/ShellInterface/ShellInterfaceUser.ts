@@ -21,8 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellAPIGui, MessageScheduler, Protocol } from "../../communication";
-import { IShellProfile } from "../../communication/ShellResponseTypes";
+import { IShellProfile, ShellAPIGui, MessageScheduler, Protocol } from "../../communication";
 import { webSession } from "../WebSession";
 
 export class ShellInterfaceUser {

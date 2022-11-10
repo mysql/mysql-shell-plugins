@@ -27,7 +27,7 @@ import React from "react";
 
 import { ApplicationHost } from "./ApplicationHost";
 import { ModuleRegistry } from "../modules/ModuleRegistry";
-import { MessageScheduler } from "../communication";
+import { IShellProfile, MessageScheduler } from "../communication";
 import { LoginPage } from "../components/Login/LoginPage";
 import { ErrorBoundary } from "./ErrorBoundary";
 import {
@@ -49,7 +49,6 @@ import { MDSModule } from "../modules/mds/MDSModule";
 import { MRSModule } from "../modules/mrs/MrsModule";
 import { ApplicationDB } from "./ApplicationDB";
 import { IDialogResponse } from "./Types";
-import { IShellProfile } from "../communication/ShellResponseTypes";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;

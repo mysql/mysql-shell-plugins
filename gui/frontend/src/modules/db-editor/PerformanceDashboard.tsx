@@ -970,15 +970,15 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         const list = this.variableNames.join("\",\"");
         try {
             const result = await backend.execute(`show global status where variable_name in ("${list}")`);
-            if (result && result.length > 0 && result[0].rows) {
-                const variables = result[0].rows as Array<[string, string]>;
+            if (result && result.rows) {
+                const variables = result.rows as Array<[string, string]>;
 
                 if (this.hasPSAccess) {
                     const data = await backend.execute(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
                         `STORAGE_ENGINES->>'$."InnoDB"."LSN_checkpoint"' FROM performance_schema.log_status`);
 
-                    if (data && data.length > 0 && data[0].rows) {
-                        const row = data[0].rows[0] as number[];
+                    if (data && data.rows && data.rows.length > 0) {
+                        const row = data.rows[0] as number[];
                         this.updateData(variables, row[0]);
                     }
                 } else {

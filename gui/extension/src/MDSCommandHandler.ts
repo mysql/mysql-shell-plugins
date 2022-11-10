@@ -47,7 +47,7 @@ import { DialogResponseClosure, DialogType, IDictionary } from "../../frontend/s
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
-import { IMdsProfileData } from "../../frontend/src/communication/ShellResponseTypes";
+import { IMdsProfileData } from "../../frontend/src/communication/";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();

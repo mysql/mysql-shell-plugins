@@ -25,9 +25,8 @@ import { MessageScheduler, ShellAPIMrs } from "../../communication";
 import { webSession } from "../WebSession";
 import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
-    IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData,
-} from "../../communication/ShellResponseTypes";
-import { IMrsDbObjectParameterData } from "../../communication/ShellParameterTypes";
+    IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectParameterData,
+} from "../../communication/";
 
 export class ShellInterfaceMrs {
 
@@ -74,12 +73,7 @@ export class ShellInterfaceMrs {
             },
         });
 
-        const result: IMrsServiceData[] = [];
-        response.forEach((list) => {
-            result.push(...list.result);
-        });
-
-        return result;
+        return response.result;
     }
 
     public async addService(urlContextRoot: string, urlProtocol: string[], urlHostName: string, isDefault?: boolean,
@@ -202,12 +196,7 @@ export class ShellInterfaceMrs {
             },
         });
 
-        const result: IMrsSchemaData[] = [];
-        response.forEach((list) => {
-            result.push(...list.result);
-        });
-
-        return result;
+        return response.result;
     }
 
     public async deleteSchema(schemaId: number, serviceId: number): Promise<void> {

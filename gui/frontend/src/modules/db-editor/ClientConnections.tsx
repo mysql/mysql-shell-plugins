@@ -576,13 +576,11 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         const { backend } = this.props;
 
         const result = await backend.execute("select @@performance_schema");
-        if (!result || result.length === 0) {
+        if (!result) {
             return false;
         }
 
-        const rows = result[0].rows;
-
-        return rows !== undefined && rows.length > 0 && rows[0] !== undefined;
+        return (result.rows !== undefined) && result.rows.length > 0 && result.rows[0] !== undefined;
     };
 
     private updateProcessList = async (): Promise<void> => {
@@ -591,8 +589,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         if (!version) {
             const result = await backend.execute("show variables where VARIABLE_NAME like '%version_comment%'");
-            if (result && result.length > 0) {
-                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
+            if (result) {
+                const values = new Map<string, string>(result.rows as Array<[string, string]>);
                 const value = `${values.get("version_comment") ?? "none"}`;
                 this.setState({ version: value });
             }
@@ -624,9 +622,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         const requestId = uuid();
         const result = await backend.execute(query, undefined, requestId);
-        if (result && result.length > 0) {
-            this.columns = generateColumnInfo(DBType.MySQL, result[0].columns);
-            const rows = convertRows(this.columns, result[0].rows);
+        if (result) {
+            this.columns = generateColumnInfo(DBType.MySQL, result.columns);
+            const rows = convertRows(this.columns, result.rows);
             const resultSet = {
                 head: {
                     requestId,
@@ -644,8 +642,8 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         }
 
         const status = await backend.execute("show global status");
-        if (status && status.length > 0) {
-            const values = new Map<string, string>(status[0].rows as Array<[string, string]>);
+        if (status) {
+            const values = new Map<string, string>(status.rows as Array<[string, string]>);
             globalStatus.abortedClients = parseInt(`${values.get("Aborted_clients") ?? "0"}`, 10);
             globalStatus.abortedConnections = parseInt(`${values.get("Aborted_connects") ?? "0"}`, 10);
             globalStatus.threadConnected = parseInt(`${values.get("Threads_connected") ?? "0"}`, 10);
@@ -794,9 +792,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         const query = `SELECT * FROM performance_schema.session_connect_attrs` +
             ` WHERE processlist_id = ${id} ORDER BY ORDINAL_POSITION`;
         const result = await backend.execute(query, undefined, requestId);
-        if (result && result.length > 0) {
-            this.attrColumns = generateColumnInfo(DBType.MySQL, result[0].columns);
-            const rows = convertRows(this.attrColumns, result[0].rows);
+        if (result) {
+            this.attrColumns = generateColumnInfo(DBType.MySQL, result.columns);
+            const rows = convertRows(this.attrColumns, result.rows);
             const resultSet = {
                 head: {
                     requestId,
@@ -819,9 +817,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         const query = `SELECT * FROM performance_schema.metadata_locks WHERE owner_thread_id = ${id}`;
         const result = await backend.execute(query);
-        if (result && result.length > 0) {
-            const columns = generateColumnInfo(DBType.MySQL, result[0].columns);
-            const rows = convertRows(columns, result[0].rows);
+        if (result) {
+            const columns = generateColumnInfo(DBType.MySQL, result.columns);
+            const rows = convertRows(columns, result.rows);
             const statusField = columns.find((x) => { return x.title === "LOCK_STATUS"; });
             const typeField = columns.find((x) => { return x.title === "OBJECT_TYPE"; });
             const schemaField = columns.find((x) => { return x.title === "OBJECT_SCHEMA"; });
@@ -867,9 +865,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         const query = `SELECT OWNER_THREAD_ID as ownerThreadId FROM performance_schema.metadata_locks` +
             `WHERE ${subQuery} AND LOCK_STATUS = 'GRANTED'`;
         backend.execute(query).then((result) => {
-            if (result && result.length > 0) {
-                const columns = generateColumnInfo(DBType.MySQL, result[0].columns);
-                const rows = convertRows(columns, result[0].rows);
+            if (result) {
+                const columns = generateColumnInfo(DBType.MySQL, result.columns);
+                const rows = convertRows(columns, result.rows);
                 const owners: string[] = [];
                 rows.forEach((item) => {
                     owners.push(item.ownerThreadId as string);
@@ -895,9 +893,9 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         const query = `SELECT OWNER_THREAD_ID as threadId, LOCK_TYPE as type, LOCK_DURATION as duration ` +
             `FROM performance_schema.metadata_locks WHERE ${subQuery} AND LOCK_STATUS = 'PENDING'`;
         backend.execute(query, undefined, requestId).then((result) => {
-            if (result && result.length > 0) {
-                const columns = generateColumnInfo(DBType.MySQL, result[0].columns);
-                const rows = convertRows(columns, result[0].rows);
+            if (result) {
+                const columns = generateColumnInfo(DBType.MySQL, result.columns);
+                const rows = convertRows(columns, result.rows);
                 rows.unshift({ threadId: objectName, type, duration });
 
                 const resultSet = {

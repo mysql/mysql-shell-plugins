@@ -21,8 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler, ShellAPIGui, ShellPromptResponseType } from "../communication";
-import { IShellFeedbackRequest, IShellResultType, IShellSimpleResult } from "../communication/ShellResponseTypes";
+import {
+    MessageScheduler, ShellAPIGui, ShellPromptResponseType, IShellFeedbackRequest, IShellResultType,
+    IShellSimpleResult,
+} from "../communication";
 import { ShellInterfaceShellSession } from "../supplement/ShellInterface";
 import { uuid } from "../utilities/helpers";
 

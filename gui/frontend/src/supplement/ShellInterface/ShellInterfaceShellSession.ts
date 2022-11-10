@@ -23,10 +23,10 @@
 
 import {
     ShellPromptResponseType, IPromptReplyBackend, MessageScheduler, ShellAPIGui, Protocol, DataCallback,
+    IShellResultType,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { ShellInterfaceMds } from "./ShellInterfaceMds";
-import { IShellResultType } from "../../communication/ShellResponseTypes";
 
 export class ShellInterfaceShellSession implements IPromptReplyBackend {
 

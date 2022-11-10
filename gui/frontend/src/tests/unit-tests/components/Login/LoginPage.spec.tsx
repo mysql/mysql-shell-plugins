@@ -32,7 +32,7 @@ import keyboardKey from "keyboard-key";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { ShellInterface } from "../../../../supplement/ShellInterface";
 import { MessageScheduler } from "../../../../communication";
-import { IShellProfile } from "../../../../communication/ShellResponseTypes";
+import { IShellProfile } from "../../../../communication/";
 
 describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;

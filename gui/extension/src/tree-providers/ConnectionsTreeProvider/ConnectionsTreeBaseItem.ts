@@ -53,10 +53,9 @@ export class ConnectionsTreeBaseItem extends TreeItem {
     }
 
     public copyCreateScriptToClipboard(): void {
-        this.entry.backend?.execute(`show create ${this.dbType} ${this.qualifiedName}`).then((response) => {
-            if (response && response.length > 0) {
-                const data = response[0];
-                if (data.rows) {
+        this.entry.backend?.execute(`show create ${this.dbType} ${this.qualifiedName}`).then((data) => {
+            if (data) {
+                if (data.rows && data.rows.length > 0) {
                     const firstRow = data.rows[0] as string[];
                     const index = this.createScriptResultIndex;
                     if (firstRow.length > index) {

@@ -25,8 +25,7 @@ import * as path from "path";
 
 import { TreeItemCollapsibleState } from "vscode";
 
-import { ILoadBalancer, ICompartment } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ShellResponseTypes";
+import { ILoadBalancer, ICompartment, IMdsProfileData } from "../../../../frontend/src/communication";
 import { OciBaseTreeItem } from "./OciBaseTreeItem";
 
 export class OciLoadBalancerTreeItem extends OciBaseTreeItem {

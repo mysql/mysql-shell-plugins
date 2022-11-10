@@ -60,7 +60,7 @@ import {
 } from "../../app-logic/Types";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { IToolbarItems } from ".";
-import { IMdsProfileData } from "../../communication/ShellResponseTypes";
+import { IMdsProfileData } from "../../communication/";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     connections: IConnectionDetails[];

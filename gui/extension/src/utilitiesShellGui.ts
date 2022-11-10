@@ -23,10 +23,9 @@
 
 import { window } from "vscode";
 
-import { ShellPromptResponseType } from "../../frontend/src/communication";
+import { ShellPromptResponseType, IShellFeedbackRequest, IShellResultType } from "../../frontend/src/communication";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
 import { stripAnsiCode } from "../../frontend/src/utilities/helpers";
-import { IShellFeedbackRequest, IShellResultType } from "../../frontend/src/communication/ShellResponseTypes";
 
 const isShellPromptResult = (response?: IShellResultType): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;

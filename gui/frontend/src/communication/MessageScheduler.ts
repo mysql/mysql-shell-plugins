@@ -27,14 +27,15 @@ import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { default as NodeWebSocket } from "ws";
 
-import { EventType, IGenericResponse, Protocol, ShellAPIGui, ShellAPIMds, ShellAPIMrs } from ".";
+import {
+    EventType, IGenericResponse, IWebSessionData, multiResultAPIs, Protocol, ShellAPIGui, ShellAPIMds, ShellAPIMrs,
+} from ".";
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import { convertSnakeToCamelCase, convertCamelToSnakeCase, uuid } from "../utilities/helpers";
 import { webSession } from "../supplement/WebSession";
 
-import { IProtocolResultMapper } from "./ProtocolResultMapper";
+import { IProtocolResults } from "./ProtocolResultMapper";
 import { IProtocolParameters } from "./ProtocolParameterMapper";
-import { IWebSessionData, multiResultAPIs } from "./ShellResponseTypes";
 
 export enum ConnectionEventType {
     Open = 1,
@@ -44,17 +45,17 @@ export enum ConnectionEventType {
 }
 
 /** The type of responses returned by requests. */
-export type ResponseType<K extends keyof IProtocolResultMapper> = K extends typeof multiResultAPIs[number] ?
-    Array<IProtocolResultMapper[K]> : IProtocolResultMapper[K];
+export type ResponseType<K extends keyof IProtocolResults> = K extends typeof multiResultAPIs[number] ?
+    Array<IProtocolResults[K]> : IProtocolResults[K];
 
 /** The type of the promise returned when sending a backend request. */
-export type ResponsePromise<K extends keyof IProtocolResultMapper> = Promise<ResponseType<K>>;
+export type ResponsePromise<K extends keyof IProtocolResults> = Promise<ResponseType<K>>;
 
-export type DataCallback<K extends keyof IProtocolResultMapper> =
-    (data: IProtocolResultMapper[K], requestId: string) => void;
+export type DataCallback<K extends keyof IProtocolResults> =
+    (data: IProtocolResults[K], requestId: string) => void;
 
 /** Parameters for sending requests to the backend. */
-export interface ISendRequestParameters<K extends keyof IProtocolResultMapper> {
+export interface ISendRequestParameters<K extends keyof IProtocolResults> {
     /**
      * If set, this request ID is used instead of an auto generated one. It's mandatory for the requisition distribution
      * method because otherwise the consumer doesn't know for which request the requisition came in.
@@ -79,12 +80,12 @@ export interface ISendRequestParameters<K extends keyof IProtocolResultMapper> {
 }
 
 /** Keeps data and promise callbacks for an ongoing BE request together. */
-interface IOngoingRequest<K extends keyof IProtocolResultMapper> {
+interface IOngoingRequest<K extends keyof IProtocolResults> {
     /** Holds the key in the protocol result mapper. */
     protocolType: K;
 
     /** Data from data responses is collected here, if no callback is given. */
-    result: Array<IProtocolResultMapper[K]>;
+    result: Array<IProtocolResults[K]>;
 
     resolve: (value: ResponseType<K>) => void;
     reject: (reason?: unknown) => void;
@@ -110,7 +111,7 @@ export class MessageScheduler {
     private reconnectTimer: ReturnType<typeof setTimeout> | null;
 
     private socket?: WebSocket | NodeWebSocket;
-    private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResultMapper }>();
+    private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResults }>();
 
     public static get get(): MessageScheduler {
         if (!MessageScheduler.instance) {
@@ -224,7 +225,7 @@ export class MessageScheduler {
      *
      * @returns A promise resolving with a list of responses or a single response received from the backend.
      */
-    public sendRequest<K extends keyof IProtocolResultMapper>(
+    public sendRequest<K extends keyof IProtocolResults>(
         details: ISendRequestParameters<K>, useExecute = true): ResponsePromise<K> {
 
         return this.constructAndSendRequest(useExecute, {
@@ -280,7 +281,7 @@ export class MessageScheduler {
                 const record = this.ongoingRequests.get(response.requestId);
                 if (record) {
                     const ongoing = record as IOngoingRequest<typeof record.protocolType>;
-                    const data = response as IProtocolResultMapper[typeof record.protocolType];
+                    const data = response as IProtocolResults[typeof record.protocolType];
 
                     switch (response.eventType) {
                         case EventType.DataResponse: {
@@ -352,7 +353,7 @@ export class MessageScheduler {
      *
      * @returns A promise resolving with a list of responses received from the backend.
      */
-    private constructAndSendRequest<K extends keyof IProtocolResultMapper>(isExecuteRequest: boolean,
+    private constructAndSendRequest<K extends keyof IProtocolResults>(isExecuteRequest: boolean,
         details: ISendRequestParameters<K>): ResponsePromise<K> {
 
         const requestId = details.requestId ?? uuid();

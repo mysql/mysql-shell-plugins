@@ -23,10 +23,9 @@
 
 import { commands, ExtensionContext, Uri, window } from "vscode";
 import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
-import { IMrsDbObjectParameterData } from "../../frontend/src/communication/ShellParameterTypes";
 import {
-    IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData,
-} from "../../frontend/src/communication/ShellResponseTypes";
+    IMrsDbObjectParameterData, IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData,
+} from "../../frontend/src/communication/";
 
 import { DBType, ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
 

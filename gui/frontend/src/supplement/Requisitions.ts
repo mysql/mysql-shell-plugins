@@ -30,8 +30,9 @@ import {
 import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
 } from "../app-logic/Types";
-import { IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem } from "../communication";
-import { IShellProfile, IShellPromptValues, IWebSessionData } from "../communication/ShellResponseTypes";
+import {
+    IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem, IShellProfile, IShellPromptValues, IWebSessionData,
+} from "../communication";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
 import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, EntityType } from "../modules/db-editor";

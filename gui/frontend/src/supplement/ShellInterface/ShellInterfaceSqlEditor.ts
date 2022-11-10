@@ -27,7 +27,7 @@ import {
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
 import { ShellInterfaceDb, ShellInterfaceMds, ShellInterfaceMrs } from ".";
-import { IDbEditorResultSetData, IOpenConnectionData } from "../../communication/ShellResponseTypes";
+import { IDbEditorResultSetData, IOpenConnectionData } from "../../communication/";
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPromptReplyBackend {
 
@@ -142,7 +142,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      */
     public async execute(sql: string, params?: string[], requestId?: string,
         callback?: DataCallback<ShellAPIGui.GuiSqleditorExecute>,
-    ): Promise<IDbEditorResultSetData[] | undefined> {
+    ): Promise<IDbEditorResultSetData | undefined> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
@@ -159,9 +159,30 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 onData: callback,
             });
 
-            const result: IDbEditorResultSetData[] = [];
-            response.forEach((list) => {
-                result.push(list.result);
+            const result: IDbEditorResultSetData = {};
+
+            response.forEach((entry) => {
+                if (entry.result.executionTime) {
+                    result.executionTime = entry.result.executionTime;
+                }
+
+                if (entry.result.rows) {
+                    if (!result.rows) {
+                        result.rows = [];
+                    }
+                    result.rows.push(...entry.result.rows);
+                }
+
+                if (entry.result.columns) {
+                    if (!result.columns) {
+                        result.columns = [];
+                    }
+                    result.columns.push(...entry.result.columns);
+                }
+
+                if (entry.result.totalRowCount) {
+                    result.totalRowCount = entry.result.totalRowCount;
+                }
             });
 
             return result;

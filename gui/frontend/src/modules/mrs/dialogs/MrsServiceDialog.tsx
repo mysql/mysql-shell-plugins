@@ -23,7 +23,7 @@
 
 import React from "react";
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsAuthAppData, IMrsAuthVendorData } from "../../../communication/ShellResponseTypes";
+import { IMrsAuthAppData, IMrsAuthVendorData } from "../../../communication/";
 
 import {
     CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, IRelationDialogValue, ValueDialogBase,

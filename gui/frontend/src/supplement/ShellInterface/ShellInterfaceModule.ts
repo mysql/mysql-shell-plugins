@@ -21,24 +21,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler, ShellAPIGui } from "../../communication";
+import {
+    MessageScheduler, ShellAPIGui, IDBDataTreeEntry, IShellModuleDataCategoriesEntry, IShellModuleDataEntry,
+} from "../../communication";
 import { EditorLanguage } from "..";
 import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/db-editor";
 import { uuid } from "../../utilities/helpers";
-import {
-    IDBDataTreeEntry, IShellModuleDataCategoriesEntry, IShellModuleDataEntry,
-} from "../../communication/ShellResponseTypes";
 
-// These are predefined data categories that always exist.
+/** These are predefined data categories that always exist. */
 export enum StandardDataCategories {
-    Text = 1,             // The root category for all text like data.
-    Script = 2,           // Direct child of Text, for all script types.
-    JSON = 3,             // Direct child of Text, for JSON like data.
-    MySQLScript = 4,      // Child of Script.
-    PythonScript = 5,     // Child of Script.
-    JavaScriptScript = 6, // Child of Script.
-    TypeScriptScript = 7, // Child of Script.
-    SQLiteScript = 8,     // Child of Script.
+    /** The root category for all text like data. */
+    Text = 1,
+
+    /** Direct child of Text, for all script types. */
+    Script = 2,
+
+    /** Direct child of Text, for JSON like data. */
+    JSON = 3,
+
+    /** Child of Script. */
+    MySQLScript = 4,
+
+    /** Child of Script. */
+    PythonScript = 5,
+
+    /** Child of Script. */
+    JavaScriptScript = 6,
+
+    /** Child of Script. */
+    TypeScriptScript = 7,
+
+    /** Child of Script. */
+    SQLiteScript = 8,
 }
 
 export class ShellInterfaceModule {
