@@ -36,7 +36,7 @@ export class GuiConsole {
      */
     public static openSession = async (id?: number): Promise<void> => {
         if (id) {
-            const buttons = await driver.findElements(By.css("#tilesHost button"));
+            const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost button"));
             for (const button of buttons) {
                 if ( (await button.getAttribute("id")) === String(id) ) {
                     await button.click();
@@ -44,7 +44,7 @@ export class GuiConsole {
                 }
             }
         } else {
-            await driver.findElement(By.id("-1")).click();
+            await driver.findElement(By.css("#shellModuleHost #\\-1")).click();
         }
 
         await driver.wait(
@@ -61,14 +61,20 @@ export class GuiConsole {
      * @returns Promise resolving with the session button
      */
     public static getSession = async (sessionNbr: string): Promise<WebElement | undefined> => {
-        const buttons = await driver.findElements(By.css("#tilesHost button"));
-        for (const button of buttons) {
-            if ((await button.getAttribute("id")) === sessionNbr) {
-                return button;
+        try {
+            const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost button"));
+            for (const button of buttons) {
+                if ((await button.getAttribute("id")) === sessionNbr) {
+                    return button;
+                }
+            }
+        } catch (e) {
+            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+                return undefined;
+            } else {
+                throw e;
             }
         }
-
-        return undefined;
     };
 
 }

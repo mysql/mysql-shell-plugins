@@ -23,7 +23,7 @@
 
 import { promises as fsPromises } from "fs";
 import { Misc, driver, IDBConnection } from "../../lib/misc";
-import { By } from "selenium-webdriver";
+import { By, WebElement } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
 import { Settings } from "../../lib/settings";
@@ -31,6 +31,7 @@ import { Settings } from "../../lib/settings";
 describe("MySQL Shell Connections", () => {
 
     let testFailed: boolean;
+    let editor: WebElement;
 
     const globalConn: IDBConnection = {
         dbType: "MySQL",
@@ -63,6 +64,10 @@ describe("MySQL Shell Connections", () => {
         await GuiConsole.openSession();
     });
 
+    beforeEach(async () => {
+        editor = await driver.findElement(By.id("shellEditorHost"));
+    });
+
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
@@ -93,7 +98,6 @@ describe("MySQL Shell Connections", () => {
 
     it("Connect to host", async () => {
         try {
-            const editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -131,7 +135,6 @@ describe("MySQL Shell Connections", () => {
 
     it("Connect to host without password", async () => {
         try {
-            const editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -170,7 +173,6 @@ describe("MySQL Shell Connections", () => {
 
     it("Using shell global variable", async () => {
         try {
-            const editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -219,7 +221,6 @@ describe("MySQL Shell Connections", () => {
 
     it("Using mysql mysqlx global variable", async () => {
         try {
-            const editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -265,7 +266,6 @@ describe("MySQL Shell Connections", () => {
 
     it("Change schemas using menu", async () => {
         try {
-            const editor = await driver.findElement(By.id("shellEditorHost"));
 
             await driver.executeScript(
                 "arguments[0].click();",

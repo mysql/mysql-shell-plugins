@@ -270,7 +270,7 @@ export class Misc {
      */
     public static setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
         const confirmDialog = await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
-            500, "No confirm dialog was found");
+            explicitWait, "No confirm dialog was found");
 
         expect(await confirmDialog[0].findElement(By.css(".title label")).getText()).toBe("Confirm");
 
@@ -380,6 +380,31 @@ export class Misc {
         await driver.wait(async () => {
             return await Misc.getPromptTextLine("last") === "";
         }, 3000, "Prompt was not cleaned");
+    };
+
+    /**
+     * Waits for the blue dot to appear on the editor current line, which indicates that the editor
+     * is ready to receive queries
+     *
+     * @returns A promise resolving when the blue dot (statement start) is displayed
+     */
+    public static waitForEditorToStart = async (): Promise<void> => {
+        const word = "it";
+        const letters = word.split("").length;
+        const textArea = await driver.findElement(By.css("textarea"));
+        const promptLines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+        await promptLines[promptLines.length - 1].click();
+
+        await driver.wait(async () => {
+            await textArea.sendKeys(word);
+            for (let i = 0; i <= letters - 1; i++) {
+                await textArea.sendKeys(Key.BACK_SPACE);
+                await driver.sleep(500);
+            }
+
+            return (await driver.findElements(By.css(".statementStart"))).length > 1;
+        }, 30000, "Editor did not started");
+
     };
 
 }

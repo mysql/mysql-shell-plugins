@@ -69,8 +69,7 @@ describe("MySQL Administration", () => {
 
         if (!db) {
             await DBNotebooks.initConDialog();
-            await DBNotebooks.createDBconnection(globalConn, true);
-            db = await DBNotebooks.getConnection(globalConn.caption);
+            db = await DBNotebooks.createDBconnection(globalConn, true);
         }
 
         try {

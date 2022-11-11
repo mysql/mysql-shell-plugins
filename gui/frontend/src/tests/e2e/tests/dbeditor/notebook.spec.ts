@@ -69,8 +69,7 @@ describe("Notebook", () => {
 
         if (!db) {
             await DBNotebooks.initConDialog();
-            await DBNotebooks.createDBconnection(globalConn, true);
-            db = await DBNotebooks.getConnection(globalConn.caption);
+            db = await DBNotebooks.createDBconnection(globalConn, true);
         }
 
         try {
@@ -214,7 +213,7 @@ describe("Notebook", () => {
 
             await driver.wait(async() => {
                 return (await DBConnection.getLastQueryResultId()) > lastId;
-            }, 3000, "No new results block was displayed");
+            }, 10000, "No new results block was displayed");
 
             const result1 = await driver.wait(async () => {
                 return DBConnection.getResultTab("Result #1");
@@ -268,7 +267,7 @@ describe("Notebook", () => {
 
             await driver.wait(async() => {
                 return (await DBConnection.getLastQueryResultId()) > lastId;
-            }, 7000, "No new results block was displayed");
+            }, 10000, "No new results block was displayed");
 
             expect(await DBConnection.getResultColumnName("actor_id")).toBeDefined();
 

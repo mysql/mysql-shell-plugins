@@ -62,7 +62,9 @@ describe("Main pages", () => {
 
     it("Verify GUI Console page", async () => {
         try {
-            expect(await driver.findElement(By.id("title")).getText())
+            await driver.findElement(By.id("gui.shell")).click();
+
+            expect(await driver.findElement(By.css("#shellModuleHost #title")).getText())
                 .toBe("MySQL Shell - GUI Console");
 
             expect(
@@ -77,7 +79,7 @@ describe("Main pages", () => {
                 1,
             );
 
-            expect(await driver.findElement(By.id("contentTitle")).getText()).toBe(
+            expect(await driver.findElement(By.css("#shellModuleHost #contentTitle")).getText()).toBe(
                 "MySQL Shell Sessions",
             );
 

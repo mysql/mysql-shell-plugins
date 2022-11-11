@@ -69,8 +69,7 @@ describe("Scripts", () => {
 
         if (!db) {
             await DBNotebooks.initConDialog();
-            await DBNotebooks.createDBconnection(globalConn, true);
-            db = await DBNotebooks.getConnection(globalConn.caption);
+            db = await DBNotebooks.createDBconnection(globalConn, true);
         }
 
         try {
@@ -142,10 +141,9 @@ describe("Scripts", () => {
                     .getAttribute("src"),
             ).toContain("javascript");
 
-            await driver
-                .findElement(By.id("editorPaneHost"))
-                .findElement(By.css("textarea"))
-                .sendKeys("Math.random()");
+            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("M");
+            await textArea.sendKeys("ath.random()");
 
             await (
                 await DBConnection.getToolbarButton("Execute full script")
@@ -195,10 +193,9 @@ describe("Scripts", () => {
 
             expect(src.indexOf("typescript") !== -1).toBe(true);
 
-            await driver
-                .findElement(By.id("editorPaneHost"))
-                .findElement(By.css("textarea"))
-                .sendKeys("Math.random()");
+            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("M");
+            await textArea.sendKeys("ath.random()");
 
             await (
                 await DBConnection.getToolbarButton("Execute full script")
@@ -250,10 +247,9 @@ describe("Scripts", () => {
                     .getAttribute("src"),
             ).toContain("mysql");
 
-            await driver
-                .findElement(By.id("editorPaneHost"))
-                .findElement(By.css("textarea"))
-                .sendKeys("SELECT * FROM sakila.actor;");
+            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("S");
+            await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
             const execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
             await execCaret?.click();
@@ -285,10 +281,9 @@ describe("Scripts", () => {
                 }
             }
 
-            await driver
-                .findElement(By.id("editorPaneHost"))
-                .findElement(By.css("textarea"))
-                .sendKeys("console.log('Hello JavaScript')");
+            let textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("c");
+            await textArea.sendKeys("onsole.log('Hello JavaScript')");
 
             const script2 = await DBConnection.addScript("TS");
 
@@ -302,10 +297,9 @@ describe("Scripts", () => {
                 }
             }
 
-            await driver
-                .findElement(By.id("editorPaneHost"))
-                .findElement(By.css("textarea"))
-                .sendKeys("console.log('Hello Typescript')");
+            textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("c");
+            await textArea.sendKeys("onsole.log('Hello Typescript')");
 
             const script3 = await DBConnection.addScript("SQL");
 
@@ -319,10 +313,9 @@ describe("Scripts", () => {
                 }
             }
 
-            await driver
-                .findElement(By.id("editorPaneHost"))
-                .findElement(By.css("textarea"))
-                .sendKeys("SELECT * FROM sakila.actor;");
+            textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("S");
+            await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
             try {
                 await DBConnection.selectCurrentEditor(script1, "javascript");

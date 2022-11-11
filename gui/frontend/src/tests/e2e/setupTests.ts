@@ -39,6 +39,7 @@ if (!process.env.SHELL_UI_HOSTNAME) {
         process.env.DBUSERNAME= "root";
         process.env.DBPASSWORD = "root";
         process.env.DBPORT = "3306";
+        process.env.DBPORTX = "33060";
         process.env.DBUSERNAMESHELL= "clientqa";
         process.env.DBPASSWORDSHELL = "clientqa";
         process.env.DBUSERNAME1= "dbuser1";

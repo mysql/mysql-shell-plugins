@@ -199,23 +199,16 @@ describe("Sessions", () => {
 
             await Misc.execCmd(textArea, "db.actor.select().limit(1)");
 
-            expect(await ShellSession.getLangResult()).toBe("json");
-
             await driver.wait(async () => {
-                return ShellSession.isValueOnJsonResult("PENELOPE");
-            }, explicitWait, "PENELOPE is on the the JSON result");
-
-            expect(await ShellSession.getTotalRows()).toMatch(/Query OK, (\d+) rows affected/);
+                return ShellSession.isValueOnDataSet("PENELOPE");
+            }, explicitWait, "PENELOPE is not on the dataset");
 
             await Misc.execCmd(textArea, "db.category.select().limit(1)");
 
-            expect(await ShellSession.getLangResult()).toBe("json");
-
             await driver.wait(async () => {
-                return ShellSession.isValueOnJsonResult("Action");
-            }, explicitWait, "Action is on the the JSON result");
+                return ShellSession.isValueOnDataSet("Action");
+            }, explicitWait, "Action is not on the dataset");
 
-            expect(await ShellSession.getTotalRows()).toMatch(/Query OK, (\d+) rows affected/);
 
         } catch(e) {
             testFailed = true;
@@ -257,17 +250,43 @@ describe("Sessions", () => {
 
             await driver.wait(async () => {
                 return ShellSession.isValueOnDataSet("PENELOPE");
-            }, explicitWait, "sakila is not on the dataset");
+            }, explicitWait, "sakila is not the the dataset");
 
             await Misc.execCmd(textArea, "\\js");
 
-            await Misc.execCmd(textArea, "db.actor.select().limit(1)");
+            await ShellSession.changeSchemaOnTab("sakila");
 
-            expect(await ShellSession.getLangResult()).toBe("json");
+            await Misc.execCmd(textArea, `shell.options.resultFormat="json/raw"`);
 
             await driver.wait(async () => {
-                return ShellSession.isValueOnJsonResult("PENELOPE");
-            }, explicitWait, "PENELOPE is on the the JSON result");
+                return (await ShellSession.getResult()) === "json/raw";
+            }, explicitWait, "mysql is not the the dataset");
+
+            await Misc.execCmd(textArea, `shell.options.showColumnTypeInfo=false`);
+
+            expect(await ShellSession.getResult()).toBe("false");
+
+            await Misc.execCmd(textArea, `shell.options.resultFormat="json/pretty"`);
+
+            expect(await ShellSession.getResult()).toBe("json/pretty");
+
+            await Misc.execCmd(textArea, "db.category.select().limit(1)");
+
+            const result = await ShellSession.getResult();
+
+            expect(result).toContain(`"rows": [`);
+
+            expect(result).toContain(`"name": "Action"`);
+
+            await Misc.execCmd(textArea, `shell.options.resultFormat="table"`);
+
+            expect(await ShellSession.getResult()).toBe("table");
+
+            await Misc.execCmd(textArea, "db.category.select().limit(1)");
+
+            expect(await driver.wait(async () => {
+                return ShellSession.isValueOnDataSet("Action");
+            }, explicitWait, "'Action is not on the data set'")).toBe(true);
 
         } catch (e) {
             testFailed = true;

@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { promises as fsPromises } from "fs";
-import { Misc, driver } from "../../lib/misc";
+import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
@@ -81,11 +81,19 @@ describe("GUI Console", () => {
             expect(await session!.findElement(By.css(".tileCaption")).getText()).toBe("Session 3");
 
             await ShellSession.closeSession("1");
-            expect(await GuiConsole.getSession("1")).toBeUndefined();
+            await driver.wait(async () => {
+                return (await GuiConsole.getSession("1")) === undefined;
+            }, explicitWait, "Session 1 was not closed");
+
             await ShellSession.closeSession("2");
-            expect(await GuiConsole.getSession("2")).toBeUndefined();
+            await driver.wait(async () => {
+                return (await GuiConsole.getSession("2")) === undefined;
+            }, explicitWait, "Session 2 was not closed");
+
             await ShellSession.closeSession("3");
-            expect(await GuiConsole.getSession("3")).toBeUndefined();
+            await driver.wait(async () => {
+                return (await GuiConsole.getSession("3")) === undefined;
+            }, explicitWait, "Session 3 was not closed");
 
         } catch(e) {
             testFailed = true;

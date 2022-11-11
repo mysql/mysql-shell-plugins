@@ -164,12 +164,16 @@ export class DBConnection {
     public static writeSQL = async (sql: string, wait?: boolean): Promise<void> => {
         const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
             explicitWait, "Could not find textarea");
+
         const blueDots = await DBConnection.getStatementStarts();
+        const promptLines = (await driver.findElements(By.css("#contentHost .editorHost .view-line"))).length;
         await textArea.sendKeys(`${sql}`);
 
         if (wait) {
             await driver.wait(async () => {
-                return await DBConnection.getStatementStarts() > blueDots;
+                return  (await DBConnection.getStatementStarts() > blueDots) ||
+                        (await driver.findElements(By.css("#contentHost .editorHost .view-line")))
+                            .length === promptLines;
             }, explicitWait, `'${sql}' did not generated a statement start`);
         }
 
