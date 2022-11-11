@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,15 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { themeManager } from "./ThemeManager";
+import { ThemeManager } from "./ThemeManager";
 
-// Represents a color from the currently active theme. The id is one of the values listed
-// in the color-descriptions.json file.
+/**
+ * Represents a color from the currently active theme. The id is one of the values listed
+ * in the color-descriptions.json file.
+ */
 export class ThemeColor {
 
     public readonly variableName: string;
 
     public constructor(id: string) {
-        this.variableName = themeManager.themeValueNameToCssVariable(id);
+        this.variableName = ThemeManager.get.themeValueNameToCssVariable(id);
     }
 }

@@ -31,7 +31,7 @@ import {
     CheckState, Dropdown, TreeGrid, ITreeGridOptions, Label, Checkbox, Input, UpDown, Button, IUpDownProperties,
     IDropdownProperties, ICheckboxProperties, IInputChangeProperties,
 } from "../ui";
-import { themeManager } from "../Theming/ThemeManager";
+import { ThemeManager } from "../Theming/ThemeManager";
 import { settings } from "../../supplement/Settings/Settings";
 import { requisitions } from "../../supplement/Requisitions";
 import { ISettingCategory, ISettingValue } from "../../supplement/Settings/SettingsRegistry";
@@ -294,7 +294,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
 
                     if (data.id.endsWith(".currentTheme")) {
                         // Special case: themes. The themes list is dynamic.
-                        const themeNames = themeManager.installedThemes;
+                        const themeNames = ThemeManager.get.installedThemes;
                         themeNames.unshift("Auto");
                         data.parameters.choices = themeNames.map((theme: string) => {
                             let description = "3rd party Theme";

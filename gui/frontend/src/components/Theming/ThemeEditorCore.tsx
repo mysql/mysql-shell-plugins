@@ -32,7 +32,7 @@ import {
     Component, Container, Orientation, Label, Grid, GridCell, ContentAlignment, Dropdown, Checkbox, CheckState,
     Button, Icon, ColorField, IColorFieldProperties, IComponentProperties, IComponentState,
 } from "../ui";
-import { IThemeObject, themeManager } from "./ThemeManager";
+import { IThemeObject, ThemeManager } from "./ThemeManager";
 import { ValueEditDialog, IDialogValues, IDialogValidations, IDialogSection } from "../Dialogs/ValueEditDialog";
 import Color from "color";
 import { selectFile, saveTextAsFile } from "../../utilities/helpers";
@@ -56,12 +56,16 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
     private themeDropdownRef = React.createRef<Dropdown>();
     private themeNameDialogRef = React.createRef<ValueEditDialog>();
 
+    private themeManager: ThemeManager;
+
     public constructor(props: IThemeEditorCoreProperties) {
         super(props);
 
+        this.themeManager = ThemeManager.get;
+
         this.state = {
             showUnusedColors: false,
-            themes: themeManager.installedThemes,
+            themes: this.themeManager.installedThemes,
         };
 
         this.initializeColorPad();
@@ -115,7 +119,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                         <Dropdown
                             ref={this.themeDropdownRef}
                             className="themeSelector"
-                            selection={themeManager.activeTheme}
+                            selection={this.themeManager.activeTheme}
                             onSelect={this.handleThemeSwitch}
                         >
                             {themeList}
@@ -155,8 +159,8 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
      * @returns The React element for the action buttons.
      */
     private renderThemeActionsCell(): React.ReactElement {
-        const isDefaultTheme = themeManager.activeTheme === "Default Dark"
-            || themeManager.activeTheme === "Default Light";
+        const isDefaultTheme = this.themeManager.activeTheme === "Default Dark"
+            || this.themeManager.activeTheme === "Default Light";
 
         return <GridCell
             id="themeActions"
@@ -215,7 +219,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
     private handleThemeChange = (): Promise<boolean> => {
         setTimeout(() => {
             // Re-render delayed
-            this.setState({ themes: themeManager.installedThemes });
+            this.setState({ themes: this.themeManager.installedThemes });
         }, 500);
 
         // No need to wait for the re-render here.
@@ -268,7 +272,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         html[0].classList.add("themeSwitch");
         setTimeout(() => { html[0].classList.remove("themeSwitch"); }, 500);
 
-        themeManager.activeTheme = [...ids][0];
+        this.themeManager.activeTheme = [...ids][0];
     };
 
     private importTheme = (): void => {
@@ -281,8 +285,8 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                         // Remove possible single line comments first.
                         const json = text.replace(/\/\/\s*[^"\n\r]*$/gm, "");
                         const theme = JSON.parse(json) as IThemeObject;
-                        const themeId = themeManager.loadThemeDetails(theme, true);
-                        themeManager.activeTheme = themeId;
+                        const themeId = this.themeManager.loadThemeDetails(theme, true);
+                        this.themeManager.activeTheme = themeId;
                         this.forceUpdate();
                     } catch (e) {
                         if (e instanceof Error) {
@@ -301,15 +305,15 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
     };
 
     private exportCurrentTheme = (): void => {
-        themeManager.saveTheme();
+        this.themeManager.saveTheme();
 
-        const text = themeManager.currentThemeAsText;
-        saveTextAsFile(text, themeManager.activeTheme + ".json");
+        const text = this.themeManager.currentThemeAsText;
+        saveTextAsFile(text, this.themeManager.activeTheme + ".json");
     };
 
     private removeCurrentTheme = (): void => {
-        themeManager.removeCurrentTheme();
-        this.handleThemeSwitch(new Set(themeManager.activeTheme));
+        this.themeManager.removeCurrentTheme();
+        this.handleThemeSwitch(new Set(this.themeManager.activeTheme));
     };
 
     /**
@@ -321,7 +325,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                 themeName: {
                     type: "text",
                     caption: "Enter a new theme name",
-                    value: themeManager.activeTheme + "X",
+                    value: this.themeManager.activeTheme + "X",
                     horizontalSpan: 8,
                 },
             },
@@ -354,7 +358,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         const sectionValues = values.sections.get("name")!.values;
 
         const newName = (sectionValues.themeName.value as string).trim();
-        const existing = themeManager.installedThemes;
+        const existing = this.themeManager.installedThemes;
         if (newName.length === 0) {
             result.messages.themeName = "The new theme name cannot be empty.";
         } if (existing.includes(newName)) {
@@ -375,9 +379,9 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         const sectionValues = values.sections.get("name")!.values;
         const newName = (sectionValues.themeName.value as string).trim();
         if (closure === DialogResponseClosure.Accept) {
-            themeManager.saveTheme();
+            this.themeManager.saveTheme();
 
-            themeManager.duplicateCurrentTheme(newName);
+            this.themeManager.duplicateCurrentTheme(newName);
             this.handleThemeSwitch(new Set(newName));
         }
     };

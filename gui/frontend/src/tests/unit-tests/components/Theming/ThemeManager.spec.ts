@@ -22,30 +22,22 @@
  */
 
 import { ThemeManager } from "../../../../components/Theming/ThemeManager";
-jest.mock("../../../../components/Theming/ThemeManager");
-
-class SingletonThemeManager extends ThemeManager {
-    public constructor() {
-        super();
-    }
-}
 
 describe("ThemeManager tests", () => {
 
-    beforeEach(() => {
-        (ThemeManager as unknown as jest.Mock<ThemeManager>).mockClear();
-    });
-
     it("Create instance and init", () => {
-        const themeManager = new SingletonThemeManager();
-        expect(ThemeManager).toHaveBeenCalledTimes(1);
+        const themeManager = ThemeManager.get;
 
-        expect(themeManager.activeTheme).toBe(undefined);
-        themeManager.activeTheme = "Auto";
         expect(themeManager.activeTheme).toBe("Auto");
+        themeManager.activeTheme = "Default Light";
+        expect(themeManager.activeTheme).toBe("Default Light");
 
         themeManager.activeTheme = "Dark (user defined)";
-        expect(themeManager.activeTheme).toBe("Dark (user defined)");
+        expect(themeManager.activeTheme).toBe("Default Light");
+
+        themeManager.activeTheme = "Default Dark";
+        expect(themeManager.activeTheme).toBe("Default Dark");
+
     });
 
 });

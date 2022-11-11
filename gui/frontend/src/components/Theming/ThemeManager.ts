@@ -21,8 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file */
-
 import colorDescriptions from "./assets/color-descriptions.json";
 import defaultDark from "./assets/default-dark-color-theme.json";
 import defaultLight from "./assets/default-light-color-theme.json";
@@ -77,13 +75,15 @@ export interface IThemeChangeData {
 /** A class to manage application themes. */
 export class ThemeManager {
 
+    private static instance: ThemeManager;
+
     private themeDefinitions: Map<string, IThemeDefinition> = new Map();
     private themeStyleElement?: HTMLStyleElement;
     private currentTheme = "";
 
     private updating = false;
 
-    protected constructor() {
+    private constructor() {
         this.loadThemeDetails(defaultDark);
         this.loadThemeDetails(defaultLight);
 
@@ -104,6 +104,14 @@ export class ThemeManager {
 
         requisitions.register("settingsChanged", this.settingsChanged);
         requisitions.register("hostThemeChange", this.hostThemeChange);
+    }
+
+    public static get get(): ThemeManager {
+        if (!ThemeManager.instance) {
+            ThemeManager.instance = new ThemeManager();
+        }
+
+        return ThemeManager.instance;
     }
 
     /**
@@ -440,11 +448,9 @@ export class ThemeManager {
         this.setDefaultValue(colors, "list.gridColor", "list.hoverForeground");
         this.setDefaultValue(colors, "list.columnResizerForeground", "list.hoverForeground");
 
-        // cSpell: disable-next-line
-        this.matchAndAssignDefault(/.*[bB]ackground$/, colors, colors.background);
-        // cSpell: disable-next-line
-        this.matchAndAssignDefault(/.*[fF]oreground$/, colors, colors.foreground);
-        this.matchAndAssignDefault(/.*[bB]order$/, colors, colors["button.border"]);
+        this.matchAndAssignDefault(/.*background$/i, colors, colors.background);
+        this.matchAndAssignDefault(/.*foreground$/i, colors, colors.foreground);
+        this.matchAndAssignDefault(/.*border$/i, colors, colors["button.border"]);
 
         // 4. Step: assign a signal color to all still empty values.
         for (const [key, value] of Object.entries(colors)) {
@@ -570,11 +576,5 @@ export class ThemeManager {
 
 }
 
-// Class to access protected ThemeManager constructor.
-class SingletonThemeManager extends ThemeManager {
-    public constructor() {
-        super();
-    }
-}
-
-export const themeManager = new SingletonThemeManager();
+// Access the static instance once for the event registration.
+void ThemeManager.get;

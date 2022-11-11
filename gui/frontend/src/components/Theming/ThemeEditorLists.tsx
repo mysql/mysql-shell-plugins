@@ -36,7 +36,7 @@ import {
     Label, IComponentProperties, ColorField, IColorFieldProperties, IComponentState, TreeGrid,
     SelectionType, ITreeGridOptions,
 } from "../ui";
-import { ITokenEntry, themeManager } from "./ThemeManager";
+import { ITokenEntry, ThemeManager } from "./ThemeManager";
 import { TokenEditor } from "./TokenEditor";
 import { ScopeSelector } from "./ScopeSelector";
 import { IDictionary } from "../../app-logic/Types";
@@ -146,7 +146,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
     public constructor(props: IThemeEditorListsProperties) {
         super(props);
 
-        this.themeNode = themeManager.themeStyleNode;
+        this.themeNode = ThemeManager.get.themeStyleNode;
         this.state = {
             selectedPage: "uiColors",
         };
@@ -259,9 +259,9 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
     }
 
     private readData(): void {
-        this.themeNode = themeManager.themeStyleNode;
+        this.themeNode = ThemeManager.get.themeStyleNode;
 
-        const values = themeManager.activeThemeValues;
+        const values = ThemeManager.get.activeThemeValues;
         if (values && values.tokenColors && values.tokenColors.length > 0) {
             this.tokens = values.tokenColors;
         } else {
@@ -376,7 +376,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
      */
     private collectCustomScopes(): string[] {
         const scopeSet = new Set<string>();
-        const values = themeManager.activeThemeValues;
+        const values = ThemeManager.get.activeThemeValues;
         if (values?.tokenColors) {
             values.tokenColors.forEach((entry: ITokenEntry) => {
                 const scopeValue = entry.scope || [];
@@ -405,7 +405,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
             result = [];
             entries.forEach((entry) => {
                 if (entry.preview || includeUnused) {
-                    const variable = themeManager.themeValueNameToCssVariable(entry.name as string);
+                    const variable = ThemeManager.get.themeValueNameToCssVariable(entry.name as string);
                     const color = themeNode.getPropertyValue(variable);
 
                     result!.push({
