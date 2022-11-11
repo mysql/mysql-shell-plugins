@@ -72,10 +72,10 @@ export class DBNotebooks {
      * @param dbConfig SSL Mode
      * @param storePassword true saves the password
      * @param clearPassword true cleares the password
-     * @returns Promise resolving when the connection is created
+     * @returns Promise resolving with the connection created
      */
     public static createDBconnection = async (dbConfig: IDBConnection,
-        storePassword?: boolean, clearPassword?: boolean): Promise<void> => {
+        storePassword?: boolean, clearPassword?: boolean): Promise<WebElement | undefined> => {
 
         const ctx = await driver.findElement(By.css(".connectionBrowser"));
         await ctx.findElement(By.id("-1")).click();
@@ -141,6 +141,16 @@ export class DBNotebooks {
         await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
         await okBtn.click();
         expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
+
+        return driver.wait(async () => {
+            const connections = await driver.findElements(By.css("#tilesHost button"));
+            for (const connection of connections) {
+                const el = await connection.findElement(By.css(".textHost .tileCaption"));
+                if ((await el.getAttribute("innerHTML")).includes(dbConfig.caption)) {
+                    return connection;
+                }
+            }
+        }, explicitWait, `'${dbConfig.caption}' was not created`);
     };
 
     /**
@@ -150,19 +160,18 @@ export class DBNotebooks {
      * @param name Connection caption
      * @returns @returns Promise resolving with the DB Connection
      */
-    public static getConnection = async (name: string): Promise<WebElement> => {
-        const connections = await driver.wait(until.elementsLocated(By.css("#tilesHost button")),
-            explicitWait, "Could not find any connection");
+    public static getConnection = async (name: string): Promise<WebElement | undefined> => {
 
-        for (const connection of connections) {
-            const el = await connection.findElement(By.css(".textHost .tileCaption"));
-            if ((await el.getText()).includes(name)) {
-                return connection;
+        return driver.wait(async () => {
+            const connections = await driver.findElements(By.css("#tilesHost button"));
+            for (const connection of connections) {
+                const el = await connection.findElement(By.css(".textHost .tileCaption"));
+                if ((await el.getAttribute("innerHTML")).includes(name)) {
+                    return connection;
+                }
             }
+        }, 1500, "Could not find any connection");
 
-        }
-
-        throw new Error(`Could not find connection '${name}'`);
     };
 
     /**

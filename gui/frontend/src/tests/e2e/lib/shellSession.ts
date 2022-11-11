@@ -92,20 +92,6 @@ export class ShellSession {
     };
 
     /**
-     * Returns the total number of rows affected, after executing a query on a Shell session
-     *
-     * @returns Promise resolving with the the total number of rows
-     */
-    public static getTotalRows = async (): Promise<string> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const zoneHost = zoneHosts[zoneHosts.length - 1];
-
-        return zoneHost
-            .findElement(By.css(".resultStatus label.msg.label"))
-            .getText();
-    };
-
-    /**
      * Returns the shell session tab
      *
      * @param sessionNbr the session number

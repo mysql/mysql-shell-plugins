@@ -95,7 +95,7 @@ describe("Database Connections", () => {
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
+                await host!.findElement(By.id("triggerTileAction")),
             );
 
             const contextMenu = await driver.wait(
@@ -113,6 +113,15 @@ describe("Database Connections", () => {
             const conDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
                 explicitWait, "Dialog was not displayed");
             await conDialog.findElement(By.id("clearPassword")).click();
+
+            const clearDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
+                explicitWait, "Password cleared dialog was not displayed");
+
+            const clearDialogText = await clearDialog.findElement(By.css(".content .gridCell"));
+
+            expect(await clearDialogText.getText()).toBe("Password was cleared.");
+            await clearDialog.findElement(By.id("accept")).click();
+
             await conDialog.findElement(By.id("ok")).click();
 
             await driver.executeScript(
@@ -120,13 +129,14 @@ describe("Database Connections", () => {
                 await DBNotebooks.getConnection(globalConn.caption),
             );
 
-            expect(await driver.wait(until.elementLocated(By.css(".passwordDialog")),
-                explicitWait, "Password dialog was not displayed")).toBeDefined();
-            await driver.findElement(By.id("cancel")).click();
+            const passwordDialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
+                explicitWait, "Password dialog was not displayed");
+            await passwordDialog.findElement(By.id("cancel")).click();
             const error = await driver.wait(until.elementLocated(By.css(".errorPanel button")),
                 explicitWait, "Error panel was not displayed");
 
             await error.click();
+
         } catch (e) {
             testFailed = true;
             throw e;
@@ -154,11 +164,11 @@ describe("Database Connections", () => {
                 sslClientKey: undefined,
             };
 
-            await DBNotebooks.createDBconnection(localConn, false, true);
+            const db = await DBNotebooks.createDBconnection(localConn, false, true);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await DBNotebooks.getConnection(localConn.caption),
+                db,
             );
 
             await Misc.setPassword(localConn);
@@ -189,7 +199,7 @@ describe("Database Connections", () => {
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
+                await host!.findElement(By.id("triggerTileAction")),
             );
 
             const contextMenu = await driver.wait(
@@ -232,7 +242,7 @@ describe("Database Connections", () => {
 
             expect(conn).toBeDefined();
 
-            expect(await conn.findElement(By.css(".tileDescription")).getText())
+            expect(await conn!.findElement(By.css(".tileDescription")).getText())
                 .toBe("my other connection");
         } catch (e) {
             testFailed = true;
@@ -260,13 +270,11 @@ describe("Database Connections", () => {
                 sslClientKey: undefined,
             };
 
-            await DBNotebooks.createDBconnection(localConn);
-
-            let host = await DBNotebooks.getConnection(localConn.caption);
+            let host = await DBNotebooks.createDBconnection(localConn);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
+                await host!.findElement(By.id("triggerTileAction")),
             );
 
             let contextMenu = await driver.wait(
@@ -317,14 +325,14 @@ describe("Database Connections", () => {
 
             expect(conn).toBeDefined();
 
-            expect(await conn.findElement(By.css(".tileDescription")).getText())
+            expect(await conn!.findElement(By.css(".tileDescription")).getText())
                 .toBe("Another description");
 
             host = await DBNotebooks.getConnection(conName);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
+                await host!.findElement(By.id("triggerTileAction")),
             );
 
             contextMenu = await driver.wait(
@@ -377,7 +385,7 @@ describe("Database Connections", () => {
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
+                await host!.findElement(By.id("triggerTileAction")),
             );
 
             const contextMenu = await driver.wait(
@@ -470,13 +478,11 @@ describe("Database Connections", () => {
                 sslClientKey: undefined,
             };
 
-            await DBNotebooks.createDBconnection(localConn);
-
-            const host = await DBNotebooks.getConnection(localConn.caption);
+            const host = await DBNotebooks.createDBconnection(localConn);
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
+                await host!.findElement(By.id("triggerTileAction")),
             );
 
             const contextMenu = await driver.wait(
@@ -567,7 +573,7 @@ describe("Database Connections", () => {
 
             const conn = await DBNotebooks.getConnection(localConn.caption);
             expect(conn).toBeDefined();
-            expect(await conn.findElement(By.css(".tileDescription")).getText()).toBe(
+            expect(await conn!.findElement(By.css(".tileDescription")).getText()).toBe(
                 "Local Sqlite connection",
             );
 
