@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@ import "./assets/ThemeEditor.css";
 
 import React from "react";
 
-import { themeManager } from "./ThemeManager";
+import { ThemeManager } from "./ThemeManager";
 import { ThemePreview } from "./Preview/ThemePreview";
 import { ThemeEditorCore } from "./ThemeEditorCore";
 
@@ -60,7 +60,7 @@ export class ThemeEditor extends Component {
         clearTimeout(this.changeTimer);
         this.changeTimer = setTimeout((): void => {
             this.themeHasChanged = false;
-            themeManager.saveTheme();
+            ThemeManager.get.saveTheme();
         }, 1000);
 
     };
