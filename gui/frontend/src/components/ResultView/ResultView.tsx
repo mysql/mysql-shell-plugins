@@ -895,7 +895,7 @@ export class ResultView extends Component<IResultViewProperties> {
     private stringFormatter = (cell: CellComponent): string | HTMLElement => {
         let element;
         const value = cell.getValue();
-        if (value === undefined || value === null) {
+        if (value == null) {
             const host = document.createElement("div");
             host.className = "iconHost";
 
@@ -904,7 +904,7 @@ export class ResultView extends Component<IResultViewProperties> {
 
             return host;
         } else {
-            return cell.getValue() as string;
+            return value as string;
         }
     };
 

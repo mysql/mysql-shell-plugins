@@ -349,6 +349,8 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
             await viewRef.current.addData(newData, needPurge);
         }
 
+        // The target view also updates itself when the final set comes in, but we need to update here too,
+        // for the execution info display, which is managed here.
         if (newData.executionInfo) {
             this.forceUpdate();
         }
