@@ -42,16 +42,16 @@ import {
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { ExecutionContext, IResultSetRows, SQLExecutionContext } from "../../script-execution";
+import { ExecutionContext, SQLExecutionContext } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
 import { DBEditorToolbar } from "./DBEditorToolbar";
-import { IExecutionInfo, MessageType } from "../../app-logic/Types";
+import { IColumnInfo, IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
-import { ApplicationDB } from "../../app-logic/ApplicationDB";
+import { ApplicationDB, IDbModuleResultData } from "../../app-logic/ApplicationDB";
 import {
     convertRows, EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
 } from "../../supplement";
@@ -63,7 +63,7 @@ import { IDbEditorResultSetData } from "../../communication/";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
-    results: IResultSetRows[];
+    results: IDbModuleResultData[];
 }
 
 export interface IOpenEditorState extends IEntityBase {
@@ -661,30 +661,30 @@ Execute \\help or \\? for help;`;
                 });
             }
 
+            // Have to keep the column definition around for all data packages, for row conversion,
+            // but must store it only once (when they come in, which happens only once).
+            let columns: IColumnInfo[] = [];
+            let setColumns = false;
             const finalData = await backend.execute(query, params, requestId, (data) => {
                 const { dbType } = this.props;
 
-                const columns = generateColumnInfo(dbType, data.result.columns);
+                if (data.result.columns) {
+                    columns = generateColumnInfo(dbType, data.result.columns);
+                    setColumns = true;
+                }
                 const rows = convertRows(columns, data.result.rows);
 
-                void ApplicationDB.db.add("dbModuleResultData", {
+                this.addTimedResult(context, {
                     tabId: id,
                     requestId,
                     rows,
-                    columns,
+                    columns: setColumns ? columns : undefined,
                     hasMoreRows: false,
                     currentPage,
                     index,
                 });
 
-                this.addTimedResult(context, {
-                    type: "resultSetRows",
-                    requestId,
-                    rows,
-                    columns,
-                    currentPage,
-                });
-
+                setColumns = false;
             });
 
             // Handling of the final response.
@@ -717,29 +717,22 @@ Execute \\help or \\? for help;`;
                     status.type = MessageType.Response;
                 }
 
-                const columns = generateColumnInfo(dbType, finalData.columns);
-                const rows = convertRows(columns, finalData.rows);
+                if (finalData.columns) {
+                    columns = generateColumnInfo(dbType, finalData.columns);
+                    setColumns = true;
+                }
 
-                void ApplicationDB.db.add("dbModuleResultData", {
+                const rows = convertRows(columns, finalData.rows);
+                this.addTimedResult(context, {
                     tabId: id,
                     requestId,
                     rows,
-                    columns,
+                    columns: setColumns ? columns : undefined,
                     executionInfo: status,
+                    totalRowCount: finalData.totalRowCount ?? 0,
                     hasMoreRows,
                     currentPage,
                     index,
-                });
-
-                this.addTimedResult(context, {
-                    type: "resultSetRows",
-                    requestId,
-                    rows,
-                    columns,
-                    hasMoreRows,
-                    currentPage,
-                    totalRowCount: finalData.totalRowCount ?? 0,
-                    executionInfo: status,
                 });
             }
         } catch (reason) {
@@ -830,32 +823,34 @@ Execute \\help or \\? for help;`;
 
     /**
      * Adds the given data to the result timer for the specified request ID. If no timer exists yet, one is created.
+     * The timer, whenever it triggers, sends the next result to the target context and the app database.
      *
      * @param context The context to send the result data to.
      * @param result The result data to schedule.
      */
-    private addTimedResult(context: SQLExecutionContext, result: IResultSetRows): void {
+    private addTimedResult(context: SQLExecutionContext, result: IDbModuleResultData): void {
         const resultTimer = this.resultTimers.get(result.requestId);
-
-        if (resultTimer) {
-            resultTimer.results.push(result);
-        } else {
-            // If no timer exists yet it means this is the first response with real data.
-            // Send this directly to the context to have a quick first visual update.
-            // Then create the timer with no rows, waiting for more to come.
-            void context.addResultData(result).then((added) => {
-                if (added) {
-                    context.updateResultDisplay();
-                }
-            });
-
+        if (!resultTimer) {
+            // Create the timer, if it doesn't exist.
             const newTimer: IResultTimer = {
                 timer: setIntervalAsync(async (requestId: string) => {
                     const resultTimer = this.resultTimers.get(requestId);
                     if (resultTimer) {
                         const pendingResult = resultTimer.results.shift();
                         if (pendingResult) {
-                            await context.addResultData(pendingResult);
+                            await Promise.all([
+                                ApplicationDB.db.add("dbModuleResultData", pendingResult),
+                                context.addResultData({
+                                    type: "resultSetRows",
+                                    requestId: pendingResult.requestId,
+                                    rows: pendingResult.rows,
+                                    columns: pendingResult.columns ?? [],
+                                    currentPage: pendingResult.currentPage,
+                                    hasMoreRows: pendingResult.hasMoreRows,
+                                    totalRowCount: pendingResult.totalRowCount,
+                                    executionInfo: pendingResult.executionInfo,
+                                }),
+                            ]);
                         } else {
                             // No results left. Stop the timer.
                             void clearIntervalAsync(resultTimer.timer).then(() => {
@@ -864,13 +859,16 @@ Execute \\help or \\? for help;`;
                             context.updateResultDisplay();
                         }
                     }
-                }, 250, result.requestId),
+                }, 20, result.requestId),
 
-                results: [], // Rows are sent already before timer creation.
+                results: [result],
             };
 
             this.resultTimers.set(result.requestId, newTimer);
+        } else {
+            resultTimer.results.push(result);
         }
+
     }
 
     /**

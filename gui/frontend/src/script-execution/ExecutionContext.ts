@@ -331,7 +331,7 @@ export class ExecutionContext implements IExecutionContext {
     public validateAll(): void {
         if (!this.disposed) {
             const services = ScriptingLanguageServices.instance;
-            services.validate(this, "", (result: IDiagnosticEntry[]): void => {
+            void services.validate(this, "", (result: IDiagnosticEntry[]): void => {
                 // Update the decorations in the editor.
                 this.decorationIDs = this.presentation.updateDiagnosticsDecorations(this.decorationIDs, result);
             });

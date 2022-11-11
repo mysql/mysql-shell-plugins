@@ -804,7 +804,7 @@ export class PresentationInterface {
 
             if (columnCount > 0) {
                 if (data.columns) {
-                    resultSet.data.columns.push(...data.columns);
+                    resultSet.data.columns = data.columns;
                 }
                 await this.resultRef.current?.updateColumns(data.requestId, resultSet.data.columns);
             }

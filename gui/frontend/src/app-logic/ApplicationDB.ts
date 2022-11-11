@@ -38,21 +38,22 @@ export enum StoreType {
 export interface IDbModuleResultData {
     // There's an auto incremented field (id) to make entries unique.
 
-    // The tab id is used to quickly remove all associated entries when a tab is closed.
+    /** The tab id is used to quickly remove all associated entries when a tab is closed. */
     tabId: string;
     requestId: string;
     columns?: IColumnInfo[];
     rows: IDictionary[];
     executionInfo?: IExecutionInfo;
+    totalRowCount?: number;
 
     // Paging support.
     currentPage: number;
     hasMoreRows: boolean;
 
-    // An optional value to map a result set to the query that produced it.
+    /** An optional value to map a result set to the query that produced it. */
     index?: number;
 
-    // SQL text exists only for the start response.
+    /** SQL text exists only for the start response. */
     sql?: string;
 }
 
