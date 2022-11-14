@@ -1,0 +1,6 @@
+
+/* eslint-disable max-len */
+
+import { IDictionary } from "../app-logic/Types";
+import { IConnectionDetails } from "../supplement/ShellInterface";
+import { IShellDictionary } from "./Protocol";

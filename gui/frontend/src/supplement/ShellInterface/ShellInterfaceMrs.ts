@@ -22,11 +22,11 @@
  */
 
 import { MessageScheduler, ShellAPIMrs } from "../../communication";
-import { webSession } from "../WebSession";
 import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
     IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectParameterData,
 } from "../../communication/";
+import { webSession } from "../WebSession";
 
 export class ShellInterfaceMrs {
 

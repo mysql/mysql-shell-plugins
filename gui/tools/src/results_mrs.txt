@@ -1,0 +1,182 @@
+export interface IMrsDbObjectParameterData {
+    id?: number;
+    dbObjectId?: number;
+    position: number;
+    name: string;
+    bindColumnName: string;
+    datatype: string;
+    mode: string;
+    comments?: string;
+}
+
+export interface IMrsDbObjectData {
+    changedAt?: string;
+    comments: string;
+    crudOperations: string[];
+    crudOperationFormat: string;
+    dbSchemaId: number;
+    enabled: number;
+    hostCtx?: string;
+    id: number;
+    itemsPerPage?: number;
+    name: string;
+    objectType: string;
+    requestPath: string;
+    requiresAuth: number;
+    rowUserOwnershipColumn?: string;
+    rowUserOwnershipEnforced: number;
+    schemaRequestPath?: string;
+    qualifiedName?: string;
+    serviceId: number;
+    mediaType?: string;
+    autoDetectMediaType: number;
+    authStoredProcedure?: string;
+    options?: string;
+    parameters?: IMrsDbObjectParameterData[];
+}
+
+export interface IMrsContentSetData {
+    comments: string;
+    enabled: number;
+    hostCtx: string;
+    id: number;
+    requestPath: string;
+    requiresAuth: number;
+    serviceId: number;
+    options: string;
+}
+
+export interface IMrsContentFileData {
+    id: number;
+    contentSetId: number;
+    requestPath: string;
+    requiresAuth: boolean;
+    enabled: boolean;
+    size: number;
+    contentSetRequestPath: string;
+    hostCtx: string;
+    changedAt: string;
+}
+
+export interface IMrsAddContentSetData {
+    contentSetId?: number;
+    numberOfFilesUploaded?: number;
+    info?: string;
+}
+
+export interface IMrsServiceData {
+    enabled: number;
+    hostCtx: string;
+    id: number;
+    isDefault: number;
+    urlContextRoot: string;
+    urlHostName: string;
+    urlProtocol: string;
+    comments: string;
+    options: string;
+    authPath: string;
+    authCompletedUrl: string;
+    authCompletedUrlValidation: string;
+    authCompletedPageContent: string;
+    authApps?: IMrsAuthAppData[];
+}
+
+export interface IMrsAuthAppData {
+    id?: number;
+    authVendorId?: number;
+    authVendorName?: string;
+    serviceId?: number;
+    name?: string;
+    description?: string;
+    url?: string;
+    urlDirectAuth?: string;
+    accessToken?: string;
+    appId?: string;
+    enabled: boolean;
+    useBuiltInAuthorization: boolean;
+    limitToRegisteredUsers: boolean;
+    defaultAuthRoleId?: number;
+}
+
+export interface IMrsAuthVendorData {
+    id?: number;
+    name: string;
+    validationUrl?: string;
+    enabled: boolean;
+    comments?: string;
+}
+
+export interface IMrsSchemaData {
+    comments: string;
+    enabled: number;
+    hostCtx: string;
+    id: number;
+    itemsPerPage: number;
+    name: string;
+    requestPath: string;
+    requiresAuth: number;
+    serviceId: number;
+    options?: string;
+}
+
+export interface IMrsStatusData {
+    enabled: boolean;
+    serviceConfigured: boolean;
+    serviceEnabled: boolean;
+    serviceCount: number;
+}
+
+export interface IProtocolMrsResults {
+    [ShellAPIMrs.MrsAddService]: {};
+    [ShellAPIMrs.MrsGetService]: {};
+    [ShellAPIMrs.MrsListServices]: { result: IMrsServiceData[] };
+    [ShellAPIMrs.MrsEnableService]: {};
+    [ShellAPIMrs.MrsDisableService]: {};
+    [ShellAPIMrs.MrsDeleteService]: {};
+    [ShellAPIMrs.MrsSetServiceDefault]: {};
+    [ShellAPIMrs.MrsSetServiceContextPath]: {};
+    [ShellAPIMrs.MrsSetServiceProtocol]: {};
+    [ShellAPIMrs.MrsSetServiceComments]: {};
+    [ShellAPIMrs.MrsSetServiceOptions]: {};
+    [ShellAPIMrs.MrsUpdateService]: {};
+    [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { result: boolean };
+    [ShellAPIMrs.MrsAddSchema]: { result: number };
+    [ShellAPIMrs.MrsGetSchema]: {};
+    [ShellAPIMrs.MrsListSchemas]: { result: IMrsSchemaData[] };
+    [ShellAPIMrs.MrsEnableSchema]: {};
+    [ShellAPIMrs.MrsDisableSchema]: {};
+    [ShellAPIMrs.MrsDeleteSchema]: {};
+    [ShellAPIMrs.MrsSetSchemaName]: {};
+    [ShellAPIMrs.MrsSetSchemaRequestPath]: {};
+    [ShellAPIMrs.MrsSetSchemaRequiresAuth]: {};
+    [ShellAPIMrs.MrsSetSchemaItemsPerPage]: {};
+    [ShellAPIMrs.MrsSetSchemaComments]: {};
+    [ShellAPIMrs.MrsUpdateSchema]: {};
+    [ShellAPIMrs.MrsAddContentSet]: { result: IMrsAddContentSetData };
+    [ShellAPIMrs.MrsListContentSets]: { result: IMrsContentSetData[] };
+    [ShellAPIMrs.MrsGetContentSet]: {};
+    [ShellAPIMrs.MrsEnableContentSet]: {};
+    [ShellAPIMrs.MrsDisableContentSet]: {};
+    [ShellAPIMrs.MrsDeleteContentSet]: {};
+    [ShellAPIMrs.MrsAddDbObject]: { result: number };
+    [ShellAPIMrs.MrsGetDbObject]: {};
+    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { result: string[] };
+    [ShellAPIMrs.MrsGetDbObjectFields]: { result: IMrsDbObjectParameterData[] };
+    [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[] };
+    [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[] };
+    [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};
+    [ShellAPIMrs.MrsSetDbObjectCrudOperations]: {};
+    [ShellAPIMrs.MrsEnableDbObject]: {};
+    [ShellAPIMrs.MrsDisableDbObject]: {};
+    [ShellAPIMrs.MrsDeleteDbObject]: {};
+    [ShellAPIMrs.MrsUpdateDbObject]: {};
+    [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[] };
+    [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[] };
+    [ShellAPIMrs.MrsAddAuthenticationApp]: {};
+    [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[] };
+    [ShellAPIMrs.MrsInfo]: {};
+    [ShellAPIMrs.MrsVersion]: {};
+    [ShellAPIMrs.MrsLs]: {};
+    [ShellAPIMrs.MrsConfigure]: {};
+    [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData };
+}

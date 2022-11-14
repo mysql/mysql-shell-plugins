@@ -23,9 +23,8 @@
 
 import {
     DataCallback,
-    IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMySQLDbSystem,
-    IMySQLDbSystemShapeSummary, MessageScheduler, ShellAPIMds, IMdsProfileData,
-    IShellSetCurrentBastionKwargs, IShellSetCurrentCompartmentKwargs,
+    IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMdsProfileData, IMySQLDbSystem,
+    IMySQLDbSystemShapeSummary, IShellMdsSetCurrentBastionKwargs, IShellMdsSetCurrentCompartmentKwargs, MessageScheduler, ShellAPIMds
 } from "../../communication";
 
 export class ShellInterfaceMds {
@@ -132,14 +131,14 @@ export class ShellInterfaceMds {
         return response.result;
     }
 
-    public async setCurrentCompartment(parameters?: IShellSetCurrentCompartmentKwargs): Promise<void> {
+    public async setCurrentCompartment(parameters?: IShellMdsSetCurrentCompartmentKwargs): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsSetCurrentCompartment,
             parameters: { kwargs: parameters },
         });
     }
 
-    public async setCurrentBastion(parameters?: IShellSetCurrentBastionKwargs): Promise<void> {
+    public async setCurrentBastion(parameters?: IShellMdsSetCurrentBastionKwargs): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsSetCurrentBastion,
             parameters: { kwargs: parameters },

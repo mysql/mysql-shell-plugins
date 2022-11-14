@@ -60,7 +60,7 @@ export class ShellInterfaceUser {
     public async createUser(username: string, password: string, role?: string, allowedHosts?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiUsersCreateUser,
-            parameters: { username, password, role, allowedHosts },
+            parameters: { args: { username, password, role, allowedHosts } },
         });
     }
 
