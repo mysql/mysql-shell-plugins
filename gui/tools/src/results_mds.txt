@@ -1,0 +1,54 @@
+export interface IMdsProfileData {
+    fingerprint: string;
+    keyFile: string;
+    profile: string;
+    region: string;
+    tenancy: string;
+    user: string;
+    isCurrent: boolean;
+}
+
+export interface IProtocolMdsResults {
+    [ShellAPIMds.MdsGetRegions]: {};
+    [ShellAPIMds.MdsListConfigProfiles]: { result: IMdsProfileData[] };
+    [ShellAPIMds.MdsSetDefaultConfigProfile]: {};
+    [ShellAPIMds.MdsGetDefaultConfigProfile]: {};
+    [ShellAPIMds.MdsSetCurrentCompartment]: {};
+    [ShellAPIMds.MdsGetCurrentCompartmentId]: {};
+    [ShellAPIMds.MdsSetCurrentBastion]: {};
+    [ShellAPIMds.MdsGetAvailabilityDomain]: {};
+    [ShellAPIMds.MdsListCompartments]: { result: ICompartment[] };
+    [ShellAPIMds.MdsGetCompartment]: {};
+    [ShellAPIMds.MdsListComputeInstances]: { result: IComputeInstance[] };
+    [ShellAPIMds.MdsGetComputeInstance]: {};
+    [ShellAPIMds.MdsListComputeShapes]: {};
+    [ShellAPIMds.MdsDeleteComputeInstance]: {};
+    [ShellAPIMds.MdsUtilHeatWaveLoadData]: {};
+    [ShellAPIMds.MdsUtilCreateMdsEndpoint]: {};
+    [ShellAPIMds.MdsGetDbSystemConfiguration]: {};
+    [ShellAPIMds.MdsListDbSystemShapes]: { result: IMySQLDbSystemShapeSummary[] };
+    [ShellAPIMds.MdsListDbSystems]: { result: IMySQLDbSystem[] };
+    [ShellAPIMds.MdsGetDbSystem]: { result: IMySQLDbSystem };
+    [ShellAPIMds.MdsGetDbSystemId]: {};
+    [ShellAPIMds.MdsUpdateDbSystem]: {};
+    [ShellAPIMds.MdsCreateDbSystem]: {};
+    [ShellAPIMds.MdsDeleteDbSystem]: {};
+    [ShellAPIMds.MdsStopDbSystem]: {};
+    [ShellAPIMds.MdsStartDbSystem]: {};
+    [ShellAPIMds.MdsRestartDbSystem]: {};
+    [ShellAPIMds.MdsStopHeatWaveCluster]: {};
+    [ShellAPIMds.MdsStartHeatWaveCluster]: {};
+    [ShellAPIMds.MdsRestartHeatWaveCluster]: {};
+    [ShellAPIMds.MdsCreateHeatWaveCluster]: {};
+    [ShellAPIMds.MdsUpdateHeatWaveCluster]: {};
+    [ShellAPIMds.MdsDeleteHeatWaveCluster]: {};
+    [ShellAPIMds.MdsListLoadBalancers]: { result: ILoadBalancer[] };
+    [ShellAPIMds.MdsListBastions]: { result: IBastionSummary[] };
+    [ShellAPIMds.MdsGetBastion]: { result: IBastionSummary };
+    [ShellAPIMds.MdsCreateBastion]: { result: IBastionSummary };
+    [ShellAPIMds.MdsDeleteBastion]: {};
+    [ShellAPIMds.MdsListBastionSessions]: {};
+    [ShellAPIMds.MdsGetBastionSession]: {};
+    [ShellAPIMds.MdsCreateBastionSession]: { result: IBastionSession };
+    [ShellAPIMds.MdsDeleteBastionSession]: {};
+}

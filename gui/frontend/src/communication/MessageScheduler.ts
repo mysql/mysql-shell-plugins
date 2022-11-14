@@ -31,11 +31,11 @@ import {
     EventType, IGenericResponse, IWebSessionData, multiResultAPIs, Protocol, ShellAPIGui, ShellAPIMds, ShellAPIMrs,
 } from ".";
 import { appParameters, requisitions } from "../supplement/Requisitions";
-import { convertSnakeToCamelCase, convertCamelToSnakeCase, uuid } from "../utilities/helpers";
 import { webSession } from "../supplement/WebSession";
+import { convertCamelToSnakeCase, convertSnakeToCamelCase, uuid } from "../utilities/helpers";
 
-import { IProtocolResults } from "./ProtocolResultMapper";
 import { IProtocolParameters } from "./ProtocolParameterMapper";
+import { IProtocolResults } from "./ProtocolResultMapper";
 
 export enum ConnectionEventType {
     Open = 1,
@@ -55,7 +55,7 @@ export type DataCallback<K extends keyof IProtocolResults> =
     (data: IProtocolResults[K], requestId: string) => void;
 
 /** Parameters for sending requests to the backend. */
-export interface ISendRequestParameters<K extends keyof IProtocolResults> {
+export interface ISendRequestParameters<K extends keyof IProtocolParameters> {
     /**
      * If set, this request ID is used instead of an auto generated one. It's mandatory for the requisition distribution
      * method because otherwise the consumer doesn't know for which request the requisition came in.

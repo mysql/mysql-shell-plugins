@@ -25,8 +25,11 @@
 
 import json
 from unittest.loader import VALID_MODULE_NAME
+
 from mysqlsh.plugin_manager import plugin_function
-from mrs_plugin import core, schemas as mrs_schemas
+
+from mrs_plugin import core
+from mrs_plugin import schemas as mrs_schemas
 
 # db_object operations
 DB_OBJECT_DISABLE = 1
