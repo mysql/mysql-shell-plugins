@@ -95,7 +95,8 @@ class DbSession(threading.Thread):
             raise MSGException(Error.DB_INVALID_OPTIONS,
                                'No connection_options dict given.')
 
-        self._connection_options = connection_options
+        # Creates a local copy of the connection options
+        self._connection_options = connection_options.copy()
 
         self._last_error = None
         self._last_execution_time = None
@@ -193,7 +194,7 @@ class DbSession(threading.Thread):
             self._setup_tasks = self._initialize_setup_tasks()
         else:
             for setup_task in self._setup_tasks:
-                setup_task.reset()
+                setup_task.reset(include_data=False)
 
     def _on_connect(self):
         for setup_task in self._setup_tasks:
@@ -202,6 +203,10 @@ class DbSession(threading.Thread):
     def _on_connected(self, notify_success):
         for setup_task in self._setup_tasks:
             setup_task.on_connected()
+
+    def _on_failed_connection(self):
+        for setup_task in self._setup_tasks:
+            setup_task.on_failed_connection()
 
     def _open_database(self, notify_success=True):
         self._reset_setup_tasks()
@@ -295,8 +300,8 @@ class DbSession(threading.Thread):
         self._task_mutex.acquire(True)
 
         # Updates the connection options for the reconnect operation if provided
-        if not new_connection_options is None:
-            self._connection_options = new_connection_options
+        if new_connection_options is not None:
+            self._connection_options = new_connection_options.copy()
 
         try:
             self._reconnect(False)

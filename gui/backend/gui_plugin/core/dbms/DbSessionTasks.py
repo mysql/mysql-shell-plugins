@@ -64,7 +64,7 @@ class DbTask(BaseTask):
 
     def __init__(self, session, task_id=None, result_queue=None, params=None, result_callback=None, options=None):
         super().__init__(task_id, result_queue=result_queue,
-                         result_callback=result_callback if not result_callback is None else session.task_state_cb, options=options)
+                         result_callback=result_callback if result_callback is not None else session.task_state_cb, options=options)
         self.session = session
         self.params = params if params else []
 

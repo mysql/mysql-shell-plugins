@@ -23,7 +23,7 @@ from asyncio import current_task
 import gui_plugin.core.dbms.DbMySQLSessionCommon as common
 from gui_plugin.core.dbms.DbSessionSetupTask import DbSessionSetupTask
 from gui_plugin.core.dbms.DbSessionUtils import DbSessionData
-from gui_plugin.core.lib.OciUtils import BastionHandler
+from gui_plugin.core.lib.OciUtils import BastionSessionRegistry, BASTION_SETUP_OPTIONS
 
 
 class SessionInfoTask(DbSessionSetupTask):
@@ -69,7 +69,7 @@ class HeatWaveCheckTask(DbSessionSetupTask):
         if not self._skip_hw_check:
             result = self.execute("""
                 SELECT TABLE_NAME FROM `information_schema`.`TABLES`
-                    WHERE TABLE_SCHEMA = 'performance_schema' 
+                    WHERE TABLE_SCHEMA = 'performance_schema'
                         AND TABLE_NAME = 'rpd_nodes'
                 """).fetch_all()
 
@@ -92,16 +92,32 @@ class BastionHandlerTask(DbSessionSetupTask):
             if not self.has_data(DbSessionData.PING_INTERVAL):
                 self.define_data(DbSessionData.PING_INTERVAL, 60)
 
-            updated_options = self.connection_options.copy()
-            handler = BastionHandler(self.report_progress)
+            bastion_session = None
+            # If the bastion session was previously registered, reuses it
+            if self.has_data(common.MySQLData.BASTION_SESSION):
+                bastion_session = BastionSessionRegistry().get_bastion_session(
+                    self.get_data(common.MySQLData.BASTION_SESSION))
 
-            handler.establish_connection(updated_options)
+            else:
+                bastion_session = BastionSessionRegistry(
+                ).create_bastion_session(self.connection_options)
 
-            current_keys = self.connection_options.keys()
-            new_keys = updated_options.keys()
-            for option in current_keys - new_keys:
+            bastion_session.ensure_active(self.report_progress)
+
+            for option in BASTION_SETUP_OPTIONS:
                 self.extract_option(option)
 
-            for option in updated_options.keys():
-                if not self.has_option(option) or self.connection_options[option] != updated_options[option]:
-                    self.define_option(option, updated_options[option])
+            for option in bastion_session.options.keys():
+                self.define_option(option, bastion_session.options[option])
+
+            # Adds metadata the Bastion Session ID to the Session metadata
+            self.define_data(
+                common.MySQLData.BASTION_SESSION, bastion_session.id)
+
+    def on_connected(self):
+        # Restores to restore the original connection options but excludes
+        # the data as it is needed by the DB Ping Handler
+        self.reset(include_data=False)
+
+    def on_failed_connection(self):
+        self.reset(include_data=False)

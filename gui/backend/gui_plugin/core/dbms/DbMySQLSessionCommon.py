@@ -27,3 +27,4 @@ class MySQLData(enum.Enum):
     VERSION_INFO = 2
     SQL_MODE = 3
     HEATWAVE_AVAILABLE = 4
+    BASTION_SESSION = 5

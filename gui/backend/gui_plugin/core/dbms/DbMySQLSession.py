@@ -30,13 +30,13 @@ from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLOneFieldTask, MySQLOne
 from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLBaseObjectTask, MySQLTableObjectTask
 from gui_plugin.core.dbms import DbMySQLSessionSetupTasks as SetupTasks
 import gui_plugin.core.dbms.DbMySQLSessionCommon as common
-from gui_plugin.core.lib import OciUtils
 from gui_plugin.core import Filtering
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
 import base64
 import sys
 import time
+from gui_plugin.core.lib.OciUtils import BastionSessionRegistry
 
 _MYSQL_INACTIVITY_TIMEOUT_ERROR = 4031
 _MYSQL_SERVER_LOST_ERROR = 2013
@@ -74,6 +74,13 @@ class DbMysqlSession(DbSession):
         self._message_callback = message_callback if message_callback is not None else message_callback
         self._shell_ctx = None
 
+        # When a Bastion Session is just created in OCI, it may get into
+        # ACTIVE state and even so reject connections with "Access Denied"
+        # error, the shell will then prompt if a Retry is needed, these
+        # attributes are used to implement a retry logic on this specific case
+        self._bastion_access_denied_retries = 0
+        self._expired_bastion_session = False
+
         # If the session object is already provided, no connection will be created
         if self.session is None:
             if not 'scheme' in self._connection_options:
@@ -110,14 +117,38 @@ class DbMysqlSession(DbSession):
         return self.session.run_sql(sql, args)
 
     def on_shell_prompt(self, text, options):
-        if 'type' in options and options['type'] == 'password':
-            logger.add_filter({
-                "type": "key",
-                "key": "reply",
-                "expire": Filtering.FilterExpire.OnUse
-            })
+        if 'type' in options:
+            if options['type'] == 'password':
+                logger.add_filter({
+                    "type": "key",
+                    "key": "reply",
+                    "expire": Filtering.FilterExpire.OnUse
+                })
+            # On Bation Sessions, this prompt is produced in 2 known scenarios:
+            # - On a new connection through Bastion Session if the session is
+            #   new, sometimes fails with "Access Denied" error and Shell
+            #   triggers prompt to retry.
+            # - When the reconnection logic is triggered with data for an
+            #   expired Bastion Session
+            elif self.bastion_session is not None and options['type'] == 'confirm' and text == "Access denied":
+                # If this is a new Bastion Session, a retry logic is successfully enough
+                # to make the connection succeed
+                if self.bastion_session.is_new:
+                    if self._bastion_access_denied_retries < 3:
+                        self._bastion_access_denied_retries += 1
+                        time.sleep(2)
+                        return True, options['yes']
+                # If this is not a new Bastion Session, then there's no reason to retry,
+                # the credentials are wrong, i.e. maybe expired
+                else:
+                    return False, ''
 
-        return self._prompt_cb(text, options)
+        replied, value = self._prompt_cb(text, options)
+
+        if 'type' in options and options['type'] == 'password':
+            self.connection_options['password'] = value
+
+        return replied, value
 
     def on_shell_print(self, text):
         sys.real_stdout.write(text)
@@ -137,14 +168,20 @@ class DbMysqlSession(DbSession):
                                                 "promptDelegate": lambda x, o: self.on_shell_prompt(x, o), })
         self._shell = self._shell_ctx.get_shell()
 
-        return self._do_connect(notify_success=notify_success)
+        return self._do_connect(failed_cb=self._failed_cb)
 
     def _on_connected(self, notify_success):
+        # The connection succeeded, so the access_denied_retries get reset
+        if self.bastion_session is not None:
+            self._bastion_access_denied_retries = 0
+            self.bastion_session.is_new = False
+
         super()._on_connected(notify_success)
-        if not self._connected_cb is None and notify_success:
+
+        if self._connected_cb is not None and notify_success:
             self._connected_cb(self)
 
-    def _do_connect(self, notify_success=True):
+    def _do_connect(self, failed_cb=None):
         attempts = 3
         exception = None
         while attempts > 0:
@@ -164,17 +201,20 @@ class DbMysqlSession(DbSession):
                 exception = e
 
         if exception:
-            if self._failed_cb is None:
+            # Notifies listeners about failed connection attempt
+            self._on_failed_connection()
+
+            if failed_cb is None:
                 raise exception
 
-            self._failed_cb(exception)
+            failed_cb(exception)
         return False
 
     def _do_close_database(self, finalize):
         if self.session and self.session.is_open():
             self.session.close()
 
-        if finalize and not self._shell_ctx is None:
+        if finalize and self._shell_ctx is not None:
             self._shell_ctx.finalize()
 
     def _reconnect(self, is_auto_reconnect):
@@ -203,14 +243,16 @@ class DbMysqlSession(DbSession):
 
                 self._on_connect()
 
-                if self._do_connect(False):
+                if self._do_connect():
                     self._on_connected(is_auto_reconnect is False)
                     return True
-            except AssertionError as e:
-                raise
             except Exception as e:
+                self._on_failed_connection()
+
                 logger.error(f"Reconnecting session: {str(e)}")
-                if attempt < attempt_limit:
+                if self.bastion_session is not None and "Tunnel connection cancelled" in str(e):
+                    self.bastion_session.expire()
+                elif attempt < attempt_limit:
                     time.sleep(5)
 
         return False
@@ -293,6 +335,13 @@ class DbMysqlSession(DbSession):
             ret_val["heat_wave_available"] = self.data[common.MySQLData.HEATWAVE_AVAILABLE]
 
         return ret_val
+
+    @property
+    def bastion_session(self):
+        if common.MySQLData.BASTION_SESSION in self.data:
+            id = self.data[common.MySQLData.BASTION_SESSION]
+            return BastionSessionRegistry().get_bastion_session(id)
+        return None
 
     def start_transaction(self):
         self.execute("START TRANSACTION")
