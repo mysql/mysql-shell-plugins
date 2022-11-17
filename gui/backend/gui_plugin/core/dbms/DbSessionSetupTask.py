@@ -68,6 +68,12 @@ class DbSessionSetupTask:
         """
         return self.session.has_data(option)
 
+    def get_data(self, option):
+        """
+        Gets the given data from the session.
+        """
+        return self.session.data[option]
+
     def extract_option(self, option, default_value=None):
         """
         Extracts an option from the connection options and registers it on the
@@ -96,7 +102,9 @@ class DbSessionSetupTask:
         Defines an entry on the connection data and the output data.
         """
 
-        if option in self.session.data:
+        # If the data already exists and was not added by the task,
+        # backs up the current value
+        if option in self.session.data and option not in self._output_data:
             self._input_data[option] = self.session.data[option]
 
         # Defines the new value for the data
@@ -108,10 +116,10 @@ class DbSessionSetupTask:
         Progress callback to be used if the task is of long duration to keep the
         clients up to date on what's going on.
         """
-        if not self._progress_cb is None:
+        if self._progress_cb is not None:
             self._progress_cb(msg)
 
-    def reset(self):
+    def reset(self, include_data=True):
         """
         Resets any change done by this task on the session connection options.
         """
@@ -124,14 +132,18 @@ class DbSessionSetupTask:
         for option, value in self._input_options.items():
             self.connection_options[option] = value
 
-        # Removes any data added from this task
-        for option in self._output_data.keys():
-            if option in self.session.data:
-                self.session.data.pop(option)
+        if include_data:
+            # Removes any data added from this task
+            for option in self._output_data.keys():
+                if option in self.session.data:
+                    self.session.data.pop(option)
 
-        # Adds any option removed by this task
-        for option, value in self._input_data.items():
-            self.session.data[option] = value
+            # Adds any data removed by this task
+            for option, value in self._input_data.items():
+                self.session.data[option] = value
+
+            self._input_data.clear()
+            self._output_data.clear()
 
         self._input_options.clear()
         self._output_options.clear()
@@ -153,6 +165,13 @@ class DbSessionSetupTask:
         """
         pass
 
+    def on_failed_connection(self):
+        """
+        Override this function to implement task to be executed right after the
+        MySQL Session failed getting established
+        """
+        pass
+
     def on_close(self):
         """
         Override this function to implement what the task should do if te session is
@@ -168,8 +187,8 @@ class DbPingHandlerTask(DbSessionSetupTask):
         # The check is enabled if the value is not known
         self._db_pinger = None
 
-    def reset(self):
-        super().reset()
+    def reset(self, include_data=True):
+        super().reset(include_data)
 
         self.on_close()
 
@@ -181,6 +200,6 @@ class DbPingHandlerTask(DbSessionSetupTask):
                 self._db_pinger.start()
 
     def on_close(self):
-        if not self._db_pinger is None:
+        if self._db_pinger is not None:
             self._db_pinger.stop()
             self._db_pinger.join()

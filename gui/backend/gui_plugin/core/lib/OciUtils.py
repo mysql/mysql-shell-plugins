@@ -18,32 +18,80 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+import os
+import threading
+import time
+import os.path
+import hashlib
+from enum import Enum
+import gui_plugin.core.Logger as logger
+# cSpell:ignore timeit
+from timeit import default_timer as timer
+
+MYSQL_DB_SYSTEM_ID_OPT = 'mysql-db-system-id'
+BASTION_ID_OPT = 'bastion-id'
+PROFILE_NAME_OPT = 'profile-name'
+SSH_IDENTITY_FILE_OPT = 'ssh-identity-file'
+SSH_PUBLIC_IDENTITY_FILE_OPT = 'ssh-public-identity-file'
+SSH_OPT = 'ssh'
+
+BASTION_SETUP_OPTIONS = [MYSQL_DB_SYSTEM_ID_OPT, BASTION_ID_OPT, PROFILE_NAME_OPT,
+                         SSH_IDENTITY_FILE_OPT, SSH_PUBLIC_IDENTITY_FILE_OPT]
 
 
-class BastionHandler():
-    def __init__(self, progress_cb=None):
-        self._progress_cb = progress_cb
+class BastionSessionState(Enum):
+    NEW = 0
+    CONNECTING = 1
+    ACTIVE = 2
+    EXPIRED = 3
 
-    def report_progress(self, msg):
-        if not self._progress_cb is None:
-            self._progress_cb(msg)
 
-    def establish_connection(self, options):
-        # cSpell:ignore timeit
-        from timeit import default_timer as timer
-        from datetime import datetime
+class BastionSession():
+    """
+    Handler for a BastionSession, among other things it handles:
+    - Usage of the same BastionSession across threads
+    - States: whether the session is new, active, expired or connecting
+    """
 
-        # Get OCID of the DB System and the Bastion and the profile_name
-        self._mysql_db_system_id = options.pop('mysql-db-system-id')
-        self._bastion_id = options.pop('bastion-id')
-        self._profile_name = options.pop('profile-name')
-        self._ssh_public_identity_file = options.pop(
-            'ssh-public-identity-file', 'id_rsa.pub')
-        if 'ssh-identity-file' not in options:
-            options['ssh-identity-file'] = 'id_rsa'
+    def __init__(self, options):
+        self._lock = threading.RLock()
+        self.state = BastionSessionState.NEW
+        self.setup_options = {}
+        self.is_new = False
+        for opt in BASTION_SETUP_OPTIONS:
+            self.setup_options[opt] = options.get(opt)
+
+        self.target_ip = options.get('host')
+        self.target_port = options.get('port')
+
+        params = "".join([self.setup_options[v] for v in [
+                         MYSQL_DB_SYSTEM_ID_OPT, BASTION_ID_OPT, PROFILE_NAME_OPT]])
+        # Get public_key_content
+        with open(self.setup_options[SSH_PUBLIC_IDENTITY_FILE_OPT], 'r') as file:
+            self.public_key_content = file.read()
+
+        params += self.public_key_content
+        params += f"{options.get('host')}:{options.get('port')}"
+        fingerprint = hashlib.md5(params.encode('utf-8')).hexdigest()
+        self.id = f'MDS-{fingerprint}'
+
+        self.options = {}
+        self.options[SSH_IDENTITY_FILE_OPT] = self.setup_options[SSH_IDENTITY_FILE_OPT]
+
+    def expire(self):
+        with self._lock:
+            self.state = BastionSessionState.EXPIRED
+
+    def ensure_active(self, progress_callback):
+        with self._lock:
+            if self.state != BastionSessionState.ACTIVE and self.state != BastionSessionState.CONNECTING:
+                self._establish_connection(progress_callback)
+
+    def _establish_connection(self, progress_callback):
+        self.state = BastionSessionState.CONNECTING
 
         # Send message that the OCI Bastion Session is being created
-        self.report_progress(
+        progress_callback(
             'Creating OCI Bastion Session. Loading OCI Library...')
 
         start = timer()
@@ -51,126 +99,62 @@ class BastionHandler():
         import oci.bastion
         end = timer()
 
-        self.report_progress(f'OCI Library loaded in {end - start:.2f} seconds. '
-                             'Loading OCI objects...')
+        progress_callback(f'OCI Library loaded in {end - start:.2f} seconds. '
+                          'Loading OCI objects...')
 
         try:
-            import time
-            import os.path
-            import hashlib
-
             # Get the right config
-            config = self.get_config(profile_name=self._profile_name)
+            config = self.get_config(
+                profile_name=self.setup_options[PROFILE_NAME_OPT])
 
             # Initialize the Bastion and DB System client
             bastion_client = self.get_oci_bastion_client(config=config)
-            db_sys_client = self.get_oci_db_system_client(config=config)
-
-            # Get the DbSystems with the given db_system_id
-            db_system = db_sys_client.get_db_system(
-                db_system_id=self._mysql_db_system_id).data
-
-            endpoint = db_system.endpoints[0]
-            target_ip = endpoint.ip_address
-            if options.get('scheme') == "mysql":
-                target_port = endpoint.port
-            else:
-                target_port = endpoint.port_x
-
-            # Set default key directory if no path is specified in key fields
-            if not '/' in options['ssh-identity-file'] and \
-                    not '\\' in options['ssh-identity-file']:
-                # Set private key including full path
-                options['ssh-identity-file'] = os.path.join(
-                    os.path.abspath(os.path.expanduser("~/.ssh")),
-                    options['ssh-identity-file'])
-
-            if not '/' in self._ssh_public_identity_file and \
-                    not '\\' in self._ssh_public_identity_file:
-                self._ssh_public_identity_file = os.path.join(
-                    os.path.abspath(os.path.expanduser("~/.ssh")),
-                    self._ssh_public_identity_file)
-
-            # If one of the keys exist but not the other, error out
-            if os.path.exists(options['ssh-identity-file']) and \
-                    not os.path.exists(self._ssh_public_identity_file):
-                raise Exception(
-                    f"Public SSH key file {self._ssh_public_identity_file} "
-                    f"not found.")
-            elif not os.path.exists(options['ssh-identity-file']) and \
-                    os.path.exists(self._ssh_public_identity_file):
-                raise Exception(
-                    f"Private SSH key file {options['ssh-identity-file']} "
-                    f"not found.")
-            # If both keys do not exist yet, create them
-            elif not os.path.exists(options['ssh-identity-file']) and \
-                    not os.path.exists(self._ssh_public_identity_file):
-                self.create_ssh_keys(
-                    ssh_private_key_path=options['ssh-identity-file'],
-                    ssh_public_key_path=self._ssh_public_identity_file)
-
-            if not os.path.exists(options['ssh-identity-file']):
-                raise Exception(
-                    f"Private SSH key file {options['ssh-identity-file']} "
-                    f"not found.")
-
-            if not os.path.exists(self._ssh_public_identity_file):
-                raise Exception(
-                    f"Public SSH key file {self._ssh_public_identity_file} "
-                    f"not found.")
-
-            # Get public_key_content
-            with open(self._ssh_public_identity_file, 'r') as file:
-                public_key_content = file.read()
-
-            # Calculate unique fingerprint based on all params
-            params = (
-                self._mysql_db_system_id + self._bastion_id +
-                self._profile_name + public_key_content +
-                f'{target_ip}:{target_port}')
-
-            fingerprint = hashlib.md5(params.encode('utf-8')).hexdigest()
-            session_name = f'MDS-{fingerprint}'
+            session_name = self.id
 
             # Check if a session with this fingerprinted name already exists
             sessions = bastion_client.list_sessions(
-                bastion_id=self._bastion_id,
+                bastion_id=self.setup_options[BASTION_ID_OPT],
                 display_name=session_name,
                 session_lifecycle_state='ACTIVE').data
             if len(sessions) == 1:
-                self.report_progress('Reusing existing Bastion Session.')
-                self._bastion_session_id = sessions[0].id
+                progress_callback('Reusing existing Bastion Session.')
+                bastion_session_id = sessions[0].id
             else:
+                # Get public_key_content
+                with open(self.setup_options[SSH_PUBLIC_IDENTITY_FILE_OPT], 'r') as file:
+                    public_key_content = file.read()
+
                 target_details = oci.bastion.models.\
                     CreatePortForwardingSessionTargetResourceDetails(
-                        target_resource_port=target_port,
-                        target_resource_private_ip_address=target_ip)
+                        target_resource_port=self.target_port,
+                        target_resource_private_ip_address=self.target_ip)
 
                 session_details = oci.bastion.models.CreateSessionDetails(
-                    bastion_id=self._bastion_id,
+                    bastion_id=self.setup_options[BASTION_ID_OPT],
                     display_name=session_name,
                     key_details=oci.bastion.models.PublicKeyDetails(
-                        public_key_content=public_key_content),
+                        public_key_content=self.public_key_content),
                     key_type="PUB",
                     session_ttl_in_seconds=10800,
                     target_resource_details=target_details
                 )
 
-                self.report_progress('Creating Bastion Session...')
+                progress_callback('Creating Bastion Session...')
+                self.is_new = True
 
                 # Create the Bastion Session
                 self._bastion_session = bastion_client.create_session(
                     session_details).data
 
-                self.report_progress(
+                progress_callback(
                     'Waiting for Bastion Session to become active...')
 
                 # Wait for the Bastion Session to be ACTIVE
                 cycles = 0
                 while cycles < 24:
-                    bastion_session = bastion_client.get_session(
+                    bastion_session_obj = bastion_client.get_session(
                         session_id=self._bastion_session.id).data
-                    if bastion_session.lifecycle_state == "ACTIVE":
+                    if bastion_session_obj.lifecycle_state == "ACTIVE":
                         # TODO: Report bug to the Bastion dev team.
                         # Ask them to only switch lifecycle_state to ACTIVE
                         # if the Bastion Session can actually accept connections
@@ -179,8 +163,8 @@ class BastionHandler():
                     else:
                         time.sleep(5)
                         s = "." * (cycles + 1)
-                        self.report_progress(f'Waiting for Bastion Session to become '
-                                             f'active...{s}')
+                        progress_callback(
+                            f'Waiting for Bastion Session to become active...{s}')
                     cycles += 1
 
                 self._bastion_session = bastion_client.get_session(
@@ -189,65 +173,19 @@ class BastionHandler():
                     raise Exception("Bastion Session did not reach ACTIVE "
                                     "state within 2 minutes.")
 
-                self.report_progress('Bastion Session created successfully.')
+                progress_callback('Bastion Session created successfully.')
 
-                self._bastion_session_id = self._bastion_session.id
+                bastion_session_id = self._bastion_session.id
+            self.options[SSH_OPT] = (f'{bastion_session_id}@host.bastion.'
+                                     f'{config.get("region")}.oci.oraclecloud.com:22')
 
-            options['host'] = target_ip
-            options['port'] = target_port
-
-            options['ssh'] = (f'{self._bastion_session_id}@host.bastion.'
-                              f'{config.get("region")}.oci.oraclecloud.com:22')
-            options['ssh-identity-file'] = options.get('ssh-identity-file')
-
-            return options
+            self.state = BastionSessionState.ACTIVE
 
         except oci.exceptions.ServiceError as e:
             raise Exception(
                 f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
         except (Exception, ValueError, oci.exceptions.ClientError) as e:
             raise Exception(str(e))
-
-    def create_ssh_keys(self, ssh_private_key_path, ssh_public_key_path):
-        from cryptography.hazmat.primitives import serialization
-        from cryptography.hazmat.backends import default_backend
-        from cryptography.hazmat.primitives.asymmetric import rsa
-        from pathlib import Path
-        import os
-        import stat
-
-        key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-            backend=default_backend()
-        )
-        # cSpell:ignore PKCS
-        private_key = key.private_bytes(
-            serialization.Encoding.PEM,
-            serialization.PrivateFormat.PKCS8,
-            serialization.NoEncryption())
-
-        public_key = key.public_key().public_bytes(
-            serialization.Encoding.OpenSSH,
-            serialization.PublicFormat.OpenSSH
-        )
-
-        # Create paths
-        Path(os.path.dirname(os.path.abspath(ssh_private_key_path))).mkdir(
-            parents=True, exist_ok=True)
-        Path(os.path.dirname(os.path.abspath(ssh_public_key_path))).mkdir(
-            parents=True, exist_ok=True)
-
-        # Write out keys
-        with open(ssh_private_key_path, mode='wb') as file:
-            file.write(private_key)
-        with open(ssh_public_key_path, mode='wb') as file:
-            file.write(public_key)
-
-        # Fix permissions
-        # cSpell:ignore IRUSR IWUSR
-        os.chmod(ssh_private_key_path, stat.S_IRUSR | stat.S_IWUSR)
-        os.chmod(ssh_public_key_path, stat.S_IRUSR | stat.S_IWUSR)
 
     def get_oci_bastion_client(self, config):
         import oci.bastion
@@ -360,3 +298,135 @@ class BastionHandler():
         config["profile"] = profile_name
 
         return config
+
+
+class BastionSessionRegistry(object):
+    """
+    Registry of BastionSession objects
+
+    Enables registering a new bastion session based on specific connection options
+    or retrieving a previously registered BastionSession given an ID
+    """
+    _instance = None
+    _lock = threading.RLock()
+
+    def __new__(cls):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(BastionSessionRegistry, cls).__new__(cls)
+
+            return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, "_registry"):
+            self._registry = {}
+
+    def create_bastion_session(self, options) -> BastionSession:
+        updated_options = options.copy()
+
+        # Gets the full path to the identity files
+        ssh_identity_file = self._get_identity_file_name(
+            options, SSH_IDENTITY_FILE_OPT, 'id_rsa')
+        ssh_public_identity_file = self._get_identity_file_name(
+            options, SSH_PUBLIC_IDENTITY_FILE_OPT, 'id_rsa.pub')
+
+        # Ensures the identity files exist
+        if not self._check_identity_files_exists(ssh_identity_file, ssh_public_identity_file):
+            self._create_ssh_keys(ssh_identity_file, ssh_public_identity_file)
+
+            if not os.path.exists(ssh_identity_file):
+                raise Exception(
+                    f"Private SSH key file {ssh_identity_file} not found.")
+
+            if not os.path.exists(ssh_public_identity_file):
+                raise Exception(
+                    f"Public SSH key file {ssh_public_identity_file} not found.")
+
+        # updates the identity files
+        updated_options[SSH_IDENTITY_FILE_OPT] = ssh_identity_file
+        updated_options[SSH_PUBLIC_IDENTITY_FILE_OPT] = ssh_public_identity_file
+
+        with self._lock:
+            bastion_session = BastionSession(updated_options)
+            id = bastion_session.id
+            if id not in self._registry:
+                logger.debug3(f"Registering new bastion session: {id}")
+                self._registry[id] = bastion_session
+                return self._registry[id]
+            else:
+                return self.get_bastion_session(id)
+
+    def get_bastion_session(self, id) -> BastionSession:
+        with self._lock:
+            logger.debug3(f"Reusing registered bastion session: {id}")
+            return self._registry.get(id, None)
+
+    def _get_identity_file_name(self, options, option, default):
+        file = options.get(option, default)
+
+        # Set default key directory if no path is specified in key fields
+        if not '/' in file and not '\\' in file:
+            # Set private key including full path
+            file = os.path.join(os.path.abspath(
+                os.path.expanduser("~/.ssh")), file)
+
+        return file
+
+    def _check_identity_files_exists(self, private_file, public_file):
+        """
+        Verifies the existence of the identity files.
+        Return True if both exists or False if none exist, otherwise raises errors
+        """
+        private = os.path.exists(private_file)
+        public = os.path.exists(public_file)
+
+        if private != public:
+            if private:
+                raise Exception(
+                    f"Public SSH key file {public_file} not found.")
+            else:
+                raise Exception(
+                    f"Private SSH key file {private_file} not found.")
+
+        return private and public
+
+    def _create_ssh_keys(self, ssh_private_key_path, ssh_public_key_path):
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from pathlib import Path
+        import os
+        import stat
+
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        # cSpell:ignore PKCS
+        private_key = key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption())
+
+        public_key = key.public_key().public_bytes(
+            serialization.Encoding.OpenSSH,
+            serialization.PublicFormat.OpenSSH
+        )
+
+        # Create paths
+        Path(os.path.dirname(os.path.abspath(ssh_private_key_path))).mkdir(
+            parents=True, exist_ok=True)
+        Path(os.path.dirname(os.path.abspath(ssh_public_key_path))).mkdir(
+            parents=True, exist_ok=True)
+
+        # Write out keys
+        with open(ssh_private_key_path, mode='wb') as file:
+            file.write(private_key)
+        with open(ssh_public_key_path, mode='wb') as file:
+            file.write(public_key)
+
+        # Fix permissions
+        # cSpell:ignore IRUSR IWUSR
+        os.chmod(ssh_private_key_path, stat.S_IRUSR | stat.S_IWUSR)
+        os.chmod(ssh_public_key_path, stat.S_IRUSR | stat.S_IWUSR)

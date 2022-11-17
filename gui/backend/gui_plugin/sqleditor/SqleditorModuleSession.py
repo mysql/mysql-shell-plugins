@@ -62,8 +62,8 @@ class SqleditorModuleSession(DbModuleSession):
             session_id = "UserSession-" + self._web_session.session_uuid
             self._db_user_session = DbSessionFactory.create(
                 self._db_type, session_id, True,
-                db_session.connection_options,
-                db_session.data,
+                self._connection_options,
+                None,
                 ReconnectionMode.STANDARD,
                 self._handle_api_response,
                 self.on_user_session_connected,

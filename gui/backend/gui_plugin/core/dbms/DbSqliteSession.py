@@ -164,7 +164,7 @@ class DbSqliteSession(DbSession):
                     continue
                 self.conn.execute(f"ATTACH '{db_file}' AS '{database_name}';")
 
-            if not self._connected_cb is None and notify_success:
+            if self._connected_cb is not None and notify_success:
                 self._connected_cb(self)
         except Exception as e:
             if self._failed_cb is None:
