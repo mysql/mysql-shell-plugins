@@ -269,7 +269,7 @@ class ProtocolBuilder:
 
         return ",\n".join(
             [
-                f'\t/** {bindings[key][1]} */\n\t{key} = "{bindings[key][0]}"'
+                f'    /** {bindings[key][1]} */\n    {key} = "{bindings[key][0]}"'
                 for key in bindings
             ]
         )
@@ -298,10 +298,10 @@ class ProtocolBuilder:
 
         for key in bindings:
             args = '\n'.join(
-                [f'\t/** {arg[2]} */\n\t{arg[0]}?: {arg[1]};' for arg in bindings[key]])
+                [f'    /** {arg[2]} */\n    {arg[0]}?: {arg[1]};' for arg in bindings[key]])
             output.append(f'export interface {key} {{\n{args}\n}}')
 
-        return "\n".join(output)
+        return "\n\n".join(output)
 
     def _generate_parameter_mapper_bindings(self, bindings: dict) -> None:
         """Generates the parameter mapper bindings.
@@ -320,7 +320,7 @@ class ProtocolBuilder:
         for func_name in bindings:
             name_parts = re.sub(
                 "([a-z])([A-Z])", r"\1 \2", func_name).split(" ")
-            output += f"\t[ShellAPI{name_parts[0]}.{func_name}]: "
+            output += f"    [ShellAPI{name_parts[0]}.{func_name}]: "
             line_args = "args: {"
             line_kwargs = ""
             contains_args = False
@@ -329,11 +329,11 @@ class ProtocolBuilder:
                 if isinstance(bindings[func_name]['args'][argument], list):
                     line_args += f"{argument}: {{"
                     for option in bindings[func_name]['args'][argument]:
-                        line_args += f"{option[0]}: {option[1]}, "
-                    line_args = line_args[:-2] + "}, "
+                        line_args += f"{option[0]}: {option[1]}; "
+                    line_args = line_args[:-2] + "}; "
                 else:
                     param_type, required, _, default_none = bindings[func_name]['args'][argument]
-                    line_args += f"{argument}{'?' if default_none or not required else ''}: {param_type}, "
+                    line_args += f"{argument}{'?' if default_none or not required else ''}: {param_type}; "
                 contains_args = True
 
             line_args = line_args[:-2] + "};"
