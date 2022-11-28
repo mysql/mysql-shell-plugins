@@ -1251,7 +1251,7 @@
         "mocha": "9.2.0",
         "mochawesome": "7.1.3",
         "typescript": "4.5.2",
-        "vscode-extension-tester": "4.2.4"
+        "vscode-extension-tester": "5.1.0"
     },
     "scripts": {
         "build-dev-package": "vsce package",
