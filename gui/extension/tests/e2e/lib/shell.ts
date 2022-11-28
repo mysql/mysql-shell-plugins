@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { WebElement, By, until } from "vscode-extension-tester";
-import { driver, explicitWait } from "../lib/common";
+import { driver, explicitWait } from "./misc";
 
 export class Shell {
 

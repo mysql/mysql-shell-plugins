@@ -30,12 +30,11 @@ import {
     SideBarView,
     CustomTreeItem,
     CustomTreeSection,
-    BottomBarPanel,
     Workbench,
     OutputView,
     Key as selKey,
     Locator,
-    Button,
+    ITimeouts,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
@@ -43,7 +42,8 @@ import { platform } from "os";
 import addContext from "mochawesome/addContext";
 import fs from "fs/promises";
 import { TreeSection } from "monaco-page-objects/out/components/sidebar/tree/TreeSection";
-import { IDBConnection } from "../lib/db";
+import { IDBConnection } from "./db";
+import { join } from "path";
 
 let dbTreeSectionCust: CustomTreeSection | undefined;
 let ociTreeSectionCust: CustomTreeSection | undefined;
@@ -59,13 +59,16 @@ export const explicitWait = 5000;
 export const ociExplicitWait = 10000;
 export const ociTasksExplicitWait = 50000;
 
+export const mysqlshLog = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "mysqlsh.log");
+
 export let driver: WebDriver;
 
-export class Common {
+export class Misc {
 
     public static loadDriver = async (): Promise<void> => {
 
         let browser: VSBrowser;
+        const timeout: ITimeouts = { implicit: 0 };
 
         let counter = 0;
         while (counter <= 10) {
@@ -73,7 +76,7 @@ export class Common {
                 browser = VSBrowser.instance;
                 await browser.waitForWorkbench();
                 driver = browser.driver;
-                await driver.manage().timeouts().implicitlyWait(0);
+                await driver.manage().setTimeouts(timeout);
 
                 return;
             } catch (e) {
@@ -474,80 +477,6 @@ export class Common {
         }
     };
 
-    public static waitForExtensionChannel = async (): Promise<void> => {
-
-        await driver.wait(async () => {
-            try {
-                const bottomBar = new BottomBarPanel();
-                await bottomBar.openOutputView();
-
-                return true;
-            } catch (e) {
-                if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
-                    return false;
-                } else {
-                    throw e;
-                }
-            }
-        }, 3000, "bottomBar still stale");
-
-        await driver.wait(async () => {
-            try {
-                const select = await driver.findElement(By.xpath("//select[contains(@aria-label, 'Output Channels')]"));
-                await select.click();
-                await driver.sleep(500);
-                const options = await select.findElements(By.css("option"));
-
-                for (const option of options) {
-                    if (await option.getAttribute("value") === "MySQL Shell for VS Code") {
-                        await option.click();
-
-                        return true;
-                    }
-                }
-            } catch (e) {
-                if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
-                    return false;
-                } else {
-                    throw new Error(String(e));
-                }
-            }
-
-        }, 60000, "MySQL Shell for VS Code channel was not found");
-    };
-
-    public static isCertificateInstalled = async (): Promise<boolean> => {
-
-        const bottomBar = new BottomBarPanel();
-        const outputView = new OutputView(bottomBar);
-
-        await driver.wait(async () => {
-            try {
-                return (await outputView.getText()).indexOf("Certificate is") !== -1;
-            } catch (e) {
-                return false;
-            }
-
-        }, 30000, "Could not retrieve the logs to verify certificate installation");
-
-        const text = await outputView.getText();
-        let flag: boolean;
-        if (text.indexOf("Certificate is not installed") !== -1) {
-            flag = false;
-        } else if (text.indexOf("Mode: Single user") !== -1) {
-            flag = true;
-        } else if (text.indexOf("Certificate is installed") !== -1) {
-            flag = true;
-        } else {
-            console.error(text);
-            throw new Error("Could not verify certificate installation");
-        }
-
-        await bottomBar.toggle(false);
-
-        return flag;
-    };
-
     public static reloadVSCode = async (): Promise<void> => {
         const reload = async () => {
             const workbench = new Workbench();
@@ -669,7 +598,7 @@ export class Common {
 
         if (waitToDisappear) {
             await driver.wait(async () => {
-                return (await Common.hasNotifications()) === false;
+                return (await Misc.hasNotifications()) === false;
             }, explicitWait, `'${text}' notification is still visible`);
         }
 
@@ -683,10 +612,13 @@ export class Common {
                 if (scrollEl.length > 0) {
                     await driver.executeScript("arguments[0].scrollBy(0, 500)", scrollEl);
                 }
-                const text = await view.getText();
+                const output = new OutputView();
+                const text = await output.getText();
 
                 return text.includes(textToSearch);
             } catch (e) {
+                console.error(e);
+
                 return false;
             }
 
@@ -795,13 +727,8 @@ export class Common {
     };
 
     public static hideSection = async (section:string, hide: boolean): Promise <void> => {
-        const context = await driver.findElement(By.id("workbench.view.extension.msg-view"));
-        const title = await context.findElement(By.css("h3"));
-        await driver
-            .actions()
-            .mouseMove(title)
-            .click(Button.RIGHT)
-            .perform();
+        const context = await driver.findElement(By.xpath("//a[@aria-label='Views and More Actions...']"));
+        await context.click();
 
         const contextMenu = await driver.wait(until.elementLocated(By.css(".context-view.monaco-menu-container")),
             3000, "Could not find the context menu");
@@ -827,6 +754,20 @@ export class Common {
             }
         }, 3000, `${section} was not hidden/displayed`);
     };
+
+    public static checkCertificate = async (): Promise<void> => {
+
+        await driver.wait(async () => {
+            const text = await fs.readFile(mysqlshLog);
+            if (text.includes("Certificate is not installed")) {
+                throw new Error("Certificate is not installed");
+            } else if (
+                text.includes("Mode: Single user") ||
+                text.includes("Certificate is installed")
+            ) {
+                return true;
+            }
+        }, 15000, "Could not verify certificate installation");
+
+    };
 }
-
-

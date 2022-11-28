@@ -25,13 +25,12 @@ import {
     By,
     EditorView,
     until,
-    Button,
     Key as selKey,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Common, dbTreeSection, explicitWait, ociExplicitWait } from "../lib/common";
+import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait } from "./misc";
 
 export interface IDBConnection {
     caption: string;
@@ -51,7 +50,7 @@ export interface IDBConnection {
 export class Database {
 
     public static getExistingConnections = async (): Promise<string[]> => {
-        const sec = await Common.getSection(dbTreeSection);
+        const sec = await Misc.getSection(dbTreeSection);
         const els = await sec?.findElements(By.xpath(`//div[@role='treeitem']`));
         const connections = [];
         for (const el of els!) {
@@ -66,16 +65,16 @@ export class Database {
     };
 
     public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
-        const createConnBtn = await Common.getSectionToolbarButton(dbTreeSection, "Create New DB Connection");
+        const createConnBtn = await Misc.getSectionToolbarButton(dbTreeSection, "Create New DB Connection");
         await createConnBtn?.click();
 
         const editorView = new EditorView();
-        const editor = await editorView.openEditor("DB Connections");
-        expect(await editor.getTitle()).to.equals("DB Connections");
 
-        await driver.switchTo().frame(0);
-        await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-        await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
+        await driver.wait(async () => {
+            return (await editorView.getOpenEditorTitles()).includes("DB Connections");
+        }, explicitWait, "'DB Connections' editor was not opened");
+
+        await Misc.switchToWebView();
 
         const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
             10000, "Connection dialog was not loaded");
@@ -185,7 +184,7 @@ export class Database {
 
     public static deleteConnection = async (dbName: string): Promise<void> => {
 
-        await Common.selectContextMenuItem(dbTreeSection, dbName, "Delete DB Connection");
+        await Misc.selectContextMenuItem(dbTreeSection, dbName, "Delete DB Connection");
 
         const editorView = new EditorView();
         await driver.wait(async () => {
@@ -246,7 +245,7 @@ export class Database {
             By.id("shellEditorHost")), 15000, "Console was not loaded");
 
         const textArea = await contentHost.findElement(By.css("textarea"));
-        await Common.execCmd(textArea, "\\" + language.replace("my", ""));
+        await Misc.execCmd(textArea, "\\" + language.replace("my", ""));
         const result = await this.getOutput();
         switch (language) {
             case "sql": {
@@ -452,7 +451,7 @@ export class Database {
         if (curLang !== language) {
             const contentHost = await driver.findElement(By.id("contentHost"));
             const textArea = await contentHost.findElement(By.css("textarea"));
-            await Common.execCmd(textArea, "\\" + language.replace("my", ""));
+            await Misc.execCmd(textArea, "\\" + language.replace("my", ""));
             const results = await driver.findElements(By.css(".message.info"));
             switch (language) {
                 case "sql": {
@@ -521,8 +520,7 @@ export class Database {
     public static clickContextMenuItem = async (refEl: WebElement, item: string): Promise<void> => {
 
         await driver.wait(async () => {
-            await refEl.click();
-            await driver.actions().click(Button.RIGHT).perform();
+            await driver.actions().contextClick(refEl).perform();
 
             try {
                 const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
@@ -804,13 +802,16 @@ export class Database {
     public static collapseAllConnections = async (): Promise<void> => {
         const connections = await this.getExistingConnections();
         for (const conn of connections) {
-            await Common.toggleTreeElement(dbTreeSection, conn, false);
+            await Misc.toggleTreeElement(dbTreeSection, conn, false);
         }
     };
 
     public static reloadConnection = async (connName: string): Promise<void> => {
-        const context = await Common.getTreeElement(dbTreeSection, connName);
-        await driver.actions().mouseMove(context).perform();
+        const context = await Misc.getTreeElement(dbTreeSection, connName);
+        const contextX = (await context.getRect()).x;
+        const contextY = (await context.getRect()).y;
+
+        await driver.actions().move({x: contextX, y: contextY}).perform();
         const btns = await context.findElements(By.css(".actions a"));
         for (const btn of btns) {
             if ((await btn.getAttribute("aria-label")) === "Reload Database Information") {
