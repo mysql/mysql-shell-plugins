@@ -939,7 +939,7 @@ def create_db_system(**kwargs):
             be kept or deleted if an import took place
         source_mysql_uri (str): The MySQL Connection URI if data should
             be imported from an existing MySQL Server instance
-        source_mysql_password (str): The passwort to use when data
+        source_mysql_password (str): The password to use when data
             should be imported from an existing MySQL Server instance
         source_local_dump_dir (str): The path to a local directory that
             contains a dump
