@@ -27,6 +27,7 @@ call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/python/generated src
 
 echo "Fixing node module(s)..."
 call powershell.exe -command "(Get-Content node_modules/react-scripts/lib/react-app.d.ts).Replace('/// <reference types=\"react-dom\" />', '') | Set-Content node_modules/react-scripts/lib/react-app.d.ts"
+call powershell.exe -command "(Get-Content node_modules/@types/babel__traverse/index.d.ts).Replace('export type ArrayKeys<T> = keyof { [P in keyof T as T[P] extends any[] ? P : never]: P };', 'export type ArrayKeys<T> = { [P in keyof T]: T[P] extends any[] ? P : never }[keyof T];') | Set-Content node_modules/@types/babel__traverse/index.d.ts"
 
 SET NODE_OPTIONS=--max-old-space-size=8192
 SET GENERATE_SOURCEMAP=%1
