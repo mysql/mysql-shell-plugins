@@ -962,8 +962,8 @@ export interface IShellMrsStatusKwargs {
 }
 
 export interface IProtocolMrsParameters {
-    [ShellAPIMrs.MrsAddService]: { args: {urlContextRoot?: string; urlHostName?: string; enabled?: boolean}; kwargs?: IShellMrsAddServiceKwargs };
-    [ShellAPIMrs.MrsGetService]: { args: {urlContextRoot?: string; urlHostName?: string; serviceId?: number}; kwargs?: IShellMrsGetServiceKwargs };
+    [ShellAPIMrs.MrsAddService]: { args: { urlContextRoot?: string; urlHostName?: string; enabled?: boolean }; kwargs?: IShellMrsAddServiceKwargs };
+    [ShellAPIMrs.MrsGetService]: { args: { urlContextRoot?: string; urlHostName?: string; serviceId?: number }; kwargs?: IShellMrsGetServiceKwargs };
     [ShellAPIMrs.MrsListServices]: { kwargs?: IShellMrsListServicesKwargs };
     [ShellAPIMrs.MrsEnableService]: { kwargs?: IShellMrsEnableServiceKwargs };
     [ShellAPIMrs.MrsDisableService]: { kwargs?: IShellMrsDisableServiceKwargs };
@@ -988,30 +988,30 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsSetSchemaComments]: { kwargs?: IShellMrsSetSchemaCommentsKwargs };
     [ShellAPIMrs.MrsUpdateSchema]: { kwargs?: IShellMrsUpdateSchemaKwargs };
     [ShellAPIMrs.MrsAddContentSet]: { kwargs?: IShellMrsAddContentSetKwargs };
-    [ShellAPIMrs.MrsListContentSets]: { args: {serviceId?: number}; kwargs?: IShellMrsListContentSetsKwargs };
-    [ShellAPIMrs.MrsGetContentSet]: { args: {requestPath?: string}; kwargs?: IShellMrsGetContentSetKwargs };
+    [ShellAPIMrs.MrsListContentSets]: { args: { serviceId?: number }; kwargs?: IShellMrsListContentSetsKwargs };
+    [ShellAPIMrs.MrsGetContentSet]: { args: { requestPath?: string }; kwargs?: IShellMrsGetContentSetKwargs };
     [ShellAPIMrs.MrsEnableContentSet]: { kwargs?: IShellMrsEnableContentSetKwargs };
     [ShellAPIMrs.MrsDisableContentSet]: { kwargs?: IShellMrsDisableContentSetKwargs };
     [ShellAPIMrs.MrsDeleteContentSet]: { kwargs?: IShellMrsDeleteContentSetKwargs };
     [ShellAPIMrs.MrsAddDbObject]: { kwargs?: IShellMrsAddDbObjectKwargs };
-    [ShellAPIMrs.MrsGetDbObject]: { args: {requestPath?: string; dbObjectName?: string}; kwargs?: IShellMrsGetDbObjectKwargs };
-    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { args: {requestPath?: string; dbObjectName?: string}; kwargs?: IShellMrsGetDbObjectRowOwnershipFieldsKwargs };
-    [ShellAPIMrs.MrsGetDbObjectFields]: { args: {requestPath?: string; dbObjectName?: string}; kwargs?: IShellMrsGetDbObjectFieldsKwargs };
+    [ShellAPIMrs.MrsGetDbObject]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectKwargs };
+    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectRowOwnershipFieldsKwargs };
+    [ShellAPIMrs.MrsGetDbObjectFields]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectFieldsKwargs };
     [ShellAPIMrs.MrsListDbObjects]: { kwargs?: IShellMrsListDbObjectsKwargs };
-    [ShellAPIMrs.MrsGetDbObjectParameters]: { args: {requestPath?: string; dbObjectName?: string}; kwargs?: IShellMrsGetDbObjectParametersKwargs };
-    [ShellAPIMrs.MrsSetDbObjectRequestPath]: { args: {dbObjectId?: number; requestPath?: string}; kwargs?: IShellMrsSetDbObjectRequestPathKwargs };
-    [ShellAPIMrs.MrsSetDbObjectCrudOperations]: { args: {dbObjectId?: number; crudOperations?: unknown[]; crudOperationFormat?: string}; kwargs?: IShellMrsSetDbObjectCrudOperationsKwargs };
-    [ShellAPIMrs.MrsEnableDbObject]: { args: {dbObjectName?: string; schemaId?: number}; kwargs?: IShellMrsEnableDbObjectKwargs };
-    [ShellAPIMrs.MrsDisableDbObject]: { args: {dbObjectName?: string; schemaId?: number}; kwargs?: IShellMrsDisableDbObjectKwargs };
-    [ShellAPIMrs.MrsDeleteDbObject]: { args: {dbObjectName?: string; schemaId?: number}; kwargs?: IShellMrsDeleteDbObjectKwargs };
+    [ShellAPIMrs.MrsGetDbObjectParameters]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectParametersKwargs };
+    [ShellAPIMrs.MrsSetDbObjectRequestPath]: { args: { dbObjectId?: number; requestPath?: string }; kwargs?: IShellMrsSetDbObjectRequestPathKwargs };
+    [ShellAPIMrs.MrsSetDbObjectCrudOperations]: { args: { dbObjectId?: number; crudOperations?: unknown[]; crudOperationFormat?: string }; kwargs?: IShellMrsSetDbObjectCrudOperationsKwargs };
+    [ShellAPIMrs.MrsEnableDbObject]: { args: { dbObjectName?: string; schemaId?: number }; kwargs?: IShellMrsEnableDbObjectKwargs };
+    [ShellAPIMrs.MrsDisableDbObject]: { args: { dbObjectName?: string; schemaId?: number }; kwargs?: IShellMrsDisableDbObjectKwargs };
+    [ShellAPIMrs.MrsDeleteDbObject]: { args: { dbObjectName?: string; schemaId?: number }; kwargs?: IShellMrsDeleteDbObjectKwargs };
     [ShellAPIMrs.MrsUpdateDbObject]: { kwargs?: IShellMrsUpdateDbObjectKwargs };
     [ShellAPIMrs.MrsListContentFiles]: { kwargs?: IShellMrsListContentFilesKwargs };
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { kwargs?: IShellMrsGetAuthenticationVendorsKwargs };
     [ShellAPIMrs.MrsAddAuthenticationApp]: { kwargs?: IShellMrsAddAuthenticationAppKwargs };
-    [ShellAPIMrs.MrsListAuthenticationApps]: { args: {serviceId?: number}; kwargs?: IShellMrsListAuthenticationAppsKwargs };
+    [ShellAPIMrs.MrsListAuthenticationApps]: { args: { serviceId?: number }; kwargs?: IShellMrsListAuthenticationAppsKwargs };
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
-    [ShellAPIMrs.MrsLs]: { args: {path?: string; moduleSessionId?: string}; };
+    [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string }; };
     [ShellAPIMrs.MrsConfigure]: { kwargs?: IShellMrsConfigureKwargs };
     [ShellAPIMrs.MrsStatus]: { kwargs?: IShellMrsStatusKwargs };
 

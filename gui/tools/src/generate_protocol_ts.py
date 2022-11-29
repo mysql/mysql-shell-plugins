@@ -297,9 +297,16 @@ class ProtocolBuilder:
         output = []
 
         for key in bindings:
-            args = '\n'.join(
-                [f'    /** {arg[2]} */\n    {arg[0]}?: {arg[1]};' for arg in bindings[key]])
-            output.append(f'export interface {key} {{\n{args}\n}}')
+            args = []
+            for arg in bindings[key]:
+                arg_name = arg[0]
+                arg_type = arg[1]
+                arg_brief = arg[2]
+                arg_required = arg[3]
+                args.append(
+                    f"    /** {arg_brief} */\n    {arg_name}{'' if arg_required else '?'}: {arg_type}{' | null' if arg_required else ''};")
+            args = '\n'.join(args)
+            output.append(f"export interface {key} {{\n{args}\n}}")
 
         return "\n\n".join(output)
 
@@ -321,22 +328,22 @@ class ProtocolBuilder:
             name_parts = re.sub(
                 "([a-z])([A-Z])", r"\1 \2", func_name).split(" ")
             output += f"    [ShellAPI{name_parts[0]}.{func_name}]: "
-            line_args = "args: {"
+            line_args = "args: { "
             line_kwargs = ""
             contains_args = False
             contains_kwargs = False
             for argument in bindings[func_name]['args']:
                 if isinstance(bindings[func_name]['args'][argument], list):
-                    line_args += f"{argument}: {{"
+                    line_args += f"{argument}: {{ "
                     for option in bindings[func_name]['args'][argument]:
                         line_args += f"{option[0]}: {option[1]}; "
-                    line_args = line_args[:-2] + "}; "
+                    line_args = line_args[:-2] + " }; "
                 else:
                     param_type, required, _, default_none = bindings[func_name]['args'][argument]
                     line_args += f"{argument}{'?' if default_none or not required else ''}: {param_type}; "
                 contains_args = True
 
-            line_args = line_args[:-2] + "};"
+            line_args = line_args[:-2] + " };"
 
             for argument in bindings[func_name]['kwargs']:
                 line_kwargs += f"{bindings[func_name]['kwargs'][argument][0]}?: {bindings[func_name]['kwargs'][argument][1]}, "
@@ -427,6 +434,7 @@ class TypeScriptInterface:
                 option['name'], option['type'],  option['brief'])
             param_name = TypeScriptHelper.convert_name_to_ts(param_name)
             param_type = TypeScriptHelper.convert_python_type_to_ts(param_type)
+            required = option['required'] if 'required' in option else False
 
             if 'options' in option and len(option['options']) > 0:
                 param_type = f"{self._name}{option['name'].capitalize()}"
@@ -434,7 +442,8 @@ class TypeScriptInterface:
                     self._plugin_name, param_type, option['options'])
                 interface.add_bindings()
 
-            interface_params.append((param_name, param_type, param_brief))
+            interface_params.append(
+                (param_name, param_type, param_brief, required))
 
         parameter_types_bindings[self._plugin_name][self._name] = interface_params
 
@@ -591,7 +600,7 @@ class TypeScriptFunction:
         """Adds a kwargs parameter to the function."""
 
         default_none = param['default'] is None if 'default' in param else False
-        required = param['required'] == "True" if 'required' in param else True
+        required = param['required'] == "True" if 'required' in param else False
         param = TypeScriptKwargsParameter(
             self._plugin_name,
             self._ts_fully_qualified_name,

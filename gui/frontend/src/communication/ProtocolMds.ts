@@ -969,14 +969,14 @@ export interface IShellMdsDeleteBastionSessionKwargs {
 export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsGetRegions]: {};
     [ShellAPIMds.MdsListConfigProfiles]: { kwargs?: IShellMdsListConfigProfilesKwargs };
-    [ShellAPIMds.MdsSetDefaultConfigProfile]: { args: {profileName?: string; configFileLocation?: string; cliRcFileLocation?: string}; };
-    [ShellAPIMds.MdsGetDefaultConfigProfile]: { args: {cliRcFileLocation?: string}; };
+    [ShellAPIMds.MdsSetDefaultConfigProfile]: { args: { profileName?: string; configFileLocation?: string; cliRcFileLocation?: string }; };
+    [ShellAPIMds.MdsGetDefaultConfigProfile]: { args: { cliRcFileLocation?: string }; };
     [ShellAPIMds.MdsSetCurrentCompartment]: { kwargs?: IShellMdsSetCurrentCompartmentKwargs };
     [ShellAPIMds.MdsGetCurrentCompartmentId]: { kwargs?: IShellMdsGetCurrentCompartmentIdKwargs };
     [ShellAPIMds.MdsSetCurrentBastion]: { kwargs?: IShellMdsSetCurrentBastionKwargs };
     [ShellAPIMds.MdsGetAvailabilityDomain]: { kwargs?: IShellMdsGetAvailabilityDomainKwargs };
     [ShellAPIMds.MdsListCompartments]: { kwargs?: IShellMdsListCompartmentsKwargs };
-    [ShellAPIMds.MdsGetCompartment]: { args: {compartmentPath?: string}; kwargs?: IShellMdsGetCompartmentKwargs };
+    [ShellAPIMds.MdsGetCompartment]: { args: { compartmentPath?: string }; kwargs?: IShellMdsGetCompartmentKwargs };
     [ShellAPIMds.MdsListComputeInstances]: { kwargs?: IShellMdsListComputeInstancesKwargs };
     [ShellAPIMds.MdsGetComputeInstance]: { kwargs?: IShellMdsGetComputeInstanceKwargs };
     [ShellAPIMds.MdsListComputeShapes]: { kwargs?: IShellMdsListComputeShapesKwargs };
