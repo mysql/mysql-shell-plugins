@@ -29,5 +29,6 @@ antlr4ts -no-visitor -Xexact-output-dir -o ./src/parsing/python/generated src/pa
 
 echo "Fixing node module(s)..."
 sed -ibackup "s/^\/\/\/ <reference types=\"react-dom\" \/>/ /" node_modules/react-scripts/lib/react-app.d.ts
+sed -ibackup "s/^export type ArrayKeys<T> = keyof { \[P in keyof T as T\[P] extends any\[] ? P : never]: P };/export type ArrayKeys<T> = { [P in keyof T]: T[P] extends any[] ? P : never }[keyof T];/" node_modules/@types/babel__traverse/index.d.ts
 
 NODE_OPTIONS=--max-old-space-size=8192 GENERATE_SOURCEMAP=$1 react-app-rewired build
