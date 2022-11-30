@@ -35,6 +35,8 @@ import {
     Key as selKey,
     Locator,
     ITimeouts,
+    ActivityBar,
+    EditorView,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
@@ -60,35 +62,34 @@ export const ociExplicitWait = 10000;
 export const ociTasksExplicitWait = 50000;
 
 export const mysqlshLog = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "mysqlsh.log");
+export let isExtPrepared = false;
 
 export let driver: WebDriver;
 
 export class Misc {
 
-    public static loadDriver = async (): Promise<void> => {
+    public static prepareExtension = async (): Promise<void> => {
+        await Misc.loadDriver();
+        let activityBar = new ActivityBar();
+        await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
+        const openEditors = new EditorView();
 
-        let browser: VSBrowser;
-        const timeout: ITimeouts = { implicit: 0 };
+        await driver.wait(async () => {
+            return (await openEditors.getOpenEditorTitles()).includes("Welcome to MySQL Shell");
+        }, explicitWait, "Welcome tab was not displayed");
 
-        let counter = 0;
-        while (counter <= 10) {
-            try {
-                browser = VSBrowser.instance;
-                await browser.waitForWorkbench();
-                driver = browser.driver;
-                await driver.manage().setTimeouts(timeout);
+        await Misc.reloadVSCode();
 
-                return;
-            } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("target frame detached") === -1) {
-                        throw new Error(String(e.stack));
-                    }
-                    counter++;
-                }
-            }
-        }
+        await fs.truncate(mysqlshLog);
+        await new EditorView().closeAllEditors();
+        activityBar = new ActivityBar();
+        await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
 
+        await Misc.checkCertificate();
+
+        await Misc.hideSection(consolesTreeSection, false);
+
+        isExtPrepared = true;
     };
 
     public static getSection = async (name: string): Promise<WebElement | undefined> => {
@@ -254,11 +255,8 @@ export class Misc {
         try {
             await perform();
         } catch (e) {
-            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
-                await perform();
-            } else {
-                throw e;
-            }
+            // context menu can fail to be displayed
+            await perform();
         }
 
     };
@@ -768,6 +766,32 @@ export class Misc {
                 return true;
             }
         }, 15000, "Could not verify certificate installation");
+
+    };
+
+    private static loadDriver = async (): Promise<void> => {
+
+        let browser: VSBrowser;
+        const timeout: ITimeouts = { implicit: 0 };
+
+        let counter = 0;
+        while (counter <= 10) {
+            try {
+                browser = VSBrowser.instance;
+                await browser.waitForWorkbench();
+                driver = browser.driver;
+                await driver.manage().setTimeouts(timeout);
+
+                return;
+            } catch (e) {
+                if (e instanceof Error) {
+                    if (e.message.indexOf("target frame detached") === -1) {
+                        throw new Error(String(e.stack));
+                    }
+                    counter++;
+                }
+            }
+        }
 
     };
 }
