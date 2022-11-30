@@ -89,7 +89,7 @@ export class Container<
 
     public render(): React.ReactNode {
         const { children, style, orientation, mainAlignment, crossAlignment, data, wrap, innerRef } = this.mergedProps;
-        const className = this.getEffectiveClassNames(["container fixedScrollbar"]);
+        const className = this.getEffectiveClassNames(["container", "fixedScrollbar"]);
 
         // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
         const ElementType: any = this.renderAs();

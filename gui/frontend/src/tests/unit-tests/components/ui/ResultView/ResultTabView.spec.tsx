@@ -74,13 +74,11 @@ describe("Result Tabview Tests", (): void => {
                 resultSets={{
                     type: "resultSets",
                     sets: [{
-                        head: {
-                            sql: "select 1",
-                            requestId: "123",
-                        },
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "123",
+                        columns: [],
                         data: {
-                            requestId: "123",
-                            columns: [],
                             rows: [],
                             currentPage: 0,
                             executionInfo: {
@@ -89,13 +87,11 @@ describe("Result Tabview Tests", (): void => {
                             },
                         },
                     }, {
-                        head: {
-                            sql: "select 2",
-                            requestId: "456",
-                        },
+                        type: "resultSet",
+                        sql: "select 2",
+                        resultId: "456",
+                        columns: [],
                         data: {
-                            requestId: "456",
-                            columns: [],
                             rows: [],
                             currentPage: 10,
                         },
@@ -123,24 +119,20 @@ describe("Result Tabview Tests", (): void => {
                 resultSets={{
                     type: "resultSets",
                     sets: [{
-                        head: {
-                            sql: "select 1",
-                            requestId: "123",
-                        },
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "123",
+                        columns: [],
                         data: {
-                            requestId: "123",
-                            columns: [],
                             rows: [],
                             currentPage: 0,
                         },
                     }, {
-                        head: {
-                            sql: "select 2",
-                            requestId: "456",
-                        },
+                        type: "resultSet",
+                        sql: "select 2",
+                        resultId: "456",
+                        columns: [],
                         data: {
-                            requestId: "456",
-                            columns: [],
                             rows: [],
                             currentPage: 10,
                         },
@@ -162,41 +154,31 @@ describe("Result Tabview Tests", (): void => {
         });
         expect(found).toBeTruthy();
         expect(component.state().currentResultSet).toBeDefined();
-        expect(component.state().currentResultSet?.data.requestId).toBe("123");
+        expect(component.state().currentResultSet?.resultId).toBe("123");
 
         await component.instance().updateColumns("123", []);
 
         // Add data with and w/o execution info.
         await component.instance().addData({
             type: "resultSetRows",
-            requestId: "123",
-
             columns: [],
-            rows: [{
-
-            }],
-
+            rows: [],
             currentPage: 111,
-        });
+        }, "123");
 
         let status = component.find(ResultStatus);
         expect(status).toHaveLength(0);
 
         await component.instance().addData({
             type: "resultSetRows",
-            requestId: "123",
-
             columns: [],
-            rows: [{
-
-            }],
-
+            rows: [],
             currentPage: 111,
             executionInfo: {
                 text: "All fine",
                 type: MessageType.Response,
             },
-        });
+        }, "123");
         await nextProcessTick();
 
         // Data added via addData does not modify the original data. The owner has to take care to provide this data.
@@ -217,13 +199,11 @@ describe("Result Tabview Tests", (): void => {
                     },
                 ],
                 sets: [{
-                    head: {
-                        sql: "select 1",
-                        requestId: "123",
-                    },
+                    type: "resultSet",
+                    sql: "select 1",
+                    resultId: "123",
+                    columns: [],
                     data: {
-                        requestId: "123",
-                        columns: [],
                         rows: [],
                         currentPage: 111,
                         executionInfo: {
@@ -232,13 +212,11 @@ describe("Result Tabview Tests", (): void => {
                         },
                     },
                 }, {
-                    head: {
-                        sql: "select 2",
-                        requestId: "456",
-                    },
+                    type: "resultSet",
+                    sql: "select 2",
+                    resultId: "456",
+                    columns: [],
                     data: {
-                        requestId: "456",
-                        columns: [],
                         rows: [],
                         currentPage: 10,
                     },
@@ -265,12 +243,6 @@ describe("Result Tabview Tests", (): void => {
         expect(found).toBeTruthy();
         expect(component.state().currentResultSet).not.toBeDefined(); // No result set is selected anymore.
 
-        // Reassigning data only updates internal structures, so we cannot test anything here after the call.
-        component.instance().reassignData("123", "ABC");
-
-        // Same for this call.
-        component.instance().markPendingReplace("ABC");
-
         component.unmount();
     });
 
@@ -285,25 +257,21 @@ describe("Result Tabview Tests", (): void => {
                 },
             ],
             sets: [{
-                head: {
-                    sql: "select 1",
-                    requestId: "123",
-                },
+                type: "resultSet",
+                sql: "select 1",
+                resultId: "123",
+                columns: [],
                 data: {
-                    requestId: "123",
-                    columns: [],
                     rows: [],
                     currentPage: 0,
                     hasMoreRows: true,
                 },
             }, {
-                head: {
-                    sql: "select 2",
-                    requestId: "456",
-                },
+                type: "resultSet",
+                sql: "select 2",
+                resultId: "456",
+                columns: [],
                 data: {
-                    requestId: "456",
-                    columns: [],
                     rows: [],
                     currentPage: 1,
                     hasMoreRows: true,

@@ -100,7 +100,7 @@ export class ResultView extends Component<IResultViewProperties> {
                         ref={this.gridRef}
                         style={{ fontSize: "10pt" }}
                         options={options}
-                        columns={this.generateColumnDefinitions(resultSet.data.columns)}
+                        columns={this.generateColumnDefinitions(resultSet.columns)}
                         tableData={resultSet.data.rows}
                         onColumnResized={this.handleColumnResized}
                         onCellContext={this.handleCellContext}

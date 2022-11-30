@@ -50,8 +50,8 @@ Use the `frontend/` folder as the root folder in your VS Code project. It contai
 ## Recommended extensions
 
 - Jest
+- Code Spell Checker
 - ESLint
-- Debugger for Firefox
 
 There's already an ESLint configuration file in the `frontend/` folder, which should automatically be picked up by the ESLint extension.
 

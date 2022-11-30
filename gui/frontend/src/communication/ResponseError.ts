@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -8,12 +8,12 @@
  * This program is also distributed with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
- * documentation.  The authors of MySQL hereby grant you an additional
+ * documentation. The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
- * This program is distributed in the hope that it will be useful,  but
+ * separately licensed software that they have included with
+ * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
  * the GNU General Public License, version 2.0, for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -21,29 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg.tooltip {
-    position: absolute;
-    left: 0;
-    top: 0;
+import { IErrorResult } from "./ProtocolGui";
 
-    width: fit-content;
-    max-width: 800px;
-
-    height: fit-content;
-    max-height: 500px;
-
-    padding: 6px;
-
-    color: var(--tooltip-foreground);
-    border: 1px solid var(--tooltip-border);
-    background-color: var(--tooltip-background);
-    box-shadow: 2px 2px 6px 0 var(--widget-shadow);
-
-    overflow: auto;
-    pointer-events: none;
-    z-index: 20;
-}
-
-.msg.tooltip:not(.expand) {
-    font-size: 10pt;
+/** A specialized error for error responses from the backend. */
+export class ResponseError extends Error {
+    public constructor(public info: IErrorResult) {
+        super(info.requestState.msg);
+    }
 }

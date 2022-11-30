@@ -176,8 +176,6 @@ export class Misc {
             if (codeMenu.length > 0) {
                 await textArea.sendKeys(Key.ENTER);
             }
-        } else {
-            await textArea.sendKeys(Key.ENTER);
         }
 
         await Misc.pressEnter();

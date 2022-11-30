@@ -157,10 +157,10 @@ export interface IRequestTypeMap {
     "updateStatusbar": (items: IStatusbarInfo[]) => Promise<boolean>;
     "profileLoaded": SimpleCallback;
     "changeProfile": (id: string | number) => Promise<boolean>;
-    "statusBarButtonClick": (values: { type: string; event: React.SyntheticEvent }) => Promise<boolean>;
+    "statusBarButtonClick": (values: { type: string; event: React.SyntheticEvent; }) => Promise<boolean>;
     "editorInfoUpdated": (info: IEditorStatusInfo) => Promise<boolean>;
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
-    "openConnectionTab": (data: { details: IConnectionDetails; force: boolean }) => Promise<boolean>;
+    "openConnectionTab": (data: { details: IConnectionDetails; force: boolean; }) => Promise<boolean>;
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 
@@ -168,7 +168,7 @@ export interface IRequestTypeMap {
     "editorExecuteCurrent": (options: IEditorExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
     "editorFormat": SimpleCallback;
-    "editorRunCommand": (details: { command: string; context: IExecutionContext }) => Promise<boolean>;
+    "editorRunCommand": (details: { command: string; context: IExecutionContext; }) => Promise<boolean>;
     "editorToggleStopExecutionOnError": (active: boolean) => Promise<boolean>;
     "editorStopExecution": SimpleCallback;
     "editorToggleAutoCommit": SimpleCallback;
@@ -176,7 +176,7 @@ export interface IRequestTypeMap {
     "editorCommit": SimpleCallback;
     "editorRollback": SimpleCallback;
     "editorShowConnections": SimpleCallback;
-    "editorInsertUserScript": (data: { language: EditorLanguage; resourceId: number }) => Promise<boolean>;
+    "editorInsertUserScript": (data: { language: EditorLanguage; resourceId: number; }) => Promise<boolean>;
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
     "editorRunQuery": (details: IRunQueryRequest) => Promise<boolean>;
     "editorRunScript": (details: IScriptRequest) => Promise<boolean>;
@@ -184,9 +184,12 @@ export interface IRequestTypeMap {
     "editorSaveScript": (details: IScriptRequest) => Promise<boolean>;
     "editorRenameScript": (details: IScriptRequest) => Promise<boolean>;
     "editorValidationDone": (id: string) => Promise<boolean>;
-    "editorSelectStatement": (details: { contextId: string; statementIndex: number }) => Promise<boolean>;
+    "editorSelectStatement": (details: { contextId: string; statementIndex: number; }) => Promise<boolean>;
 
-    "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string }) => Promise<boolean>;
+    /** Triggered when an execution context changes its loading state (pending, loading, waiting, idle). */
+    "editorContextStateChanged": (id: string) => Promise<boolean>;
+
+    "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string; }) => Promise<boolean>;
     "sqlTransactionChanged": SimpleCallback;
     "sqlTransactionEnded": SimpleCallback;
 
@@ -198,7 +201,7 @@ export interface IRequestTypeMap {
     "removeSession": (session: IShellSessionDetails) => Promise<boolean>;
     "newSession": (session: IShellSessionDetails) => Promise<boolean>;
 
-    "addNewConnection": (details: { mdsData?: IMySQLDbSystem; profileName?: String }) => Promise<boolean>;
+    "addNewConnection": (details: { mdsData?: IMySQLDbSystem; profileName?: String; }) => Promise<boolean>;
     "removeConnection": (connectionId: number) => Promise<boolean>;
     "editConnection": (connectionId: number) => Promise<boolean>;
     "duplicateConnection": (connectionId: number) => Promise<boolean>;
@@ -207,27 +210,27 @@ export interface IRequestTypeMap {
     "explorerDoubleClick": (entry: ISchemaTreeEntry) => Promise<boolean>;
 
     "requestPassword": (request: IServicePasswordRequest) => Promise<boolean>;
-    "acceptPassword": (result: { request: IServicePasswordRequest; password: string }) => Promise<boolean>;
+    "acceptPassword": (result: { request: IServicePasswordRequest; password: string; }) => Promise<boolean>;
     "cancelPassword": (request: IServicePasswordRequest) => Promise<boolean>;
 
     "showAbout": SimpleCallback;
     "showThemeEditor": SimpleCallback;
     "showPreferences": SimpleCallback;
     "showModule": (module: string) => Promise<boolean>;
-    "showPage": (data: { module: string; page: string }) => Promise<boolean>;
+    "showPage": (data: { module: string; page: string; }) => Promise<boolean>;
     "showPageSection": (type: EntityType) => Promise<boolean>;
 
     "showDialog": (request: IDialogRequest) => Promise<boolean>;
     "dialogResponse": (response: IDialogResponse) => Promise<boolean>;
 
-    "settingsChanged": (entry?: { key: string; value: unknown }) => Promise<boolean>;
+    "settingsChanged": (entry?: { key: string; value: unknown; }) => Promise<boolean>;
     "updateShellPrompt": (values: IShellPromptValues) => Promise<boolean>;
 
     "refreshOciTree": SimpleCallback;
     "refreshConnections": (data?: IDictionary) => Promise<boolean>;
     "selectConnectionTab": (page: string) => Promise<boolean>;
 
-    "codeBlocksUpdate": (data: { linkId: number; code: string }) => Promise<boolean>;
+    "codeBlocksUpdate": (data: { linkId: number; code: string; }) => Promise<boolean>;
 
     "showError": (values: string[]) => Promise<boolean>;
 
@@ -238,16 +241,13 @@ export interface IRequestTypeMap {
 
     "dbFileDropped": (fileName: string) => Promise<boolean>;
 
-    "hostThemeChange": (data: { css: string; themeClass: string }) => Promise<boolean>;
+    "hostThemeChange": (data: { css: string; themeClass: string; }) => Promise<boolean>;
 
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IRequestListEntry<keyof IRequestTypeMap>>) => Promise<boolean>;
 
     /** Pass text around (e.g. for debugging). */
     "message": (message: string) => Promise<boolean>;
-
-    /** For unit tests only. */
-    "testButtonClick": SimpleCallback;
 
     "debugger": (data: IDebuggerData) => Promise<boolean>;
 }

@@ -99,6 +99,17 @@ export interface IEditorPersistentState {
 
 type WordWrapType = "off" | "on" | "wordWrapColumn" | "bounded";
 
+interface ICodeExecutionOptions {
+    /** If true then execute only the statement at the caret position. This is valid only for SQL like languages. */
+    atCaret?: boolean;
+
+    /** If true, move the caret to the next block.If there's no block, create a new one first. */
+    advance?: boolean;
+
+    /** Tells the executor to add a hint to SELECT statements to use the secondary engine(usually HeatWave). */
+    forceSecondaryEngine?: boolean;
+}
+
 interface ICodeEditorProperties extends IComponentProperties {
     state?: IEditorPersistentState;
     initialContent?: string;
@@ -205,6 +216,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             "onScriptExecution", "onHelpCommand", "onCursorChange", "onOptionsChanged", "createResultPresentation",
         );
 
+        // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(this.handleEditorResize);
         }
@@ -231,7 +243,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         Monaco.remeasureFonts();
 
         // Convert all color values to CSS hex form.
-        const entries: { [key: string]: string } = {};
+        const entries: { [key: string]: string; } = {};
         for (const [key, value] of Object.entries(values.colors || {})) {
             entries[key] = (new Color(value)).hexa();
         }
@@ -777,10 +789,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
      */
     public executeText(text: string): void {
         this.appendText(text);
-        this.executeCurrentContext(false, true, false);
+        this.executeCurrentContext({ advance: true });
     }
 
-    private handleSettingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (!entry) {
             this.forceUpdate();
         } else {
@@ -847,7 +859,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             precondition,
             run: () => {
-                this.executeCurrentContext(false, true, false);
+                this.executeCurrentContext({ advance: true });
             },
         });
 
@@ -857,7 +869,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             keybindings: [KeyMod.Shift | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             precondition,
-            run: () => { return this.executeCurrentContext(false, false, false); },
+            run: () => { return this.executeCurrentContext({}); },
         });
 
         editor.addAction({
@@ -866,7 +878,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             keybindings: [KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             precondition,
-            run: () => { return this.executeCurrentContext(true, false, false); },
+            run: () => { return this.executeCurrentContext({ atCaret: true }); },
         });
 
         if (blockBased) {
@@ -1102,7 +1114,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         }
     };
 
-    private handleSelectStatement = (details: { contextId: string; statementIndex: number }): Promise<boolean> => {
+    private handleSelectStatement = (details: { contextId: string; statementIndex: number; }): Promise<boolean> => {
         return new Promise((resolve) => {
 
             const model = this.model;
@@ -1177,13 +1189,9 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     /**
      * Executes the context where the caret is in.
      *
-     * @param atCaret If true then execute only the statement at the caret position. This is valid only for
-     *                SQL like languages.
-     * @param advance If true, move the caret to the next block. If there's no block, create a new one first.
-     * @param forceSecondaryEngine Tells the executor to add a hint to SELECT statements to use the secondary
-     *                             engine (usually HeatWave).
+     * @param options Options to control the execution.
      */
-    private executeCurrentContext(atCaret: boolean, advance: boolean, forceSecondaryEngine: boolean): void {
+    private executeCurrentContext(options: ICodeExecutionOptions): void {
         const editor = this.backend;
         const model = this.model;
         if (editor && model) {
@@ -1194,27 +1202,21 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                     if (this.handleInternalCommand(index) === "unhandled") {
                         const { onScriptExecution } = this.mergedProps;
 
-                        let position: IPosition | undefined = atCaret ? editor.getPosition() ?? undefined : undefined;
+                        let position = options.atCaret ? editor.getPosition() as IPosition ?? undefined : undefined;
                         if (position) {
                             position = block.toLocal(position);
                         }
 
-                        void onScriptExecution?.(block, { forceSecondaryEngine, source: position }).then((executed) => {
-                            editor.focus();
-                            if (executed) {
-                                if (advance) {
-                                    this.prepareNextExecutionBlock(index);
-                                } else {
-                                    editor.revealLine(block.endLine + 1, Monaco.ScrollType.Smooth);
-                                    if (block.endLine + 1 < model.getLineCount()) {
-                                        editor.revealLine(block.endLine + 1, Monaco.ScrollType.Smooth);
-                                    } else {
-                                        editor.setScrollPosition({ scrollTop: editor.getScrollHeight() },
-                                            Monaco.ScrollType.Smooth);
-                                    }
-                                }
-                            }
-                        });
+                        const executionOptions = {
+                            forceSecondaryEngine: options.forceSecondaryEngine,
+                            source: position,
+                        };
+                        void onScriptExecution?.(block, executionOptions);
+                        editor.focus();
+                        if (options.advance) {
+                            this.prepareNextExecutionBlock(index);
+                        }
+
                     }
                 }
             }
@@ -1307,7 +1309,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                     // Remove the result from the first block if there's more than one block in the update list.
                     // In this case the first result is in the selection range that has been removed.
                     if (contextsToUpdate.length > 0) {
-                        firsContext?.setResult();
+                        firsContext?.clearResult();
                     }
 
                     // Remove all but the first block.
@@ -1544,17 +1546,17 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                     const { onHelpCommand } = this.mergedProps;
                     const helpText = onHelpCommand?.(trimmed, block.language);
                     if (helpText) {
-                        block.setResult({
+                        void block.addResultData({
                             type: "text",
                             text: [{ type: MessageType.Info, content: helpText, language: "markdown" }],
-                        });
+                        }, { resultId: "0" });
 
                         this.prepareNextExecutionBlock(index);
                     } else {
-                        block.setResult({
+                        void block.addResultData({
                             type: "text",
                             text: [{ type: MessageType.Error, content: "No help available" }],
-                        });
+                        }, { resultId: "0" });
                     }
 
                     return "handled";
@@ -1572,10 +1574,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                         if (!terminalMode) {
                             const uiString = CodeEditor.sqlUiStringMap.get(sqlDialect) || "SQL";
 
-                            block.setResult({
+                            void block.addResultData({
                                 type: "text",
                                 executionInfo: { type: MessageType.Info, text: `Switched to ${uiString} mode` },
-                            });
+                            }, { resultId: "0" });
                         }
                         this.prepareNextExecutionBlock(index, sqlDialect as EditorLanguage);
 
@@ -1584,10 +1586,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
                     case "javascript": {
                         if (!terminalMode) {
-                            block.setResult({
+                            void block.addResultData({
                                 type: "text",
                                 executionInfo: { type: MessageType.Info, text: `Switched to JavaScript mode` },
-                            });
+                            }, { resultId: "0" });
                         }
                         this.prepareNextExecutionBlock(index, "javascript");
 
@@ -1596,10 +1598,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
                     case "typescript": {
                         if (!terminalMode) {
-                            block.setResult({
+                            void block.addResultData({
                                 type: "text",
                                 executionInfo: { type: MessageType.Info, text: `Switched to TypeScript mode` },
-                            });
+                            }, { resultId: "0" });
                         }
                         this.prepareNextExecutionBlock(index, "typescript");
 
@@ -1608,10 +1610,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
                     case "python": {
                         if (!terminalMode) {
-                            block.setResult({
+                            void block.addResultData({
                                 type: "text",
                                 executionInfo: { type: MessageType.Info, text: `Switched to Python mode` },
-                            });
+                            }, { resultId: "0" });
                         }
                         this.prepareNextExecutionBlock(index, "python");
 
@@ -1638,7 +1640,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
         const advance = (language === "msg") && options.startNewBlock;
-        this.executeCurrentContext(false, advance || terminalMode, options.forceSecondaryEngine);
+        this.executeCurrentContext(
+            { advance: advance || terminalMode, forceSecondaryEngine: options.forceSecondaryEngine });
         editor?.focus();
 
         return Promise.resolve(true);
@@ -1652,7 +1655,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
         const advance = (language === "msg") && options.startNewBlock;
-        this.executeCurrentContext(true, advance || terminalMode, options.forceSecondaryEngine);
+        this.executeCurrentContext(
+            { atCaret: true, advance: advance || terminalMode, forceSecondaryEngine: options.forceSecondaryEngine });
         editor?.focus();
 
         return Promise.resolve(true);

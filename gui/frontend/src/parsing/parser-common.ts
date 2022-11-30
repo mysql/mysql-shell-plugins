@@ -234,10 +234,9 @@ export enum StatementFinishState {
 
 export interface IStatementSpan {
     /**
-     * The delimiter used to find this statement, except for the DELIMITER statement, where this
-     * field contains the new delimiter.
+     * The delimiter with which this statement ended or undefined if no delimiter was found.
      */
-    delimiter: string;
+    delimiter?: string;
 
     /** Start and length of the entire statement, including leading whitespaces. */
     span: TextSpan;

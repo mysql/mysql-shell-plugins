@@ -53,7 +53,7 @@ export interface IExecutionContext {
 
 export interface ISqlPageRequest {
     context: IExecutionContext;
-    oldRequestId: string;
+    oldResultId: string;
     page: number;
     sql: string;
 }

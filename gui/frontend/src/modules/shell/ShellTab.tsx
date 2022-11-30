@@ -50,6 +50,12 @@ import {
     IShellColumnsMetaData, IShellDocumentData, IShellObjectResult, IShellPromptValues, IShellResultType, IShellRowData,
     IShellSimpleResult, IShellValueResult,
 } from "../../communication/";
+import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
+
+interface IResultTimer {
+    timer: SetIntervalAsyncTimer;
+    results: IExecutionResult[];
+}
 
 export interface IShellTabPersistentState extends IShellPromptValues {
     backend: ShellInterfaceShellSession;
@@ -103,6 +109,9 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     // This way we know if we need to implicitly send a language command when the user executes arbitrary execution
     // blocks (which can have different languages).
     private currentLanguage: EditorLanguage = "text";
+
+    // Timers to serialize asynchronously incoming results.
+    private resultTimers = new Map<string, IResultTimer>();
 
     public componentDidMount(): void {
         this.initialSetup();
@@ -203,19 +212,18 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         onQuit(id ?? "");
                     });
 
-                    return Promise.resolve(true);
+                    return true;
                 }
 
                 case "\\about": {
                     const isMac = navigator.userAgent.includes("Macintosh");
                     const content = ShellTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
-                    context?.setResult({
+                    await context?.addResultData({
                         type: "text",
-                        requestId: "",
                         text: [{ type: MessageType.Info, content, language: "ansi" }],
-                    });
+                    }, { resultId: "" });
 
-                    return Promise.resolve(true);
+                    return true;
                 }
 
                 case "\\js": {
@@ -261,7 +269,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
         await this.processCommand(command, context, options.params);
 
-        return Promise.resolve(true);
+        return true;
     };
 
     /**
@@ -273,6 +281,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
      */
     private async processCommand(command: string, context: ExecutionContext,
         params?: Array<[string, string]>): Promise<void> {
+        context.clearResult();
         if (!command.startsWith("\\") && context.isSQLLike) {
             const statements = (context as SQLExecutionContext).statements;
 
@@ -315,65 +324,16 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     private async doExecution(command: string, context: ExecutionContext, index: number,
         _params?: Array<[string, string]>): Promise<void> {
         const { savedState } = this.props;
-        const columns: IColumnInfo[] = [];
 
         savedState.lastCommand = command;
 
         try {
-            const requestId = uuid();
-
             const { id = "" } = this.props;
 
-            const addResultData = (data: IExecutionResult): void => {
-                void context.addResultData(data).then((added) => {
-                    if (added) {
-                        context.updateResultDisplay();
-                    }
-                });
-            };
+            let columns: IColumnInfo[] = [];
+            let resultId = uuid();
 
-            if (index < 0) {
-                // For anything but SQL.
-                context.setResult();
-            } else if (index === 0) {
-                // For the first SQL result.
-                context.setResult({
-                    type: "resultSets",
-                    sets: [{
-                        index,
-                        head: {
-                            requestId,
-                            sql: "",
-                        },
-                        data: {
-                            requestId,
-                            rows: [],
-                            columns: [],
-                            currentPage: 0,
-                        },
-                    }],
-                });
-            } else {
-                // For any further SQL result from the same execution context.
-                context.addResultPage({
-                    type: "resultSets",
-                    sets: [{
-                        index,
-                        head: {
-                            requestId,
-                            sql: "",
-                        },
-                        data: {
-                            requestId,
-                            rows: [],
-                            columns: [],
-                            currentPage: 0,
-                        },
-                    }],
-                });
-            }
-
-            const finalResult = await savedState.backend.execute(command, requestId, (data) => {
+            const finalResult = await savedState.backend.execute(command, undefined, (data, requestId) => {
                 if (!data.result) {
                     return;
                 }
@@ -414,14 +374,14 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             });
                         });
 
-                        addResultData({
+                        this.addTimedResult(context, {
                             type: "text",
                             text,
                             executionInfo: status,
-                        });
+                        }, resultId);
                     } else {
                         // No data was returned. Use the info field for the status message then.
-                        addResultData({
+                        this.addTimedResult(context, {
                             type: "text",
                             text: [{
                                 type: MessageType.Info,
@@ -430,7 +390,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 language: "ansi",
                             }],
                             executionInfo: { text: "" },
-                        });
+                        }, resultId);
                     }
                 } else if (this.isShellShellColumnsMetaData(result)) {
                     const rawColumns = Object.values(result).map((value) => {
@@ -455,9 +415,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         if (result.hasData) {
                             const content = JSON.stringify(result.rows, undefined, "\t") + "\n";
 
-                            addResultData({
+                            this.addTimedResult(context, {
                                 type: "text",
-                                requestId,
                                 text: [{
                                     type: MessageType.Info,
                                     index,
@@ -465,13 +424,12 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     language: "json",
                                 }],
                                 executionInfo: { type: MessageType.Response, text: info },
-                            });
+                            }, resultId);
                         } else {
-                            addResultData({
+                            this.addTimedResult(context, {
                                 type: "text",
-                                requestId,
                                 executionInfo: { type: MessageType.Info, text: info },
-                            });
+                            }, resultId);
                         }
                     } else {
                         const rowString = result.rows.length === 1 ? "row" : "rows";
@@ -495,50 +453,29 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
                         void ApplicationDB.db.add("shellModuleResultData", {
                             tabId: id,
-                            requestId,
+                            resultId,
                             rows,
                             columns,
                             executionInfo: status,
                             index,
                         });
 
-                        if (index === -1) {
-                            // An index of -1 indicates that we are handling non-SQL mode results and have not
-                            // set an initial result record in the execution context. Have to do that now.
-                            index = -2;
-                            context.setResult({
-                                type: "resultSets",
-                                sets: [{
-                                    index,
-                                    head: {
-                                        requestId,
-                                        sql: "",
-                                    },
-                                    data: {
-                                        requestId,
-                                        rows,
-                                        columns,
-                                        currentPage: 0,
-                                        executionInfo: status,
-                                    },
-                                }],
-                            });
-                        } else {
-                            addResultData({
-                                type: "resultSetRows",
-                                requestId,
-                                rows,
-                                columns,
-                                currentPage: 0,
-                                executionInfo: status,
-                            });
-                        }
+                        this.addTimedResult(context, {
+                            type: "resultSetRows",
+                            rows,
+                            columns,
+                            currentPage: 0,
+                            executionInfo: status,
+                        }, resultId);
                     }
+
+                    // We got the final data. Start a new result.
+                    resultId = uuid();
+                    columns = [];
                 } else if (this.isShellShellData(result)) {
                     // Unspecified shell data (no documents, no rows). Just print the info as status, for now.
-                    addResultData({
+                    this.addTimedResult(context, {
                         type: "text",
-                        requestId,
                         text: [{
                             type: MessageType.Info,
                             index,
@@ -546,7 +483,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             language: "ansi",
                         }],
                         executionInfo: { text: "" },
-                    });
+                    }, resultId);
                 } else if (this.isShellObjectListResult(result)) {
                     let text = "[\n";
                     result.forEach((value) => {
@@ -557,23 +494,21 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         text += ">\n";
                     });
                     text += "]";
-                    addResultData({
+                    this.addTimedResult(context, {
                         type: "text",
-                        requestId,
                         text: [{
                             type: MessageType.Info,
                             index,
                             content: text,
                             language: "xml",
                         }],
-                    });
+                    }, resultId);
                 } else if (this.isShellSimpleResult(result)) {
                     if (result.error) {
                         // Errors can be a string or an object with a string.
                         const text = typeof result.error === "string" ? result.error : result.error.message;
-                        addResultData({
+                        this.addTimedResult(context, {
                             type: "text",
-                            requestId,
                             text: [{
                                 type: MessageType.Error,
                                 index,
@@ -581,12 +516,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 language: "ansi",
                             }],
                             executionInfo: { type: MessageType.Error, text: "" },
-                        });
+                        }, resultId);
                     } else if (result.warning) {
                         // Errors can be a string or an object with a string.
-                        addResultData({
+                        this.addTimedResult(context, {
                             type: "text",
-                            requestId,
                             text: [{
                                 type: MessageType.Info,
                                 index,
@@ -594,7 +528,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 language: "ansi",
                             }],
                             executionInfo: { type: MessageType.Warning, text: "" },
-                        });
+                        }, resultId);
                     } else {
                         // See if a new session is going to be established. That's our sign to
                         // remove a previously stored password.
@@ -603,9 +537,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         }
 
                         const content = (result.info ?? result.note ?? result.status)!;
-                        addResultData({
+                        this.addTimedResult(context, {
                             type: "text",
-                            requestId,
                             text: [{
                                 type: MessageType.Info,
                                 index,
@@ -613,19 +546,22 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 language: "ansi",
                             }],
                             executionInfo: { type: MessageType.Interactive, text: "" },
-                        });
+                        }, resultId);
                     }
+
+                    // We got a full result. Start a new one.
+                    resultId = uuid();
+                    columns = [];
                 } else if (this.isShellValueResult(result)) {
-                    addResultData({
+                    this.addTimedResult(context, {
                         type: "text",
-                        requestId,
                         text: [{
                             type: MessageType.Info,
                             index,
                             content: String(result.value),
                             language: "ansi",
                         }],
-                    });
+                    }, resultId);
                 } else {
                     // Temporarily listen to password requests, to be able to record any new password for this
                     // session.
@@ -640,16 +576,15 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 text += ":" + result.name;
                             }
                             text += ">";
-                            addResultData({
+                            this.addTimedResult(context, {
                                 type: "text",
-                                requestId,
                                 text: [{
                                     type: MessageType.Info,
                                     index,
                                     content: text,
                                     language: "xml",
                                 }],
-                            });
+                            }, resultId);
                         } else {
                             // If no specialized result then print as is.
                             const executionInfo: IExecutionInfo = {
@@ -663,11 +598,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 language: "json" as ResultTextLanguage,
                             }];
 
-                            addResultData({
+                            this.addTimedResult(context, {
                                 type: "text",
                                 text,
                                 executionInfo,
-                            });
+                            }, resultId);
                         }
                     }
                 }
@@ -738,6 +673,44 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             void requisitions.execute("showError", ["Shell Execution Error", String(reason)]);
 
             throw reason;
+        }
+    }
+
+    /**
+     * Adds the given data to the result timer for the specified request ID. If no timer exists yet, one is created.
+     * The timer, whenever it triggers, sends the next result to the target context.
+     *
+     * @param context The context to send the result data to.
+     * @param data The data to send.
+     * @param resultId The unique identification of the result. Per execution request there can be multiple blocks
+     *                 of data (chunking, but single result ID) or multiple results (multiple result IDs).
+     */
+    private addTimedResult(context: ExecutionContext, data: IExecutionResult, resultId: string): void {
+        const resultTimer = this.resultTimers.get(resultId);
+        if (!resultTimer) {
+            // Create the timer, if it doesn't exist.
+            const newTimer: IResultTimer = {
+                timer: setIntervalAsync(async (id: string) => {
+                    const resultTimer = this.resultTimers.get(id);
+                    if (resultTimer) {
+                        const pendingResult = resultTimer.results.shift();
+                        if (pendingResult) {
+                            await context.addResultData(pendingResult, { resultId: id });
+                        } else {
+                            // No results left. Stop the timer.
+                            void clearIntervalAsync(resultTimer.timer).then(() => {
+                                this.resultTimers.delete(id);
+                            });
+                        }
+                    }
+                }, 20, resultId),
+
+                results: [data],
+            };
+
+            this.resultTimers.set(resultId, newTimer);
+        } else {
+            resultTimer.results.push(data);
         }
     }
 
@@ -819,7 +792,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         }
     };
 
-    private acceptPassword = (data: { request: IServicePasswordRequest; password: string }): Promise<boolean> => {
+    private acceptPassword = (data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
         // This password notification is a one-shot event, used only for handling password shell requests.
         requisitions.unregister("acceptPassword", this.acceptPassword);
 

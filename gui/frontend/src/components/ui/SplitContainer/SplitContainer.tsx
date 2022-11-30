@@ -109,6 +109,7 @@ export class SplitContainer extends Component<ISplitContainerProperties> {
         // Initial pane layout.
         this.updatePaneData();
 
+        // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(this.handleTargetResize);
         }

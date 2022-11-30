@@ -29,6 +29,7 @@ import { default as NodeWebSocket } from "ws";
 
 import {
     EventType, IGenericResponse, IWebSessionData, multiResultAPIs, Protocol, ShellAPIGui, ShellAPIMds, ShellAPIMrs,
+    ResponseError, IErrorResult,
 } from ".";
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import { webSession } from "../supplement/WebSession";
@@ -36,6 +37,7 @@ import { convertCamelToSnakeCase, convertSnakeToCamelCase, uuid } from "../utili
 
 import { IProtocolParameters } from "./ProtocolParameterMapper";
 import { IProtocolResults } from "./ProtocolResultMapper";
+import { IDictionary } from "../app-logic/Types";
 
 export enum ConnectionEventType {
     Open = 1,
@@ -51,14 +53,18 @@ export type ResponseType<K extends keyof IProtocolResults> = K extends typeof mu
 /** The type of the promise returned when sending a backend request. */
 export type ResponsePromise<K extends keyof IProtocolResults> = Promise<ResponseType<K>>;
 
-export type DataCallback<K extends keyof IProtocolResults> =
-    (data: IProtocolResults[K], requestId: string) => void;
+/**
+ * A callback for intermittent results during a request/response process.
+ *
+ * @param requestId The ID for the request either generated implicitly or specified in the sendRequest call.
+ * @param data The data given by the current (intermediate) data response.
+ */
+export type DataCallback<K extends keyof IProtocolResults> = (data: IProtocolResults[K], requestId: string) => void;
 
 /** Parameters for sending requests to the backend. */
 export interface ISendRequestParameters<K extends keyof IProtocolParameters> {
     /**
-     * If set, this request ID is used instead of an auto generated one. It's mandatory for the requisition distribution
-     * method because otherwise the consumer doesn't know for which request the requisition came in.
+     * If set, this request ID is used instead of an auto generated one.
      */
     requestId?: string;
 
@@ -72,9 +78,6 @@ export interface ISendRequestParameters<K extends keyof IProtocolParameters> {
      * When specified this callback is used for data responses, instead of collecting and returning them in the
      * promise. In this case the promise only returns the last sent response data (if any).
      * Do not assign a function for this if you expect only a single response.
-     *
-     * @param requestId The ID for the request either generated implicitly or specified in the sendRequest call.
-     * @param data The data given by the current (intermediate) data response.
      */
     onData?: DataCallback<K>;
 }
@@ -93,7 +96,7 @@ interface IOngoingRequest<K extends keyof IProtocolResults> {
     onData?: DataCallback<K>;
 }
 
-type IErrorInfo = IGenericResponse & { result: { info: string } };
+type IErrorInfo = IGenericResponse & { result: { info: string; }; };
 type APIListType = Protocol | ShellAPIGui | ShellAPIMds | ShellAPIMrs | "native";
 
 /** Wrapper around a web socket that performs (re)connection and message scheduling. */
@@ -111,7 +114,7 @@ export class MessageScheduler {
     private reconnectTimer: ReturnType<typeof setTimeout> | null;
 
     private socket?: WebSocket | NodeWebSocket;
-    private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResults }>();
+    private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResults; }>();
 
     public static get get(): MessageScheduler {
         if (!MessageScheduler.instance) {
@@ -210,6 +213,7 @@ export class MessageScheduler {
                 this.disconnecting = true;
                 this.socket.close(); // Careful when specifying a code here. It must be valid or the socket will hang.
                 delete this.socket;
+                this.socket = undefined;
             } catch (e) {
                 /* istanbul ignore next */
                 console.error("Internal error while closing websocket: " + String(e));
@@ -267,7 +271,7 @@ export class MessageScheduler {
     /**
      * First entry point for messages sent from the backend. The message is parsed and converted to camel case keys.
      * Depending on the response event type the result of this conversion is then returned in the associated promise
-     * or scheduled in the application via requisition execution.
+     * or scheduled via the given callback.
      *
      * @param event The event containing the data sent by the backend.
      */
@@ -333,7 +337,15 @@ export class MessageScheduler {
 
                         case EventType.ErrorResponse: {
                             this.ongoingRequests.delete(response.requestId);
-                            ongoing.reject(response.requestState.msg);
+
+                            // There are differences in how error responses are structured. Sometimes they have a
+                            // nested requestState field.
+                            const result = (data as IDictionary).result as object;
+                            if (result && "requestState" in result) {
+                                ongoing.reject(new ResponseError(result as IErrorResult));
+                            } else {
+                                ongoing.reject(new ResponseError(data as IErrorResult));
+                            }
 
                             break;
                         }

@@ -163,7 +163,7 @@ export class WebviewProvider {
                 this.url.searchParams.set("app", "vscode");
 
                 // Define the URL for the test image used to check if the mysql shell server can be reached.
-                const testImgUrl = new URL(this.url);
+                const testImgUrl = new URL(this.url.toString());
                 testImgUrl.pathname = "/images/no-image.svg";
 
                 // Get the user setting for showing the Unsecure Connection warning panel
@@ -423,7 +423,7 @@ export class WebviewProvider {
         return requisitions.execute("dialogResponse", response);
     };
 
-    private updateVscodeSettings = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private updateVscodeSettings = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         return new Promise((resolve) => {
             if (entry) {
                 const parts = entry.key.split(".");

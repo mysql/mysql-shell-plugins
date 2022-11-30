@@ -25,12 +25,14 @@ import { ApplicationDB, StoreType } from "../../../app-logic/ApplicationDB";
 
 describe("ApplicationDB tests", () => {
 
-    it("Add + remove data by tab ID", async () => {
+    beforeAll(async () => {
         await ApplicationDB.loaded;
+    });
 
+    it("Add + remove data by tab ID", async () => {
         await ApplicationDB.db.put(StoreType.DbEditor, {
             tabId: "1",
-            requestId: "123",
+            resultId: "123",
             rows: [],
             sql: "",
             currentPage: 1,
@@ -55,7 +57,7 @@ describe("ApplicationDB tests", () => {
 
         await ApplicationDB.db.put(StoreType.DbEditor, {
             tabId: "2",
-            requestId: "456",
+            resultId: "456",
             index: 888,
             rows: [],
             sql: "",
@@ -69,17 +71,17 @@ describe("ApplicationDB tests", () => {
         expect(data.length).toBe(1);
         expect(data[0].index).toBe(888);
 
-        await ApplicationDB.removeDataByRequestIds(StoreType.DbEditor, ["0", "1000"]);
+        await ApplicationDB.removeDataByResultIds(StoreType.DbEditor, ["0", "1000"]);
         data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
         expect(data.length).toBe(1);
         data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
         expect(data.length).toBe(1);
 
-        await ApplicationDB.removeDataByRequestIds(StoreType.DbEditor, ["456", "1000"]);
+        await ApplicationDB.removeDataByResultIds(StoreType.DbEditor, ["456", "1000"]);
         data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
         expect(data.length).toBe(0);
 
-        await ApplicationDB.removeDataByRequestIds(StoreType.DbEditor, []);
+        await ApplicationDB.removeDataByResultIds(StoreType.DbEditor, []);
         data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
         expect(data.length).toBe(0);
     });
@@ -87,7 +89,7 @@ describe("ApplicationDB tests", () => {
     it("Upgrade the DB", async () => {
         await ApplicationDB.db.put(StoreType.DbEditor, {
             tabId: "2",
-            requestId: "456",
+            resultId: "456",
             rows: [],
             sql: "",
             currentPage: 1,
@@ -96,7 +98,7 @@ describe("ApplicationDB tests", () => {
 
         await ApplicationDB.db.put(StoreType.DbEditor, {
             tabId: "3",
-            requestId: "456",
+            resultId: "456",
             index: 99,
             rows: [],
             sql: "",

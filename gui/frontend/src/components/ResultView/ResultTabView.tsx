@@ -51,7 +51,7 @@ export interface IResultTabViewProperties extends IComponentProperties {
     currentSet?: number;
     resultPaneMaximized?: boolean;
 
-    onResultPageChange?: (requestId: string, currentPage: number, sql: string) => void;
+    onResultPageChange?: (resultId: string, currentPage: number, sql: string) => void;
     onSetResultPaneViewState?: (maximized: boolean) => void;
     onSelectTab?: (index: number) => void;
 }
@@ -71,13 +71,10 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
 
     private actionMenuRef = React.createRef<Menu>();
 
-    // A set of request IDs for tabs with edited data.
+    // A set of result IDs for tabs with edited data.
     private edited = new Set<string>();
 
-    // A set of request IDs that are marked for purge.
-    private purgePending = new Set<string>();
-
-    // React refs to the used ResultView instances, keyed by the request ID for the result set.
+    // React refs to the used ResultView instances, keyed by the result ID for the result set.
     private viewRefs = new Map<string, React.RefObject<ResultView>>();
 
     public constructor(props: IResultTabViewProperties) {
@@ -172,10 +169,10 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
 
         resultSets.sets.forEach((resultSet: IResultSet, index) => {
             const ref = React.createRef<ResultView>();
-            this.viewRefs.set(resultSet.head.requestId, ref);
+            this.viewRefs.set(resultSet.resultId, ref);
 
             pages.push({
-                id: resultSet.head.requestId,
+                id: resultSet.resultId,
                 caption: `Result #${(resultSet.index ?? index) + 1}`,
                 content: (
                     <ResultView
@@ -196,7 +193,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
             executionInfo = currentResultSet.data.executionInfo;
             currentPage = currentResultSet.data.currentPage;
             hasMorePages = currentResultSet.data.hasMoreRows ?? false;
-            dirty = this.edited.has(currentResultSet.head.requestId);
+            dirty = this.edited.has(currentResultSet.resultId);
         }
 
         const gotError = executionInfo && executionInfo.type === MessageType.Error;
@@ -211,7 +208,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                     className="resultTabview"
                     stretchTabs={false}
                     hideSingleTab={true}
-                    selectedId={currentResultSet ? currentResultSet.head.requestId : "output"}
+                    selectedId={currentResultSet?.resultId ?? "output"}
                     tabPosition={TabPosition.Top}
                     pages={pages}
 
@@ -320,11 +317,11 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     /**
      * Triggers a column update in the group which belongs to the given request id.
      *
-     * @param requestId The actual request ID which identifies a specific result group.
+     * @param resultId The actual request ID which identifies a specific result group.
      * @param columns The columns to set.
      */
-    public async updateColumns(requestId: string, columns: IColumnInfo[]): Promise<void> {
-        const viewRef = this.viewRefs.get(requestId);
+    public async updateColumns(resultId: string, columns: IColumnInfo[]): Promise<void> {
+        const viewRef = this.viewRefs.get(resultId);
 
         /* istanbul ignore next */
         if (viewRef && viewRef.current) {
@@ -337,16 +334,17 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
      * to add new data.
      *
      * @param newData The data to add.
+     * @param resultId The ID of the request for which the incoming data is destined to.
+     * @param replace If true, the new data will actually replace the current content.
      *
      * @returns A promise the resolves when the operation is complete.
      */
-    public async addData(newData: IResultSetRows): Promise<void> {
-        const needPurge = this.purgePending.delete(newData.requestId);
-        const viewRef = this.viewRefs.get(newData.requestId);
+    public async addData(newData: IResultSetRows, resultId: string, replace = false): Promise<void> {
+        const viewRef = this.viewRefs.get(resultId);
 
         /* istanbul ignore next */
         if (viewRef && viewRef.current) {
-            await viewRef.current.addData(newData, needPurge);
+            await viewRef.current.addData(newData, replace);
         }
 
         // The target view also updates itself when the final set comes in, but we need to update here too,
@@ -354,30 +352,6 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         if (newData.executionInfo) {
             this.forceUpdate();
         }
-    }
-
-    /**
-     * Moves existing data for the old request ID to a new ID and sends the underlying view a call to
-     * note that next incoming data has to replace existing data.
-     * We don't remove existing data here, to avoid flickering.
-     *
-     * @param oldRequestId The ID under which an existing group is registered.
-     * @param newRequestId The ID under which this group is accessible after return.
-     */
-    public reassignData(oldRequestId: string, newRequestId: string): void {
-        const viewRef = this.viewRefs.get(oldRequestId);
-
-        /* istanbul ignore next */
-        if (viewRef && viewRef.current) {
-            this.viewRefs.delete(oldRequestId);
-            this.viewRefs.set(newRequestId, viewRef);
-
-            this.purgePending.add(newRequestId);
-        }
-    }
-
-    public markPendingReplace(requestId: string): void {
-        this.purgePending.add(requestId);
     }
 
     private handleTabSelection = (id: string): void => {
@@ -388,7 +362,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
             const { resultSets } = this.props;
 
             const currentResultSet = resultSets.sets.find((candidate, index) => {
-                if (candidate.head.requestId === id) {
+                if (candidate.resultId === id) {
                     currentIndex = index + 1; // Account for the output page.
 
                     return true;
@@ -440,8 +414,8 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                 const { onResultPageChange } = this.props;
 
                 --currentResultSet.data.currentPage;
-                onResultPageChange?.(currentResultSet.head.requestId, currentResultSet.data.currentPage,
-                    currentResultSet.head.sql);
+                onResultPageChange?.(currentResultSet.resultId, currentResultSet.data.currentPage,
+                    currentResultSet.sql);
             }
         }
     };
@@ -455,8 +429,8 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                 const { onResultPageChange } = this.props;
 
                 ++currentResultSet.data.currentPage;
-                onResultPageChange?.(currentResultSet.head.requestId, currentResultSet.data.currentPage,
-                    currentResultSet.head.sql);
+                onResultPageChange?.(currentResultSet.resultId, currentResultSet.data.currentPage,
+                    currentResultSet.sql);
             }
         }
     };
@@ -474,6 +448,6 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     // TODO: enable coverage collection here, once editing is available.
     /* istanbul ignore next  */
     private handleEdit = (resultSet: IResultSet): void => {
-        this.edited.add(resultSet.head.requestId);
+        this.edited.add(resultSet.resultId);
     };
 }

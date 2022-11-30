@@ -31,7 +31,7 @@ import {
     ConnectionMySQLTreeItem,
     ConnectionsTreeBaseItem,
     ConnectionsTreeDataProvider, ConnectionTreeItem, SchemaEventTreeItem, SchemaMySQLTreeItem,
-    SchemaRoutineTreeItem, SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem,
+    SchemaRoutineTreeItem, SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, IConnectionEntry,
 } from "./tree-providers/ConnectionsTreeProvider";
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
@@ -59,7 +59,7 @@ export class DBEditorCommandHandler {
     // For each open editor a list of open scripts is held (via a mapping of script IDs and their target URI).
     private openScripts = new Map<DBConnectionViewProvider, Map<string, Uri>>();
 
-    public constructor (private connectionsProvider: ConnectionsTreeDataProvider) {}
+    public constructor(private connectionsProvider: ConnectionsTreeDataProvider) { }
 
     public setup(context: ExtensionContext, host: ExtensionHost): void {
         this.codeBlocks.setup(context);
@@ -237,7 +237,7 @@ export class DBEditorCommandHandler {
                                     scriptId: uuid(),
                                     name,
                                     content,
-                                    language: "sql", // TODO: derive language from URI.
+                                    language: this.languageFromConnection(connection),
                                 };
 
                                 let scripts = this.openScripts.get(provider);
@@ -366,7 +366,7 @@ export class DBEditorCommandHandler {
                         return provider.runScript(connection.details.caption, String(connection.details.id), {
                             scriptId: uuid(),
                             content: sql,
-                            language: "sql",
+                            language: this.languageFromConnection(connection),
                         });
                     }
                 }
@@ -474,7 +474,7 @@ export class DBEditorCommandHandler {
                 if (uri) {
                     if (uri.scheme === "untitled") {
                         // The user has to select a target file.
-                        const filters: { [key: string]: string[] } = {};
+                        const filters: { [key: string]: string[]; } = {};
 
                         switch (details.language) {
                             case "mysql": {
@@ -556,5 +556,17 @@ export class DBEditorCommandHandler {
                     resolve(true);
                 });
         });
+    };
+
+    private languageFromConnection = (connection: IConnectionEntry): EditorLanguage => {
+        switch (connection.details.dbType) {
+            case DBType.MySQL: {
+                return "mysql";
+            }
+
+            default: {
+                return "sql";
+            }
+        }
     };
 }

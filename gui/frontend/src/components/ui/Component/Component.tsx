@@ -276,9 +276,7 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
         state: ((prevState: Readonly<S>, props: Readonly<P>) => (Pick<S, K> | S | null)) | (Pick<S, K> | S | null),
     ): Promise<void> {
         return new Promise((resolve) => {
-            super.setState(state, () => {
-                resolve();
-            });
+            super.setState(state, resolve);
         });
     }
 

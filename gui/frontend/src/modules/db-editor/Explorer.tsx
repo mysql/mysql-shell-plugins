@@ -499,7 +499,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleSchemaTreeContextMenuItemClick}
                 >
-                    <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
                         <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
@@ -1020,7 +1019,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     private handleAccordionItemClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
         const { onSelectItem } = this.props;
 
-        //let type = EntityType.
         if (props.id) {
             const itemProps = props as IAccordionItemProperties;
             onSelectItem?.(props.id, itemProps.payload?.type as EntityType);
@@ -1202,7 +1200,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
 
         const scriptTreeColumns: ColumnDefinition[] = [{
             title: "",
-            field: "name",
+            field: "caption",
             resizable: false,
             editable: (cell: CellComponent): boolean => {
                 // Allow editing only if the row of this cell is already selected.
@@ -1218,7 +1216,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }];
 
         const scriptTreeOptions: ITreeGridOptions = {
-            treeColumn: "name",
+            treeColumn: "caption",
             selectionType: SelectionType.Single,
             showHeader: false,
             layout: "fitColumns",

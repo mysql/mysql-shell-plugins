@@ -4,364 +4,362 @@ exports[`Result View Tests Render with Columns 1`] = `
 <ResultView
   resultSet={
     Object {
+      "columns": Array [
+        Object {
+          "dataType": Object {
+            "type": 5,
+          },
+          "field": "0",
+          "title": "col1",
+        },
+        Object {
+          "dataType": Object {
+            "type": 0,
+          },
+          "field": "1",
+          "title": "col2",
+        },
+        Object {
+          "dataType": Object {
+            "type": 1,
+          },
+          "field": "2",
+          "title": "col3",
+        },
+        Object {
+          "dataType": Object {
+            "type": 2,
+          },
+          "field": "3",
+          "title": "col4",
+        },
+        Object {
+          "dataType": Object {
+            "type": 3,
+          },
+          "field": "4",
+          "title": "col5",
+        },
+        Object {
+          "dataType": Object {
+            "type": 4,
+          },
+          "field": "5",
+          "title": "col6",
+        },
+        Object {
+          "dataType": Object {
+            "type": 5,
+          },
+          "field": "6",
+          "title": "col7",
+        },
+        Object {
+          "dataType": Object {
+            "type": 6,
+          },
+          "field": "7",
+          "title": "col8",
+        },
+        Object {
+          "dataType": Object {
+            "type": 7,
+          },
+          "field": "8",
+          "title": "col9",
+        },
+        Object {
+          "dataType": Object {
+            "type": 8,
+          },
+          "field": "9",
+          "title": "col10",
+        },
+        Object {
+          "dataType": Object {
+            "type": 9,
+          },
+          "field": "10",
+          "title": "col11",
+        },
+        Object {
+          "dataType": Object {
+            "type": 10,
+          },
+          "field": "11",
+          "title": "col12",
+        },
+        Object {
+          "dataType": Object {
+            "type": 11,
+          },
+          "field": "12",
+          "title": "col13",
+        },
+        Object {
+          "dataType": Object {
+            "type": 12,
+          },
+          "field": "13",
+          "title": "col14",
+        },
+        Object {
+          "dataType": Object {
+            "type": 13,
+          },
+          "field": "14",
+          "title": "col15",
+        },
+        Object {
+          "dataType": Object {
+            "type": 14,
+          },
+          "field": "15",
+          "title": "col16",
+        },
+        Object {
+          "dataType": Object {
+            "type": 15,
+          },
+          "field": "16",
+          "title": "col17",
+        },
+        Object {
+          "dataType": Object {
+            "type": 16,
+          },
+          "field": "17",
+          "title": "col18",
+        },
+        Object {
+          "dataType": Object {
+            "type": 17,
+          },
+          "field": "18",
+          "title": "col19",
+        },
+        Object {
+          "dataType": Object {
+            "type": 18,
+          },
+          "field": "19",
+          "title": "col20",
+        },
+        Object {
+          "dataType": Object {
+            "type": 19,
+          },
+          "field": "20",
+          "title": "col21",
+        },
+        Object {
+          "dataType": Object {
+            "type": 20,
+          },
+          "field": "21",
+          "title": "col22",
+        },
+        Object {
+          "dataType": Object {
+            "type": 21,
+          },
+          "field": "22",
+          "title": "col23",
+        },
+        Object {
+          "dataType": Object {
+            "type": 22,
+          },
+          "field": "23",
+          "title": "col24",
+        },
+        Object {
+          "dataType": Object {
+            "type": 23,
+          },
+          "field": "24",
+          "title": "col25",
+        },
+        Object {
+          "dataType": Object {
+            "type": 24,
+          },
+          "field": "25",
+          "title": "col26",
+        },
+        Object {
+          "dataType": Object {
+            "type": 25,
+          },
+          "field": "26",
+          "title": "col27",
+        },
+        Object {
+          "dataType": Object {
+            "type": 26,
+          },
+          "field": "27",
+          "title": "col28",
+        },
+        Object {
+          "dataType": Object {
+            "type": 27,
+          },
+          "field": "28",
+          "title": "col29",
+        },
+        Object {
+          "dataType": Object {
+            "type": 28,
+          },
+          "field": "29",
+          "title": "col30",
+        },
+        Object {
+          "dataType": Object {
+            "type": 29,
+          },
+          "field": "30",
+          "title": "col31",
+        },
+        Object {
+          "dataType": Object {
+            "type": 30,
+          },
+          "field": "31",
+          "title": "col32",
+        },
+        Object {
+          "dataType": Object {
+            "type": 31,
+          },
+          "field": "32",
+          "title": "col33",
+        },
+        Object {
+          "dataType": Object {
+            "type": 32,
+          },
+          "field": "33",
+          "title": "col34",
+        },
+        Object {
+          "dataType": Object {
+            "type": 33,
+          },
+          "field": "34",
+          "title": "col35",
+        },
+        Object {
+          "dataType": Object {
+            "type": 34,
+          },
+          "field": "35",
+          "title": "col36",
+        },
+        Object {
+          "dataType": Object {
+            "type": 35,
+          },
+          "field": "36",
+          "title": "col37",
+        },
+        Object {
+          "dataType": Object {
+            "type": 36,
+          },
+          "field": "37",
+          "title": "col38",
+        },
+        Object {
+          "dataType": Object {
+            "type": 37,
+          },
+          "field": "38",
+          "title": "col39",
+        },
+        Object {
+          "dataType": Object {
+            "type": 38,
+          },
+          "field": "39",
+          "title": "col40",
+        },
+        Object {
+          "dataType": Object {
+            "type": 39,
+          },
+          "field": "40",
+          "title": "col41",
+        },
+        Object {
+          "dataType": Object {
+            "type": 40,
+          },
+          "field": "41",
+          "title": "col42",
+        },
+        Object {
+          "dataType": Object {
+            "type": 41,
+          },
+          "field": "42",
+          "title": "col43",
+        },
+        Object {
+          "dataType": Object {
+            "type": 42,
+          },
+          "field": "43",
+          "title": "col44",
+        },
+        Object {
+          "dataType": Object {
+            "type": 43,
+          },
+          "field": "44",
+          "title": "col45",
+        },
+        Object {
+          "dataType": Object {
+            "type": 44,
+          },
+          "field": "45",
+          "title": "col46",
+        },
+        Object {
+          "dataType": Object {
+            "type": 45,
+          },
+          "field": "46",
+          "title": "col47",
+        },
+        Object {
+          "dataType": Object {
+            "type": 46,
+          },
+          "field": "47",
+          "title": "col48",
+        },
+        Object {
+          "dataType": Object {
+            "type": 47,
+          },
+          "field": "48",
+          "title": "col49",
+        },
+      ],
       "data": Object {
-        "columns": Array [
-          Object {
-            "dataType": Object {
-              "type": 5,
-            },
-            "field": "0",
-            "title": "col1",
-          },
-          Object {
-            "dataType": Object {
-              "type": 0,
-            },
-            "field": "1",
-            "title": "col2",
-          },
-          Object {
-            "dataType": Object {
-              "type": 1,
-            },
-            "field": "2",
-            "title": "col3",
-          },
-          Object {
-            "dataType": Object {
-              "type": 2,
-            },
-            "field": "3",
-            "title": "col4",
-          },
-          Object {
-            "dataType": Object {
-              "type": 3,
-            },
-            "field": "4",
-            "title": "col5",
-          },
-          Object {
-            "dataType": Object {
-              "type": 4,
-            },
-            "field": "5",
-            "title": "col6",
-          },
-          Object {
-            "dataType": Object {
-              "type": 5,
-            },
-            "field": "6",
-            "title": "col7",
-          },
-          Object {
-            "dataType": Object {
-              "type": 6,
-            },
-            "field": "7",
-            "title": "col8",
-          },
-          Object {
-            "dataType": Object {
-              "type": 7,
-            },
-            "field": "8",
-            "title": "col9",
-          },
-          Object {
-            "dataType": Object {
-              "type": 8,
-            },
-            "field": "9",
-            "title": "col10",
-          },
-          Object {
-            "dataType": Object {
-              "type": 9,
-            },
-            "field": "10",
-            "title": "col11",
-          },
-          Object {
-            "dataType": Object {
-              "type": 10,
-            },
-            "field": "11",
-            "title": "col12",
-          },
-          Object {
-            "dataType": Object {
-              "type": 11,
-            },
-            "field": "12",
-            "title": "col13",
-          },
-          Object {
-            "dataType": Object {
-              "type": 12,
-            },
-            "field": "13",
-            "title": "col14",
-          },
-          Object {
-            "dataType": Object {
-              "type": 13,
-            },
-            "field": "14",
-            "title": "col15",
-          },
-          Object {
-            "dataType": Object {
-              "type": 14,
-            },
-            "field": "15",
-            "title": "col16",
-          },
-          Object {
-            "dataType": Object {
-              "type": 15,
-            },
-            "field": "16",
-            "title": "col17",
-          },
-          Object {
-            "dataType": Object {
-              "type": 16,
-            },
-            "field": "17",
-            "title": "col18",
-          },
-          Object {
-            "dataType": Object {
-              "type": 17,
-            },
-            "field": "18",
-            "title": "col19",
-          },
-          Object {
-            "dataType": Object {
-              "type": 18,
-            },
-            "field": "19",
-            "title": "col20",
-          },
-          Object {
-            "dataType": Object {
-              "type": 19,
-            },
-            "field": "20",
-            "title": "col21",
-          },
-          Object {
-            "dataType": Object {
-              "type": 20,
-            },
-            "field": "21",
-            "title": "col22",
-          },
-          Object {
-            "dataType": Object {
-              "type": 21,
-            },
-            "field": "22",
-            "title": "col23",
-          },
-          Object {
-            "dataType": Object {
-              "type": 22,
-            },
-            "field": "23",
-            "title": "col24",
-          },
-          Object {
-            "dataType": Object {
-              "type": 23,
-            },
-            "field": "24",
-            "title": "col25",
-          },
-          Object {
-            "dataType": Object {
-              "type": 24,
-            },
-            "field": "25",
-            "title": "col26",
-          },
-          Object {
-            "dataType": Object {
-              "type": 25,
-            },
-            "field": "26",
-            "title": "col27",
-          },
-          Object {
-            "dataType": Object {
-              "type": 26,
-            },
-            "field": "27",
-            "title": "col28",
-          },
-          Object {
-            "dataType": Object {
-              "type": 27,
-            },
-            "field": "28",
-            "title": "col29",
-          },
-          Object {
-            "dataType": Object {
-              "type": 28,
-            },
-            "field": "29",
-            "title": "col30",
-          },
-          Object {
-            "dataType": Object {
-              "type": 29,
-            },
-            "field": "30",
-            "title": "col31",
-          },
-          Object {
-            "dataType": Object {
-              "type": 30,
-            },
-            "field": "31",
-            "title": "col32",
-          },
-          Object {
-            "dataType": Object {
-              "type": 31,
-            },
-            "field": "32",
-            "title": "col33",
-          },
-          Object {
-            "dataType": Object {
-              "type": 32,
-            },
-            "field": "33",
-            "title": "col34",
-          },
-          Object {
-            "dataType": Object {
-              "type": 33,
-            },
-            "field": "34",
-            "title": "col35",
-          },
-          Object {
-            "dataType": Object {
-              "type": 34,
-            },
-            "field": "35",
-            "title": "col36",
-          },
-          Object {
-            "dataType": Object {
-              "type": 35,
-            },
-            "field": "36",
-            "title": "col37",
-          },
-          Object {
-            "dataType": Object {
-              "type": 36,
-            },
-            "field": "37",
-            "title": "col38",
-          },
-          Object {
-            "dataType": Object {
-              "type": 37,
-            },
-            "field": "38",
-            "title": "col39",
-          },
-          Object {
-            "dataType": Object {
-              "type": 38,
-            },
-            "field": "39",
-            "title": "col40",
-          },
-          Object {
-            "dataType": Object {
-              "type": 39,
-            },
-            "field": "40",
-            "title": "col41",
-          },
-          Object {
-            "dataType": Object {
-              "type": 40,
-            },
-            "field": "41",
-            "title": "col42",
-          },
-          Object {
-            "dataType": Object {
-              "type": 41,
-            },
-            "field": "42",
-            "title": "col43",
-          },
-          Object {
-            "dataType": Object {
-              "type": 42,
-            },
-            "field": "43",
-            "title": "col44",
-          },
-          Object {
-            "dataType": Object {
-              "type": 43,
-            },
-            "field": "44",
-            "title": "col45",
-          },
-          Object {
-            "dataType": Object {
-              "type": 44,
-            },
-            "field": "45",
-            "title": "col46",
-          },
-          Object {
-            "dataType": Object {
-              "type": 45,
-            },
-            "field": "46",
-            "title": "col47",
-          },
-          Object {
-            "dataType": Object {
-              "type": 46,
-            },
-            "field": "47",
-            "title": "col48",
-          },
-          Object {
-            "dataType": Object {
-              "type": 47,
-            },
-            "field": "48",
-            "title": "col49",
-          },
-        ],
         "currentPage": 0,
         "executionInfo": Object {
           "text": "Endless Possibilities",
           "type": 2,
         },
-        "requestId": "123",
         "rows": Array [],
       },
-      "head": Object {
-        "requestId": "123",
-        "sql": "select 1",
-      },
+      "resultId": "123",
+      "sql": "select 1",
+      "type": "resultSet",
     }
   }
 >
@@ -894,20 +892,18 @@ exports[`Result View Tests Render with Error/Response 1`] = `
 <ResultView
   resultSet={
     Object {
+      "columns": Array [],
       "data": Object {
-        "columns": Array [],
         "currentPage": 0,
         "executionInfo": Object {
           "text": "Error",
           "type": 0,
         },
-        "requestId": "123",
         "rows": Array [],
       },
-      "head": Object {
-        "requestId": "123",
-        "sql": "select 1",
-      },
+      "resultId": "123",
+      "sql": "select 1",
+      "type": "resultSet",
     }
   }
 >
@@ -960,16 +956,14 @@ exports[`Result View Tests Standard Rendering 1`] = `
 <ResultView
   resultSet={
     Object {
+      "columns": Array [],
       "data": Object {
-        "columns": Array [],
         "currentPage": 0,
-        "requestId": "123",
         "rows": Array [],
       },
-      "head": Object {
-        "requestId": "123",
-        "sql": "select 1",
-      },
+      "resultId": "123",
+      "sql": "select 1",
+      "type": "resultSet",
     }
   }
 >

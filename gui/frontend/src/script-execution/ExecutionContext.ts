@@ -27,8 +27,11 @@ import { IExecutionContextState, IRange, Monaco, Position } from "../components/
 import { isTextSpan } from "../utilities/ts-helpers";
 import { ScriptingLanguageServices } from "./ScriptingLanguageServices";
 import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common";
-import { LoadingState, PresentationInterface } from "./PresentationInterface";
-import { IExecuteResultReference, IExecutionResult } from ".";
+import { PresentationInterface } from "./PresentationInterface";
+import {
+    IExecuteResultReference, IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSets,
+    ITextResult, LoadingState,
+} from ".";
 import { EditorLanguage, IExecutionContext } from "../supplement";
 
 /**
@@ -37,9 +40,6 @@ import { EditorLanguage, IExecutionContext } from "../supplement";
  */
 export class ExecutionContext implements IExecutionContext {
     private static nextId = 1;
-
-    protected splitTimer: ReturnType<typeof setTimeout> | null;
-    protected validationTimer: ReturnType<typeof setTimeout> | null;
 
     protected disposed = false;
 
@@ -53,16 +53,9 @@ export class ExecutionContext implements IExecutionContext {
 
     /**
      * Important: since we have no d-tors in JS/TS it is necessary to call `dispose` to remove editor
-     * decorations created by this command.
+     * decorations created by this command and stop any ongoing tasks.
      */
     public dispose(): void {
-        if (this.splitTimer) {
-            clearTimeout(this.splitTimer);
-        }
-        if (this.validationTimer) {
-            clearTimeout(this.validationTimer);
-        }
-
         this.presentation.dispose();
         this.clearDecorations();
 
@@ -98,28 +91,23 @@ export class ExecutionContext implements IExecutionContext {
                 case "resultSets": {
                     const list: string[] = [];
                     data.sets.forEach((value) => {
-                        list.push(value.head.requestId);
+                        list.push(value.resultId);
                     });
 
                     data.output?.forEach((value) => {
-                        if (value.requestId) {
-                            list.push(value.requestId);
+                        if (value.resultId) {
+                            list.push(value.resultId);
                         }
                     });
 
                     result = {
-                        type: "requestIds",
+                        type: "resultIds",
                         list,
                     };
 
                     break;
                 }
 
-
-                case "resultSetRows": {
-                    // This is a temporary format and not used for storage in the context.
-                    break;
-                }
 
                 default: {
                     result = data;
@@ -175,10 +163,10 @@ export class ExecutionContext implements IExecutionContext {
     }
 
     /**
-     * @returns A list of request ids from which the current result data was produced.
+     * @returns A list of result ids for the current result view.
      */
-    public get requestIds(): string[] {
-        return this.presentation.requestIds;
+    public get resultIds(): string[] {
+        return this.presentation.resultIds;
     }
 
     /**
@@ -280,29 +268,45 @@ export class ExecutionContext implements IExecutionContext {
         return new Position(1, 1);
     }
 
-    public setResult(data?: IExecutionResult, manualHeight?: number, currentSet?: number, maximized?: boolean): void {
+    public clearResult(): void {
         if (!this.disposed) {
-            this.presentation.setResult(data, manualHeight, currentSet, maximized);
+            this.presentation.clearResult();
         }
     }
 
-    public addResultPage(data: IExecutionResult): void {
+    public executionStarts(): void {
         if (!this.disposed) {
-            this.presentation.addResultPage(data);
+            this.presentation.executionStarts();
         }
     }
 
-    public async addResultData(data: IExecutionResult): Promise<boolean> {
+    /**
+     * Replaces the current content of the presentation with the given data. This method is usually used
+     * to restore a previously saved data set.
+     *
+     * @param data The data to show.
+     * @param presentationOptions Options to restore the visual state of the result area.
+     */
+    public setResult(data: ITextResult | IResultSets | IGraphResult, presentationOptions: IPresentationOptions): void {
         if (!this.disposed) {
-            return this.presentation.addResultData(data);
+            this.presentation.setResult(data, presentationOptions);
         }
-
-        return false;
     }
 
-    public updateResultDisplay(): void {
+    /**
+     * Adds the given execution result data to this presentation, by mapping the given request ID to one of the
+     * already existing result tabs. If no set exists yet for that request, a new one will be created.
+     *
+     * @param data The data that must be visualized in the result (if not given then remove any existing result).
+     * @param dataOptions Additional information for the result data.
+     * @param presentationOptions Additional information about the data visualization.
+     *
+     * @returns A promise resolving to true if the operation was concluded successfully, otherwise false.
+     */
+    public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
+        presentationOptions?: IPresentationOptions): Promise<void> {
         if (!this.disposed) {
-            this.presentation.updateResultDisplay();
+            return this.presentation.addResultData(data, dataOptions, presentationOptions);
         }
     }
 
@@ -343,14 +347,7 @@ export class ExecutionContext implements IExecutionContext {
      */
     public scheduleFullValidation(): void {
         if (!this.isInternal && !this.disposed) {
-            if (this.validationTimer) {
-                clearTimeout(this.validationTimer);
-            }
-
-            this.validationTimer = setTimeout(() => {
-                this.validationTimer = null;
-                this.validateAll();
-            }, 200);
+            this.validateAll();
         }
     }
 

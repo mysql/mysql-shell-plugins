@@ -46,7 +46,7 @@ import { unquote } from "../../utilities/string-helpers";
 export class MySQLParsingServices {
 
     private static services?: MySQLParsingServices;
-    private static readonly delimiterKeyword = /delimiter/i;
+    private static readonly delimiterKeyword = /delimiter /i;
 
     private lexer = new MySQLLexer(CharStreams.fromString(""));
     private tokenStream = new CommonTokenStream(this.lexer);
@@ -293,7 +293,7 @@ export class MySQLParsingServices {
      *
      * @returns A list of statement ranges.
      */
-    public determineStatementRanges(sql: string, delimiter = ";"): IStatementSpan[] {
+    public determineStatementRanges(sql: string, delimiter: string): IStatementSpan[] {
 
         const result: IStatementSpan[] = [];
 
@@ -306,7 +306,7 @@ export class MySQLParsingServices {
 
         /**
          * Checks the current tail position if that touches a delimiter. If that's the case then the current statement
-         * is finished and new one starts.
+         * is finished and a new one starts.
          *
          * @returns True if a delimiter was found, otherwise false.
          */
@@ -492,15 +492,19 @@ export class MySQLParsingServices {
 
                     case "d":
                     case "D": {
-                        // Possible start of the DELIMITER word.
-                        if (tail + 9 >= end) {
+                        // Possible start of the DELIMITER word. Also consider the mandatory space char.
+                        if (tail + 10 >= end) {
+                            if (!haveContent) {
+                                haveContent = true;
+                                head = tail;
+                            }
                             ++tail;
                             break; // Not enough input for that.
                         }
 
-                        const candidate = sql.substring(tail, tail + 9);
+                        const candidate = sql.substring(tail, tail + 10);
                         if (candidate.match(MySQLParsingServices.delimiterKeyword)) {
-                            // Delimiter keyword found - get the new delimiter (everything until the end of the line).
+                            // Delimiter keyword found - get the new delimiter (all consecutive letters).
                             // But first push anything we found so far and haven't pushed yet.
                             if (haveContent && tail > start) {
                                 result.push({
@@ -513,29 +517,40 @@ export class MySQLParsingServices {
                             }
 
                             head = tail;
-                            tail += 9;
+                            tail += 10;
                             let run = tail;
-                            while (run < end && sql[run] !== "\n") {
+
+                            // Skip leading spaces + tabs.
+                            while (run < end && (sql[run] === " " || sql[run] === "\t")) {
+                                ++run;
+                            }
+                            tail = run;
+
+                            // Forward to the first whitespace after the current position (on this line).
+                            while (run < end && sql[run] !== "\n" && sql[run] !== " " && sql[run] !== "\t") {
                                 ++run;
                             }
 
-                            // The new delimiter including leading and trailing whitespaces.
                             delimiter = sql.substring(tail, run);
                             const length = delimiter.length;
-                            delimiter = delimiter.trimStart();
-                            tail += length - delimiter.length;
+                            if (length > 0) {
+                                tail += length - delimiter.length;
 
-                            result.push({
-                                delimiter,
-                                span: { start, length: run - start },
-                                contentStart: head,
-                                state: StatementFinishState.DelimiterChange,
-                            });
+                                result.push({
+                                    delimiter,
+                                    span: { start, length: run - start },
+                                    contentStart: head,
+                                    state: StatementFinishState.DelimiterChange,
+                                });
 
-                            tail = run;
-                            head = tail;
-                            start = head;
-                            haveContent = false;
+                                tail = run;
+                                head = tail;
+                                start = head;
+                                haveContent = false;
+                            } else {
+                                haveContent = true;
+                                head = tail;
+                            }
                         } else {
                             ++tail;
 
@@ -563,7 +578,6 @@ export class MySQLParsingServices {
         // Add remaining text to the range list.
         if (head < end) {
             result.push({
-                delimiter: "",
                 span: { start, length: end - start },
                 contentStart: haveContent ? head : start - 1, // -1 to indicate no content
                 state: StatementFinishState.NoDelimiter,

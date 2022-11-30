@@ -23,12 +23,14 @@
 
 import React from "react";
 import { render } from "preact";
-import { isNil } from "lodash";
 
 import { ResultStatus } from "../components/ResultView";
 import { ResultTabView } from "../components/ResultView/ResultTabView";
 import { CodeEditor } from "../components/ui/CodeEditor/CodeEditor";
-import { IExecutionResult, IResultSet, IResultSetRows, SQLExecutionContext } from ".";
+import {
+    IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSetRows, IResultSets,
+    ITextResult, LoadingState, SQLExecutionContext,
+} from ".";
 import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common";
 import { Monaco } from "../components/ui/CodeEditor";
 import { ExecutionContext } from "./ExecutionContext";
@@ -36,21 +38,14 @@ import { requisitions } from "../supplement/Requisitions";
 import { Container, Orientation } from "../components/ui";
 import { EditorLanguage } from "../supplement";
 
-import { MessageType } from "../app-logic/Types";
 import { GraphHost } from "../components/graphs/GraphHost";
 import { ActionOutput } from "../components/ResultView/ActionOutput";
+import { MessageType } from "../app-logic/Types";
 
-// A flag telling if the result is currently being loaded.
-export enum LoadingState {
-    Idle = "idle",       // Nothing in the pipeline.
-    Waiting = "waiting", // Waiting for the first result to arrive.
-    Loading = "loading", // At least one result arrived. Waiting for the final result.
-}
-
-// Base class for handling of UI related elements like editor decorations and result display.
+/** Base class for handling of UI related elements like editor decorations and result display. */
 export class PresentationInterface {
 
-    // A mapping from diagnostic categories to CSS class names.
+    /** A mapping from diagnostic categories to CSS class names. */
     public static validationClass: Map<DiagnosticSeverity, string> = new Map([
         [DiagnosticSeverity.Error, "error"],
         [DiagnosticSeverity.Warning, "warning"],
@@ -74,16 +69,18 @@ export class PresentationInterface {
     // A flag which indicates if the result pane shall be maximized.
     public maximizedResult?: boolean;
 
-    public resultData?: IExecutionResult;
+    public resultData?: ITextResult | IResultSets | IGraphResult;
     public loadingState = LoadingState.Idle;
 
     public readonly backend?: Monaco.IStandaloneCodeEditor;
     public context?: ExecutionContext;
 
-    // A function to send a notification if the current result is being replaced by nothing.
-    // Useful for higher level consumers to update their storage (e.g. cached results).
-    // Note: this is not used when disposing of the presentation (where we want to keep the data for later restore).
-    public onRemoveResult?: (requestIds: string[]) => void;
+    /**
+     * A function to send a notification if the current result is being replaced by nothing.
+     * Useful for higher level consumers to update their storage (e.g. cached results).
+     * Note: this is not used when disposing of the presentation (where we want to keep the data for later restore).
+     */
+    public onRemoveResult?: (resultIds: string[]) => void;
 
     // The target HTML element to which we render the React nodes dynamically.
     protected renderTarget?: HTMLDivElement;
@@ -112,7 +109,7 @@ export class PresentationInterface {
     public dispose(): void {
         this.onRemoveResult = undefined;
         this.backend?.deltaDecorations(this.marginDecorationIDs, []);
-        this.setResult();
+        this.clearResult();
     }
 
     public get model(): Monaco.ITextModel | null {
@@ -157,17 +154,17 @@ export class PresentationInterface {
     }
 
     /**
-     * @returns A list of request ids from which the current result data was produced.
+     * @returns A list of result ids for the current result view.
      */
-    public get requestIds(): string[] {
+    public get resultIds(): string[] {
         switch (this.resultData?.type) {
-            case "resultSetRows": {
-                return [this.resultData.requestId];
-            }
-
             case "resultSets": {
-                const set1 = this.resultData.sets.map((set) => { return set.head.requestId; });
-                const set2 = this.resultData.output?.map((entry) => { return entry.requestId ?? ""; });
+                const set1 = this.resultData.sets.map((set) => {
+                    return set.resultId;
+                });
+                const set2 = this.resultData.output?.map((entry) => {
+                    return entry.resultId ?? "";
+                });
 
                 if (set2) {
                     return [...set1, ...set2];
@@ -195,362 +192,387 @@ export class PresentationInterface {
     }
 
     /**
-     * Replaces the current result with one created from the given data. If there's no result yet, a new one is added.
+     * Removes result tabs from the presentation. Regardless of the requestId parameter, the output area will always
+     * be cleared and removed.
      *
-     * @param data The data that must be visualized in the result (if not given then remove any existing result).
-     * @param manualHeight Set to restore the size of the result area, when a user had resized it before.
-     * @param currentSet The index of the currently visible set (tab page), for multi set results.
-     * @param maximized Indicates that the result page is to be maximized.
+     * @param resultId If specified only the tab which belongs to the given ID is removed.
      */
-    public setResult(data?: IExecutionResult, manualHeight?: number, currentSet?: number, maximized?: boolean): void {
-        let element: React.ReactNode | undefined;
-
+    public clearResult(resultId?: string): void {
         if (this.waitTimer) {
             clearTimeout(this.waitTimer);
+            this.waitTimer = null;
+        }
+        this.changeLoadingState(LoadingState.Idle);
+
+        if (!this.resultData) {
+            return;
         }
 
-        // Send out a notification that the current data is about to be replaced.
-        this.onRemoveResult?.(this.requestIds);
+        if (resultId) {
+            this.onRemoveResult?.([resultId]);
+        } else {
+            this.onRemoveResult?.(this.resultIds);
+        }
 
-        // The execution context holding this presentation is set per DI, so it's always assigned.
-        const contextId = this.context!.id;
-
-        let pendingPurge;
-        if (data) {
-            switch (data.type) {
+        if (!resultId) {
+            this.resultData = undefined;
+            this.removeRenderTarget();
+        } else {
+            switch (this.resultData.type) {
                 case "text": {
-                    element = <Container orientation={Orientation.TopDown} style={{ flex: "1 1 auto" }}>
-                        {data.text && <ActionOutput output={data.text} contextId={contextId} />}
-                        {data.executionInfo && <ResultStatus executionInfo={data.executionInfo} />}
-                    </Container>;
-                    this.minHeight = 28;
+                    if (this.resultData.text) {
+                        const index = this.resultData.text?.findIndex((candidate) => {
+                            return candidate.resultId === resultId;
+                        });
+
+                        if (index > -1) {
+                            this.resultData.text.splice(index, 1);
+                            if (this.resultData.text.length === 0) {
+                                // If the result data is empty now, remove it entirely.
+                                this.resultData = undefined;
+                            }
+                        }
+                    } else {
+                        // Just for completeness. Will probably never happen.
+                        this.resultData = undefined;
+                    }
 
                     break;
                 }
 
                 case "resultSets": {
-                    if (!data.output) {
-                        data.output = [];
-                    }
-
-                    pendingPurge = data.sets.length > 0 ? data.sets[0].head.requestId : undefined;
-                    element = <ResultTabView
-                        ref={this.resultRef}
-                        resultSets={data}
-                        contextId={contextId}
-                        currentSet={currentSet}
-                        resultPaneMaximized={this.maximizedResult}
-                        onResultPageChange={this.handleResultPageChange}
-                        onSetResultPaneViewState={this.handleResultPaneChange}
-                        onSelectTab={this.handleSelectTab}
-                    />;
-                    this.minHeight = 36;
-
-                    const allFinished = data.sets.every((value) => {
-                        return !isNil(value.data.executionInfo);
+                    const resultSets = this.resultData.sets;
+                    const index = resultSets.findIndex((candidate) => {
+                        return candidate.resultId === resultId;
                     });
 
-                    // Start the wait timer. If not cancelled it will cause the wait animation to show.
-                    // However, it's not needed to show the wait animation if we got a full result here already.
-                    if (!allFinished) {
-                        this.waitTimer = setTimeout(() => {
-                            this.waitTimer = null;
-                            this.loadingState = LoadingState.Waiting;
-                            this.updateMarginDecorations();
-                        }, 500);
+                    if (index > -1) {
+                        this.resultData.sets.splice(index, 1);
+                        if (this.resultData.sets.length === 0) {
+                            this.resultData = undefined;
+                        }
                     }
-
-                    break;
-                }
-
-                case "graphData": {
-                    element = <GraphHost
-                        options={data.options ?? {}}
-                    />;
-                    this.minHeight = 200;
 
                     break;
                 }
 
                 default: {
+                    this.resultData = undefined;
+
                     break;
                 }
             }
+
+            this.renderResults();
         }
-
-        if (manualHeight) {
-            this.currentHeight = manualHeight;
-        }
-
-        this.currentSet = currentSet;
-        this.maximizedResult = maximized;
-
-        // Do we have a result already?
-        if (this.renderTarget) {
-            // Clear existing data. We need this extra step, as we enter new data via direct calls, not properties.
-            if (pendingPurge) {
-                this.resultRef.current?.markPendingReplace(pendingPurge);
-            }
-
-            if (element) {
-                // Update it.
-                render(
-                    <>
-                        {element}
-                        {this.resultDivider}
-                    </>, this.renderTarget,
-                );
-                this.updateRenderTarget();
-            } else {
-                // Remove it.
-                this.removeRenderTarget();
-            }
-        } else {
-            // No result yet, so add the one given.
-            if (data && element) {
-                this.renderTarget = this.defineRenderTarget();
-                if (this.renderTarget) {
-                    render(
-                        <>
-                            {element}
-                            {this.resultDivider}
-                        </>, this.renderTarget,
-                    );
-
-                    // Note: the render target is updated in `defineRenderTarget`.
-                }
-            }
-        }
-
-        this.resultData = data;
     }
 
     /**
-     * Adds a new page (in a tabview) for multi-page data like result sets. If no initial page exist, a new tabview
-     * is created and an initial page is added.
-     *
-     * @param data The data to place on that new page.
+     * Called by the code execution code to indicate that a new request just started.
      */
-    public addResultPage(data: IExecutionResult): void {
-        if (!this.renderTarget) {
-            this.setResult(data);
-
+    public executionStarts(): void {
+        if (this.waitTimer || this.loadingState !== LoadingState.Idle) {
+            // No need for action if we already know we are waiting for results.
             return;
         }
 
-        let element: React.ReactElement;
-
-        if (!this.manuallyResized) {
-            // Reset the current height to make the target compute the height again.
-            this.currentHeight = undefined;
-        }
-
-        const contextId = this.context!.id;
-        switch (data.type) {
-            // For now only result sets support multiple pages (e.g. for multiple queries).
-            case "resultSets": {
-                let existingSets: IResultSet[];
-                if (!this.resultData || this.resultData.type !== "resultSets") {
-                    existingSets = [];
-                    this.resultData = {
-                        type: "resultSets",
-                        sets: [],
-                    };
-                } else {
-                    existingSets = this.resultData.sets;
-                }
-
-                let needUpdate = false;
-                data.sets.forEach((set) => {
-                    let addNew = true;
-                    if (set.head.oldRequestId) {
-                        // When an old request id is specified that means we are actually replacing a page, not adding
-                        // a new one.
-                        const existing = existingSets.find((candidate) => {
-                            return candidate.head.requestId === set.head.oldRequestId;
-                        });
-
-                        if (existing) {
-                            addNew = false;
-                            existing.head.requestId = set.head.requestId;
-                            existing.head.sql = set.head.sql;
-                            existing.data.requestId = set.data.requestId;
-                            existing.data.rows = set.data.rows;
-                            existing.data.columns = set.data.columns;
-                            existing.data.executionInfo = set.data.executionInfo;
-
-                            if (this.resultRef.current) {
-                                this.resultRef.current.reassignData(set.head.oldRequestId, set.head.requestId);
-                            }
-                        }
-                    }
-
-                    if (addNew) {
-                        needUpdate = true;
-                        existingSets.push(...data.sets);
-                    }
-                });
-
-                if (!needUpdate) {
-                    return;
-                }
-
-                element = <ResultTabView
-                    ref={this.resultRef}
-                    resultSets={this.resultData}
-                    contextId={contextId}
-                    resultPaneMaximized={this.maximizedResult}
-                    onResultPageChange={this.handleResultPageChange}
-                    onSetResultPaneViewState={this.handleResultPaneChange}
-                    onSelectTab={this.handleSelectTab}
-                />;
-
-                break;
-            }
-
-            default: {
-                return;
-            }
-        }
-
-
-        if (element) {
-            render(
-                <>
-                    {element}
-                    {this.resultDivider}
-                </>, this.renderTarget,
-            );
-        }
+        // Start the wait timer to show a waiting animation, if the first result takes too long to arrive.
+        this.waitTimer = setTimeout(() => {
+            this.waitTimer = null;
+            this.changeLoadingState(LoadingState.Waiting);
+        }, 500);
+        this.changeLoadingState(LoadingState.Pending);
     }
 
     /**
-     * Incrementally adds new data to the last result page we got.
-     * If nothing was set yet, sets the given data as initial result.
+     * Replaces the current content of the presentation with the given data. This method is usually used
+     * to restore a previously saved data set.
      *
-     * @param data The data to add.
-     *
-     * @returns A promise resolving to a boolean indicating if data was added (true) or just set (false).
+     * @param data The data to show.
+     * @param presentationOptions Options to restore the visual state of the result area.
      */
-    public async addResultData(data: IExecutionResult): Promise<boolean> {
-        if (!this.renderTarget || !this.resultData) {
-            this.setResult(data);
-
-            return false;
+    public setResult(data: ITextResult | IResultSets | IGraphResult,
+        presentationOptions?: IPresentationOptions): void {
+        if (this.waitTimer) {
+            clearTimeout(this.waitTimer);
+            this.waitTimer = null;
         }
 
-        let element: React.ReactNode;
+        this.resultData = data;
+        this.renderResults(presentationOptions);
 
-        if (!this.manuallyResized) {
-            // Reset the current height to make the target compute the height again.
-            this.currentHeight = undefined;
-        }
+    }
 
-        const contextId = this.context!.id;
-        switch (data.type) {
-            case "text": {
-                // Stop any wait animation if this is the last result.
-                if (data.executionInfo) {
-                    if (this.waitTimer) {
-                        clearTimeout(this.waitTimer);
-                        this.waitTimer = null;
-                    }
+    /**
+     * Adds the given execution result data to this presentation, by mapping the given request ID to one of the
+     * already existing result tabs. If no set exists yet for that request, a new one will be created.
+     * There are two exceptions to this rule:
+     * 1. If an old request ID is given in addition to the data, then the content of the tab with this old request ID
+     *    is cleared before adding new data.
+     * 2. If the new data is only text output then no tab is added but the
+     *
+     * @param data The data that must be visualized in the result (if not given then remove any existing result).
+     * @param dataOptions Additional information for the result data.
+     * @param presentationOptions Controls the result area presentation after adding the new data.
+     *
+     * @returns A promise resolving to true if the operation was concluded successfully, otherwise false.
+     */
+    public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
+        presentationOptions?: IPresentationOptions): Promise<void> {
 
-                    if (this.loadingState !== LoadingState.Idle) {
-                        this.loadingState = LoadingState.Idle;
-                        this.updateMarginDecorations();
-                    }
+        /**
+         * Called for result set data, which is empty (no rows, only execution info is set).
+         *
+         * @param data The empty result set. Add it's execution info as plain text to whatever is visible currently.
+         */
+        const addEmptyResultSetAsText = (data: IResultSetRows): void => {
+            if (!this.resultData || this.resultData.type === "graphData") {
+                // No result data yet or (incompatible) graph data. Convert the execution info to text data.
+                this.resultData = {
+                    type: "text",
+                    text: [{
+                        type: data.executionInfo?.type ?? MessageType.Info,
+                        index: dataOptions.index,
+                        resultId: dataOptions.resultId,
+                        content: data.executionInfo?.text ?? "",
+                    }],
+                };
+            } else if (this.resultData.type === "text") {
+                if (!this.resultData.text) {
+                    this.resultData.text = [];
                 }
 
-                if (this.resultData.type === "resultSets") {
-                    // If we have results currently then add the text to the output list and remove the affected tab.
-                    if (data.text) {
-                        this.resultData.output?.push(...data.text);
-                    } else {
-                        this.resultData.output?.push({
-                            type: data.executionInfo?.type ?? MessageType.Error,
-                            requestId: data.requestId,
-                            content: data.executionInfo?.text ?? "<no info>",
-                            language: "ansi",
-                        });
-                    }
+                this.resultData.text.push({
+                    type: data.executionInfo?.type ?? MessageType.Info,
+                    index: dataOptions.index,
+                    resultId: dataOptions.resultId,
+                    content: data.executionInfo?.text ?? "",
+                });
+            } else {
+                if (!this.resultData.output) {
+                    this.resultData.output = [];
+                }
 
-                    const index = this.resultData.sets.findIndex((candidate) => {
-                        return candidate.head.requestId === data.requestId;
-                    });
-                    if (index > -1) {
-                        this.resultData.sets.splice(index, 1);
-                    }
+                this.resultData.output.push({
+                    type: data.executionInfo?.type ?? MessageType.Info,
+                    index: dataOptions.index,
+                    resultId: dataOptions.resultId,
+                    content: data.executionInfo?.text ?? "",
+                });
+            }
+        };
 
-                    element = <ResultTabView
-                        ref={this.resultRef}
-                        resultSets={this.resultData}
-                        contextId={contextId}
-                        resultPaneMaximized={this.maximizedResult}
-                        onResultPageChange={this.handleResultPageChange}
-                        onSetResultPaneViewState={this.handleResultPaneChange}
-                        onSelectTab={this.handleSelectTab}
-                    />;
+        // If this is the first result we receive, switch to the loading state.
+        if (this.waitTimer || this.loadingState === LoadingState.Waiting) {
+            if (this.waitTimer) {
+                clearTimeout(this.waitTimer);
+                this.waitTimer = null;
+            }
 
-                    break;
-                } else if (this.resultData.type !== "text") {
-                    element = <ActionOutput output={data.text} contextId={contextId} />;
+            if (!this.resultData && "executionInfo" in data) {
+                // If there's no result data yet and the new one is finished then we can go into idle state.
+                this.changeLoadingState(LoadingState.Idle);
+            } else {
+                this.changeLoadingState(LoadingState.Loading);
+            }
+        }
+
+        switch (data.type) {
+            case "text": {
+                if (!this.resultData) {
+                    // No data yet. Take the given one unchanged.
                     this.resultData = data;
-                } else if (data.text) {
-                    this.resultData.text?.push(...data.text);
-                    element = <ActionOutput output={this.resultData.text} contextId={contextId} />;
+                } else if (this.resultData.type === "resultSets") {
+                    // There's result set data shown currently. In this case add the text to the output tab.
+                    // If no output tab exists already, create it.
+                    if (!this.resultData.output) {
+                        this.resultData.output = [];
+                    }
+
+                    if (data.text) {
+                        this.resultData.output.push(...data.text);
+                    }
+                } else if (this.resultData.type === "graphData") {
+                    // TODO: If graph data is visible, add the text as another entry to the graph page.
+                } else {
+                    // Text data to render.
+                    if (!this.resultData.text) {
+                        this.resultData.text = data.text;
+                    } else if (data.text) {
+                        this.resultData.text.push(...data.text);
+                    }
                 }
 
                 break;
             }
 
             case "resultSetRows": {
-                const result = await this.handleNewRows(data);
-                if (typeof result === "boolean") {
-                    return result;
+                if (!this.resultData) {
+                    if (data.rows.length === 0) {
+                        addEmptyResultSetAsText(data);
+                    } else {
+                        this.resultData = {
+                            type: "resultSets",
+                            sets: [{
+                                type: "resultSet",
+                                index: dataOptions.index,
+                                resultId: dataOptions?.resultId,
+                                sql: dataOptions.sql ?? "",
+                                columns: data.columns ?? [],
+                                data,
+                            }],
+                        };
+                    }
+                } else {
+                    let needUpdate = true;
+                    switch (this.resultData.type) {
+                        case "resultSets": {
+                            // Find the target set (tab) to add the data to or create a new one.
+                            const resultSets = this.resultData.sets;
+
+                            // Add the data to our internal storage, to support switching tabs for multiple result sets.
+                            let index = -1;
+                            const resultSet = resultSets.find((candidate, candidateIndex) => {
+                                if (candidate.resultId === dataOptions.resultId) {
+                                    index = candidateIndex;
+
+                                    return true;
+                                }
+
+                                return false;
+                            });
+
+                            if (resultSet) {
+                                // No need for re-rendering if the result set already exists and we only add new rows.
+                                if (data.executionInfo) {
+                                    resultSet.data.executionInfo = data.executionInfo;
+                                } else {
+                                    needUpdate = false;
+                                }
+
+                                // Internal storage to support result tab switching.
+                                if (dataOptions.replaceData) {
+                                    resultSet.data.rows = data.rows;
+                                } else {
+                                    resultSet.data.rows.push(...data.rows);
+                                }
+
+                                // Also update columns if they were given.
+                                if (data.columns && data.columns.length > 0) {
+                                    resultSet.columns = data.columns;
+                                }
+
+                                resultSet.data.currentPage = data.currentPage;
+                                resultSet.data.hasMoreRows = data.hasMoreRows;
+
+                                if (this.currentSet === index) {
+                                    // Tab is visible, so send it the new data.
+                                    if (data.columns && data.columns.length > 0) {
+                                        await this.resultRef.current?.updateColumns(dataOptions.resultId, data.columns);
+                                    }
+                                    await this.resultRef.current?.addData(data, dataOptions.resultId,
+                                        dataOptions.replaceData);
+                                }
+                            } else {
+                                // No existing result set tab found - create it.
+                                if (data.rows.length === 0) {
+                                    addEmptyResultSetAsText(data);
+                                } else {
+                                    this.resultData.sets.push({
+                                        type: "resultSet",
+                                        index: dataOptions.index,
+                                        resultId: dataOptions?.resultId,
+                                        sql: dataOptions.sql ?? "",
+                                        columns: data.columns ?? [],
+                                        data,
+                                    });
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case "text": {
+                            if (data.rows.length === 0) {
+                                addEmptyResultSetAsText(data);
+                            } else {
+                                // Move the text over to the output tab of the new result set data.
+                                this.resultData = {
+                                    type: "resultSets",
+                                    sets: [{
+                                        type: "resultSet",
+                                        index: dataOptions.index,
+                                        resultId: dataOptions?.resultId,
+                                        sql: dataOptions.sql ?? "",
+                                        columns: data.columns ?? [],
+                                        data,
+                                    }],
+                                    output: this.resultData.text,
+                                };
+                            }
+
+                            break;
+                        }
+
+                        default: {
+                            // Replace the existing data entirely.
+                            this.resultData = {
+                                type: "resultSets",
+                                sets: [{
+                                    type: "resultSet",
+                                    index: dataOptions.index,
+                                    resultId: dataOptions?.resultId,
+                                    sql: dataOptions.sql ?? "",
+                                    columns: data.columns ?? [],
+                                    data,
+                                }],
+                            };
+
+                            break;
+                        }
+                    }
+
+                    // Everything but result sets is finished implicitly when the result comes in.
+                    let allFinished = true;
+                    if (this.resultData.type === "resultSets") {
+                        // Result sets may still be waiting for more row data.
+                        allFinished = this.resultData.sets.every((value) => {
+                            return value.data.executionInfo != null;
+                        });
+
+                    }
+
+                    if (allFinished && this.loadingState !== LoadingState.Idle) {
+                        this.changeLoadingState(LoadingState.Idle);
+                    }
+
+                    if (!needUpdate) {
+                        return;
+                    }
                 }
-                element = result;
 
                 break;
             }
 
             case "graphData": {
-                if (this.resultData.type !== "graphData") {
-                    return false;
-                }
-
-                element = <GraphHost
-                    options={data.options ?? {}}
-                />;
+                // New graph always replaces what was there before.
+                this.resultData = data;
+                this.minHeight = 200;
 
                 break;
             }
 
-            default: {
-                return false;
-            }
+            default:
         }
 
-        if (this.renderTarget) {
-            if (element) {
-                render(
-                    <>
-                        {element}
-                        {this.resultDivider}
-                    </>, this.renderTarget,
-                );
-                this.updateRenderTarget();
-            }
-        }
-
-        return true;
+        this.renderResults(presentationOptions);
     }
 
     /**
      * Called when a visual update of the result should happen (e.g. to resize for changed data).
      */
     public updateResultDisplay = (): void => {
-        this.updateRenderTarget();
+        //this.updateRenderTarget();
     };
 
     public markLines(lines: Set<number>, cssClass: string): void {
@@ -661,8 +683,11 @@ export class PresentationInterface {
     }
 
     public selectRange(span: TextSpan): void {
-        const range = this.context!.fromLocal(span);
-        this.backend?.setSelection(range);
+        if (this.context && this.backend) {
+            const range = this.context.fromLocal(span);
+            this.backend.setSelection(range);
+            this.backend.revealLines(range.startLineNumber, range.endLineNumber);
+        }
     }
 
     protected getMarginClass(line: number): string {
@@ -689,7 +714,7 @@ export class PresentationInterface {
         this.manuallyResized = false;
     }
 
-    protected updateRenderTarget(): void {
+    protected updateRenderTarget(_height: number): void {
         // Overridden by descendants.
     }
 
@@ -698,133 +723,123 @@ export class PresentationInterface {
         return undefined;
     }
 
-    private handleResultPageChange = (requestId: string, currentPage: number, sql: string): void => {
+    /**
+     * Creates or updates the embedded result rendering.
+     *
+     * @param options Controls the result area presentation after adding the new data.
+     */
+    private renderResults(options?: IPresentationOptions): void {
+        if (!this.resultData || !this.context) {
+            this.removeRenderTarget();
+
+            return;
+        }
+
+        let element: React.ReactNode | undefined;
+        const contextId = this.context.id;
+        switch (this.resultData.type) {
+            case "text": {
+                element = <Container orientation={Orientation.TopDown} style={{ flex: "1 1 auto" }}>
+                    <ActionOutput
+                        output={this.resultData.text}
+                        contextId={contextId}
+                        showIndexes={options?.showIndexes}
+                    />
+                    {this.resultData.executionInfo && <ResultStatus executionInfo={this.resultData.executionInfo} />}
+                </Container>;
+                this.minHeight = 28;
+
+                break;
+            }
+
+            case "resultSets": {
+                element = <ResultTabView
+                    ref={this.resultRef}
+                    resultSets={this.resultData}
+                    contextId={contextId}
+                    currentSet={options?.currentSet}
+                    resultPaneMaximized={this.maximizedResult}
+                    onResultPageChange={this.handleResultPageChange}
+                    onSetResultPaneViewState={this.handleResultPaneChange}
+                    onSelectTab={this.handleSelectTab}
+                />;
+                this.minHeight = 36;
+
+                break;
+            }
+
+            case "graphData": {
+                element = <GraphHost
+                    options={this.resultData.options ?? {}}
+                />;
+                this.minHeight = 200;
+
+                break;
+            }
+
+            default:
+        }
+
+        if (options?.manualHeight) {
+            this.currentHeight = options?.manualHeight;
+        }
+
+        this.currentSet = options?.currentSet;
+        this.maximizedResult = options?.maximized;
+
+        // Do we have a result view already?
+        if (this.renderTarget) {
+            if (element) {
+                // Update it.
+                render(
+                    <>
+                        {element}
+                        {this.resultDivider}
+                    </>, this.renderTarget,
+                );
+            } else {
+                // Remove it.
+                this.removeRenderTarget();
+            }
+        } else if (element) {
+            // No result yet, so add the one given.
+            this.renderTarget = this.defineRenderTarget();
+            if (this.renderTarget) {
+                render(
+                    <>
+                        {element}
+                        {this.resultDivider}
+                    </>, this.renderTarget,
+                );
+            }
+        }
+    }
+
+    private handleResultPageChange = (resultId: string, currentPage: number, sql: string): void => {
         if (this.context instanceof SQLExecutionContext) {
             // Currently paging is only supported for SQL execution blocks.
             void requisitions.execute("sqlShowDataAtPage",
-                { context: this.context, oldRequestId: requestId, page: currentPage, sql });
+                { context: this.context, oldResultId: resultId, page: currentPage, sql });
         }
     };
 
     private handleResultPaneChange = (maximized: boolean): void => {
         this.maximizedResult = maximized;
 
-        this.updateRenderTarget();
+        //this.updateRenderTarget();
     };
 
     private handleSelectTab = (index: number): void => {
         this.currentSet = index;
     };
 
-    private handleNewRows = async (data: IResultSetRows): Promise<boolean | React.ReactNode> => {
-        if (!this.resultData) {
-            return false;
+    private changeLoadingState = (newState: LoadingState): void => {
+        this.loadingState = newState;
+        this.updateMarginDecorations();
+
+        if (this.context) {
+            void requisitions.execute("editorContextStateChanged", this.context.id);
         }
-
-        if (this.waitTimer || this.loadingState === LoadingState.Waiting) {
-            // This is the first result, which arrives here. Switch to the loading state.
-            if (this.waitTimer) {
-                clearTimeout(this.waitTimer);
-                this.waitTimer = null;
-            }
-            this.loadingState = LoadingState.Loading;
-            this.updateMarginDecorations();
-        }
-
-        if (this.resultData.type !== "resultSets") {
-            return false;
-        }
-
-        const contextId = this.context!.id;
-        const resultSets = this.resultData.sets;
-        if (resultSets.length === 0 && data.executionInfo) {
-            this.resultData.output?.push({
-                type: MessageType.Info,
-                requestId: data.requestId,
-                content: data.executionInfo.text,
-                language: "ansi",
-            });
-
-            return <ResultTabView
-                ref={this.resultRef}
-                resultSets={this.resultData}
-                contextId={contextId}
-                resultPaneMaximized={this.maximizedResult}
-                onResultPageChange={this.handleResultPageChange}
-                onSetResultPaneViewState={this.handleResultPaneChange}
-                onSelectTab={this.handleSelectTab}
-            />;
-
-        }
-
-        // Add the data to our internal storage, to support switching tabs for multiple result sets.
-        const index = resultSets.findIndex((candidate) => {
-            return candidate.head.requestId === data.requestId;
-        });
-
-        const resultSet = index > - 1 ? resultSets[index] : undefined;
-
-        if (resultSet) {
-            const columnCount = data.columns.length;
-            const rowCount = data.rows.length;
-
-            if (data.executionInfo) {
-                resultSet.data.executionInfo = data.executionInfo;
-                resultSet.data.hasMoreRows = data.hasMoreRows;
-                resultSet.data.currentPage = data.currentPage;
-
-                // This is the last result call, if a status is given.
-                // So stop also any wait/load animation.
-                this.loadingState = LoadingState.Idle;
-                this.updateMarginDecorations();
-
-                // Special treatment: if there's no data in the result after the final response, convert it to
-                // simple output.
-                if (resultSet.data.columns.length + columnCount === 0 || resultSet.data.rows.length + rowCount === 0) {
-                    this.resultData.sets.splice(index, 1);
-                    this.resultData.output?.push({
-                        type: data.executionInfo.type ?? MessageType.Info,
-                        index: resultSet.index,
-                        requestId: resultSet.head.requestId,
-                        content: data.executionInfo.text,
-                        language: "ansi",
-                    });
-
-                    return <ResultTabView
-                        ref={this.resultRef}
-                        resultSets={this.resultData}
-                        contextId={contextId}
-                        resultPaneMaximized={this.maximizedResult}
-                        onResultPageChange={this.handleResultPageChange}
-                        onSetResultPaneViewState={this.handleResultPaneChange}
-                        onSelectTab={this.handleSelectTab}
-                    />;
-                }
-            }
-
-            if (columnCount > 0) {
-                if (data.columns) {
-                    resultSet.data.columns = data.columns;
-                }
-                await this.resultRef.current?.updateColumns(data.requestId, resultSet.data.columns);
-            }
-
-            if (rowCount > 0) {
-                resultSet.data.rows.push(...data.rows);
-
-                if (this.resultRef.current) {
-                    await this.resultRef.current.addData(data);
-                }
-            } else if (data.executionInfo) {
-                // Also sent a data call if the execution info came in, even if no additional data exist.
-                if (this.resultRef.current) {
-                    await this.resultRef.current.addData(data);
-                }
-            }
-
-        }
-
-        return true;
     };
 }
 

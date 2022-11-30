@@ -23,6 +23,11 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
         "auto",
       ]
     }
+    innerRef={
+      Object {
+        "current": Object {},
+      }
+    }
   >
     <div
       className="msg grid actionOutput"
@@ -75,9 +80,9 @@ HTMLCollection [
     data-tooltip="expand"
     style="grid-column: span 2;"
     tabindex="-1"
-    type="0"
+    type="4"
   >
-    Lorem ipsum dolor sit amet
+    A simple response
   </label>,
 ]
 `;
@@ -96,6 +101,11 @@ exports[`Action Output Tests Standard Rendering 1`] = `
         "fit-content(10%)",
         "auto",
       ]
+    }
+    innerRef={
+      Object {
+        "current": Object {},
+      }
     }
   >
     <div

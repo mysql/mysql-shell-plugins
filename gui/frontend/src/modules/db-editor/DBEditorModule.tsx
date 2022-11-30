@@ -62,7 +62,7 @@ import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { DBEditorModuleId } from "../ModuleInfo";
-import { EditorLanguage, IExecutionContext, IScriptRequest } from "../../supplement";
+import { EditorLanguage, IExecutionContext } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
@@ -527,7 +527,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private showPage = (data: { module: string; page: string; suppressAbout?: boolean }): Promise<boolean> => {
+    private showPage = (data: { module: string; page: string; suppressAbout?: boolean; }): Promise<boolean> => {
         if (data.module === DBEditorModuleId) {
             const { connectionsLoaded, connections } = this.state;
 
@@ -545,11 +545,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return Promise.resolve(false);
     };
 
-    private openConnectionTab = (data: { details: IConnectionDetails; force: boolean }): Promise<boolean> => {
+    private openConnectionTab = (data: { details: IConnectionDetails; force: boolean; }): Promise<boolean> => {
         return this.addConnectionTab(data.details, data.force, false);
     };
 
-    private setCurrentSchema = (data: { id: string; connectionId: number; schema: string }): Promise<boolean> => {
+    private setCurrentSchema = (data: { id: string; connectionId: number; schema: string; }): Promise<boolean> => {
         return new Promise((resolve) => {
             const { editorTabs } = this.state;
 
@@ -597,7 +597,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
     };
 
-    private runCommand = (details: { command: string; context: IExecutionContext }): Promise<boolean> => {
+    private runCommand = (details: { command: string; context: IExecutionContext; }): Promise<boolean> => {
         return new Promise((resolve) => {
             switch (details.command) {
                 case "sendBlockUpdates": {
@@ -902,6 +902,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         void this.removeTab(id);
     };
 
+    /**
+     * Completely removes a tab, with all its editors.
+     *
+     * @param tabId The ID of the tab to remove.
+     *
+     * @returns A promise resolving to true, when the tab removal is finished.
+     */
     private async removeTab(tabId: string): Promise<boolean> {
         const { selectedPage, editorTabs } = this.state;
 
@@ -914,18 +921,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
 
         if (index > -1) {
-            const connectionState = this.connectionState.get(tabId);
-            if (connectionState) {
-                // Save pending changes.
-                connectionState.editors.forEach((editor) => {
-                    this.saveEditorIfNeeded(editor);
-                });
-
-                this.connectionState.delete(tabId);
-                await connectionState.backend.closeSession();
-            }
-
+            // Remove the editor tab and its associated connection state, but watch out:
+            // Order is important here. First remove the tab, then set the state and finally close the session.
             editorTabs.splice(index, 1);
+
             let newSelection = selectedPage;
 
             if (tabId === newSelection) {
@@ -941,6 +940,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
 
             this.setState({ selectedPage: newSelection, editorTabs });
+
+            const connectionState = this.connectionState.get(tabId);
+            if (connectionState) {
+                // Save pending changes.
+                connectionState.editors.forEach((editor) => {
+                    this.saveEditorIfNeeded(editor);
+                });
+
+                this.connectionState.delete(tabId);
+                await connectionState.backend.closeSession();
+            }
         }
 
         return true;
@@ -1167,6 +1177,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
+    /**
+     * Removes a single editor on a connection tab.
+     *
+     * @param id  The id of the tab in which the editor is located.
+     * @param editorId The id of the editor to remove.
+     * @param doUpdate A flag telling if re-rendering is needed.
+     */
     private handleRemoveEditor = (id: string, editorId: string, doUpdate = true): void => {
         const connectionState = this.connectionState.get(id);
         if (connectionState) {
@@ -1267,7 +1284,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         // Defer the current entry update to the moment when script data has been loaded.
                         updateCurrentEntry = false;
                         ShellInterface.modules.getDataContent(script.dbDataId).then((content) => {
-                            if (content) {
+                            if (content !== undefined) {
                                 this.addEditorFromScript(connectionState, script, content);
                                 connectionState.activeEntry = entryId;
                                 this.forceUpdate();
@@ -1388,12 +1405,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     void ShellInterface.modules.updateData(editor.dbDataId, undefined, content);
                 } else {
                     // Represents a script file from the extension.
+                    /* XXX: Temporarily disabled - we need a better solution for saving scripts in the extension.
                     const details: IScriptRequest = {
                         scriptId: editor.id,
                         content,
                         language: model.getLanguageId() as EditorLanguage,
                     };
-                    requisitions.executeRemote("editorSaveScript", details);
+                    requisitions.executeRemote("editorSaveScript", details);*/
                 }
 
                 // Remove the editor also from the dirty editors list, to disable the save button.
@@ -1489,6 +1507,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     connectionState.editors.push({
                         id: scriptId,
                         caption,
+                        dbDataId,
                         type: EntityType.Script,
                         state: {
                             model,

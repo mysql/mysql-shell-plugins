@@ -100,12 +100,10 @@ export class DBConnection {
                 results = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
                     explicitWait, "Zone hosts were not found");
 
-                const about = await driver.wait(until.elementLocated(async () => {
-                    return results![0].findElements(By.css("span"));
-                }), explicitWait, "about info not found");
+                const about = await results[0].findElements(By.css("span"));
 
-            //first element is usually the about info
-                if ((await about.getText()).indexOf("Welcome") !== -1) {
+                //first element is usually the about info
+                if (about.length > 0 && (await about[0].getText()).indexOf("Welcome") !== -1) {
                     results.shift();
                 }
                 if (results.length > 0) {
@@ -658,12 +656,25 @@ export class DBConnection {
      * @returns A promise resolving when the click is made
      */
     public static clickContextItem = async (itemName: string): Promise<void> => {
-        const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-        const el = lines[lines.length - 1];
-        await driver
-            .actions()
-            .contextClick(el)
-            .perform();
+        await driver.wait(async () => {
+            try {
+                const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+                const el = lines[lines.length - 1];
+                await driver
+                    .actions()
+                    .contextClick(el)
+                    .perform();
+
+                return true;
+            } catch (e) {
+                if (typeof(e) == "object" && String(e).includes("StaleElementReferenceError")) {
+                    return false;
+                } else {
+                    throw e;
+                }
+            }
+        }, explicitWait, "Line was still stale");
+
 
         const shadowRootHost = await driver.wait(until.elementLocated(By.css(".shadow-root-host")),
             2000, "Context menu was not displayed");

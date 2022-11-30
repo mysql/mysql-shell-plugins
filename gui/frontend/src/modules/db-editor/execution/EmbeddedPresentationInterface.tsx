@@ -41,7 +41,6 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
     private internalModel?: Monaco.ITextModel;
     private modelNeedsUpdate = true;
-    private targetUpdated = false;
 
     // Each command uses 2 decorations for the prompt: the one for the first line and one for all others.
     private promptFirstDecorationID = "";
@@ -54,6 +53,9 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     private lastMouseY = 0;
 
     private dividerRef = React.createRef<HTMLDivElement>();
+
+    // Listener for content changes in the render target.
+    private resizeObserver?: ResizeObserver;
 
     private resultInfo?: { // A set of values required to manage a result element.
         zoneId: string;
@@ -163,7 +165,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         const lineCount = this.endLine - this.startLine + 1;
 
         const model = this.backend?.getModel();
-        if (this.backend && model) {
+        if (this.backend && model && model.getLineCount() >= this.endLine) {
             let sourceIDs = this.promptFirstDecorationID === "" ? [] : [this.promptFirstDecorationID];
             let ids = this.backend.deltaDecorations(sourceIDs, [{
                 range: new Range(this.startLine, 1, this.startLine, model.getLineLength(this.startLine)),
@@ -215,7 +217,11 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     protected removeRenderTarget(): void {
-        this.targetUpdated = false;
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = undefined;
+        }
+
         this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.resultInfo) {
                 changeAccessor.removeZone(this.resultInfo.zoneId);
@@ -226,33 +232,13 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         super.removeRenderTarget();
     }
 
-    protected updateRenderTarget(): void {
+    protected updateRenderTarget(height: number): void {
+        super.updateRenderTarget(height);
+
         this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.resultInfo && this.renderTarget) {
-                if (this.currentHeight) {
-                    this.resultInfo.zone.heightInPx = this.currentHeight;
-                    changeAccessor.layoutZone(this.resultInfo.zoneId);
-                } else {
-                    // Make the render resize to its content size, temporarily.
-                    const resultType = this.resultData?.type ?? "text";
-                    const maxAutoHeight: number = PresentationInterface.maxAutoHeight[resultType];
-                    if (resultType === "graphData") {
-                        // Use the maximum height for graph data. We cannot measure the current height from an SVG.
-                        this.currentHeight = maxAutoHeight;
-                        this.resultInfo.zone.heightInPx = maxAutoHeight;
-                    } else {
-                        this.renderTarget.style.maxHeight = `${maxAutoHeight}px`;
-                        this.renderTarget.style.height = "fit-content";
-                        const usedHeight = this.renderTarget.getBoundingClientRect().height;
-
-                        this.resultInfo.zone.heightInPx = Math.ceil(usedHeight);
-                        this.currentHeight = this.resultInfo.zone.heightInPx;
-                    }
-                    changeAccessor.layoutZone(this.resultInfo.zoneId);
-
-                    this.renderTarget.style.height = "";
-                    this.renderTarget.style.maxHeight = `${PresentationInterface.maxHeight}px`;
-                }
+                this.resultInfo.zone.heightInPx = Math.max(height, this.minHeight);
+                changeAccessor.layoutZone(this.resultInfo.zoneId);
             }
         });
     }
@@ -284,11 +270,6 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         const marginNode = document.createElement("div");
         marginNode.className = "zoneMargin";
 
-        if (this.currentHeight) {
-            // If we already have an explicitly height then we don't need a delayed update.
-            this.targetUpdated = true;
-        }
-
         let zoneId = "";
         const zone = {
             afterLineNumber: this.endLine,
@@ -296,18 +277,28 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             marginDomNode: marginNode,
             suppressMouseDown: false,
             heightInPx: this.currentHeight,
-            onComputedHeight: () => {
-                // This is triggered when the view zone computed its current height, which we use as indicator
-                // that the view is about to be shown. We give it a few more milliseconds before we do our
-                // own DOM height computation, based on the view zone's content.
-                if (!this.targetUpdated) {
-                    this.targetUpdated = true;
-                    setTimeout(() => {
-                        this.updateRenderTarget();
-                    }, 200);
-                }
-            },
         };
+
+        if (this.currentHeight) {
+            result.style.height = `${this.currentHeight}px`;
+        }
+
+        // istanbul ignore next
+        if (typeof ResizeObserver !== "undefined") {
+            this.resizeObserver = new ResizeObserver((entries) => {
+                const last = entries.pop();
+                if (last && !this.currentHeight) {
+                    const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
+                    const height = Math.min(last.borderBoxSize[0].blockSize, maxAutoHeight);
+                    if (result.clientHeight > maxAutoHeight) {
+                        result.style.height = `${height}px`;
+                    }
+                    this.updateRenderTarget(height);
+                }
+            });
+            this.resizeObserver.observe(result);
+        }
+
         this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             zoneId = changeAccessor.addZone(zone);
         });
@@ -342,9 +333,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             const delta = e.screenY - this.lastMouseY;
 
             if (!this.currentHeight) {
-                const maxAutoHeight: number = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
-                this.currentHeight = this.renderTarget?.getBoundingClientRect().height
-                    ?? maxAutoHeight;
+                const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
+                this.currentHeight = this.renderTarget?.getBoundingClientRect().height ?? maxAutoHeight;
             }
 
             if (this.resultInfo) {
@@ -355,6 +345,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 const minHeight = this.minHeight ?? 0;
                 if (newHeight >= minHeight && newHeight <= PresentationInterface.maxHeight) {
                     this.resultInfo.zone.heightInPx = newHeight;
+                    this.renderTarget!.style.height = `${newHeight}px`;
 
                     // Only adjust the zone height here. The manualHeight member is updated on mouse up.
                     this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {

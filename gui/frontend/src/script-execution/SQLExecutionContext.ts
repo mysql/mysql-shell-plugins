@@ -35,15 +35,17 @@ interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];
 }
 
-// This class specializes a base context to provide SQL specific functionality (statement splitting, optimized editing).
+/**
+ * This class specializes a base context to provide SQL specific functionality (statement splitting, optimized editing).
+ */
 export class SQLExecutionContext extends ExecutionContext {
     private statementDetails: IStatementDetails[] = [];
 
     // A list of indices of statements that must be run through the statement splitter.
-    private pendingSplitActions: number[] = [];
+    private pendingSplitActions = new Set<number>();
 
     // A list of statement indices that still need validation.
-    private pendingValidations: number[] = [];
+    private pendingValidations = new Set<number>();
 
     public constructor(presentation: PresentationInterface, public dbVersion: number, public sqlMode: string,
         public currentSchema: string, statementSpans?: IStatementSpan[]) {
@@ -57,7 +59,7 @@ export class SQLExecutionContext extends ExecutionContext {
 
             // (Re) run the validation for all (restored) statements.
             for (let i = 0; i < this.statementDetails.length; ++i) {
-                this.pendingValidations.push(i);
+                this.pendingValidations.add(i);
             }
             setImmediate(() => {
                 return this.validateNextStatement();
@@ -73,7 +75,8 @@ export class SQLExecutionContext extends ExecutionContext {
     public dispose(): void {
         super.dispose();
 
-        this.pendingValidations = [];
+        this.pendingSplitActions = new Set<number>();
+        this.pendingValidations = new Set<number>();
     }
 
     /**
@@ -280,6 +283,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 }, Monaco.EndOfLinePreference.LF);
 
                 result.push({
+                    index: rangeIndex,
                     text,
                     offset: currentDetails.span.start,
                     line: rangeStart.lineNumber,
@@ -287,7 +291,8 @@ export class SQLExecutionContext extends ExecutionContext {
                 });
             }
         } else {
-            for (const details of this.statementDetails) {
+            for (let index = 0; index < this.statementDetails.length; ++index) {
+                const details = this.statementDetails[index];
                 if (details.state === StatementFinishState.DelimiterChange) {
                     continue;
                 }
@@ -295,7 +300,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 const rangeStart = model.getPositionAt(details.span.start);
                 let end = details.span.start + details.span.length;
                 if (details.state === StatementFinishState.Complete) {
-                    end -= details.delimiter.length;
+                    end -= details.delimiter!.length;
                 }
                 const rangeEnd = model.getPositionAt(end);
 
@@ -307,6 +312,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 }, Monaco.EndOfLinePreference.LF);
 
                 result.push({
+                    index,
                     text,
                     offset: details.span.start,
                     line: rangeStart.lineNumber - this.presentation.startLine + 1,
@@ -338,13 +344,14 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const offset = model.getOffsetAt(position);
-        const hit = this.statementDetails.find((details: IStatementDetails) => {
+        const index = this.statementDetails.findIndex((details: IStatementDetails) => {
             return details.span.start <= offset && details.span.start + details.span.length >= offset;
         });
 
-        if (hit) {
-            const hitStart = model.getPositionAt(hit.span.start);
-            const hitEnd = model.getPositionAt(hit.span.start + hit.span.length);
+        if (index > -1) {
+            const details = this.statementDetails[index];
+            const hitStart = model.getPositionAt(details.span.start);
+            const hitEnd = model.getPositionAt(details.span.start + details.span.length);
 
             const text = model.getValueInRange({
                 startLineNumber: hitStart.lineNumber,
@@ -354,8 +361,9 @@ export class SQLExecutionContext extends ExecutionContext {
             }, Monaco.EndOfLinePreference.LF);
 
             return {
+                index,
                 text,
-                offset: hit.span.start,
+                offset: details.span.start,
                 line: hitStart.lineNumber,
                 column: hitStart.column,
             };
@@ -371,6 +379,7 @@ export class SQLExecutionContext extends ExecutionContext {
             }, Monaco.EndOfLinePreference.LF);
 
             return {
+                index: this.statementDetails.length - 1,
                 text,
                 offset,
                 line: position.lineNumber,
@@ -418,8 +427,8 @@ export class SQLExecutionContext extends ExecutionContext {
     public validateAll(): void {
         if (!this.disposed) {
             // Replace the entire statement details list with a single entry covering all text.
-            this.pendingValidations = [];
-            this.pendingSplitActions = [0];
+            this.pendingValidations = new Set();
+            this.pendingSplitActions = new Set([0]);
             this.statementDetails = [{
                 delimiter: ";",
                 span: { start: 0, length: this.codeLength },
@@ -487,9 +496,10 @@ export class SQLExecutionContext extends ExecutionContext {
         const editor = this.presentation.backend;
         const model = editor?.getModel();
 
-        if (model) {
-            const next = this.pendingSplitActions.shift();
-            if (next === undefined || next >= this.statementDetails.length) {
+        if (model && this.pendingSplitActions.size > 0) {
+            const [next] = this.pendingSplitActions;
+            this.pendingSplitActions.delete(next);
+            if (next >= this.statementDetails.length) {
                 this.updateLineStartMarkers();
 
                 return;
@@ -519,8 +529,8 @@ export class SQLExecutionContext extends ExecutionContext {
             }
 
             // Check if the statement must be split.
-            services.determineStatementRanges(this, nextDetails.delimiter, (ranges): void => {
-                if (this.pendingSplitActions.includes(next)) {
+            services.determineStatementRanges(this, nextDetails.delimiter ?? ";", (ranges): void => {
+                if (this.pendingSplitActions.has(next)) {
                     // Shortcut: if a new request came in for the same statement, while we processed it,
                     // ignore the results from this run and instead handle changes in the new request.
 
@@ -532,12 +542,21 @@ export class SQLExecutionContext extends ExecutionContext {
                     // with the next statement(s) and re-schedule the split action.
                     const storeValuesAndValidate = (): void => {
                         // For the last statement, if no final delimiter was provided, no delimiter is returned.
-                        // In that case use the default delimiter.
-                        nextDetails.delimiter = ranges[0].delimiter || ";";
+                        // In that case use the delimiter which was set for the previous statement details entry.
+                        let delimiter = ranges[0].delimiter;
+                        if (!delimiter) {
+                            if (next > 0) {
+                                delimiter = this.statementDetails[next - 1].delimiter;
+                            } else {
+                                delimiter = ";";
+                            }
+                        }
+                        nextDetails.delimiter = delimiter;
                         nextDetails.state = ranges[0].state;
                         nextDetails.contentStart = nextDetails.span.start + ranges[0].contentStart;
 
-                        this.pushValidationRequest(next);
+                        this.validateNextStatement(next);
+                        this.updateLineStartMarkers();
                     };
 
                     switch (ranges[0].state) {
@@ -561,11 +580,14 @@ export class SQLExecutionContext extends ExecutionContext {
                                     this.clearDecorations(next + 1, run - 1);
                                     this.statementDetails.splice(next + 1, run - next - 1);
                                 }
-                                this.pendingSplitActions.unshift(next);
+                                this.pendingSplitActions.add(next);
 
                                 setImmediate(() => {
                                     return this.splitNextStatement();
                                 });
+                            } else {
+                                // This is a DELIMITER statement with no following code.
+                                storeValuesAndValidate();
                             }
 
                             break;
@@ -579,7 +601,7 @@ export class SQLExecutionContext extends ExecutionContext {
                                 this.clearDecorations(next + 1, next + 1);
                                 const temp = this.statementDetails.splice(next + 1, 1);
                                 nextDetails.span.length += temp[0].span.length;
-                                this.pendingSplitActions.unshift(next);
+                                this.pendingSplitActions.add(next);
 
                                 setImmediate(() => {
                                     return this.splitNextStatement();
@@ -602,10 +624,11 @@ export class SQLExecutionContext extends ExecutionContext {
                     // Replace the original statement with the list of new statements
                     // and add them all for validation (if there are any new ones).
                     if (next < this.statementDetails.length) {
-                        const newStatements: IStatementDetails[] = [];
+                        let newStatements: IStatementDetails[] = [];
+                        let lastDelimiter = ";";
                         ranges.forEach((range: IStatementSpan) => {
                             newStatements.push({
-                                delimiter: range.delimiter,
+                                delimiter: range.delimiter ?? lastDelimiter,
                                 span: {
                                     start: range.span.start + nextDetails.span.start,
                                     length: range.span.length,
@@ -614,14 +637,30 @@ export class SQLExecutionContext extends ExecutionContext {
                                 state: range.state,
                                 diagnosticDecorationIDs: [],
                             });
+
+                            if (range.delimiter) {
+                                lastDelimiter = range.delimiter;
+                            }
                         });
 
                         this.clearDecorations(next, next);
 
                         this.statementDetails.splice(next, 1, ...newStatements);
+                        this.updateLineStartMarkers();
                         this.updateValidationIndices(next, ranges.length);
-                        for (let i = 0, run = next; i < newStatements.length; ++i, ++run) {
-                            this.pushValidationRequest(run);
+
+                        // Add new statements to our validation queue, but put the shortest ones first
+                        // for faster visual response.
+                        newStatements = newStatements.sort((a, b) => {
+                            return a.span.length - b.span.length;
+                        });
+                        for (let i = 0, run = next + 1; i < newStatements.length; ++i, ++run) {
+                            this.pendingValidations.add(run);
+                        }
+
+                        // Start a number of validations in parallel.
+                        for (let i = 0; i < Math.min(10, newStatements.length); ++i) {
+                            this.validateNextStatement();
                         }
                     }
                 }
@@ -629,7 +668,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
     }
 
-    private validateNextStatement(): void {
+    private validateNextStatement(preferred?: number): void {
         if (this.disposed) {
             return;
         }
@@ -637,9 +676,17 @@ export class SQLExecutionContext extends ExecutionContext {
         const editor = this.presentation.backend;
         const model = editor?.getModel();
 
-        if (model) {
-            const next = this.pendingValidations.shift();
-            if (next === undefined || next >= this.statementDetails.length) {
+        // Either run validation for the given statement index or pick the next one in our wait list.
+        if (model && (this.pendingValidations.size > 0 || preferred !== undefined)) {
+            let next: number;
+            if (preferred !== undefined) {
+                next = preferred;
+            } else {
+                [next] = this.pendingValidations;
+            }
+
+            this.pendingValidations.delete(next);
+            if (next >= this.statementDetails.length) {
                 this.updateLineStartMarkers();
                 void requisitions.execute("editorValidationDone", this.id);
 
@@ -667,7 +714,7 @@ export class SQLExecutionContext extends ExecutionContext {
             const rangeStart = model.getPositionAt(start);
             let end = start + nextDetails.span.length;
             if (nextDetails.state === StatementFinishState.Complete) {
-                end -= nextDetails.delimiter.length;
+                end -= nextDetails.delimiter!.length;
             }
             const rangeEnd = model.getPositionAt(end);
 
@@ -678,10 +725,10 @@ export class SQLExecutionContext extends ExecutionContext {
                 endColumn: rangeEnd.column,
             }, Monaco.EndOfLinePreference.LF);
 
-            services.validate(this, sql, (result): void => {
+            void services.validate(this, sql, (result): void => {
                 // If the same statement was again scheduled for validation, while we validated it (keep in mind
                 // validation happens in a webworker), ignore the results.
-                if (!this.pendingValidations.includes(next)) {
+                if (!this.pendingValidations.has(next)) {
                     const newDecorations = result.map((entry: IDiagnosticEntry) => {
                         const startPosition = model.getPositionAt(entry.span.start + start);
                         const endPosition = model.getPositionAt(entry.span.start + start + entry.span.length);
@@ -728,20 +775,9 @@ export class SQLExecutionContext extends ExecutionContext {
      * registered for validation.
      *
      * @param threshold The minimum index for which to apply the offset.
-     * @param deltaOrIndices A list of indices to remove.
+     * @param delta A list of indices to remove.
      */
-    private updateValidationIndices(threshold: number, deltaOrIndices: number[] | number): void {
-        let delta: number;
-        if (Array.isArray(deltaOrIndices)) {
-            this.pendingValidations = this.pendingValidations.filter((value: number) => {
-                return !deltaOrIndices.includes(value);
-            });
-
-            delta = deltaOrIndices.length;
-        } else {
-            delta = deltaOrIndices;
-        }
-
+    private updateValidationIndices(threshold: number, delta: number): void {
         this.pendingValidations.forEach((value: number, index: number) => {
             if (value >= threshold) {
                 this.pendingValidations[index] += delta;
@@ -759,50 +795,13 @@ export class SQLExecutionContext extends ExecutionContext {
      */
     private pushSplitRequest(index: number): void {
         if (!this.disposed) {
-            this.pendingValidations = this.pendingValidations.filter((value: number) => {
-                return value !== index;
-            });
+            const oldSize = this.pendingSplitActions.size;
+            this.pendingValidations.delete(index);
+            this.pendingSplitActions = new Set([index, ...this.pendingSplitActions]);
 
-            this.pendingSplitActions = this.pendingSplitActions.filter((value: number) => {
-                return value !== index;
-            });
-
-            this.pendingSplitActions.unshift(index);
-
-            if (this.splitTimer) {
-                clearTimeout(this.splitTimer);
-            }
-
-            this.splitTimer = setTimeout(() => {
-                this.splitTimer = null;
+            if (oldSize === 0) {
                 this.splitNextStatement();
-            }, 100);
-        }
-    }
-
-    /**
-     * Puts a new statement index for validation on the validation queue.
-     * If that index is already in the queue then all other occurrences are removed.
-     * Before return validation of the next statement is asynchronously triggered.
-     *
-     * @param index The index to push.
-     */
-    private pushValidationRequest(index: number): void {
-        if (!this.disposed) {
-            this.pendingValidations = this.pendingValidations.filter((value: number) => {
-                return value !== index;
-            });
-
-            this.pendingValidations.push(index);
-
-            if (this.validationTimer) {
-                clearTimeout(this.validationTimer);
             }
-
-            this.validationTimer = setTimeout(() => {
-                this.validationTimer = null;
-                this.validateNextStatement();
-            }, 100);
         }
     }
 
