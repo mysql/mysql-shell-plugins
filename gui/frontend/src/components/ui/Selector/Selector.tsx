@@ -145,7 +145,7 @@ export class Selector extends Component<ISelectorProperties> {
                             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                             childOnDrop?.(e, props);
                         },
-                    });
+                    } as never); // Cast to never to allow assigning the id field.
                 }
 
                 return undefined;

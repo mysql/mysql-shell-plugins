@@ -28,8 +28,10 @@ import { PresentationInterface } from "../../../script-execution/PresentationInt
 import { EditorLanguage } from "../../../supplement";
 import { ScriptEditor } from "../ScriptEditor";
 
-// Handling of UI related tasks in a code editor for standalone contexts.
+/** Handling of UI related tasks in a code editor for standalone contexts. */
 export class StandalonePresentationInterface extends PresentationInterface {
+
+    private resizeObserver?: ResizeObserver;
 
     public constructor(
         private host: ScriptEditor,
@@ -44,17 +46,45 @@ export class StandalonePresentationInterface extends PresentationInterface {
     }
 
     protected removeRenderTarget(): void {
+        super.removeRenderTarget();
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = undefined;
+        }
+
         this.host.setState({ showResultPane: false });
     }
 
-    protected updateRenderTarget(): void {
-        this.host.setState({
-            showResultPane: true,
-            maximizeResultPane: this.maximizedResult ?? false,
-        });
+    protected updateRenderTarget(height: number): void {
+        super.updateRenderTarget(height);
+
+        this.currentHeight = height;
+
+        this.host.forceUpdate();
     }
 
     protected defineRenderTarget(): HTMLDivElement {
+        const target = this.target.current;
+        if (!target) {
+            return document.createElement("div");
+        }
+
+        // istanbul ignore next
+        if (typeof ResizeObserver !== "undefined") {
+            this.resizeObserver = new ResizeObserver((entries) => {
+                const last = entries.pop();
+                if (last && !this.currentHeight) {
+                    const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
+                    const height = Math.min(last.borderBoxSize[0].blockSize, maxAutoHeight);
+                    if (target.clientHeight > maxAutoHeight) {
+                        target.style.height = `${height}px`;
+                    }
+                    this.currentHeight = height;
+                }
+            });
+            this.resizeObserver.observe(target);
+        }
+
         this.host.setState({
             showResultPane: true,
             maximizeResultPane: this.maximizedResult ?? false,

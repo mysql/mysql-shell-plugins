@@ -210,8 +210,10 @@ export class TreeGrid extends Component<ITreeGridProperties> {
                     }
 
                     // Assign the table holder class our fixed scrollbar class too.
-                    this.resizeObserver?.observe(this.hostRef.current as Element);
-                    (this.hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
+                    if (this.hostRef.current) {
+                        this.resizeObserver?.observe(this.hostRef.current);
+                        (this.hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
+                    }
                     this.tableReady = true;
 
                 });

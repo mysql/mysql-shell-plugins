@@ -37,13 +37,11 @@ describe("Result View Tests", (): void => {
         const component = mount<ResultView>(
             <ResultView
                 resultSet={{
-                    head: {
-                        sql: "select 1",
-                        requestId: "123",
-                    },
+                    type: "resultSet",
+                    sql: "select 1",
+                    resultId: "123",
+                    columns: [],
                     data: {
-                        requestId: "123",
-                        columns: [],
                         rows: [],
                         currentPage: 0,
                     },
@@ -60,13 +58,11 @@ describe("Result View Tests", (): void => {
         const component = mount<ResultView>(
             <ResultView
                 resultSet={{
-                    head: {
-                        sql: "select 1",
-                        requestId: "123",
-                    },
+                    type: "resultSet",
+                    sql: "select 1",
+                    resultId: "123",
+                    columns: [],
                     data: {
-                        requestId: "123",
-                        columns: [],
                         rows: [],
                         currentPage: 0,
                         executionInfo: {
@@ -82,13 +78,11 @@ describe("Result View Tests", (): void => {
 
         component.setProps({
             resultSet: {
-                head: {
-                    sql: "select 1",
-                    requestId: "123",
-                },
+                type: "resultSet",
+                sql: "select 1",
+                resultId: "123",
+                columns: [],
                 data: {
-                    requestId: "123",
-                    columns: [],
                     rows: [],
                     currentPage: 0,
                     executionInfo: {
@@ -362,13 +356,11 @@ describe("Result View Tests", (): void => {
         const component = mount<ResultView>(
             <ResultView
                 resultSet={{
-                    head: {
-                        sql: "select 1",
-                        requestId: "123",
-                    },
+                    type: "resultSet",
+                    sql: "select 1",
+                    resultId: "123",
+                    columns: columns1,
                     data: {
-                        requestId: "123",
-                        columns: columns1,
                         rows: [],
                         currentPage: 0,
                         executionInfo: {
@@ -428,13 +420,11 @@ describe("Result View Tests", (): void => {
         const component = mount<ResultView>(
             <ResultView
                 resultSet={{
-                    head: {
-                        sql: "select 1",
-                        requestId: "123",
-                    },
+                    type: "resultSet",
+                    sql: "select 1",
+                    resultId: "123",
+                    columns,
                     data: {
-                        requestId: "123",
-                        columns,
                         rows,
                         currentPage: 0,
                     },

@@ -151,6 +151,11 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         "auto",
                       ]
                     }
+                    innerRef={
+                      Object {
+                        "current": Object {},
+                      }
+                    }
                   >
                     <div
                       className="msg grid actionOutput"
@@ -395,32 +400,28 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
       ],
       "sets": Array [
         Object {
+          "columns": Array [],
           "data": Object {
-            "columns": Array [],
             "currentPage": 0,
             "executionInfo": Object {
               "text": "All fine",
               "type": 4,
             },
-            "requestId": "123",
             "rows": Array [],
           },
-          "head": Object {
-            "requestId": "123",
-            "sql": "select 1",
-          },
+          "resultId": "123",
+          "sql": "select 1",
+          "type": "resultSet",
         },
         Object {
+          "columns": Array [],
           "data": Object {
-            "columns": Array [],
             "currentPage": 10,
-            "requestId": "456",
             "rows": Array [],
           },
-          "head": Object {
-            "requestId": "456",
-            "sql": "select 2",
-          },
+          "resultId": "456",
+          "sql": "select 2",
+          "type": "resultSet",
         },
       ],
       "type": "resultSets",
@@ -471,20 +472,18 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                 onEdit={[Function]}
                 resultSet={
                   Object {
+                    "columns": Array [],
                     "data": Object {
-                      "columns": Array [],
                       "currentPage": 0,
                       "executionInfo": Object {
                         "text": "All fine",
                         "type": 4,
                       },
-                      "requestId": "123",
                       "rows": Array [],
                     },
-                    "head": Object {
-                      "requestId": "123",
-                      "sql": "select 1",
-                    },
+                    "resultId": "123",
+                    "sql": "select 1",
+                    "type": "resultSet",
                   }
                 }
               />,
@@ -496,16 +495,14 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                 onEdit={[Function]}
                 resultSet={
                   Object {
+                    "columns": Array [],
                     "data": Object {
-                      "columns": Array [],
                       "currentPage": 10,
-                      "requestId": "456",
                       "rows": Array [],
                     },
-                    "head": Object {
-                      "requestId": "456",
-                      "sql": "select 2",
-                    },
+                    "resultId": "456",
+                    "sql": "select 2",
+                    "type": "resultSet",
                   }
                 }
               />,
@@ -932,20 +929,18 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                   onEdit={[Function]}
                   resultSet={
                     Object {
+                      "columns": Array [],
                       "data": Object {
-                        "columns": Array [],
                         "currentPage": 0,
                         "executionInfo": Object {
                           "text": "All fine",
                           "type": 4,
                         },
-                        "requestId": "123",
                         "rows": Array [],
                       },
-                      "head": Object {
-                        "requestId": "123",
-                        "sql": "select 1",
-                      },
+                      "resultId": "123",
+                      "sql": "select 1",
+                      "type": "resultSet",
                     }
                   }
                 >

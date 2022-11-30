@@ -211,7 +211,7 @@ export const registerSettings = (): void => {
         "Specifies the number of seconds that pass until the oldest inactive worker is removed. Has no effect if the " +
         "current number of active workers fall below the minimal worker count.",
         "number",
-        60,
+        5,
         true,
     );
 

@@ -44,7 +44,7 @@ describe("Action Output Tests", (): void => {
     });
 
     it("Action Full Rendering", async () => {
-        const component = mount(
+        const component = mount<ActionOutput>(
             <ActionOutput
                 id="actionOutput1"
                 output={
@@ -60,7 +60,13 @@ describe("Action Output Tests", (): void => {
 
         expect(snapshotFromWrapper(component)).toMatchSnapshot();
 
-        component.setProps({ language: "json", text: "{ key: 'value' }", executionInfo: undefined });
+        component.setProps({
+            output:
+                [{
+                    type: MessageType.Response,
+                    content: "A simple response",
+                }],
+        });
         await nextRunLoop();
 
         const output = component.getDOMNode().getElementsByClassName("msg");

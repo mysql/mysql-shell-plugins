@@ -79,6 +79,8 @@ interface IDBEditorToolbarState extends IComponentState {
 
 export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEditorToolbarState> {
 
+    private stateChangeTimer: ReturnType<typeof setTimeout> | null;
+
     public constructor(props: IDBEditorToolbarProperties) {
         super(props);
 
@@ -96,33 +98,34 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         };
     }
 
-    public static getDerivedStateFromProps(props: IDBEditorToolbarProperties): Partial<IDBEditorToolbarState> {
-        const currentEditor = props.editors.find((state) => {
-            return state.id === props.activeEditor;
-        });
+    public componentDidUpdate(oldProps: IDBEditorToolbarProperties): void {
+        const { activeEditor, editors } = this.props;
+        if (activeEditor !== oldProps.activeEditor) {
+            const currentEditor = editors.find((state) => {
+                return state.id === activeEditor;
+            });
 
-        if (currentEditor?.state) {
-            const context = currentEditor.state.model.executionContexts
-                .contextFromPosition(currentEditor.state.model.executionContexts.cursorPosition);
-            if (context) {
-                return {
-                    currentEditor,
-                    currentContext: context,
-                    canExecute: context.loadingState === LoadingState.Idle,
-                    canStop: context.loadingState !== LoadingState.Idle,
-                    canExecuteSubparts: context.isSQLLike,
-                };
+            const contexts = currentEditor?.state?.model.executionContexts;
+            if (contexts) {
+                const context = contexts.contextFromPosition(contexts.cursorPosition);
+                if (context) {
+                    this.setState({
+                        currentEditor,
+                        currentContext: context,
+                        canExecute: context.loadingState === LoadingState.Idle,
+                        canStop: context.loadingState !== LoadingState.Idle,
+                        canExecuteSubparts: context.isSQLLike,
+                    });
+                } else {
+                    this.setState({ currentEditor });
+                }
             }
         }
-
-        return {
-            currentEditor,
-        };
     }
 
     public componentDidMount(): void {
         requisitions.register("editorInfoUpdated", this.editorInfoUpdated);
-        requisitions.register("editorStopExecution", this.stopExecution);
+        requisitions.register("editorContextStateChanged", this.contextStateChanged);
         requisitions.register("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.register("editorToggleAutoCommit", this.toggleAutoCommit);
         requisitions.register("sqlTransactionEnded", this.transactionEnded);
@@ -130,8 +133,13 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
     }
 
     public componentWillUnmount(): void {
+        if (this.stateChangeTimer) {
+            clearTimeout(this.stateChangeTimer);
+            this.stateChangeTimer = null;
+        }
+
         requisitions.unregister("editorInfoUpdated", this.editorInfoUpdated);
-        requisitions.unregister("editorStopExecution", this.stopExecution);
+        requisitions.unregister("editorContextStateChanged", this.contextStateChanged);
         requisitions.unregister("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.unregister("editorToggleAutoCommit", this.toggleAutoCommit);
         requisitions.unregister("sqlTransactionEnded", this.transactionEnded);
@@ -374,7 +382,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         settings.set("editor.showHidden", !showHidden);
     };
 
-    private settingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (!entry) {
             this.forceUpdate();
         } else {
@@ -395,12 +403,48 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         return Promise.resolve(true);
     };
 
-    private stopExecution = (): Promise<boolean> => {
-        // TODO: implement
+    private contextStateChanged = (id: string): Promise<boolean> => {
+        const { currentContext } = this.state;
 
-        this.updateState();
+        // Coalesce multiple state changes into one, as they can come in quickly.
+        if (currentContext && id === currentContext.id) {
+            if (currentContext.loadingState !== LoadingState.Idle) {
+                this.setState({
+                    canExecute: false,
+                    canStop: true,
+                });
 
-        return Promise.resolve(true);
+                this.startStateChangeTimer();
+            }
+
+            return Promise.resolve(true);
+        }
+
+        return Promise.resolve(false);
+    };
+
+    /**
+     * (Re)starts the wait timer for context state changes.
+     */
+    private startStateChangeTimer = (): void => {
+        if (this.stateChangeTimer) {
+            clearTimeout(this.stateChangeTimer);
+        }
+
+        this.stateChangeTimer = setTimeout(() => {
+            const { currentContext } = this.state;
+
+            if (currentContext?.loadingState === LoadingState.Idle) {
+                this.setState({
+                    canExecute: true,
+                    canStop: false,
+                });
+                this.stateChangeTimer = null;
+            } else {
+                this.startStateChangeTimer();
+            }
+        }, 500);
+
     };
 
     private toggleStopExecutionOnError = (active: boolean): Promise<boolean> => {
@@ -424,7 +468,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
 
         this.updateState();
 
-        return Promise.resolve(true);
+        return true;
     };
 
     private transactionEnded = async (): Promise<boolean> => {

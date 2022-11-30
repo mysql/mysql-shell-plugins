@@ -256,17 +256,17 @@ describe("Sessions", () => {
 
             await ShellSession.changeSchemaOnTab("sakila");
 
-            await Misc.execCmd(textArea, `shell.options.resultFormat="json/raw"`);
+            await Misc.execCmd(textArea, `shell.options.resultFormat="json/raw" `);
 
             await driver.wait(async () => {
                 return (await ShellSession.getResult()) === "json/raw";
             }, explicitWait, "mysql is not the the dataset");
 
-            await Misc.execCmd(textArea, `shell.options.showColumnTypeInfo=false`);
+            await Misc.execCmd(textArea, `shell.options.showColumnTypeInfo=false `);
 
             expect(await ShellSession.getResult()).toBe("false");
 
-            await Misc.execCmd(textArea, `shell.options.resultFormat="json/pretty"`);
+            await Misc.execCmd(textArea, `shell.options.resultFormat="json/pretty" `);
 
             expect(await ShellSession.getResult()).toBe("json/pretty");
 
@@ -278,7 +278,7 @@ describe("Sessions", () => {
 
             expect(result).toContain(`"name": "Action"`);
 
-            await Misc.execCmd(textArea, `shell.options.resultFormat="table"`);
+            await Misc.execCmd(textArea, `shell.options.resultFormat="table" `);
 
             expect(await ShellSession.getResult()).toBe("table");
 

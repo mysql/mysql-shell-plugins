@@ -126,8 +126,11 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
 
         this.state = {
             resultSet: {
-                head: { requestId: "", sql: "" },
-                data: { requestId: "", currentPage: 1, columns: [], rows: [] },
+                type: "resultSet",
+                resultId: "",
+                columns: [],
+                data: { currentPage: 1, rows: [] },
+                sql: "",
             },
             gotResponse: false,
             gotError: false,
@@ -226,7 +229,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
                                 ref={this.gridRef}
                                 style={{ fontSize: "10pt" }}
                                 options={options}
-                                columns={this.generateColumnDefinitions(resultSet.data.columns)}
+                                columns={this.generateColumnDefinitions(resultSet.columns)}
                                 tableData={resultSet.data.rows}
                                 selectedIds={[this.getSelectedRowValue("PROCESSLIST_ID")]}
                                 onRowSelected={this.handleClientConnectionTreeRowSelected}
@@ -620,20 +623,18 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             `LEFT OUTER JOIN performance_schema.session_connect_attrs a ON ` +
             `t.processlist_id = a.processlist_id AND (a.attr_name IS NULL OR a.attr_name = 'program_name') ${where}`;
 
-        const requestId = uuid();
-        const result = await backend.execute(query, undefined, requestId);
+        const resultId = uuid();
+        const result = await backend.execute(query, undefined, resultId);
         if (result) {
             this.columns = generateColumnInfo(DBType.MySQL, result.columns);
             const rows = convertRows(this.columns, result.rows);
-            const resultSet = {
-                head: {
-                    requestId,
-                    sql: query,
-                },
+            const resultSet: IResultSet = {
+                type: "resultSet",
+                resultId,
+                sql: query,
+                columns: this.columns,
                 data: {
-                    requestId,
                     currentPage: 1,
-                    columns: this.columns,
                     rows,
                 },
             };
@@ -788,22 +789,20 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
     private updateAttributes = async (id: string): Promise<void> => {
         const { backend } = this.props;
 
-        const requestId = uuid();
+        const resultId = uuid();
         const query = `SELECT * FROM performance_schema.session_connect_attrs` +
             ` WHERE processlist_id = ${id} ORDER BY ORDINAL_POSITION`;
-        const result = await backend.execute(query, undefined, requestId);
+        const result = await backend.execute(query, undefined, resultId);
         if (result) {
             this.attrColumns = generateColumnInfo(DBType.MySQL, result.columns);
             const rows = convertRows(this.attrColumns, result.rows);
-            const resultSet = {
-                head: {
-                    requestId,
-                    sql: query,
-                },
+            const resultSet: IResultSet = {
+                type: "resultSet",
+                resultId,
+                sql: query,
+                columns: this.attrColumns,
                 data: {
-                    requestId,
                     currentPage: 1,
-                    columns: this.attrColumns,
                     rows,
                 },
             };
@@ -889,24 +888,22 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         objectName: string): void => {
         const { backend } = this.props;
 
-        const requestId = uuid();
+        const resultId = uuid();
         const query = `SELECT OWNER_THREAD_ID as threadId, LOCK_TYPE as type, LOCK_DURATION as duration ` +
             `FROM performance_schema.metadata_locks WHERE ${subQuery} AND LOCK_STATUS = 'PENDING'`;
-        backend.execute(query, undefined, requestId).then((result) => {
+        backend.execute(query, undefined, resultId).then((result) => {
             if (result) {
                 const columns = generateColumnInfo(DBType.MySQL, result.columns);
                 const rows = convertRows(columns, result.rows);
                 rows.unshift({ threadId: objectName, type, duration });
 
-                const resultSet = {
-                    head: {
-                        requestId,
-                        sql: query,
-                    },
+                const resultSet: IResultSet = {
+                    type: "resultSet",
+                    resultId,
+                    sql: query,
+                    columns,
                     data: {
-                        requestId,
                         currentPage: 1,
-                        columns,
                         rows,
                     },
                 };
@@ -981,13 +978,13 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         const currentSelectedThread = this.getSelectedRowValue("THREAD_ID");
 
         if (id === "attrTab") {
-            const field = attributes?.data.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
+            const field = attributes?.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
             if (!attributes || !field ||
                 (field && attributes?.data.rows[0][field.field] as string !== currentSelectedRow)) {
                 await this.updateAttributes(currentSelectedRow);
             }
         } else if (id === "locksTab") {
-            const field = grantedLocks?.data.columns.find((x) => { return x.title === "THREAD_ID"; });
+            const field = grantedLocks?.columns.find((x) => { return x.title === "THREAD_ID"; });
             if (!grantedLocks || !field ||
                 (field && grantedLocks?.data.rows[0][field.field] as string !== currentSelectedThread)) {
                 await this.updateLocks(parseInt(currentSelectedThread, 10));

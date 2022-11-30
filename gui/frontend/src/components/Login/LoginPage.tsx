@@ -34,6 +34,7 @@ import {
 import { ShellInterface } from "../../supplement/ShellInterface";
 import { MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
+import { ResponseError } from "../../communication";
 
 interface ILoginPageState extends React.ComponentState {
     userName: string;
@@ -147,7 +148,11 @@ export class LoginPage extends Component<{}, ILoginPageState> {
                 void requisitions.execute("userAuthenticated", profile);
             }
         }).catch((reason) => {
-            this.setState({ errorMessage: reason });
+            if (reason instanceof ResponseError) {
+                this.setState({ errorMessage: reason.message });
+            } else {
+                this.setState({ errorMessage: reason });
+            }
         });
     };
 

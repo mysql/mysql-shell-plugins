@@ -45,10 +45,21 @@ interface IActionOutputProperties extends IComponentProperties {
  */
 export class ActionOutput extends Component<IActionOutputProperties> {
 
+    private gridRef = React.createRef<HTMLDivElement>();
+
     public constructor(props: IActionOutputProperties) {
         super(props);
 
         this.addHandledProperties("output", "contextId", "showIndexes", "onLabelClick");
+    }
+
+    public componentDidUpdate(): void {
+        const lastChild = this.gridRef.current?.lastElementChild;
+
+        /* istanbul ignore next */
+        if (lastChild && "scrollIntoView" in lastChild) {
+            lastChild.scrollIntoView();
+        }
     }
 
     public render(): React.ReactNode {
@@ -57,11 +68,12 @@ export class ActionOutput extends Component<IActionOutputProperties> {
 
         // Note: no GridCell instance is used, as we always have only one entry per cell.
         const cells: React.ReactElement[] = [];
+        const canShowIndexes = showIndexes && output && output.length > 1;
         output?.forEach((entry) => {
             const index = entry.index !== undefined && entry.index >= 0 ? entry.index : undefined;
 
             let columnSpan = 1;
-            if (index !== undefined && showIndexes) {
+            if (index !== undefined && canShowIndexes) {
                 cells.push(
                     <Label className="commandIndex" caption={`#${index + 1}: `} />,
                 );
@@ -73,7 +85,7 @@ export class ActionOutput extends Component<IActionOutputProperties> {
                 className={`actionLabel${index === undefined ? "" : " clickable"}`}
                 id={index?.toString()}
                 language={entry.language}
-                key={entry.requestId}
+                key={entry.resultId}
                 caption={entry.content}
                 type={entry.type}
                 style={{ gridColumn: `span ${columnSpan}` }}
@@ -83,7 +95,7 @@ export class ActionOutput extends Component<IActionOutputProperties> {
         });
 
         return (
-            <Grid columns={["fit-content(10%)", "auto"]} columnGap={4} className={className}>
+            <Grid innerRef={this.gridRef} columns={["fit-content(10%)", "auto"]} columnGap={4} className={className}>
                 {cells}
             </Grid>
         );

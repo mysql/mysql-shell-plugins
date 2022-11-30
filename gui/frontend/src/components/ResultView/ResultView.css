@@ -337,6 +337,10 @@
     flex: 1 1 auto;
 }
 
+.msg.connectionTabHost .resultHost .actionOutput {
+    padding: 4px;
+}
+
 .msg.connectionTabHost .renderTarget .actionOutput .actionLabel.clickable:hover,
 .msg#shellEditorHost .renderTarget .actionOutput .actionLabel.clickable:hover {
     text-decoration: underline;

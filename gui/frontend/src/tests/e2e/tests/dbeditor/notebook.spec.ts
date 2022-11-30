@@ -162,7 +162,7 @@ describe("Notebook", () => {
 
             await Misc.execCmd(textArea, "select version();", 20000);
 
-            await DBConnection.writeSQL("select * from actor limit 1", true);
+            await DBConnection.writeSQL("select * from actor limit 1");
 
             let lastId = await DBConnection.getLastQueryResultId();
 
@@ -225,15 +225,24 @@ describe("Notebook", () => {
 
             expect(result2).toBeDefined();
 
-            expect(await DBConnection.getResultColumnName("actor_id")).toBeDefined();
+            await driver.wait(async () => {
+                await result1!.click();
 
-            await result2!.click();
+                return DBConnection.getResultColumnName("actor_id");
+            }, explicitWait, "actor_id column was not found");
 
-            expect(await DBConnection.getResultColumnName("address_id")).toBeDefined();
+            await driver.wait(async () => {
+                await result2!.click();
 
-            await result1!.click();
+                return DBConnection.getResultColumnName("address_id");
+            }, explicitWait, "address_id column was not found");
 
-            expect(await DBConnection.getResultColumnName("actor_id")).toBeDefined();
+            await driver.wait(async () => {
+                await result1!.click();
+
+                return DBConnection.getResultColumnName("actor_id");
+            }, explicitWait, "actor_id column was not found");
+
         } catch (e) {
             testFailed = true;
             throw e;
@@ -257,7 +266,7 @@ describe("Notebook", () => {
     it("Connection toolbar buttons - Execute selection or full block and create new block", async () => {
         try {
 
-            await DBConnection.writeSQL("select * from actor limit 1", true);
+            await DBConnection.writeSQL("select * from actor limit 1");
 
             const lastId = await DBConnection.getLastQueryResultId();
 
@@ -299,10 +308,6 @@ describe("Notebook", () => {
 
             await DBConnection.writeSQL("select * from category limit 1;");
 
-            await driver.wait(async () => {
-                return (await driver.findElements(By.css(".statementStart"))).length >= 3;
-            }, 7000, "Statement start (blue dot) was not found on all lines");
-
             const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
 
             let span2Click = await lines[lines.length-2].findElement(By.css("span > span"));
@@ -312,9 +317,10 @@ describe("Notebook", () => {
             let lastId = await DBConnection.getLastQueryResultId();
 
             let execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
-            await execCaret?.click();
 
             await driver.wait(async() => {
+                await execCaret?.click();
+
                 return (await DBConnection.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
@@ -327,9 +333,10 @@ describe("Notebook", () => {
             lastId = await DBConnection.getLastQueryResultId();
 
             execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
-            await execCaret?.click();
 
             await driver.wait(async() => {
+                await execCaret?.click();
+
                 return (await DBConnection.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
@@ -342,13 +349,15 @@ describe("Notebook", () => {
             lastId = await DBConnection.getLastQueryResultId();
 
             execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
-            await execCaret?.click();
 
             await driver.wait(async() => {
+                await execCaret?.click();
+
                 return (await DBConnection.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
             expect(await DBConnection.getResultColumnName("category_id")).toBeDefined();
+
         } catch (e) {
             testFailed = true;
             throw e;
@@ -387,7 +396,7 @@ describe("Notebook", () => {
                 return (await DBConnection.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await DBConnection.getResultStatus()).toContain("OK");
+            expect(await DBConnection.getResultStatus(true)).toContain("OK");
 
             await rollBackBtn!.click();
 
@@ -404,7 +413,7 @@ describe("Notebook", () => {
                 return (await DBConnection.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await DBConnection.getResultStatus()).toContain(
+            expect(await DBConnection.getResultStatus(true)).toContain(
                 "OK, 0 records retrieved",
             );
 
@@ -422,7 +431,7 @@ describe("Notebook", () => {
                 return (await DBConnection.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await DBConnection.getResultStatus()).toContain("OK");
+            expect(await DBConnection.getResultStatus(true)).toContain("OK");
 
             await commitBtn!.click();
 
@@ -781,10 +790,6 @@ describe("Notebook", () => {
 
             await driver.sleep(300);
 
-            await textArea.sendKeys(Key.ARROW_UP);
-
-            await driver.sleep(300);
-
             await Misc.pressEnter();
 
             const otherResult = await DBConnection.getOutput(true);
@@ -820,13 +825,13 @@ describe("Notebook", () => {
             await Misc.execCmd(textArea, "SELECT VERSION();");
 
             const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
-                explicitWait, "Result hosts not found");
+                explicitWait*2, "Result hosts not found");
 
             const txt = await driver.wait(until.elementLocated(async () => {
                 return resultHosts[resultHosts.length-1].findElements(By.css(".tabulator-cell"));
-            }), explicitWait, "Table cell was not found");
+            }), explicitWait*2, "Table cell was not found");
 
-            const server = (await txt.getText()).match(/(\d+).(\d+).(\d+)/g)![0];
+            const server = (await txt.getAttribute("innerHTML")).match(/(\d+).(\d+).(\d+)/g)![0];
 
             const digits = server.split(".");
 
@@ -839,14 +844,14 @@ describe("Notebook", () => {
             await Misc.execCmd(textArea, `/*!${serverVer} select * from actor limit 1;*/`);
 
             expect(await DBConnection.getResultStatus(true)).toMatch(
-                new RegExp(/OK, (\d+) record retrieved/),
+                new RegExp(/OK, 1 record retrieved/),
             );
 
             const higherServer = parseInt(serverVer, 10) + 1;
 
             await Misc.execCmd(textArea, `/*!${higherServer} select * from actor limit 1;*/`);
 
-            expect(await DBConnection.getResultStatus()).toContain(
+            expect(await DBConnection.getResultStatus(true)).toContain(
                 "OK, 0 records retrieved",
             );
         } catch (e) {
@@ -928,18 +933,18 @@ describe("Notebook", () => {
             await driver.wait(async () => {
                 return (await driver.findElements(
                     By.css("#contentHost .editorHost div.margin-view-overlays > div"))).length > lines.length;
-            }, 5000, "A new line was not found");
+            }, 10000, "A new line was not found");
 
             await driver.wait(async () => {
                 try {
                     const lines = await driver.findElements(
                         By.css("#contentHost .editorHost div.margin-view-overlays > div"));
 
-                    return (await lines[lines.length-2].findElements(By.css(".statementStart"))).length === 0;
+                    return (await lines[lines.length - 2].findElements(By.css(".statementStart"))).length === 0;
                 } catch (e) {
                     return false;
                 }
-            }, 5000, "Line 2 has the statement start");
+            }, explicitWait, "Line 2 has the statement start");
 
             await textArea.sendKeys("select 1");
 
@@ -948,11 +953,11 @@ describe("Notebook", () => {
                     const lines = await driver.findElements(
                         By.css("#contentHost .editorHost div.margin-view-overlays > div"));
 
-                    return (await lines[lines.length-2].findElements(By.css(".statementStart"))).length > 0;
+                    return (await lines[lines.length - 2].findElements(By.css(".statementStart"))).length > 0;
                 } catch (e) {
                     return false;
                 }
-            }, 5000, "Line 2 does not have the statement start");
+            }, explicitWait, "Line 2 does not have the statement start");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1009,6 +1014,5 @@ describe("Notebook", () => {
             throw e;
         }
     });
-
 
 });

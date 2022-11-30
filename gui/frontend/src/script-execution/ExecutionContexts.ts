@@ -21,9 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ExecutionContext, IExecutionResult, IResultSet, SQLExecutionContext } from ".";
+import { ExecutionContext, IResultSet, IResultSets, SQLExecutionContext } from ".";
 import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB";
-import { MessageType } from "../app-logic/Types";
 import { IExecutionContextState, IPosition } from "../components/ui/CodeEditor";
 import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor";
 import { IStatementSpan } from "../parsing/parser-common";
@@ -123,10 +122,10 @@ export class ExecutionContexts {
             const context = this.createContext(presentation, state.statements);
             if (state.result) {
                 switch (state.result.type) {
-                    case "requestIds": {
+                    case "resultIds": {
                         // Convert result data references back to result data. Result set data is loaded from
                         // the storage DB, if possible.
-                        const result: IExecutionResult = {
+                        const result: IResultSets = {
                             type: "resultSets",
                             sets: [],
                             output: [],
@@ -135,8 +134,8 @@ export class ExecutionContexts {
                         this.loadResultSets(state.result.list).then((resultSets) => {
                             // Remove any result with no columns or rows and add their execution info
                             // to the output list.
-                            resultSets.forEach((set) => {
-                                if (set.data.columns.length === 0 || set.data.rows.length === 0) {
+                            /*resultSets.forEach((set) => {
+                                if (set.columns.length === 0 || set.data.rows.length === 0) {
                                     result.output?.push({
                                         type: set.data.executionInfo?.type ?? MessageType.Info,
                                         index: set.index,
@@ -149,9 +148,14 @@ export class ExecutionContexts {
 
                             result.sets = resultSets.filter((value) => {
                                 return value.data.columns.length > 0 && value.data.rows.length > 0;
-                            });
+                            });*/
+                            result.sets = resultSets;
 
-                            context.setResult(result, state.currentHeight, state.currentSet, state.maximizeResultPane);
+                            context.setResult(result, {
+                                manualHeight: state.currentHeight,
+                                currentSet: state.currentSet,
+                                maximized: state.maximizeResultPane,
+                            });
                         }).catch(() => {
                             // Ignore load errors.
                         });
@@ -161,7 +165,7 @@ export class ExecutionContexts {
                     }
 
                     default: {
-                        context.setResult(state.result, state.currentHeight);
+                        context.setResult(state.result, { manualHeight: state.currentHeight });
 
                         break;
                     }
@@ -301,26 +305,24 @@ export class ExecutionContexts {
     }
 
     /**
-     * Attempts to load all result sets back from the storage DB into a result set structure.
+     * Attempts to load all result sets back from the app DB into a result set structure.
      *
-     * @param requestIds A list of previous request ID used to get the result sets from the backend.
-     *                   This is the ID under which the data was cached before.
+     * @param resultIds A list of previous response qualifiers used to get the result sets from the backend.
+     *                  This is the ID under which the data was cached before.
      *
-     * @returns If the given request ID was found the data is loaded and returned as a list of result sets.
+     * @returns A promise resolving to a list of result sets loaded from the app DB.
      */
-    private async loadResultSets(requestIds: string[]): Promise<IResultSet[]> {
+    private async loadResultSets(resultIds: string[]): Promise<IResultSet[]> {
         const sets: IResultSet[] = [];
 
-        for await (const requestId of requestIds) {
-            const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", requestId);
+        for await (const id of resultIds) {
+            const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", id);
             const set: IResultSet = {
-                head: {
-                    requestId,
-                    sql: "",
-                },
+                type: "resultSet",
+                resultId: id,
+                sql: "",
+                columns: [],
                 data: {
-                    requestId,
-                    columns: [],
                     rows: [],
                     hasMoreRows: false,
                     currentPage: 0,
@@ -332,10 +334,10 @@ export class ExecutionContexts {
                 values.forEach((value) => {
                     set.index = value.index;
                     if (value.sql) {
-                        set.head.sql = value.sql;
+                        set.sql = value.sql;
                     }
 
-                    set.data.columns.push(...value.columns ?? []);
+                    set.columns.push(...value.columns ?? []);
                     set.data.rows.push(...value.rows);
 
                     if (value.executionInfo) {
@@ -353,8 +355,8 @@ export class ExecutionContexts {
         return sets;
     }
 
-    private onResultRemoval = (requestIds: string[]): void => {
-        void ApplicationDB.removeDataByRequestIds(this.store, requestIds);
+    private onResultRemoval = (resultIds: string[]): void => {
+        void ApplicationDB.removeDataByResultIds(this.store, resultIds);
     };
 
     private isDbModuleResultData(data: unknown[]): data is IDbModuleResultData[] {

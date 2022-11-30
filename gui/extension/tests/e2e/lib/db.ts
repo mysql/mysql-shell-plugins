@@ -420,23 +420,39 @@ export class Database {
 
     public static getResultColumnName = async (columnName: string): Promise<WebElement | undefined> => {
 
-        const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
-            explicitWait, "No result hosts found");
+        const getRows = async () => {
+            const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
+                explicitWait, "No result hosts found");
 
-        const resultSet = await driver.wait(async () => {
-            return (await resultHosts[resultHosts.length - 1].findElements(By.css(".tabulator-headers")))[0];
-        }, explicitWait, "No tabulator-headers detected");
+            const resultSet = await driver.wait(async () => {
+                return (await resultHosts[resultHosts.length - 1].findElements(By.css(".tabulator-headers")))[0];
+            }, explicitWait, "No tabulator-headers detected");
 
-        const resultHeaderRows = await driver.wait(async () => {
-            return resultSet.findElements(By.css(".tabulator-col-title"));
-        }, explicitWait, "No tabulator-col-title detected");
+            const resultHeaderRows = await driver.wait(async () => {
+                return resultSet.findElements(By.css(".tabulator-col-title"));
+            }, explicitWait, "No tabulator-col-title detected");
 
-        for (const row of resultHeaderRows) {
-            const rowText = await row.getAttribute("innerHTML");
-            if (rowText === columnName) {
-                return row;
+            return resultHeaderRows;
+        };
+
+        return driver.wait(async ()=> {
+            try {
+                const rows = await getRows();
+                for (const row of rows) {
+                    const rowText = await row.getAttribute("innerHTML");
+                    if (rowText === columnName) {
+                        return row;
+                    }
+                }
+            } catch (e) {
+                if (typeof e == "object" && String(e).includes("StaleElementReferenceError")) {
+                    return undefined;
+                } else {
+                    throw e;
+                }
             }
-        }
+        }, explicitWait, "Result was stale");
+
     };
 
     public static getEditorLanguage = async (): Promise<string> => {
@@ -482,12 +498,11 @@ export class Database {
             async (driver) => {
                 zoneHosts = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
                     explicitWait, "No zone hosts were found");
-                const about = await driver.wait(async () => {
-                    return (await zoneHosts![0].findElements(By.css("span")))[0];
-                }, explicitWait, "No span detected");
+
+                const about = await zoneHosts[0].findElements(By.css("span"));
 
                 // first element is usually the about info
-                if ((await about.getText()).indexOf("Welcome") !== -1) {
+                if (about.length > 0 && (await about[0].getText()).indexOf("Welcome") !== -1) {
                     zoneHosts.shift();
                 }
                 if (zoneHosts.length > 0) {

@@ -22,7 +22,7 @@
  */
 
 import { MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { IShellDbConnection } from "../../../../communication/";
+import { IShellDbConnection, ResponseError } from "../../../../communication/";
 import { DBType, IConnectionDetails, ShellInterface, ShellInterfaceDb } from "../../../../supplement/ShellInterface";
 import { webSession } from "../../../../supplement/WebSession";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
@@ -104,12 +104,16 @@ describe("ShellInterfaceDb Tests", () => {
             expect(objects).toContain("mysql");
 
             await expect(db.getSchemaObjects("mysql", "table")).rejects
-                .toEqual("Unsupported None object type (table)");
+                .toBeInstanceOf(ResponseError).catch((reason) => {
+                    expect(reason.message).toEqual("Unsupported None object type (table)");
+                });
             objects = await db.getSchemaObjects("mysql", "Table");
             expect(objects).toContain("help_topic");
 
             await expect(db.getTableObjects("mysql", "help_topic", "trigger")).rejects
-                .toEqual("Unsupported None object type (trigger)");
+                .toBeInstanceOf(ResponseError).catch((reason) => {
+                    expect(reason.message).toEqual("Unsupported None object type (trigger)");
+                });
             objects = await db.getTableObjects("mysql", "help_topic", "Column");
             expect(objects).toContain("help_topic_id");
         } finally {

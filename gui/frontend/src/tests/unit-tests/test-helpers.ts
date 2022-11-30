@@ -38,7 +38,7 @@ export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
 
 export type JestReactWrapper<P = {}, S = unknown> =
-    ReactWrapper<Readonly<P> & Readonly<{ children?: React.ReactNode }>, Readonly<S>>;
+    ReactWrapper<Readonly<P> & Readonly<{ children?: React.ReactNode; }>, Readonly<S>>;
 
 export interface ITestDbCredentials {
     userName: string;
@@ -124,7 +124,7 @@ const mapSet = (s: Set<unknown>, seen: Set<object>): Set<unknown> => {
  * @returns The filtered object.
  */
 const mapObject = (o: object, seen: Set<object>): object => {
-    const result: { [key: string]: unknown } = {};
+    const result: { [key: string]: unknown; } = {};
 
     for (const key of Object.keys(o)) {
         if (key.startsWith("__")) {
@@ -175,7 +175,8 @@ export const snapshotFromWrapper = <P, S>(wrapper: CommonWrapper<P, S>): Json =>
 };
 
 /**
- * Promisified version of a component's setState function.
+ * Promisified version of a component's setState function. Our Component class contains this as well,
+ * but it cannot be used in tests, it seems.
  *
  * @param component The component to set the new state for.
  * @param state The new state.

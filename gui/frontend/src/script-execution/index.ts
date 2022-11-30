@@ -72,7 +72,7 @@ export interface ITextResultEntry {
     index?: number;
 
     /** An option value to denote the request from which this output was generated. */
-    requestId?: string;
+    resultId?: string;
 
     content: string;
 }
@@ -82,71 +82,116 @@ export interface ITextResult {
 
     text?: ITextResultEntry[];
     executionInfo?: IExecutionInfo;
-
-    // When given, allows to set the given text as status to an existing result set.
-    requestId?: string;
 }
 
 export interface IResultSetContent {
-    requestId: string;
+    /** Keys represent column IDs. */
+    rows: IDictionary[];
 
-    columns: IColumnInfo[];
-    rows: IDictionary[];    // Keys represent column IDs.
-
-    // Paging support.
+    /** Paging support. */
     currentPage: number;
     hasMoreRows?: boolean;
 
-    // Set once the execution is finished. Can be a summary or error message or similar.
+    /** Set once the execution is finished. Can be a summary or error message or similar. */
     executionInfo?: IExecutionInfo;
 }
 
-export interface IResultSetHead {
-    requestId: string;
-
-    // Set when this result set replaces an existing one from a previous request (e.g. when paging results).
-    oldRequestId?: string;
-
-    // Original query without automatic adjustments (like a LIMIT clause).
-    sql: string;
-}
-
 export interface IResultSet {
-    // An optional index to map a result set to a query that produced it.
+    type: "resultSet";
+
+    /** An optional index to map a result set to a query that produced it. */
     index?: number;
 
-    head: IResultSetHead;
+    /** The qualifier of the request that generated this result set. */
+    resultId: string;
+
+    /** Original query without automatic adjustments (like a LIMIT clause). */
+    sql: string;
+
+    columns: IColumnInfo[];
+
     data: IResultSetContent;
 }
 
 export interface IResultSets {
     type: "resultSets";
 
-    output?: ITextResultEntry[]; // Simple text output in addition to the result set content.
+    /** Simple text output in addition to the result set content. */
+    output?: ITextResultEntry[];
     sets: IResultSet[];
 }
 
-// An own interface for incremental updates of result sets. Includes a status field for the final addition.
+/** An own interface for incremental updates of result sets. Includes a status field for the final addition. */
 export interface IResultSetRows extends IResultSetContent {
     type: "resultSetRows";
 
     totalRowCount?: number;
+    columns?: IColumnInfo[];
 }
 
-export interface IGraphData {
+export interface IGraphResult {
     type: "graphData";
 
     options?: IGraphOptions;
 }
 
-export interface IRequestIds {
-    type: "requestIds";
+export interface IResultIdentifiers {
+    type: "resultIds";
 
     list: string[];
 }
 
-// A set of fields that comprise the result of a script or shell execution.
-export type IExecutionResult = ITextResult | IResultSets | IResultSetRows | IGraphData;
+/** A set of fields that comprise the result of a script or shell execution. */
+export type IExecutionResult = ITextResult | IResultSetRows | IGraphResult;
 
-// A simplified form of the execution result interface, which only refers to actual data (in our storage DB).
-export type IExecuteResultReference = ITextResult | IRequestIds | IGraphData;
+/** A simplified form of the execution result interface, which only refers to actual data (in our storage DB). */
+export type IExecuteResultReference = ITextResult | IResultIdentifiers | IGraphResult;
+
+/** A flag telling if the result is currently being loaded. */
+export enum LoadingState {
+    /** Nothing in the pipeline. */
+    Idle = "idle",
+
+    /**
+     * No visual representation, but used to indicate that results are announced, but the wait time has not elapsed yet.
+     */
+    Pending = "pending",
+
+    /** Waiting for the first result to arrive. */
+    Waiting = "waiting",
+
+    /** At least one result arrived. Waiting for the final result. */
+    Loading = "loading",
+}
+
+/** Optional values which control how result data is presented. */
+export interface IPresentationOptions {
+    /** Specifies an explicit height of the result area. */
+    manualHeight?: number;
+
+    /** The index of the currently active result tab. */
+    currentSet?: number;
+
+    /** Indicates whether the result area should be shown maximized. */
+    maximized?: boolean;
+
+    /** Indicates whether the action output should use index numbers. */
+    showIndexes?: boolean;
+}
+
+/**
+ * Additional informations for a result that's going to be added to this presentation.
+ */
+export interface IResponseDataOptions {
+    /** The ID of the result data. */
+    resultId: string;
+
+    /** If true, replace existing data with the new one, otherwise append. */
+    replaceData?: boolean;
+
+    /** The original query that was sent for this result data. */
+    sql?: string;
+
+    /** The index of the query that produced the result data. */
+    index?: number;
+}

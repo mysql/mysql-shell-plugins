@@ -118,7 +118,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             scriptTabs: [],
         };
 
-        MessageScheduler.get.traceMessages = true;
+        MessageScheduler.get.traceMessages = false;
         requisitions.register("socketStateChanged", this.connectionStateChanged);
         requisitions.register("webSessionStarted", this.webSessionStarted);
         requisitions.register("debugger", this.handleTraceEvent);
@@ -716,7 +716,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
 
             // Don't print responses while doing a debugger validation run.
             if (!debuggerValidate) {
-                this.printOutput(`ws.lastResponse = ${JSON.stringify(data.response, undefined, 4)};\n${outputType}`);
+                this.printOutput(`ws.lastResponse = ${JSON.stringify(data.response, undefined, 4)};`, outputType);
             }
 
         }

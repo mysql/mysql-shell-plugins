@@ -40,7 +40,7 @@ describe("MySQL Parsing Services Tests", () => {
         const data = fs.readFileSync("./data/sakila-db/sakila-data.sql", { encoding: "utf-8" });
         expect(data.length).toBe(3231413);
 
-        let ranges = services.determineStatementRanges(data);
+        let ranges = services.determineStatementRanges(data, ";");
         expect(ranges.length).toBe(57);
 
         const r1 = ranges[0];
@@ -65,7 +65,7 @@ describe("MySQL Parsing Services Tests", () => {
         const schema = fs.readFileSync("./data/sakila-db/sakila-schema.sql", { encoding: "utf-8" });
         expect(schema.length).toBe(23219);
 
-        ranges = services.determineStatementRanges(schema);
+        ranges = services.determineStatementRanges(schema, ";");
         expect(ranges.length).toBe(56);
 
         const r4 = ranges[43];
@@ -91,7 +91,7 @@ describe("MySQL Parsing Services Tests", () => {
             ranges.forEach((range, index) => {
                 // The delimiter is considered part of the statement (e.g. for editing purposes)
                 // but must be ignored for parsing.
-                const end = range.span.start + range.span.length - range.delimiter.length;
+                const end = range.span.start + range.span.length - (range.delimiter?.length ?? 0);
                 const statement = sql.substring(range.span.start, end).trim();
 
                 // The parser only supports syntax from 8.0 onwards. So we expect errors for older statements.

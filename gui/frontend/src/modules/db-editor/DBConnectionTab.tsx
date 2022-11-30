@@ -25,7 +25,6 @@ import "./assets/DBEditor.css";
 
 import React from "react";
 import ts, { ScriptTarget } from "typescript";
-import { isNil } from "lodash";
 import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
 
 import {
@@ -42,7 +41,7 @@ import {
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { ExecutionContext, SQLExecutionContext } from "../../script-execution";
+import { ExecutionContext, IExecutionResult, SQLExecutionContext, IResponseDataOptions } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
@@ -51,7 +50,7 @@ import { QueryType } from "../../parsing/parser-common";
 import { DBEditorToolbar } from "./DBEditorToolbar";
 import { IColumnInfo, IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { settings } from "../../supplement/Settings/Settings";
-import { ApplicationDB, IDbModuleResultData } from "../../app-logic/ApplicationDB";
+import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
     convertRows, EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
 } from "../../supplement";
@@ -59,11 +58,11 @@ import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
 import { PerformanceDashboard } from "./PerformanceDashboard";
 import { uuid } from "../../utilities/helpers";
-import { IDbEditorResultSetData } from "../../communication/";
+import { IDbEditorResultSetData, ResponseError } from "../../communication/";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer;
-    results: IDbModuleResultData[];
+    results: Array<[IExecutionResult, IResponseDataOptions]>;
 }
 
 export interface IOpenEditorState extends IEntityBase {
@@ -139,6 +138,38 @@ interface IDBConnectionTabState extends IComponentState {
     backend?: ShellInterfaceSqlEditor;
 }
 
+/** A list of parameters/options used for query execution. */
+interface IQueryExecutionOptions {
+    /** backend The backend for execution. */
+    backend: ShellInterfaceSqlEditor;
+
+    /** context The context to send result to. */
+    context: SQLExecutionContext;
+
+    queryType: QueryType,
+
+    /** The original query sent by the caller (does not include an auto LIMIT clause). */
+    original: string;
+
+    /** The query to execute. */
+    query: string;
+
+    /** Parameters for the query. */
+    params: string[];
+
+    /** The index of the query being executed. */
+    index: number;
+
+    /** True if the executed query was amended with a LIMIT clause for paging. */
+    explicitPaging: boolean;
+
+    /** The current result set page that is shown. */
+    currentPage: number;
+
+    /** If given, the results of this request replace an existing result set. */
+    oldResultId?: string;
+}
+
 // A tab page for a single connection (managed by the scripting module).
 export class DBConnectionTab extends Component<IDBConnectionTabProperties, IDBConnectionTabState> {
 
@@ -152,7 +183,7 @@ Execute \\help or \\? for help;`;
     // Currently executing contexts.
     private runningContexts = new Map<string, ExecutionContext>();
 
-    // Timers to throttle UI updates for incoming result data.
+    // Timers to serialize asynchronously incoming results.
     private resultTimers = new Map<string, IResultTimer>();
 
     private consoleRef = React.createRef<Notebook>();
@@ -359,6 +390,8 @@ Execute \\help or \\? for help;`;
         const { backend } = this.state;
 
         if (backend) {
+            // Only one query can run in a DB editor at a given time (single connection), so we stop here
+            // whatever is running currently.
             await backend.killQuery();
 
             return true;
@@ -403,16 +436,16 @@ Execute \\help or \\? for help;`;
 
     private sqlShowDataAtPage = async (data: ISqlPageRequest): Promise<boolean> => {
         const pageSize = settings.get("sql.limitRowCount", 1000);
-        await this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize, { source: data.sql },
-            data.oldRequestId);
+        await this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize,
+            { source: data.sql }, data.oldResultId);
 
         return true;
     };
 
     private editorRunQuery = (details: IRunQueryRequest): Promise<boolean> => {
         if (this.consoleRef.current) {
-            this.consoleRef.current.executeQuery({ source: details.query, params: details.parameters },
-                details.linkId);
+            this.consoleRef.current.executeQuery(
+                { source: details.query, params: details.parameters }, details.linkId);
         } else if (this.standaloneRef.current) {
             this.standaloneRef.current.executeQuery(details.query);
         }
@@ -485,6 +518,7 @@ Execute \\help or \\? for help;`;
     private runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions): Promise<void> => {
         const pageSize = settings.get("sql.limitRowCount", 1000);
 
+        context.clearResult();
         if (options.source) {
             if (typeof options.source !== "string") {
                 options.source = context.getStatementAtPosition(options.source)?.text;
@@ -495,8 +529,6 @@ Execute \\help or \\? for help;`;
             }
         } else {
             const statements = context.statements;
-
-            let index = 0;
             while (true) {
                 // Allow toggling the stop-on-error during execution.
                 const stopOnErrors = settings.get("editor.stopOnErrors", true);
@@ -506,7 +538,8 @@ Execute \\help or \\? for help;`;
                 }
 
                 try {
-                    await this.executeQuery(context, index++, 0, pageSize, { ...options, source: statement.text });
+                    await this.executeQuery(context, statement.index, 0, pageSize,
+                        { ...options, source: statement.text });
                 } catch (e) {
                     if (stopOnErrors) {
                         break;
@@ -523,15 +556,15 @@ Execute \\help or \\? for help;`;
      * @param context The context to send results to.
      * @param index The index of the query being executed.
      * @param page The page number for the LIMIT clause.
-     * @param count The size of a page.
+     * @param pageSize The size of a page.
      * @param options Content and details for script execution.
-     * @param oldRequestId An optional request ID which points to an existing result set. If given this is used,
-     *                     to replace that old result set with the new data. Otherwise a new result set is generated.
+     * @param oldResultId An optional ID which points to an existing result set. If given, this ID is used,
+     *                    to replace that old result set with the new data. Otherwise a new result set is generated.
      *
      * @returns A promise which resolves when the query execution is finished.
      */
-    private executeQuery = async (context: SQLExecutionContext, index: number, page: number, count: number,
-        options: IScriptExecutionOptions, oldRequestId?: string): Promise<void> => {
+    private executeQuery = async (context: SQLExecutionContext, index: number, page: number, pageSize: number,
+        options: IScriptExecutionOptions, oldResultId?: string): Promise<void> => {
 
         const sql = options.source as string;
         if (sql.trim().length === 0) {
@@ -543,36 +576,60 @@ Execute \\help or \\? for help;`;
         if (backend) {
             // Extract embedded parameters.
             const services = ScriptingLanguageServices.instance;
-            const embeddedParams = await services.extractQueryParameters(sql, context.dbVersion, context.sqlMode);
+            const queryType = await services.determineQueryType(context, sql);
 
-            // Create a list of parameter values (order is important) out from embedded parameters.
-            // Passed-in parameters can override embedded ones.
             const actualParams: string[] = [];
-            embeddedParams.forEach((param) => {
-                const externalParam = options.params?.find((candidate) => {
-                    return candidate[0] === param[0];
+
+            if (queryType === QueryType.Select && options.params) {
+                const embeddedParams = await services.extractQueryParameters(sql, context.dbVersion, context.sqlMode);
+
+                // Create a list of parameter values (order is important) out from embedded parameters.
+                // Passed-in parameters can override embedded ones.
+                embeddedParams.forEach((param) => {
+                    const externalParam = options.params!.find((candidate) => {
+                        return candidate[0] === param[0];
+                    });
+
+                    if (externalParam) {
+                        actualParams.push(externalParam[1]);
+                    } else {
+                        actualParams.push(param[1]);
+                    }
                 });
+            }
 
-                if (externalParam) {
-                    actualParams.push(externalParam[1]);
-                } else {
-                    actualParams.push(param[1]);
-                }
-            });
-
-            if (count > 0) {
+            if (queryType === QueryType.Select && (pageSize > 0 || options.forceSecondaryEngine)) {
                 // Add a top-level LIMIT clause if paging is enabled and no such LIMIT clause
                 // exists already...
                 // plus one row - this way we can determine if another page exists after this one.
-                const offset = page * count;
-                const sql = options.source as string;
-
-                const [query, changed] = await services.preprocessStatement(context, sql, offset, count + 1,
+                const offset = page * pageSize;
+                const [query, changed] = await services.preprocessStatement(context, sql, offset, pageSize + 1,
                     options.forceSecondaryEngine);
-
-                await this.doExecution(backend, query, actualParams, context, sql, index, changed, page, oldRequestId);
+                await this.doExecution({
+                    backend,
+                    query,
+                    original: sql,
+                    queryType,
+                    params: actualParams,
+                    context,
+                    index,
+                    explicitPaging: changed,
+                    currentPage: page,
+                    oldResultId,
+                });
             } else {
-                await this.doExecution(backend, sql, actualParams, context, sql, index, false, page, oldRequestId);
+                await this.doExecution({
+                    backend,
+                    query: sql,
+                    original: sql,
+                    queryType,
+                    params: actualParams,
+                    context,
+                    index,
+                    explicitPaging: false,
+                    currentPage: page,
+                    oldResultId,
+                });
             }
         }
     };
@@ -580,33 +637,27 @@ Execute \\help or \\? for help;`;
     /**
      * Implements the actual query execution and the result handling.
      *
-     * @param backend The backend for execution.
-     * @param query The query to execute.
-     * @param params Parameters for the query.
-     * @param context The context to send result to.
-     * @param sql The original query sent by the caller (does not include an auto LIMIT clause).
-     * @param index The index of the query being executed.
-     * @param explicitPaging True if the executed query was amended with a LIMIT clause for paging.
-     * @param currentPage The current result set page that is shown.
-     * @param oldRequestId If given, the results of this request replace an existing result set.
+     * @param options Details for execution.
      *
      * @returns A promise that resolves when all responses have been received.
      */
-    private doExecution = async (backend: ShellInterfaceSqlEditor, query: string, params: string[],
-        context: SQLExecutionContext, sql: string, index: number, explicitPaging: boolean, currentPage: number,
-        oldRequestId?: string): Promise<void> => {
+    private doExecution = async (options: IQueryExecutionOptions): Promise<void> => {
 
         const { id = "" } = this.props;
-        const requestId = uuid();
 
+        let resultId = uuid();
+        let replaceData = false;
         try {
             // Prepare the execution (storage, UI).
-            if (oldRequestId) {
+            if (options.oldResultId) {
+                resultId = options.oldResultId;
+                replaceData = true;
+
                 // We are going to replace result data, instead of adding a complete new set.
                 // In this case remove the old data first from the storage.
                 const tx = ApplicationDB.db.transaction("dbModuleResultData", "readwrite");
                 const index = tx.store.index("resultIndex");
-                void index.openCursor(oldRequestId).then(async (cursor) => {
+                await index.openCursor(options.oldResultId).then(async (cursor) => {
                     while (cursor) {
                         await cursor.delete();
                         cursor = await cursor.continue();
@@ -614,58 +665,13 @@ Execute \\help or \\? for help;`;
                 });
             }
 
-            await ApplicationDB.db.put("dbModuleResultData", {
-                tabId: id,
-                requestId,
-                rows: [],
-                sql,
-                currentPage,
-                hasMoreRows: false,
-                index,
-            });
-
-            if (index === 0 && isNil(oldRequestId)) {
-                context.setResult({
-                    type: "resultSets",
-                    sets: [{
-                        index,
-                        head: {
-                            requestId,
-                            sql,
-                        },
-                        data: {
-                            requestId,
-                            columns: [],
-                            rows: [],
-                            currentPage: 0,
-                        },
-                    }],
-                });
-            } else {
-                context.addResultPage({
-                    type: "resultSets",
-                    sets: [{
-                        index,
-                        head: {
-                            requestId,
-                            oldRequestId,
-                            sql,
-                        },
-                        data: {
-                            requestId,
-                            columns: [],
-                            rows: [],
-                            currentPage: 0,
-                        },
-                    }],
-                });
-            }
-
             // Have to keep the column definition around for all data packages, for row conversion,
             // but must store it only once (when they come in, which happens only once).
             let columns: IColumnInfo[] = [];
             let setColumns = false;
-            const finalData = await backend.execute(query, params, requestId, (data) => {
+
+            options.context.executionStarts();
+            const finalData = await options.backend.execute(options.query, options.params, undefined, (data) => {
                 const { dbType } = this.props;
 
                 if (data.result.columns) {
@@ -674,28 +680,43 @@ Execute \\help or \\? for help;`;
                 }
                 const rows = convertRows(columns, data.result.rows);
 
-                this.addTimedResult(context, {
+                void ApplicationDB.db.put("dbModuleResultData", {
                     tabId: id,
-                    requestId,
+                    resultId,
                     rows,
                     columns: setColumns ? columns : undefined,
                     hasMoreRows: false,
-                    currentPage,
-                    index,
+                    currentPage: options.currentPage,
+                    index: options.index,
+                    sql: options.original,
+                });
+
+                this.addTimedResult(options.context, {
+                    type: "resultSetRows",
+                    rows,
+                    columns: setColumns ? columns : undefined,
+                    hasMoreRows: false,
+                    currentPage: options.currentPage,
+                }, {
+                    resultId,
+                    index: options.index,
+                    sql: options.original,
+                    replaceData,
                 });
 
                 setColumns = false;
+                replaceData = false;
             });
 
             // Handling of the final response.
             if (finalData) {
                 const { dbType } = this.props;
 
-                await this.inspectQuery(context, sql);
+                await this.handleDependentTasks(options.queryType);
 
                 let hasMoreRows = false;
                 let rowCount = finalData.totalRowCount ?? 0;
-                if (explicitPaging) {
+                if (options.explicitPaging) {
                     // We added 1 to the total count for the LIMIT clause to allow determining if
                     // more pages are available. That's why we have to decrement the row count for display.
                     const pageSize = settings.get("sql.limitRowCount", 1000);
@@ -708,8 +729,8 @@ Execute \\help or \\? for help;`;
                 }
 
                 const status: IExecutionInfo = {
-                    text: "OK, " + formatWithNumber("record", rowCount) + " retrieved in " +
-                        formatTime(finalData.executionTime),
+                    text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
+                        `${formatTime(finalData.executionTime)}`,
                 };
 
                 if (rowCount === 0) {
@@ -723,67 +744,84 @@ Execute \\help or \\? for help;`;
                 }
 
                 const rows = convertRows(columns, finalData.rows);
-                this.addTimedResult(context, {
+
+                void ApplicationDB.db.put("dbModuleResultData", {
                     tabId: id,
-                    requestId,
+                    resultId,
                     rows,
                     columns: setColumns ? columns : undefined,
                     executionInfo: status,
                     totalRowCount: finalData.totalRowCount ?? 0,
                     hasMoreRows,
-                    currentPage,
-                    index,
+                    currentPage: options.currentPage,
+                    index: options.index,
+                    sql: options.original,
+                });
+
+                this.addTimedResult(options.context, {
+                    type: "resultSetRows",
+                    rows,
+                    columns: setColumns ? columns : undefined,
+                    executionInfo: status,
+                    totalRowCount: finalData.totalRowCount ?? 0,
+                    hasMoreRows,
+                    currentPage: options.currentPage,
+                }, {
+                    resultId,
+                    index: options.index,
+                    sql: options.original,
+                    replaceData,
                 });
             }
         } catch (reason) {
-            const resultTimer = this.resultTimers.get(requestId);
+            const resultTimer = this.resultTimers.get(resultId);
             if (resultTimer) {
                 await clearIntervalAsync(resultTimer.timer);
-                this.resultTimers.delete(requestId);
+                this.resultTimers.delete(resultId);
             }
 
-            // XXX: need to get the actual code here.
-            const stateInfo = { code: 0 };
-            const status = { type: MessageType.Error, text: `Error: ${String(reason)}` };
+            let type = MessageType.Error;
+            let content = "";
 
-            if (stateInfo.code === 1201) {
-                status.type = MessageType.Warning;
-                status.text = "Cancelled: query was prematurely stopped";
+            let code = 0;
+            if (reason instanceof ResponseError) {
+                content = reason.info.requestState.msg;
+                code = reason.info.requestState.code ?? 0;
+            } else {
+                content = reason as string;
+
             }
 
-            await ApplicationDB.db.add("dbModuleResultData", {
-                tabId: id,
-                requestId,
-                rows: [],
-                executionInfo: status,
-                hasMoreRows: false,
-                currentPage,
-                index,
+            if (code === 1201) {
+                type = MessageType.Warning;
+                content = "Cancelled: query was prematurely stopped";
+            }
+
+            this.addTimedResult(options.context, {
+                type: "text",
+                text: [{
+                    type,
+                    index: options.index,
+                    content,
+                    language: "ansi",
+                }],
+                executionInfo: { text: "" },
+            }, {
+                resultId,
+                index: options.index,
+                sql: options.original,
+                replaceData,
             });
 
-            await context.addResultData({
-                type: "resultSetRows",
-                requestId,
-                columns: [],
-                rows: [],
-                executionInfo: status,
-                currentPage,
-            });
-            context.updateResultDisplay();
-
-            switch (stateInfo.code) {
+            switch (code) {
                 case 3889: {
                     // Sent if a select query was executed on HeatWave, which contained a problem.
-                    await this.getHeatWaveTrace(context, sql, id, requestId, currentPage);
+                    await this.getHeatWaveTrace(options.context, options.original, id, resultId, options.currentPage);
 
                     break;
                 }
 
-                default: {
-                    await requisitions.execute("showError", ["Execution Error", String(reason)]);
-
-                    break;
-                }
+                default:
             }
         }
     };
@@ -796,96 +834,76 @@ Execute \\help or \\? for help;`;
                 await backend.reconnect();
                 await context.addResultData({
                     type: "text",
-                    requestId: "",
                     text: [{
                         type: MessageType.Info,
                         index: 0,
                         content: "Reconnection done",
                         language: "ansi",
                     }],
-                });
+                }, { resultId: "" });
             } catch (reason) {
                 await context.addResultData({
                     type: "text",
-                    requestId: "",
                     text: [{
                         type: MessageType.Error,
                         index: 0,
                         content: String(reason),
                         language: "ansi",
                     }],
-                });
+                }, { resultId: "" });
             }
-
-            context.updateResultDisplay();
         }
     };
 
     /**
      * Adds the given data to the result timer for the specified request ID. If no timer exists yet, one is created.
-     * The timer, whenever it triggers, sends the next result to the target context and the app database.
+     * The timer, whenever it triggers, sends the next result to the target context.
      *
      * @param context The context to send the result data to.
-     * @param result The result data to schedule.
+     * @param data The data to send.
+     * @param options Additional details for the execution.
      */
-    private addTimedResult(context: SQLExecutionContext, result: IDbModuleResultData): void {
-        const resultTimer = this.resultTimers.get(result.requestId);
+    private addTimedResult(context: ExecutionContext, data: IExecutionResult, options: IResponseDataOptions): void {
+        const resultTimer = this.resultTimers.get(options.resultId);
         if (!resultTimer) {
             // Create the timer, if it doesn't exist.
             const newTimer: IResultTimer = {
-                timer: setIntervalAsync(async (requestId: string) => {
-                    const resultTimer = this.resultTimers.get(requestId);
+                timer: setIntervalAsync(async (id: string) => {
+                    const resultTimer = this.resultTimers.get(id);
                     if (resultTimer) {
                         const pendingResult = resultTimer.results.shift();
                         if (pendingResult) {
-                            await Promise.all([
-                                ApplicationDB.db.add("dbModuleResultData", pendingResult),
-                                context.addResultData({
-                                    type: "resultSetRows",
-                                    requestId: pendingResult.requestId,
-                                    rows: pendingResult.rows,
-                                    columns: pendingResult.columns ?? [],
-                                    currentPage: pendingResult.currentPage,
-                                    hasMoreRows: pendingResult.hasMoreRows,
-                                    totalRowCount: pendingResult.totalRowCount,
-                                    executionInfo: pendingResult.executionInfo,
-                                }),
-                            ]);
+                            await context.addResultData(pendingResult[0], pendingResult[1], { showIndexes: true });
                         } else {
                             // No results left. Stop the timer.
                             void clearIntervalAsync(resultTimer.timer).then(() => {
-                                this.resultTimers.delete(requestId);
+                                this.resultTimers.delete(id);
                             });
-                            context.updateResultDisplay();
                         }
                     }
-                }, 20, result.requestId),
+                }, 20, options.resultId),
 
-                results: [result],
+                results: [[data, options]],
             };
 
-            this.resultTimers.set(result.requestId, newTimer);
+            this.resultTimers.set(options.resultId, newTimer);
         } else {
-            resultTimer.results.push(result);
+            resultTimer.results.push([data, options]);
         }
-
     }
 
     /**
-     * Determines the type of the given statement to learn if it affects any of our states used in the UI, like
-     * auto commit mode, SQL mode, current schema etc.
+     * Checks if a query affects any of our states used in the UI, like auto commit mode, SQL mode, current schema etc.
+     * and triggers actions according to that.
      *
-     * For certain types commands are triggered to allow other parts of the app to update their data.
+     * @param type The type of the query that just ran.
      *
-     * @param context The execution environment.
-     * @param statement The statement to inspect.
+     * @returns A promise which resolves when the post processing is complete.
      */
-    private inspectQuery = async (context: ExecutionContext, statement: string): Promise<void> => {
+    private handleDependentTasks = async (type: QueryType): Promise<void> => {
         const { id, connectionId } = this.props;
         const { backend } = this.state;
-        const services = ScriptingLanguageServices.instance;
 
-        const type = await services.determineQueryType(context, statement);
         switch (type) {
             case QueryType.SetAutoCommit:
             case QueryType.StartTransaction:
@@ -939,25 +957,23 @@ Execute \\help or \\? for help;`;
                 case "\\about": {
                     const isMac = navigator.userAgent.includes("Macintosh");
                     const content = DBConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
-                    context?.setResult({
+                    await context?.addResultData({
                         type: "text",
-                        requestId: "",
                         text: [{ type: MessageType.Info, content, language: "ansi" }],
-                    });
+                    }, { resultId: "" });
 
                     return true;
                 }
 
                 case "\\reconnect": {
-                    context?.setResult({
+                    await context?.addResultData({
                         type: "text",
-                        requestId: "",
                         text: [{
                             type: MessageType.Info,
                             content: "Reconnecting the current DB connection ...\n",
                             language: "ansi",
                         }],
-                    });
+                    }, { resultId: "" });
                     await this.reconnect(context);
 
                     return true;
@@ -967,7 +983,7 @@ Execute \\help or \\? for help;`;
             }
         }
 
-        context.setResult();
+        context.clearResult();
 
         switch (context.language) {
             case "javascript": {
@@ -1016,10 +1032,10 @@ Execute \\help or \\? for help;`;
      * @param context The context to add the additional info.
      * @param sql The query which caused the trouble.
      * @param id The id of the connection tab.
-     * @param requestId The id of the original request.
+     * @param resultId The id of the associated result.
      * @param currentPage The current result set page that is shown.
      */
-    private async getHeatWaveTrace(context: ExecutionContext, sql: string, id: string, requestId: string,
+    private async getHeatWaveTrace(context: ExecutionContext, sql: string, id: string, resultId: string,
         currentPage: number): Promise<void> {
         const { backend } = this.state;
 
@@ -1048,7 +1064,7 @@ Execute \\help or \\? for help;`;
 
             await ApplicationDB.db.add("dbModuleResultData", {
                 tabId: id,
-                requestId,
+                resultId,
                 rows: [],
                 executionInfo: status,
                 hasMoreRows: false,
@@ -1057,12 +1073,8 @@ Execute \\help or \\? for help;`;
 
             await context.addResultData({
                 type: "text",
-                requestId,
                 executionInfo: status,
-            });
-
-            context.updateResultDisplay();
-
+            }, { resultId: "" });
         };
 
         // Store the current values for the optimizer trace and enable it (if it wasn't yet).
@@ -1081,11 +1093,11 @@ Execute \\help or \\? for help;`;
 
             // Restore the previous trace status.
             await backend.execute("SET @@optimizer_trace = @old_optimizer_trace, @@optimizer_trace_offset = " +
-                "@old_optimizer_trace_offset;", [], requestId);
+                "@old_optimizer_trace_offset;", [], resultId);
 
             if (result) {
                 const rows = result.rows as string[][];
-                if (rows && rows.length > 0) {
+                if (rows && rows.length > 0 && rows[0].length > 1) {
                     const info = (rows[0][1] ?? rows[0][2]);
 
                     // Remove outer braces and split into the two values.
@@ -1099,26 +1111,23 @@ Execute \\help or \\? for help;`;
                             text: "Optimizer Trace:\n" + text.substring(1, text.length - 1),
                         };
 
-                        // The result data from the trace is stored under an own request ID.
+                        // The result data from the trace is stored under an own result ID.
                         // This way our automatic collection for output messages kicks in.
                         // Otherwise the trace would overwrite the error info from the actual
                         // query.
                         void ApplicationDB.db.add("dbModuleResultData", {
                             tabId: id,
-                            requestId,
+                            resultId,
                             rows: [],
                             executionInfo: status,
                             hasMoreRows: false,
                             currentPage,
                         });
 
-                        void context.addResultData({
+                        await context.addResultData({
                             type: "text",
-                            requestId,
                             executionInfo: status,
-                        }).then(() => {
-                            context.updateResultDisplay();
-                        });
+                        }, { resultId: "" });
                     }
                 }
             }
@@ -1157,7 +1166,7 @@ Execute \\help or \\? for help;`;
 
                     const context = this.runningContexts.get(data.contextId);
                     if (context) {
-                        const added = await context.addResultData({
+                        await context.addResultData({
                             type: "text",
                             text: [{
                                 type: MessageType.Info,
@@ -1165,11 +1174,7 @@ Execute \\help or \\? for help;`;
                                 language: "ansi",
                             }],
                             executionInfo: { text: "" },
-                        });
-
-                        if (added) {
-                            context.updateResultDisplay();
-                        }
+                        }, { resultId: "" });
                     }
 
                     break;
@@ -1180,7 +1185,7 @@ Execute \\help or \\? for help;`;
                         const context = this.runningContexts.get(data.contextId);
                         if (context) {
                             if (data.isError) {
-                                void context?.addResultData({
+                                await context.addResultData({
                                     type: "text",
                                     text: [{
                                         type: MessageType.Error,
@@ -1188,23 +1193,15 @@ Execute \\help or \\? for help;`;
                                         language: "ansi",
                                     }],
                                     executionInfo: { type: MessageType.Error, text: "" },
-                                }).then((added) => {
-                                    if (added) {
-                                        context?.updateResultDisplay();
-                                    }
-                                });
+                                }, { resultId: "" });
                             } else {
-                                void context?.addResultData({
+                                await context.addResultData({
                                     type: "text",
                                     text: [{
                                         type: MessageType.Info,
                                         content: String(data.result),
                                     }],
-                                }).then((added) => {
-                                    if (added) {
-                                        context?.updateResultDisplay();
-                                    }
-                                });
+                                }, { resultId: "" });
                             }
                         }
                     }
@@ -1217,7 +1214,7 @@ Execute \\help or \\? for help;`;
                         // Make sure the task we are running currently on, stays assigned to this loop.
                         workerPool.retainTask(taskId);
 
-                        let columns: Array<{ name: string; type: string; length: number }> = [];
+                        let columns: Array<{ name: string; type: string; length: number; }> = [];
                         let rows: Array<Record<string, unknown>> = [];
 
                         const handleResult = (data: IDbEditorResultSetData): void => {
@@ -1261,13 +1258,13 @@ Execute \\help or \\? for help;`;
                             });
                         } catch (reason) {
                             const context = this.runningContexts.get(data.contextId);
-                            context?.setResult({
+                            await context?.addResultData({
                                 type: "text",
                                 executionInfo: {
                                     type: MessageType.Error,
                                     text: `Error: ${String(reason)}`,
                                 },
-                            });
+                            }, { resultId: "" });
 
                             workerPool.releaseTask(taskId);
                         }
@@ -1304,13 +1301,13 @@ Execute \\help or \\? for help;`;
 
                         } catch (reason) {
                             const context = this.runningContexts.get(data.contextId);
-                            context?.setResult({
+                            await context?.addResultData({
                                 type: "text",
                                 executionInfo: {
                                     type: MessageType.Error,
                                     text: `Error: ${String(reason)}`,
                                 },
-                            });
+                            }, { resultId: "" });
 
                             workerPool.releaseTask(taskId);
                         }
@@ -1323,17 +1320,13 @@ Execute \\help or \\? for help;`;
                     const context = this.runningContexts.get(data.contextId);
 
                     if (data.value !== undefined && context) {
-                        const added = await context.addResultData({
+                        await context.addResultData({
                             type: "text",
                             text: [{
                                 type: MessageType.Info,
                                 content: String(data.value),
                             }],
-                        });
-
-                        if (added) {
-                            context.updateResultDisplay();
-                        }
+                        }, { resultId: "" });
                     }
 
                     break;
@@ -1341,10 +1334,10 @@ Execute \\help or \\? for help;`;
 
                 case ScriptingApi.Graph: {
                     const context = this.runningContexts.get(data.contextId);
-                    context?.setResult({
+                    await context?.addResultData({
                         type: "graphData",
                         options: data.options,
-                    });
+                    }, { resultId: "" });
 
                     break;
                 }
@@ -1355,18 +1348,14 @@ Execute \\help or \\? for help;`;
             }
         } catch (error) {
             const context = this.runningContexts.get(data.contextId);
-            void context?.addResultData({
+            await context?.addResultData({
                 type: "text",
                 text: [{
                     type: MessageType.Error,
                     content: error instanceof Error ? (error.stack ?? error.message) : String(error),
                 }],
                 executionInfo: { type: MessageType.Error, text: "" },
-            }).then((added) => {
-                if (added) {
-                    context?.updateResultDisplay();
-                }
-            });
+            }, { resultId: "" });
         }
     };
 

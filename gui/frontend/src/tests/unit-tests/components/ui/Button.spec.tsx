@@ -76,13 +76,13 @@ describe("Button component tests", (): void => {
     });
 
     it("Test button commands", (done) => {
-        requisitions.register("testButtonClick", requestButtonClick);
+        requisitions.register("editorCommit", requestButtonClick);
         const component = shallow(
-            <Button requestType="testButtonClick">
+            <Button requestType="editorCommit">
                 Test button
             </Button>,
         );
-        expect(component).toBeTruthy();
+
         expect(component.text()).toEqual("Test button");
         expect(clicked).toEqual(false);
         const click = (component.props() as IButtonProperties).onClick;

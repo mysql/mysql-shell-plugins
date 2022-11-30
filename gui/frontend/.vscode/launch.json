@@ -61,6 +61,10 @@
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "sourceMaps": true,
             "preLaunchTask": "tsc: watch",
+            "smartStep": true,
+            "sourceMapPathOverrides": {
+                "webpack:///build/*": "${webRoot}/*"
+            },
             "runtimeArgs": [
                 "--allow-insecure-localhost",
             ]

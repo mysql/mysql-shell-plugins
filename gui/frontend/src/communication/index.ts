@@ -31,6 +31,8 @@ export * from "./ProtocolMrs";
 export * from "./MessageScheduler";
 export * from "./Oci";
 
+export * from "./ResponseError";
+
 // Types for communication in various environments, like a browser, native platform wrappers or Visual Studio Code.
 
 /** Determines the origin of the message. */

@@ -27,6 +27,7 @@ import { platform, arch, homedir } from "os";
 import { ShellInterface, ShellInterfaceCore } from "../../../../supplement/ShellInterface";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { setupShellForTests } from "../../test-helpers";
+import { ResponseError } from "../../../../communication";
 
 describe("ShellInterfaceCore Tests", () => {
     let launcher: MySQLShellLauncher;
@@ -132,7 +133,9 @@ describe("ShellInterfaceCore Tests", () => {
     it("Create DB file", async () => {
         // Relative paths use the user's home dir as basis.
         await expect(core.createDatabaseFile("non-existing/test.sqlite3")).rejects
-            .toBe("No permissions to access the directory.");
+            .toBeInstanceOf(ResponseError).catch((reason) => {
+                expect(reason.message).toBe("No permissions to access the directory.");
+            });
         expect(existsSync("non-existing/test.sqlite3")).toBeFalsy();
 
         const home = homedir();

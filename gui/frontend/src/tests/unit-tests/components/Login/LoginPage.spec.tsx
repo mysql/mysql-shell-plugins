@@ -31,7 +31,7 @@ import { LoginPage } from "../../../../components/Login/LoginPage";
 import keyboardKey from "keyboard-key";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { ShellInterface } from "../../../../supplement/ShellInterface";
-import { MessageScheduler } from "../../../../communication";
+import { MessageScheduler, ResponseError } from "../../../../communication";
 import { IShellProfile } from "../../../../communication/";
 
 describe("Login Page Tests", (): void => {
@@ -93,10 +93,10 @@ describe("Login Page Tests", (): void => {
                         return Promise.resolve(profile);
                     }
 
-                    return Promise.reject("Wrong password");
+                    return Promise.reject(new ResponseError({ requestState: { msg: "Wrong password" } }));
                 }
 
-                return Promise.reject("User unknown");
+                return Promise.reject(new ResponseError({ requestState: { msg: "User unknown" } }));
             });
 
         expect(component.state()).toStrictEqual({ errorMessage: "", userName: "", password: "" });

@@ -40,7 +40,7 @@ export interface IDbModuleResultData {
 
     /** The tab id is used to quickly remove all associated entries when a tab is closed. */
     tabId: string;
-    requestId: string;
+    resultId: string;
     columns?: IColumnInfo[];
     rows: IDictionary[];
     executionInfo?: IExecutionInfo;
@@ -60,22 +60,22 @@ export interface IDbModuleResultData {
 export interface IShellModuleResultData {
     // There's an auto incremented field (id) to make entries unique.
 
-    // The tab id is used to quickly remove all associated entries when a tab is closed.
+    /** The tab id is used to quickly remove all associated entries when a tab is closed. */
     tabId: string;
-    requestId: string;
+    resultId: string;
     columns?: IColumnInfo[];
     rows: unknown[];
     executionInfo?: IExecutionInfo;
 
-    // Describes the query from which this entry was produced.
+    /** An optional value to map a result set to the query that produced it. */
     index: number;
 }
 
-// Application object store schema. Each module uses an own store.
+/** Application object store schema. Each module uses an own store. */
 export interface IAppStoreSchema extends DBSchema {
     unused: { // Not really used. Only here to allow "unused" as store name in cases, where we don't need a store.
         value: {
-            requestId: string;
+            resultId: string;
         };
         key: string;
         indexes: { resultIndex: string; tabIndex: string };
@@ -143,20 +143,22 @@ export class ApplicationDB {
      * Removes data stored in store, for the given list of request ids.
      *
      * @param store The store that must be updated.
-     * @param ids The list of ids for which to remove all data.
+     * @param resultIds The list of ids for which to remove all data.
      * @returns A promise which resolves when the task is done.
      */
-    public static async removeDataByRequestIds(store: StoreType, ids: string[]): Promise<void> {
+    public static async removeDataByResultIds(store: StoreType, resultIds: string[]): Promise<void> {
         await ApplicationDB.loaded;
 
-        if (ids.length > 0) {
+        if (resultIds.length > 0) {
             const transaction = ApplicationDB.appDB.transaction(store, "readwrite");
-            for (const id of ids) {
-                const tabIndex = transaction.store.index("resultIndex");
-                let cursor = await tabIndex.openCursor(IDBKeyRange.only(id));
-                while (cursor) {
-                    await cursor.delete();
-                    cursor = await cursor.continue();
+            for (const id of resultIds) {
+                if (id) {
+                    const tabIndex = transaction.store.index("resultIndex");
+                    let cursor = await tabIndex.openCursor(IDBKeyRange.only(id));
+                    while (cursor) {
+                        await cursor.delete();
+                        cursor = await cursor.continue();
+                    }
                 }
             }
         }
@@ -177,12 +179,12 @@ export class ApplicationDB {
 
                     const dbEditorStore = db.createObjectStore(StoreType.DbEditor,
                         { keyPath: "id", autoIncrement: true });
-                    dbEditorStore.createIndex("resultIndex", "requestId", { unique: false });
+                    dbEditorStore.createIndex("resultIndex", "resultId", { unique: false });
                     dbEditorStore.createIndex("tabIndex", "tabId", { unique: false });
 
                     const shellDataStore = db.createObjectStore(StoreType.Shell,
                         { keyPath: "id", autoIncrement: true });
-                    shellDataStore.createIndex("resultIndex", "requestId", { unique: false });
+                    shellDataStore.createIndex("resultIndex", "resultId", { unique: false });
                     shellDataStore.createIndex("tabIndex", "tabId", { unique: false });
                 },
             }).then((db) => {
