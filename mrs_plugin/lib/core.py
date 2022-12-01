@@ -426,6 +426,9 @@ def create_rds_metadata_schema(session=None, interactive=True):
     if latest_version_val == [0, 0, 0]:
         return
 
+    if latest_version_val > general.DB_VERSION:
+        latest_version_val = general.DB_VERSION
+
     sql_file_path = script_path('db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
 
 
