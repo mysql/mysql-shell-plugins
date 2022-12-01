@@ -2115,7 +2115,7 @@ describe("MySQL Shell for VS Code", () => {
                     await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
 
                     await Misc.selectContextMenuItem(dbTreeSection,
-                        globalConn.caption, "Configure MySQL REST Service");
+                        globalConn.caption, "Configure Instance for MySQL REST Service Support");
 
                     await Misc.verifyNotification("MySQL REST Service configured successfully.");
 

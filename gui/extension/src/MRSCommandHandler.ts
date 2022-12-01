@@ -411,7 +411,7 @@ export class MRSCommandHandler {
             enabled: true,
             useBuiltInAuthorization: true,
             limitToRegisteredUsers: true,
-            defaultAuthRoleId: undefined,
+            defaultAuthRoleId: 1,
         };
 
         if (service && (!service.authApps)) {
@@ -432,7 +432,9 @@ export class MRSCommandHandler {
         if (!service) {
             defaultOptions = {
                 header: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     "Access-Control-Allow-Origin": "*",
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
                 },
             };

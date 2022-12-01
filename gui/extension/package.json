@@ -531,7 +531,7 @@
             },
             {
                 "command": "msg.mrs.configureMySQLRestService",
-                "title": "Configure MySQL REST Service"
+                "title": "Configure Instance for MySQL REST Service Support"
             },
             {
                 "command": "msg.mrs.enableMySQLRestService",
