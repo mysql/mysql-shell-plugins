@@ -333,6 +333,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         if self._is_shell_object(json_message):
             json_message = json.loads(str(json_message).replace("\n", "\\n"))
 
+
         self._response_queue.put(json_message)
 
     def send_response_message(self, msg_type, msg, request_id=None,
@@ -375,6 +376,19 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         # response themselves, they should be implemented as simple APIs
         # and their either succeed and return whatever value they return... or
         # they should throw exceptions
+        def convert_binary_values(value):
+            if isinstance(value, bytes):
+                return str(base64.b64encode(value), 'utf-8')
+            if isinstance(value, dict) or "Dict" in type(value).__name__:
+                result = {}
+                for key, val in value.items():
+                    result[key] = convert_binary_values(val)
+                return result
+            if isinstance(value, list) or "List" in type(value).__name__:
+                return [convert_binary_values(val) for val in value]
+            return value
+
+        values = convert_binary_values(values)
         if isinstance(values, dict) and 'request_state' in values:
             values["request_id"] = request_id
 

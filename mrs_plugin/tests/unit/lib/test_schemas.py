@@ -31,12 +31,11 @@ def test_add_schema(init_mrs, table_contents):
         "requires_auth": False,
         "request_path": "/test_schema_123",
         "enabled": True,
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
 
     args['schema_name'] = "test_schema_123"
     with pytest.raises(ValueError) as exc_info:
-        print(f"test 1 - {args['request_path']}")
         lib.schemas.add_schema(**args)
     assert str(exc_info.value) == "The given schema_name 'test_schema_123' does not exists."
 
@@ -57,7 +56,7 @@ def test_get_schema(init_mrs):
         "request_path": "PhoneBook",
         "service_id": 1,
         "auto_select_single": True,
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
     with pytest.raises(Exception) as exc_info:
         lib.schemas.get_schema(**args)

@@ -32,7 +32,6 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
     session = kwargs.get("session")
 
     db_object_id = kwargs.pop("db_object_id", None)
-    interactive = kwargs.pop("interactive", lib.core.get_interactive_default())
 
     kwargs["db_object_ids"] = [db_object_id] if db_object_id is not None else []
 
@@ -47,7 +46,7 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
 
             for row in rows:
                 kwargs["db_object_ids"].append(row["id"])
-        elif interactive:
+        elif lib.core.get_interactive_default():
             db_objects = lib.db_objects.get_db_objects(
                 session=session,
                 schema_id=schema_id,
@@ -80,46 +79,53 @@ def add_db_object(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_name (str,required): The name of the schema object add
-        db_object_type (str,required): Either TABLE, VIEW or PROCEDURE
-        schema_id (int): The id of the schema the object should be added to
+        db_object_name (str): The name of the schema object add
+        db_object_type (str): Either TABLE, VIEW or PROCEDURE
+        schema_id (str): The id of the schema the object should be added to
         schema_name (str): The name of the schema
         auto_add_schema (bool): If the schema should be added as well if it
             does not exist yet
-        request_path (str,required): The request_path
+        request_path (str): The request_path
         enabled (bool): Whether the db object is enabled
-        crud_operations (list,required): The allowed CRUD operations for the object
-        crud_operation_format (str,required): The format to use for the CRUD operation
-        requires_auth (bool,required): Whether authentication is required to access
+        crud_operations (list): The allowed CRUD operations for the object
+        crud_operation_format (str): The format to use for the CRUD operation
+        requires_auth (bool): Whether authentication is required to access
             the schema
         items_per_page (int): The number of items returned per page
-        row_user_ownership_enforced (bool,required): Enable row ownership enforcement
+        row_user_ownership_enforced (bool): Enable row ownership enforcement
         row_user_ownership_column (str): The column for row ownership enforcement
         comments (str): Comments for the schema
         media_type (str): The media_type of the db object
-        auto_detect_media_type (bool,required): Whether to automatically detect the media type
+        auto_detect_media_type (bool): Whether to automatically detect the media type
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
         options (dict): The options of this db object
-        parameters (list): The parameter definition in JSON format
+        fields (list): The fields definition in JSON format
         session (object): The database session to use.
 
-    Allowed options for parameters:
-        id (int,optional): The id of the parameter or a negative value when it is a new parameter
-        db_object_id (int,optional): The id of the corresponding db object
-        position (int): The position of the parameter;
-        name (str): The name of the parameter;
-        bind_column_name (str): The column name of the TABLE or VIEW or parameter name the PROCEDURE
-            this parameter maps to
+    Allowed options for fields:
+        id (int,optional): The id of the fields or a negative value when it is a new field
+        db_object_id (str,optional): The id of the corresponding db object
+        position (int): The position of the field;
+        name (str): The name of the field;
+        bind_field_name (str): The column name of the TABLE or VIEW or field name the PROCEDURE
+            this field maps to
         datatype (str): The datatype, 'STRING', 'INT', 'DOUBLE', 'BOOLEAN', 'LONG', 'TIMESTAMP', 'JSON'
-        mode (str): The parameter mode, "IN", "OUT", "INOUT"
-        comments (str,optional): The comments for the parameter
+        mode (str): The field mode, "IN", "OUT", "INOUT"
+        comments (str,optional): The comments for the field
 
     Returns:
         None
     """
+    lib.core.convert_ids_to_binary(["schema_id"], kwargs)
+
+    if kwargs.get("request_path") is not None:
+        lib.core.Validations.request_path(kwargs.get("request_path"))
+
     db_object_name = kwargs.get("db_object_name")
     db_object_type = kwargs.get("db_object_type")
+
     schema_id = kwargs.get("schema_id")
+
     schema_name = kwargs.get("schema_name")
     auto_add_schema = kwargs.get("auto_add_schema", False)
 
@@ -138,12 +144,11 @@ def add_db_object(**kwargs):
     auth_stored_procedure = kwargs.get("auth_stored_procedure")
     options = kwargs.get("options")
 
-    parameters = kwargs.get("parameters")
+    fields = kwargs.get("fields")
 
     session = kwargs.get("session")
 
     interactive = lib.core.get_interactive_default()
-    return_formatted = lib.core.get_interactive_result()
 
     if crud_operations:
         crud_operations = list(crud_operations)
@@ -290,7 +295,7 @@ def add_db_object(**kwargs):
                 raise Exception("The request_path has to start with '/'.")
 
             # Check if the request_path starts with / and is unique for the schema
-            lib.core.check_request_path(request_path, session=session)
+            lib.core.check_request_path(session, request_path)
 
             # Get crud_operations
             if not crud_operations and interactive:
@@ -399,39 +404,44 @@ def add_db_object(**kwargs):
                 row_user_ownership_column=row_user_ownership_column,
                 crud_operations=crud_operations, crud_operation_format=crud_operation_format,
                 comments=comments, media_type=media_type, auto_detect_media_type=auto_detect_media_type,
-                auth_stored_procedure=auth_stored_procedure, options=options, parameters=parameters)
+                auth_stored_procedure=auth_stored_procedure, options=options, fields=fields)
 
-            if return_formatted:
+            if lib.core.get_interactive_result():
                 return "\n" + "Object added successfully."
 
             return db_object_id
 
 
 @plugin_function('mrs.get.dbObject', shell=True, cli=True, web=True)
-def get_db_object(db_object_id=None, **kwargs):
+def get_db_object(request_path=None, db_object_name=None, **kwargs):
     """Gets a specific MRS db_object
 
     Args:
-        db_object_id (int): The id of the db_object
+        request_path (str): The request_path of the schema
+        db_object_name (str): The name of the schema
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int): The id of the schema
+        db_object_id (str): The id of the db_object
+        schema_id (str): The id of the schema
         schema_name (int): The name of the schema
-        request_path (str): The request_path of the schema
-        db_object_name (str): The name of the schema
         session (object): The database session to use.
 
     Returns:
         The db_object as dict
     """
+    lib.core.convert_ids_to_binary(["schema_id", "db_object_id"], kwargs)
 
-    request_path = kwargs.get("request_path")
-    db_object_name = kwargs.get("db_object_name")
+    if request_path is not None:
+        lib.core.Validations.request_path(request_path)
+
+    db_object_id = kwargs.get("db_object_id")
     schema_id = kwargs.get("schema_id")
+
     schema_name = kwargs.get("schema_name")
 
     interactive = lib.core.get_interactive_default()
+
     schema = None
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -503,8 +513,8 @@ def get_db_object_row_ownership_fields(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (int): The id of the db_object
-        schema_id (int): The id of the schema
+        db_object_id (str): The id of the db_object
+        schema_id (str): The id of the schema
         schema_name (str): The name of the schema
         request_path (str): The request_path of the schema
         db_object_name (str): The name of the db_object
@@ -514,12 +524,17 @@ def get_db_object_row_ownership_fields(**kwargs):
     Returns:
         The list of available row ownership fields names
     """
+    lib.core.convert_ids_to_binary(["schema_id", "db_object_id"], kwargs)
 
-    db_object_id = kwargs["db_object_id"]
+    if kwargs.get("request_path") is not None:
+        lib.core.Validations.request_path(kwargs.get("request_path"))
+
+    db_object_id = kwargs.get("db_object_id")
+    schema_id = kwargs.get("schema_id")
+
     request_path = kwargs.get("request_path")
     db_object_name = kwargs.get("db_object_name")
     schema_name = kwargs.get("schema_name")
-    schema_id = kwargs.get("schema_id")
     db_object_type = kwargs.get("db_object_type")
 
     if not db_object_id:
@@ -549,6 +564,87 @@ def get_db_object_row_ownership_fields(**kwargs):
                                                                             db_object_type)
 
 
+
+@plugin_function('mrs.list.dbObjects', shell=True, cli=True, web=True)
+def get_db_objects(**kwargs):
+    """Returns all db_objects for the given schema
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        schema_id (str): The id of the schema to list the db_objects from
+        include_enable_state (bool): Only include db_objects with the given
+            enabled state
+        session (object): The database session to use
+
+    Returns:
+        A list of dicts representing the db_objects of the schema
+    """
+    lib.core.convert_ids_to_binary(["schema_id"], kwargs)
+
+    schema_id = kwargs.get("schema_id")
+
+    include_enable_state = kwargs.get("include_enable_state")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        db_objects = lib.db_objects.get_db_objects(session=session, schema_id=schema_id,
+            include_enable_state=include_enable_state)
+
+        if lib.core.get_interactive_result():
+            return lib.db_objects.format_db_object_listing(db_objects, print_header=True)
+        else:
+            return db_objects
+
+
+@plugin_function('mrs.get.dbObjectSelectedFields', shell=True, cli=True, web=True)
+def get_db_object_selected_fields(request_path=None, db_object_name=None, **kwargs):
+    """Gets the list of selected fields for the given db_object
+
+    Args:
+        request_path (str): The request_path of the schema
+        db_object_name (str): The name of the db_object
+        **kwargs: Additional options
+
+    Keyword Args:
+        db_object_id (str): The id of the db_object
+        schema_id (str): The id of the schema
+        schema_name (str): The name of the schema
+        session (object): The database session to use.
+
+    Returns:
+        The list of db object parameters
+    """
+    lib.core.convert_ids_to_binary(["schema_id", "db_object_id"], kwargs)
+
+    if request_path is not None:
+        lib.core.Validations.request_path(request_path)
+
+    db_object_id = kwargs.get("db_object_id")
+    schema_id = kwargs.get("schema_id")
+
+    session = kwargs.get("session")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        if not db_object_id:
+            db_object = lib.db_objects.get_db_object(request_path=request_path,
+                                      db_object_name=db_object_name,
+                                      schema_id=schema_id, session=session)
+            db_object_id = db_object["id"]
+
+        if not db_object_id:
+            raise ValueError(
+                "The given DB Object could not be found.")
+
+        results = lib.core.select(table="field",
+            where="db_object_id=?",
+            order="id, position"
+        ).exec(session, [db_object_id]).items
+
+        return results
+
+
+
 @plugin_function('mrs.get.dbObjectFields', shell=True, cli=True, web=True)
 def get_db_object_fields(db_object_id=None, schema_id=None,
     request_path=None, db_object_name=None, **kwargs):
@@ -569,9 +665,20 @@ def get_db_object_fields(db_object_id=None, schema_id=None,
     Returns:
         The list of available db object fields
     """
+    if db_object_id is not None:
+        db_object_id = lib.core.id_to_binary(db_object_id, "db_object_id")
+    if schema_id is not None:
+        schema_id = lib.core.id_to_binary(schema_id, "schema_id")
+
+    if request_path is not None:
+        lib.core.Validations.request_path(request_path)
 
     schema_name = kwargs.get("schema_name")
     db_object_type = kwargs.get("db_object_type")
+
+    # Guarantee we have upper case type
+    if db_object_type:
+        db_object_type = db_object_type.upper()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         if db_object_id:
@@ -590,89 +697,12 @@ def get_db_object_fields(db_object_id=None, schema_id=None,
             db_object_type=db_object_type)
 
 
-@plugin_function('mrs.list.dbObjects', shell=True, cli=True, web=True)
-def get_db_objects(**kwargs):
-    """Returns all db_objects for the given schema
-
-    Args:
-        **kwargs: Additional options
-
-    Keyword Args:
-        schema_id (int): The id of the schema to list the db_objects from
-        include_enable_state (bool): Only include db_objects with the given
-            enabled state
-        session (object): The database session to use
-
-    Returns:
-        A list of dicts representing the db_objects of the schema
-    """
-
-    schema_id = kwargs.get("schema_id")
-    include_enable_state = kwargs.get("include_enable_state")
-    return_formatted = lib.core.get_interactive_result()
-
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        db_objects = lib.db_objects.get_db_objects(session=session, schema_id=schema_id,
-            include_enable_state=include_enable_state)
-
-        if return_formatted:
-            return lib.db_objects.format_db_object_listing(db_objects, print_header=True)
-        else:
-            return db_objects
-
-
-@plugin_function('mrs.get.dbObjectParameters', shell=True, cli=True, web=True)
-def get_db_object_parameters(request_path=None, db_object_name=None, **kwargs):
-    """Gets the list of parameters for the given db_object
-
-    Args:
-        request_path (str): The request_path of the schema
-        db_object_name (str): The name of the db_object
-        **kwargs: Additional options
-
-    Keyword Args:
-        db_object_id (int): The id of the db_object
-        schema_id (int): The id of the schema
-        schema_name (str): The name of the schema
-        session (object): The database session to use.
-
-    Returns:
-        The list of db object parameters
-    """
-
-    db_object_id = kwargs.get("db_object_id")
-    schema_id = kwargs.get("schema_id")
-
-    session = kwargs.get("session")
-
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        if not db_object_id:
-            db_object = lib.db_objects.get_db_object(request_path=request_path,
-                                      db_object_name=db_object_name,
-                                      schema_id=schema_id, session=session)
-            db_object_id = db_object["id"]
-
-        if not db_object_id:
-            raise ValueError(
-                "The given DB Object could not be found.")
-
-        results = lib.core.select(table="parameter",
-            where="db_object_id=?",
-            order="id, position"
-        ).exec(session, [db_object_id]).items
-
-        for result in results:
-            result["datatype"]: result.pop("param_datatype")
-
-        return results
-
-
 @plugin_function('mrs.set.dbObject.requestPath', shell=True, cli=True, web=True)
 def set_request_path(db_object_id=None, request_path=None, **kwargs):
     """Sets the request_path of the given db_object
 
     Args:
-        db_object_id (int): The id of the schema to list the db_objects from
+        db_object_id (str): The id of the schema to list the db_objects from
         request_path (str): The request_path that should be set
         **kwargs: Additional options
 
@@ -682,6 +712,12 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
     Returns:
         None
     """
+    if db_object_id is not None:
+        db_object_id = lib.core.id_to_binary(db_object_id, "db_object_id")
+
+    if request_path is not None:
+        lib.core.Validations.request_path(request_path)
+
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -707,7 +743,7 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
         schema = lib.schemas.get_schema(
             schema_id=db_object.get("db_schema_id"),
             session=session)
-        lib.core.check_request_path(request_path, session=session)
+        lib.core.check_request_path(session, request_path)
 
         res = lib.core.update(table="db_object", sets="request_path=?",
             where="id=?"
@@ -716,9 +752,12 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
         if not res.success:
             raise Exception("Could not update the db_object.")
 
-        if interactive:
+        if lib.core.get_interactive_result():
             print(f"The db_object {db_object.get('name')} was updated "
                   "successfully.")
+        return True
+    return False
+
 
 
 @plugin_function('mrs.set.dbObject.crudOperations', shell=True, cli=True, web=True)
@@ -727,7 +766,7 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
     """Sets the request_path of the given db_object
 
     Args:
-        db_object_id (int): The id of the schema to list the db_objects from
+        db_object_id (str): The id of the schema to list the db_objects from
         crud_operations (list,required): The allowed CRUD operations for the object
         crud_operation_format (str,required): The format to use for the CRUD operation
         **kwargs: Additional options
@@ -738,6 +777,9 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
     Returns:
         None
     """
+    if db_object_id is not None:
+        db_object_id = lib.core.id_to_binary(db_object_id, "db_object_id")
+
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -770,11 +812,10 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
         lib.db_objects.set_crud_operations(session=session, db_object_id=db_object_id,
             crud_operations=crud_operations, crud_operation_format=crud_operation_format)
 
-
-        if interactive:
-            db_object = get_db_object(session, db_object_id=db_object_id)
-            print(f"The db_object {db_object.get('name')} was updated "
-                  "successfully.")
+        db_object = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+        if lib.core.get_interactive_result():
+            return f"The db_object {db_object.get('name')} was updated successfully."
+        return db_object
 
 
 
@@ -785,16 +826,18 @@ def enable_db_object(db_object_name=None, schema_id=None,
 
     Args:
         db_object_name (str): The name of the db_object
-        schema_id (int): The id of the schema
+        schema_id (str): The id of the schema
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (int,required): The id of the db_object
+        db_object_id (str,required): The id of the db_object
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["schema_id", "db_object_id"], kwargs)
+
     kwargs["value"] =True
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -804,11 +847,12 @@ def enable_db_object(db_object_name=None, schema_id=None,
         with lib.core.MrsDbTransaction(session):
             lib.db_objects.enable_db_object(**kwargs)
 
-        interactive = lib.core.get_interactive_default()
-        if interactive:
-            if len(kwargs["db_object_ids"]) == 1 and interactive:
+        if lib.core.get_interactive_result():
+            if len(kwargs["db_object_ids"]) == 1:
                 return f"The db_object has been enabled."
             return f"The db_objects have been enabled."
+        return True
+    return False
 
 
 @plugin_function('mrs.disable.dbObject', shell=True, cli=True, web=True)
@@ -817,16 +861,21 @@ def disable_db_object(db_object_name=None, schema_id=None, **kwargs):
 
     Args:
         db_object_name (str): The name of the db_object
-        schema_id (int): The id of the schema
+        schema_id (str): The id of the schema
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (int,required): The id of the db_object
+        db_object_id (str,required): The id of the db_object
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["db_object_id"], kwargs)
+
+    if schema_id is not None:
+        schema_id = lib.core.id_to_binary(schema_id, "schema_id")
+
     kwargs["value"] = False
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -836,11 +885,12 @@ def disable_db_object(db_object_name=None, schema_id=None, **kwargs):
         with lib.core.MrsDbTransaction(session):
             lib.db_objects.enable_db_object(**kwargs)
 
-        interactive = lib.core.get_interactive_default()
-        if interactive:
+        if lib.core.get_interactive_result():
             if len(kwargs["db_object_ids"]) == 1:
                 return f"The db_object has been disabled."
             return f"The db_objects have been disabled."
+        return True
+    return False
 
 
 @plugin_function('mrs.delete.dbObject', shell=True, cli=True, web=True)
@@ -849,16 +899,20 @@ def delete_db_object(db_object_name=None, schema_id=None, **kwargs):
 
     Args:
         db_object_name (str): The name of the db_object
-        schema_id (int): The id of the schema
+        schema_id (str): The id of the schema
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (int,required): The id of the db_object
+        db_object_id (str,required): The id of the db_object
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["db_object_id"], kwargs)
+
+    if schema_id is not None:
+        schema_id = lib.core.id_to_binary(schema_id, "schema_id")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
@@ -867,12 +921,12 @@ def delete_db_object(db_object_name=None, schema_id=None, **kwargs):
         with lib.core.MrsDbTransaction(session):
             lib.db_objects.delete_db_object(**kwargs)
 
-            return_formatted = lib.core.get_interactive_result()
-            if return_formatted:
-                if len(kwargs["db_object_ids"]) == 1 and return_formatted:
-                    return f"The db_object has been deleted."
-                return f"The db_objects have been deleted."
-            return True
+        if lib.core.get_interactive_result():
+            if len(kwargs["db_object_ids"]) == 1:
+                return f"The db_object has been deleted."
+            return f"The db_objects have been deleted."
+        return True
+    return False
 
 
 @plugin_function('mrs.update.dbObject', shell=True, cli=True, web=True)
@@ -883,9 +937,9 @@ def update_db_object(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (int): The id of the db object
+        db_object_id (str): The id of the db object
         db_object_name (str): The name of the schema object add
-        schema_id (int): The id of the schema the object should be added to
+        schema_id (str): The id of the schema the object should be added to
         request_path (str): The request_path
         value (dict,required): The values to update
         session (object): The database session to use.
@@ -905,11 +959,31 @@ def update_db_object(**kwargs):
         media_type (str): The media_type of the db object
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
         options (dict): The options of this db object
-        parameters (list): The db objects parameters as JSON string
+        fields (list): The db objects fields as JSON string
 
     Returns:
         The result message as string
     """
+    if kwargs.get("value") is not None:
+        kwargs["value"] = lib.core.convert_json(kwargs["value"])
+
+        for field in kwargs["value"].get("fields", []):
+            # the ids to insert have the value of position * -1, otherwise, it comes
+            ids=['db_object_id']
+
+            # with the id to update. To avoid issues, for inserts, we're marking
+            # the id to None
+            if field["id"].startswith("-"):
+                field["id"] = None
+            else:
+                ids.append("id")
+
+            lib.core.convert_ids_to_binary(ids, field)
+
+    if kwargs.get("request_path") is not None:
+        lib.core.Validations.request_path(kwargs["request_path"])
+
+    lib.core.convert_ids_to_binary(["schema_id", "db_object_id"], kwargs)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
@@ -919,11 +993,12 @@ def update_db_object(**kwargs):
             lib.db_objects.update_db_objects(session=session,
                 db_object_ids=kwargs["db_object_ids"], value=kwargs["value"])
 
-            interactive = lib.core.get_interactive_default()
-            if interactive:
-                if len(kwargs['db_object_ids']) == 1 and interactive:
+            if lib.core.get_interactive_result():
+                if len(kwargs['db_object_ids']) == 1:
                     return f"The db_object has been updated."
                 return f"The db_object have been updated."
+            return True
+    return False
 
 
 

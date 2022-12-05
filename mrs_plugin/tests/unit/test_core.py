@@ -32,12 +32,14 @@ def test_get_current_service(init_mrs):
     current_service = get_current_service(None)
     assert current_service is None
 
-    set_current_objects(service_id=1, schema_id=1, content_set_id=1)
-    with MrsDbSession(session=init_mrs) as session:
+    set_current_objects(service_id=init_mrs["service_id"],
+        schema_id=init_mrs["schema_id"],
+        content_set_id=init_mrs["url_host_id"])
+    with MrsDbSession(session=init_mrs["session"]) as session:
         current_service = get_current_service(session)
     assert current_service is not None
     assert current_service == {
-        'id': 1,
+        'id': init_mrs["service_id"],
         'enabled': 1,
         'auth_completed_page_content': None,
         'auth_completed_url': None,
@@ -46,11 +48,11 @@ def test_get_current_service(init_mrs):
         'url_protocol': ['HTTP'],
         'url_host_name': 'localhost',
         'url_context_root': '/test',
-        'is_default': 1,
-        'url_host_id': 1,
+        'url_host_id': init_mrs["url_host_id"],
         'options': None,
         'comments': 'Test service',
-        'host_ctx': 'localhost/test'
+        'host_ctx': 'localhost/test',
+        'is_current': 0,
     }
 
 @pytest.mark.usefixtures("init_mrs")
@@ -61,7 +63,7 @@ def test_get_current_content_set():
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_current_schema(init_mrs):
-    with MrsDbSession(session=init_mrs) as session:
+    with MrsDbSession(session=init_mrs["session"]) as session:
         set_current_objects()
         schema = get_current_schema(session=session)
         assert schema is None
@@ -73,18 +75,20 @@ def test_get_current_schema(init_mrs):
     schema = get_current_schema(None)
     assert schema is None
 
-    set_current_objects(service_id=1, schema_id=1, content_set_id=1)
-    schema = get_current_schema(init_mrs)
+    set_current_objects(service_id=init_mrs["service_id"],
+        schema_id=init_mrs["schema_id"],
+        content_set_id=init_mrs["content_set_id"])
+    schema = get_current_schema(init_mrs["session"])
     assert schema is not None
     assert schema == {
-        'id': 1,
+        'id': init_mrs["schema_id"],
         'name': 'PhoneBook',
-        'service_id': 1,
+        'service_id': init_mrs["service_id"],
         'request_path': '/PhoneBook',
         'requires_auth': 0,
         'enabled': 1,
         'options': None,
-        'url_host_id': 1,
+        'url_host_id': init_mrs["url_host_id"],
         'items_per_page': 20,
         'comments': 'test schema',
         'host_ctx': 'localhost/test'
@@ -101,24 +105,19 @@ def test_get_current_session():
     current_session = get_current_session()
     assert current_session is not None
 
-@pytest.mark.usefixtures("init_mrs")
-def test_split_sql_script():
-    splitted_script = split_sql_script("")
-    assert splitted_script is not None
-    assert splitted_script == ['']
 
 @pytest.mark.usefixtures("init_mrs")
-def test_get_current_config():
+def test_get_current_config(init_mrs):
     config = get_current_config()
     assert config is not None
-    assert config == {'current_service_id': 1,
-                      'current_schema_id': 1,
-                      'current_content_set_id': 1}
+    assert config == {'current_service_id': init_mrs["service_id"],
+                      'current_schema_id': init_mrs["schema_id"],
+                      'current_content_set_id': init_mrs["content_set_id"]}
 
 
 @pytest.mark.usefixtures("init_mrs")
 def test_validate_service_path(init_mrs):
-    with MrsDbSession(session=init_mrs) as session:
+    with MrsDbSession(session=init_mrs["session"]) as session:
         service, schema, content_set = validate_service_path(session, None)
         assert service is None
         assert schema is None
@@ -127,7 +126,7 @@ def test_validate_service_path(init_mrs):
         service, schema, content_set = validate_service_path(session, "localhost/test/PhoneBook")
         assert service is not None
         assert service == {
-            'id': 1,
+            'id': init_mrs["service_id"],
             'enabled': 1,
             'auth_completed_page_content': None,
             'auth_completed_url': None,
@@ -136,18 +135,18 @@ def test_validate_service_path(init_mrs):
             'url_protocol': ['HTTP'],
             'url_host_name': 'localhost',
             'url_context_root': '/test',
-            'url_host_id': 1,
-            'is_default': 1,
+            'url_host_id': init_mrs["url_host_id"],
             'options': None,
             'comments': 'Test service',
-            'host_ctx': 'localhost/test'
+            'host_ctx': 'localhost/test',
+            'is_current': 0,
         }
 
         assert schema is not None
         assert schema == {
-            'id': 1,
+            'id': init_mrs["schema_id"],
             'name': 'PhoneBook',
-            'service_id': 1,
+            'service_id': init_mrs["service_id"],
             'request_path': '/PhoneBook',
             'requires_auth': 0,
             'enabled': 1,
@@ -155,7 +154,7 @@ def test_validate_service_path(init_mrs):
             'items_per_page': 20,
             'comments': 'test schema',
             'host_ctx': 'localhost/test',
-            'url_host_id': 1,
+            'url_host_id': init_mrs["url_host_id"],
         }
 
         assert content_set is None

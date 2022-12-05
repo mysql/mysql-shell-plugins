@@ -45,7 +45,7 @@ def format_content_set_listing(content_sets, print_header=False):
 
     for i, item in enumerate(content_sets, start=1):
         url = (item['host_ctx'] + item['request_path'])
-        output += (f"{item['id']:>3} {url[:95]:96} "
+        output += (f"{i:>3} {url[:95]:96} "
                    f"{'Yes' if item['enabled'] else '-':8} "
                    f"{'Yes' if item['requires_auth'] else '-':5}")
         if i < len(content_sets):
@@ -82,23 +82,24 @@ def enable_content_set(session, content_set_ids: list, value: bool):
 
     # Update all given services
     for content_set_id in content_set_ids:
-        params = [value, content_set_id]
+        result = core.update(table="content_set",
+            sets={"enabled": value},
+            where="id=?"
+        ).exec(session, [content_set_id])
 
-        sql = core.update(table="content_set", sets="enabled=?", where="id=?")
-
-        if not sql.exec(session, params).success:
+        if not result.success:
             raise Exception(f"The specified content_set was not found.")
 
 
-def query_content_sets(session, content_set_id=None, service_id=None,
+def query_content_sets(session, content_set_id: bytes=None, service_id: bytes=None,
     request_path=None, include_enable_state=None):
     """Gets a specific MRS content_set
 
     Args:
         session (object): The database session to use.
-        service_id (int): The id of the service
+        service_id: The id of the service
         request_path (str): The request_path of the content_set
-        content_set_id (int): The id of the content_set
+        content_set_id: The id of the content_set
         include_enable_state (bool): Only include items with the given
             enabled state
 
@@ -134,18 +135,18 @@ def query_content_sets(session, content_set_id=None, service_id=None,
         wheres.append("cs.enabled = ?")
         params.append("TRUE" if content_set_id else "FALSE")
 
-    sql += core._generate_where(wheres)
+    sql +=  core._generate_where(wheres)
 
     return core.MrsDbExec(sql, params).exec(session).items
 
-def get_content_set(session, service_id=None, request_path=None, content_set_id=None):
+def get_content_set(session, service_id: bytes=None, request_path=None, content_set_id: bytes=None):
     """Gets a specific MRS content_set
 
     Args:
         session (object): The database session to use.
-        service_id (int): The id of the service
+        service_id: The id of the service
         request_path (str): The request_path of the content_set
-        content_set_id (int): The id of the content_set
+        content_set_id: The id of the content_set
 
     Returns:
         The schema as dict or None on error in interactive mode
@@ -158,12 +159,12 @@ def get_content_set(session, service_id=None, request_path=None, content_set_id=
         service_id=service_id, request_path=request_path)
     return result[0] if result else None
 
-def get_content_sets(session, service_id, include_enable_state=None, request_path=None):
+def get_content_sets(session, service_id: bytes, include_enable_state=None, request_path=None):
     """Returns all content sets for the given MRS service
 
     Args:
         session (object): The database session to use.
-        service_id (int): The id of the service to list the schemas from
+        service_id: The id of the service to list the schemas from
         include_enable_state (bool): Only include items with the given
             enabled state
 
@@ -177,21 +178,20 @@ def get_content_sets(session, service_id, include_enable_state=None, request_pat
 
 
 def add_content_set(session, service_id, request_path, requires_auth=False, comments="", options=None):
-    if not isinstance(service_id, int) or service_id < 1:
-        raise Exception("The service id is invalid.")
-
-    if not request_path.startswith('/'):
-        raise Exception("The request_path has to start with '/'.")
-
-    # Create the content_set, ensure it is created as "not enabled"
-    return core.insert(table="content_set", values={
+    values = {
+        "id": core.get_sequence_id(session),
         "service_id": service_id,
         "request_path": request_path,
         "requires_auth": int(requires_auth),
         "enabled": 0,
         "comments": comments,
         "options": options
-    }).exec(session).id
+    }
+
+    # Create the content_set, ensure it is created as "not enabled"
+    core.insert(table="content_set", values=values).exec(session)
+
+    return values["id"]
 
 
 def get_current_content_set(session):

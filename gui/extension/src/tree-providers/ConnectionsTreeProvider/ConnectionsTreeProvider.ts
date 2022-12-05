@@ -388,11 +388,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                     if (entry.details.dbType === "MySQL") {
                         // If the schema is the MRS metadata schema, add the MRS tree item
                         if (schema === "mysql_rest_service_metadata") {
-                            const status = await backend.mrs.status();
-                            schemaList.unshift(
-                                new MrsTreeItem("MySQL REST Service", schema, entry, true, status.enabled));
-                        }
+                            try {
+                                const status = await backend.mrs.status();
 
+                                schemaList.unshift(
+                                    new MrsTreeItem("MySQL REST Service", schema, entry, true, status.serviceEnabled));
+                            } catch (reason) {
+                                void window.showErrorMessage(
+                                    `MySQL REST Service: ${reason instanceof Error ? reason.message : String(reason)}`);
+                            }
+                        }
                         // Only show system schemas if the options is set
                         let hideSystemSchemas = true;
                         if (entry.details.hideSystemSchemas !== undefined) {

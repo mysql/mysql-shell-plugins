@@ -26,9 +26,9 @@ from ... content_files import *
 def test_get_content_files(init_mrs):
     args = {
         "include_enable_state": False,
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
 
-    files = get_content_files(1, **args)
+    files = get_content_files(init_mrs["content_set_id"], **args)
     assert files is not None
 

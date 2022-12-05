@@ -124,8 +124,8 @@ describe("DialogHost Tests", () => {
                 services: [{
                     enabled: 1,
                     hostCtx: "localhost",
-                    id: 22,
-                    isDefault: 1,
+                    id: "0x22",
+                    isCurrent: 1,
                     urlContextRoot: "root",
                     urlHostName: "host",
                     urlProtocol: "https",
@@ -161,15 +161,17 @@ describe("DialogHost Tests", () => {
         const services: IMrsServiceData[] = [{
             enabled: 1,
             hostCtx: "/mrs",
-            id: 1,
-            isDefault: 1,
+            id: "0x01",
+            isCurrent: 1,
             urlContextRoot: "/mrs",
             urlHostName: "",
             urlProtocol: "HTTP,HTTPS",
             comments: "",
             options: {
                 header: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     "Access-Control-Allow-Origin": "*",
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
                 },
             },
@@ -183,12 +185,12 @@ describe("DialogHost Tests", () => {
             comments: "",
             enabled: 1,
             hostCtx: "/mrs",
-            id: 1,
+            id: "0x02",
             itemsPerPage: 25,
             name: "mrs_notes",
             requestPath: "/mrs_notes",
             requiresAuth: 1,
-            serviceId: 1,
+            serviceId: "0x01",
             options: {},
         }];
 
@@ -208,10 +210,10 @@ describe("DialogHost Tests", () => {
             comments: "",
             crudOperations: ["READ"],
             crudOperationFormat: "FEED",
-            dbSchemaId: 1,
+            dbSchemaId: "0x02",
             enabled: 1,
             hostCtx: "/mrs",
-            id: 1,
+            id: "0x03",
             name: "note",
             objectType: "TABLE",
             requestPath: "/note",
@@ -220,7 +222,7 @@ describe("DialogHost Tests", () => {
             rowUserOwnershipEnforced: 1,
             schemaRequestPath: "/mrs_notes",
             qualifiedName: "mrs_notes.note",
-            serviceId: 1,
+            serviceId: "0x01",
             autoDetectMediaType: 0,
         };
 

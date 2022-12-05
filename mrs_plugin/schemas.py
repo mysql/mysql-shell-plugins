@@ -39,13 +39,12 @@ def resolve_schemas(**kwargs):
     schema_id = kwargs.pop("schema_id", None)
     schema_name = kwargs.pop("schema_name", None)
     request_path = kwargs.pop("request_path", None)
-    interactive = kwargs.pop("interactive", lib.core.get_interactive_default())
     allow_multi_select = kwargs.pop("allow_multi_select", True)
 
     kwargs["schemas"] = {}
 
     # if there's g proper schema_id, then use it
-    if isinstance(schema_id, int) and schema_id > 0:
+    if schema_id is not None:
         schema = lib.schemas.get_schema(session=session, schema_id=schema_id)
         kwargs["schemas"][schema_id] = schema.get("host_ctx")
         return kwargs
@@ -86,9 +85,6 @@ def resolve_schemas(**kwargs):
 
     if request_path is not None:
         # Lookup the request path
-        if not request_path.startswith('/'):
-            raise Exception("The request_path has to start with '/'.")
-
         row = lib.core.select(table="db_schema",
             cols="id",
             where=["request_path=?", "service_id=?"]
@@ -103,7 +99,7 @@ def resolve_schemas(**kwargs):
         kwargs["schemas"][schema.get("id")] = schema.get("host_ctx")
         return kwargs
 
-    if not interactive:
+    if not lib.core.get_interactive_default():
         raise ValueError("Operation cancelled.")
 
     # this is the code for interactive mode
@@ -134,8 +130,7 @@ def resolve_schemas(**kwargs):
 
 def resolve_requires_auth(**kwargs):
     value = kwargs.get("value")
-    interactive = kwargs.get("interactive", lib.core.get_interactive_default())
-    if not interactive:
+    if not lib.core.get_interactive_default():
         return kwargs
 
     if value is None or "requires_auth" in value and value["requires_auth"] is None:
@@ -145,8 +140,7 @@ def resolve_requires_auth(**kwargs):
 
 def resolve_items_per_page(**kwargs):
     value = kwargs.get("value")
-    interactive = kwargs.get("interactive", lib.core.get_interactive_default())
-    if not interactive:
+    if not lib.core.get_interactive_default():
         return kwargs
 
     if value is None or "items_per_page" in value and value["items_per_page"] is None:
@@ -156,8 +150,7 @@ def resolve_items_per_page(**kwargs):
 
 def resolve_comments(**kwargs):
     value = kwargs.get("value")
-    interactive = kwargs.get("interactive", lib.core.get_interactive_default())
-    if not interactive:
+    if not lib.core.get_interactive_default():
         return kwargs
 
     if value is None or "comments" in value and value["comments"] is None:
@@ -176,22 +169,24 @@ def call_update_schema(**kwargs):
         with lib.core.MrsDbTransaction(session):
             lib_func(**kwargs)
 
-            if len(kwargs['schemas']) == 1:
-                return f"The schema has been {text_update}."
-            return f"The schemas have been {text_update}."
-
+            if lib.core.get_interactive_result():
+                if len(kwargs['schemas']) == 1:
+                    return f"The schema has been {text_update}."
+                return f"The schemas have been {text_update}."
+            return True
+    return False
 
 @plugin_function('mrs.add.schema', shell=True, cli=True, web=True)
-def add_schema(service_id, **kwargs):
+def add_schema(**kwargs):
     """Add a schema to the given MRS service
 
     Args:
-        service_id (int): The id of the service the schema should be added to
         **kwargs: Additional options
 
     Keyword Args:
-        schema_name (str,required): The name of the schema to add
-        request_path (str,required): The request_path
+        service_id (str): The id of the service the schema should be added to
+        schema_name (str): The name of the schema to add
+        request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
             the schema
         enabled (bool): The enabled state
@@ -203,6 +198,9 @@ def add_schema(service_id, **kwargs):
     Returns:
         The schema_id of the created schema when not in interactive mode
     """
+    lib.core.convert_ids_to_binary(["service_id"], kwargs)
+
+    service_id = kwargs.get("service_id")
     schema_name = kwargs.get("schema_name")
     request_path = kwargs.get("request_path")
     requires_auth = kwargs.get("requires_auth")
@@ -211,7 +209,6 @@ def add_schema(service_id, **kwargs):
     comments = kwargs.get("comments")
     options = kwargs.get("options")
     interactive = lib.core.get_interactive_default()
-    return_formatted = lib.core.get_interactive_result()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         lib.services.get_service(service_id=service_id, get_default=True,
@@ -237,9 +234,11 @@ def add_schema(service_id, **kwargs):
                 raise ValueError('Operation cancelled.')
 
         # Get request_path
-        if request_path is None and interactive:
-            request_path = lib.schemas.prompt_for_request_path(schema_name)
-
+        if not request_path:
+            if interactive:
+                request_path = lib.schemas.prompt_for_request_path(schema_name)
+            else:
+                request_path = f"/{schema_name}"
 
         # Get requires_auth
         if requires_auth is None and interactive:
@@ -258,14 +257,14 @@ def add_schema(service_id, **kwargs):
             options = lib.core.prompt("Options: ").strip()
 
         with lib.core.MrsDbTransaction(session):
-            auto_increment_value = lib.schemas.add_schema(schema_name=schema_name, service_id=service_id,
+            id = lib.schemas.add_schema(schema_name=schema_name, service_id=service_id,
                 request_path=request_path, requires_auth=requires_auth, enabled=enabled,
                 items_per_page=items_per_page, comments=comments, options=options,
                 session=session)
 
-            if return_formatted:
-                return f"\nSchema with id {auto_increment_value} was added successfully."
-            return auto_increment_value
+            if lib.core.get_interactive_result():
+                return f"\nSchema with id {id} was added successfully."
+            return id
 
 
 @plugin_function('mrs.get.schema', shell=True, cli=True, web=True)
@@ -276,26 +275,31 @@ def get_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (int,required): The id of the service
+        service_id (str,required): The id of the service
         request_path (str,required): The request_path of the schema
         schema_name (str,required): The name of the schema
-        schema_id (int,required): The id of the schema
+        schema_id (str,required): The id of the schema
         auto_select_single (bool,required): If there is a single service only, use that
         session (object): The database session to use.
 
     Returns:
         The schema as dict or None on error in interactive mode
     """
-    return_formatted = lib.core.get_interactive_result()
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
+    if kwargs.get("request_path") is not None:
+        lib.core.Validations.request_path(kwargs["request_path"])
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
         kwargs["allow_multi_select"] = False
         kwargs = resolve_schemas(**kwargs)
         kwargs["schema_id"] = list(kwargs["schemas"].keys())[0]
+
+
         schema = lib.schemas.get_schema(session, schema_id=kwargs["schema_id"])
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             return lib.schemas.format_schema_listing([schema], True)
 
         return schema
@@ -306,7 +310,7 @@ def get_schemas(service_id=None, **kwargs):
     """Returns all schemas for the given MRS service
 
     Args:
-        service_id (int): The id of the service to list the schemas from
+        service_id (str): The id of the service to list the schemas from
         **kwargs: Additional options
 
     Keyword Args:
@@ -318,17 +322,18 @@ def get_schemas(service_id=None, **kwargs):
         Either a string listing the schemas when interactive is set or list
         of dicts representing the schemas
     """
+    if service_id is not None:
+        service_id = lib.core.id_to_binary(service_id, "service_id")
+
     include_enable_state = kwargs.get("include_enable_state")
-    return_formatted = lib.core.get_interactive_result()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         schemas = lib.schemas.get_schemas(service_id=service_id,
             include_enable_state=include_enable_state,
             session=session)
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             return lib.schemas.format_schema_listing(schemas=schemas, print_header=True)
-
         return schemas
 
 
@@ -340,14 +345,16 @@ def enable_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     kwargs["value"] = {"enabled": True}
 
     return call_update_schema(text_update="enabled", **kwargs)
@@ -361,14 +368,16 @@ def disable_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     kwargs["value"] = {"enabled": False}
 
     return call_update_schema(text_update="disabled", **kwargs)
@@ -382,14 +391,16 @@ def delete_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     return call_update_schema(text_update="deleted", lib_function=lib.schemas.delete_schema, **kwargs)
 
 
@@ -401,8 +412,8 @@ def set_name(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         value (str,required): The value
         session (object): The database session to use.
@@ -410,6 +421,8 @@ def set_name(**kwargs):
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     kwargs["value"] = { "name": kwargs.get("value") }
 
     return call_update_schema(**kwargs)
@@ -423,8 +436,8 @@ def set_request_path(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         value (str,required): The value
         session (object): The database session to use.
@@ -432,6 +445,8 @@ def set_request_path(**kwargs):
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     kwargs["value"] = { "request_path": kwargs.get("value") }
 
     return call_update_schema(**kwargs)
@@ -445,8 +460,8 @@ def set_require_auth(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         value (bool,required): The value
         session (object): The database session to use.
@@ -454,6 +469,8 @@ def set_require_auth(**kwargs):
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     kwargs["value"] = { "requires_auth": kwargs.get("value", True) }
     kwargs = resolve_requires_auth(**kwargs)
 
@@ -468,8 +485,8 @@ def set_items_per_page(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         value (int,required): The value
         session (object): The database session to use.
@@ -477,6 +494,8 @@ def set_items_per_page(**kwargs):
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     kwargs["value"] = { "items_per_page": kwargs.get("value", 25) }
     kwargs = resolve_items_per_page(**kwargs)
 
@@ -491,8 +510,8 @@ def set_comments(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int,required): The id of the schema
-        service_id (int,required): The id of the service
+        schema_id (str,required): The id of the schema
+        service_id (str,required): The id of the service
         schema_name (str,required): The name of the schema
         value (str,required): The value
         session (object): The database session to use.
@@ -500,6 +519,8 @@ def set_comments(**kwargs):
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
     kwargs["value"] = { "comments": kwargs.get("value") }
 
     kwargs = resolve_comments(**kwargs)
@@ -515,8 +536,8 @@ def update_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (int): The id of the schema
-        service_id (int): The id of the service
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
         schema_name (str): The name of the schema
         value (dict,required): The values as dict #TODO: check why dicts cannot be passed
         session (object): The database session to use.
@@ -534,6 +555,11 @@ def update_schema(**kwargs):
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
+    if kwargs.get("request_path") is not None:
+        lib.core.Validations.request_path(kwargs["request_path"])
+
     if "schema_name" in kwargs["value"]:
         kwargs["value"]["name"] = kwargs["value"]["schema_name"]
         del kwargs["value"]["schema_name"]
@@ -547,7 +573,7 @@ def update_schema(**kwargs):
     verify_value_keys(**kwargs)
 
     kwargs = resolve_requires_auth(**kwargs)
-    kwargs = resolve_items_per_page(**kwargs)
+    kwargs = resolve_items_per_page( **kwargs)
     kwargs = resolve_comments(**kwargs)
 
     return call_update_schema(**kwargs)

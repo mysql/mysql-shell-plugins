@@ -59,6 +59,22 @@ def create_test_db(session):
                         WHERE `email` is not NULL;""")
 
 
+def reset_mrs_database(session):
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.audit_log")
+    # session.run_sql("DELETE FROM mysql_rest_service_metadata.auth_app")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.content_file")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.content_set")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.field")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.db_object")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.db_schema")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.service")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host_alias")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host")
+
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.config")
+    session.run_sql("INSERT INTO mysql_rest_service_metadata.config (id, service_enabled, data) VALUES (1, 1, '{}')")
+
+
 @pytest.fixture(scope="session")
 def init_mrs():
     shell = mysqlsh.globals.shell
@@ -66,7 +82,11 @@ def init_mrs():
     session: mysqlsh.globals.session = shell.connect("root:@localhost:3306")
     assert session is not None
 
-    session.run_sql("DROP DATABASE IF EXISTS mysql_rest_service_metadata;")
+    if "MRS_TESTS_QUICK" in os.environ:
+        reset_mrs_database(session)
+    else:
+        session.run_sql("DROP DATABASE IF EXISTS mysql_rest_service_metadata;")
+
     create_test_db(session)
 
     from .. general import configure
@@ -74,37 +94,36 @@ def init_mrs():
 
     service = {
         "url_protocol": ["HTTP"],
-        "is_default": True,
         "comments": "Test service",
         "session": session
     }
     from .. services import add_service
-    result = add_service(url_context_root="/test", url_host_name="localhost", enabled=True, **service)
+    service = add_service(url_context_root="/test", url_host_name="localhost", enabled=True, **service)
 
-    assert result is not None, f"Unable to add the /test service: {result}"
+    assert service is not None, f"Unable to add the /test service: {service}"
 
-    assert result is not None
-    assert isinstance(result, dict)
-    assert result == {
-        'id': 1,
+    assert service is not None
+    assert isinstance(service, dict)
+    assert service == {
+        'id': service["id"],
         'enabled': 1,
         'url_protocol': ['HTTP'],
         'url_host_name': 'localhost',
         'url_context_root': '/test',
-        'is_default': 1,
         'comments': 'Test service',
         'options': None,
         'host_ctx': 'localhost/test',
-        'url_host_id': 1,
+        'url_host_id': service["url_host_id"],
         'auth_path': '/authentication',
         'auth_completed_url': None,
         'auth_completed_url_validation': None,
-        'auth_completed_page_content': None
+        'auth_completed_page_content': None,
+        'is_current': 0,
     }
 
     schema = {
+        "service_id": service["id"],
         "schema_name": "PhoneBook",
-        "service_id": 1,
         "request_path": "/PhoneBook",
         "requires_auth": False,
         "enabled": True,
@@ -113,25 +132,27 @@ def init_mrs():
         "session": session
     }
     from .. schemas import add_schema
-    add_schema(**schema)
+    schema_id = add_schema(**schema)
 
     tmp_dir = tempfile.TemporaryDirectory()
     tmpdir_path = tmp_dir.name
     open(os.path.join(tmpdir_path, "file.sh"), 'w+').close()
     open(os.path.join(tmpdir_path, "readme.txt"), 'w+').close()
     content_set = {
+        "service_id": service["id"],
         "request_path": "/test_content_set",
         "requires_auth": False,
         "comments": "Content Set",
+        "content_dir": tmpdir_path,
         "session": session
     }
     from .. content_sets import add_content_set
-    add_content_set(content_dir=tmpdir_path, service_id=1, **content_set)
+    content_set_result = add_content_set(**content_set)
 
     db_object = {
         "db_object_name": "Contacts",
         "db_object_type": "TABLE",
-        "schema_id": 1,
+        "schema_id": schema_id,
         "schema_name": "PhoneBook",
         "auto_add_schema": False,
         "request_path": "/test_table",
@@ -148,13 +169,20 @@ def init_mrs():
         "auto_detect_media_type": True,
         "auth_stored_procedure": '0',
         "options": None,
-        "parameters": None
+        "fields": None
     }
     from .. db_objects import add_db_object
-    id = add_db_object(**db_object)
+    db_object_id = add_db_object(**db_object)
     assert id is not None
 
-    yield session
+    yield {
+        "session": session,
+        "service_id": service["id"],
+        "schema_id": schema_id,
+        "db_object_id": db_object_id,
+        "content_set_id": content_set_result["content_set_id"],
+        "url_host_id": service["url_host_id"],
+    }
 
     tmp_dir.cleanup()
     session.close()
@@ -216,10 +244,10 @@ class TableContents(object):
             where=[f"{column_name}=?"]
         ).exec(self._session, [value]).first
 
-    def filter(self, where=None):
+    def filter(self, column_name, value):
         return lib.core.select(table=self._table_name,
-            where=where
-        ).exec(self._session).items
+            where=f"{column_name}=?"
+        ).exec(self._session, [value]).items
 
     def exists(self, column_name, value):
         return self.get(column_name, value) is not None
@@ -266,7 +294,7 @@ class TableContents(object):
 @pytest.mark.usefixtures("init_mrs")
 def table_contents(init_mrs) -> TableContents:
     def create_table_content_object(table_name, take_snapshot=True):
-        tc = TableContents(init_mrs, table_name)
+        tc = TableContents(init_mrs["session"], table_name)
         if take_snapshot:
             tc.take_snapshot()
         return tc

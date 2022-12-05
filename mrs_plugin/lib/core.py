@@ -34,6 +34,49 @@ import base64
 
 _metadata_schema_updated = False
 
+class ConfigFile:
+    def __init__(self) -> None:
+        self._settings = {}
+
+        self._filename = os.path.abspath(mysqlsh.plugin_manager.general.get_shell_user_dir(
+        'plugin_data', 'mrs_plugin', "config.json"))
+        try:
+            with open(self._filename, "r") as f:
+                self._settings = json.load(f)
+                convert_ids_to_binary(["current_service_id"], self._settings)
+        except:
+            pass
+
+    def store(self):
+        # create a copy because we're changing the dict data
+        settings_copy = self._settings.copy()
+
+        if "current_service_id" in settings_copy:
+            settings_copy["current_service_id"] = f"0x{settings_copy['current_service_id'].hex()}"
+
+        os.makedirs(os.path.dirname(self._filename), exist_ok=True)
+        with open(self._filename, "w") as f:
+            json.dump(settings_copy, f)
+
+    @property
+    def settings(self):
+        return self._settings
+
+
+class Validations:
+    @staticmethod
+    def request_path(value, required=False, session=None):
+        if required and value is None:
+            raise Exception("The request_path is missing.")
+        if value is None:
+            return
+
+        if not isinstance(value, str) or not value.startswith('/'):
+            raise Exception("The request_path has to start with '/'.")
+        if session:
+            check_request_path(session, value)
+
+
 class LogLevel(IntEnum):
     NONE = 1
     INTERNAL_ERROR = 2
@@ -43,6 +86,9 @@ class LogLevel(IntEnum):
     DEBUG = 6
     DEBUG2 = 7
     DEBUG3 = 8
+
+def get_local_config():
+    return ConfigFile().settings
 
 def script_path(*suffixes):
     return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), *suffixes)
@@ -114,22 +160,22 @@ def validate_service_path(session, path):
     return service, schema, content_set
 
 
-def set_current_objects(service_id=None, service=None, schema_id=None,
-                        schema=None, content_set_id=None, content_set=None,
-                        db_object_id=None, db_object=None):
+def set_current_objects(service_id: bytes=None, service=None, schema_id: bytes=None,
+                        schema=None, content_set_id: bytes=None, content_set=None,
+                        db_object_id: bytes=None, db_object=None):
     """Sets the current objects to the given ones
 
     Note that if no service or no schema or no db_object are specified,
     they are reset
 
     Args:
-        service_id (int): The id of the service to set as the current service
+        service_id: The id of the service to set as the current service
         service (dict): The service to set as the current service
-        schema_id (int): The id of the schema to set as the current schema
+        schema_id: The id of the schema to set as the current schema
         schema (dict): The schema to set as the current schema
-        content_set_id (int): The id of the content_set to set as the current
+        content_set_id: The id of the content_set to set as the current
         content_set (dict): The content_set to set as the current
-        db_object_id (int): The id of the db_object to set as the current
+        db_object_id: The id of the db_object to set as the current
             db_object
         db_object (dict): The db_object to set as the current db_object
 
@@ -221,23 +267,18 @@ def get_current_session(session=None):
 def get_metadata_schema_updated():
     return _metadata_schema_updated
 
-def ensure_mrs_metadata_schema(session=None, auto_create_and_update=False,
-                               interactive=True):
+def _ensure_mrs_metadata_schema(session):
     """Creates or updates the MRS metadata schema
 
     Raises exception on failure
 
     Args:
         session (object): The database session to use
-        auto_create_and_update (bool): Whether the metadata schema should be
-            automatically created and updated if needed
-        interactive (bool): Indicates whether to execute in interactive mode
 
     Returns:
         True if the metadata schema has been changed
     """
     _metadata_schema_updated = False
-    session = get_current_session(session)
 
     # Check if the MRS metadata schema already exists
     row = select(table="INFORMATION_SCHEMA.SCHEMATA", cols="COUNT(*) AS schema_exists",
@@ -245,12 +286,9 @@ def ensure_mrs_metadata_schema(session=None, auto_create_and_update=False,
     ).exec(session).first
 
     if row["schema_exists"] == 0:
-        if auto_create_and_update:
-            create_rds_metadata_schema(session, interactive)
-            _metadata_schema_updated = True
-            return True
-        raise Exception("The MRS metadata schema has not yet been "
-                        "created. Please run mrs.configure() first.")
+        create_rds_metadata_schema(session)
+        _metadata_schema_updated = True
+        return True
 
     # If it exists, check the version number
     row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
@@ -272,56 +310,12 @@ def ensure_mrs_metadata_schema(session=None, auto_create_and_update=False,
                 f"version {db_version_str}. "
                 "Please update your MRS Shell Plugin.")
         else:
-            if auto_create_and_update:
-                update_rds_metadata_schema(session, db_version_str)
-                return True
-            else:
-                raise Exception(
-                    "The MRS metadata schema needs to be updated. "
-                    "Please run mrs.configure() first.")
+            update_rds_metadata_schema(session, db_version_str)
+            return True
 
     return False
 
-
-def split_sql_script(sql_script):
-    """Splits an SQL script into individual SQL commands
-
-    Args:
-        script (string): The script to split
-
-    Returns:
-        A list of commands as strings
-    """
-
-    # Remove comments and split by command
-    sql_script = re.sub(r".*--.*\n?", "", sql_script)
-
-    # cSpell:ignore cmds
-    cmds = []
-
-    # Deal with DELIMITER blocks
-    leftover_start = 0
-    ms = re.finditer(r'(.*?)(DELIMITER (.*?)\n)(.*?)(DELIMITER ;)',
-                     sql_script, re.DOTALL)
-    if ms:
-        for m in ms:
-            # Split the beginning of the script based on ; as DELIMITER
-            cmds.extend(m.group(1).split(";"))
-
-            # Split the delimiter section based on the other DELIMITER
-            cmds.extend(m.group(4).split(m.group(3)))
-
-            # Store where the match ends, to be able to deal with the rest
-            leftover_start = m.end(5)
-
-        # Split the rest of the script based on ; as DELIMITER
-        cmds.extend(sql_script[leftover_start:].split(";"))
-
-    return cmds
-
-
-def update_rds_metadata_schema(session, current_db_version_str,
-                               interactive=True):
+def update_rds_metadata_schema(session, current_db_version_str):
     """Creates or updates the MRS metadata schema
 
     Raises exception on failure
@@ -334,6 +328,7 @@ def update_rds_metadata_schema(session, current_db_version_str,
     Returns:
         None
     """
+    interactive = get_interactive_default()
     if interactive:
         print("Updating MRS metadata schema...")
 
@@ -371,10 +366,11 @@ def update_rds_metadata_schema(session, current_db_version_str,
                             print(f"Update from version {update_from_version} "
                                   f"to version {update_to_version} ...")
 
-                        for cmd in split_sql_script(sql_script):
+                        for cmd in mysqlsh.mysql.split_script(sql_script):
                             current_cmd = cmd.strip()
                             if current_cmd:
-                                session.run_sql(current_cmd)
+                                MrsDbExec(current_cmd).exec(session)
+                                # session.run_sql(current_cmd)
 
                         version_to_update = update_to_version
                     except (mysqlsh.DBError, Exception) as e:
@@ -392,9 +388,9 @@ def update_rds_metadata_schema(session, current_db_version_str,
                       f"to version {general.DB_VERSION_STR}.")
 
 
-def create_rds_metadata_schema(session=None, interactive=True):
+def create_rds_metadata_schema(session):
     """Creates or updates the MRS metadata schema
-
+#
     Raises exception on failure
 
     Args:
@@ -404,9 +400,7 @@ def create_rds_metadata_schema(session=None, interactive=True):
     Returns:
         None
     """
-    shell = mysqlsh.globals.shell
-    session = get_current_session(session)
-
+    interactive = get_interactive_default()
     if interactive:
         print("Creating MRS metadata schema...")
 
@@ -431,11 +425,10 @@ def create_rds_metadata_schema(session=None, interactive=True):
 
     sql_file_path = script_path('db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
 
-
     with open(sql_file_path) as f:
         sql_script = f.read()
 
-    cmds = split_sql_script(sql_script)
+    cmds = mysqlsh.mysql.split_script(sql_script)
 
     # Execute all commands
     current_cmd = ""
@@ -585,7 +578,6 @@ def prompt_for_comments():
 
     return prompt("Comments: ").strip()
 
-
 def get_sql_result_as_dict_list(res, fetch_all=True):
     """Returns the result set as a list of dicts
 
@@ -613,8 +605,6 @@ def get_sql_result_as_dict_list(res, fetch_all=True):
                 item[col_name] = field_val.split(",") if field_val else []
             elif col_type == "<Type.JSON>":
                 item[col_name] = json.loads(field_val) if field_val else None
-            elif isinstance(field_val, bytes):
-                item[col_name] = str(base64.b64decode(field_val), 'utf-8')
             else:
                 item[col_name] = field_val
 
@@ -663,7 +653,7 @@ def prompt(message, options=None):
     return mysqlsh.globals.shell.prompt(message, options)
 
 
-def check_request_path(request_path=None, **kwargs):
+def check_request_path(session, request_path):
     """Checks if the given request_path is valid and unique
 
     Args:
@@ -676,8 +666,6 @@ def check_request_path(request_path=None, **kwargs):
     Returns:
         None
     """
-    session = kwargs.get("session")
-
     if not request_path:
         raise Exception("No request_path specified.")
 
@@ -746,10 +734,40 @@ def convert_json(value):
         value_str = value_str.replace("': '", '": "')
         value_str = value_str.replace("': [", '": [')
         value_str = value_str.replace("], '", '], "')
+        value_str = value_str.replace("['", '["')
+        value_str = value_str.replace("']", '"]')
         value_str = value_str.replace("': ", '": ')
         value_str = value_str.replace(", '", ', "')
+        value_str = value_str.replace(": b\'", ': "')
     return json.loads(value_str)
 
+
+def id_to_binary(id: str, context: str):
+    if isinstance(id, bytes):
+        return id
+    elif isinstance(id, str):
+        if id.startswith("0x"):
+            try:
+                result = bytes.fromhex(id[2:])
+            except Exception:
+                raise RuntimeError(f"Invalid hexadecimal string for {context}.")
+        else:
+            try:
+                result = base64.b64decode(id, validate=True)
+            except Exception:
+                raise RuntimeError(f"Invalid base64 string for {context}.")
+
+        if len(result) != 16:
+            raise RuntimeError(f"The {context} has an invalid size.")
+        return result
+
+    raise RuntimeError(f"Invalid id type for {context}.")
+
+def convert_ids_to_binary(id_options, kwargs):
+   for id_option in id_options:
+      id = kwargs.get(id_option)
+      if id is not None:
+        kwargs[id_option] = id_to_binary(id, id_option)
 
 def _generate_where(where):
     if where:
@@ -766,13 +784,24 @@ def _generate_table(table):
     return f"`mysql_rest_service_metadata`.`{table}`"
 
 
+def _generate_qualified_name(name):
+    if '.' in name:
+        return name
+    parts = name.split("(")
+    result = f"`mysql_rest_service_metadata`.`{parts[0]}`"
+    if len(parts) == 2:     # it's a function call so add the parameters
+        result = f"{result}({parts[1]}"
+
+    return result
+
+
 class MrsDbExec:
     def __init__(self, sql: str, params=[]) -> None:
         self._sql = sql
         self._result = None
         self._params = params
 
-    def _convert_data_to_db(self, var):
+    def _convert_to_database(self, var):
         if isinstance(var, list):
             return ",".join(var)
         if isinstance(var, dict):
@@ -788,7 +817,7 @@ class MrsDbExec:
         self._params = self._params + params
         try:
             # convert lists and dicts to store in the database
-            self._params = [self._convert_data_to_db(param) for param in self._params]
+            self._params = [self._convert_to_database(param) for param in self._params]
 
             self._result = session.run_sql(self._sql, self._params)
         except Exception as e:
@@ -873,14 +902,15 @@ def insert(table, values={}):
     """
     return MrsDbExec(sql, params)
 
+def get_sequence_id(session):
+    return MrsDbExec(f"SELECT {_generate_qualified_name('get_sequence_id()')} as id").exec(session).first["id"]
 
 class MrsDbSession:
     def __init__(self, **kwargs) -> None:
         self._session = get_current_session(kwargs.get("session"))
         self._exception_handler = kwargs.get("exception_handler")
 
-        ensure_mrs_metadata_schema(self._session, True)
-
+        _ensure_mrs_metadata_schema(self._session)
 
     def __enter__(self):
         return self._session

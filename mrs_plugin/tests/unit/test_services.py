@@ -31,9 +31,8 @@ from mrs_plugin import lib
 def test_add_service(init_mrs, table_contents):
     args = {
         "url_protocol": ["HTTP"],
-        "is_default": True,
         "comments": "Test service",
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
 
     services_table = table_contents("service")
@@ -46,13 +45,12 @@ def test_add_service(init_mrs, table_contents):
 
     args = {
         "url_protocol": ["HTTP"],
-        "is_default": False,
         "comments": "Test service 2",
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
 
     with ServiceCT("/service2", "localhost", **args) as service_id:
-        assert isinstance(service_id, int)
+        assert service_id is not None
         assert services_table.count == services_table.snapshot.count + 1
 
     assert services_table.same_as_snapshot
@@ -64,12 +62,12 @@ def test_get_services(init_mrs, table_contents):
     assert services is not None
 
     args = {
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
     services = get_services(**args)
     assert services is not None
     assert services == [{
-        'id': 1,
+        'id': services[0]["id"],
         'enabled': 1,
         'auth_completed_page_content': None,
         'auth_completed_url': None,
@@ -78,18 +76,18 @@ def test_get_services(init_mrs, table_contents):
         'url_protocol': ['HTTP'],
         'url_host_name': 'localhost',
         'url_context_root': '/test',
-        'url_host_id': 1,
-        'is_default': 1,
+        'url_host_id': services[0]["url_host_id"],
         'options': None,
         'comments': 'Test service',
-        'host_ctx': 'localhost/test'
+        'host_ctx': 'localhost/test',
+        'is_current': 0,
     }]
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_service(init_mrs, table_contents):
     service_table = table_contents("service")
     args = {
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
     service = get_service(url_host_name="localhost", url_context_root="/test", **args)
 
@@ -99,31 +97,32 @@ def test_get_service(init_mrs, table_contents):
         'comments': 'Test service',
         'enabled': 1,
         'host_ctx': 'localhost/test',
-        'id': 1,
+        'id': service["id"],
         'auth_completed_page_content': None,
         'auth_completed_url': None,
         'auth_completed_url_validation': None,
         'auth_path': '/authentication',
         'options': None,
-        'is_default': 1,
         'url_context_root': '/test',
-        'url_host_id': 1,
+        'url_host_id': service["url_host_id"],
         'url_host_name': 'localhost',
-        'url_protocol': ['HTTP']
+        'url_protocol': ['HTTP'],
+        'is_current': 0,
     }
     assert service_table.snapshot[0] == {
         'comments': 'Test service',
         'enabled': 1,
-        'id': 1,
-        'is_default': 1,
+        'id': service["id"],
         'auth_completed_page_content': None,
         'auth_completed_url': None,
         'auth_completed_url_validation': None,
         'auth_path': '/authentication',
         'options': None,
         'url_context_root': '/test',
-        'url_host_id': 1,
-        'url_protocol': ['HTTP']
+        'url_host_id': service["url_host_id"],
+        'url_protocol': ['HTTP'],
+        'custom_metadata_schema': None,
+        'enable_sql_endpoint': 0,
     }
 
     with ServiceCT("/service2", "localhost", **args) as service_id:
@@ -136,16 +135,16 @@ def test_get_service(init_mrs, table_contents):
             'enabled': 1,
             'host_ctx': 'localhost/service2',
             'id': service_id,
-            'is_default': 0,
             'auth_completed_page_content': None,
             'auth_completed_url': None,
             'auth_completed_url_validation': None,
             'auth_path': '/authentication',
             'options': None,
             'url_context_root': '/service2',
-            'url_host_id': 1,
+            'url_host_id': service["url_host_id"],
             'url_host_name': 'localhost',
-            'url_protocol': ['HTTP']
+            'url_protocol': ['HTTP'],
+            'is_current': 0,
         }
 
 
@@ -153,38 +152,37 @@ def test_get_service(init_mrs, table_contents):
 def test_change_service(init_mrs):
 
     args = {
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
 
     with ServiceCT(url_host_name="localhost", url_context_root="/service2", **args) as service_id:
         assert service_id is not None
 
         args_for_get_service = {
-            "session": init_mrs,
+            "session": init_mrs["session"],
         }
 
         args_for_get_service["service_id"] = args["service_id"] = service_id
 
-        assert disable_service(**args) == "The service has been disabled."
+        assert disable_service(**args) == True
         service2 = get_service(**args_for_get_service)
-        print(f"service2: {service2}")
         assert not service2["enabled"]
 
-        assert enable_service(**args) == "The service has been enabled."
+        assert enable_service(**args) == True
         service2 = get_service(**args_for_get_service)
         assert service2["enabled"]
 
-        assert set_default_service(**args) == "The service has been made the default."
+        assert set_current_service_id(**args) == True
 
-        assert set_url_context_root(**args, value="/service3") == "The service has been updated."
+        assert set_url_context_root(**args, value="/service3") == True
         service2 = get_service(**args_for_get_service)
         assert service2["url_context_root"] == "/service3"
 
-        assert set_protocol(**args, value = ["HTTPS"]) == "The service has been updated."
+        assert set_protocol(**args, value = ["HTTPS"]) == True
         service2 = get_service(**args_for_get_service)
         assert service2["url_protocol"] == ["HTTPS"]
 
-        assert set_comments(**args, value="Test service updated") == "The service has been updated."
+        assert set_comments(**args, value="Test service updated") == True
         service2 = get_service(**args_for_get_service)
         assert service2["comments"] == "Test service updated"
 
@@ -192,23 +190,20 @@ def test_change_service(init_mrs):
             "url_context_root": "/service4",
             "url_protocol": ["HTTP"],
             "comments": "Test service comments",
-            "is_default": 0,
             "enabled": False
         }
-        update_service(**args, value=value) == "The service has been updated."
+        update_service(**args, value=value) == True
         service2 = get_service(**args_for_get_service)
 
         assert service2["url_context_root"] == value["url_context_root"]
         assert service2["url_protocol"] == value["url_protocol"]
         assert service2["comments"] == value["comments"]
-        assert service2["is_default"] == value["is_default"]
         assert service2["enabled"] == value["enabled"]
 
         value = {
             "url_context_rootxxx": "/service4",
             "url_protocol": ["HTTP"],
             "comments": "Test service comments",
-            "is_default": 0,
             "enabled": False
         }
         with pytest.raises(Exception) as exc_info:

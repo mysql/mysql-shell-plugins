@@ -92,7 +92,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                 makeDefault: {
                     type: "boolean",
                     caption: "Default",
-                    value: (request.values?.isDefault ?? true) as boolean,
+                    value: (request.values?.isCurrent ?? true) as boolean,
                     horizontalSpan: 4,
                     options: [
                         CommonDialogValueOption.Grouped,
@@ -305,7 +305,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                 values.servicePath = mainSection.values.servicePath.value as string;
                 values.comments = mainSection.values.comments.value as string;
                 values.hostName = mainSection.values.hostName.value as string;
-                values.isDefault = mainSection.values.makeDefault.value as boolean;
+                values.isCurrent = mainSection.values.makeDefault.value as boolean;
                 values.enabled = mainSection.values.enabled.value as boolean;
                 values.protocols = mainSection.values.protocols.value as string[];
                 values.options = optionsSection.values.options.value as string;
@@ -348,12 +348,12 @@ export class MrsServiceDialog extends ValueDialogBase {
                 const authAppsDlgValue = authAppSection.values.authApps as IRelationDialogValue;
                 const authApps = authAppsDlgValue.value as Array<IMrsAuthAppData & IDictionary>;
                 const newEntry = authApps.find((p) => {
-                    return p.id === 0;
+                    return p.id === "";
                 });
                 // Detect a change of the <new> entry
                 if (newEntry && (newEntry.authVendorName !== "" || newEntry.name !== "<new>")) {
                     // Update id and position
-                    newEntry.id = authApps.length * -1;
+                    newEntry.id = (authApps.length * -1).toString();
                     newEntry.position = authApps.length;
 
                     if (newEntry.authVendorName && newEntry.name === "<new>") {
@@ -364,10 +364,10 @@ export class MrsServiceDialog extends ValueDialogBase {
 
                     // Add another <new> entry
                     authApps.push({
-                        id: 0,
-                        authVendorId: 0,
+                        id: "",
+                        authVendorId: "",
                         authVendorName: "",
-                        serviceId: 0,
+                        serviceId: "",
                         name: "<new>",
                         description: "",
                         url: "",

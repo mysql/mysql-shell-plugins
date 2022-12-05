@@ -44,7 +44,9 @@ def get_auth_vendors(**kwargs):
     enabled = kwargs.get("enabled", True)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        return lib.core.select(table="auth_vendor", where="enabled=?").exec(session, [enabled]).items
+        return lib.core.select(table="auth_vendor",
+            where="enabled=?"
+        ).exec(session, [enabled]).items
 
 
 @plugin_function('mrs.add.authenticationApp', shell=True, cli=True, web=True)
@@ -53,7 +55,7 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
 
     Args:
         app_name (str): The app_name
-        service_id (int): The id of the service the schema should be added to
+        service_id (str): The id of the service the schema should be added to
         **kwargs: Additional options
 
     Keyword Args:
@@ -66,24 +68,30 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         limit_to_registered_users (bool): Limit access to registered users
         use_built_in_authorization (bool): Limit access to registered users
         registered_users (str): List of registered users, separated by ,
-        default_auth_role_id (int): The default role to be assigned to new users
+        default_role_id (int): The default role to be assigned to new users
         session (object): The database session to use
 
     Returns:
         A dict with content_set_id and number_of_files_uploaded
     """
+    lib.core.convert_ids_to_binary(["auth_vendor_id", "default_role_id"], kwargs)
+
     auth_vendor_id = kwargs.get("auth_vendor_id")
+    default_role_id = kwargs.get("default_role_id")
+
+
     description = kwargs.get("description")
     url = kwargs.get("url")
     url_direct_auth = kwargs.get("url_direct_auth")
     access_token = kwargs.get("access_token")
     app_id = kwargs.get("app_id")
+
+
     use_built_in_authorization = kwargs.get("use_built_in_authorization")
     limit_to_reg_users = kwargs.get("limit_to_registered_users")
     registered_users = kwargs.get("registered_users")
-    default_auth_role_id = kwargs.get("default_auth_role_id")
+
     interactive = lib.core.get_interactive_default()
-    return_formatted = lib.core.get_interactive_result()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = lib.services.get_service(
@@ -159,12 +167,14 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
 
         with lib.core.MrsDbTransaction(session):
             # Create the auth_app
-            auth_app_id = lib.core.insert(table="auth_app", values=[
-                "auth_vendor_id", "service_id", "name", "description", "url",
+            auth_app_id = lib.core.get_sequence_id(session)
+            lib.core.insert(table="auth_app", values=[
+                "id", "auth_vendor_id", "service_id", "name", "description", "url",
                 "url_direct_auth", "access_token", "app_id", "enabled",
                 "use_built_in_authorization", "limit_to_registered_users",
-                "default_auth_role_id"
+                "default_role_id"
             ]).exec(session, [
+                auth_app_id,
                 auth_vendor_id,
                 service.get("id"),
                 app_name,
@@ -176,16 +186,16 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
                 1,
 	            use_built_in_authorization if use_built_in_authorization else 1,
                 limit_to_reg_users if limit_to_reg_users else 0,
-                default_auth_role_id
-            ]).id
+                default_role_id
+            ])
 
             # Create the registered_users if specified
             if registered_users and len(registered_users) > 0:
                 for reg_user in registered_users:
-                    lib.core.insert(table="auth_user", values=[ "auth_app_id", "name"]
-                    ).exec(session, [auth_app_id, reg_user])
+                    lib.core.insert(table="mrs_user", values=["id", "auth_app_id", "name"]
+                    ).exec(session, [lib.core.get_sequence_id(session), auth_app_id, reg_user])
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             return f"\nAuthentication app with the id {auth_app_id} was added successfully."
         else:
             return {
@@ -198,7 +208,7 @@ def get_auth_apps(service_id=None, **kwargs):
     """Returns all authentication apps for the given MRS service
 
     Args:
-        service_id (int): The id of the service to list the schemas from
+        service_id (str): The id of the service to list the schemas from
         **kwargs: Additional options
 
     Keyword Args:
@@ -210,9 +220,10 @@ def get_auth_apps(service_id=None, **kwargs):
         Either a string listing the content sets when interactive is set or list
         of dicts representing the content sets
     """
+    if service_id is not None:
+        service_id = lib.core.id_to_binary(service_id, "service_id")
 
     include_enable_state = kwargs.get("include_enable_state")
-    return_formatted = lib.core.get_interactive_result()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         # Check the given service_id or get the default if none was given
@@ -237,7 +248,7 @@ def get_auth_apps(service_id=None, **kwargs):
 
         auth_apps = lib.core.MrsDbExec(sql).exec(session, [service.get("id")]).items
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             return lib.auth_apps.format_auth_app_listing(
                 auth_apps=auth_apps, print_header=True)
         else:

@@ -41,7 +41,7 @@ def test_version():
 @pytest.mark.usefixtures("init_mrs")
 def test_configure(init_mrs):
     config = {
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
 
     config_output = configure(**config)
@@ -52,7 +52,7 @@ def test_configure(init_mrs):
 
     config = {
         "enable_mrs": False,
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
 
     config_output = configure(**config)
@@ -60,14 +60,14 @@ def test_configure(init_mrs):
 
     config = {
         "enable_mrs": True,
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
     config_output = configure(**config)
     assert config_output == {'mrs_enabled': True, 'schema_changed': False}
 
     config = {
         "enable_mrs": False,
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
     config_output = configure(**config)
     assert config_output is not None
@@ -76,7 +76,7 @@ def test_configure(init_mrs):
 
     config = {
         "enable_mrs": True,
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
     config_output = configure(**config)
     assert config_output is not None
@@ -84,7 +84,7 @@ def test_configure(init_mrs):
                              'mrs_enabled': True}
 
 @pytest.mark.usefixtures("init_mrs")
-def test_ls():
+def test_ls(init_mrs):
     list_output = ls("localhost/test")
     assert list_output is None
 
@@ -100,7 +100,7 @@ def test_ls():
     list_output = ls()
     assert list_output is None
 
-    set_current_objects(service_id=1, schema_id=1)
+    set_current_objects(service_id=init_mrs["service_id"], schema_id=init_mrs["schema_id"])
 
     list_output = ls("localhost/test")
     assert list_output is None
@@ -123,17 +123,17 @@ def test_cd():
 @pytest.mark.usefixtures("init_mrs")
 def test_status(init_mrs):
 
-    status_output = status(init_mrs)
+    status_output = status(init_mrs["session"])
     enabled = status_output["service_enabled"]
 
     # disable service
-    config_output = configure(init_mrs, False)
+    config_output = configure(init_mrs["session"], False)
     assert config_output == {
         'mrs_enabled': False,
         'schema_changed': False
     }
 
-    status_output = status(init_mrs)
+    status_output = status(init_mrs["session"])
     assert status_output is not None
     assert isinstance(status_output, dict)
     assert status_output == {
@@ -144,13 +144,13 @@ def test_status(init_mrs):
 
 
     # enable service
-    config_output = configure(init_mrs, True)
+    config_output = configure(init_mrs["session"], True)
     assert config_output == {
         'mrs_enabled': True,
         'schema_changed': False
     }
 
-    status_output = status(init_mrs)
+    status_output = status(init_mrs["session"])
     assert status_output is not None
     assert isinstance(status_output, dict)
     assert status_output == {
@@ -159,14 +159,14 @@ def test_status(init_mrs):
         'service_enabled': 1
     }
 
-    config_output = configure(init_mrs, enabled)
+    config_output = configure(init_mrs["session"], enabled)
     assert config_output == {
         'mrs_enabled': enabled,
         'schema_changed': False
     }
 
 
-    status_output = status(init_mrs)
+    status_output = status(init_mrs["session"])
     assert status_output is not None
     assert isinstance(status_output, dict)
     assert status_output == {

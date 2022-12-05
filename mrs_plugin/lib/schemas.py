@@ -45,7 +45,7 @@ def format_schema_listing(schemas, print_header=False):
 
     for i, item in enumerate(schemas, start=1):
         url = (item['host_ctx'] + item['request_path'])
-        output += (f"{item['id']:>3} {url[:37]:38} "
+        output += (f"{i:>3} {url[:37]:38} "
                    f"{item['name'][:29]:30} "
                    f"{'Yes' if item['enabled'] else '-':8} "
                    f"{'Yes' if item['requires_auth'] else '-':5}")
@@ -125,7 +125,7 @@ def update_schema(session, schemas: list, value: dict):
                 raise ValueError(
                         f"The request_path ('{request_path_value}') has to start with '/'.")
 
-            core.check_request_path(request_path_value, session=session)
+            core.check_request_path(session, request_path_value)
 
         result = core.update(table="db_schema",
             sets=value,
@@ -139,7 +139,7 @@ def query_schemas(session, schema_id=None, service_id=None,
     if not session:
         raise ValueError("The session is invalid.")
 
-    if auto_select_single:
+    if schema_id is None and auto_select_single:
         record = core.select(table="db_schema",
             cols=["count(*) as service_count", "min(id)"]
         ).exec(session).first
@@ -186,12 +186,12 @@ def query_schemas(session, schema_id=None, service_id=None,
 
     return core.MrsDbExec(sql, params).exec(session).items
 
-def get_schemas(session, service_id=None, include_enable_state=None):
+def get_schemas(session, service_id: bytes=None, include_enable_state=None):
     """Returns all schemas for the given MRS service
 
     Args:
         session (object): The database session to use.
-        service_id (int): The id of the service to list the schemas from
+        service_id: The id of the service to list the schemas from
         include_enable_state (bool): Only include schemas with the given
             enabled state
 
@@ -202,7 +202,7 @@ def get_schemas(session, service_id=None, include_enable_state=None):
 
 
 
-def get_schema(session, schema_id=None, service_id=None,
+def get_schema(session, schema_id: bytes=None, service_id: bytes=None,
     schema_name=None, request_path=None, auto_select_single=False):
     """Gets a specific MRS schema
 
@@ -210,8 +210,8 @@ def get_schema(session, schema_id=None, service_id=None,
         session (object,required): The database session to use.
         request_path (str): The request_path of the schema
         schema_name (str): The name of the schema
-        schema_id (int): The id of the schema
-        service_id (int): The id of the service
+        schema_id: The id of the schema
+        service_id: The id of the service
 
     Returns:
         The schema as dict or None on error in interactive mode
@@ -221,13 +221,13 @@ def get_schema(session, schema_id=None, service_id=None,
     return result[0] if result else None
 
 
-def add_schema(session, schema_name, service_id=None, request_path=None, requires_auth=None,
+def add_schema(session, schema_name, service_id: bytes=None, request_path=None, requires_auth=None,
     enabled=True, items_per_page=None, comments=None, options=None):
     """Add a schema to the given MRS service
 
     Args:
         schema_name (str): The name of the schema to add
-        service_id (int): The id of the service the schema should be added to
+        service_id: The id of the service the schema should be added to
         request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
             the schema
@@ -259,7 +259,7 @@ def add_schema(session, schema_name, service_id=None, request_path=None, require
     if request_path is None:
         request_path = '/' + schema_name
 
-    core.check_request_path(request_path, session=session)
+    core.check_request_path(session, request_path)
 
     # Get requires_auth
     if requires_auth is None:
@@ -276,7 +276,9 @@ def add_schema(session, schema_name, service_id=None, request_path=None, require
     if options is None:
         options = ""
 
-    return core.insert(table="db_schema", values={
+    schema_id = core.get_sequence_id(session)
+    core.insert(table="db_schema", values={
+        "id": schema_id,
         "service_id": service.get("id"),
         "name": schema_name,
         "request_path": request_path,
@@ -285,7 +287,9 @@ def add_schema(session, schema_name, service_id=None, request_path=None, require
         "items_per_page": items_per_page,
         "comments": comments,
         "options": core.convert_json(options) if options else None
-    }).exec(session).id
+    }).exec(session)
+
+    return schema_id
 
 
 def get_current_schema(session):

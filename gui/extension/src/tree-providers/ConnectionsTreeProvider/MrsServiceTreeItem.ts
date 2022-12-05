@@ -33,7 +33,7 @@ export class MrsServiceTreeItem extends MrsTreeBaseItem {
         public value: IMrsServiceData,
         details: IConnectionEntry) {
         super(label, details, true,
-            value.isDefault ?
+            value.isCurrent ?
                 !value.enabled ? "mrsServiceDefaultDisabled.svg" : "mrsServiceDefault.svg" :
                 !value.enabled ? "mrsServiceDisabled.svg" : "mrsService.svg");
     }
