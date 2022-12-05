@@ -26,6 +26,7 @@
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
 
+import os
 
 def resolve_content_set_id(**kwargs):
     request_path = kwargs.get("request_path")
@@ -33,25 +34,23 @@ def resolve_content_set_id(**kwargs):
     content_set_id = kwargs.get("content_set_id")
 
     service_id = kwargs.pop("service_id", None)
-    interactive = kwargs.pop("interactive", lib.core.get_interactive_default())
     auto_select_single = kwargs.pop("auto_select_single", False)
 
     # if the supplied content set id is valid...
-    if isinstance(content_set_id, int) and content_set_id > 0:
-        kwargs["content_set_id"] = content_set_id
+    if content_set_id:
         return kwargs
 
     # check if there is a current content set from the config
     mrs_config = lib.core.get_current_config()
     content_set_id = mrs_config.get('current_content_set_id')
 
-    if content_set_id is not None:
+    # if the current content set was found, return it
+    if content_set_id:
         kwargs["content_set_id"] = content_set_id
         return kwargs
 
     # last choice is to use the request path
-    if request_path is None:
-        raise ValueError("Unable to determine the content set for the operation.")
+    lib.core.Validations.request_path(request_path)
 
     # get the service object specified by the service id or the default one
     service = lib.services.get_service(
@@ -72,7 +71,7 @@ def resolve_content_set_id(**kwargs):
         kwargs["content_set_id"] = content_sets[0]["id"]
         return kwargs
 
-    if not interactive:
+    if not lib.core.get_interactive_default():
         raise ValueError("Operation cancelled.")
 
     # allow the user to select from a list of content sets
@@ -101,8 +100,6 @@ def resolve_content_set_ids(**kwargs):
     content_set_id = kwargs.pop("content_set_id", None)
     request_path = kwargs.pop("request_path", None)
     service_id = kwargs.pop("service_id", None)
-    interactive = kwargs.pop("interactive", lib.core.get_interactive_default())
-
 
     kwargs["content_set_ids"] = [content_set_id] if content_set_id else []
 
@@ -111,7 +108,7 @@ def resolve_content_set_ids(**kwargs):
         service = lib.services.get_service(
             service_id=service_id, session=session)
 
-        if not request_path and interactive:
+        if not request_path and lib.core.get_interactive_default():
             content_sets = lib.content_sets.get_content_sets(
                 service_id=service.get("id"),
                 include_enable_state=include_enable_state,
@@ -150,7 +147,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
     """Adds content to the given MRS service
 
     Args:
-        service_id (int): The id of the service the schema should be added to
+        service_id (str): The id of the service the schema should be added to
         content_dir (str): The path to the content directory
         **kwargs: Additional options
 
@@ -168,8 +165,8 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
         None in interactive mode, a dict with content_set_id and
             number_of_files_uploaded
     """
-
-    import os
+    if service_id is not None:
+        service_id = lib.core.id_to_binary(service_id, "service_id")
 
     request_path = kwargs.get("request_path")
     requires_auth = kwargs.get("requires_auth")
@@ -178,7 +175,6 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
     options = lib.core.convert_json(kwargs.get("options"))
     replace_existing = kwargs.get("replace_existing", False)
     interactive = lib.core.get_interactive_default()
-    return_formatted = lib.core.get_interactive_result()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = lib.services.get_service(
@@ -191,10 +187,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                 f"/content]: ",
                 {'defaultValue': '/content'}).strip()
 
-        if not request_path.startswith('/'):
-            raise Exception("The request_path has to start with '/'.")
-
-        lib.core.check_request_path(request_path, session=session)
+        lib.core.Validations.request_path(request_path, session=session)
 
         # Get the content_dir
         if not content_dir and interactive:
@@ -239,6 +232,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                     lib.core.delete(table="content_set",
                         where="id=?").exec(session, [content_set.get("id")])
 
+
             # Create the content_set, ensure it is created as "not enabled"
             content_set_id = lib.content_sets.add_content_set(session, service.get("id"),
                 request_path,
@@ -254,7 +248,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
             # Enable the content_set after all content has been uploaded
             lib.content_sets.enable_content_set(session, [content_set_id], enabled)
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             return f"\nContent with the id {content_set_id} was added successfully."
         else:
             return {
@@ -268,7 +262,7 @@ def get_content_sets(service_id=None, **kwargs):
     """Returns all content sets for the given MRS service
 
     Args:
-        service_id (int): The id of the service to list the content sets from
+        service_id (str): The id of the service to list the content sets from
         **kwargs: Additional options
 
     Keyword Args:
@@ -281,9 +275,10 @@ def get_content_sets(service_id=None, **kwargs):
         Either a string listing the content sets when interactive is set or list
         of dicts representing the content sets
     """
+    if service_id is not None:
+        service_id = lib.core.id_to_binary(service_id, "service_id")
 
     include_enable_state = kwargs.get("include_enable_state")
-    return_formatted = lib.core.get_interactive_result()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         # Check the given service_id or get the default if none was given
@@ -293,7 +288,7 @@ def get_content_sets(service_id=None, **kwargs):
             service_id=service.get("id"),
             include_enable_state=include_enable_state)
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             return lib.content_sets.format_content_set_listing(
                 content_sets=content_sets, print_header=True)
 
@@ -308,8 +303,8 @@ def get_content_set(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        content_set_id (int): The id of the content_set
-        service_id (int): The id of the service
+        content_set_id (str): The id of the content_set
+        service_id (str): The id of the service
         request_path (str): The request_path of the content_set
         auto_select_single (bool): If there is a single service only, use that
         session (object): The database session to use.
@@ -317,6 +312,8 @@ def get_content_set(**kwargs):
     Returns:
         The schema as dict or None on error in interactive mode
     """
+    lib.core.convert_ids_to_binary(["content_set_id", "service_id"], kwargs)
+
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
         return lib.content_sets.get_content_set(**resolve_content_set_id(**kwargs))
@@ -330,13 +327,16 @@ def enable_content_set(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (int): The id of the service
-        content_set_id (int): The id of the content_set
+        service_id (str): The id of the service
+        content_set_id (str): The id of the content_set
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+
+    lib.core.convert_ids_to_binary(["content_set_id", "service_id"], kwargs)
+
     kwargs["value"] = True
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -359,13 +359,15 @@ def disable_content_set(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (int): The id of the service
-        content_set_id (int): The id of the content_set
+        service_id (str): The id of the service
+        content_set_id (str): The id of the content_set
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["content_set_id", "service_id"], kwargs)
+
     kwargs["value"] = False
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -388,14 +390,16 @@ def delete_content_set(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        content_set_id (int): The id of the content_set
-        service_id (int): The id of the service
+        content_set_id (str): The id of the content_set
+        service_id (str): The id of the service
         request_path (str): The request_path of the content_set
         session (object): The database session to use.
 
     Returns:
         The result message as string
     """
+    lib.core.convert_ids_to_binary(["content_set_id", "service_id"], kwargs)
+
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
         kwargs = resolve_content_set_ids(**kwargs)

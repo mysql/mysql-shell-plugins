@@ -47,7 +47,7 @@ def format_auth_app_listing(auth_apps, print_header=False):
     for item in auth_apps:
         i += 1
         description=item['description'] if item['description'] is not None else ""
-        output += (f"{item['id']:>3} {item['name'][:25]:26} "
+        output += (f"{i:>3} {item['name'][:25]:26} "
                    f"{description[:35]:36} "
                    f"{item['auth_vendor'][:15]:16} "
                    f"{'Yes' if item['enabled'] else '-':8} ")
@@ -56,12 +56,12 @@ def format_auth_app_listing(auth_apps, print_header=False):
 
     return output
 
-def get_auth_apps(session, service_id, include_enable_state=None):
+def get_auth_apps(session, service_id: bytes, include_enable_state=None):
     """Returns all authentication apps for the given MRS service
 
     Args:
         session (object): The database session to use.
-        service_id (int): The id of the service to list the schemas from
+        service_id: The id of the service to list the schemas from
         include_enable_state (bool): Only include items with the given
             enabled state
 

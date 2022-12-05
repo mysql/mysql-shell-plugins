@@ -25,7 +25,7 @@ import { IShellDictionary } from "../../frontend/src/communication";
 import { commands, ExtensionContext, Uri, window } from "vscode";
 import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
 import {
-    IMrsDbObjectParameterData, IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData,
+    IMrsDbObjectFieldData, IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData,
 } from "../../frontend/src/communication/";
 
 import { DBType, ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
@@ -100,7 +100,7 @@ export class MRSCommandHandler {
             async (item?: MrsServiceTreeItem) => {
                 if (item) {
                     try {
-                        await item.entry.backend?.mrs.setDefaultService(item.value.id);
+                        await item.entry.backend?.mrs.setCurrentService(item.value.id);
                         await commands.executeCommand("msg.refreshConnections");
                         showMessageWithTimeout("The MRS service has been set as the new default service.");
 
@@ -283,15 +283,15 @@ export class MRSCommandHandler {
         item: ConnectionsTreeBaseItem, objectType: string): Promise<IMrsDbObjectData> => {
 
         const params = await backend.mrs.getDbObjectFields(undefined, item.name,
-            undefined, undefined, item.schema, objectType);
+            undefined, undefined, item.schema, item.dbType);
 
         // Add entry for <new> item
         params.push({
-            id: 0,
-            dbObjectId: 0,
+            id: "",
+            dbObjectId: "0",
             position: 0,
             name: "<new>",
-            bindColumnName: "",
+            bindFieldName: "",
             datatype: "STRING",
             mode: "IN",
             comments: "",
@@ -301,17 +301,17 @@ export class MRSCommandHandler {
             comments: "",
             crudOperations: (objectType === "PROCEDURE") ? ["UPDATE"] : ["READ"],
             crudOperationFormat: "FEED",
-            dbSchemaId: 0,
+            dbSchemaId: "",
             enabled: 1,
-            id: 0,
+            id: "",
             name: item.name,
             objectType,
             requestPath: `/${item.name}`,
             requiresAuth: 1,
             rowUserOwnershipEnforced: 0,
-            serviceId: 0,
+            serviceId: "",
             autoDetectMediaType: 0,
-            parameters: params,
+            fields: params,
         };
 
         const services = await backend.mrs.listServices();
@@ -321,7 +321,7 @@ export class MRSCommandHandler {
         } else if (services.length > 1) {
             // Lookup default service
             service = services.find((service) => {
-                return service.isDefault;
+                return service.isCurrent;
             });
 
             if (!service) {
@@ -398,10 +398,10 @@ export class MRSCommandHandler {
             ? "Edit REST Service"
             : "Add REST Service";
         const authAppNewItem: IMrsAuthAppData = {
-            id: 0,
-            authVendorId: 0,
+            id: "",
+            authVendorId: "",
             authVendorName: "",
-            serviceId: 0,
+            serviceId: "",
             name: "<new>",
             description: "",
             url: "",
@@ -411,7 +411,7 @@ export class MRSCommandHandler {
             enabled: true,
             useBuiltInAuthorization: true,
             limitToRegisteredUsers: true,
-            defaultAuthRoleId: 1,
+            defaultRoleId: "0x31000000000000000000000000000000",
         };
 
         if (service && (!service.authApps)) {
@@ -452,7 +452,7 @@ export class MRSCommandHandler {
                 servicePath: service?.urlContextRoot ?? "/mrs",
                 hostName: service?.urlHostName,
                 protocols: service?.urlProtocol ?? ["HTTPS", "HTTP"],
-                isDefault: !service || service.isDefault === 1,
+                isCurrent: !service || service.isCurrent === 1,
                 enabled: !service || service.enabled === 1,
                 comments: service?.comments ?? "",
                 options: JSON.stringify(service?.options ?? defaultOptions),
@@ -474,7 +474,7 @@ export class MRSCommandHandler {
             const protocols = response.data.protocols as string[];
             const hostName = response.data.hostName as string;
             const comments = response.data.comments as string;
-            const isDefault = response.data.isDefault as boolean;
+            const isCurrent = response.data.isCurrent as boolean;
             const enabled = response.data.enabled as boolean;
             const options = response.data.options as string;
             const authPath = response.data.authPath as string;
@@ -484,24 +484,31 @@ export class MRSCommandHandler {
 
             // Remove entry for <new> item.
             const authApps = (response.data.authApps as IMrsAuthAppData[]).filter((a: IMrsAuthAppData) => {
-                return a.id !== 0;
+                return a.id !== "";
             });
 
             // Set the authVendorId based on the authVendorName.
             for (const app of authApps) {
                 app.authVendorId = authVendors.find((vendor) => {
                     return app.authVendorName === vendor.name;
-                })?.id ?? 0;
+                })?.id ?? "";
+                app.serviceId = app.serviceId === "" ? undefined : app.serviceId;
+                app.authVendorId = app.authVendorId === "" ? undefined : app.authVendorId;
+                app.defaultRoleId = app.defaultRoleId === "" ? undefined : app.defaultRoleId;
             }
 
 
             if (!service) {
                 try {
-                    await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
-                        isDefault, comments, enabled,
+                    const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
+                        comments, enabled,
                         JSON.parse(options ?? "{}") as IShellDictionary,
                         authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                         authApps);
+
+                    if (isCurrent) {
+                        await backend.mrs.setCurrentService(service.id);
+                    }
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout("The MRS service has been created.", 5000);
@@ -517,7 +524,6 @@ export class MRSCommandHandler {
                             urlProtocol: protocols,
                             urlHostName: hostName,
                             enabled,
-                            isDefault,
                             comments,
                             options: JSON.parse(options ?? "{}") as IShellDictionary,
                             authPath,
@@ -527,6 +533,10 @@ export class MRSCommandHandler {
                             authApps,
                         },
                     );
+
+                    if (isCurrent) {
+                        await backend.mrs.setCurrentService(service.id);
+                    }
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout("The MRS service has been successfully updated.", 5000);
@@ -578,7 +588,7 @@ export class MRSCommandHandler {
             }
 
             if (response.data) {
-                const serviceId = response.data.serviceId as number;
+                const serviceId = response.data.serviceId as string;
                 const name = response.data.name as string;
                 const requestPath = response.data.requestPath as string;
                 const requiresAuth = response.data.requiresAuth as boolean;
@@ -639,30 +649,33 @@ export class MRSCommandHandler {
         }
 
         const services = await backend.mrs.listServices();
-        const schemas = await backend.mrs.listSchemas(dbObject.serviceId);
-        const rowOwnershipFields = await backend.mrs.getDbObjectRowOwnershipFields(dbObject.requestPath, dbObject.name,
-            dbObject.id, dbObject.dbSchemaId, schemaName, dbObject.objectType);
+        const schemas = await backend.mrs.listSchemas(dbObject.serviceId === "" ? undefined : dbObject.serviceId);
+        const rowOwnershipFields = await backend.mrs.getDbObjectRowOwnershipFields(dbObject.requestPath,
+            dbObject.name,
+            dbObject.id === "" ? undefined : dbObject.id,
+            dbObject.dbSchemaId === "" ? undefined: dbObject.dbSchemaId,
+            schemaName, dbObject.objectType);
 
         const title = dbObject
             ? "Adjust the MySQL REST Object Configuration"
             : "Enter Configuration Values for the New MySQL REST Object";
-        const parameterNewItem: IMrsDbObjectParameterData = {
-            id: 0,
+        const parameterNewItem: IMrsDbObjectFieldData = {
+            id: "",
             dbObjectId: dbObject.id,
             position: 0,
             name: "<new>",
-            bindColumnName: "",
+            bindFieldName: "",
             datatype: "STRING",
             mode: "IN",
             comments: "",
         };
 
-        if (dbObject.id && (!dbObject.parameters)) {
-            dbObject.parameters = await backend.mrs.getDbObjectParameters(dbObject.requestPath, dbObject.name,
+        if (dbObject.id && (!dbObject.fields)) {
+            dbObject.fields = await backend.mrs.getDbObjectSelectedFields(dbObject.requestPath, dbObject.name,
                 dbObject.id, dbObject.dbSchemaId, schemaName);
 
             // Add entry for <new> item.
-            dbObject.parameters.push(parameterNewItem);
+            dbObject.fields.push(parameterNewItem);
         }
 
         const request = {
@@ -688,7 +701,7 @@ export class MRSCommandHandler {
                 mediaType: dbObject.mediaType,
                 options: JSON.stringify(dbObject?.options ?? {}),
                 authStoredProcedure: dbObject.authStoredProcedure,
-                parameters: dbObject.parameters ?? [parameterNewItem],
+                parameters: dbObject.fields ?? [parameterNewItem],
             },
         };
 
@@ -697,7 +710,7 @@ export class MRSCommandHandler {
             return;
         }
 
-        const schemaId = response.data.dbSchemaId as number;
+        const schemaId = response.data.dbSchemaId as string;
         const name = response.data.name as string;
         const requestPath = response.data.requestPath as string;
         const requiresAuth = response.data.requiresAuth as boolean;
@@ -715,9 +728,9 @@ export class MRSCommandHandler {
         const options = response.data.options as string;
 
         // Remove entry for <new> item
-        const parameters = (response.data.parameters as IMrsDbObjectParameterData[]).filter(
-            (p: IMrsDbObjectParameterData) => {
-                return p.id !== 0;
+        const fields = (response.data.parameters as IMrsDbObjectFieldData[]).filter(
+            (p: IMrsDbObjectFieldData) => {
+                return p.id !== "";
             });
 
         if (createObject) {
@@ -731,7 +744,7 @@ export class MRSCommandHandler {
                     schemaId, undefined, itemsPerPage, comments,
                     mediaType, "",
                     JSON.parse(options ?? "{}") as IShellDictionary,
-                    parameters);
+                    fields);
 
                 void commands.executeCommand("msg.refreshConnections");
                 showMessageWithTimeout(
@@ -760,7 +773,7 @@ export class MRSCommandHandler {
                     crudOperations,
                     crudOperationFormat,
                     JSON.parse(options ?? "{}") as IShellDictionary,
-                    parameters);
+                    fields);
 
                 void commands.executeCommand("msg.refreshConnections");
                 showMessageWithTimeout(
@@ -834,7 +847,7 @@ export class MRSCommandHandler {
             }
 
             if (response.data) {
-                const serviceId = response.data.serviceId as number;
+                const serviceId = response.data.serviceId as string;
                 const requestPath = response.data.requestPath as string;
                 const requiresAuth = response.data.requiresAuth as boolean;
                 const comments = response.data.comments as string;

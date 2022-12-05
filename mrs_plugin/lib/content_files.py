@@ -55,7 +55,7 @@ def format_content_file_listing(content_files, print_header=True):
         changed_at = str(item['changed_at']) if item['changed_at'] else ""
         file_size = sizeof_fmt(item['size'])
 
-        output += (f"{item['id']:>3} {path[:65]:65} "
+        output += (f"{i:>3} {path[:65]:65} "
                    f"{'Yes' if item['enabled'] else '-':7} "
                    f"{'Yes' if item['requires_auth'] else '-':4} "
                    f"{changed_at[:16]:16} {file_size[:9]:>9}")
@@ -65,11 +65,11 @@ def format_content_file_listing(content_files, print_header=True):
     return output
 
 
-def get_content_files(session, content_set_id, include_enable_state=False):
+def get_content_files(session, content_set_id: bytes, include_enable_state=False):
     """Returns all db_objects for the given schema
 
     Args:
-        content_set_id (int): The id of the content_set to list the items from
+        content_set_id: The id of the content_set to list the items from
         include_enable_state (bool): Only include db_objects with the given
             enabled state
         session (object): The database session to use
@@ -129,10 +129,14 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth):
 
 def add_content_file(session, content_set_id, request_path, requires_auth, data, enabled=1):
     # Upload it to the content table
-    return core.insert(table="content_file", values={
+    id = core.get_sequence_id(session)
+    core.insert(table="content_file", values={
+        "id": id,
         "content_set_id": content_set_id,
         "request_path": request_path,
         "requires_auth": int(requires_auth),
         "enabled": enabled,
         "content": data
-    }).exec(session).id
+    }).exec(session)
+
+    return id

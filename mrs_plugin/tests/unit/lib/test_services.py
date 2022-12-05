@@ -27,26 +27,26 @@ from ..helpers import ServiceCT
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_service(init_mrs, table_contents):
-    with MrsDbSession(session=init_mrs) as session:
+    with MrsDbSession(session=init_mrs["session"]) as session:
         service_table = table_contents("service")
         service1 = lib.services.get_service(session=session, url_context_root="/test", url_host_name="localhost")
 
         assert service1 is not None
         assert service1 == {
-            'id': 1,
+            'id': init_mrs["service_id"],
             'enabled': 1,
             'url_protocol': ['HTTP'],
             'url_host_name': 'localhost',
             'url_context_root': '/test',
-            'url_host_id': 1,
-            'is_default': 0,
+            'url_host_id': init_mrs["url_host_id"],
             'comments': 'Test service',
             'host_ctx': 'localhost/test',
             'auth_completed_page_content': None,
             'auth_completed_url': None,
             'auth_completed_url_validation': None,
             'auth_path': '/authentication',
-            'options': None
+            'options': None,
+            'is_current': 0,
         }
 
         with ServiceCT("/service2", "localhost") as service_id:
@@ -61,30 +61,31 @@ def test_get_service(init_mrs, table_contents):
                 'url_protocol': ['HTTP'],
                 'url_host_name': 'localhost',
                 'url_context_root': '/service2',
-                'url_host_id': 1,
-                'is_default': 0,
+                'url_host_id': service2["url_host_id"],
                 'comments': "",
                 'host_ctx': 'localhost/service2',
                 'auth_completed_page_content': None,
                 'auth_completed_url': None,
                 'auth_completed_url_validation': None,
                 'auth_path': '/authentication',
-                'options': None
+                'options': None,
+                'is_current': 0,
             }
 
             assert service_table.get("id", service_id) == {
                 'comments': '',
                 'enabled': 1,
                 'id': service_id,
-                'is_default': 0,
                 'url_context_root': '/service2',
-                'url_host_id': 1,
+                'url_host_id': service2["url_host_id"],
                 'url_protocol': ['HTTP'],
                 'auth_completed_page_content': None,
                 'auth_completed_url': None,
                 'auth_completed_url_validation': None,
                 'auth_path': '/authentication',
-                'options': None
+                'options': None,
+                'custom_metadata_schema': None,
+                'enable_sql_endpoint': 0,
             }
 
             with pytest.raises(Exception) as exc_info:
@@ -103,7 +104,7 @@ def test_change_service(init_mrs, table_contents):
     auth_app_table = table_contents("auth_app")
 
     auth_apps = [{
-        "auth_vendor_id": 1,
+        "auth_vendor_id": "0x31000000000000000000000000000000",
         "auth_vendor_name": "Service 1 app 1",
         "url_direct_auth": "/app1",
         "app_id": "my app id 1",
@@ -111,7 +112,7 @@ def test_change_service(init_mrs, table_contents):
         "limit_to_registered_users": 0,
         "access_token": "TestToken1",
     }, {
-        "auth_vendor_id": 1,
+        "auth_vendor_id": "0x31000000000000000000000000000000",
         "auth_vendor_name": "Service 1 app 2",
         "url_direct_auth": "/app2",
         "app_id": "my app id 2",
@@ -120,13 +121,13 @@ def test_change_service(init_mrs, table_contents):
         "access_token": "TestToken2",
     }]
 
-    with MrsDbSession(session=init_mrs) as session:
+    with MrsDbSession(session=init_mrs["session"]) as session:
         with pytest.raises(Exception) as exc_info:
                 lib.services.update_service(session=session, service_ids=[1000], value={"enabled": True})
         assert str(exc_info.value) == "The specified service with id 1000 was not found."
 
         with ServiceCT("/service2", "localhost", auth_apps=auth_apps) as service_id:
-            auth_apps_in_db = auth_app_table.filter(f"service_id={service_id}")
+            auth_apps_in_db = auth_app_table.filter("service_id", service_id)
             assert len(auth_apps_in_db) == 2
 
             value = {
@@ -142,7 +143,7 @@ def test_change_service(init_mrs, table_contents):
                     "access_token": "TestToken2Updated",
                     "description": "This is a description 1"
                 }, {
-                    "id": -1,
+                    "id": None,
                     "auth_vendor_id": 1,
                     "auth_vendor_name": "Service 1 app 3",
                     "service_id": service_id,
@@ -157,31 +158,31 @@ def test_change_service(init_mrs, table_contents):
             }
             lib.services.update_service(session=session, service_ids=[service_id], value=value)
 
-            auth_apps_in_db = auth_app_table.filter(f"service_id={service_id}")
+            auth_apps_in_db = auth_app_table.filter("service_id", service_id)
             assert auth_apps_in_db == [{
                     "id": auth_apps_in_db[0]["id"],
-                    "auth_vendor_id": 1,
+                    "auth_vendor_id": b'1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',
                     "service_id": service_id,
                     "url_direct_auth": "/app2",
                     "app_id": "my app id 1 update",
                     "use_built_in_authorization": 1,
                     "limit_to_registered_users": 0,
                     "access_token": "TestToken2Updated",
-                    "default_auth_role_id": None,
+                    "default_role_id": None,
                     "description": "This is a description 1",
                     "enabled": None,
                     "url": None,
                     "name": None,
                 }, {
                     "id": auth_apps_in_db[1]["id"],
-                    "auth_vendor_id": 1,
+                    "auth_vendor_id": b'1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',
                     "service_id": service_id,
                     "url_direct_auth": "/app3",
                     "app_id": "my app id 3",
                     "use_built_in_authorization": 1,
                     "limit_to_registered_users": 0,
                     "access_token": "TestToken3",
-                    "default_auth_role_id": None,
+                    "default_role_id": None,
                     "description": "This is a description 3",
                     "enabled": None,
                     "url": None,

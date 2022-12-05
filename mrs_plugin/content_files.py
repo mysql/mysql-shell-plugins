@@ -34,7 +34,7 @@ def get_content_files(content_set_id, **kwargs):
     """Returns all files for the given content set
 
     Args:
-        content_set_id (int): The id of the content_set to list the items from
+        content_set_id (str): The id of the content_set to list the items from
         **kwargs: Additional options
 
     Keyword Args:
@@ -45,21 +45,17 @@ def get_content_files(content_set_id, **kwargs):
     Returns:
         A list of dicts representing the files in the content set
     """
+    if content_set_id is not None:
+        content_set_id = lib.core.id_to_binary(content_set_id, "content_set_id")
 
     include_enable_state = kwargs.get("include_enable_state")
-    return_formatted = lib.core.get_interactive_result()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         if content_set_id:
-            # content_set = lib.content_sets.get_content_sets(session=session, content_set_id=content_set_id)
-
-            # if not content_set:
-            #     raise ValueError("No content set specified.")
-
             content_files = lib.content_files.get_content_files(session=session,
                 content_set_id=content_set_id, include_enable_state=include_enable_state)
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             return lib.content_files.format_content_file_listing(content_files, print_header=True)
         else:
             return content_files

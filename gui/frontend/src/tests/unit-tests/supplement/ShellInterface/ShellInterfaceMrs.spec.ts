@@ -144,10 +144,10 @@ describe("ShellInterfaceMrs Tests", (): void => {
                 ],
             }]);
 
-            await mrs.addService("/mrs2", ["HTTPS"], "", false,
-                "", false, {}, "", "", "", "", []);
+            const service = await mrs.addService("/mrs2", ["HTTPS"], "", "", false,
+                {}, "", "", "", "", []);
 
-            await mrs.updateService(1, "/mrs2", "", {
+            await mrs.updateService(service.id, "/mrs2", "", {
                 urlProtocol: ["HTTPS"],
                 enabled: false,
                 comments: "",
@@ -159,7 +159,7 @@ describe("ShellInterfaceMrs Tests", (): void => {
                 parameters: [],
             });
 
-            await mrs.deleteService(1);
+            await mrs.deleteService(service.id);
 
             MessageScheduler.get.disconnect();
         } catch (error) {
@@ -175,7 +175,7 @@ describe("ShellInterfaceMrs Tests", (): void => {
         try {
             await MessageScheduler.get.connect(new URL(`http://localhost:${webServerPort}`), "");
 
-            const services = await mrs.listSchemas(2);
+            const services = await mrs.listSchemas("0x02");
             expect(services).toEqual([{
                 comments: "",
                 enabled: 1,
@@ -189,9 +189,9 @@ describe("ShellInterfaceMrs Tests", (): void => {
                 serviceId: 2,
             }]);
 
-            await mrs.addSchema(1, "sakila", "/sakila", true, 25, "", {});
-            await mrs.updateSchema(1, "sakila", "/sakila", true, true, 25, "", {});
-            await mrs.deleteSchema(1, 1);
+            await mrs.addSchema("0x01", "sakila", "/sakila", true, 25, "", {});
+            await mrs.updateSchema("0x01", "sakila", "/sakila", true, true, 25, "", {});
+            await mrs.deleteSchema("0x01", "0x01");
 
             MessageScheduler.get.disconnect();
         } catch (error) {

@@ -24,7 +24,7 @@
 import React from "react";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsDbObjectParameterData, IMrsSchemaData, IMrsServiceData } from "../../../communication/";
+import { IMrsDbObjectFieldData, IMrsSchemaData, IMrsServiceData } from "../../../communication/";
 
 import {
     IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog,
@@ -191,7 +191,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             },
         };
 
-        const objectData = request.values?.parameters as Array<IMrsDbObjectParameterData & IDictionary>;
+        const objectData = request.values?.parameters as Array<IMrsDbObjectFieldData & IDictionary>;
         const parameterSection: IDialogSection = {
             caption: "Parameters",
             groupName: "group1",
@@ -391,25 +391,25 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             const parameterSection = values.sections.get("parameterSection");
             if (parameterSection && parameterSection.values.parameters) {
                 const paramDlgValue = parameterSection.values.parameters as IRelationDialogValue;
-                const parameters = paramDlgValue.value as Array<IMrsDbObjectParameterData & IDictionary>;
+                const parameters = paramDlgValue.value as Array<IMrsDbObjectFieldData & IDictionary>;
                 const newEntry = parameters.find((p) => {
-                    return p.id === 0;
+                    return p.id === "";
                 });
                 // Detect a change of the <new> entry
                 if (newEntry && newEntry.name !== "<new>") {
                     // Update id and position
-                    newEntry.id = parameters.length * -1;
+                    newEntry.id = (parameters.length * -1).toString();
                     newEntry.position = parameters.length;
 
                     paramDlgValue.active = newEntry.id;
 
                     // Add another <new> entry
                     parameters.push({
-                        id: 0,
-                        dbObjectId: 0,
+                        id: "",
+                        dbObjectId: "",
                         position: 0,
                         name: "<new>",
-                        bindColumnName: "",
+                        bindFieldName: "",
                         datatype: "STRING",
                         mode: "IN",
                         comments: "",

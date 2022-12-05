@@ -26,31 +26,31 @@ from ... auth_apps import *
 def test_add_auth_apps(init_mrs, table_contents):
     auth_apps_table = table_contents("auth_app")
     args = {
-        "auth_vendor_id": "1",
+        "auth_vendor_id": b'1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',
         "description": "Authentication via MySQL accounts",
         "url": "/test_auth",
         "access_token": "test_token",
-        "app_id": "1",
         "limit_to_registered_users": False,
         "registered_users": "root",
-        "session": init_mrs
+        "app_id": "some app id",
+        "session": init_mrs["session"]
     }
 
-    result = add_auth_app(app_name="Test Auth App", service_id=1, **args)
+    result = add_auth_app(app_name="Test Auth App", service_id=init_mrs["service_id"], **args)
     assert result is not None
-    assert result == {'auth_app_id': 1}
+    # assert result == {'auth_app_id': 1}
     assert auth_apps_table.count == auth_apps_table.snapshot.count + 1
     assert auth_apps_table.get("id", result["auth_app_id"]) == {
         'access_token': args["access_token"],
         'app_id': args["app_id"],
-        'auth_vendor_id': int(args['auth_vendor_id']),
-        'default_auth_role_id': None,
+        'auth_vendor_id': args['auth_vendor_id'],
+        'default_role_id': None,
         'description': args["description"],
         'enabled': 1,
         'id': result["auth_app_id"],
-        'limit_to_registered_users': args["limit_to_registered_users"],
+        'limit_to_registered_users': int(args["limit_to_registered_users"]),
         'name': 'Test Auth App',
-        'service_id': 1,
+        'service_id': init_mrs["service_id"],
         'url': args["url"],
         'url_direct_auth': None,
         'use_built_in_authorization': 1
@@ -60,7 +60,7 @@ def test_add_auth_apps(init_mrs, table_contents):
 def test_get_auth_apps(init_mrs):
     args = {
         "include_enable_state": False,
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
     apps = get_auth_apps(**args)
     assert apps is not None

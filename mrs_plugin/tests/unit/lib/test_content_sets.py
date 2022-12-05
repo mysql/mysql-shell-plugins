@@ -28,50 +28,40 @@ from mrs_plugin import lib
 
 @pytest.mark.usefixtures("init_mrs")
 def test_add_content_set(init_mrs, table_contents):
-    with lib.core.MrsDbSession(session=init_mrs) as session:
+    with lib.core.MrsDbSession(session=init_mrs["session"]) as session:
         table_content_set = table_contents("content_set")
-        table_content_file = table_contents("content_file")
 
         with tempfile.TemporaryDirectory() as tmp:
             content_set = {
-                "service_id": 1,
+                "service_id": init_mrs["service_id"],
                 "request_path": "test_content_set2",
                 "requires_auth": False,
                 "comments": "Content Set",
                 "session": session
             }
 
-            with pytest.raises(Exception) as exc_info:
-                lib.content_sets.add_content_set(**content_set)
-            assert str(exc_info.value) == "The request_path has to start with '/'."
+            lib.content_sets.add_content_set(**content_set)
 
-            assert table_content_set.same_as_snapshot, str(table_content_set._diff)
-            assert table_content_file.same_as_snapshot
+            assert not table_content_set.same_as_snapshot
 
-            content_set["service_id"] = None
-            with pytest.raises(Exception) as exc_info:
-                lib.content_sets.add_content_set(**content_set)
-            assert str(exc_info.value) == "The service id is invalid."
-
-            assert table_content_set.same_as_snapshot
-            assert table_content_file.same_as_snapshot
 
 @pytest.mark.usefixtures("init_mrs")
 def test_enable_disable(init_mrs, table_contents):
-    with lib.core.MrsDbSession(session=init_mrs) as session:
+    with lib.core.MrsDbSession(session=init_mrs["session"]) as session:
         table_content_set = table_contents("content_set")
         args = {
-                "content_set_ids": [999],
+                "content_set_ids": [b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'],
                 "session": session
         }
 
+        args["content_set_ids"] = [b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
         with pytest.raises(Exception) as exc_info:
             lib.content_sets.enable_content_set(**args, value=False)
         assert str(exc_info.value) == "The specified content_set was not found."
 
         assert table_content_set.same_as_snapshot
 
-        args["content_set_ids"] = [1]
+        args["content_set_ids"] = [init_mrs["content_set_id"]]
         lib.content_sets.enable_content_set(**args, value=False)
 
         assert not table_content_set.same_as_snapshot
@@ -82,10 +72,10 @@ def test_enable_disable(init_mrs, table_contents):
 
 @pytest.mark.usefixtures("init_mrs")
 def test_get_content_set(init_mrs, table_contents):
-    with MrsDbSession(session=init_mrs) as session:
+    with MrsDbSession(session=init_mrs["session"]) as session:
         table_content_set = table_contents("content_set")
         content_set_1 = {
-            'id': 1,
+            'id': init_mrs["content_set_id"],
             'request_path': '/test_content_set',
             'requires_auth': 0,
             'enabled': 1,
@@ -94,24 +84,25 @@ def test_get_content_set(init_mrs, table_contents):
             "options": None,
         }
         args = {
-                "service_id": 1,
-                "session": session
+            "content_set_id": init_mrs["content_set_id"],
+            "service_id": init_mrs["service_id"],
+            "session": session,
         }
 
-        args["content_set_id"] = 1
+
         sets = lib.content_sets.get_content_set(**args)
         assert sets == content_set_1
-        assert table_content_set.get("id", 1) == {
-            'id': 1,
+        assert table_content_set.get("id", init_mrs["content_set_id"]) == {
+            'id': init_mrs["content_set_id"],
             'request_path': '/test_content_set',
             'requires_auth': 0,
             'enabled': 1,
             'comments': 'Content Set',
             'options': None,
-            'service_id': 1
+            'service_id': init_mrs["service_id"],
         }
 
-        args["content_set_id"] = 10
+        args["content_set_id"] = "0x00000000000000000000000000000000"
         del args["service_id"]
         sets = lib.content_sets.get_content_set(**args)
         assert sets is None

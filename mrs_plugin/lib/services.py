@@ -75,10 +75,10 @@ def format_service_listing(services, print_header=False):
 
     for i, item in enumerate(services, start=1):
         url = item.get('url_host_name') + item.get('url_context_root')
-        output += (f"{item['id']:>3} {url[:24]:25} "
+        output += (f"{i:>3} {url[:24]:25} "
                    f"{'Yes' if item['enabled'] else '-':8} "
                    f"{','.join(item['url_protocol'])[:19]:20} "
-                   f"{'Yes' if item['is_default'] else '-':5}")
+                   f"{'Yes' if item['is_current'] else '-':5}")
         if i < len(services):
             output += "\n"
 
@@ -87,7 +87,6 @@ def format_service_listing(services, print_header=False):
 def add_service(session, url_host_name, service):
     if "options" in service:
         service["options"] = core.convert_json(service["options"])
-    service = core.convert_json(service)
 
     # If there is no id for the given host yet, create a host entry
     if service.get("url_host_id") is None:
@@ -98,33 +97,31 @@ def add_service(session, url_host_name, service):
         if host:
             service["url_host_id"] = host["id"]
         else:
-            service["url_host_id"] = service["url_host_id"] = core.insert(table="url_host",
-                values={"name": url_host_name or ''}
-            ).exec(session).id
+            service["url_host_id"] = core.get_sequence_id(session)
+            core.insert(table="url_host",
+                values={
+                    "id": service["url_host_id"],
+                    "name": url_host_name or ''
+                }
+            ).exec(session)
 
     auth_apps = service.pop("auth_apps", [])
 
     # cSpell:ignore mrs
-    res = core.insert(table="service", values=service).exec(session)
+    service["id"] = core.get_sequence_id(session)
 
-    if not res.success:
+    if not core.insert(table="service", values=service).exec(session).success:
         raise Exception("Failed to add the new service.")
 
-    if service.get("is_default"):
-        core.update(table="service",
-            sets=["is_default=0"],
-            where="id <> ?"
-        ).exec(session, [res.id])
-
     for auth_app in auth_apps:
-        auth_app.pop("id", None)
         auth_app.pop("auth_vendor_name", None)
         auth_app.pop("auth_vendor", None)
         auth_app.pop("position", None)
-        auth_app["service_id"] = res.id
+        auth_app["service_id"] = service["id"]
+        auth_app["id"] = core.get_sequence_id(session)
         core.insert(table="auth_app", values=auth_app).exec(session)
 
-    return res.id
+    return service["id"]
 
 
 def clean_service(service_id, session):
@@ -133,7 +130,7 @@ def clean_service(service_id, session):
     content_sets = core.select(table="content_set", where="service_id=?").exec(session, [service_id]).items
 
     for auth_app in auth_apps:
-        core.delete(table="auth_user", where="auth_app_id=?").exec(session, [auth_app["id"]])
+        core.delete(table="mrs_user", where="auth_app_id=?").exec(session, [auth_app["id"]])
 
     for content_set in content_sets:
         core.delete(table="content_file", where="content_set_id=?").exec(session, [content_set["id"]])
@@ -165,8 +162,6 @@ def update_service(session, service_ids, value):
     Returns:
         The result message as string
     """
-    value = core.convert_json(value) # create a copy so that the dict won't change for the caller...and convert to dict
-
     auth_apps = value.pop("auth_apps", [])
 
     # Update all given services
@@ -177,9 +172,6 @@ def update_service(session, service_ids, value):
         if service is None:
             raise Exception("The specified service with id 1000 was not found.")
 
-        if "is_default" in value:
-            core.update(table="service", sets="is_default=FALSE").exec(session)
-
         if "url_host_name" in value:
             host = core.select(table="url_host",
                 where="name=?"
@@ -188,9 +180,13 @@ def update_service(session, service_ids, value):
             if host:
                 host_id = host["id"]
             else:
-                host_id = core.insert(table="url_host",
-                    values={"url_host_name": value["url_host_name"]}
-                ).exec(session).id
+                host_id = core.get_sequence_id(session)
+                core.insert(table="url_host",
+                    values={
+                        "id": host_id,
+                        "url_host_name": value["url_host_name"]
+                    }
+                ).exec(session)
 
             del value["url_host_name"]
             value["url_host_id"] = host_id
@@ -216,16 +212,15 @@ def update_service(session, service_ids, value):
             # force the current service id (we could also remove it and don't allow to update this)
             auth_app["service_id"] = service_id
 
-            if isinstance(id, int) and id < 0: # insert the app
-                core.insert(table="auth_app", values=auth_app).exec(session)
-            elif isinstance(id, int) and id > 0: # update the app
+            if id:
                 core.update(table="auth_app", sets=auth_app, where="id=?").exec(session, [id])
             else:
-                raise ValueError("auth_app has an invalid id.")
+                auth_app["id"] = core.get_sequence_id(session)
+                core.insert(table="auth_app", values=auth_app).exec(session)
 
 
 
-def query_services(session, service_id=None, url_context_root=None, url_host_name=None,
+def query_services(session, service_id: bytes=None, url_context_root=None, url_host_name=None,
                 get_default=False):
     """Query MRS services
 
@@ -234,7 +229,7 @@ def query_services(session, service_id=None, url_context_root=None, url_host_nam
 
     Args:
         session (object): The database session to use.
-        service_id (int): The id of the service
+        service_id: The id of the service
         url_context_root (str): The context root for this service
         url_host_name (str): The host name for this service
         get_default (bool): Whether to return the default service
@@ -245,19 +240,22 @@ def query_services(session, service_id=None, url_context_root=None, url_host_nam
     if url_context_root and not url_context_root.startswith('/'):
         raise Exception("The url_context_root has to start with '/'.")
 
+    current_service = core.get_local_config().get("current_service_id", b'')
+
     # Build SQL based on which input has been provided
     sql = """
         SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
-            se.url_context_root, se.is_default, se.comments, se.options, se.url_host_id,
+            se.url_context_root, se.comments, se.options, se.url_host_id,
             CONCAT(h.name, se.url_context_root) AS host_ctx,
             se.auth_path, se.auth_completed_url,
             se.auth_completed_url_validation,
-            se.auth_completed_page_content
+            se.auth_completed_page_content,
+            se.id = ? as is_current
         FROM `mysql_rest_service_metadata`.`service` se
             LEFT JOIN `mysql_rest_service_metadata`.url_host h
                 ON se.url_host_id = h.id
         """
-    params = []
+    params = [current_service]
     wheres = []
 
     if service_id:
@@ -270,15 +268,15 @@ def query_services(session, service_id=None, url_context_root=None, url_host_nam
             params.append(url_host_name)
             params.append(url_context_root)
     else:
-        wheres.append("se.is_default = ?")
-        params.append(1)
+        wheres.append("se.id = ?")
+        params.append(current_service)
 
     sql += core._generate_where(wheres)
 
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_service(session, service_id=None, url_context_root=None, url_host_name=None,
+def get_service(session, service_id: bytes=None, url_context_root=None, url_host_name=None,
                 get_default=False):
     """Gets a specific MRS service
 
@@ -287,7 +285,7 @@ def get_service(session, service_id=None, url_context_root=None, url_host_name=N
 
     Args:
         session (object): The database session to use.
-        service_id (int): The id of the service
+        service_id: The id of the service
         url_context_root (str): The context root for this service
         url_host_name (str): The host name for this service
         get_default (bool): Whether to return the default service
@@ -334,3 +332,8 @@ def get_current_service(session):
             session=session)
 
     return current_service
+
+def set_current_service_id(service_id: bytes):
+    config = core.ConfigFile()
+    config.settings["current_service_id"] = service_id
+    config.store()

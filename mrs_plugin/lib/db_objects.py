@@ -50,7 +50,7 @@ def format_db_object_listing(db_objects, print_header=False):
             if item['crud_operations'] else ""
         changed_at = str(item['changed_at']) if item['changed_at'] else ""
 
-        output += (f"{item['id']:>3} {path[:35]:35} "
+        output += (f"{i:>3} {path[:35]:35} "
                    f"{item['name'][:30]:30} {crud:4} "
                    f"{item['object_type'][:9]:10} "
                    f"{'Yes' if item['enabled'] else '-':7} "
@@ -63,7 +63,7 @@ def format_db_object_listing(db_objects, print_header=False):
 
 def validate_value(value, value_name):
     if not value and not isinstance(value, bool):
-        raise ValueError(f"The '{value_name}' parameter was not set.")
+        raise ValueError(f"The '{value_name}' field was not set.")
     return value
 
 
@@ -77,8 +77,8 @@ def delete_db_object(session, db_object_ids: list):
 
     # Update all given services
     for db_object_id in db_object_ids:
-        # remove all parameters for this db_object
-        core.delete(table="parameter", where=["db_object_id=?"]).exec(session, [db_object_id])
+        # remove all fields for this db_object
+        core.delete(table="field", where=["db_object_id=?"]).exec(session, [db_object_id])
 
         # remove the db_object
         core.delete(table="db_object",
@@ -107,19 +107,6 @@ def enable_db_object(session, value: bool, db_object_ids: list):
 
 def query_db_objects(session, db_object_id=None, schema_id=None, request_path=None,
     db_object_name=None, include_enable_state=None):
-    if db_object_id is not None:
-        if not isinstance(db_object_id, int) or db_object_id < 1:
-            raise Exception('Invalid DB object id.')
-
-    if db_object_id is None:
-        if not isinstance(schema_id, int) or schema_id < 1:
-            raise Exception('Invalid schema id.')
-
-        if db_object_name is not None and not isinstance(db_object_name, str):
-            raise Exception('Invalid object name.')
-
-        if isinstance(request_path, str) and not request_path.startswith('/'):
-            raise Exception("The request_path has to start with '/'.")
 
     # Build SQL based on which input has been provided
     sql = """
@@ -176,13 +163,13 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_db_object(session, db_object_id=None, schema_id=None, request_path=None, db_object_name=None):
+def get_db_object(session, db_object_id: bytes=None, schema_id: bytes=None, request_path=None, db_object_name=None):
     """Gets a specific MRS db_object
 
     Args:
         session (object): The database session to use.
-        db_object_id (int): The id of the db_object
-        schema_id (int): The id of the schema
+        db_object_id: The id of the db_object
+        schema_id: The id of the schema
         request_path (str): The request_path of the schema
         db_object_name (str): The name of the schema
 
@@ -191,29 +178,22 @@ def get_db_object(session, db_object_id=None, schema_id=None, request_path=None,
     """
     result = None
 
-    if isinstance(db_object_id, int) and db_object_id < 1:
-        raise ValueError('Invalid DB object id.')
-
-    if db_object_id:
+    if db_object_id is not None:
         result = query_db_objects(session=session, db_object_id=db_object_id)
     else:
-        if not schema_id:
-            raise ValueError("Invalid schema id.")
-
         if request_path:
             result = query_db_objects(session=session, schema_id=schema_id, request_path=request_path)
-
-        if db_object_name:
+        elif db_object_name:
             result = query_db_objects(session=session, schema_id=schema_id, db_object_name=db_object_name)
 
     return result[0] if result else None
 
 
-def get_db_objects(session, schema_id, include_enable_state=False):
+def get_db_objects(session, schema_id: bytes, include_enable_state=False):
     """Returns all db_objects for the given schema
 
     Args:
-        schema_id (int): The id of the schema to list the db_objects from
+        schema_id: The id of the schema to list the db_objects from
         include_enable_state (bool): Only include db_objects with the given
             enabled state
         session (object): The database session to use
@@ -228,23 +208,16 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     enabled, items_per_page, requires_auth,
     row_user_ownership_enforced, row_user_ownership_column, crud_operations,
     crud_operation_format, comments, media_type, auto_detect_media_type, auth_stored_procedure,
-    options, parameters):
+    options, fields):
 
     options = core.convert_json(options)
-    parameters = core.convert_json(parameters)
-
-    if not isinstance(schema_id, int) or schema_id < 1:
-        raise Exception('Invalid schema id.')
+    fields = core.convert_json(fields)
 
     if not isinstance(db_object_name, str):
         raise Exception('Invalid object name.')
 
     if db_object_type not in ["TABLE", "VIEW", "PROCEDURE"]:
         raise ValueError('Invalid db_object_type. Only valid types are TABLE, VIEW and PROCEDURE.')
-
-    if not request_path.startswith('/'):
-        raise Exception("The request_path has to start with '/'.")
-
 
     if not crud_operations:
         raise ValueError("No CRUD operations specified."
@@ -271,13 +244,13 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if not comments:
         comments = ""
 
-    if parameters is None:
-        parameters = []
+    if fields is None:
+        fields = []
 
     schema = schemas.get_schema(session=session,
         schema_id=schema_id, auto_select_single=True)
 
-    core.check_request_path(request_path, session=session)
+    core.check_request_path(session, request_path)
 
 
     grant_privileges = []
@@ -294,7 +267,9 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
             raise ValueError(f"The given CRUD operation {crud_operation} "
                                 "does not exist.")
 
-    db_object_id = core.insert(table="db_object", values={
+    db_object_id = core.get_sequence_id(session)
+    core.insert(table="db_object", values={
+        "id": db_object_id,
         "db_schema_id": schema_id,
         "name": db_object_name,
         "request_path": request_path,
@@ -311,13 +286,12 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         "auto_detect_media_type": int(auto_detect_media_type),
         "auth_stored_procedure": auth_stored_procedure,
         "options": options
-    }).exec(session).id
+    }).exec(session)
 
-    for parameter in parameters:
-        parameter.pop("id", None)
-        parameter["param_datatype"] = parameter.pop("datatype")
-        parameter["db_object_id"] = db_object_id    # add the db_object_id
-        core.insert(table="parameter", values=parameter).exec(session)
+    for field in fields:
+        field["id"] = core.get_sequence_id(session)
+        field["db_object_id"] = db_object_id
+        core.insert(table="field", values=field).exec(session)
 
     # Grant privilege to the 'mrs_provider_data_access' role
     if not grant_privileges:
@@ -336,13 +310,13 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     return db_object_id
 
 
-def set_crud_operations(session, db_object_id, crud_operations=None,
+def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
                         crud_operation_format=None):
     """Sets the request_path of the given db_object
 
     Args:
         session (object): The database session to use
-        db_object_id (int): The id of the schema to list the db_objects from
+        db_object_id: The id of the schema to list the db_objects from
         crud_operations (list): The allowed CRUD operations for the object
         crud_operation_format (str): The format to use for the CRUD operation
 
@@ -410,8 +384,7 @@ def set_crud_operations(session, db_object_id, crud_operations=None,
         sql = (f"REVOKE IF EXISTS ALL ON  "
             f"{schema.get('name')}.{db_object.get('name')} "
             "FROM 'mrs_provider_data_access'")
-        core.MrsDbExec(sql).exec(session)
-        # res = session.run_sql(sql)
+        session.run_sql(sql)
 
         core.update(table="db_object", sets={
             "crud_operations": crud_operations,
@@ -424,8 +397,7 @@ def set_crud_operations(session, db_object_id, crud_operations=None,
             f"{schema.get('name')}.{db_object.get('name')} "
             "TO 'mrs_provider_data_access'")
 
-        core.MrsDbExec(sql).exec(session)
-        # res = session.run_sql(sql)
+        session.run_sql(sql)
 
 
 def get_available_db_object_row_ownership_fields(session, schema_name, db_object_name, db_object_type):
@@ -444,47 +416,43 @@ def get_available_db_object_row_ownership_fields(session, schema_name, db_object
 
 
 def get_db_object_row_ownership_fields(session, db_object_id):
-    return [record["name"] for record in core.select(table="parameter",
+    return [record["name"] for record in core.select(table="field",
         where="db_object_id=?").exec(session, [db_object_id]).items]
 
 
 def update_db_objects(session, db_object_ids, value):
-    value = core.convert_json(value)     # use copy because we may change the dictionary inside
     if "crud_operation_format" in value:
         value["format"] = value.pop("crud_operation_format")
 
     for db_object_id in db_object_ids:
-        parameters = value.pop("parameters", None)
+        fields = value.pop("fields", None)
 
         core.update("db_object",
             sets=value,
             where=["id=?"]).exec(session, [db_object_id])
 
-        if parameters is not None:
-            update_db_object_parameters(session, db_object_id, parameters)
+        if fields is not None:
+            update_db_object_fields(session, db_object_id, fields)
 
 
-def update_db_object_parameters(session, db_object_id, parameters):
-    parameters = core.convert_json(parameters)
-
-    parameters_in_db = core.select(table="parameter",
+def update_db_object_fields(session, db_object_id, fields):
+    fields_in_db = core.select(table="field",
         where="db_object_id=?"
     ).exec(session, [db_object_id]).items
 
-    for parameter_in_db in parameters_in_db:
-        if parameter_in_db["id"] not in [parameter["id"] for parameter in parameters]:
-            core.delete(table="parameter", where="id=?").exec(session, [parameter_in_db["id"]])
+    for field_in_db in fields_in_db:
+        if field_in_db["id"] not in [field["id"] for field in fields]:
+            core.delete(table="field", where="id=?").exec(session, [field_in_db["id"]])
 
-    for parameter in parameters:
-        id = parameter.pop("id", None)
-        parameter["db_object_id"] = db_object_id    # force the db_object_id to the current one
+    for field in fields:
+        id = field.pop("id", None)
+        field["db_object_id"] = db_object_id    # force the db_object_id to the current one
 
-        if isinstance(id, int) and id < 0: # insert the parameter
-            core.insert(table="parameter", values=parameter).exec(session)
-        elif isinstance(id, int) and id > 0: # update the parameter
-            core.update(table="parameter", sets=parameter, where="id=?").exec(session, [id])
+        if id:
+            core.update(table="field", sets=field, where="id=?").exec(session, [id])
         else:
-            raise ValueError("Parameter has an invalid id.")
+            field["id"] = core.get_sequence_id(session)
+            core.insert(table="field", values=field).exec(session)
 
 def get_db_object_fields(session, db_object_id=None,
     schema_name=None, db_object_name=None, db_object_type=None):
@@ -498,7 +466,7 @@ def get_db_object_fields(session, db_object_id=None,
                 "or via the request_path and db_object_name.")
 
         schema_name = db_object["schema_name"]
-        db_object_name = db_object["db_object_name"]
+        db_object_name = db_object["name"]
         db_object_type = db_object["object_type"]
 
     if db_object_type not in ["TABLE", "VIEW", "PROCEDURE"]:
@@ -510,7 +478,7 @@ def get_db_object_fields(session, db_object_id=None,
     if db_object_type == "PROCEDURE":
         sql = """
             SELECT @id:=@id-1 AS id, @id * -1 AS position,
-                PARAMETER_NAME AS name, PARAMETER_NAME AS bindColumnName,
+                PARAMETER_NAME AS name, PARAMETER_NAME AS bind_field_Name,
                 PARAMETER_MODE AS mode,
                 CASE
                     WHEN (DTD_IDENTIFIER = "tinyint(1)") THEN "BOOLEAN"
@@ -531,7 +499,7 @@ def get_db_object_fields(session, db_object_id=None,
     else:
         sql = """
             SELECT @id:=@id-1 as id, @id * -1 AS position,
-                COLUMN_NAME AS name, COLUMN_NAME AS bindColumnName,
+                COLUMN_NAME AS name, COLUMN_NAME AS bind_field_Name,
                 "IN" AS mode,
                 CASE
                     WHEN (COLUMN_TYPE = "tinyint(1)") THEN "BOOLEAN"

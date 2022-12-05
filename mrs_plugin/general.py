@@ -306,11 +306,8 @@ def status(session=None):
         None
     """
 
-    interactive = lib.core.get_interactive_default()
-    return_formatted = lib.core.get_interactive_result()
-
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
-        if interactive:
+        if lib.core.get_interactive_default():
             print("Checking the current status of the MRS...\n")
 
         # Check if the MRS metadata schema already exists
@@ -319,7 +316,7 @@ def status(session=None):
             where="SCHEMA_NAME='mysql_rest_service_metadata'"
         ).exec(session).first
         if not row:
-            if return_formatted:
+            if lib.core.get_interactive_result():
                 print("The MySQL REST Data Service is not configured yet. "
                       "Run mrs.configure() to configure the service.")
             else:
@@ -330,9 +327,6 @@ def status(session=None):
                 }
         else:
             result = {'service_configured': True}
-
-        # Make sure the MRS metadata schema exists and has the right version
-        # lib.core.ensure_mrs_metadata_schema(session=session)
 
         # Check if MRS is enabled
         row = lib.core.select(table="config",
@@ -347,7 +341,7 @@ def status(session=None):
         ).exec(session).first
         result['service_count'] = 0 if row["service_count"] is None else int(row["service_count"])
 
-        if return_formatted:
+        if lib.core.get_interactive_result():
             if result['service_enabled']:
                 print(f"The MySQL REST Data Service is enabled.")
                 print("Number of enabled MRS services: "

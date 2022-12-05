@@ -27,7 +27,7 @@ import json
 def test_add_db_object(init_mrs, table_contents):
     db_objects_table = table_contents("db_object")
     db_object = {
-        "session": init_mrs,
+        "session": init_mrs["session"],
         "db_object_name": "ContactsWithEmail",
         "db_object_type": "VIEW",
         "schema_name": "PhoneBook",
@@ -44,11 +44,10 @@ def test_add_db_object(init_mrs, table_contents):
         "auto_detect_media_type": True,
         "auth_stored_procedure": '0',
         "options": None,
-        "parameters": None
+        "fields": None
     }
     id = add_db_object(**db_object)
     assert id is not None
-    assert isinstance(id, int)
     assert db_objects_table.count == db_objects_table.snapshot.count + 1
 
     db_object = {
@@ -64,12 +63,17 @@ def test_add_db_object(init_mrs, table_contents):
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
         "comments": "Test table",
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
     id = add_db_object(**db_object)
     assert id is not None
-    assert isinstance(id, int)
     assert db_objects_table.count == db_objects_table.snapshot.count + 2
+
+    db_object["crud_operations"] = ""
+    with pytest.raises(ValueError) as exc_info:
+        add_db_object(**db_object)
+    assert str(exc_info.value) == "No CRUD operations specified.Operation cancelled."
+
 
     db_object = {
         "db_object_name": "Addresses",
@@ -81,7 +85,7 @@ def test_add_db_object(init_mrs, table_contents):
         "items_per_page": 10,
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
 
     with pytest.raises(Exception) as exc_info:
@@ -95,9 +99,9 @@ def test_add_db_object(init_mrs, table_contents):
 def test_get_db_objects(init_mrs):
     args = {
         "include_enable_state": False,
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
-    db_objects = get_db_objects(schema_id=1, **args)
+    db_objects = get_db_objects(schema_id=init_mrs["schema_id"], **args)
     assert db_objects is not None
 
 
@@ -105,12 +109,18 @@ def test_get_db_objects(init_mrs):
 @pytest.mark.usefixtures("init_mrs")
 def test_get_db_object(init_mrs):
     args = {
-        "schema_id": 1,
-        "session": init_mrs
+        "schema_id": 9999,
+        "session": init_mrs["session"]
     }
 
-    expected_db_object = get_db_object(session=init_mrs, db_object_id=1)
+    expected_db_object = get_db_object(session=init_mrs["session"], db_object_id=init_mrs["db_object_id"])
 
+    with pytest.raises(Exception) as exc_info:
+        get_db_object(**args)
+    assert str(exc_info.value) == 'Invalid id type for schema_id.'
+
+
+    args["schema_id"] = init_mrs["schema_id"]
     with pytest.raises(Exception) as exc_info:
         get_db_object(request_path="test_db", db_object_name="db", **args)
     assert str(exc_info.value) == "The request_path has to start with '/'."
@@ -121,7 +131,7 @@ def test_get_db_object(init_mrs):
     # expected_db_object["changed_at"] = result["changed_at"]
     assert result == expected_db_object
 
-    args["db_object_id"] = 1
+    args["db_object_id"] = result.get("id")
     result = get_db_object(**args)
     assert result is not None
     assert isinstance(result, dict)
@@ -131,25 +141,29 @@ def test_get_db_object(init_mrs):
 @pytest.mark.usefixtures("init_mrs")
 def test_set_request_path(init_mrs):
     args ={
-        "session": init_mrs
+        "session": init_mrs["session"]
     }
 
-    result = set_request_path(db_object_id=1, request_path="/db_table", **args)
-    assert result is None
+    result = set_request_path(db_object_id=init_mrs["db_object_id"], request_path="/db_table", **args)
+    assert result is True
 
 
 @pytest.mark.usefixtures("init_mrs")
 def test_set_crud_operations(init_mrs, table_contents):
     db_object_table = table_contents("db_object")
     args ={
-        "db_object_id": 2,
-        "session": init_mrs
+        "db_object_id": init_mrs["db_object_id"],
+        "session": init_mrs["session"]
     }
 
     result = get_db_object(**args)
     set_crud_operations(crud_operations=result.get("crud_operations"),
             crud_operation_format="FEED", **args)
     assert db_object_table.assert_same
+
+    with pytest.raises(Exception) as exc_info:
+        result = get_db_object(request_path="test_db", db_object_name="db", **args)
+    assert str(exc_info.value) == "The request_path has to start with '/'."
 
     with pytest.raises(Exception) as exc_info:
         set_crud_operations(crud_operations=['CREATE', 'READ', 'UPDATE', 'XXXXXXX'],
@@ -159,14 +173,14 @@ def test_set_crud_operations(init_mrs, table_contents):
 
     set_crud_operations(crud_operations=['CREATE', 'READ'],
             crud_operation_format="FEED", **args)
-    result = get_db_object(db_object_id=2)
+    result = get_db_object(db_object_id=init_mrs["db_object_id"])
     assert result is not None
     assert not db_object_table.same_as_snapshot
     assert result["crud_operations"] == ['CREATE', 'READ']
 
     set_crud_operations(crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
             crud_operation_format="FEED", **args)
-    result = get_db_object(request_path="test_db", db_object_name="db", **args)
+    result = get_db_object(**args)
     assert result is not None
     assert not db_object_table.same_as_snapshot
     assert result["crud_operations"] == ['CREATE', 'READ', 'UPDATE', 'DELETE']
@@ -179,26 +193,26 @@ def test_disable_enable(init_mrs, table_contents):
     assert db_object_table.snapshot.count == 3
 
     args ={
-        "db_object_id": 1,
-        "session": init_mrs
+        "db_object_id": init_mrs["db_object_id"],
+        "session": init_mrs["session"]
     }
-    assert db_object_table.get("id", 1)["enabled"] == True
-    disable_db_object(db_object_name="db", schema_id=1, **args)
-    assert db_object_table.get("id", 1)["enabled"] == False
+    assert db_object_table.get("id", init_mrs["db_object_id"])["enabled"] == True
+    disable_db_object(db_object_name="db", schema_id=init_mrs["schema_id"], **args)
+    assert db_object_table.get("id", init_mrs["db_object_id"])["enabled"] == False
 
     args ={
-        "db_object_id": 1,
-        "session": init_mrs
+        "db_object_id": init_mrs["db_object_id"],
+        "session": init_mrs["session"]
     }
-    enable_db_object(db_object_name="db", schema_id=1, **args)
-    assert db_object_table.get("id", 1)["enabled"] == True
+    enable_db_object(db_object_name="db", schema_id=init_mrs["schema_id"], **args)
+    assert db_object_table.get("id", init_mrs["db_object_id"])["enabled"] == True
 
 @pytest.mark.usefixtures("init_mrs")
 def test_db_object_update(init_mrs):
-    original_db_object = get_db_object(session=init_mrs, db_object_id=1)
+    original_db_object = get_db_object(session=init_mrs["session"], db_object_id=init_mrs["db_object_id"])
     args ={
-        "db_object_id": 1,
-        "session": init_mrs,
+        "db_object_id": init_mrs["db_object_id"],
+        "session": init_mrs["session"],
         "value": {
             "name": "new_name",
             "request_path": "/aaaaaa",
@@ -290,22 +304,20 @@ def test_delete(init_mrs, table_contents):
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
         "comments": "Object that will be removed",
-        "session": init_mrs,
+        "session": init_mrs["session"],
     }
     id = add_db_object(**db_object)
     assert id is not None
-    assert isinstance(id, int)
     assert db_object_table.count == db_object_table.snapshot.count + 1
 
-    delete_db_object(session=init_mrs, db_object_name="ContactBasicInfo", schema_id=1)
+    delete_db_object(session=init_mrs["session"], db_object_name="ContactBasicInfo", schema_id=init_mrs["schema_id"])
     assert db_object_table.count == db_object_table.snapshot.count
 
 
     id = add_db_object(**db_object)
     assert id is not None
-    assert isinstance(id, int)
     assert db_object_table.count == db_object_table.snapshot.count + 1
 
-    delete_db_object(session=init_mrs, db_object_id=id)
+    delete_db_object(session=init_mrs["session"], db_object_id=id)
     assert db_object_table.count == db_object_table.snapshot.count
 

@@ -1,9 +1,9 @@
-export interface IMrsDbObjectParameterData {
-    id?: number;
-    dbObjectId?: number;
+export interface IMrsDbObjectFieldData {
+    id?: string;
+    dbObjectId?: string;
     position: number;
     name: string;
-    bindColumnName: string;
+    bindFieldName: string;
     datatype: string;
     mode: string;
     comments?: string;
@@ -14,10 +14,10 @@ export interface IMrsDbObjectData {
     comments: string;
     crudOperations: string[];
     crudOperationFormat: string;
-    dbSchemaId: number;
+    dbSchemaId: string;
     enabled: number;
     hostCtx?: string;
-    id: number;
+    id: string;
     itemsPerPage?: number;
     name: string;
     objectType: string;
@@ -27,28 +27,28 @@ export interface IMrsDbObjectData {
     rowUserOwnershipEnforced: number;
     schemaRequestPath?: string;
     qualifiedName?: string;
-    serviceId: number;
+    serviceId: string;
     mediaType?: string;
     autoDetectMediaType: number;
     authStoredProcedure?: string;
     options?: IShellDictionary;
-    parameters?: IMrsDbObjectParameterData[];
+    fields?: IMrsDbObjectFieldData[];
 }
 
 export interface IMrsContentSetData {
     comments: string;
     enabled: number;
     hostCtx: string;
-    id: number;
+    id: string;
     requestPath: string;
     requiresAuth: number;
-    serviceId: number;
+    serviceId: string;
     options: IShellDictionary;
 }
 
 export interface IMrsContentFileData {
-    id: number;
-    contentSetId: number;
+    id: string;
+    contentSetId: string;
     requestPath: string;
     requiresAuth: boolean;
     enabled: boolean;
@@ -59,7 +59,7 @@ export interface IMrsContentFileData {
 }
 
 export interface IMrsAddContentSetData {
-    contentSetId?: number;
+    contentSetId?: string;
     numberOfFilesUploaded?: number;
     info?: string;
 }
@@ -67,8 +67,8 @@ export interface IMrsAddContentSetData {
 export interface IMrsServiceData {
     enabled: number;
     hostCtx: string;
-    id: number;
-    isDefault: number;
+    id: string;
+    isCurrent: number;
     urlContextRoot: string;
     urlHostName: string;
     urlProtocol: string;
@@ -79,13 +79,15 @@ export interface IMrsServiceData {
     authCompletedUrlValidation: string;
     authCompletedPageContent: string;
     authApps?: IMrsAuthAppData[];
+    enableSqlEndpoint?: number;
+    customMetadataSchema?: string;
 }
 
 export interface IMrsAuthAppData {
-    id?: number;
-    authVendorId?: number;
+    id?: string;
+    authVendorId?: string;
     authVendorName?: string;
-    serviceId?: number;
+    serviceId?: string;
     name?: string;
     description?: string;
     url?: string;
@@ -95,11 +97,11 @@ export interface IMrsAuthAppData {
     enabled: boolean;
     useBuiltInAuthorization: boolean;
     limitToRegisteredUsers: boolean;
-    defaultAuthRoleId?: number;
+    defaultRoleId?: string;
 }
 
 export interface IMrsAuthVendorData {
-    id?: number;
+    id?: string;
     name: string;
     validationUrl?: string;
     enabled: boolean;
@@ -110,12 +112,12 @@ export interface IMrsSchemaData {
     comments: string;
     enabled: number;
     hostCtx: string;
-    id: number;
+    id: string;
     itemsPerPage: number;
     name: string;
     requestPath: string;
     requiresAuth: number;
-    serviceId: number;
+    serviceId: string;
     options?: IShellDictionary;
 }
 
@@ -127,20 +129,21 @@ export interface IMrsStatusData {
 }
 
 export interface IProtocolMrsResults {
-    [ShellAPIMrs.MrsAddService]: {};
+    [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData };
     [ShellAPIMrs.MrsGetService]: {};
     [ShellAPIMrs.MrsListServices]: { result: IMrsServiceData[] };
     [ShellAPIMrs.MrsEnableService]: {};
     [ShellAPIMrs.MrsDisableService]: {};
     [ShellAPIMrs.MrsDeleteService]: {};
-    [ShellAPIMrs.MrsSetServiceDefault]: {};
+    [ShellAPIMrs.MrsSetCurrentServiceId]: {};
+    [ShellAPIMrs.MrsGetCurrentServiceId]: { result: string };
     [ShellAPIMrs.MrsSetServiceContextPath]: {};
     [ShellAPIMrs.MrsSetServiceProtocol]: {};
     [ShellAPIMrs.MrsSetServiceComments]: {};
     [ShellAPIMrs.MrsSetServiceOptions]: {};
     [ShellAPIMrs.MrsUpdateService]: {};
     [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { result: boolean };
-    [ShellAPIMrs.MrsAddSchema]: { result: number };
+    [ShellAPIMrs.MrsAddSchema]: { result: string };
     [ShellAPIMrs.MrsGetSchema]: {};
     [ShellAPIMrs.MrsListSchemas]: { result: IMrsSchemaData[] };
     [ShellAPIMrs.MrsEnableSchema]: {};
@@ -158,12 +161,12 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsEnableContentSet]: {};
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
-    [ShellAPIMrs.MrsAddDbObject]: { result: number };
+    [ShellAPIMrs.MrsAddDbObject]: { result: string };
     [ShellAPIMrs.MrsGetDbObject]: {};
     [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { result: string[] };
-    [ShellAPIMrs.MrsGetDbObjectFields]: { result: IMrsDbObjectParameterData[] };
+    [ShellAPIMrs.MrsGetDbObjectSelectedFields]: { result: IMrsDbObjectFieldData[] };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[] };
-    [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[] };
+    [ShellAPIMrs.MrsGetDbObjectFields]: { result: IMrsDbObjectFieldData[] };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};
     [ShellAPIMrs.MrsSetDbObjectCrudOperations]: {};
     [ShellAPIMrs.MrsEnableDbObject]: {};
