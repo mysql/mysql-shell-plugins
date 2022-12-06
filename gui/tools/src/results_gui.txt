@@ -1,3 +1,10 @@
+export interface IErrorResult {
+    requestState: {
+        msg: string;
+        code?: number;
+    };
+}
+
 export interface IShellProfile {
     id: number;
     userId: number;
