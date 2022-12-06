@@ -3,6 +3,7 @@
 exports[`Result Tabview Tests Rendering Only Output 1`] = `
 <ResultTabView
   contextId="ec123"
+  hideSingleTab={false}
   resultSets={
     Object {
       "output": Array [
@@ -37,7 +38,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
     >
       <Tabview
         className="resultTabview"
-        hideSingleTab={true}
+        hideSingleTab={false}
         onSelectTab={[Function]}
         pages={
           Array [
@@ -91,6 +92,238 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
               }
             }
           >
+            <Selector
+              activeItemId="output"
+              className="tabArea"
+              entryOrientation="row"
+              items={
+                Array [
+                  Object {
+                    "auxillary": undefined,
+                    "canReorder": undefined,
+                    "caption": "Output",
+                    "icon": undefined,
+                    "id": "output",
+                    "tooltip": undefined,
+                  },
+                ]
+              }
+              onDrop={[Function]}
+              onSelect={[Function]}
+              orientation="row"
+              smoothScroll={false}
+              wrapNavigation={false}
+            >
+              <Container
+                className="msg selector horizontal tabArea"
+                innerRef={
+                  Object {
+                    "current": Object {
+                      "l": Object {
+                        "dragenterfalse": [Function],
+                        "dragleavefalse": [Function],
+                        "dragoverfalse": [Function],
+                        "dragstartfalse": [Function],
+                        "dropfalse": [Function],
+                      },
+                    },
+                  }
+                }
+                onDragEnter={[Function]}
+                onDragLeave={[Function]}
+                onDragOver={[Function]}
+                onDragStart={[Function]}
+                onDrop={[Function]}
+                onResize={[Function]}
+                orientation="row"
+              >
+                <div
+                  className="msg container fixedScrollbar selector horizontal tabArea"
+                  onDragEnter={[Function]}
+                  onDragLeave={[Function]}
+                  onDragOver={[Function]}
+                  onDragStart={[Function]}
+                  onDrop={[Function]}
+                  style={
+                    Object {
+                      "alignItems": undefined,
+                      "flexDirection": "row",
+                      "flexWrap": undefined,
+                      "justifyContent": undefined,
+                    }
+                  }
+                >
+                  <SelectorItem
+                    disabled={false}
+                    id="selectorItemstepDown"
+                    innerRef={
+                      Object {
+                        "current": Object {
+                          "l": Object {
+                            "clickfalse": [Function],
+                          },
+                        },
+                      }
+                    }
+                    onClick={[Function]}
+                    orientation="row"
+                    type="stepDown"
+                  >
+                    <Container
+                      className="msg selectorItem stepDown"
+                      crossAlignment="center"
+                      id="selectorItemstepDown"
+                      innerRef={
+                        Object {
+                          "current": Object {
+                            "l": Object {
+                              "clickfalse": [Function],
+                            },
+                          },
+                        }
+                      }
+                      mainAlignment="center"
+                      onClick={[Function]}
+                      orientation="row"
+                    >
+                      <div
+                        className="msg container fixedScrollbar selectorItem stepDown"
+                        id="selectorItemstepDown"
+                        onClick={[Function]}
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "flexWrap": undefined,
+                            "justifyContent": "center",
+                          }
+                        }
+                      />
+                    </Container>
+                  </SelectorItem>
+                  <SelectorItem
+                    caption="Output"
+                    disabled={false}
+                    id="output"
+                    innerRef={
+                      Object {
+                        "current": Object {
+                          "l": Object {
+                            "clickfalse": [Function],
+                            "dropfalse": [Function],
+                          },
+                        },
+                      }
+                    }
+                    key="output"
+                    onClick={[Function]}
+                    onDrop={[Function]}
+                    orientation="row"
+                    selected={true}
+                    type="normal"
+                  >
+                    <Container
+                      className="msg selectorItem selected normal"
+                      crossAlignment="center"
+                      id="output"
+                      innerRef={
+                        Object {
+                          "current": Object {
+                            "l": Object {
+                              "clickfalse": [Function],
+                              "dropfalse": [Function],
+                            },
+                          },
+                        }
+                      }
+                      mainAlignment="center"
+                      onClick={[Function]}
+                      onDrop={[Function]}
+                      orientation="row"
+                    >
+                      <div
+                        className="msg container fixedScrollbar selectorItem selected normal"
+                        id="output"
+                        onClick={[Function]}
+                        onDrop={[Function]}
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "flexWrap": undefined,
+                            "justifyContent": "center",
+                          }
+                        }
+                      >
+                        <Label
+                          data-tooltip="inherit"
+                        >
+                          <label
+                            className="msg label"
+                            data-tooltip="inherit"
+                            style={
+                              Object {
+                                "textAlign": undefined,
+                              }
+                            }
+                          >
+                            Output
+                          </label>
+                        </Label>
+                      </div>
+                    </Container>
+                  </SelectorItem>
+                  <SelectorItem
+                    disabled={false}
+                    id="selectorItemstepUp"
+                    innerRef={
+                      Object {
+                        "current": Object {
+                          "l": Object {
+                            "clickfalse": [Function],
+                          },
+                        },
+                      }
+                    }
+                    onClick={[Function]}
+                    orientation="row"
+                    type="stepUp"
+                  >
+                    <Container
+                      className="msg selectorItem stepUp"
+                      crossAlignment="center"
+                      id="selectorItemstepUp"
+                      innerRef={
+                        Object {
+                          "current": Object {
+                            "l": Object {
+                              "clickfalse": [Function],
+                            },
+                          },
+                        }
+                      }
+                      mainAlignment="center"
+                      onClick={[Function]}
+                      orientation="row"
+                    >
+                      <div
+                        className="msg container fixedScrollbar selectorItem stepUp"
+                        id="selectorItemstepUp"
+                        onClick={[Function]}
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "flexWrap": undefined,
+                            "justifyContent": "center",
+                          }
+                        }
+                      />
+                    </Container>
+                  </SelectorItem>
+                </div>
+              </Container>
+            </Selector>
             <Container
               className="content"
               innerRef={
@@ -262,6 +495,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
 exports[`Result Tabview Tests Standard Rendering 1`] = `
 <ResultTabView
   contextId="ec123"
+  hideSingleTab={true}
   resultSets={
     Object {
       "sets": Array [],
@@ -389,6 +623,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
 exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
 <ResultTabView
   contextId="ec123"
+  hideSingleTab={true}
   resultSets={
     Object {
       "output": Array [

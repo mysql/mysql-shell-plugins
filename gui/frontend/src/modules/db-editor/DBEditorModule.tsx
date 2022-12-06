@@ -62,7 +62,7 @@ import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { DBEditorModuleId } from "../ModuleInfo";
-import { EditorLanguage, IExecutionContext } from "../../supplement";
+import { EditorLanguage, IExecutionContext, IScriptRequest } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
@@ -183,6 +183,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("moduleToggle", this.toggleModule);
         requisitions.register("editorShowConnections", this.showConnections);
         requisitions.register("editorRunCommand", this.runCommand);
+        requisitions.register("editorSaved", this.editorSaved);
         requisitions.register("profileLoaded", this.profileLoaded);
         requisitions.register("webSessionStarted", this.webSessionStarted);
     }
@@ -194,6 +195,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("moduleToggle", this.toggleModule);
         requisitions.unregister("editorShowConnections", this.showConnections);
         requisitions.unregister("editorRunCommand", this.runCommand);
+        requisitions.unregister("editorSaved", this.editorSaved);
         requisitions.unregister("profileLoaded", this.profileLoaded);
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
     }
@@ -1072,14 +1074,35 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         const connectionState = this.connectionState.get(selectedPage);
         if (connectionState) {
-            const state = connectionState.editors.find((state) => {
+            const editor = connectionState.editors.find((state) => {
                 return state.id === connectionState.activeEntry;
             });
 
-            if (state) {
-                this.saveEditorIfNeeded(state);
+            if (editor?.state) {
+                const model = editor.state.model;
+                const content = model.getValue();
+                const details: IScriptRequest = {
+                    scriptId: editor.id,
+                    content,
+                    language: model.getLanguageId() as EditorLanguage,
+                };
+                requisitions.executeRemote("editorSaveScript", details);
             }
         }
+    };
+
+    private editorSaved = (details: { id: string, saved: boolean; }): Promise<boolean> => {
+        const { dirtyEditors } = this.state;
+
+        if (dirtyEditors.has(details.id)) {
+            if (details.saved) {
+                this.setState({ dirtyEditors });
+            }
+
+            return Promise.resolve(true);
+        }
+
+        return Promise.resolve(false);
     };
 
     private handleCloseButtonClick = (): void => {
@@ -1400,9 +1423,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             if (newVersion !== editor.currentVersion) {
                 editor.currentVersion = newVersion;
                 const content = model.getValue();
+
+                let wasSaved = false;
                 if (editor.dbDataId > -1) {
                     // Represents a DB data entry.
                     void ShellInterface.modules.updateData(editor.dbDataId, undefined, content);
+                    wasSaved = true;
                 } else {
                     // Represents a script file from the extension.
                     /* XXX: Temporarily disabled - we need a better solution for saving scripts in the extension.
@@ -1414,11 +1440,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     requisitions.executeRemote("editorSaveScript", details);*/
                 }
 
-                // Remove the editor also from the dirty editors list, to disable the save button.
-                const { dirtyEditors } = this.state;
+                if (wasSaved) {
+                    // Remove the editor also from the dirty editors list, to disable the save button.
+                    const { dirtyEditors } = this.state;
 
-                if (dirtyEditors.delete(editor.id)) {
-                    this.setState({ dirtyEditors });
+                    if (dirtyEditors.delete(editor.id)) {
+                        this.setState({ dirtyEditors });
+                    }
                 }
             }
         }

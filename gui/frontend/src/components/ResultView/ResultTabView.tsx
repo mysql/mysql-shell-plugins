@@ -50,6 +50,7 @@ export interface IResultTabViewProperties extends IComponentProperties {
 
     currentSet?: number;
     resultPaneMaximized?: boolean;
+    hideSingleTab: boolean;
 
     onResultPageChange?: (resultId: string, currentPage: number, sql: string) => void;
     onSetResultPaneViewState?: (maximized: boolean) => void;
@@ -86,7 +87,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
             resultPaneMaximized: props.resultPaneMaximized ?? false,
         };
 
-        this.addHandledProperties("resultSets", "contextId", "currentSet", "resultPaneMaximized",
+        this.addHandledProperties("resultSets", "contextId", "currentSet", "resultPaneMaximized", "hideSingleTab",
             "onResultPageChange", "onSetResultPaneViewState", "onSelectTab");
     }
 
@@ -144,7 +145,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
     }
 
     public render(): React.ReactNode {
-        const { resultSets, contextId } = this.props;
+        const { resultSets, contextId, hideSingleTab } = this.props;
         const { currentResultSet, resultPaneMaximized } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
@@ -207,7 +208,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
                 <Tabview
                     className="resultTabview"
                     stretchTabs={false}
-                    hideSingleTab={true}
+                    hideSingleTab={hideSingleTab}
                     selectedId={currentResultSet?.resultId ?? "output"}
                     tabPosition={TabPosition.Top}
                     pages={pages}

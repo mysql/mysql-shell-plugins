@@ -39,6 +39,8 @@ export class StandalonePresentationInterface extends PresentationInterface {
         language: EditorLanguage,
         private target: React.RefObject<HTMLDivElement>) {
         super(editor, language);
+
+        this.alwaysShowTab = true;
     }
 
     protected get resultDivider(): React.ReactNode {

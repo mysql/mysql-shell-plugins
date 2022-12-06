@@ -188,7 +188,6 @@ msg.connectionTabHost #dashboardToolbar .image {
 
 .msg.connectionTabHost .standaloneScriptHost .renderTarget {
     flex: 1;
-    padding: 2px;
 }
 
 .msg.connectionTabHost .standaloneScriptHost .resultHost {

@@ -91,6 +91,9 @@ export class PresentationInterface {
     // The minimum for the result area. Depends on the content.
     protected minHeight = 180;
 
+    // For text + result set output.
+    protected alwaysShowTab = false;
+
     // Each line gets a margin decoration with varying content, depending where the context is used
     // and other conditions.
     private marginDecorationIDs: string[] = [];
@@ -739,15 +742,38 @@ export class PresentationInterface {
         const contextId = this.context.id;
         switch (this.resultData.type) {
             case "text": {
-                element = <Container orientation={Orientation.TopDown} style={{ flex: "1 1 auto" }}>
-                    <ActionOutput
-                        output={this.resultData.text}
+                if (this.alwaysShowTab) {
+                    const data: IResultSets = {
+                        type: "resultSets",
+                        output: this.resultData.text,
+                        sets: [],
+                    };
+
+                    element = <ResultTabView
+                        ref={this.resultRef}
+                        resultSets={data}
                         contextId={contextId}
-                        showIndexes={options?.showIndexes}
-                    />
-                    {this.resultData.executionInfo && <ResultStatus executionInfo={this.resultData.executionInfo} />}
-                </Container>;
-                this.minHeight = 28;
+                        currentSet={options?.currentSet}
+                        resultPaneMaximized={this.maximizedResult}
+                        hideSingleTab={false}
+                        onResultPageChange={this.handleResultPageChange}
+                        onSetResultPaneViewState={this.handleResultPaneChange}
+                        onSelectTab={this.handleSelectTab}
+                    />;
+
+                    this.minHeight = 36;
+                } else {
+                    element = <Container orientation={Orientation.TopDown} style={{ flex: "1 1 auto" }}>
+                        <ActionOutput
+                            output={this.resultData.text}
+                            contextId={contextId}
+                            showIndexes={options?.showIndexes}
+                        />
+                        {this.resultData.executionInfo &&
+                            <ResultStatus executionInfo={this.resultData.executionInfo} />}
+                    </Container>;
+                    this.minHeight = 28;
+                }
 
                 break;
             }
@@ -759,6 +785,7 @@ export class PresentationInterface {
                     contextId={contextId}
                     currentSet={options?.currentSet}
                     resultPaneMaximized={this.maximizedResult}
+                    hideSingleTab={!this.alwaysShowTab}
                     onResultPageChange={this.handleResultPageChange}
                     onSetResultPaneViewState={this.handleResultPaneChange}
                     onSelectTab={this.handleSelectTab}

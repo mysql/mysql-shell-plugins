@@ -40,6 +40,7 @@ describe("Result Tabview Tests", (): void => {
                     sets: [],
                 }}
                 contextId="ec123"
+                hideSingleTab={true}
             />,
         );
 
@@ -60,6 +61,7 @@ describe("Result Tabview Tests", (): void => {
                     sets: [],
                 }}
                 contextId="ec123"
+                hideSingleTab={false}
             />,
         );
 
@@ -105,6 +107,7 @@ describe("Result Tabview Tests", (): void => {
                     ],
                 }}
                 contextId="ec123"
+                hideSingleTab={true}
             />,
         );
 
@@ -139,6 +142,7 @@ describe("Result Tabview Tests", (): void => {
                     }],
                 }}
                 contextId="ec123"
+                hideSingleTab={false}
             />,
         );
 
@@ -291,6 +295,7 @@ describe("Result Tabview Tests", (): void => {
             <ResultTabView
                 resultSets={resultSets}
                 contextId="ec123"
+                hideSingleTab={true}
                 onResultPageChange={onResultPageChange}
             />,
         );

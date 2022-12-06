@@ -152,7 +152,6 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
                     key="appHostSplitter"
                     id="appHostSplitter"
                     orientation={Orientation.TopDown}
-                    style={{ flex: "1" }}
                     panes={[
                         {
                             id: "appHostPane",

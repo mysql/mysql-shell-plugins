@@ -27,7 +27,7 @@
     overflow: auto;
 }
 
- .msg.container.topLeft {
+.msg.container.topLeft {
     align-items: top;
     justify-content: flex-start;
 }
