@@ -101,24 +101,32 @@ DROP procedure IF EXISTS `mrsNotes`.`noteShare`;
 DELIMITER $$
 USE `mrsNotes`$$
 CREATE PROCEDURE `noteShare`(
-	IN mrsServiceId INT, IN userId BINARY(16), IN noteId INT, IN email VARCHAR(255), IN viewOnly BOOLEAN, IN canShare BOOLEAN)
+  IN userId BINARY(16), IN noteId INT, IN email VARCHAR(255), IN viewOnly BOOLEAN, IN canShare BOOLEAN)
 BEGIN
-	DECLARE invitationKey CHAR(64);
+  DECLARE invitationKey CHAR(64);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @p1 = MESSAGE_TEXT;
+        SELECT concat("Failed to share the note. Error: ", @p1) as message;
+    END;
     
-    CALL `mysql_rest_service_metadata`.`get_user_id_by_email`(mrsServiceId, email, @shareWithUserId);
+    SELECT id INTO @shareWithUserId FROM `user` AS u WHERE u.email = email;
     
-	IF (@shareWithUserId IS NULL) THEN
-		SELECT "Unable to find a user with this email address." as message;
-    ELSEIF (0 = (SELECT u.canShare FROM userHasNote AS u WHERE u.noteId = noteId AND u.userId = userId)) THEN
-		SELECT "Sharing this note with others is prohibited." as message;
-	ELSE
-		SET invitationKey = sha2(rand(), 256);
-		
-		INSERT INTO userHasNote (noteId, userId, viewOnly, canShare, invitationKey)
-		VALUES (noteId, @shareWithUserId, viewOnly, canShare, invitationKey);
-		
-		SELECT invitationKey;
-	END IF;
+  IF (@shareWithUserId IS NULL) THEN
+    SELECT "Unable to find a user with this email address." as message;
+  ELSEIF (0 = (SELECT u.canShare FROM `userHasNote` AS u WHERE u.noteId = noteId AND u.userId = userId)) THEN
+    SELECT "Sharing this note with others is prohibited." as message;
+  ELSEIF (1 = (SELECT COUNT(*) FROM `userHasNote` AS u WHERE u.noteId = noteId AND u.userId = @shareWithUserId)) THEN
+    SELECT "The note has already been shared with this user." as message;
+  ELSE
+    SET invitationKey = sha2(rand(), 256);
+    
+    INSERT INTO `userHasNote` (noteId, userId, viewOnly, canShare, invitationKey)
+    VALUES (noteId, @shareWithUserId, viewOnly, canShare, invitationKey);
+    
+    SELECT invitationKey;
+  END IF;
 END$$
 
 DELIMITER ;
@@ -133,16 +141,16 @@ DROP procedure IF EXISTS `mrsNotes`.`noteAcceptShare`;
 DELIMITER $$
 USE `mrsNotes`$$
 CREATE PROCEDURE `noteAcceptShare`(
-	IN userId BINARY(16), IN invitationKey CHAR(64))
+  IN userId BINARY(16), IN invitationKey CHAR(64))
 BEGIN
-	DECLARE noteId INT UNSIGNED;
+  DECLARE noteId INT UNSIGNED;
     
     IF (0 = (SELECT COUNT(*) FROM userHasNote AS u WHERE u.invitationKey = invitationKey AND u.userId = userId)) THEN
-		SELECT "No corresponding note found." as message;
-	ELSE
-		UPDATE userHasNote AS u SET u.invitationAccepted = 1 
-		WHERE u.noteId=noteId AND u.userId=userId;
-	END IF;
+    SELECT "No corresponding note found." as message;
+  ELSE
+    UPDATE userHasNote AS u SET u.invitationAccepted = 1 
+    WHERE u.noteId=noteId AND u.userId=userId;
+  END IF;
 END$$
 
 DELIMITER ;
@@ -157,7 +165,7 @@ DROP procedure IF EXISTS `mrsNotes`.`noteUpdate`;
 DELIMITER $$
 USE `mrsNotes`$$
 CREATE PROCEDURE `noteUpdate`(
-	IN noteId INT, IN userId BINARY(16), IN title VARCHAR(255), IN pinned BOOLEAN, IN lockedDown BOOLEAN, IN content VARCHAR(2000), tags JSON)
+  IN noteId INT, IN userId BINARY(16), IN title VARCHAR(255), IN pinned BOOLEAN, IN lockedDown BOOLEAN, IN content VARCHAR(2000), tags JSON)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -167,15 +175,15 @@ BEGIN
     END;
 
     IF (0 = (
-		SELECT COUNT(*) FROM mrsNotes.note AS n 
-			JOIN mrsNotes.userHasNote u ON u.noteId=n.id 
+    SELECT COUNT(*) FROM mrsNotes.note AS n 
+      JOIN mrsNotes.userHasNote u ON u.noteId=n.id 
         WHERE n.id = noteId AND n.userId = userId AND u.invitationAccepted=1
-	)) THEN
-		SELECT "No corresponding note found or no privilege to update it." as message;
-	ELSE
-		UPDATE note AS n SET n.title = title, n.pinned = pinned, 
-			n.lockedDown = lockedDown, n.content = content, n.tags = tags
-		WHERE n.id = noteId;
+  )) THEN
+    SELECT "No corresponding note found or no privilege to update it." as message;
+  ELSE
+    UPDATE note AS n SET n.title = title, n.pinned = pinned, 
+      n.lockedDown = lockedDown, n.content = content, n.tags = tags
+    WHERE n.id = noteId;
     END IF;
     
     COMMIT;
@@ -193,7 +201,7 @@ DROP procedure IF EXISTS `mrsNotes`.`noteDelete`;
 DELIMITER $$
 USE `mrsNotes`$$
 CREATE PROCEDURE `noteDelete`(
-	IN noteId INT, IN userId BINARY(16))
+  IN noteId INT, IN userId BINARY(16))
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -203,13 +211,13 @@ BEGIN
     END;
 
     IF (0 = (
-		SELECT COUNT(*) FROM mrsNotes.note AS n 
-			JOIN mrsNotes.userHasNote u ON u.noteId=n.id 
+    SELECT COUNT(*) FROM mrsNotes.note AS n 
+      JOIN mrsNotes.userHasNote u ON u.noteId=n.id 
         WHERE n.id = noteId AND n.userId = userId AND u.invitationAccepted=1
-	)) THEN
-		SELECT "No corresponding note found or no privilege to delete it." as message;
-	ELSE
-		DELETE FROM note AS n WHERE n.id = noteId;
+  )) THEN
+    SELECT "No corresponding note found or no privilege to delete it." as message;
+  ELSE
+    DELETE FROM note AS n WHERE n.id = noteId;
     END IF;
     
     COMMIT;
@@ -223,13 +231,13 @@ DELIMITER ;
 DROP VIEW IF EXISTS `mrsNotes`.`notesAll` ;
 USE `mrsNotes`;
 CREATE  OR REPLACE VIEW `mrsNotes`.`notesAll` AS 
-	SELECT n.id, n.title, n.createDate, n.lastUpdate, n.pinned, n.lockedDown, n.shared,
-		n.content, n.tags, u.userId, u.viewOnly, (n.userId = u.userId) AS ownNote,
+  SELECT n.id, n.title, n.createDate, n.lastUpdate, n.pinned, n.lockedDown, n.shared,
+    n.content, n.tags, u.userId, u.viewOnly, (n.userId = u.userId) AS ownNote,
         LTRIM(REGEXP_REPLACE(REGEXP_REPLACE(SUBSTRING(n.content, LENGTH(n.title) + 1, 35), 
             "[^[[:alnum:]]]", " "), "[[:space:]]+", " ", 1, 0, "m")) AS contentBeginning
     FROM `mrsNotes`.`userHasNote` u
-		JOIN `mrsNotes`.`note` n ON u.noteId = n.id 
-	WHERE u.invitationAccepted = 1;
+    JOIN `mrsNotes`.`note` n ON u.noteId = n.id 
+  WHERE u.invitationAccepted = 1;
 
 -- -----------------------------------------------------
 -- View `mrsNotes`.`schemaVersion`
@@ -244,7 +252,7 @@ CREATE  OR REPLACE VIEW schemaVersion (major, minor, patch) AS SELECT 0, 0, 4;
 DROP VIEW IF EXISTS `mrsNotes`.`notesServed` ;
 USE `mrsNotes`;
 CREATE  OR REPLACE VIEW `notesServed` AS
-	SELECT max(id) as notesServed FROM note;
+  SELECT max(id) as notesServed FROM note;
 USE `mrsNotes`;
 
 DELIMITER $$
@@ -254,10 +262,10 @@ DROP TRIGGER IF EXISTS `mrsNotes`.`note_BEFORE_INSERT` $$
 USE `mrsNotes`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mrsNotes`.`note_BEFORE_INSERT` BEFORE INSERT ON `note` FOR EACH ROW
 BEGIN
-	SET @userNoteCount := (SELECT COUNT(*) FROM `note` AS n WHERE n.userId = new.userId);
+  SET @userNoteCount := (SELECT COUNT(*) FROM `note` AS n WHERE n.userId = new.userId);
     
     IF @userNoteCount > 5 THEN
-		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The limit of 5 notes was reached.";
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The limit of 5 notes was reached.";
     END IF;
 END$$
 
@@ -267,10 +275,10 @@ DROP TRIGGER IF EXISTS `mrsNotes`.`note_AFTER_INSERT` $$
 USE `mrsNotes`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mrsNotes`.`note_AFTER_INSERT` AFTER INSERT ON `note` FOR EACH ROW
 BEGIN
-	INSERT INTO `mrsNotes`.`userHasNote` (
-		noteId, userId, viewOnly, canShare, invitationAccepted)
-	VALUES (
-		NEW.id, NEW.userId, 0, 1, 1
+  INSERT INTO `mrsNotes`.`userHasNote` (
+    noteId, userId, viewOnly, canShare, invitationAccepted)
+  VALUES (
+    NEW.id, NEW.userId, 0, 1, 1
     );
 END$$
 
@@ -280,7 +288,7 @@ DROP TRIGGER IF EXISTS `mrsNotes`.`note_BEFORE_UPDATE` $$
 USE `mrsNotes`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mrsNotes`.`note_BEFORE_UPDATE` BEFORE UPDATE ON `note` FOR EACH ROW
 BEGIN
-	SET new.lastUpdate = NOW();
+  SET new.lastUpdate = NOW();
 END$$
 
 
@@ -289,7 +297,7 @@ DROP TRIGGER IF EXISTS `mrsNotes`.`note_BEFORE_DELETE` $$
 USE `mrsNotes`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mrsNotes`.`note_BEFORE_DELETE` BEFORE DELETE ON `note` FOR EACH ROW
 BEGIN
-	DELETE FROM `mrsNotes`.`userHasNote` WHERE noteId = OLD.id;
+  DELETE FROM `mrsNotes`.`userHasNote` WHERE noteId = OLD.id;
 END$$
 
 
@@ -298,9 +306,9 @@ DROP TRIGGER IF EXISTS `mrsNotes`.`userHasNote_AFTER_INSERT` $$
 USE `mrsNotes`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mrsNotes`.`userHasNote_AFTER_INSERT` AFTER INSERT ON `userHasNote` FOR EACH ROW
 BEGIN
-	IF ((SELECT COUNT(*) FROM `mrsNotes`.`userHasNote` WHERE noteId = NEW.noteId) > 1) THEN
-		UPDATE `mrsNotes`.`note` SET shared = 1 WHERE id = NEW.noteId;
-	END IF;
+  IF ((SELECT COUNT(*) FROM `mrsNotes`.`userHasNote` WHERE noteId = NEW.noteId) > 1) THEN
+    UPDATE `mrsNotes`.`note` SET shared = 1 WHERE id = NEW.noteId;
+  END IF;
 END$$
 
 
@@ -309,9 +317,9 @@ DROP TRIGGER IF EXISTS `mrsNotes`.`userHasNote_AFTER_DELETE` $$
 USE `mrsNotes`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mrsNotes`.`userHasNote_AFTER_DELETE` AFTER DELETE ON `userHasNote` FOR EACH ROW
 BEGIN
-	IF ((SELECT COUNT(*) FROM `mrsNotes`.`userHasNote` WHERE noteId = OLD.noteId) = 1) THEN
-		UPDATE `mrsNotes`.`note` SET shared = 0 WHERE id = OLD.noteId;
-	END IF;
+  IF ((SELECT COUNT(*) FROM `mrsNotes`.`userHasNote` WHERE noteId = OLD.noteId) = 1) THEN
+    UPDATE `mrsNotes`.`note` SET shared = 0 WHERE id = OLD.noteId;
+  END IF;
 END$$
 
 

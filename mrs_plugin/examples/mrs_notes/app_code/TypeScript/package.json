@@ -1,0 +1,43 @@
+{
+  "name": "mrs-notes-ts",
+  "displayName": "MRS Notes TS",
+  "description": "MRS Example: Notes TypeScript",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 8083",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "dependencies": {
+    "preact": "^10.11.2"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.4.0",
+    "@types/enzyme": "^3.10.12",
+    "@types/jsdom": "^20.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.45.1",
+    "@vitest/coverage-c8": "^0.25.6",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-preact-pure": "^4.0.1",
+    "enzyme-to-json": "^3.6.2",
+    "eslint": "^8.29.0",
+    "eslint-config-standard-with-typescript": "^23.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsdoc": "^39.6.4",
+    "eslint-plugin-n": "^15.6.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.31.11",
+    "jsdom": "^20.0.3",
+    "typescript": "^4.9.3",
+    "vite": "^3.2.3",
+    "vitest": "^0.25.6"
+  },
+  "resolutions": {
+    "@types/react": "17.0.44"
+  }
+}
