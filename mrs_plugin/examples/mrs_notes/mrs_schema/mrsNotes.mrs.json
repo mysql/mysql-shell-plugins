@@ -1,0 +1,782 @@
+{
+    "type": "mrsSchema",
+    "version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 28
+    },
+    "schema": {
+        "id": "0x11ed77ef44e64a1badfb020017059995",
+        "service_id": "0x11ed77eeddb71166adfb020017059995",
+        "name": "mrsNotes",
+        "request_path": "/mrsNotes",
+        "requires_auth": 0,
+        "enabled": 1,
+        "items_per_page": 25,
+        "comments": "",
+        "options": null,
+        "objects": [
+            {
+                "id": "0x11ed77ef50371abcadfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "note",
+                "request_path": "/note",
+                "enabled": 1,
+                "object_type": "TABLE",
+                "crud_operations": [
+                    "CREATE",
+                    "READ",
+                    "UPDATE",
+                    "DELETE"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "userId",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77ef505c4314adfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 1,
+                        "name": "id",
+                        "bind_field_name": "id",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef50823c68adfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 2,
+                        "name": "userId",
+                        "bind_field_name": "userId",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef50a93daaadfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 3,
+                        "name": "title",
+                        "bind_field_name": "title",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef50cfbd04adfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 4,
+                        "name": "createDate",
+                        "bind_field_name": "createDate",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef50f78cfeadfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 5,
+                        "name": "lastUpdate",
+                        "bind_field_name": "lastUpdate",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef511fe4c6adfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 6,
+                        "name": "pinned",
+                        "bind_field_name": "pinned",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef5146a25aadfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 7,
+                        "name": "lockedDown",
+                        "bind_field_name": "lockedDown",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef516c2401adfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 8,
+                        "name": "shared",
+                        "bind_field_name": "shared",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef519129cfadfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 9,
+                        "name": "content",
+                        "bind_field_name": "content",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef51b69cdaadfb020017059995",
+                        "db_object_id": "0x11ed77ef50371abcadfb020017059995",
+                        "position": 10,
+                        "name": "tags",
+                        "bind_field_name": "tags",
+                        "datatype": "JSON",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77ef5b0ff2c4adfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "user",
+                "request_path": "/user",
+                "enabled": 1,
+                "object_type": "TABLE",
+                "crud_operations": [
+                    "CREATE",
+                    "READ",
+                    "UPDATE",
+                    "DELETE"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "id",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77ef5b3495daadfb020017059995",
+                        "db_object_id": "0x11ed77ef5b0ff2c4adfb020017059995",
+                        "position": 1,
+                        "name": "id",
+                        "bind_field_name": "id",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef5b58bf13adfb020017059995",
+                        "db_object_id": "0x11ed77ef5b0ff2c4adfb020017059995",
+                        "position": 2,
+                        "name": "nickname",
+                        "bind_field_name": "nickname",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef5b7e6ea9adfb020017059995",
+                        "db_object_id": "0x11ed77ef5b0ff2c4adfb020017059995",
+                        "position": 3,
+                        "name": "email",
+                        "bind_field_name": "email",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77ef6a560602adfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "notesAll",
+                "request_path": "/notesAll",
+                "enabled": 1,
+                "object_type": "VIEW",
+                "crud_operations": [
+                    "READ"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "userId",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77ef6a7b9003adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 1,
+                        "name": "id",
+                        "bind_field_name": "id",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6aa2afa3adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 2,
+                        "name": "title",
+                        "bind_field_name": "title",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6aca054badfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 3,
+                        "name": "createDate",
+                        "bind_field_name": "createDate",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6aefb67cadfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 4,
+                        "name": "lastUpdate",
+                        "bind_field_name": "lastUpdate",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6b17e5a8adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 5,
+                        "name": "pinned",
+                        "bind_field_name": "pinned",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6b50a365adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 6,
+                        "name": "lockedDown",
+                        "bind_field_name": "lockedDown",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6b79cc76adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 7,
+                        "name": "shared",
+                        "bind_field_name": "shared",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6ba3b52badfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 8,
+                        "name": "content",
+                        "bind_field_name": "content",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6bcd81a8adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 9,
+                        "name": "tags",
+                        "bind_field_name": "tags",
+                        "datatype": "JSON",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6bf67b8cadfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 10,
+                        "name": "userId",
+                        "bind_field_name": "userId",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6c1ef074adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 11,
+                        "name": "viewOnly",
+                        "bind_field_name": "viewOnly",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6c44fafdadfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 12,
+                        "name": "ownNote",
+                        "bind_field_name": "ownNote",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef6c6c62f1adfb020017059995",
+                        "db_object_id": "0x11ed77ef6a560602adfb020017059995",
+                        "position": 13,
+                        "name": "contentBeginning",
+                        "bind_field_name": "contentBeginning",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77ef74537ca1adfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "notesServed",
+                "request_path": "/notesServed",
+                "enabled": 1,
+                "object_type": "VIEW",
+                "crud_operations": [
+                    "READ"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 0,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 0,
+                "row_user_ownership_column": null,
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77ef74783d5cadfb020017059995",
+                        "db_object_id": "0x11ed77ef74537ca1adfb020017059995",
+                        "position": 1,
+                        "name": "notesServed",
+                        "bind_field_name": "notesServed",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77ef81ba334fadfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "noteAcceptShare",
+                "request_path": "/noteAcceptShare",
+                "enabled": 1,
+                "object_type": "PROCEDURE",
+                "crud_operations": [
+                    "UPDATE"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "userId",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77ef81e37470adfb020017059995",
+                        "db_object_id": "0x11ed77ef81ba334fadfb020017059995",
+                        "position": 1,
+                        "name": "userId",
+                        "bind_field_name": "userId",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef8207f764adfb020017059995",
+                        "db_object_id": "0x11ed77ef81ba334fadfb020017059995",
+                        "position": 2,
+                        "name": "invitationKey",
+                        "bind_field_name": "invitationKey",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77ef90d3b76cadfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "noteDelete",
+                "request_path": "/noteDelete",
+                "enabled": 1,
+                "object_type": "PROCEDURE",
+                "crud_operations": [
+                    "UPDATE"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "userId",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77ef90f8a95fadfb020017059995",
+                        "db_object_id": "0x11ed77ef90d3b76cadfb020017059995",
+                        "position": 1,
+                        "name": "noteId",
+                        "bind_field_name": "noteId",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef911d26e2adfb020017059995",
+                        "db_object_id": "0x11ed77ef90d3b76cadfb020017059995",
+                        "position": 2,
+                        "name": "userId",
+                        "bind_field_name": "userId",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77ef9b026614adfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "noteShare",
+                "request_path": "/noteShare",
+                "enabled": 1,
+                "object_type": "PROCEDURE",
+                "crud_operations": [
+                    "UPDATE"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "userId",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77ef9b2cd5ddadfb020017059995",
+                        "db_object_id": "0x11ed77ef9b026614adfb020017059995",
+                        "position": 1,
+                        "name": "userId",
+                        "bind_field_name": "userId",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef9b541baaadfb020017059995",
+                        "db_object_id": "0x11ed77ef9b026614adfb020017059995",
+                        "position": 2,
+                        "name": "noteId",
+                        "bind_field_name": "noteId",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef9b7c5a85adfb020017059995",
+                        "db_object_id": "0x11ed77ef9b026614adfb020017059995",
+                        "position": 3,
+                        "name": "email",
+                        "bind_field_name": "email",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef9ba446b3adfb020017059995",
+                        "db_object_id": "0x11ed77ef9b026614adfb020017059995",
+                        "position": 4,
+                        "name": "viewOnly",
+                        "bind_field_name": "viewOnly",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77ef9bcdcdb3adfb020017059995",
+                        "db_object_id": "0x11ed77ef9b026614adfb020017059995",
+                        "position": 5,
+                        "name": "canShare",
+                        "bind_field_name": "canShare",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77efb75d8c97adfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "noteUpdate",
+                "request_path": "/noteUpdate",
+                "enabled": 1,
+                "object_type": "PROCEDURE",
+                "crud_operations": [
+                    "UPDATE"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "userId",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77efb7845697adfb020017059995",
+                        "db_object_id": "0x11ed77efb75d8c97adfb020017059995",
+                        "position": 1,
+                        "name": "noteId",
+                        "bind_field_name": "noteId",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77efb7a8e2f8adfb020017059995",
+                        "db_object_id": "0x11ed77efb75d8c97adfb020017059995",
+                        "position": 2,
+                        "name": "userId",
+                        "bind_field_name": "userId",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77efb7cf79ccadfb020017059995",
+                        "db_object_id": "0x11ed77efb75d8c97adfb020017059995",
+                        "position": 3,
+                        "name": "title",
+                        "bind_field_name": "title",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77efb7f45db3adfb020017059995",
+                        "db_object_id": "0x11ed77efb75d8c97adfb020017059995",
+                        "position": 4,
+                        "name": "pinned",
+                        "bind_field_name": "pinned",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77efb81a7689adfb020017059995",
+                        "db_object_id": "0x11ed77efb75d8c97adfb020017059995",
+                        "position": 5,
+                        "name": "lockedDown",
+                        "bind_field_name": "lockedDown",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77efb84270dfadfb020017059995",
+                        "db_object_id": "0x11ed77efb75d8c97adfb020017059995",
+                        "position": 6,
+                        "name": "content",
+                        "bind_field_name": "content",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77efb8686359adfb020017059995",
+                        "db_object_id": "0x11ed77efb75d8c97adfb020017059995",
+                        "position": 7,
+                        "name": "tags",
+                        "bind_field_name": "tags",
+                        "datatype": "JSON",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            },
+            {
+                "id": "0x11ed77f135e39fa0adfb020017059995",
+                "db_schema_id": "0x11ed77ef44e64a1badfb020017059995",
+                "name": "userHasNote",
+                "request_path": "/userHasNote",
+                "enabled": 1,
+                "object_type": "TABLE",
+                "crud_operations": [
+                    "READ"
+                ],
+                "format": "FEED",
+                "items_per_page": 25,
+                "media_type": null,
+                "auto_detect_media_type": 0,
+                "requires_auth": 1,
+                "auth_stored_procedure": "",
+                "row_user_ownership_enforced": 1,
+                "row_user_ownership_column": "userId",
+                "options": null,
+                "details": null,
+                "comments": "",
+                "fields": [
+                    {
+                        "id": "0x11ed77f1360ec494adfb020017059995",
+                        "db_object_id": "0x11ed77f135e39fa0adfb020017059995",
+                        "position": 1,
+                        "name": "noteId",
+                        "bind_field_name": "noteId",
+                        "datatype": "INT",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77f1364c8144adfb020017059995",
+                        "db_object_id": "0x11ed77f135e39fa0adfb020017059995",
+                        "position": 2,
+                        "name": "userId",
+                        "bind_field_name": "userId",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77f136757439adfb020017059995",
+                        "db_object_id": "0x11ed77f135e39fa0adfb020017059995",
+                        "position": 3,
+                        "name": "viewOnly",
+                        "bind_field_name": "viewOnly",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77f136a10776adfb020017059995",
+                        "db_object_id": "0x11ed77f135e39fa0adfb020017059995",
+                        "position": 4,
+                        "name": "canShare",
+                        "bind_field_name": "canShare",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77f136c9ad08adfb020017059995",
+                        "db_object_id": "0x11ed77f135e39fa0adfb020017059995",
+                        "position": 5,
+                        "name": "invitationKey",
+                        "bind_field_name": "invitationKey",
+                        "datatype": "STRING",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    },
+                    {
+                        "id": "0x11ed77f137012002adfb020017059995",
+                        "db_object_id": "0x11ed77f135e39fa0adfb020017059995",
+                        "position": 6,
+                        "name": "invitationAccepted",
+                        "bind_field_name": "invitationAccepted",
+                        "datatype": "BOOLEAN",
+                        "mode": "IN",
+                        "details": null,
+                        "comments": ""
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,27 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "preact",
+        "sakila"
+    ],
+    "flagWords": [
+    ],
+    "ignorePaths": [
+    ],
+    "ignoreWords": [
+        "parens",
+        "cond",
+        "defaultstatus",
+        "locationbar",
+        "onblur",
+        "onfocus",
+        "onresize",
+        "onunload",
+        "scrollbars",
+        "isnan",
+        "camelcase",
+        "paren",
+        "preinstall"
+    ]
+}

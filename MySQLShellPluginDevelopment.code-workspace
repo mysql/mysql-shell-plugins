@@ -21,6 +21,10 @@
             "path": "mrs_plugin"
         },
         {
+            "name": "MRS Examples Notes TS",
+            "path": "mrs_plugin/examples/mrs_notes/app_code/TypeScript"
+        },
+        {
             "name": "Shell Plugin Tools",
             "path": "gui/tools"
         }
