@@ -516,6 +516,9 @@ export class DBEditorCommandHandler {
                                 const buffer = Buffer.from(details.content, "utf-8");
                                 void workspace.fs.writeFile(value, buffer);
                             }
+
+                            void requisitions.execute("editorSaved",
+                                { id: details.scriptId, saved: value !== undefined });
                         });
                     } else {
                         const buffer = Buffer.from(details.content, "utf-8");

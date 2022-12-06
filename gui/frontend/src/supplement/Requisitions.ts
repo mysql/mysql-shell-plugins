@@ -182,6 +182,7 @@ export interface IRequestTypeMap {
     "editorRunScript": (details: IScriptRequest) => Promise<boolean>;
     "editorEditScript": (details: IScriptRequest) => Promise<boolean>;
     "editorSaveScript": (details: IScriptRequest) => Promise<boolean>;
+    "editorSaved": (details: { id: string, saved: boolean; }) => Promise<boolean>;
     "editorRenameScript": (details: IScriptRequest) => Promise<boolean>;
     "editorValidationDone": (id: string) => Promise<boolean>;
     "editorSelectStatement": (details: { contextId: string; statementIndex: number; }) => Promise<boolean>;
@@ -503,7 +504,7 @@ export class RequisitionHub {
      * @param requestType The request type for which to execute the registered callbacks.
      * @param parameter The value required for the callbacks.
      *
-     * @returns True if a remote target exists which was the requisition to, otherwise false.
+     * @returns True if a remote target exists, otherwise false.
      */
     public executeRemote = <K extends keyof IRequestTypeMap>(requestType: K,
         parameter: IRequisitionCallbackValues<K>): boolean => {

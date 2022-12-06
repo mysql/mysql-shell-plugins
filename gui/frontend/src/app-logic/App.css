@@ -177,6 +177,10 @@ html.themeSwitch *:after {
     display: flex;
 }
 
+.msg.applicationHost > #appHostSplitter {
+    flex: 1 1 auto;
+}
+
 /* Special styles for macOS auto disappearing scroll bars. */
 .msg .fixedScrollbar {
     overflow: auto;

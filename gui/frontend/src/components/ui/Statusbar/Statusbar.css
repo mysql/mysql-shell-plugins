@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,11 +26,10 @@
     flex: 0 0 24px;
     align-items: stretch;
 
-    padding: 0px 4px;
+    padding: 0 4px;
 
     background-color: var(--statusBar-background);
     color: var(--statusBar-foreground);
-    border-top: 1px solid var(--statusBar-border);
 
     cursor: default;
     font-size: 10pt;
@@ -43,14 +42,14 @@
 .msg.statusbar .statusbarItem {
     flex: 1 1 auto;
     border: none;
-    border-radius: 0px;
+    border-radius: 0;
 
     color: var(--statusBar-foreground);
     background-color: transparent;
 
     margin: 0 4px;
-    padding: 0px 6px;
-    min-width: 0px;
+    padding: 0 6px;
+    min-width: 0;
 
     outline: none;
 }
@@ -99,7 +98,7 @@
 .msg.statusbar .divider {
     background-color: var(--statusBar-foreground);
     width: 1px;
-    margin: 4px 0px 4px 0px;
+    margin: 4px 0 4px 0;
 }
 
 .msg.statusbar .dropdown:hover {
