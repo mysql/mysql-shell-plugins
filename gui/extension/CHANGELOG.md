@@ -1,5 +1,20 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.6.0+8.0.31
+
+### Additions
+
+- Upgraded the MySQL Shell to 8.0.31
+- Added support OL9
+
+### Fixes
+
+- Fixed Shell crash on connections through Bastion Service when session expired.
+- Fixed "Access denied error" on sessions through Bastion Service.
+- Fixed reconnection logic on sessions through Bastion Service.
+- Improved execution result output of SQL and scripting sessions. Simple status responses are now collected into a central output tab and the lines are clickable to allow navigating to the origin of the output.
+- Bug fixes and performance improvements.
+
 ## Changes in 1.5.0+8.0.30
 
 ### Additions
