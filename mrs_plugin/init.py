@@ -54,6 +54,7 @@ class mrs():
         # Import all sub-modules to register the decorated functions there
         from mrs_plugin import general, services, schemas, auth_apps
         from mrs_plugin import db_objects, content_sets, content_files
+        from mrs_plugin import dump
 
     class enable():
         """Used to enable MRS services, schemas and schema objects.
@@ -121,4 +122,16 @@ class mrs():
         """Used to delete MRS objects.
 
         A collection of functions to delete MRS objects
+        """
+
+    class dump():
+        """Used to dump MRS metadata to JSON files
+
+        A collection of functions to dump MRS metadata to JSON files
+        """
+
+    class load():
+        """Used to load MRS metadata from JSON files
+
+        A collection of functions to load MRS metadata from JSON files
         """

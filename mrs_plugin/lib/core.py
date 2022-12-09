@@ -34,12 +34,13 @@ import base64
 
 _metadata_schema_updated = False
 
+
 class ConfigFile:
     def __init__(self) -> None:
         self._settings = {}
 
         self._filename = os.path.abspath(mysqlsh.plugin_manager.general.get_shell_user_dir(
-        'plugin_data', 'mrs_plugin', "config.json"))
+            'plugin_data', 'mrs_plugin', "config.json"))
         try:
             with open(self._filename, "r") as f:
                 self._settings = json.load(f)
@@ -87,17 +88,21 @@ class LogLevel(IntEnum):
     DEBUG2 = 7
     DEBUG3 = 8
 
+
 def get_local_config():
     return ConfigFile().settings
 
+
 def script_path(*suffixes):
     return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), *suffixes)
+
 
 def print_exception(exc_type, exc_value, exc_traceback):
     # Exception handler for the MrsDbSession context manager, which should
     # be used only in interactive mode.
     # Returns True to signal the exception was dealt with
-    exc_str = "".join([s.replace("\\n", "\n") for s in traceback.format_exception(exc_type, exc_value, exc_traceback)])
+    exc_str = "".join([s.replace("\\n", "\n") for s in traceback.format_exception(
+        exc_type, exc_value, exc_traceback)])
     print(exc_str)
     return True
 
@@ -160,9 +165,9 @@ def validate_service_path(session, path):
     return service, schema, content_set
 
 
-def set_current_objects(service_id: bytes=None, service=None, schema_id: bytes=None,
-                        schema=None, content_set_id: bytes=None, content_set=None,
-                        db_object_id: bytes=None, db_object=None):
+def set_current_objects(service_id: bytes = None, service=None, schema_id: bytes = None,
+                        schema=None, content_set_id: bytes = None, content_set=None,
+                        db_object_id: bytes = None, db_object=None):
     """Sets the current objects to the given ones
 
     Note that if no service or no schema or no db_object are specified,
@@ -264,8 +269,10 @@ def get_current_session(session=None):
 
     return session
 
+
 def get_metadata_schema_updated():
     return _metadata_schema_updated
+
 
 def _ensure_mrs_metadata_schema(session):
     """Creates or updates the MRS metadata schema
@@ -282,8 +289,8 @@ def _ensure_mrs_metadata_schema(session):
 
     # Check if the MRS metadata schema already exists
     row = select(table="INFORMATION_SCHEMA.SCHEMATA", cols="COUNT(*) AS schema_exists",
-        where="SCHEMA_NAME = 'mysql_rest_service_metadata'"
-    ).exec(session).first
+                 where="SCHEMA_NAME = 'mysql_rest_service_metadata'"
+                 ).exec(session).first
 
     if row["schema_exists"] == 0:
         create_rds_metadata_schema(session)
@@ -292,7 +299,7 @@ def _ensure_mrs_metadata_schema(session):
 
     # If it exists, check the version number
     row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
-    ).exec(session).first
+                 ).exec(session).first
 
     if not row:
         raise Exception(
@@ -301,8 +308,8 @@ def _ensure_mrs_metadata_schema(session):
     db_version_str = row["version"]
     if db_version_str != general.DB_VERSION_STR:
         db_version_num = (100000 * row["major"] +
-                            1000 * row["minor"] +
-                            row["patch"])
+                          1000 * row["minor"] +
+                          row["patch"])
 
         if db_version_num > general.DB_VERSION_NUM:
             raise Exception(
@@ -314,6 +321,7 @@ def _ensure_mrs_metadata_schema(session):
             return True
 
     return False
+
 
 def update_rds_metadata_schema(session, current_db_version_str):
     """Creates or updates the MRS metadata schema
@@ -423,7 +431,8 @@ def create_rds_metadata_schema(session):
     if latest_version_val > general.DB_VERSION:
         latest_version_val = general.DB_VERSION
 
-    sql_file_path = script_path('db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
+    sql_file_path = script_path(
+        'db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
 
     with open(sql_file_path) as f:
         sql_script = f.read()
@@ -578,18 +587,19 @@ def prompt_for_comments():
 
     return prompt("Comments: ").strip()
 
-def get_sql_result_as_dict_list(res, fetch_all=True):
+
+def get_sql_result_as_dict_list(res, binary_fomatter=None):
     """Returns the result set as a list of dicts
 
     Args:
         res: (object): The sql result set
+        binary_fomatter (callback): function receiving binary data and returning formatted value
 
     Returns:
         A list of dicts
     """
     if not res:
         return []
-
 
     cols = res.get_columns()
     rows = res.fetch_all()
@@ -605,6 +615,8 @@ def get_sql_result_as_dict_list(res, fetch_all=True):
                 item[col_name] = field_val.split(",") if field_val else []
             elif col_type == "<Type.JSON>":
                 item[col_name] = json.loads(field_val) if field_val else None
+            elif binary_fomatter is not None and isinstance(field_val, bytes):
+                item[col_name] = binary_fomatter(field_val)
             else:
                 item[col_name] = field_val
 
@@ -671,7 +683,7 @@ def check_request_path(session, request_path):
 
     if not request_path.startswith("/"):
         raise ValueError(
-                f"The request_path '{request_path}' has to start with '/'.")
+            f"The request_path '{request_path}' has to start with '/'.")
 
     # Check if the request_path already exists for another db_object of that
     # schema
@@ -720,7 +732,7 @@ def check_request_path(session, request_path):
 
     if row and row.get_field("full_request_path") != "":
         raise Exception(f"The request_path {request_path} is already "
-                    "in use.")
+                        "in use.")
 
 
 def convert_json(value):
@@ -750,7 +762,8 @@ def id_to_binary(id: str, context: str):
             try:
                 result = bytes.fromhex(id[2:])
             except Exception:
-                raise RuntimeError(f"Invalid hexadecimal string for {context}.")
+                raise RuntimeError(
+                    f"Invalid hexadecimal string for {context}.")
         else:
             try:
                 result = base64.b64decode(id, validate=True)
@@ -763,18 +776,20 @@ def id_to_binary(id: str, context: str):
 
     raise RuntimeError(f"Invalid id type for {context}.")
 
+
 def convert_ids_to_binary(id_options, kwargs):
-   for id_option in id_options:
-      id = kwargs.get(id_option)
-      if id is not None:
-        kwargs[id_option] = id_to_binary(id, id_option)
+    for id_option in id_options:
+        id = kwargs.get(id_option)
+        if id is not None:
+            kwargs[id_option] = id_to_binary(id, id_option)
+
 
 def _generate_where(where):
     if where:
-       if isinstance(where, list):
-         return " WHERE " + " AND ".join(where)
-       else:
-         return " WHERE " + where
+        if isinstance(where, list):
+            return " WHERE " + " AND ".join(where)
+        else:
+            return " WHERE " + where
     return ""
 
 
@@ -796,10 +811,11 @@ def _generate_qualified_name(name):
 
 
 class MrsDbExec:
-    def __init__(self, sql: str, params=[]) -> None:
+    def __init__(self, sql: str, params=[], binary_formatter=None) -> None:
         self._sql = sql
         self._result = None
         self._params = params
+        self._binary_formatter = binary_formatter
 
     def _convert_to_database(self, var):
         if isinstance(var, list):
@@ -817,36 +833,45 @@ class MrsDbExec:
         self._params = self._params + params
         try:
             # convert lists and dicts to store in the database
-            self._params = [self._convert_to_database(param) for param in self._params]
+            self._params = [self._convert_to_database(
+                param) for param in self._params]
 
             self._result = session.run_sql(self._sql, self._params)
         except Exception as e:
-            mysqlsh.globals.shell.log(LogLevel.WARNING.name, f"[{e}\nsql: {self._sql}\nparams: {self._params}")
+            mysqlsh.globals.shell.log(
+                LogLevel.WARNING.name, f"[{e}\nsql: {self._sql}\nparams: {self._params}")
             raise
         return self
+
     def __str__(self):
         return self._sql
+
     @property
     def items(self):
-        return get_sql_result_as_dict_list(self._result)
+        return get_sql_result_as_dict_list(self._result, self._binary_formatter)
+
     @property
     def first(self):
-        result = get_sql_result_as_dict_list(self._result)
+        result = get_sql_result_as_dict_list(
+            self._result, self._binary_formatter)
         if not result:
             return None
         return result[0]
+
     @property
     def success(self):
         return self._result.get_affected_items_count() > 0
+
     @property
     def id(self):
         return self._result.auto_increment_value
+
     @property
     def affected_count(self):
         return self._result.get_affected_items_count()
 
 
-def select(table: str, cols=['*'], where=[], order=None) -> MrsDbExec:
+def select(table: str, cols=['*'], where=[], order=None, binary_formatter=None) -> MrsDbExec:
     if not isinstance(cols, str):
         cols = ','.join(cols)
     if order is not None and not isinstance(order, str):
@@ -858,7 +883,8 @@ def select(table: str, cols=['*'], where=[], order=None) -> MrsDbExec:
     if order:
         sql = f"{sql} ORDER BY {order}"
 
-    return MrsDbExec(sql)
+    return MrsDbExec(sql, binary_formatter=binary_formatter)
+
 
 def update(table: str, sets, where=[]) -> MrsDbExec:
     params = []
@@ -875,12 +901,14 @@ def update(table: str, sets, where=[]) -> MrsDbExec:
 
     return MrsDbExec(sql, params)
 
+
 def delete(table: str, where=[]) -> MrsDbExec:
     sql = f"""
         DELETE FROM {_generate_table(table)}
         {_generate_where(where)}"""
 
     return MrsDbExec(sql)
+
 
 def insert(table, values={}):
     params = []
@@ -902,8 +930,10 @@ def insert(table, values={}):
     """
     return MrsDbExec(sql, params)
 
+
 def get_sequence_id(session):
     return MrsDbExec(f"SELECT {_generate_qualified_name('get_sequence_id()')} as id").exec(session).first["id"]
+
 
 class MrsDbSession:
     def __init__(self, **kwargs) -> None:
@@ -927,6 +957,7 @@ class MrsDbSession:
     def session(self):
         return self._session
 
+
 class MrsDbTransaction:
     def __init__(self, session) -> None:
         self._session = session
@@ -942,3 +973,92 @@ class MrsDbTransaction:
 
         self._session.rollback()
         return False
+
+
+def create_identification_conditions(id, name, id_context, name_col):
+    """
+    Creates the necessary SQL WHERE conditions to identify an MRS object based given
+    id and identification string.
+    """
+    conditions = {}
+
+    if id is not None:
+        conditions['id'] = id
+    if name is not None:
+        conditions[name_col] = name
+
+    return conditions
+
+
+def identify_target_object(session, service_conditions, schema_conditions, object_conditions):
+    """
+    Uses the given identification conditions for service, schema and object to uniquely
+    identify a specific object, either service, schema or object.
+
+    The function throws an error if either:
+    - The conditions identify no object.
+    - The conditions identify more than one object.
+
+    Returns the type of identified object and its id.
+    """
+    tables = []
+    target_object = ""
+    id_field = ""
+    conditions = []
+    params = []
+
+    # service table is included in the query either when service conditions are given
+    # or when no conditions are given
+    if service_conditions or (not schema_conditions and not object_conditions):
+        tables.append("mysql_rest_service_metadata.service se")
+        target_object = "service"
+        id_field = "se.id"
+
+    # schema table is included in the query whenever schema or object conditions are
+    # given
+    if schema_conditions or object_conditions:
+        tables.append("mysql_rest_service_metadata.db_schema sc")
+        if service_conditions:
+            conditions.append('sc.service_id = se.id')
+        target_object = "schema"
+        id_field = "sc.id"
+
+    # object table is included on the query when object conditions are given
+    if object_conditions:
+        tables.append("mysql_rest_service_metadata.db_object ob")
+        if service_conditions or schema_conditions:
+            conditions.append('ob.db_schema_id = sc.id')
+        target_object = "object"
+        id_field = "ob.id"
+
+    if service_conditions:
+        for column, value in service_conditions.items():
+            conditions.append(f"se.{column}=?")
+            params.append(value)
+
+    if schema_conditions:
+        for column, value in schema_conditions.items():
+            conditions.append(f"sc.{column}=?")
+            params.append(value)
+
+    if object_conditions:
+        for column, value in object_conditions.items():
+            conditions.append(f"ob.{column}=?")
+            params.append(value)
+
+    where = ""
+    if conditions:
+        cond_string = " AND ".join(conditions)
+        where = f"WHERE {cond_string}"
+
+    sql = f"""SELECT {id_field} FROM {" INNER JOIN ".join(tables)} {where} LIMIT 2"""
+
+    result = session.run_sql(sql, params)
+
+    rows = result.fetch_all()
+
+    if len(rows) != 1:
+        raise RuntimeError(
+            f"Unable to identify a unique {target_object} for the operation.")
+
+    return target_object, rows[0][0]

@@ -182,4 +182,9 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsLs]: {};
     [ShellAPIMrs.MrsConfigure]: {};
     [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData };
+    [ShellAPIMrs.MrsDumpService]: {};
+    [ShellAPIMrs.MrsDumpSchema]: {};
+    [ShellAPIMrs.MrsDumpObject]: {};
+    [ShellAPIMrs.MrsLoadSchema]: {};
+    [ShellAPIMrs.MrsLoadObject]: {};
 }

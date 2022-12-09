@@ -131,7 +131,17 @@ export enum ShellAPIMrs {
     /** Delete a content_set of the given service */
     MrsDeleteContentSet = "mrs.delete.content_set",
     /** Returns all files for the given content set */
-    MrsListContentFiles = "mrs.list.content_files"
+    MrsListContentFiles = "mrs.list.content_files",
+    /** Dumps the data for REST Service into a JSON file. */
+    MrsDumpService = "mrs.dump.service",
+    /** Exports the data for REST Schema into a JSON file. */
+    MrsDumpSchema = "mrs.dump.schema",
+    /** Exports the data for a REST Database Object into a JSON file. */
+    MrsDumpObject = "mrs.dump.object",
+    /** Loads data for a REST Schema from a JSON file into the target REST service */
+    MrsLoadSchema = "mrs.load.schema",
+    /** Loads data for a REST Database Object from a JSON file into the target REST Schema */
+    MrsLoadObject = "mrs.load.object"
 }
 
 export interface IShellMrsAddServiceKwargs {
@@ -786,6 +796,67 @@ export interface IShellMrsListContentFilesKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsDumpServiceKwargs {
+    /** The ID of the service to be exported. */
+    serviceId?: string;
+    /** The name of the service to be exported. */
+    serviceName?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpSchemaKwargs {
+    /** The ID of the service to be exported. */
+    serviceId?: string;
+    /** The name of the service to be exported. */
+    serviceName?: string;
+    /** The ID of the schema to be exported. */
+    schemaId?: string;
+    /** The name of the schema to be exported. */
+    schemaName?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpObjectKwargs {
+    /** The ID of the service to be exported. */
+    serviceId?: string;
+    /** The name of the service to be exported. */
+    serviceName?: string;
+    /** The ID of the schema to be exported. */
+    schemaId?: string;
+    /** The name of the schema to be exported. */
+    schemaName?: string;
+    /** The ID of the object to be exported. */
+    objectId?: string;
+    /** The name of the object to be exported. */
+    objectName?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsLoadSchemaKwargs {
+    /** The ID of target service. */
+    serviceId?: string;
+    /** The name of the target service. */
+    serviceName?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsLoadObjectKwargs {
+    /** The ID of target service. */
+    serviceId?: string;
+    /** The name of the target service. */
+    serviceName?: string;
+    /** The ID of the target schema. */
+    schemaId?: string;
+    /** The name of the target schema. */
+    schemaName?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
@@ -840,6 +911,11 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsDisableContentSet]: { kwargs?: IShellMrsDisableContentSetKwargs };
     [ShellAPIMrs.MrsDeleteContentSet]: { kwargs?: IShellMrsDeleteContentSetKwargs };
     [ShellAPIMrs.MrsListContentFiles]: { args: { contentSetId: string }; kwargs?: IShellMrsListContentFilesKwargs };
+    [ShellAPIMrs.MrsDumpService]: { args: { path: string }; kwargs?: IShellMrsDumpServiceKwargs };
+    [ShellAPIMrs.MrsDumpSchema]: { args: { path: string }; kwargs?: IShellMrsDumpSchemaKwargs };
+    [ShellAPIMrs.MrsDumpObject]: { args: { path: string }; kwargs?: IShellMrsDumpObjectKwargs };
+    [ShellAPIMrs.MrsLoadSchema]: { args: { path: string }; kwargs?: IShellMrsLoadSchemaKwargs };
+    [ShellAPIMrs.MrsLoadObject]: { args: { path: string }; kwargs?: IShellMrsLoadObjectKwargs };
 
 }
 
@@ -1027,5 +1103,10 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsLs]: {};
     [ShellAPIMrs.MrsConfigure]: {};
     [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData };
+    [ShellAPIMrs.MrsDumpService]: {};
+    [ShellAPIMrs.MrsDumpSchema]: {};
+    [ShellAPIMrs.MrsDumpObject]: {};
+    [ShellAPIMrs.MrsLoadSchema]: {};
+    [ShellAPIMrs.MrsLoadObject]: {};
 }
 

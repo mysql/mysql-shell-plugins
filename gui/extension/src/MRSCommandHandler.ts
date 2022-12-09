@@ -42,6 +42,7 @@ import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/Sc
 import { showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
+import { homedir } from "os";
 
 export class MRSCommandHandler {
     private dialogManager = new DialogWebviewManager();
@@ -256,6 +257,137 @@ export class MRSCommandHandler {
                     }
                 }
             }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.dumpSchemaToJSONFile",
+            async (item?: MrsSchemaTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const backend = item.entry.backend;
+
+                    await window.showSaveDialog({
+                        title: "REST Schema Dump...",
+                        saveLabel: "Select the target file",
+                        defaultUri: Uri.file(`${homedir()}/${item.value.name}.mrs.json`),
+                        filters: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            JSON: ["mrs.json"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value.fsPath;
+                                await backend.mrs.dumpSchema(path,
+                                    item.value.serviceId,
+                                    undefined,
+                                    item.value.id);
+                                showMessageWithTimeout("The REST Schema has been dumped successfully.");
+                            } catch (error) {
+                                void window.showErrorMessage(
+                                    `Error dumping the REST Schema: ${String(error)}`);
+                            }
+                        }
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.dumpObjectToJSONFile",
+            async (item?: MrsDbObjectTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const backend = item.entry.backend;
+
+                    await window.showSaveDialog({
+                        title: "REST Database Object Dump...",
+                        saveLabel: "Select the target file",
+                        defaultUri: Uri.file(`${homedir()}/${item.value.name}.mrs.json`),
+                        filters: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            JSON: ["mrs.json"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value.fsPath;
+                                await backend.mrs.dumpObject(path,
+                                    item.value.serviceId,
+                                    undefined,
+                                    item.value.dbSchemaId,
+                                    undefined,
+                                    item.value.id);
+                                showMessageWithTimeout("The REST Database Object has been dumped successfully.");
+                            } catch (error) {
+                                void window.showErrorMessage(
+                                    `Error dumping the REST Database Object: ${String(error)}`);
+                            }
+                        }
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.loadSchemaFromJSONFile",
+            async (item?: MrsServiceTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const backend = item.entry.backend;
+
+                    await window.showOpenDialog({
+                        title: "REST Schema Load...",
+                        openLabel: "Select the source file",
+                        canSelectFiles: true,
+                        canSelectFolders: false,
+                        canSelectMany: false,
+                        filters: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            JSON: ["mrs.json"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value[0].fsPath;
+                                await backend.mrs.loadSchema(path,
+                                    item.value.id);
+                                void commands.executeCommand("msg.refreshConnections");
+                                showMessageWithTimeout("The REST Schema has been loaded successfully.");
+                            } catch (error) {
+                                void window.showErrorMessage(
+                                    `Error loading REST Schema: ${String(error)}`);
+                            }
+                        }
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.loadObjectFromJSONFile",
+            async (item?: MrsSchemaTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const backend = item.entry.backend;
+
+                    await window.showOpenDialog({
+                        title: "REST Database Object Load...",
+                        openLabel: "Select the source file",
+                        canSelectFiles: true,
+                        canSelectFolders: false,
+                        canSelectMany: false,
+                        filters: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            JSON: ["mrs.json"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value[0].fsPath;
+                                await backend.mrs.loadObject(path,
+                                    item.value.serviceId,
+                                    undefined,
+                                    item.value.id);
+                                void commands.executeCommand("msg.refreshConnections");
+                                showMessageWithTimeout("The REST Database Object has been loaded successfully.");
+                            } catch (error) {
+                                void window.showErrorMessage(
+                                    `Error loading REST Database Object: ${String(error)}`);
+                            }
+                        }
+                    });
+                }
+            }));
+
     };
 
     private configureMrs = async (item?: ConnectionMySQLTreeItem, enableMrs?: boolean): Promise<void> => {
