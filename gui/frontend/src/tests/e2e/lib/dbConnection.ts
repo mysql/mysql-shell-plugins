@@ -837,23 +837,30 @@ export class DBConnection {
      *
      * @returns A promise resolving with the result
      */
-    public static getScriptResult = async (): Promise<string> => {
-        const result = await driver.wait(until.elementLocated(By.css("#resultPaneHost .label")),
-            explicitWait, "No results were found");
-
-        let text = "";
-        try {
-            text = await result.getText();
-        } catch (e) {
-            const result = await driver.wait(until.elementLocated(By.css("#resultPaneHost .label")),
-                explicitWait, "No results were found");
-
-            text = await result.getText();
-
-        }
-
-        return text;
+     public static getScriptResult = async (): Promise<string | undefined> => {
+        return driver.wait(async () => {
+            const results1 = await driver.findElements(By.css("#resultPaneHost .content .label"));
+            const results2 = await driver.findElements(By.css("#resultPaneHost .resultStatus .label"));
+            let refResults: WebElement[] = [];
+            if (results1.length > 0) {
+                refResults = results1;
+            } else if (results2.length > 0) {
+                refResults = results2;
+            }
+            if (refResults.length > 0) {
+                try {
+                    return refResults[0].getText();
+                } catch (e) {
+                    if (typeof(e) === "object" && String(e).includes("StaleElementReferenceError")) {
+                        return undefined;
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+        }, explicitWait*3, "Not results were found");
     };
+
 
     /**
      * Clicks on an item under the MySQL Administration section, on the DB Editor

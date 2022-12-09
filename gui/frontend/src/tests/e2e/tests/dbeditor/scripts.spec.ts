@@ -254,10 +254,6 @@ describe("Scripts", () => {
             const execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
             await execCaret?.click();
 
-            await driver.wait(async () => {
-                return (await DBConnection.getScriptResult()) !== "";
-            }, 15000, "No results from query were found");
-
             expect(await DBConnection.getScriptResult()).toMatch(/OK, (\d+) records/);
         } catch (e) {
             testFailed = true;
