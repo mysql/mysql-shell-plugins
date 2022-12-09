@@ -516,4 +516,82 @@ export class ShellInterfaceMrs {
     private get moduleSessionId(): string | undefined {
         return webSession.moduleSessionId(this.moduleSessionLookupId);
     }
+
+    public async dumpSchema(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
+        schemaId?: string| undefined, schemaName?: string| undefined): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpSchema,
+            parameters: {
+                args: {
+                    path,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                    serviceName,
+                    schemaId,
+                    schemaName,
+                },
+            },
+        });
+    }
+
+    public async dumpObject(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
+        schemaId?: string| undefined, schemaName?: string| undefined, objectId?: string| undefined,
+        objectName?: string| undefined): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpObject,
+            parameters: {
+                args: {
+                    path,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                    serviceName,
+                    schemaId,
+                    schemaName,
+                    objectId,
+                    objectName,
+                },
+            },
+        });
+    }
+
+    public async loadSchema(path: string, serviceId?: string | undefined,
+        serviceName?: string | undefined): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsLoadSchema,
+            parameters: {
+                args: {
+                    path,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                    serviceName,
+                },
+            },
+        });
+    }
+
+    public async loadObject(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
+        schemaId?: string| undefined, schemaName?: string| undefined): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsLoadObject,
+            parameters: {
+                args: {
+                    path,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    serviceId,
+                    serviceName,
+                    schemaId,
+                    schemaName,
+                },
+            },
+        });
+    }
+
 }
