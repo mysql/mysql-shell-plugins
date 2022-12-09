@@ -71,7 +71,7 @@ def prompt_for_requires_auth() -> bool:
 def prompt_for_items_per_page() -> int:
     while True:
         result = core.prompt(
-        "How many items should be listed per page [25]: ",
+        "How many items should be listed per page [Schema Default]: ",
         {'defaultValue': '25'}).strip()
 
         try:
@@ -117,7 +117,7 @@ def update_schema(session, schemas: list, value: dict):
                 f"The specified schema with id {schema_id} was not "
                 "found.")
 
-        # The REQUEST_PATH has to be checked for each schema
+        # The request_path has to be checked for each schema
         if "request_path" in value and value["request_path"] != schema.get("request_path"):
             # validate request_path
             request_path_value = value["request_path"]
@@ -127,7 +127,7 @@ def update_schema(session, schemas: list, value: dict):
 
             core.check_request_path(session, request_path_value)
 
-        result = core.update(table="db_schema",
+        core.update(table="db_schema",
             sets=value,
             where=["id=?"]
         ).exec(session, [schema_id])
@@ -240,11 +240,6 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
     Returns:
         The id of the inserted schema
     """
-    service = services.get_current_service(session)
-    if service_id is not None or service is None:
-        service = services.get_service(service_id=service_id, get_default=not service_id,
-            session=session)
-
     # If a schema name has been provided, check if that schema exists
     row = core.select(table="INFORMATION_SCHEMA.SCHEMATA", cols="SCHEMA_NAME",
         where="SCHEMA_NAME=?", order="SCHEMA_NAME"
@@ -259,7 +254,7 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
     if request_path is None:
         request_path = '/' + schema_name
 
-    core.check_request_path(session, request_path)
+    core.Validations.request_path(request_path)
 
     # Get requires_auth
     if requires_auth is None:
@@ -279,7 +274,7 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
     schema_id = core.get_sequence_id(session)
     core.insert(table="db_schema", values={
         "id": schema_id,
-        "service_id": service.get("id"),
+        "service_id": service_id,
         "name": schema_name,
         "request_path": request_path,
         "requires_auth": int(requires_auth),

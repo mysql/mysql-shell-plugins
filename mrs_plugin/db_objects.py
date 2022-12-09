@@ -26,6 +26,8 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+from .interactive import resolve_schema
+
 
 
 def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None, **kwargs):
@@ -98,7 +100,7 @@ def add_db_object(**kwargs):
         media_type (str): The media_type of the db object
         auto_detect_media_type (bool): Whether to automatically detect the media type
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
-        options (dict): The options of this db object
+        options (dict,required): The options of this db object
         fields (list): The fields definition in JSON format
         session (object): The database session to use.
 
@@ -154,8 +156,10 @@ def add_db_object(**kwargs):
         crud_operations = list(crud_operations)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        kwargs["session"] = session
 
         with lib.core.MrsDbTransaction(session):
+            schema = None
             # If auto_add_schema is set, check if the schema is registered already.
             # If not, create it
             if auto_add_schema and schema_name and not schema_id:
@@ -171,15 +175,7 @@ def add_db_object(**kwargs):
                         requires_auth=True if requires_auth else False,
                         session=session)
 
-            # Get the schema
-            schema = lib.schemas.get_schema(
-                schema_id=schema_id,
-                schema_name=schema_name,
-                session=session)
-
-            if not schema:
-                raise Exception("Cancelling operation.")
-
+            schema = resolve_schema(session, schema_id)
 
             if not db_object_type and interactive:
                 # Get object counts per type
@@ -246,7 +242,7 @@ def add_db_object(**kwargs):
                         f"database schema {schema.get('name')}")
 
                 db_object_name = lib.core.prompt_for_list_item(
-                    item_list=db_objects,
+                    item_list=[db_object["OBJECT_NAME"] for db_object in db_objects],
                     prompt_caption=("Please enter the name or index of an "
                                     "database object: "),
                     print_list=True)
@@ -294,8 +290,9 @@ def add_db_object(**kwargs):
             if not request_path.startswith('/'):
                 raise Exception("The request_path has to start with '/'.")
 
+
             # Check if the request_path starts with / and is unique for the schema
-            lib.core.check_request_path(session, request_path)
+            lib.core.check_request_path(session, schema["host_ctx"] + schema['request_path'] + request_path)
 
             # Get crud_operations
             if not crud_operations and interactive:
@@ -355,18 +352,18 @@ def add_db_object(**kwargs):
 
             if row_user_ownership_enforced and row_user_ownership_column is None:
                 if interactive:
-                    fields = lib.db_objects.get_available_db_object_row_ownership_fields(
+                    available_fields = lib.db_objects.get_available_db_object_row_ownership_fields(
                         session,
                         schema_name=schema["name"],
                         db_object_name=db_object_name,
                         db_object_type=db_object_type)
-                    if len(fields) < 1:
+                    if len(available_fields) < 1:
                         raise ValueError(
                             "No IN parameters available for this procedure.")
 
                     print("List of available fields:")
                     row_user_ownership_column = lib.core.prompt_for_list_item(
-                        item_list=fields, prompt_caption="Which "
+                        item_list=available_fields, prompt_caption="Which "
                         + ("parameter" if db_object_type == "PROCEDURE" else "column")
                         + " should be used for row ownership checks",
                         print_list=True)
@@ -377,7 +374,7 @@ def add_db_object(**kwargs):
                     items_per_page = lib.core.prompt(
                         "How many items should be listed per page "
                         "[Schema Default]: ",
-                        {'defaultValue': 'NULL'}).strip()
+                        {'defaultValue': "25"}).strip()
                     if items_per_page:
                         if items_per_page != 'NULL':
                             try:
@@ -721,6 +718,8 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        kwargs["session"] = session
+
         # Get the object with the given id or let the user select it
         db_object = lib.db_objects.get_db_object(session=session, db_object_id=db_object_id)
 
@@ -743,7 +742,7 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
         schema = lib.schemas.get_schema(
             schema_id=db_object.get("db_schema_id"),
             session=session)
-        lib.core.check_request_path(session, request_path)
+        lib.core.check_request_path(session, schema["host_ctx"] + schema['request_path'] + request_path)
 
         res = lib.core.update(table="db_object", sets="request_path=?",
             where="id=?"
@@ -952,13 +951,14 @@ def update_db_object(**kwargs):
         requires_auth (bool): Whether authentication is required to access
             the schema
         items_per_page (int): The number of items returned per page
+        request_path (str): The request_path
         auto_detect_media_type (bool): Whether the media type should be detected automatically
         row_user_ownership_enforced (bool): Enable row ownership enforcement
         row_user_ownership_column (str): The column for row ownership enforcement
         comments (str): Comments for the schema
         media_type (str): The media_type of the db object
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
-        options (dict): The options of this db object
+        options (dict,required): The options of this db object
         fields (list): The db objects fields as JSON string
 
     Returns:
@@ -987,7 +987,19 @@ def update_db_object(**kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
+        if not kwargs.get("db_object_id"):
+            schema = resolve_schema(session, kwargs["schema_id"])
+            kwargs["schema_id"] = schema.get("id")
+
         kwargs = resolve_db_object_ids(**kwargs)
+
+        # check for request_path collisions
+        if kwargs["value"].get("request_path"):
+            for db_object_id in kwargs["db_object_ids"]:
+                db_object = lib.db_objects.get_db_object(session=session, db_object_id=db_object_id)
+                schema = lib.schemas.get_schema(session=session, schema_id=db_object["db_schema_id"])
+                if db_object["request_path"] != kwargs["value"]["request_path"]:
+                    lib.core.check_request_path(session, schema["host_ctx"] + schema['request_path'] + kwargs["value"]["request_path"])
 
         with lib.core.MrsDbTransaction(session):
             lib.db_objects.update_db_objects(session=session,

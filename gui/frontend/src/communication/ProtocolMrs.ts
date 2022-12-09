@@ -156,7 +156,7 @@ export interface IShellMrsAddServiceKwargs {
     /** Comments about the service */
     comments?: string;
     /** Options for the service */
-    options?: IShellDictionary;
+    options: IShellDictionary | null;
     /** The authentication path */
     authPath?: string;
     /** The redirection URL called after authentication */
@@ -323,6 +323,11 @@ export interface IShellMrsGetServiceRequestPathAvailabilityKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsGetCurrentServiceIdKwargs {
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IShellMrsSetCurrentServiceIdKwargs {
     /** The id of the service */
     serviceId?: string;
@@ -350,7 +355,7 @@ export interface IShellMrsAddSchemaKwargs {
     /** Comments for the schema */
     comments?: string;
     /** The options for the schema */
-    options?: IShellDictionary;
+    options: IShellDictionary | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -489,7 +494,7 @@ export interface IShellMrsUpdateSchemaKwargsValue {
     /** Comments for the schema */
     comments?: string;
     /** The options for the schema */
-    options?: IShellDictionary;
+    options: IShellDictionary | null;
 }
 
 export interface IShellMrsUpdateSchemaKwargs {
@@ -580,7 +585,7 @@ export interface IShellMrsAddDbObjectKwargs {
     /** The stored procedure that implements the authentication check for this db object */
     authStoredProcedure?: string;
     /** The options of this db object */
-    options?: IShellDictionary;
+    options: IShellDictionary | null;
     /** The fields definition in JSON format */
     fields?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
@@ -688,6 +693,8 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     requiresAuth?: boolean;
     /** The number of items returned per page */
     itemsPerPage?: number;
+    /** The request_path */
+    requestPath?: string;
     /** Whether the media type should be detected automatically */
     autoDetectMediaType?: boolean;
     /** Enable row ownership enforcement */
@@ -701,7 +708,7 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     /** The stored procedure that implements the authentication check for this db object */
     authStoredProcedure?: string;
     /** The options of this db object */
-    options?: IShellDictionary;
+    options: IShellDictionary | null;
     /** The db objects fields as JSON string */
     fields?: unknown[];
 }
@@ -731,7 +738,7 @@ export interface IShellMrsAddContentSetKwargs {
     /** Whether to enable the content set after all files are uploaded */
     enabled?: boolean;
     /** The options as JSON string */
-    options?: IShellDictionary;
+    options: IShellDictionary | null;
     /** Whether to replace a content set that uses the same request_path */
     replaceExisting?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
@@ -875,7 +882,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsSetServiceOptions]: { kwargs?: IShellMrsSetServiceOptionsKwargs };
     [ShellAPIMrs.MrsUpdateService]: { kwargs?: IShellMrsUpdateServiceKwargs };
     [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { kwargs?: IShellMrsGetServiceRequestPathAvailabilityKwargs };
-    [ShellAPIMrs.MrsGetCurrentServiceId]: {};
+    [ShellAPIMrs.MrsGetCurrentServiceId]: { kwargs?: IShellMrsGetCurrentServiceIdKwargs };
     [ShellAPIMrs.MrsSetCurrentServiceId]: { kwargs?: IShellMrsSetCurrentServiceIdKwargs };
     [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs };

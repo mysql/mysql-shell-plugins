@@ -187,7 +187,7 @@ def cd(path=None, session=None):
             # If the current service has not been set, let the user select it
             if not current_service:
                 # Check if there already is at least one service
-                row = lib.core.select(table="service", cols="COUNT(*) as service_count").first
+                row = lib.core.select(table="service", cols="COUNT(*) as service_count").exec(session).first
                 service_count = row["service_count"] if row else 0
 
                 # If there is exactly one service, set id to its id
@@ -227,23 +227,23 @@ def cd(path=None, session=None):
 
                 items = schemas + context_sets
 
-                selection = lib.core.prompt_for_list_item(
-                    item_list=items, prompt_caption=("Please select a schema "
-                                                     "or content set: "),
-                    item_name_property='request_path', print_list=True)
+                if items:
+                    selection = lib.core.prompt_for_list_item(
+                        item_list=items, prompt_caption=("Please select a schema "
+                                                        "or content set: "),
+                        item_name_property='request_path', print_list=True)
 
-                # If there is a key called name, it is a schema
-                if 'name' in selection:
-                    lib.core.set_current_objects(service=current_service,
-                                        schema=selection)
-                else:
-                    lib.core.set_current_objects(service=current_service,
-                                        content_set=selection)
+                    # If there is a key called name, it is a schema
+                    if 'name' in selection:
+                        lib.core.set_current_objects(service=current_service,
+                                            schema=selection)
+                    else:
+                        lib.core.set_current_objects(service=current_service,
+                                            content_set=selection)
 
-                if selection:
-                    print(f"Current path set to {selection.get('host_ctx')}"
-                          f"{selection.get('request_path')}")
-                    return
+                    if selection:
+                        print(f"Current path set to {selection.get('host_ctx')}"
+                            f"{selection.get('request_path')}")
 
 
 @plugin_function('mrs.configure', shell=True, cli=True, web=True)

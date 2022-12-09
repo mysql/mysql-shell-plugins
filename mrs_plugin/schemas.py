@@ -25,12 +25,16 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+from .interactive import resolve_service
+
+
 
 def verify_value_keys(**kwargs):
     for key in kwargs["value"].keys():
         if key not in ["name", "request_path", "requires_auth",
             "enabled", "items_per_page", "comments", "options"] and key != "delete":
             raise Exception(f"Attempting to change an invalid schema value.")
+
 
 def resolve_schemas(**kwargs):
     session = kwargs.get("session")
@@ -164,7 +168,18 @@ def call_update_schema(**kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
+        if not kwargs.get("schema_id"):
+            service = resolve_service(session, kwargs.get("service_id"))
+            kwargs["service_id"] = service.get("id")
         kwargs = resolve_schemas(**kwargs)
+
+        # Check for request_path collisions
+        if kwargs.get("value", {}).get("request_path"):
+            for schema_id, host_ctx in kwargs["schemas"].items():
+                schema = lib.schemas.get_schema(session=session, schema_id=schema_id)
+                if schema["request_path"] != kwargs["value"]["request_path"]:
+                    lib.core.check_request_path(session, schema["host_ctx"] + kwargs["value"]["request_path"])
+
 
         with lib.core.MrsDbTransaction(session):
             lib_func(**kwargs)
@@ -192,7 +207,7 @@ def add_schema(**kwargs):
         enabled (bool): The enabled state
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
-        options (dict): The options for the schema
+        options (dict,required): The options for the schema
         session (object): The database session to use.
 
     Returns:
@@ -211,8 +226,10 @@ def add_schema(**kwargs):
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        lib.services.get_service(service_id=service_id, get_default=True,
-            session=session)
+        service = resolve_service(session, service_id)
+
+        if not service:
+            raise RuntimeError("Operation cancelled. The service was not found.")
 
         if not schema_name and interactive:
             rows = lib.core.select(table="INFORMATION_SCHEMA.SCHEMATA",
@@ -256,14 +273,18 @@ def add_schema(**kwargs):
         if options is None and interactive:
             options = lib.core.prompt("Options: ").strip()
 
+        lib.core.check_request_path(session, service["host_ctx"] + request_path)
+
         with lib.core.MrsDbTransaction(session):
             id = lib.schemas.add_schema(schema_name=schema_name, service_id=service_id,
                 request_path=request_path, requires_auth=requires_auth, enabled=enabled,
                 items_per_page=items_per_page, comments=comments, options=options,
                 session=session)
 
+            schema = lib.schemas.get_schema(session=session, schema_id=id)
+
             if lib.core.get_interactive_result():
-                return f"\nSchema with id {id} was added successfully."
+                return f"\nService with path {schema['request_path']} created successfully."
             return id
 
 
@@ -293,11 +314,18 @@ def get_schema(**kwargs):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
         kwargs["allow_multi_select"] = False
+        service = resolve_service(session, kwargs.get("service_id"))
+
+        if not service:
+            raise RuntimeError("Operation cancelled. The service was not found.")
+
+        kwargs["service_id"] = service["id"]
+
         kwargs = resolve_schemas(**kwargs)
-        kwargs["schema_id"] = list(kwargs["schemas"].keys())[0]
+        schema_id = list(kwargs["schemas"].keys())[0]
 
 
-        schema = lib.schemas.get_schema(session, schema_id=kwargs["schema_id"])
+        schema = lib.schemas.get_schema(session, schema_id=schema_id)
 
         if lib.core.get_interactive_result():
             return lib.schemas.format_schema_listing([schema], True)
@@ -328,6 +356,11 @@ def get_schemas(service_id=None, **kwargs):
     include_enable_state = kwargs.get("include_enable_state")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        service = resolve_service(session, service_id, False)
+
+        if service:
+            service_id = service["id"]
+
         schemas = lib.schemas.get_schemas(service_id=service_id,
             include_enable_state=include_enable_state,
             session=session)
@@ -550,7 +583,7 @@ def update_schema(**kwargs):
         enabled (bool): The enabled state
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
-        options (dict): The options for the schema
+        options (dict,required): The options for the schema
 
     Returns:
         The result message as string
@@ -563,12 +596,6 @@ def update_schema(**kwargs):
     if "schema_name" in kwargs["value"]:
         kwargs["value"]["name"] = kwargs["value"]["schema_name"]
         del kwargs["value"]["schema_name"]
-
-    if not kwargs["value"].get("options"):
-        try:
-            del kwargs["value"]["options"]
-        except:
-            pass
 
     verify_value_keys(**kwargs)
 

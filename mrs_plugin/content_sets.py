@@ -25,6 +25,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+from .interactive import resolve_service
 
 import os
 
@@ -157,7 +158,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
             the content
         comments (str): Comments about the content
         enabled (bool): Whether to enable the content set after all files are uploaded
-        options (dict): The options as JSON string
+        options (dict,required): The options as JSON string
         replace_existing (bool): Whether to replace a content set that uses the same request_path
         session (object): The database session to use.
 
@@ -172,13 +173,16 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
     requires_auth = kwargs.get("requires_auth")
     comments = kwargs.get("comments")
     enabled = kwargs.get("enabled", 1)
-    options = lib.core.convert_json(kwargs.get("options"))
+    options = kwargs.get("options")
+    if options:
+        options = lib.core.convert_json(options)
     replace_existing = kwargs.get("replace_existing", False)
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = lib.services.get_service(
-            service_id=service_id, session=session)
+        kwargs["session"] = session
+        kwargs["service_id"] = service_id
+        service = resolve_service(session, service_id)
 
         # Get request_path
         if not request_path and interactive:
@@ -188,6 +192,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                 {'defaultValue': '/content'}).strip()
 
         lib.core.Validations.request_path(request_path, session=session)
+        lib.core.check_request_path(session, service["host_ctx"] + request_path)
 
         # Get the content_dir
         if not content_dir and interactive:
@@ -226,7 +231,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
 
         with lib.core.MrsDbTransaction(session):
             if replace_existing:
-                content_set = lib.content_sets.get_content_sets(session,
+                content_set = lib.content_sets.get_content_set(session,
                     service.get("id"), request_path)
                 if content_set:
                     lib.core.delete(table="content_set",

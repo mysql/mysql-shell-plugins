@@ -189,7 +189,7 @@ describe("ShellInterfaceMrs Tests", (): void => {
                 serviceId: 2,
             }]);
 
-            await mrs.addSchema("0x01", "sakila", "/sakila", true, 25, "", {});
+            await mrs.addSchema("0x01", "sakila", "/sakila", true, {}, 25, "");
             await mrs.updateSchema("0x01", "sakila", "/sakila", true, true, 25, "", {});
             await mrs.deleteSchema("0x01", "0x01");
 

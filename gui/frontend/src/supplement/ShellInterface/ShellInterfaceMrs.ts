@@ -25,6 +25,7 @@ import { MessageScheduler, ShellAPIMrs, IShellDictionary } from "../../communica
 import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
     IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectFieldData,
+    IShellMrsUpdateDbObjectKwargsValue,
 } from "../../communication/";
 import { webSession } from "../WebSession";
 
@@ -72,7 +73,7 @@ export class ShellInterfaceMrs {
     }
 
     public async addService(urlContextRoot: string, urlProtocol: string[], urlHostName: string,
-        comments: string, enabled: boolean, options: IShellDictionary,
+        comments: string, enabled: boolean, options: IShellDictionary | null,
         authPath: string, authCompletedUrl: string,
         authCompletedUrlValidation: string, authCompletedPageContent: string,
         authApps: IMrsAuthAppData[]): Promise<IMrsServiceData> {
@@ -145,6 +146,9 @@ export class ShellInterfaceMrs {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetCurrentServiceId,
             parameters: {
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
             },
         });
 
@@ -211,8 +215,8 @@ export class ShellInterfaceMrs {
     }
 
     public async addSchema(serviceId: string, schemaName: string, requestPath: string, requiresAuth: boolean,
-        itemsPerPage?: number, comments?: string,
-        options?: IShellDictionary): Promise<string> {
+        options: IShellDictionary | null,
+        itemsPerPage?: number, comments?: string): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddSchema,
             parameters: {
@@ -235,7 +239,7 @@ export class ShellInterfaceMrs {
 
     public async updateSchema(schemaId: string, schemaName: string, requestPath: string,
         requiresAuth: boolean, enabled: boolean, itemsPerPage: number, comments: string,
-        options: IShellDictionary): Promise<void> {
+        options: IShellDictionary | null): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateSchema,
             parameters: {
@@ -260,10 +264,11 @@ export class ShellInterfaceMrs {
         autoAddSchema: boolean, requestPath: string, enabled: boolean, crudOperations: string[],
         crudOperationFormat: string, requiresAuth: boolean,
         rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean,
+        options: IShellDictionary | null,
         rowUserOwnershipColumn?: string,
         schemaId?: string, schemaName?: string, itemsPerPage?: number,
         comments?: string, mediaType?: string,
-        authStoredProcedure?: string, options?: IShellDictionary,
+        authStoredProcedure?: string,
         fields?: IMrsDbObjectFieldData[]): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddDbObject,
@@ -296,11 +301,8 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async updateDbObject(dbObjectId: string, dbObjectName: string, requiresAuth: boolean,
-        rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean, name: string, requestPath: string,
-        enabled: boolean, rowUserOwnershipColumn: string, schemaId: string, itemsPerPage: number, comments: string,
-        mediaType: string, authStoredProcedure: string, crudOperations: string[], crudOperationFormat: string,
-        options: IShellDictionary, fields: IMrsDbObjectFieldData[]): Promise<void> {
+    public async updateDbObject(dbObjectId: string, dbObjectName: string, requestPath: string,
+        schemaId: string, value: IShellMrsUpdateDbObjectKwargsValue): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateDbObject,
             parameters: {
@@ -310,19 +312,7 @@ export class ShellInterfaceMrs {
                     schemaId,
                     dbObjectName,
                     requestPath,
-                    value: {
-                        requiresAuth,
-                        rowUserOwnershipEnforced,
-                        autoDetectMediaType,
-                        name, enabled,
-                        rowUserOwnershipColumn,
-                        itemsPerPage, comments,
-                        mediaType, authStoredProcedure,
-                        crudOperations,
-                        crudOperationFormat,
-                        options,
-                        fields,
-                    },
+                    value,
                 },
             },
         });
@@ -422,8 +412,9 @@ export class ShellInterfaceMrs {
     }
 
     public async addContentSet(contentDir: string, requestPath: string,
-        requiresAuth: boolean, serviceId?: string, comments?: string,
-        options?: IShellDictionary, enabled?: boolean, replaceExisting?: boolean,
+        requiresAuth: boolean, options: IShellDictionary | null,
+        serviceId?: string, comments?: string,
+        enabled?: boolean, replaceExisting?: boolean,
         progress?: (message: string) => void): Promise<IMrsAddContentSetData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddContentSet,
