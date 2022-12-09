@@ -803,15 +803,28 @@ export class Database {
         }, 3000, "Current editor did not changed");
     };
 
-    public static getScriptResult = async (): Promise<string> => {
-        const host = await driver.wait(until.elementLocated(By.id("resultPaneHost")),
-            explicitWait, "Result pane host was not found");
-
-        const result = await driver.wait(async () => {
-            return (await host.findElements(By.css(".label")))[0];
-        }, explicitWait, "Result label not found");
-
-        return result.getText();
+    public static getScriptResult = async (): Promise<string | undefined> => {
+        return driver.wait(async () => {
+            const results1 = await driver.findElements(By.css("#resultPaneHost .content .label"));
+            const results2 = await driver.findElements(By.css("#resultPaneHost .resultStatus .label"));
+            let refResults: WebElement[] = [];
+            if (results1.length > 0) {
+                refResults = results1;
+            } else if (results2.length > 0) {
+                refResults = results2;
+            }
+            if (refResults.length > 0) {
+                try {
+                    return refResults[0].getText();
+                } catch (e) {
+                    if (typeof(e) === "object" && String(e).includes("StaleElementReferenceError")) {
+                        return undefined;
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+        }, explicitWait*3, "Not results were found");
     };
 
     public static collapseAllConnections = async (): Promise<void> => {
