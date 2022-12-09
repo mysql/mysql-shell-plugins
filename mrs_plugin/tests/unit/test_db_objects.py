@@ -28,6 +28,7 @@ def test_add_db_object(init_mrs, table_contents):
     db_objects_table = table_contents("db_object")
     db_object = {
         "session": init_mrs["session"],
+        "schema_id": init_mrs["schema_id"],
         "db_object_name": "ContactsWithEmail",
         "db_object_type": "VIEW",
         "schema_name": "PhoneBook",
@@ -51,6 +52,7 @@ def test_add_db_object(init_mrs, table_contents):
     assert db_objects_table.count == db_objects_table.snapshot.count + 1
 
     db_object = {
+        "schema_id": init_mrs["schema_id"],
         "db_object_name": "GetAllContacts",
         "db_object_type": "PROCEDURE",
         "schema_name": "PhoneBook",
@@ -69,6 +71,7 @@ def test_add_db_object(init_mrs, table_contents):
     assert id is not None
     assert db_objects_table.count == db_objects_table.snapshot.count + 2
 
+    db_object["request_path"] = "/procedure_get_all_contacts2"
     db_object["crud_operations"] = ""
     with pytest.raises(ValueError) as exc_info:
         add_db_object(**db_object)
@@ -292,6 +295,7 @@ def test_delete(init_mrs, table_contents):
     db_object_table = table_contents("db_object")
 
     db_object = {
+        "schema_id": init_mrs["schema_id"],
         "db_object_name": "ContactBasicInfo",
         "db_object_type": "VIEW",
         "schema_name": "PhoneBook",

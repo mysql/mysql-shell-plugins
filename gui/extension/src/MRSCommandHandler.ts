@@ -493,7 +493,7 @@ export class MRSCommandHandler {
                     "Yes", "No");
                 if (answer === "Yes") {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
-                        item.schema, `/${item.schema}`, true, undefined, undefined, undefined);
+                        item.schema, `/${item.schema}`, true, null, undefined, undefined);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);
@@ -560,17 +560,21 @@ export class MRSCommandHandler {
             }
         }
 
-        let defaultOptions = {};
-        if (!service) {
-            defaultOptions = {
-                header: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    "Access-Control-Allow-Origin": "*",
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                },
-            };
+        const defaultOptions = {
+            header: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "Access-Control-Allow-Origin": "*",
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            },
+        };
+        let serviceOptions = "";
+        if (service?.options) {
+            serviceOptions = JSON.stringify(service.options);
+        } else if(!service) {
+            serviceOptions = JSON.stringify(defaultOptions);
         }
+
         const request = {
             id: "mrsServiceDialog",
             type: DialogType.MrsService,
@@ -587,7 +591,7 @@ export class MRSCommandHandler {
                 isCurrent: !service || service.isCurrent === 1,
                 enabled: !service || service.enabled === 1,
                 comments: service?.comments ?? "",
-                options: JSON.stringify(service?.options ?? defaultOptions),
+                options: serviceOptions,
                 authPath: service?.authPath ?? "/authentication",
                 authCompletedUrlValidation: service?.authCompletedUrlValidation ?? "",
                 authCompletedUrl: service?.authCompletedUrl ?? "",
@@ -608,7 +612,8 @@ export class MRSCommandHandler {
             const comments = response.data.comments as string;
             const isCurrent = response.data.isCurrent as boolean;
             const enabled = response.data.enabled as boolean;
-            const options = response.data.options as string;
+            const options = response.data.options === "" ?
+                null : JSON.parse(response.data.options as string) as IShellDictionary;
             const authPath = response.data.authPath as string;
             const authCompletedUrl = response.data.authCompletedUrl as string;
             const authCompletedUrlValidation = response.data.authCompletedUrlValidation as string;
@@ -634,7 +639,7 @@ export class MRSCommandHandler {
                 try {
                     const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
                         comments, enabled,
-                        JSON.parse(options ?? "{}") as IShellDictionary,
+                        options ,
                         authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                         authApps);
 
@@ -657,7 +662,7 @@ export class MRSCommandHandler {
                             urlHostName: hostName,
                             enabled,
                             comments,
-                            options: JSON.parse(options ?? "{}") as IShellDictionary,
+                            options,
                             authPath,
                             authCompletedUrl,
                             authCompletedUrlValidation,
@@ -709,7 +714,7 @@ export class MRSCommandHandler {
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
-                    options: JSON.stringify(schema?.options ?? {}),
+                    options: schema?.options ? JSON.stringify(schema?.options) : "",
                 },
             };
 
@@ -727,13 +732,14 @@ export class MRSCommandHandler {
                 const itemsPerPage = response.data.itemsPerPage as number;
                 const comments = response.data.comments as string;
                 const enabled = response.data.enabled as boolean;
-                const options = response.data.options as string;
+                const options = response.data.options === "" ?
+                    null : JSON.parse(response.data.options as string) as IShellDictionary;
 
                 if (!schema) {
                     try {
                         await backend.mrs.addSchema(
-                            serviceId, name, requestPath, requiresAuth,
-                            itemsPerPage, comments, JSON.parse(options ?? "{}") as IShellDictionary);
+                            serviceId, name, requestPath, requiresAuth, options,
+                            itemsPerPage, comments);
 
                         void commands.executeCommand("msg.refreshConnections");
                         showMessageWithTimeout(
@@ -746,7 +752,7 @@ export class MRSCommandHandler {
                     try {
                         await backend.mrs.updateSchema(schema.id, name, requestPath,
                             requiresAuth, enabled, itemsPerPage, comments,
-                            JSON.parse(options ?? "{}") as IShellDictionary);
+                            options);
 
                         void commands.executeCommand("msg.refreshConnections");
                         showMessageWithTimeout(
@@ -831,7 +837,7 @@ export class MRSCommandHandler {
                 crudOperationFormat: dbObject.crudOperationFormat,
                 autoDetectMediaType: dbObject.autoDetectMediaType === 1,
                 mediaType: dbObject.mediaType,
-                options: JSON.stringify(dbObject?.options ?? {}),
+                options: dbObject?.options ? JSON.stringify(dbObject?.options) : "",
                 authStoredProcedure: dbObject.authStoredProcedure,
                 parameters: dbObject.fields ?? [parameterNewItem],
             },
@@ -857,7 +863,8 @@ export class MRSCommandHandler {
         const mediaType = response.data.mediaType as string;
         const autoDetectMediaType = response.data.autoDetectMediaType as boolean;
         const authStoredProcedure = response.data.authStoredProcedure as string;
-        const options = response.data.options as string;
+        const options = response.data.options === "" ?
+            null : JSON.parse(response.data.options as string) as IShellDictionary;
 
         // Remove entry for <new> item
         const fields = (response.data.parameters as IMrsDbObjectFieldData[]).filter(
@@ -872,10 +879,10 @@ export class MRSCommandHandler {
                     false, requestPath, enabled, crudOperations,
                     crudOperationFormat, requiresAuth,
                     rowUserOwnershipEnforced, autoDetectMediaType,
+                    options,
                     rowUserOwnershipColumn,
                     schemaId, undefined, itemsPerPage, comments,
                     mediaType, "",
-                    JSON.parse(options ?? "{}") as IShellDictionary,
                     fields);
 
                 void commands.executeCommand("msg.refreshConnections");
@@ -890,22 +897,25 @@ export class MRSCommandHandler {
             try {
                 await backend.mrs.updateDbObject(
                     dbObject.id, dbObject.name,
-                    requiresAuth,
-                    rowUserOwnershipEnforced,
-                    autoDetectMediaType,
-                    name,
-                    requestPath,
-                    enabled,
-                    rowUserOwnershipColumn,
+                    dbObject.requestPath,
                     schemaId,
-                    itemsPerPage,
-                    comments,
-                    mediaType,
-                    authStoredProcedure,
-                    crudOperations,
-                    crudOperationFormat,
-                    JSON.parse(options ?? "{}") as IShellDictionary,
-                    fields);
+                    {
+                        name,
+                        requestPath,
+                        requiresAuth,
+                        autoDetectMediaType,
+                        enabled,
+                        rowUserOwnershipEnforced,
+                        rowUserOwnershipColumn,
+                        itemsPerPage,
+                        comments,
+                        mediaType,
+                        authStoredProcedure,
+                        crudOperations,
+                        crudOperationFormat,
+                        options,
+                        fields,
+                    });
 
                 void commands.executeCommand("msg.refreshConnections");
                 showMessageWithTimeout(
@@ -968,7 +978,7 @@ export class MRSCommandHandler {
                     requiresAuth: contentSet?.requiresAuth === 1,
                     enabled: !contentSet || contentSet.enabled === 1,
                     comments: contentSet?.comments ?? "",
-                    options: JSON.stringify(contentSet?.options ?? {}),
+                    options: contentSet?.options ? JSON.stringify(contentSet?.options) : "",
                 },
             };
 
@@ -984,7 +994,8 @@ export class MRSCommandHandler {
                 const requiresAuth = response.data.requiresAuth as boolean;
                 const comments = response.data.comments as string;
                 const enabled = response.data.enabled as boolean;
-                const options = response.data.options as string;
+                const options = response.data.options === "" ?
+                    null : JSON.parse(response.data.options as string) as IShellDictionary;
                 const directory = response.data.directory as string;
 
 
@@ -1024,8 +1035,8 @@ export class MRSCommandHandler {
 
                             const contentSet = await backend.mrs.addContentSet(
                                 directory, requestPath,
-                                requiresAuth, serviceId, comments,
-                                JSON.parse(options ?? "{}") as IShellDictionary, enabled, true, (message) => {
+                                requiresAuth, options, serviceId, comments,
+                                enabled, true, (message) => {
                                     statusbarItem.text = "$(loading~spin) " + message;
                                 });
 

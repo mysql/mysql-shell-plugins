@@ -27,7 +27,7 @@ def test_add_schema(init_mrs, table_contents):
     schema_table = table_contents("db_schema")
     args = {
         "schema_name": "PhoneBook",
-        "service_id": 1,
+        "service_id": init_mrs["service_id"],
         "requires_auth": False,
         "request_path": "/test_schema_123",
         "enabled": True,
@@ -45,7 +45,7 @@ def test_add_schema(init_mrs, table_contents):
     args['request_path'] = "test_schema_3"
     with pytest.raises(Exception) as exc_info:
         lib.schemas.add_schema(**args)
-    assert str(exc_info.value) == "The request_path 'test_schema_3' has to start with '/'."
+    assert str(exc_info.value) == "The request_path has to start with '/'."
 
     schema_table.same_as_snapshot
 

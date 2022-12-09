@@ -29,7 +29,10 @@ from ...lib.schemas import *
 @pytest.mark.usefixtures("init_mrs")
 def test_get_current_service(init_mrs):
     set_current_objects()
-    current_service = get_current_service(None)
+    current_service = None
+    with pytest.raises(RuntimeError) as exc_info:
+        current_service = get_current_service(None)
+    assert str(exc_info.value) == "A valid session is required."
     assert current_service is None
 
     set_current_objects(service_id=init_mrs["service_id"],

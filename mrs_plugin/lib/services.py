@@ -184,7 +184,7 @@ def update_service(session, service_ids, value):
                 core.insert(table="url_host",
                     values={
                         "id": host_id,
-                        "url_host_name": value["url_host_name"]
+                        "name": value["url_host_name"]
                     }
                 ).exec(session)
 
@@ -240,10 +240,12 @@ def query_services(session, service_id: bytes=None, url_context_root=None, url_h
     if url_context_root and not url_context_root.startswith('/'):
         raise Exception("The url_context_root has to start with '/'.")
 
-    current_service = core.get_local_config().get("current_service_id", b'')
+    current_service_id = get_current_service_id(session)
+    if not current_service_id:
+        current_service_id = "0x00000000000000000000000000000000"
 
     # Build SQL based on which input has been provided
-    sql = """
+    sql = f"""
         SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
             se.url_context_root, se.comments, se.options, se.url_host_id,
             CONCAT(h.name, se.url_context_root) AS host_ctx,
@@ -255,7 +257,7 @@ def query_services(session, service_id: bytes=None, url_context_root=None, url_h
             LEFT JOIN `mysql_rest_service_metadata`.url_host h
                 ON se.url_host_id = h.id
         """
-    params = [current_service]
+    params = [current_service_id]
     wheres = []
 
     if service_id:
@@ -269,7 +271,7 @@ def query_services(session, service_id: bytes=None, url_context_root=None, url_h
             params.append(url_context_root)
     else:
         wheres.append("se.id = ?")
-        params.append(current_service)
+        params.append(current_service_id)
 
     sql += core._generate_where(wheres)
 
@@ -310,10 +312,13 @@ def get_services(session):
 
 
 def get_current_service(session):
-    """Returns the current service
+    service_id = get_current_service_id(session)
 
-    This only applies to interactive sessions in the shell where the
-    id of the current service is stored in the global config
+    return get_service(session=session, service_id=service_id)
+
+
+def get_current_service_id(session):
+    """Returns the current service
 
     Args:
         session (object): The database session to use.
@@ -321,19 +326,44 @@ def get_current_service(session):
     Returns:
         The current or default service or None if no default is set
     """
-    # Get current_service_id from the global mrs_config
-    mrs_config = core.get_current_config()
-    current_service_id = mrs_config.get('current_service_id')
+    if not session:
+        raise RuntimeError("A valid session is required.")
 
-    current_service = None
-    if current_service_id:
-        current_service = get_service(
-            service_id=current_service_id,
-            session=session)
-
-    return current_service
-
-def set_current_service_id(service_id: bytes):
     config = core.ConfigFile()
-    config.settings["current_service_id"] = service_id
+
+    current_objects = config.settings.get("current_objects", [])
+
+    # Try to find the settings for the connection which the service resides on
+    connection_settings = list(filter(lambda item: item["connection"] == core.get_session_uri(session),
+        current_objects))
+
+    if not connection_settings:
+        return None
+
+    return connection_settings[0].get("current_service_id")
+
+
+def set_current_service_id(session, service_id: bytes):
+    if not session:
+        raise RuntimeError("A valid session is required.")
+
+    config = core.ConfigFile()
+
+    current_objects = config.settings.get("current_objects", [])
+
+    # Try to find the settings for the connection which the service resides on
+    connection_settings = list(filter(lambda item: item["connection"] == core.get_session_uri(session),
+        current_objects))
+
+    if connection_settings:
+        # Found the settings for this host
+        connection_settings[0]["current_service_id"] = service_id
+    else:
+        # The settings for this host do not exist yet....create them.
+        current_objects.append({
+            "connection": core.get_session_uri(session),
+            "current_service_id": service_id
+        })
+
+    config.settings["current_objects"] = current_objects
     config.store()

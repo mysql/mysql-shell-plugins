@@ -39,7 +39,7 @@ def test_add_service(init_mrs, table_contents):
 
     with pytest.raises(Exception) as exc_info:
         add_service(url_context_root="/test", url_host_name="localhost", enabled=True, **args)
-    assert str(exc_info.value) == "A service with this host_name and context_root already exists."
+    assert str(exc_info.value) == "The request_path localhost/test is already in use."
 
     assert services_table.same_as_snapshot
 
@@ -174,6 +174,11 @@ def test_change_service(init_mrs):
 
         assert set_current_service_id(**args) == True
 
+
+        with pytest.raises(Exception) as exc_info:
+            set_url_context_root(**args, value="/test")
+        assert str(exc_info.value) == "The request_path localhost/test is already in use."
+
         assert set_url_context_root(**args, value="/service3") == True
         service2 = get_service(**args_for_get_service)
         assert service2["url_context_root"] == "/service3"
@@ -185,6 +190,18 @@ def test_change_service(init_mrs):
         assert set_comments(**args, value="Test service updated") == True
         service2 = get_service(**args_for_get_service)
         assert service2["comments"] == "Test service updated"
+
+        value = {
+            "url_host_name": "localhost",
+            "url_context_root": "/test",
+            "url_protocol": ["HTTP"],
+            "comments": "Test service comments",
+            "enabled": False
+        }
+        with pytest.raises(Exception) as exc_info:
+            update_service(**args, value=value)
+        assert str(exc_info.value) == "The request_path localhost/test is already in use."
+
 
         value = {
             "url_context_root": "/service4",

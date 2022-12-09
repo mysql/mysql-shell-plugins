@@ -38,7 +38,7 @@ def test_add_schema(init_mrs, table_contents):
     #     "enabled": True,
     #     "session": init_mrs["session"]
     # }
-    with SchemaCT(init_mrs["service_id"], "PhoneBook", "/PhoneBook") as schema_id:
+    with SchemaCT(init_mrs["service_id"], "PhoneBook", "/PhoneBook2") as schema_id:
         # result = add_schema(**args)
         # assert result is not None
         # assert isinstance(result, int)
@@ -59,8 +59,8 @@ def test_get_schemas(init_mrs):
     #     "enabled": True,
     #     "session": init_mrs["session"]
     # }
-    with SchemaCT(init_mrs["service_id"], "PhoneBook", "/PhoneBook", comments="This is a schema comment") as schema_id:
-        schemas = get_schemas(init_mrs["service_id"])
+    with SchemaCT(init_mrs["service_id"], "PhoneBook", "/PhoneBook2", comments="This is a schema comment") as schema_id:
+        schemas = get_schemas(session=init_mrs["session"], service_id=init_mrs["service_id"])
         assert schemas is not None
         assert isinstance(schemas, list)
 
@@ -83,7 +83,7 @@ def test_get_schemas(init_mrs):
             'id': schema_id,
             'items_per_page': 25,
             'name': 'PhoneBook',
-            'request_path': '/PhoneBook',
+            'request_path': '/PhoneBook2',
             'options': None,
             'requires_auth': 0,
             'service_id': init_mrs["service_id"],
@@ -112,7 +112,7 @@ def test_get_schemas(init_mrs):
             'id': schema_id,
             'name': 'PhoneBook',
             'service_id': init_mrs["service_id"],
-            'request_path': '/PhoneBook',
+            'request_path': '/PhoneBook2',
             'requires_auth': 0,
             'enabled': 1,
             'options': None,
@@ -210,6 +210,16 @@ def test_change_schema(init_mrs, table_contents):
         schema = get_schema(**kwargs)
         assert schema.get("name") == "PhoneBook"
         args['schema_name'] = "PhoneBook"
+
+        # Allow to set the same request_path...will stay unchanged
+        args['value'] = schema["request_path"]
+        result = set_request_path(schema_id=schema_id, **args)
+
+        # Try to change to an existing request_path
+        args['value'] = "/PhoneBook"
+        with pytest.raises(Exception) as exc_info:
+            result = set_request_path(schema_id=schema_id, **args)
+        assert str(exc_info.value) == "The request_path localhost/test/PhoneBook is already in use."
 
         args['value'] = "/test_schema_4"
         result = set_request_path(schema_id=schema_id, **args)

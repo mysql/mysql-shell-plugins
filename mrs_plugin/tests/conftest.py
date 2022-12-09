@@ -139,17 +139,18 @@ def init_mrs():
     open(os.path.join(tmpdir_path, "file.sh"), 'w+').close()
     open(os.path.join(tmpdir_path, "readme.txt"), 'w+').close()
     content_set = {
-        "service_id": service["id"],
         "request_path": "/test_content_set",
         "requires_auth": False,
         "comments": "Content Set",
         "content_dir": tmpdir_path,
         "session": session
     }
+
     from .. content_sets import add_content_set
-    content_set_result = add_content_set(**content_set)
+    content_set_result = add_content_set(service["id"], **content_set)
 
     db_object = {
+        "service_id": service["id"],
         "db_object_name": "Contacts",
         "db_object_type": "TABLE",
         "schema_id": schema_id,

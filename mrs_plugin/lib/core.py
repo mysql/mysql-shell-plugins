@@ -44,7 +44,8 @@ class ConfigFile:
         try:
             with open(self._filename, "r") as f:
                 self._settings = json.load(f)
-                convert_ids_to_binary(["current_service_id"], self._settings)
+                for item in self._settings.get("current_objects", []):
+                    convert_ids_to_binary(["current_service_id"], item)
         except:
             pass
 
@@ -52,16 +53,25 @@ class ConfigFile:
         # create a copy because we're changing the dict data
         settings_copy = self._settings.copy()
 
-        if "current_service_id" in settings_copy:
-            settings_copy["current_service_id"] = f"0x{settings_copy['current_service_id'].hex()}"
-
         os.makedirs(os.path.dirname(self._filename), exist_ok=True)
         with open(self._filename, "w") as f:
-            json.dump(settings_copy, f)
+            json.dump(self._serialize(settings_copy), f)
 
     @property
     def settings(self):
         return self._settings
+
+    def _serialize(self, value):
+        if isinstance(value, bytes):
+            return f"0x{value.hex()}"
+        if isinstance(value, dict) or "Dict" in type(value).__name__:
+            result = {}
+            for key, val in value.items():
+                result[key] = self._serialize(val)
+            return result
+        if isinstance(value, list) or "List" in type(value).__name__:
+            return [self._serialize(val) for val in value]
+        return value
 
 
 class Validations:
@@ -141,7 +151,7 @@ def validate_service_path(session, path):
                         request_path = item.get("request_path")
                         if request_path == sub_path[:len(request_path)]:
                             schema = item
-                        break
+                            break
 
                 if not schema:
                     content_sets_local = content_sets.get_content_sets(
@@ -681,10 +691,6 @@ def check_request_path(session, request_path):
     if not request_path:
         raise Exception("No request_path specified.")
 
-    if not request_path.startswith("/"):
-        raise ValueError(
-            f"The request_path '{request_path}' has to start with '/'.")
-
     # Check if the request_path already exists for another db_object of that
     # schema
     res = session.run_sql("""
@@ -1062,3 +1068,14 @@ def identify_target_object(session, service_conditions, schema_conditions, objec
             f"Unable to identify a unique {target_object} for the operation.")
 
     return target_object, rows[0][0]
+
+
+def get_session_uri(session):
+    if "shell.Object" in str(type(session)):
+        uri = session.get_uri()
+    else:
+        uri = session.session.get_uri()
+
+    uri = uri.split('?')[0]
+
+    return uri

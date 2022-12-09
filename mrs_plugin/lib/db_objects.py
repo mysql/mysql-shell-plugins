@@ -189,7 +189,7 @@ def get_db_object(session, db_object_id: bytes=None, schema_id: bytes=None, requ
     return result[0] if result else None
 
 
-def get_db_objects(session, schema_id: bytes, include_enable_state=False):
+def get_db_objects(session, schema_id: bytes, include_enable_state=None):
     """Returns all db_objects for the given schema
 
     Args:

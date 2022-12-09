@@ -34,6 +34,7 @@ def verify_value_keys(**kwargs):
             "auth_completed_page_content", "auth_apps"] and key != "delete":
             raise Exception(f"Attempting to change an invalid service value.")
 
+
 def resolve_service_ids(**kwargs):
     value = kwargs.get("value")
     session = kwargs.get("session")
@@ -176,6 +177,17 @@ def call_update_service(op_text, **kwargs):
         kwargs["session"] = session
         kwargs = resolve_service_ids(**kwargs)
 
+
+        for service_id in kwargs["service_ids"]:
+            service = lib.services.get_service(session, service_id=service_id)
+            url_context_root = kwargs["value"].get("url_context_root", service["url_context_root"])
+            url_host_name = kwargs["value"].get("url_host_name", service["url_host_name"])
+
+            if (url_host_name != service["url_host_name"]) or \
+                (url_context_root != service["url_context_root"]):
+                lib.core.check_request_path(session, url_host_name + url_context_root)
+
+
         with lib.core.MrsDbTransaction(session):
             lib.services.update_service(**kwargs)
 
@@ -201,7 +213,7 @@ def add_service(**kwargs):
         enabled (bool): Whether the new service should be enabled
         url_protocol (list): The protocols supported by this service
         comments (str): Comments about the service
-        options (dict): Options for the service
+        options (dict,required): Options for the service
         auth_path (str): The authentication path
         auth_completed_url (str): The redirection URL called after authentication
         auth_completed_url_validation (str): The regular expression that validates the
@@ -254,21 +266,7 @@ def add_service(**kwargs):
                 options = optionsPrompt
 
         # Check if any service is active
-        res = session.run_sql("""
-            SELECT COUNT(*) as cnt
-            FROM `mysql_rest_service_metadata`.`service` se
-                LEFT JOIN `mysql_rest_service_metadata`.url_host h
-				    ON se.url_host_id = h.id
-            WHERE h.name = ?
-                AND se.url_context_root = ?
-            """, [
-            url_host_name if url_host_name else '',
-            url_context_root if url_context_root else '/rds'])
-        row = res.fetch_one()
-        cnt = row.get_field("cnt") if row else None
-        if cnt and int(cnt) > 0:
-            raise Exception("A service with this host_name and "
-                            "context_root already exists.")
+        lib.core.check_request_path(session, url_host_name + url_context_root)
 
         # Get id of the host
         row = lib.core.select(table="url_host",
@@ -293,7 +291,7 @@ def add_service(**kwargs):
             })
 
         if lib.core.get_interactive_result():
-            return f"\nService with id {service_id} created successfully."
+            return f"\nService with id 0x{service_id.hex()} created successfully."
         else:
             return lib.services.get_service(service_id=service_id,
                             session=session)
@@ -706,13 +704,21 @@ def get_service_request_path_availability(**kwargs):
 
 
 @plugin_function('mrs.get.currentServiceId', shell=True, cli=True, web=True)
-def get_current_service_id():
+def get_current_service_id(**kwargs):
     """Gets the id of the current service
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        session (object): The database session to use.
 
     Returns:
         The ID of the current service or None
     """
-    return lib.core.get_local_config().get("current_service")
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        return lib.services.get_current_service_id(session)
+
 
 @plugin_function('mrs.set.currentServiceId', shell=True, cli=True, web=True)
 def set_current_service_id(**kwargs):
@@ -734,8 +740,8 @@ def set_current_service_id(**kwargs):
 
     service_id = kwargs.get("service_id")
 
-    if service_id is None:
-        with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        if service_id is None:
             kwargs["session"] = session
             kwargs = resolve_url_context_root(required=False, **kwargs)
             kwargs = resolve_url_host_name(required=False, **kwargs)
@@ -744,12 +750,12 @@ def set_current_service_id(**kwargs):
             if kwargs["service_ids"]:
                 service_id = kwargs["service_ids"][0]
 
-    if service_id is None:
-        if lib.core.get_interactive_result():
-            return "The specified service was not found."
-        return False
+        if service_id is None:
+            if lib.core.get_interactive_result():
+                return "The specified service was not found."
+            return False
 
-    lib.services.set_current_service_id(service_id)
+        lib.services.set_current_service_id(session, service_id)
 
     if lib.core.get_interactive_result():
         return "The service has been made the default."
