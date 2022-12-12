@@ -384,7 +384,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "0",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 5,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col1",
@@ -393,7 +396,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "1",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 0,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col2",
@@ -402,7 +408,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "2",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 1,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col3",
@@ -411,7 +420,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "3",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 2,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col4",
@@ -420,7 +432,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "4",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 3,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col5",
@@ -429,7 +444,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "5",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 4,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col6",
@@ -438,7 +456,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "6",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 5,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col7",
@@ -447,7 +468,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "7",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 6,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col8",
@@ -456,7 +480,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "8",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 7,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col9",
@@ -465,7 +492,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "9",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 8,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col10",
@@ -474,7 +504,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "10",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 9,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col11",
@@ -483,7 +516,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "11",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 10,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col12",
@@ -492,7 +528,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "12",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 11,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col13",
@@ -501,7 +540,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "13",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 12,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col14",
@@ -510,7 +552,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "14",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 13,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col15",
@@ -519,7 +564,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "15",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 14,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col16",
@@ -528,7 +576,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "16",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 15,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col17",
@@ -537,7 +588,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "17",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 16,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col18",
@@ -546,7 +600,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "18",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 17,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col19",
@@ -555,7 +612,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "19",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 18,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col20",
@@ -564,7 +624,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "20",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 19,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col21",
@@ -573,7 +636,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "21",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 20,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col22",
@@ -582,7 +648,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "22",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 21,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col23",
@@ -591,7 +660,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "23",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 22,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col24",
@@ -600,7 +672,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "24",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 23,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col25",
@@ -609,7 +684,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "25",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 24,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col26",
@@ -618,7 +696,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "26",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 25,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col27",
@@ -627,7 +708,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "27",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 26,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col28",
@@ -636,7 +720,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "28",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 27,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col29",
@@ -645,7 +732,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "29",
               "formatter": "plaintext",
-              "formatterParams": Object {},
+              "formatterClipboard": "plaintext",
+              "formatterParams": Object {
+                "dbDataType": 28,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col30",
@@ -654,7 +744,9 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "30",
               "formatter": "datetime",
+              "formatterClipboard": "datetime",
               "formatterParams": Object {
+                "dbDataType": 29,
                 "outputFormat": "HH:mm:ss",
               },
               "minWidth": 50,
@@ -665,7 +757,9 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "31",
               "formatter": "datetime",
+              "formatterClipboard": "datetime",
               "formatterParams": Object {
+                "dbDataType": 30,
                 "outputFormat": "HH:mm:ss",
               },
               "minWidth": 50,
@@ -676,6 +770,7 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "32",
               "formatter": "datetime",
+              "formatterClipboard": "datetime",
               "formatterParams": Object {
                 "outputFormat": "YYYY",
               },
@@ -687,7 +782,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "33",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 32,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col34",
@@ -696,7 +794,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "34",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 33,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col35",
@@ -705,7 +806,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "35",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 34,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col36",
@@ -714,7 +818,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "36",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 35,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col37",
@@ -723,7 +830,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "37",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 36,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col38",
@@ -732,7 +842,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "38",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 37,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col39",
@@ -741,7 +854,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "39",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 38,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col40",
@@ -750,7 +866,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "40",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 39,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col41",
@@ -759,7 +878,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "41",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 40,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col42",
@@ -768,7 +890,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "42",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 41,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col43",
@@ -777,7 +902,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "43",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 42,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col44",
@@ -786,7 +914,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "44",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 43,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col45",
@@ -795,7 +926,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "45",
               "formatter": "textarea",
-              "formatterParams": Object {},
+              "formatterClipboard": "textarea",
+              "formatterParams": Object {
+                "dbDataType": 44,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col46",
@@ -804,7 +938,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "46",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 45,
+              },
               "minWidth": 50,
               "resizable": true,
               "title": "col47",
@@ -813,7 +950,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "47",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 46,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col48",
@@ -822,7 +962,10 @@ exports[`Result View Tests Render with Columns 1`] = `
             Object {
               "field": "48",
               "formatter": [Function],
-              "formatterParams": Object {},
+              "formatterClipboard": [Function],
+              "formatterParams": Object {
+                "dbDataType": 47,
+              },
               "minWidth": 150,
               "resizable": true,
               "title": "col49",

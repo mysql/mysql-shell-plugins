@@ -28,7 +28,7 @@ import nullIcon from "../../assets/images/null.svg";
 
 import React from "react";
 import { render } from "preact";
-import { CellComponent, ColumnComponent, ColumnDefinition, Formatter } from "tabulator-tables";
+import { CellComponent, ColumnComponent, ColumnDefinition, Formatter, FormatterParams } from "tabulator-tables";
 
 import {
     Component, Container, Orientation, IComponentProperties, SelectionType, Icon, Checkbox, CheckState, Menu, MenuItem,
@@ -267,7 +267,7 @@ export class ResultView extends Component<IResultViewProperties> {
         // Map column info from the backend to column definitions for Tabulator.
         return columns.map((info): ColumnDefinition => {
             let formatter: Formatter | undefined;
-            let formatterParams = {};
+            let formatterParams: FormatterParams = { dbDataType: info.dataType.type };
             let minWidth = 50;
 
             // TODO: Enable editing related functionality again.
@@ -341,10 +341,8 @@ export class ResultView extends Component<IResultViewProperties> {
                 case DBDataType.Time:
                 case DBDataType.Time_f: {
                     formatter = "datetime";
-                    formatterParams = {
-                        // TODO: make this locale dependent.
-                        outputFormat: "HH:mm:ss",
-                    };
+                    // TODO: make this locale dependent.
+                    formatterParams.outputFormat = "HH:mm:ss";
                     //editor = true;
 
                     break;
@@ -390,6 +388,7 @@ export class ResultView extends Component<IResultViewProperties> {
                 field: info.field,
                 formatter,
                 formatterParams,
+                formatterClipboard: formatter,
                 //editor,
                 //editorParams,
                 width,
@@ -536,6 +535,61 @@ export class ResultView extends Component<IResultViewProperties> {
         this.cellContextMenuRef.current?.open(targetRect, false, {});
     };
 
+    /**
+     * Formats a cell as string, either quoted or not
+     *
+     * @param cell The cell to format
+     * @param unquoted Wether the cell value should be quoted (if valid in SQL) or not
+     * @returns The cell value formatted as string
+     */
+    private formatCell = (cell: CellComponent, unquoted = false): string => {
+        if (cell.getValue() === null) {
+            // NULL, never gets quoted
+            return "NULL";
+        } else {
+            const formatterParams = cell.getColumn().getDefinition().formatterParams;
+            if (formatterParams && "dbDataType" in formatterParams) {
+                switch (formatterParams.dbDataType) {
+                    // Binary data
+                    case DBDataType.TinyBlob:
+                    case DBDataType.Blob:
+                    case DBDataType.MediumBlob:
+                    case DBDataType.LongBlob:
+                    case DBDataType.Binary:
+                    case DBDataType.Varbinary: {
+                        const buffer = Buffer.from(String(cell.getValue()), "base64");
+                        // Convert to a HEX string
+                        const bufString = buffer.toString("hex");
+
+                        return "0x" + bufString;
+                    }
+
+
+                    // Integer variants and Boolean, never get quoted
+                    case DBDataType.TinyInt:
+                    case DBDataType.SmallInt:
+                    case DBDataType.MediumInt:
+                    case DBDataType.Int:
+                    case DBDataType.Bigint:
+                    case DBDataType.Boolean: {
+                        return String(cell.getValue());
+                    }
+
+                    default: {
+                        if (unquoted) {
+                            return String(cell.getValue());
+                        } else {
+                            return "'" + String(cell.getValue()) + "'";
+                        }
+                    }
+
+                }
+            } else {
+                return String(cell.getValue());
+            }
+        }
+    };
+
     private handleCellContextMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
         if (this.currentCell) {
             /*const editorParams = this.currentCell.getColumn().getDefinition().editorParams;
@@ -599,12 +653,12 @@ export class ResultView extends Component<IResultViewProperties> {
                 }
 
                 case "copyFieldMenuItem": {
-                    void requisitions.writeToClipboard(`'${this.currentCell.getValue() as string}'`);
+                    void requisitions.writeToClipboard(this.formatCell(this.currentCell));
                     break;
                 }
 
                 case "copyFieldUnquotedMenuItem": {
-                    void requisitions.writeToClipboard(String(this.currentCell.getValue()));
+                    void requisitions.writeToClipboard(this.formatCell(this.currentCell, true));
 
                     break;
                 }
@@ -652,7 +706,6 @@ export class ResultView extends Component<IResultViewProperties> {
             rows = [this.currentCell.getRow()];
         }
 
-        const quoteChar = unquoted ? "" : "'";
         let content = "";
 
         if (withNames && rows.length > 0) {
@@ -669,7 +722,7 @@ export class ResultView extends Component<IResultViewProperties> {
 
         rows.forEach((row) => {
             row.getCells().forEach((cell) => {
-                content += `${quoteChar}${cell.getValue() as string}${quoteChar}${separator}`;
+                content += this.formatCell(cell, unquoted) + separator;
             });
 
             if (content.endsWith(separator)) {
@@ -927,7 +980,7 @@ export class ResultView extends Component<IResultViewProperties> {
                 // Convert to a HEX string and truncate at 32 bytes
                 const bufString = buffer.toString("hex");
 
-                return (bufString.length > 64) ? bufString.substring(0, 63) + "&hellip;" : bufString;
+                return "0x" + ((bufString.length > 64) ? bufString.substring(0, 63) + "&hellip;" : bufString);
             } else {
                 return "";
             }

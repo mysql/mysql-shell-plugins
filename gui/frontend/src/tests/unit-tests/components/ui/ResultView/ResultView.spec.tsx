@@ -514,7 +514,7 @@ describe("Result View Tests", (): void => {
                             expect(item.classList.contains("disabled")).toBeFalsy();
                             item.click();
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("'42', 'abc'\n'43', 'def'\n'44', 'ghi'\n");
+                            expect(clipboardSpy).toHaveBeenLastCalledWith("42, 'abc'\n43, 'def'\n44, 'ghi'\n");
 
                             break;
                         }
@@ -524,7 +524,7 @@ describe("Result View Tests", (): void => {
                             item.click();
 
                             expect(clipboardSpy)
-                                .toHaveBeenLastCalledWith("# col1, col2\n'42', 'abc'\n'43', 'def'\n'44', 'ghi'\n");
+                                .toHaveBeenLastCalledWith("# col1, col2\n42, 'abc'\n43, 'def'\n44, 'ghi'\n");
 
                             break;
                         }
@@ -552,7 +552,7 @@ describe("Result View Tests", (): void => {
                             item.click();
 
                             expect(clipboardSpy)
-                                .toHaveBeenLastCalledWith("# col1\tcol2\n'42'\t'abc'\n'43'\t'def'\n'44'\t'ghi'\n");
+                                .toHaveBeenLastCalledWith("# col1\tcol2\n42\t'abc'\n43\t'def'\n44\t'ghi'\n");
 
                             break;
                         }
@@ -561,7 +561,7 @@ describe("Result View Tests", (): void => {
                             expect(item.classList.contains("disabled")).toBeFalsy();
                             item.click();
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("'42'\t'abc'\n'43'\t'def'\n'44'\t'ghi'\n");
+                            expect(clipboardSpy).toHaveBeenLastCalledWith("42\t'abc'\n43\t'def'\n44\t'ghi'\n");
 
                             break;
                         }
