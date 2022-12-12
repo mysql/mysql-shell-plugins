@@ -959,6 +959,14 @@ export class Misc {
 
     };
 
+    public static isDBSystemStopped = async (dbSystem: string): Promise<boolean> => {
+        const treeItem = await Misc.getTreeElement(ociTreeSection, dbSystem);
+        const itemIcon = await treeItem.findElement(By.css(".custom-view-tree-node-item-icon"));
+        const itemStyle = await itemIcon.getAttribute("style");
+
+        return itemStyle.includes("ociDbSystemStopped");
+    };
+
     private static loadDriver = async (): Promise<void> => {
 
         let browser: VSBrowser;

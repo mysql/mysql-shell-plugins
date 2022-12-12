@@ -481,7 +481,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     //continue
                 }
             }
-
         });
 
         after(async function () {
@@ -494,101 +493,125 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
-        it("Create connection with Bastion Service", async () => {
+        it("Create connection with Bastion Service", async function () {
 
-            await Misc.selectContextMenuItem(ociTreeSection,
-                "MDSforVSCodeExtension", "Create Connection with Bastion Service");
+            if (!await Misc.isDBSystemStopped("MDSforVSCodeExtension")) {
+                await Misc.selectContextMenuItem(ociTreeSection,
+                    "MDSforVSCodeExtension", "Create Connection with Bastion Service");
 
-            await driver.wait(async () => {
-                const editors = await new EditorView().getOpenEditorTitles();
+                await driver.wait(async () => {
+                    const editors = await new EditorView().getOpenEditorTitles();
 
-                return editors.includes("DB Connections");
-            }, explicitWait, "DB Connections was not opened");
-
-            await Misc.switchToWebView();
-
-            const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
-                10000, "Connection dialog was not loaded");
-
-            expect(await newConDialog.findElement(By.id("caption")).getAttribute("value"))
-                .to.equal("MDSforVSCodeExtension");
-
-            expect(await newConDialog.findElement(By.id("description")).getAttribute("value"))
-                .to.equal("DB System used to test the MySQL Shell for VSCode Extension.");
-
-            expect(await newConDialog.findElement(By.id("hostName")).getAttribute("value"))
-                .to.match(/(\d+).(\d+).(\d+).(\d+)/);
-
-            await newConDialog.findElement(By.id("userName")).sendKeys("dba");
-
-            const mdsTab = await newConDialog.findElement(By.id("page3"));
-
-            expect(mdsTab).to.exist;
-
-            await mdsTab.click();
-
-            await driver.wait(async () => {
-                return await driver.findElement(By.id("mysqlDbSystemId")).getAttribute("value") !== "";
-            }, 3000, "DbSystemID field was not set");
-
-            await driver.wait(async () => {
-                return await driver.findElement(By.id("bastionId")).getAttribute("value") !== "";
-            }, 3000, "BastionID field was not set");
-
-            await newConDialog.findElement(By.id("ok")).click();
-
-            await driver.switchTo().defaultContent();
-
-            const mds = await Database.getWebViewConnection("MDSforVSCodeExtension");
-
-            expect(mds).to.exist;
-
-            try {
+                    return editors.includes("DB Connections");
+                }, explicitWait, "DB Connections was not opened");
 
                 await Misc.switchToWebView();
 
-                await mds.click();
+                const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+                    10000, "Connection dialog was not loaded");
+
+                expect(await newConDialog.findElement(By.id("caption")).getAttribute("value"))
+                    .to.equal("MDSforVSCodeExtension");
+
+                expect(await newConDialog.findElement(By.id("description")).getAttribute("value"))
+                    .to.equal("DB System used to test the MySQL Shell for VSCode Extension.");
+
+                expect(await newConDialog.findElement(By.id("hostName")).getAttribute("value"))
+                    .to.match(/(\d+).(\d+).(\d+).(\d+)/);
+
+                await newConDialog.findElement(By.id("userName")).sendKeys("dba");
+
+                const mdsTab = await newConDialog.findElement(By.id("page3"));
+
+                expect(mdsTab).to.exist;
+
+                await mdsTab.click();
 
                 await driver.wait(async () => {
-                    const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
-                    let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
-                    if (fingerprintDialog.length > 0) {
-                        await fingerprintDialog[0].findElement(By.id("accept")).click();
-                        passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
-                    }
-                    if (passwordDialog.length > 0) {
-                        await passwordDialog[0].findElement(By.css("input")).sendKeys("MySQLR0cks!");
-                        await passwordDialog[0].findElement(By.id("ok")).click();
+                    return await driver.findElement(By.id("mysqlDbSystemId")).getAttribute("value") !== "";
+                }, 3000, "DbSystemID field was not set");
 
-                        return true;
-                    }
+                await driver.wait(async () => {
+                    return await driver.findElement(By.id("bastionId")).getAttribute("value") !== "";
+                }, 3000, "BastionID field was not set");
 
-                    return false;
-                }, 30000, "Dialogs were not displayed");
-
-                const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
-                    explicitWait, "Confirm dialog was not displayed");
-
-                await confirmDialog.findElement(By.id("refuse")).click();
-
-                const result = await Misc.execCmd("select version();", 10000);
-
-                expect(result[0]).to.include("OK");
+                await newConDialog.findElement(By.id("ok")).click();
 
                 await driver.switchTo().defaultContent();
 
-                expect(await Misc.existsTreeElement(ociTreeSection,
-                    "Bastion4PrivateSubnetStandardVnc"))
-                    .to.be.true;
+                const mds = await Database.getWebViewConnection("MDSforVSCodeExtension");
 
-                expect(await Misc.existsTreeElement(dbTreeSection, "MDSforVSCodeExtension"))
-                    .to.be.true;
-            } finally {
-                await driver.switchTo().defaultContent();
-                await Misc.toggleSection(dbTreeSection, true);
-                await Misc.reloadSection(dbTreeSection);
-                await Misc.toggleSection(dbTreeSection, false);
+                expect(mds).to.exist;
+
+                try {
+
+                    await Misc.switchToWebView();
+
+                    await mds.click();
+
+                    await driver.wait(async () => {
+                        const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
+                        let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                        if (fingerprintDialog.length > 0) {
+                            await fingerprintDialog[0].findElement(By.id("accept")).click();
+                            passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                        }
+                        if (passwordDialog.length > 0) {
+                            await passwordDialog[0].findElement(By.css("input")).sendKeys("MySQLR0cks!");
+                            await passwordDialog[0].findElement(By.id("ok")).click();
+
+                            return true;
+                        }
+
+                        return false;
+                    }, 30000, "Dialogs were not displayed");
+
+                    const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
+                        explicitWait, "Confirm dialog was not displayed");
+
+                    await confirmDialog.findElement(By.id("refuse")).click();
+
+                    const result = await Misc.execCmd("select version();", 10000);
+
+                    expect(result[0]).to.include("OK");
+
+                    await driver.switchTo().defaultContent();
+
+                    expect(await Misc.existsTreeElement(ociTreeSection,
+                        "Bastion4PrivateSubnetStandardVnc"))
+                        .to.be.true;
+
+                    expect(await Misc.existsTreeElement(dbTreeSection, "MDSforVSCodeExtension"))
+                        .to.be.true;
+                } finally {
+                    await driver.switchTo().defaultContent();
+                    await Misc.toggleSection(dbTreeSection, true);
+                    await Misc.reloadSection(dbTreeSection);
+                    await Misc.toggleSection(dbTreeSection, false);
+                }
+            } else {
+                await Misc.selectContextMenuItem(ociTreeSection,
+                    "MDSforVSCodeExtension", "Start the DB System");
+
+                const bottomBar = new BottomBarPanel();
+                const outputView = await bottomBar.openOutputView();
+
+                await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", 30000);
+
+                await Misc.verifyNotification("Are you sure you want to start the DB System");
+
+                const workbench = new Workbench();
+                const ntfs = await workbench.getNotifications();
+
+                await ntfs[ntfs.length - 1].takeAction("Yes");
+
+                await Misc.waitForOutputText(outputView, "Waiting for DB System to start", ociExplicitWait);
+
+                await Misc.toggleBottomBar(false);
+
+                this.skip();
             }
+
         });
 
         it("Get Bastion Information and set it as current", async () => {

@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, Key, WebElement } from "selenium-webdriver";
+import { By, until, Key, WebElement, error } from "selenium-webdriver";
 import { driver, explicitWait, Misc } from "./misc";
 
 export class DBConnection {
@@ -837,27 +837,28 @@ export class DBConnection {
      *
      * @returns A promise resolving with the result
      */
-     public static getScriptResult = async (): Promise<string | undefined> => {
+    public static getScriptResult = async (): Promise<string | undefined> => {
         return driver.wait(async () => {
-            const results1 = await driver.findElements(By.css("#resultPaneHost .content .label"));
-            const results2 = await driver.findElements(By.css("#resultPaneHost .resultStatus .label"));
-            let refResults: WebElement[] = [];
-            if (results1.length > 0) {
-                refResults = results1;
-            } else if (results2.length > 0) {
-                refResults = results2;
-            }
-            if (refResults.length > 0) {
-                try {
+            try {
+                const results1 = await driver.findElements(By.css("#resultPaneHost .content .label"));
+                const results2 = await driver.findElements(By.css("#resultPaneHost .resultStatus .label"));
+                let refResults: WebElement[] = [];
+                if (results1.length > 0) {
+                    refResults = results1;
+                } else if (results2.length > 0) {
+                    refResults = results2;
+                }
+                if (refResults.length > 0) {
                     return refResults[0].getText();
-                } catch (e) {
-                    if (typeof(e) === "object" && String(e).includes("StaleElementReferenceError")) {
-                        return undefined;
-                    } else {
-                        throw e;
-                    }
+                }
+            } catch (e) {
+                if (e instanceof error.StaleElementReferenceError) {
+                    return undefined;
+                } else {
+                    throw e;
                 }
             }
+
         }, explicitWait*3, "Not results were found");
     };
 

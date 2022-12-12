@@ -399,49 +399,6 @@ export class Database {
         return editorClasses[2].replace("my", "");
     };
 
-    public static getResultStatus = async (isSelect?: boolean): Promise<string> => {
-        let zoneHosts: WebElement[] | undefined;
-        let block: WebElement;
-        const obj = isSelect ? "label" : "span";
-
-        await driver.wait(
-            async (driver) => {
-                zoneHosts = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
-                    explicitWait, "No zone hosts were found");
-
-                const about = await zoneHosts[0].findElements(By.css("span"));
-
-                // first element is usually the about info
-                if (about.length > 0 && (await about[0].getText()).indexOf("Welcome") !== -1) {
-                    zoneHosts.shift();
-                }
-                if (zoneHosts.length > 0) {
-                    if ((await zoneHosts[0].findElements(By.css(".message.info"))).length > 0) {
-
-                        // if language has been changed...
-                        zoneHosts.shift();
-                    }
-                } else {
-                    return false;
-                }
-
-                return zoneHosts[zoneHosts.length - 1] !== undefined;
-            }, 10000, `Result Status is undefined`,
-        );
-
-        await driver.wait(async () => {
-            try {
-                block = await zoneHosts![zoneHosts!.length - 1].findElement(By.css(obj));
-
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }, 10000, "Result Status content was not found");
-
-        return block!.getAttribute("innerHTML");
-    };
-
     public static clickContextMenuItem = async (refEl: WebElement, item: string): Promise<void> => {
 
         await driver.wait(async () => {
