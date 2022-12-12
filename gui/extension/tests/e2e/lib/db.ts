@@ -26,6 +26,7 @@ import {
     EditorView,
     until,
     Key as selKey,
+    error,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
@@ -49,30 +50,10 @@ export interface IDBConnection {
 
 export class Database {
 
-    public static getExistingConnections = async (): Promise<string[]> => {
-        const sec = await Misc.getSection(dbTreeSection);
-        const els = await sec?.findElements(By.xpath(`//div[@role='treeitem']`));
-        const connections = [];
-        for (const el of els!) {
-            const icon = await el.findElement(By.css(".custom-view-tree-node-item-icon")).getAttribute("style");
-            if (icon.includes("connectionMySQL") || icon.includes("connectionSqlite")) {
-                const text = (await el.getAttribute("aria-label")).trim();
-                connections.push(text);
-            }
-        }
-
-        return connections;
-    };
-
     public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
+
         const createConnBtn = await Misc.getSectionToolbarButton(dbTreeSection, "Create New DB Connection");
         await createConnBtn?.click();
-
-        const editorView = new EditorView();
-
-        await driver.wait(async () => {
-            return (await editorView.getOpenEditorTitles()).includes("DB Connections");
-        }, explicitWait, "'DB Connections' editor was not opened");
 
         await Misc.switchToWebView();
 
@@ -108,12 +89,17 @@ export class Database {
         await driver.switchTo().defaultContent();
     };
 
-    public static getWebViewConnection = async (name: string, useFrame = true): Promise<WebElement> => {
+    public static getWebViewConnection = async (name: string, useFrame = true,
+        webView?: string): Promise<WebElement> => {
 
         if (useFrame) {
             await driver.switchTo().frame(0);
             await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-            await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
+            try {
+                await driver.switchTo().frame(await driver.findElement(By.id(`frame:${String(webView)}`)));
+            } catch (e) {
+                await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
+            }
         }
 
         const db = await driver.wait(async () => {
@@ -165,23 +151,6 @@ export class Database {
         await dialog.findElement(By.id("ok")).click();
     };
 
-    public static setFeedbackRequested = async (
-        dbConfig: IDBConnection, value: string): Promise<void> => {
-
-        const feedbackDialog = await driver.wait(until.elementLocated(
-            By.css(".valueEditDialog")), explicitWait, "Feedback Requested dialog was not found");
-        expect(await feedbackDialog.findElement(By.css(".title label")).getText()).to.equals("Feedback Requested");
-
-        expect(await feedbackDialog.findElement(By.css(".valueTitle")).getText())
-            .to.contain(`${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}`);
-
-        expect(await feedbackDialog.findElement(By.css(".valueTitle")).getText())
-            .to.contain("? [Y]es/[N]o/Ne[v]er (default No):");
-
-        await feedbackDialog.findElement(By.css("input")).sendKeys(value);
-        await feedbackDialog.findElement(By.id("ok")).click();
-    };
-
     public static deleteConnection = async (dbName: string): Promise<void> => {
 
         await Misc.selectContextMenuItem(dbTreeSection, dbName, "Delete DB Connection");
@@ -193,9 +162,7 @@ export class Database {
             return await activeTab?.getTitle() === "DB Connections";
         }, 3000, "error");
 
-        await driver.switchTo().frame(0);
-        await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-        await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
+        await Misc.switchToWebView();
 
         const item = driver.findElement(By.xpath("//label[contains(text(),'" + dbName + "')]"));
         const dialog = await driver.wait(until.elementLocated(
@@ -204,66 +171,6 @@ export class Database {
 
         await driver.wait(until.stalenessOf(item), explicitWait, "Database was not deleted");
         await driver.switchTo().defaultContent();
-    };
-
-    public static openNewNotebook = async (): Promise<void> => {
-        const button = await driver.findElement(By.id("newMenuButton"));
-        await button.click();
-        const notebook = await driver.wait(until.elementLocated(By.id("addEditor")), 2000,
-            "Scripts menu was not opened");
-        await notebook.click();
-    };
-
-    public static getOutput = async (penultimate?: boolean): Promise<string> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        let context;
-        if (penultimate) {
-            context = zoneHosts[zoneHosts.length - 2];
-        } else {
-            context = zoneHosts[zoneHosts.length - 1];
-        }
-
-        let items = await context.findElements(By.css("label"));
-        const otherItems = await context.findElements(By.css(".textHost span"));
-        let text;
-
-        if (items.length > 0) {
-            text = await items[0].getText();
-        } else if (otherItems.length > 0) {
-            text = await otherItems[otherItems.length - 1].getText();
-        } else {
-            items = await context.findElements(By.css(".info"));
-            text = await items[0].getText();
-        }
-
-        return text;
-    };
-
-    public static setEditorLanguage = async (language: string): Promise<void> => {
-
-        const contentHost = await driver.wait(until.elementLocated(
-            By.id("shellEditorHost")), 15000, "Console was not loaded");
-
-        const textArea = await contentHost.findElement(By.css("textarea"));
-        await Misc.execCmd(textArea, "\\" + language.replace("my", ""));
-        const result = await this.getOutput();
-        switch (language) {
-            case "sql": {
-                expect(result).to.contain("Switching to SQL mode");
-                break;
-            }
-            case "js": {
-                expect(result).equals("Switched to JavaScript mode");
-                break;
-            }
-            case "ts": {
-                expect(result).equals("Switched to TypeScript mode");
-                break;
-            }
-            default: {
-                break;
-            }
-        }
     };
 
     public static isConnectionSuccessful = async (connection: string): Promise<boolean> => {
@@ -313,26 +220,118 @@ export class Database {
         throw new Error(`Could not find '${button}' button`);
     };
 
+    public static execQueryByToolbarButton = async (button: string, query?: string,
+        timeout?: number): Promise<Array<string | WebElement | boolean | undefined>> => {
+        const btn = await Database.getToolbarButton(button);
+
+        const lastQueryInfo = await Misc.getLastCmdInfo();
+        const prevBlocksLength = (await driver.findElements(By.css(".zoneHost"))).length;
+        const textArea = driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "text area was not found");
+        if (query) {
+            query = query.replace(/(\r\n|\n|\r)/gm, "");
+            await textArea.sendKeys(query);
+        }
+
+        await btn?.click();
+
+        timeout = timeout ?? 5000;
+
+        let hasNewQueryInfo = false;
+        let blocks: WebElement[] = [];
+
+        query = query ?? "on last cursor position";
+        await driver.wait(async () => {
+            blocks = await driver.findElements(By.css(".zoneHost"));
+            if (blocks.length >= prevBlocksLength) {
+                if (lastQueryInfo) {
+                    const curQueryInfo = await blocks[blocks.length - 1].getAttribute("monaco-view-zone");
+                    hasNewQueryInfo = curQueryInfo !== lastQueryInfo;
+
+                    return hasNewQueryInfo;
+                } else {
+                    return blocks.length > 0;
+                }
+            }
+        }, timeout, `Command '"${query}"' did not triggered a new results block`);
+
+        const toReturn = [];
+        toReturn.push(String(await driver.wait(async () => {
+            return Misc.getLastCmdResult();
+        }, explicitWait, `Could not get the result for query '${query}'`)));
+
+        toReturn.push(await driver.wait(async () => {
+            try {
+                const resultHost = await blocks[blocks.length - 1].findElements(By.css(".resultHost"));
+                if (resultHost.length > 0) {
+                    await resultHost[resultHost.length - 1].getAttribute("innerHTML");
+
+                    return resultHost[resultHost.length - 1];
+                }
+            } catch (e) {
+                if (e instanceof error.StaleElementReferenceError) {
+                    blocks = await driver.findElements(By.css(".zoneHost"));
+
+                    return false;
+                } else {
+                    throw e;
+                }
+            }
+        }, timeout, "Result content was stale or inexistent"));
+
+        return toReturn;
+    };
+
     public static getStatementStarts = async (): Promise<number> => {
         return (await driver.findElements(By.css(".statementStart"))).length;
     };
 
-    public static writeSQL = async (sql: string, wait?: boolean): Promise<void> => {
-        const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
-            explicitWait, "Could not find textarea");
-        const blueDots = await this.getStatementStarts();
-        await textArea.sendKeys(`${sql}`);
+    public static isStatementStart = async (statement: string): Promise <boolean | undefined> => {
 
-        if (wait) {
-            await driver.wait(async () => {
-                return await this.getStatementStarts() > blueDots;
-            }, explicitWait, `'${sql}' did not generated a statement start`);
-        }
+        const getLineSentence = async (ctx: WebElement): Promise<string> => {
+            const spans = await ctx.findElements(By.css("span"));
+            let sentence = "";
+            for (const span of spans) {
+                sentence += (await span.getText()).replace("&nbsp;", " ");
+            }
 
-        const suggestionBox = await driver.findElements(By.css("div.contents"));
-        if (suggestionBox.length > 0) {
-            await textArea.sendKeys(selKey.ESCAPE);
-        }
+            return sentence;
+        };
+
+        let flag: boolean | undefined;
+
+        await driver.wait(async () => {
+            try {
+                const leftSideLines = await driver.findElements(By.css(".margin-view-overlays > div"));
+                const rightSideLines = await driver.findElements(
+                    By.css(".view-lines.monaco-mouse-cursor-text > div > span"));
+
+                let index = -1;
+
+                for (let i=0; i <= rightSideLines.length - 1; i++) {
+                    const lineSentence = await getLineSentence(rightSideLines[i]);
+                    if (lineSentence.includes(statement)) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index === -1) {
+                    throw new Error(`Could not find statement ${statement}`);
+                }
+
+                flag = (await leftSideLines[index].findElements(By.css(".statementStart"))).length > 0;
+
+                return true;
+            } catch (e) {
+                if (e instanceof error.StaleElementReferenceError) {
+                    return false;
+                } else {
+                    throw e;
+                }
+            }
+        }, explicitWait, "Lines were stale");
+
+        return flag;
     };
 
     public static findInSelection = async (el: WebElement, flag: boolean): Promise<void> => {
@@ -393,100 +392,11 @@ export class Database {
         }
     };
 
-    public static getResultTab = async (tabName: string, onScript?: boolean): Promise<WebElement> => {
-        let context;
-        if (onScript) {
-            context = await driver.wait(until.elementsLocated(By.id("resultPaneHost")),
-                explicitWait, "Could not find #resultPaneHost");
-        } else {
-            context = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
-                explicitWait, "Could not find .zoneHost");
-        }
-
-        const tabs = await context[context.length - 1].findElements(By.css(".resultHost .tabArea div"));
-
-        for (const tab of tabs) {
-            if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
-                await tab.getAttribute("id") !== "selectorItemstepUp") {
-                const label = await tab.findElement(By.css("label"));
-                if ((await label.getAttribute("innerHTML")).includes(tabName)) {
-
-                    return tab;
-                }
-            }
-        }
-        throw new Error(`Could not find tab '${tabName}'`);
-    };
-
-    public static getResultColumnName = async (columnName: string): Promise<WebElement | undefined> => {
-
-        const getRows = async () => {
-            const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
-                explicitWait, "No result hosts found");
-
-            const resultSet = await driver.wait(async () => {
-                return (await resultHosts[resultHosts.length - 1].findElements(By.css(".tabulator-headers")))[0];
-            }, explicitWait, "No tabulator-headers detected");
-
-            const resultHeaderRows = await driver.wait(async () => {
-                return resultSet.findElements(By.css(".tabulator-col-title"));
-            }, explicitWait, "No tabulator-col-title detected");
-
-            return resultHeaderRows;
-        };
-
-        return driver.wait(async ()=> {
-            try {
-                const rows = await getRows();
-                for (const row of rows) {
-                    const rowText = await row.getAttribute("innerHTML");
-                    if (rowText === columnName) {
-                        return row;
-                    }
-                }
-            } catch (e) {
-                if (typeof e == "object" && String(e).includes("StaleElementReferenceError")) {
-                    return undefined;
-                } else {
-                    throw e;
-                }
-            }
-        }, explicitWait, "Result was stale");
-
-    };
-
     public static getEditorLanguage = async (): Promise<string> => {
         const editors = await driver.findElements(By.css(".editorPromptFirst"));
         const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
 
         return editorClasses[2].replace("my", "");
-    };
-
-    public static setDBEditorLanguage = async (language: string): Promise<void> => {
-        const curLang = await this.getEditorLanguage();
-        if (curLang !== language) {
-            const contentHost = await driver.findElement(By.id("contentHost"));
-            const textArea = await contentHost.findElement(By.css("textarea"));
-            await Misc.execCmd(textArea, "\\" + language.replace("my", ""));
-            const results = await driver.findElements(By.css(".message.info"));
-            switch (language) {
-                case "sql": {
-                    expect(await results[results.length - 1].getText()).equals("Switched to MySQL mode");
-                    break;
-                }
-                case "js": {
-                    expect(await results[results.length - 1].getText()).equals("Switched to JavaScript mode");
-                    break;
-                }
-                case "ts": {
-                    expect(await results[results.length - 1].getText()).equals("Switched to TypeScript mode");
-                    break;
-                }
-                default: {
-                    break;
-                }
-            }
-        }
     };
 
     public static getResultStatus = async (isSelect?: boolean): Promise<string> => {
@@ -557,21 +467,12 @@ export class Database {
 
                 return true;
             } catch (e) {
-                if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+                if (e instanceof error.StaleElementReferenceError) {
                     return true;
                 }
             }
 
         }, 3000, "Context menu is still displayed");
-    };
-
-    public static getGraphHost = async (): Promise<WebElement> => {
-        const resultHosts = await driver.findElements(By.css(".zoneHost"));
-        const lastResult = resultHosts[resultHosts.length - 1];
-
-        return driver.wait(async () => {
-            return lastResult.findElement(By.css(".graphHost"));
-        }, 10000, "Pie Chart was not displayed");
     };
 
     public static hasNewPrompt = async (): Promise<boolean | undefined> => {
@@ -581,7 +482,7 @@ export class Database {
             const lastPrompt = await prompts[prompts.length - 1].findElement(By.css("span > span"));
             text = await lastPrompt.getText();
         } catch (e) {
-            if (String(e).indexOf("StaleElementReferenceError") === -1) {
+            if (e instanceof error.StaleElementReferenceError) {
                 throw new Error(String(e.stack));
             } else {
                 await driver.sleep(500);
@@ -761,7 +662,7 @@ export class Database {
         try {
             result = await getData();
         } catch (e) {
-            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+            if (e instanceof error.StaleElementReferenceError) {
                 result = await getData();
             } else {
                 throw e;
@@ -803,30 +704,6 @@ export class Database {
         }, 3000, "Current editor did not changed");
     };
 
-    public static getScriptResult = async (): Promise<string | undefined> => {
-        return driver.wait(async () => {
-            const results1 = await driver.findElements(By.css("#resultPaneHost .content .label"));
-            const results2 = await driver.findElements(By.css("#resultPaneHost .resultStatus .label"));
-            let refResults: WebElement[] = [];
-            if (results1.length > 0) {
-                refResults = results1;
-            } else if (results2.length > 0) {
-                refResults = results2;
-            }
-            if (refResults.length > 0) {
-                try {
-                    return refResults[0].getText();
-                } catch (e) {
-                    if (typeof(e) === "object" && String(e).includes("StaleElementReferenceError")) {
-                        return undefined;
-                    } else {
-                        throw e;
-                    }
-                }
-            }
-        }, explicitWait*3, "Not results were found");
-    };
-
     public static collapseAllConnections = async (): Promise<void> => {
         const connections = await this.getExistingConnections();
         for (const conn of connections) {
@@ -849,5 +726,76 @@ export class Database {
             }
         }
         throw new Error(`Could not find the Reload button on connection ${connName}`);
+    };
+
+    public static execScript = async (cmd: string, timeout?: number): Promise<Array<string | WebElement>> => {
+
+        const textArea = await driver?.findElement(By.css("textarea"));
+        await textArea.sendKeys(cmd);
+        await Misc.execOnEditor();
+        timeout = timeout ?? 5000;
+
+        const toReturn: Array<string | WebElement> = [];
+        await driver.wait(async () => {
+            const resultHost = await driver.findElements(By.css(".resultHost"));
+            if (resultHost.length > 0) {
+                const resultStatus = await resultHost[0].findElements(By.css(".resultStatus .label"));
+                if (resultStatus.length > 0) {
+                    toReturn.push(await resultStatus[0].getAttribute("innerHTML"));
+                    toReturn.push(await resultHost[0].findElement(By.css(".resultTabview")));
+
+                    return true;
+                }
+
+
+                const content = await resultHost[0].findElements(By.css(".actionOutput .label"));
+                if (content.length) {
+                    toReturn.push(await content[0].getAttribute("innerHTML"));
+
+                    return true;
+                }
+            }
+        }, timeout, `No results were found from the script execution - '${cmd}'`);
+
+        return toReturn;
+    };
+
+    public static connectToDatabase = async (connectionName: string): Promise<void> => {
+        const treeItem = await Misc.getTreeElement(dbTreeSection, connectionName);
+        const treeItemRect = await treeItem.getRect();
+        await driver.actions().move(
+            {
+                x: treeItemRect.x,
+                y: treeItemRect.y,
+            },
+        ).perform();
+
+
+        const items = await treeItem.findElements(By.css(".actions li"));
+        for (const item of items) {
+            const title = await item.getAttribute("title");
+            if (title.includes("Connect to Database")) {
+                await driver.executeScript("arguments[0].click()", item);
+
+                return;
+            }
+        }
+
+        throw new Error(`Could not find the 'Connent to Database button' for item '${connectionName}'`);
+    };
+
+    private static getExistingConnections = async (): Promise<string[]> => {
+        const sec = await Misc.getSection(dbTreeSection);
+        const els = await sec?.findElements(By.xpath(`//div[@role='treeitem']`));
+        const connections = [];
+        for (const el of els!) {
+            const icon = await el.findElement(By.css(".custom-view-tree-node-item-icon")).getAttribute("style");
+            if (icon.includes("connectionMySQL") || icon.includes("connectionSqlite")) {
+                const text = (await el.getAttribute("aria-label")).trim();
+                connections.push(text);
+            }
+        }
+
+        return connections;
     };
 }

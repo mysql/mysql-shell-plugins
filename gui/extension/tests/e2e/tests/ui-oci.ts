@@ -254,20 +254,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const btn = await Misc.getSectionToolbarButton(consolesTreeSection, "Add a New MySQL Shell Console");
             await btn.click();
 
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
             await Misc.switchToWebView();
 
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
-            const textArea = await driver.findElement(By.css("textArea"));
-            await Misc.execCmd(textArea, "mds.get.currentCompartmentId()", 60000);
+            const result = await Misc.execCmd("mds.get.currentCompartmentId()", 60000);
 
-            const zoneHost = await driver.findElements(By.css(".zoneHost"));
-            const result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getText();
-
-            expect(result).to.equal(compartmentId);
+            expect(result[0]).to.equal(compartmentId);
 
         });
 
@@ -512,11 +505,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 return editors.includes("DB Connections");
             }, explicitWait, "DB Connections was not opened");
 
-            await driver.wait(until.ableToSwitchToFrame(0), explicitWait, "not able to switch to frame 0");
-            await driver.wait(until.ableToSwitchToFrame(
-                By.id("active-frame")), explicitWait, "not able to switch to frame active-frame");
-            await driver.wait(until.ableToSwitchToFrame(
-                By.id("frame:DB Connections")), explicitWait, "not able to switch to frame active-frame");
+            await Misc.switchToWebView();
 
             const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
                 10000, "Connection dialog was not loaded");
@@ -582,16 +571,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                 await confirmDialog.findElement(By.id("refuse")).click();
 
-                const contentHost = await driver.wait(until.elementLocated(By.id("contentHost")),
-                    20000, "Content host not visible");
+                const result = await Misc.execCmd("select version();", 10000);
 
-                const textArea = await contentHost.findElement(By.css("textArea"));
-
-                await Misc.execCmd(textArea, "select version();", 10000);
-
-                const result = await Database.getResultStatus(true);
-
-                expect(result).to.include("OK");
+                expect(result[0]).to.include("OK");
 
                 await driver.switchTo().defaultContent();
 
@@ -646,20 +628,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const btn = await Misc.getSectionToolbarButton(consolesTreeSection, "Add a New MySQL Shell Console");
             await btn.click();
 
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
             await Misc.switchToWebView();
 
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
-            const textArea = await driver.findElement(By.css("textArea"));
-            await Misc.execCmd(textArea, "mds.get.currentBastionId()", 60000);
+            const result = await Misc.execCmd("mds.get.currentBastionId()", 60000);
 
-            const zoneHost = await driver.findElements(By.css(".zoneHost"));
-            const result = await zoneHost[zoneHost.length - 1].findElement(By.css("code")).getText();
-
-            expect(result).to.equal(bastionId);
+            expect(result[0]).to.equal(bastionId);
 
         });
 
@@ -718,5 +693,3 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     });
 
 });
-
-

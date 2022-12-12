@@ -37,6 +37,7 @@ import {
     ITimeouts,
     ActivityBar,
     EditorView,
+    error,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
@@ -313,7 +314,7 @@ export class Misc {
 
                 return (await driver.findElements(By.css(".context-menu-visible"))).length === 0;
             } catch (e) {
-                if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+                if (e instanceof error.StaleElementReferenceError) {
                     return false;
                 }
             }
@@ -450,28 +451,157 @@ export class Misc {
             .perform();
     };
 
-    public static execCmd = async (textArea: WebElement, cmd: string,
-        timeout?: number): Promise<void> => {
-
-        cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
+    public static getLastCmdInfo = async (): Promise<string | undefined> => {
+        await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "Could not find the text area");
         const prevBlocks = await driver.findElements(By.css(".zoneHost"));
+        if (prevBlocks.length > 0) {
+            return prevBlocks[prevBlocks.length - 1].getAttribute("monaco-view-zone");
+        }
+    };
 
-        await textArea.sendKeys(cmd);
+    public static getLastCmdResult = async (): Promise<string | undefined> => {
+        let resultToReturn = "";
 
-        await textArea.sendKeys(key.ENTER);
+        await driver.wait(async () => {
+            try {
+                const blocks = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
+                    explicitWait, "No zone hosts were found");
+                const context = blocks[blocks.length - 1];
 
-        await this.execOnEditor();
+                const resultStatus = await context.findElements(By.css(".resultStatus"));
+                if (resultStatus.length > 0) {
+                    const elements: WebElement[] = await driver.executeScript("return arguments[0].childNodes;",
+                        resultStatus[0]);
 
-        if (!timeout) {
-            timeout = 3000;
+                    resultToReturn = await elements[0].getAttribute("innerHTML");
+
+                    return true;
+                }
+
+                const resultTexts = await context.findElements(By.css(".resultText"));
+                if (resultTexts.length > 0) {
+                    let result = "";
+                    for (const resultText of resultTexts) {
+                        const span = await resultText.findElement(By.css("code span"));
+                        result += await span.getAttribute("innerHTML");
+                    }
+
+                    resultToReturn = result.trim();
+
+                    return true;
+                }
+
+                const actionLabel = await context.findElements(By.css(".actionLabel"));
+                if(actionLabel.length > 0) {
+                    resultToReturn = await actionLabel[0].getAttribute("innerHTML");
+
+                    return true;
+                }
+
+                const actionOutput = await context.findElements(By.css(".actionOutput"));
+                if(actionOutput.length > 0) {
+                    resultToReturn = await actionOutput[0].findElement(By.css(".info")).getAttribute("innerHTML");
+
+                    return true;
+                }
+
+                const graphHost = await context.findElements(By.css(".graphHost"));
+                if(graphHost.length > 0) {
+                    resultToReturn = "graph";
+
+                    return true;
+                }
+
+            } catch (e) {
+                if (e instanceof error.StaleElementReferenceError) {
+                    return false;
+                } else {
+                    throw e;
+                }
+            }
+
+        }, explicitWait, "Result elements were stale");
+
+        return resultToReturn;
+    };
+
+    public static writeCmd = async (sql: string, slowWriting?: boolean): Promise<void> => {
+        const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
+            explicitWait, "Could not find textarea");
+
+        if (slowWriting) {
+            const items = sql.split("");
+            for (const item of items) {
+                await textArea.sendKeys(item);
+                await driver.sleep(20);
+            }
+        } else {
+            await textArea.sendKeys(sql);
         }
 
-        if (cmd !== "\\q" && cmd !== "\\d") {
-            await driver.wait(async () => {
-                const blocks = await driver.findElements(By.css(".zoneHost"));
+    };
 
-                return blocks.length > prevBlocks.length;
-            }, timeout, "Command '" + cmd + "' did not triggered a new results block");
+    public static execCmd = async (cmd: string,
+        timeout?: number, slowWriting?: boolean): Promise<Array<string | WebElement | boolean | undefined>> => {
+
+        cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
+        const lastQueryInfo = await Misc.getLastCmdInfo();
+        const prevBlocksLength = (await driver.findElements(By.css(".zoneHost"))).length;
+
+        await Misc.writeCmd(cmd, slowWriting);
+        await Misc.execOnEditor();
+        timeout = timeout ?? 5000;
+
+        let hasNewQueryInfo = false;
+        let blocks: WebElement[] = [];
+        if (!cmd.includes("\\q") && !cmd.includes("\\disconnect")) {
+            await driver.wait(async () => {
+                blocks = await driver.findElements(By.css(".zoneHost"));
+
+                if (blocks.length >= prevBlocksLength) {
+                    if (lastQueryInfo) {
+                        const curQueryInfo = await blocks[blocks.length - 1].getAttribute("monaco-view-zone");
+                        hasNewQueryInfo = curQueryInfo !== lastQueryInfo;
+
+                        return hasNewQueryInfo;
+                    } else {
+
+                        return blocks.length > 0;
+                    }
+                }
+            }, timeout, `Command '"${cmd}"' did not triggered a new results block`);
+            const toReturn = [];
+            toReturn.push(String(await driver.wait(async () => {
+                return Misc.getLastCmdResult();
+            }, explicitWait, `Could not get the result for query '${cmd}'`)));
+
+            toReturn.push(await driver.wait(async () => {
+                try {
+                    const resultTabview = await blocks[blocks.length - 1].findElements(By.css(".resultTabview"));
+                    const renderTarget = await blocks[blocks.length - 1].findElements(By.css(".renderTarget"));
+                    if (resultTabview.length > 0) {
+                        await resultTabview[resultTabview.length - 1].getAttribute("innerHTML");
+
+                        return resultTabview[resultTabview.length - 1];
+                    } else if  (renderTarget.length > 0) {
+                        await renderTarget[renderTarget.length - 1].getAttribute("innerHTML");
+
+                        return renderTarget[renderTarget.length - 1];
+                    }
+                } catch (e) {
+                    if (e instanceof error.StaleElementReferenceError) {
+                        blocks = await driver.findElements(By.css(".zoneHost"));
+
+                        return false;
+                    } else {
+                        throw e;
+                    }
+                }
+            }, timeout, "Result content was stale or inexistent"));
+
+            return toReturn;
+        } else {
+            return [""];
         }
     };
 
@@ -549,22 +679,27 @@ export class Misc {
     };
 
     public static switchToWebView = async (): Promise<void> => {
-        await driver.wait(until.ableToSwitchToFrame(0), explicitWait, "Not able to switch to frame 0");
-        await driver.wait(until.ableToSwitchToFrame(
-            By.id("active-frame")), explicitWait, "Not able to switch to frame 2");
-        const nextFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
-        await driver.wait(until.ableToSwitchToFrame(
-            By.id(nextFrame)), explicitWait, "Not able to switch to frame 3");
-
-        await driver.wait(async () => {
-            try {
-                await driver.findElements(By.css(".zoneHost"));
-
-                return true;
-            } catch (e) {
-                return false;
+        const iframeDivs = await driver.wait(until.elementsLocated(By.xpath("//div[contains(@id, 'webview-')]")),
+            explicitWait, "No frames were found");
+        let refIframe: WebElement | undefined;
+        for (const iframeDiv of iframeDivs) {
+            const style = await iframeDiv.getAttribute("style");
+            if (style.includes("visibility: visible")) {
+                refIframe = await iframeDiv.findElement(By.css("iframe"));
+                break;
             }
-        }, 10000, "WebView content was not loaded");
+        }
+
+        await driver.wait(until.ableToSwitchToFrame(refIframe as WebElement),
+            explicitWait, "Not able to switch to first iframe");
+
+        await driver.wait(until.ableToSwitchToFrame(
+            By.id("active-frame")), explicitWait, `Not able to switch to 'active-frame'`);
+
+        const webViewFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
+
+        await driver.wait(until.ableToSwitchToFrame(By.id(webViewFrame))
+            ,explicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
     };
 
     public static hasNotifications = async (): Promise<boolean> => {
@@ -573,7 +708,7 @@ export class Misc {
 
             return (await workbench.getNotifications()).length > 0;
         } catch (e) {
-            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+            if (e instanceof error.StaleElementReferenceError) {
                 return false;
             } else {
                 throw e;
@@ -766,6 +901,61 @@ export class Misc {
                 return true;
             }
         }, 15000, "Could not verify certificate installation");
+
+    };
+
+    public static getResultTabs = async (resultHost: WebElement): Promise<string[]> => {
+
+        const result: string[] = [];
+        const tabs = await resultHost.findElements(By.css(".tabArea div"));
+
+        for (const tab of tabs) {
+            if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
+                await tab.getAttribute("id") !== "selectorItemstepUp") {
+
+                const label = await tab.findElement(By.css("label"));
+                const tabLabel = await label.getAttribute("innerHTML");
+                result.push(tabLabel);
+            }
+        }
+
+        return result;
+    };
+
+    public static getResultTab = async (resultHost: WebElement, tabName: string): Promise <WebElement | undefined> => {
+        const tabs = await resultHost.findElements(By.css(".tabArea div"));
+
+        for (const tab of tabs) {
+            if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
+                await tab.getAttribute("id") !== "selectorItemstepUp") {
+
+                const label = await tab.findElement(By.css("label"));
+                const tabLabel = await label.getAttribute("innerHTML");
+                if (tabName === tabLabel) {
+                    return tab;
+                }
+            }
+        }
+    };
+
+    public static getResultColumns = async (resultHost: WebElement): Promise<string[]> => {
+
+        const result = [];
+
+        const resultSet = await driver.wait(async () => {
+            return (await resultHost.findElements(By.css(".tabulator-headers")))[0];
+        }, explicitWait, "No tabulator-headers detected");
+
+        const resultHeaderRows = await driver.wait(async () => {
+            return resultSet.findElements(By.css(".tabulator-col-title"));
+        }, explicitWait, "No tabulator-col-title detected");
+
+        for (const row of resultHeaderRows) {
+            const rowText = await row.getAttribute("innerHTML");
+            result.push(rowText);
+        }
+
+        return result;
 
     };
 
