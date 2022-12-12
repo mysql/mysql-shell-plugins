@@ -1097,8 +1097,8 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.switchToWebView();
 
             const result = await driver.wait(async () => {
-                const res = await Database.getResultStatus(true);
-                if (res.length > 0) {
+                const res = await Misc.getLastCmdResult();
+                if (res!.length > 0) {
                     return res;
                 } else {
                     return false;
@@ -1259,19 +1259,20 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Using a DELIMITER", async () => {
 
+            await Misc.cleanEditor();
             await Misc.writeCmd("DELIMITER $$ ", true);
             const textArea = await driver.findElement(By.css("textarea"));
             await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("select actor_id ", true);
+            await Misc.writeCmd("SELECT ACTOR_ID", true);
             await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("from ");
+            await Misc.writeCmd("FROM ", true);
             await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("sakila.actor limit 1 $$ ");
+            await Misc.writeCmd("SAKILA.ACTOR LIMIT 1 $$", true);
 
             expect(await Database.isStatementStart("DELIMITER $$")).to.be.true;
-            expect(await Database.isStatementStart("select actor_id")).to.be.true;
-            expect(await Database.isStatementStart("from")).to.be.false;
-            expect(await Database.isStatementStart("sakila.actor limit 1 $$")).to.be.false;
+            expect(await Database.isStatementStart("SELECT ACTOR_ID")).to.be.true;
+            expect(await Database.isStatementStart("FROM")).to.be.false;
+            expect(await Database.isStatementStart("SAKILA.ACTOR LIMIT 1 $$")).to.be.false;
 
             await textArea.sendKeys(Key.RETURN);
             await textArea.sendKeys(Key.RETURN);
@@ -1574,7 +1575,7 @@ describe("DATABASE CONNECTIONS", () => {
                 return (await Database.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await Database.getResultStatus(true)).to.match(/OK, (\d+) records retrieved/);
+            expect(await Misc.getLastCmdResult()).to.match(/OK, (\d+) records retrieved/);
 
             expect(await Database.hasNewPrompt()).to.be.false;
 
@@ -1586,7 +1587,7 @@ describe("DATABASE CONNECTIONS", () => {
                 return (await Database.getLastQueryResultId()) > lastId;
             }, 3000, "No new results block was displayed");
 
-            expect(await Database.getResultStatus(true)).to.match(/OK, (\d+) records retrieved/);
+            expect(await Misc.getLastCmdResult()).to.match(/OK, (\d+) records retrieved/);
 
             expect(await Database.hasNewPrompt()).to.be.true;
 
