@@ -183,9 +183,6 @@ describe("DATABASE CONNECTIONS", () => {
             const openConnBrw = await Misc.getSectionToolbarButton(dbTreeSection,
                 "Open the DB Connection Browser");
             await openConnBrw?.click();
-            const editorView = new EditorView();
-            const editor = await editorView.openEditor("DB Connections");
-            expect(await editor.getTitle()).to.equal("DB Connections");
 
             await Misc.switchToWebView();
 
@@ -284,19 +281,24 @@ describe("DATABASE CONNECTIONS", () => {
 
     describe("Context menu items", () => {
 
+        before(async () => {
+            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
+            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
+            await Misc.toggleTreeElement(dbTreeSection, "Tables", true);
+            await Misc.toggleTreeElement(dbTreeSection, "Views", true);
+        });
+
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
             }
 
             await driver.switchTo().defaultContent();
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, false);
-            await new EditorView().closeAllEditors();
-
         });
 
         after(async function () {
             try {
+                await new EditorView().closeAllEditors();
                 await Database.collapseAllConnections();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -322,16 +324,9 @@ describe("DATABASE CONNECTIONS", () => {
         it("Connect to Database in New Tab", async () => {
 
             await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
-                "Connect to Database");
-
-            await Misc.switchToWebView();
-
-            await driver.wait(until.elementLocated(By.css("textarea")), explicitWait);
-
-            await driver.switchTo().defaultContent();
-
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
                 "Connect to Database on New Tab");
+
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -352,6 +347,8 @@ describe("DATABASE CONNECTIONS", () => {
                 return counter === 2;
             }, 5000, "DB Connection second tab was not opened");
 
+            await new EditorView().closeEditor(globalConn.caption);
+
         });
 
         it("Open MySQL Shell Console for this connection", async () => {
@@ -359,13 +356,13 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
                 "Open MySQL Shell Console for this Connection");
 
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
+            await new EditorView().openEditor("MySQL Shell Consoles");
 
             await Misc.switchToWebView();
 
             const item = await driver.wait(until
                 .elementLocated(By.css("code > span")), 10000, "MySQL Shell Console was not loaded");
+
             expect(await item.getText()).to.include("Welcome to the MySQL Shell - GUI Console");
             await driver.switchTo().defaultContent();
 
@@ -397,16 +394,17 @@ describe("DATABASE CONNECTIONS", () => {
             };
 
             await Database.createConnection(localConn);
-            expect(await Database.getWebViewConnection(localConn.caption)).to.exist;
+
+            expect(await Database.getWebViewConnection(localConn.caption, true, globalConn.caption)).to.exist;
+
             const edView = new EditorView();
             await edView.closeEditor("DB Connections");
+
             await Misc.reloadSection(dbTreeSection);
 
             await Misc.selectContextMenuItem(dbTreeSection, localConn.caption, "Edit DB Connection");
 
-            const editorView = new EditorView();
-            const editors = await editorView.getOpenEditorTitles();
-            expect(editors.includes("DB Connections")).to.be.true;
+            await new EditorView().openEditor("DB Connections");
 
             await Misc.switchToWebView();
 
@@ -441,9 +439,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
                 "Duplicate this DB Connection");
 
-            const editorView = new EditorView();
-            const editors = await editorView.getOpenEditorTitles();
-            expect(editors.includes("DB Connections")).to.be.true;
+            await new EditorView().openEditor("DB Connections");
 
             await Misc.switchToWebView();
 
@@ -452,6 +448,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const dup = `Dup${String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000))}`;
 
+            await dialog.findElement(By.id("caption")).clear();
             await dialog.findElement(By.id("caption")).sendKeys(dup);
             const okBtn = await driver.findElement(By.id("ok"));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
@@ -468,68 +465,50 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Schema - Copy name and create statement to clipboard", async () => {
 
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
-                "Open MySQL Shell Console for this Connection");
-
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
-            await Misc.toggleTreeElement(dbTreeSection, "Tables", true);
-
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
-            await Misc.switchToWebView();
-
-            await Database.setEditorLanguage("sql");
-            let editor = await driver.findElement(By.id("shellEditorHost"));
-
-            await driver.switchTo().defaultContent();
+            await Database.connectToDatabase(globalConn.caption);
 
             await Misc.selectContextMenuItem(dbTreeSection, globalConn.schema,
                 "Copy To Clipboard -> Name");
 
-            await Misc.switchToWebView();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
-            );
-
-            editor = await driver.findElement(By.id("shellEditorHost"));
-            let textArea = await editor.findElement(By.css("textarea"));
-
-            if (platform() === "darwin") {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.COMMAND, "v"));
-            } else {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
-            }
-
-            let textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.include(globalConn.schema);
-
-            await driver.switchTo().defaultContent();
-
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.schema,
-                "Copy To Clipboard -> Create Statement");
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
-            editor = await driver.findElement(By.id("shellEditorHost"));
+            let textArea = await driver.wait(until.elementLocated(By.css("textarea")),
+                explicitWait, "Text are not found");
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await driver.findElement(By.css(".current-line")),
             );
 
-            if (platform() === "darwin") {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.COMMAND, "v"));
-            } else {
+            try {
                 await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
+
+                let textAreaValue = await textArea.getAttribute("value");
+                expect(textAreaValue).to.include(globalConn.schema);
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.selectContextMenuItem(dbTreeSection, globalConn.schema,
+                    "Copy To Clipboard -> Create Statement");
+
+                await new EditorView().openEditor(globalConn.caption);
+                await Misc.switchToWebView();
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await driver.findElement(By.css(".current-line")),
+                );
+
+                await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
+
+                textArea = await driver.findElement(By.css("textarea"));
+                textAreaValue = await textArea.getAttribute("value");
+                expect(textAreaValue).to.include("CREATE DATABASE");
+            } finally {
+                await Misc.cleanEditor();
             }
 
-            textArea = await editor.findElement(By.css("textarea"));
-            textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.include("CREATE DATABASE");
 
         });
 
@@ -538,34 +517,23 @@ describe("DATABASE CONNECTIONS", () => {
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testSchema = `testschema${random}`;
 
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
-                "Open MySQL Shell Console for this Connection");
-
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
-            await Database.setEditorLanguage("sql");
-            const editor = await driver.findElement(By.id("shellEditorHost"));
+            await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "DB Editor was not loaded");
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await driver.findElement(By.css(".current-line")),
             );
 
-            const textArea = await editor.findElement(By.css("textArea"));
 
-            await Misc.execCmd(textArea, "call clearSchemas();", 10000);
-            let result = await Database.getOutput();
-            expect(result).to.include("OK");
+            let result = await Misc.execCmd("call clearSchemas();", explicitWait * 2);
+            expect(result[0]).to.include("OK");
 
-            await Misc.execCmd(textArea, `create schema ${testSchema};`);
-
-            result = await Database.getOutput();
-            expect(result).to.include("OK");
+            result = await Misc.execCmd(`create schema ${testSchema};`);
+            expect(result[0]).to.include("OK");
 
             await driver.switchTo().defaultContent();
 
@@ -600,98 +568,69 @@ describe("DATABASE CONNECTIONS", () => {
                     .length === 0;
             }, explicitWait, `${testSchema} is still on the list`);
 
+
         });
 
         it("Table - Show Data", async () => {
 
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
-            await Misc.toggleTreeElement(dbTreeSection, "Tables", true);
-
             await Misc.selectContextMenuItem(dbTreeSection, "actor", "Show Data...");
 
-            const ed = new EditorView();
-            const activeTab = await ed.getActiveTab();
-            expect(await activeTab!.getTitle()).equals(globalConn.caption);
-
-            await Misc.switchToWebView();
-
-            const resultHost = await driver.wait(until.elementLocated(
-                By.css(".resultHost")), 20000, "query results were not found");
-
-            const resultStatus = await driver.wait(async () => {
-                return (await resultHost.findElements(By.css(".resultStatus label")))[0];
-            }, explicitWait, "'.resultStatus label' did not find any element");
-
-            expect(await resultStatus.getText()).to.match(/OK, (\d+) records/);
+            try {
+                await new EditorView().openEditor(globalConn.caption);
+                await Misc.switchToWebView();
+                const result = await Misc.getLastCmdResult();
+                expect(result).to.match(/OK, (\d+) records/);
+            } finally {
+                await Misc.cleanEditor();
+            }
 
         });
 
         it("Table - Copy name and create statement to clipboard", async () => {
 
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
-                "Open MySQL Shell Console for this Connection");
-
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
-            await Misc.toggleTreeElement(dbTreeSection, "Tables", true);
-
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
-            await Misc.switchToWebView();
-
-            await Database.setEditorLanguage("sql");
-            let editor = await driver.findElement(By.id("shellEditorHost"));
-
-            await driver.switchTo().defaultContent();
-
             await Misc.selectContextMenuItem(dbTreeSection, "actor",
                 "Copy To Clipboard -> Name");
 
-            await Misc.switchToWebView();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
-            );
-
-            editor = await driver.findElement(By.id("shellEditorHost"));
-            let textArea = await editor.findElement(By.css("textarea"));
-
-            if (platform() === "darwin") {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.COMMAND, "v"));
-            } else {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
-            }
-
-            let textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.include("actor");
-
-            await driver.switchTo().defaultContent();
-
-            await Misc.selectContextMenuItem(dbTreeSection, "actor",
-                "Copy To Clipboard -> Create Statement");
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
-            editor = await driver.findElement(By.id("shellEditorHost"));
+            await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "DB Editor was not loaded");
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await driver.findElement(By.css(".current-line")),
             );
 
-            if (platform() === "darwin") {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.COMMAND, "v"));
-            } else {
+            let textArea = await driver.findElement(By.css("textarea"));
+
+            try {
                 await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
+
+                let textAreaValue = await textArea.getAttribute("value");
+                expect(textAreaValue).to.include("actor");
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.selectContextMenuItem(dbTreeSection, "actor",
+                    "Copy To Clipboard -> Create Statement");
+
+                await new EditorView().openEditor(globalConn.caption);
+                await Misc.switchToWebView();
+
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await driver.findElement(By.css(".current-line")),
+                );
+
+                await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
+
+                textArea = await driver.findElement(By.css("textarea"));
+                textAreaValue = await textArea.getAttribute("value");
+                expect(textAreaValue).to.include("idx_actor_last_name");
+            } finally {
+                await Misc.cleanEditor();
             }
-
-            textArea = await editor.findElement(By.css("textarea"));
-            textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.include("idx_actor_last_name");
-
         });
 
         it("Drop Table", async () => {
@@ -699,42 +638,21 @@ describe("DATABASE CONNECTIONS", () => {
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testTable = `testtable${random}`;
 
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
-            await Misc.toggleTreeElement(dbTreeSection, "Tables", true);
-
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
-                "Open MySQL Shell Console for this Connection");
-
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
+            await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
 
-            await Database.setEditorLanguage("sql");
-            const editor = await driver.findElement(By.id("shellEditorHost"));
+            await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "DB Editor was not loaded");
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await driver.findElement(By.css(".current-line")),
             );
 
-            const textArea = await editor.findElement(By.css("textArea"));
+            let result = await Misc.execCmd("call clearTables();", 10000);
+            expect(result[0]).to.include("OK");
 
-            await Misc.execCmd(textArea, "call clearTables();", 10000);
-            let result = await Database.getOutput();
-            expect(result).to.include("OK");
-
-            const prevZoneHosts = await driver.findElements(By.css(".zoneHost"));
-
-            await Misc.execCmd(textArea, `create table ${testTable} (id int, name VARCHAR(50));`, explicitWait);
-
-            await driver.wait(async () => {
-                return (await driver.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
-            }, 7000, "New results block was not found");
-
-            result = await Database.getOutput();
-            expect(result).to.include("OK");
+            result = await Misc.execCmd(`create table ${testTable} (id int, name VARCHAR(50));`, explicitWait);
+            expect(result[0]).to.include("OK");
 
             await driver.switchTo().defaultContent();
 
@@ -773,136 +691,83 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Show Data", async () => {
 
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
-            await Misc.toggleTreeElement(dbTreeSection, "Views", true);
-
             await Misc.selectContextMenuItem(dbTreeSection, "test_view", "Show Data...");
 
-            const ed = new EditorView();
-            const activeTab = await ed.getActiveTab();
-            expect(await activeTab!.getTitle()).equals(globalConn.caption);
-
+            await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
 
-            const resultHost = await driver.wait(until.elementLocated(
-                By.css(".resultHost")), 20000, "query results were not found");
+            const result = await Misc.getLastCmdResult();
 
-            const resultStatus = await driver.wait(async () => {
-                return (await resultHost.findElements(By.css(".resultStatus label")))[0];
-            }, explicitWait, "'.resultStatus label' did not find any element");
-
-            expect(await resultStatus.getText()).to.match(/OK, (\d+) records/);
+            expect(result).to.match(/OK, (\d+) records/);
         });
 
         it("View - Copy name and create statement to clipboard", async () => {
 
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
-                "Open MySQL Shell Console for this Connection");
-
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
-            await Misc.toggleTreeElement(dbTreeSection, "Views", true);
-
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
-            await Misc.switchToWebView();
-
-            await Database.setEditorLanguage("sql");
-            let editor = await driver.findElement(By.id("shellEditorHost"));
-
-            await driver.switchTo().defaultContent();
-
             await Misc.selectContextMenuItem(dbTreeSection, "test_view",
                 "Copy To Clipboard -> Name");
 
+            await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
+
+            await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "DB Editor was not loaded");
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await driver.findElement(By.css(".current-line")),
             );
 
-            editor = await driver.findElement(By.id("shellEditorHost"));
-            let textArea = await editor.findElement(By.css("textarea"));
+            try {
+                let textArea = await driver.findElement(By.css("textarea"));
 
-            if (platform() === "darwin") {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.COMMAND, "v"));
-            } else {
                 await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
-            }
 
-            let textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.include("test_view");
+                let textAreaValue = await textArea.getAttribute("value");
+                expect(textAreaValue).to.include("test_view");
 
-            await driver.switchTo().defaultContent();
+                await driver.switchTo().defaultContent();
 
-            await Misc.selectContextMenuItem(dbTreeSection, "test_view",
-                "Copy To Clipboard -> Create Statement");
+                await Misc.selectContextMenuItem(dbTreeSection, "test_view",
+                    "Copy To Clipboard -> Create Statement");
 
-            await Misc.switchToWebView();
+                await new EditorView().openEditor(globalConn.caption);
+                await Misc.switchToWebView();
 
-            editor = await driver.findElement(By.id("shellEditorHost"));
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await driver.findElement(By.css(".current-line")),
+                );
 
-            await driver.executeScript(
-                "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
-            );
-
-            if (platform() === "darwin") {
-                await textArea.sendKeys(seleniumKey.chord(seleniumKey.COMMAND, "v"));
-            } else {
                 await textArea.sendKeys(seleniumKey.chord(seleniumKey.CONTROL, "v"));
-            }
 
-            textArea = await editor.findElement(By.css("textarea"));
-            textAreaValue = await textArea.getAttribute("value");
-            expect(textAreaValue).to.include("DEFINER VIEW");
+                textArea = await driver.findElement(By.css("textarea"));
+                textAreaValue = await textArea.getAttribute("value");
+                expect(textAreaValue).to.include("DEFINER VIEW");
+            } finally {
+                await Misc.cleanEditor();
+            }
 
         });
 
         it("Drop View", async () => {
 
-            await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption,
-                "Open MySQL Shell Console for this Connection");
-
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.caption, true);
-            await Misc.toggleTreeElement(dbTreeSection, globalConn.schema, true);
-            await Misc.toggleTreeElement(dbTreeSection, "Views", true);
-
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["MySQL Shell Consoles"]);
-
+            await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
 
-            await Database.setEditorLanguage("sql");
-            const editor = await driver.findElement(By.id("shellEditorHost"));
+            await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "DB Editor was not loaded");
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await driver.findElement(By.css(".current-line")),
             );
-
-            const textArea = await editor.findElement(By.css("textArea"));
 
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testView = `testview${random}`;
 
-            await Misc.execCmd(textArea, "call clearViews();", 10000);
-            let result = await Database.getOutput();
-            expect(result).to.include("OK");
+            let result = await Misc.execCmd("call clearViews();", explicitWait * 2);
+            expect(result[0]).to.include("OK");
 
-            const prevZoneHosts = await driver.findElements(By.css(".zoneHost"));
-
-            await Misc.execCmd(textArea, `CREATE VIEW ${testView} as select * from sakila.actor;`);
-
-            await driver.wait(async () => {
-                return (await driver.findElements(By.css(".zoneHost"))).length > prevZoneHosts.length;
-            }, 7000, "New results block was not found");
-
-            result = await Database.getOutput();
-            expect(result).to.include("OK");
+            result = await Misc.execCmd(`CREATE VIEW ${testView} as select * from sakila.actor;`);
+            expect(result[0]).to.include("OK");
 
             await driver.switchTo().defaultContent();
 
@@ -965,11 +830,11 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             await driver.switchTo().defaultContent();
-            await new EditorView().closeAllEditors();
         });
 
         after(async function () {
             try {
+                await new EditorView().closeAllEditors();
                 await Database.collapseAllConnections();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1001,6 +866,7 @@ describe("DATABASE CONNECTIONS", () => {
             const savePassDialog = await driver.findElement(By.css(".visible.passwordDialog"));
             await savePassDialog.findElement(By.css("input")).sendKeys(globalConn.password);
             await savePassDialog.findElement(By.id("ok")).click();
+            await conDialog.findElement(By.id("ok")).click();
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -1043,6 +909,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await confirmText.getText()).to.equals("Password was cleared.");
             await confirmDialog.findElement(By.id("accept")).click();
             await driver.wait(until.stalenessOf(confirmDialog), 3000, "Confirm dialog was not closed");
+            await conDialog.findElement(By.id("ok")).click();
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -1053,7 +920,9 @@ describe("DATABASE CONNECTIONS", () => {
                 explicitWait, "Password dialog was not displayed");
 
             expect(passwordDialog).to.exist;
-
+            await passwordDialog.findElement(By.id("cancel")).click();
+            await driver.wait(until.elementLocated(By.css(".errorPanel button")), explicitWait,
+                "Cancellation error dialog was not found").click();
         });
 
         it("Confirm dialog - Save password", async () => {
@@ -1302,49 +1171,22 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(await Database.isConnectionSuccessful(conName)).to.be.true;
 
-            const contentHost = await driver.findElement(By.id("contentHost"));
-            await contentHost
-                .findElement(By.css("textarea"))
-                .sendKeys("SHOW STATUS LIKE 'Ssl_cipher';");
+            const result = await Misc.execCmd("SHOW STATUS LIKE 'Ssl_cipher';");
 
-            const execSel = await Database
-                .getToolbarButton("Execute selection or full block and create a new block");
-            await execSel?.click();
+            expect(result[0]).to.include("1 record retrieved");
 
-            const resultHost = await driver.wait(until.elementLocated(By.css(".resultHost")),
-                explicitWait, "Result host not found");
-
-            const result = await driver.wait(async () => {
-                return (await resultHost.findElements(By.css(".resultStatus label")))[0];
-            }, explicitWait, "Result was not found");
-
-            expect(await result.getText()).to.include("1 record retrieved");
-
-            expect(await resultHost.findElement(By.xpath("//div[contains(text(), 'TLS_AES_256')]"))).to.exist;
+            expect(await (result[1] as WebElement)
+                .findElement(By.xpath("//div[contains(text(), 'TLS_AES_256')]"))).to.exist;
         });
 
     });
 
     describe("DB Editor", () => {
 
-        let textArea: WebElement;
-
         before(async function () {
             try {
-                await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption, "Connect to Database");
+                await Database.connectToDatabase(globalConn.caption);
                 await Misc.switchToWebView();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
-        beforeEach(async function () {
-            try {
-
-                textArea = await driver.wait(until.elementLocated(By.css("textarea")), explicitWait,
-                    "Cound not find textarea");
-
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1355,8 +1197,6 @@ describe("DATABASE CONNECTIONS", () => {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
             }
-
-            await Database.openNewNotebook();
         });
 
         after(async function () {
@@ -1372,281 +1212,148 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Multi-cursor", async () => {
 
-            await Database.writeSQL("select * from sakila.actor;");
-            await driver.actions().sendKeys(Key.ENTER).perform();
-            await Database.writeSQL("select * from sakila.address;");
-            await driver.actions().sendKeys(Key.ENTER).perform();
-            await Database.writeSQL("select * from sakila.city;");
+            try {
+                await Misc.writeCmd("select * from sakila.actor;");
+                await driver.actions().sendKeys(Key.ENTER).perform();
+                await Misc.writeCmd("select * from sakila.address;");
+                await driver.actions().sendKeys(Key.ENTER).perform();
+                await Misc.writeCmd("select * from sakila.city;");
 
-            await driver.actions().keyDown(Key.ALT).perform();
+                await driver.actions().keyDown(Key.ALT).perform();
 
-            const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-            lines.shift();
-            let spans = await lines[0].findElements(By.css("span"));
-            await spans[spans.length - 1].click();
+                const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+                lines.shift();
+                let spans = await lines[0].findElements(By.css("span"));
+                await spans[spans.length - 1].click();
 
-            spans = await lines[1].findElements(By.css("span"));
-            await spans[spans.length - 1].click();
-            await driver.actions().keyUp(Key.ALT).perform();
+                spans = await lines[1].findElements(By.css("span"));
+                await spans[spans.length - 1].click();
+                await driver.actions().keyUp(Key.ALT).perform();
 
-            await driver.actions().sendKeys(Key.BACK_SPACE).perform();
-            await driver.sleep(500);
-            await driver.actions().sendKeys(Key.BACK_SPACE).perform();
-            await driver.sleep(500);
-            await driver.actions().sendKeys(Key.BACK_SPACE).perform();
+                await driver.actions().sendKeys(Key.BACK_SPACE).perform();
+                await driver.sleep(500);
+                await driver.actions().sendKeys(Key.BACK_SPACE).perform();
+                await driver.sleep(500);
+                await driver.actions().sendKeys(Key.BACK_SPACE).perform();
 
-            const contentHost = await driver.findElement(By.id("contentHost"));
-            const textArea = await contentHost.findElement(By.css("textarea"));
+                const contentHost = await driver.findElement(By.id("contentHost"));
+                const textArea = await contentHost.findElement(By.css("textarea"));
 
-            let items = (await textArea.getAttribute("value")).split("\n");
-            items.shift();
-            expect(items[0].length).equals(24);
-            expect(items[1].length).equals(26);
-            expect(items[2].length).equals(23);
+                let items = (await textArea.getAttribute("value")).split("\n");
+                items.shift();
+                expect(items[0].length).equals(24);
+                expect(items[1].length).equals(26);
+                expect(items[2].length).equals(23);
 
-            await textArea.sendKeys("testing");
+                await textArea.sendKeys("testing");
 
-            items = (await textArea.getAttribute("value")).split("\n");
-            items.shift();
-            expect(items[0]).to.include("testing");
-            expect(items[1]).to.include("testing");
-            expect(items[2]).to.include("testing");
-
+                items = (await textArea.getAttribute("value")).split("\n");
+                items.shift();
+                expect(items[0]).to.include("testing");
+                expect(items[1]).to.include("testing");
+                expect(items[2]).to.include("testing");
+            } finally {
+                await Misc.cleanEditor();
+            }
         });
 
         it("Using a DELIMITER", async () => {
 
-            await Database.setDBEditorLanguage("sql");
-
-            textArea = await driver.findElement(By.css("textarea"));
-
-            await Database.writeSQL("DELIMITER $$");
-            const dbEditorLines = await driver.findElements(By.css(".view-line"));
-            await driver.wait(async () => {
-                if (dbEditorLines.length === (await driver.findElements(By.css(".view-line"))).length) {
-                    await textArea.sendKeys(Key.RETURN);
-
-                    return false;
-                } else {
-                    return true;
-                }
-            }, 3000, "New line was not found");
-            await textArea.sendKeys(Key.TAB);
-            await Database.writeSQL("select 2 $$", true);
-            const suggestionBox = await driver.findElements(By.css("div.contents"));
-            if (suggestionBox.length > 0) {
-                await textArea.sendKeys(Key.ESCAPE);
-            }
+            await Misc.writeCmd("DELIMITER $$ ", true);
+            const textArea = await driver.findElement(By.css("textarea"));
             await textArea.sendKeys(Key.RETURN);
-            await textArea.sendKeys(Key.TAB);
-            await Database.writeSQL("select 1");
+            await Misc.writeCmd("select actor_id ", true);
+            await textArea.sendKeys(Key.RETURN);
+            await Misc.writeCmd("from ");
+            await textArea.sendKeys(Key.RETURN);
+            await Misc.writeCmd("sakila.actor limit 1 $$ ");
 
-            await driver.wait(async () => {
-                return (await driver.findElements(By.css(".statementStart"))).length >= 2;
-            }, 10000, "No blue dots were found");
+            expect(await Database.isStatementStart("DELIMITER $$")).to.be.true;
+            expect(await Database.isStatementStart("select actor_id")).to.be.true;
+            expect(await Database.isStatementStart("from")).to.be.false;
+            expect(await Database.isStatementStart("sakila.actor limit 1 $$")).to.be.false;
 
-            let lines = await driver.findElements(By
-                .css("#contentHost .editorHost div.margin-view-overlays > div"));
+            await textArea.sendKeys(Key.RETURN);
+            await textArea.sendKeys(Key.RETURN);
+            await textArea.sendKeys(Key.RETURN);
 
-            try {
-                await lines[lines.length - 1].findElement(By.css(".statementStart"));
-            } catch (e) {
-                //continue, may be stale
-                lines = await driver.findElements(By
-                    .css("#contentHost .editorHost div.margin-view-overlays > div"));
-            }
+            await Misc.writeCmd("select 1 $$ ");
+            expect(await Database.isStatementStart("select 1 $$")).to.be.true;
 
-            await textArea.sendKeys(Key.ARROW_UP);
-            await textArea.sendKeys(Key.ARROW_UP);
-            await textArea.sendKeys(Key.ENTER);
+            const result = await Database
+                .execQueryByToolbarButton("Execute selection or full block and create a new block");
 
-            await driver.wait(async () => {
-                return (await driver.findElements(
-                    By.css("#contentHost .editorHost div.margin-view-overlays > div"))).length > lines.length;
-            }, 10000, "A new line was not found");
-
-            await driver.wait(async () => {
-                try {
-                    const lines = await driver.findElements(
-                        By.css("#contentHost .editorHost div.margin-view-overlays > div"));
-
-                    return (await lines[lines.length - 2].findElements(By.css(".statementStart"))).length === 0;
-                } catch (e) {
-                    return false;
-                }
-            }, explicitWait, "Line 2 has the statement start");
-
-            await textArea.sendKeys("select 1");
-
-            await driver.wait(async () => {
-                try {
-                    const lines = await driver.findElements(
-                        By.css("#contentHost .editorHost div.margin-view-overlays > div"));
-
-                    return (await lines[lines.length - 2].findElements(By.css(".statementStart"))).length > 0;
-                } catch (e) {
-                    return false;
-                }
-            }, explicitWait, "Line 2 does not have the statement start");
-
+            expect(result[0]).to.include("OK");
+            const tabs = await (result[1] as WebElement).findElements(By.css(".tabArea label"));
+            expect(tabs.length).to.equals(2);
+            expect(await tabs[0].getAttribute("innerHTML")).to.include("Result");
+            expect(await tabs[1].getAttribute("innerHTML")).to.include("Result");
         });
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
 
-            await Database.writeSQL("SELECT * FROM ACTOR;");
-            const execSel = await Database
-                .getToolbarButton("Execute selection or full block and create a new block");
-            await execSel?.click();
+            const result = await Database.execQueryByToolbarButton(
+                "Execute selection or full block and create a new block", "SELECT * FROM ACTOR;");
 
-            expect(await Database.getResultStatus(true)).to.match(/(\d+) record/);
+            expect(result[0]).to.match(/(\d+) record/);
             expect(await Database.hasNewPrompt()).to.be.true;
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
 
-            await Database.writeSQL("select * from sakila.actor;");
-            await textArea.sendKeys(Key.RETURN);
+            try {
+                const textArea = await driver.findElement(By.css("textarea"));
+                await Misc.writeCmd("select * from sakila.actor limit 1;", true);
+                await textArea.sendKeys(Key.RETURN);
 
-            await Database.writeSQL("select * from sakila.address;");
-            await textArea.sendKeys(Key.RETURN);
+                await Misc.writeCmd("select * from sakila.address limit 2;");
+                await textArea.sendKeys(Key.RETURN);
 
-            await Database.writeSQL("select * from sakila.category;");
+                await textArea.sendKeys(Key.ARROW_UP);
+                await textArea.sendKeys(Key.ARROW_LEFT);
 
-            await driver.wait(async () => {
-                return (await driver.findElements(By.css(".statementStart"))).length >= 3;
-            }, explicitWait, "Statement start (blue dot) was not found on all lines");
+                let result = await Database.execQueryByToolbarButton("Execute the statement at the caret position");
+                expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("actor_id");
 
-            let lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-            await lines[lines.length - 2].findElement(By.css("span > span")).click();
+                await textArea.sendKeys(Key.ARROW_DOWN);
 
-            let execCaret = await Database.getToolbarButton("Execute the statement at the caret position");
-            await execCaret?.click();
+                result = await Database.execQueryByToolbarButton("Execute the statement at the caret position");
 
-            let resultView = await driver.wait(until.elementLocated(By.css(".resultView")));
-
-            expect(await driver.wait(async () => {
-                return Database.getResultColumnName("address_id");
-            }, 3000, "address_id column does not exist")).to.exist;
-
-            lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-            await lines[lines.length - 3].findElement(By.css("span > span")).click();
-
-            execCaret = await Database.getToolbarButton("Execute the statement at the caret position");
-            await execCaret?.click();
-
-            await driver.wait(until.stalenessOf(resultView), 3000, "Result View did not become stale");
-            resultView = await driver.wait(until.elementLocated(By.css(".resultView")));
-
-            expect(await driver.wait(async () => {
-                return Database.getResultColumnName("actor_id");
-            }, 3000, "actor_id column does not exist")).to.exist;
-
-            lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-            await lines[lines.length - 1].findElement(By.css("span > span")).click();
-
-            execCaret = await Database.getToolbarButton("Execute the statement at the caret position");
-            await execCaret?.click();
-
-            await driver.wait(until.stalenessOf(resultView), 3000, "Result View did not become stale");
-            resultView = await driver.wait(until.elementLocated(By.css(".resultView")));
-
-            expect(await driver.wait(async () => {
-                return Database.getResultColumnName("category_id");
-            }, 3000, "category_id column does not exist")).to.exist;
-
+                expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("address_id");
+            } finally {
+                await Misc.cleanEditor();
+            }
         });
 
         it("Switch between search tabs", async () => {
 
-            await Database.writeSQL("select * from sakila.actor;select * from sakila.address;");
-            const execCaret = await Database
-                .getToolbarButton("Execute selection or full block and create a new block");
-            await execCaret?.click();
+            const result = await Misc
+                .execCmd("select * from sakila.actor limit 1; select * from sakila.address limit 1;", undefined, true);
 
-            await driver.wait(until.elementLocated(By.css(".tabArea")), explicitWait, "Tabs were not found");
+            expect(await Misc.getResultTabs(result[1] as WebElement)).to.have.members(["Result #1", "Result #2"]);
 
-            const result1 = await Database.getResultTab("Result #1");
-
-            const result2 = await Database.getResultTab("Result #2");
+            const result1 = await Misc.getResultTab(result[1] as WebElement, "Result #1");
+            const result2 = await Misc.getResultTab(result[1] as WebElement, "Result #2");
 
             expect(result1).to.exist;
-
             expect(result2).to.exist;
 
-            let resultActorId: WebElement | undefined;
-            let resultFirstName: WebElement | undefined;
-            let resultLastName: WebElement | undefined;
-            let resultLastUpdate: WebElement | undefined;
+            expect(await Misc.getResultColumns(result[1] as WebElement)).to.have.members(["actor_id",
+                "first_name", "last_name", "last_update"]);
 
-            await driver.wait(async () => {
-                try {
-                    resultActorId = await Database.getResultColumnName("actor_id");
-                    resultFirstName = await Database.getResultColumnName("first_name");
-                    resultLastName = await Database.getResultColumnName("last_name");
-                    resultLastUpdate = await Database.getResultColumnName("last_update");
+            await result2!.click();
 
-                    return true;
-
-                } catch (e) {
-                    if (typeof(e) === "object" && String(e).includes("StaleElementReferenceError")) {
-                        return false;
-                    } else {
-                        throw e;
-                    }
-                }
-            }, explicitWait, "Results from result 1 were stale");
-
-            expect(resultActorId).to.exist;
-            expect(resultFirstName).to.exist;
-            expect(resultLastName).to.exist;
-            expect(resultLastUpdate).to.exist;
-
-            await result2.click();
-
-            let resultAddressId: WebElement | undefined;
-            let resultAddress: WebElement | undefined;
-            let resultAddress2: WebElement | undefined;
-            let resultDistrict: WebElement | undefined;
-            let resultCityId: WebElement | undefined;
-            let resultPostalCode: WebElement | undefined;
-
-            await driver.wait(async () => {
-                try {
-                    resultAddressId = await Database.getResultColumnName("address_id");
-                    resultAddress = await Database.getResultColumnName("address");
-                    resultAddress2 = await Database.getResultColumnName("address2");
-                    resultDistrict = await Database.getResultColumnName("district");
-                    resultCityId = await Database.getResultColumnName("city_id");
-                    resultPostalCode = await Database.getResultColumnName("postal_code");
-
-                    return true;
-
-                } catch (e) {
-                    if (typeof(e) === "object" && String(e).includes("StaleElementReferenceError")) {
-                        return false;
-                    } else {
-                        throw e;
-                    }
-                }
-            }, explicitWait, "Results from result 2 were stale");
-
-            expect(resultAddressId).to.exist;
-            expect(resultAddress).to.exist;
-            expect(resultAddress2).to.exist;
-            expect(resultDistrict).to.exist;
-            expect(resultCityId).to.exist;
-            expect(resultPostalCode).to.exist;
+            expect(await Misc.getResultColumns(result[1] as WebElement)).to.include.members(["address_id",
+                "address", "address2", "district", "city_id", "postal_code", "phone", "last_update"]);
 
         });
 
         it("Connect to database and verify default schema", async () => {
 
-            await Misc.execCmd(textArea, "SELECT SCHEMA();");
-            const result = await Database.getResultStatus(true);
-            expect(result).to.include("1 record retrieved");
+            const result = await Misc.execCmd("SELECT SCHEMA();");
+            expect(result[0]).to.include("1 record retrieved");
 
-            const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-            expect(await (await zoneHosts[zoneHosts.length - 1].findElement(By.css(".tabulator-cell"))).getText())
+            expect(await ((result[1] as WebElement).findElement(By.css(".tabulator-cell"))).getText())
                 .to.equals(globalConn.schema);
         });
 
@@ -1659,10 +1366,6 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
-
-            await Misc.execCmd(textArea,
-                `INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}')`);
-
             const commitBtn = await Database.getToolbarButton("Commit DB changes");
             const rollBackBtn = await Database.getToolbarButton("Rollback DB changes");
 
@@ -1672,28 +1375,24 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.elementIsEnabled(rollBackBtn as WebElement),
                 3000, "Commit button should be enabled");
 
-            const execSelNew = await Database.getToolbarButton(
-                "Execute selection or full block and create a new block");
-            await execSelNew?.click();
+            let result = await Misc
+                .execCmd(`INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}')`);
 
-            expect(await Database.getOutput()).to.include("OK");
+            expect(result[0]).to.include("OK");
 
             await rollBackBtn!.click();
 
-            await Misc.execCmd(textArea, `SELECT * FROM sakila.actor WHERE first_name='${random}';`);
+            result = await Misc.execCmd(`SELECT * FROM sakila.actor WHERE first_name='${random}';`);
+            expect(result[0]).to.include("OK, 0 records retrieved");
 
-            expect(await Database.getOutput()).to.include("OK, 0 records retrieved");
-
-            await Misc.execCmd(textArea,
-                `INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}')`);
-
-            expect(await Database.getOutput()).to.include("OK");
+            result = await Misc
+                .execCmd(`INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}')`);
+            expect(result[0]).to.include("OK");
 
             await commitBtn!.click();
 
-            await Misc.execCmd(textArea, `SELECT * FROM sakila.actor WHERE first_name='${random}';`);
-
-            expect(await Database.getResultStatus(true)).to.include("OK, 1 record retrieved");
+            result = await Misc.execCmd(`SELECT * FROM sakila.actor WHERE first_name='${random}';`);
+            expect(result[0]).to.include("OK, 1 record retrieved");
 
             await autoCommit!.click();
 
@@ -1711,131 +1410,135 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Connection toolbar buttons - Find and Replace", async () => {
 
-            const contentHost = await driver.findElement(By.id("contentHost"));
+            try {
+                const contentHost = await driver.findElement(By.id("contentHost"));
 
-            await Database.writeSQL(`import from xpto xpto xpto`);
+                await Misc.writeCmd(`import from xpto xpto xpto`);
 
-            const findBtn = await Database.getToolbarButton("Find");
-            await findBtn!.click();
+                const findBtn = await Database.getToolbarButton("Find");
+                await findBtn!.click();
 
-            const finder = await driver.findElement(By.css(".find-widget"));
+                const finder = await driver.findElement(By.css(".find-widget"));
 
-            expect(await finder.getAttribute("aria-hidden")).equals("false");
+                expect(await finder.getAttribute("aria-hidden")).equals("false");
 
-            await finder.findElement(By.css("textarea")).sendKeys("xpto");
+                await finder.findElement(By.css("textarea")).sendKeys("xpto");
 
-            await Database.findInSelection(finder, false);
+                await Database.findInSelection(finder, false);
 
-            expect(
-                await finder.findElement(By.css(".matchesCount")).getText(),
-            ).to.match(/1 of (\d+)/);
+                expect(
+                    await finder.findElement(By.css(".matchesCount")).getText(),
+                ).to.match(/1 of (\d+)/);
 
-            await driver.wait(
-                until.elementsLocated(By.css(".cdr.findMatch")),
-                2000,
-                "No words found",
-            );
+                await driver.wait(
+                    until.elementsLocated(By.css(".cdr.findMatch")),
+                    2000,
+                    "No words found",
+                );
 
-            //REPLACE
+                await Database.expandFinderReplace(finder, true);
 
-            await Database.expandFinderReplace(finder, true);
+                const replacer = await finder.findElement(By.css(".replace-part"));
 
-            const replacer = await finder.findElement(By.css(".replace-part"));
+                await replacer.findElement(By.css("textarea")).sendKeys("tester");
 
-            await replacer.findElement(By.css("textarea")).sendKeys("tester");
+                await (await Database.replacerGetButton(replacer, "Replace (Enter)"))!.click();
 
-            await (await Database.replacerGetButton(replacer, "Replace (Enter)"))!.click();
+                expect(
+                    await contentHost.findElement(By.css("textarea")).getAttribute("value"),
+                ).to.include("import from tester xpto xpto");
 
-            expect(
-                await contentHost.findElement(By.css("textarea")).getAttribute("value"),
-            ).to.include("import from tester xpto xpto");
+                await replacer.findElement(By.css("textarea")).clear();
 
-            await replacer.findElement(By.css("textarea")).clear();
+                await replacer.findElement(By.css("textarea")).sendKeys("testing");
 
-            await replacer.findElement(By.css("textarea")).sendKeys("testing");
+                await (await Database.replacerGetButton(replacer, "Replace All"))!.click();
 
-            await (await Database.replacerGetButton(replacer, "Replace All"))!.click();
+                expect(
+                    await contentHost.findElement(By.css("textarea")).getAttribute("value"),
+                ).to.include("import from tester testing testing");
 
-            expect(
-                await contentHost.findElement(By.css("textarea")).getAttribute("value"),
-            ).to.include("import from tester testing testing");
+                await Database.closeFinder(finder);
 
-            await Database.closeFinder(finder);
+                expect(await finder.getAttribute("aria-hidden")).equals("true");
 
-            expect(await finder.getAttribute("aria-hidden")).equals("true");
+            } finally {
+                await Misc.cleanEditor();
+            }
+
 
         });
 
         it("Using Math_random on js_py blocks", async () => {
 
-            await Database.setDBEditorLanguage("javascript");
+            try {
+                const textArea = await driver.findElement(By.css("textarea"));
+                const result = await Misc.execCmd("\\js ");
+                expect(result[0]).to.include("Switched to JavaScript mode");
 
-            await Misc.execCmd(textArea, "Math.random();");
+                const result2 = await Misc.execCmd("Math.random();");
+                expect(result2[0]).to.match(/(\d+).(\d+)/);
 
-            const result2 = await Database.getOutput();
+                expect((await Misc.execCmd("\\typescript "))[0]).equals("Switched to TypeScript mode");
 
-            expect(result2).to.match(/(\d+).(\d+)/);
+                const result4 = await Misc.execCmd("Math.random();");
 
-            await Misc.execCmd(textArea, "\\typescript");
+                expect(result4[0]).to.match(/(\d+).(\d+)/);
 
-            expect(await Database.getOutput()).equals("Switched to TypeScript mode");
+                await textArea.sendKeys(Key.ARROW_UP);
 
-            await Misc.execCmd(textArea, "Math.random();");
+                await driver.sleep(500);
 
-            const result4 = await Database.getOutput();
+                await textArea.sendKeys(Key.ARROW_UP);
 
-            expect(result4).to.match(/(\d+).(\d+)/);
+                await driver.sleep(500);
 
-            await textArea.sendKeys(Key.ARROW_UP);
+                await textArea.sendKeys(Key.ARROW_UP);
 
-            await driver.sleep(500);
+                await driver.sleep(500);
 
-            await textArea.sendKeys(Key.ARROW_UP);
+                await textArea.sendKeys(Key.ARROW_UP);
 
-            await driver.sleep(500);
+                await driver.sleep(500);
 
-            await textArea.sendKeys(Key.ARROW_UP);
+                await Misc.execOnEditor();
 
-            await driver.sleep(500);
+                const otherResult = await Misc.getLastCmdResult();
 
-            await textArea.sendKeys(Key.ARROW_UP);
+                expect(otherResult).to.match(/(\d+).(\d+)/);
 
-            await driver.sleep(500);
+                expect(otherResult !== result2[0]).equals(true);
 
-            await Misc.execOnEditor();
+                await textArea.sendKeys(Key.ARROW_DOWN);
 
-            const otherResult = await Database.getOutput(true);
+                await textArea.sendKeys(Key.ARROW_DOWN);
 
-            expect(otherResult).to.match(/(\d+).(\d+)/);
+                await textArea.sendKeys(Key.ARROW_DOWN);
 
-            expect(otherResult !== result2).equals(true);
+                await Misc.execOnEditor();
 
-            await textArea.sendKeys(Key.ARROW_DOWN);
+                const otherResult1 = await Misc.getLastCmdResult();
 
-            await textArea.sendKeys(Key.ARROW_DOWN);
+                expect(otherResult1).to.match(/(\d+).(\d+)/);
 
-            await Misc.execOnEditor();
+                expect(otherResult1 !== result4[0]).equals(true);
 
-            const otherResult1 = await Database.getOutput();
+            } finally {
+                await Misc.cleanEditor();
+            }
 
-            expect(otherResult1).to.match(/(\d+).(\d+)/);
-
-            expect(otherResult1 !== result4).equals(true);
 
         });
 
         it("Multi-line comments", async () => {
 
-            await Database.setDBEditorLanguage("sql");
+            let result = await Misc.execCmd("\\sql ");
+            expect(result[0]).to.include("Switched to MySQL mode");
 
-            await Misc.execCmd(textArea, "SELECT VERSION();");
-            const result = await Database.getResultStatus(true);
-            expect(result).to.include("1 record retrieved");
+            result =  await Misc.execCmd("SELECT VERSION();");
+            expect(result[0]).to.include("1 record retrieved");
 
-            const resultHosts = await driver?.findElements(By.css(".resultHost"));
-
-            const txt = await (await resultHosts[resultHosts.length - 1]
-                .findElement(By.css(".tabulator-cell"))).getText();
+            const txt = await (result[1] as WebElement).findElement(By.css(".tabulator-cell")).getText();
 
             const server = txt.match(/(\d+).(\d+).(\d+)/g)![0];
 
@@ -1847,23 +1550,22 @@ describe("DATABASE CONNECTIONS", () => {
 
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
-            await Misc.execCmd(textArea, `/*!${serverVer} select * from actor;*/`);
+            result = await Misc.execCmd(`/*!${serverVer} select * from actor;*/`);
 
-            expect(await Database.getResultStatus(true)).to.match(/OK, (\d+) records retrieved/);
+            expect(result[0]).to.match(/OK, (\d+) records retrieved/);
 
             const higherServer = parseInt(serverVer, 10) + 1;
 
-            await Misc.execCmd(textArea, `/*!${higherServer} select * from actor;*/`);
+            result = await Misc.execCmd(`/*!${higherServer} select * from actor;*/`);
 
-            expect(await Database.getOutput()).to.include(
-                "OK, 0 records retrieved",
-            );
+            expect(result[0]).to.include("OK, 0 records retrieved");
 
         });
 
         it("Context Menu - Execute", async () => {
 
-            await Database.writeSQL("select * from sakila.actor;");
+            const textArea = await driver.findElement(By.css("textarea"));
+            await Misc.writeCmd("select * from sakila.actor;");
 
             let lastId = await Database.getLastQueryResultId();
             await Database.clickContextMenuItem(textArea, "Execute Block");
@@ -1892,9 +1594,10 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Pie Graph based on DB table", async () => {
 
-            await Database.setDBEditorLanguage("ts");
+            let  result = await Misc.execCmd("\\ts ");
+            expect(result[0]).to.include("Switched to TypeScript mode");
 
-            await Misc.execCmd(textArea, `
+            result = await Misc.execCmd(`
                 runSql("SELECT Name, Capital FROM world_x_cst.country limit 10",(result) => {
                     const options: IGraphOptions = {
                         series: [
@@ -1909,7 +1612,7 @@ describe("DATABASE CONNECTIONS", () => {
                     Graph.render(options);
                 }`);
 
-            const pieChart = await Database.getGraphHost();
+            const pieChart = await (result[1] as WebElement).findElement(By.css(".graphHost"));
 
             const chartColumns = await pieChart.findElements(By.css("rect"));
             for (const col of chartColumns) {
@@ -1924,7 +1627,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         before(async function () {
             try {
-                await Misc.selectContextMenuItem(dbTreeSection, globalConn.caption, "Connect to Database");
+                await Database.connectToDatabase(globalConn.caption);
                 await Misc.switchToWebView();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1958,11 +1661,8 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
             expect(await Database.getCurrentEditorType()).to.equals("mysql");
 
-            const textArea = await driver?.findElement(By.css("textarea"));
-            await textArea?.sendKeys("select * from sakila.actor");
-            const exec = await Database.getToolbarButton("Execute the statement at the caret position");
-            await exec?.click();
-            expect(await Database.getScriptResult()).to.match(/OK, (\d+) records/);
+            const result = await Database.execScript("select * from sakila.actor limit 1;");
+            expect(result[0]).to.match(/OK, (\d+) record/);
 
         });
 
@@ -1971,11 +1671,9 @@ describe("DATABASE CONNECTIONS", () => {
             await Database.addScript("ts");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
             expect(await Database.getCurrentEditorType()).to.equals("typescript");
-            const textArea = await driver?.findElement(By.css("textarea"));
-            await textArea?.sendKeys("Math.random()");
-            const exec = await Database.getToolbarButton("Execute full script");
-            await exec?.click();
-            expect(await Database.getScriptResult()).to.match(/(\d+).(\d+)/);
+
+            const result = await Database.execScript("Math.random()");
+            expect(result[0]).to.match(/(\d+).(\d+)/);
 
         });
 
@@ -1984,11 +1682,9 @@ describe("DATABASE CONNECTIONS", () => {
             await Database.addScript("js");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
             expect(await Database.getCurrentEditorType()).to.equals("javascript");
-            const textArea = await driver?.findElement(By.css("textarea"));
-            await textArea?.sendKeys("Math.random()");
-            const exec = await Database.getToolbarButton("Execute full script");
-            await exec?.click();
-            expect(await Database.getScriptResult()).to.match(/(\d+).(\d+)/);
+
+            const result = await Database.execScript("Math.random()");
+            expect(result[0]).to.match(/(\d+).(\d+)/);
 
         });
 
@@ -2409,5 +2105,3 @@ describe("DATABASE CONNECTIONS", () => {
     });
 
 });
-
-
