@@ -377,7 +377,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                         enabled: true,
                         useBuiltInAuthorization: true,
                         limitToRegisteredUsers: true,
-                        defaultAuthRoleId: undefined,
+                        defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
                     });
                 }
             }

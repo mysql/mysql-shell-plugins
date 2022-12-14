@@ -250,7 +250,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     schema = schemas.get_schema(session=session,
         schema_id=schema_id, auto_select_single=True)
 
-    core.check_request_path(session, request_path)
+    core.check_request_path(session, schema["host_ctx"] + schema["request_path"] + request_path)
 
 
     grant_privileges = []

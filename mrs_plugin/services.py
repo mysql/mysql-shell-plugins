@@ -25,6 +25,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+from .interactive import resolve_service, resolve_options
 
 def verify_value_keys(**kwargs):
     for key in kwargs["value"].keys():
@@ -229,17 +230,19 @@ def add_service(**kwargs):
     if "options" in kwargs:
         kwargs["options"] = lib.core.convert_json(kwargs["options"])
 
-    if "auth_apps" in kwargs:
-        auth_apps = []
-        for app in kwargs.get("auth_apps", []):
-            app = lib.core.convert_json(app)
-            lib.core.convert_ids_to_binary(["id", "auth_vendor_id", "service_id", "default_role_id"], app)
-            auth_apps.append(app)
-        kwargs["auth_apps"] = auth_apps
-
-    options = kwargs.get("options")
-
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        if "auth_apps" in kwargs:
+            auth_apps = []
+            for app in kwargs.get("auth_apps", []):
+                app = lib.core.convert_json(app)
+                lib.core.convert_ids_to_binary(["auth_vendor_id", "service_id", "default_role_id"], app)
+                app["id"] = lib.core.get_sequence_id(session)
+                auth_apps.append(app)
+            kwargs["auth_apps"] = auth_apps
+
+        options = kwargs.get("options")
+
+
         kwargs["session"] = session
         row = lib.core.select(table="service",
             cols="COUNT(*) as service_count"
@@ -253,17 +256,35 @@ def add_service(**kwargs):
         # Get url_host_name
         kwargs = resolve_url_host_name(required=False, **kwargs)
         url_host_name = kwargs["url_host_name"]
+        if url_host_name is None:
+            url_host_name = ""
 
         # Get url_protocol
         kwargs = resolve_url_protocol(required=False, **kwargs)
 
         kwargs = resolve_comments(**kwargs)
 
+        defaultOptions = {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Origin": "*"
+            },
+            "logging": {
+                "request": {
+                    "headers": True,
+                    "body": True
+                },
+                "response": {
+                    "headers": True,
+                    "body": True
+                },
+                "exceptions": True
+            },
+            "returnInternalErrorDetails": True
+        }
 
-        if options is None and lib.core.get_interactive_default():
-            optionsPrompt = lib.core.prompt("Options (in JSON format): ")
-            if optionsPrompt:
-                options = optionsPrompt
+        options = resolve_options(options, defaultOptions)
 
         # Check if any service is active
         lib.core.check_request_path(session, url_host_name + url_context_root)
@@ -282,7 +303,7 @@ def add_service(**kwargs):
                 "url_host_id": url_host_id,
                 "enabled": int(kwargs.get("enabled", True)),
                 "comments": kwargs.get("comments"),
-                "options": kwargs.get("options"),
+                "options": options,
                 "auth_path": kwargs.get("auth_path", '/authentication'),
                 "auth_completed_url": kwargs.get("auth_completed_url"),
                 "auth_completed_url_validation": kwargs.get("auth_completed_url_validation"),
@@ -680,10 +701,7 @@ def get_service_request_path_availability(**kwargs):
     request_path = kwargs.get("request_path")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        if service_id:
-            service = lib.services.get_service(session, service_id=service_id)
-        else:
-            service = lib.services.get_service(session, get_default=True)
+        service = resolve_service(session, service_id, True)
 
         # Get request_path
         if not request_path and lib.core.get_interactive_default():
@@ -696,7 +714,7 @@ def get_service_request_path_availability(**kwargs):
             raise Exception("The request_path has to start with '/'.")
 
         try:
-            lib.core.check_request_path(session, request_path)
+            lib.core.check_request_path(session, service["host_ctx"] + request_path)
         except:
             return False
 

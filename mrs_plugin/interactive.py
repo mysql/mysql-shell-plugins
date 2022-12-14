@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 import mrs_plugin.lib as lib
+import json
 
 def resolve_service(session, service_id=None, required=True):
     service = None
@@ -66,3 +67,30 @@ def resolve_schema(session, schema_id=None, required=True):
 
     return schema
 
+
+def resolve_options(options, default = None):
+    if options:
+        return options
+
+    if lib.core.get_interactive_default():
+        entries = [
+            "Default Service Options for Development",
+            "No options",
+            "Custom options"
+        ]
+
+        selection = lib.core.prompt_for_list_item(
+            item_list=entries,
+            prompt_caption=("Please select how to initialize the options [Default Service Options for Development]"),
+            prompt_default_value=entries[0],
+            given_value=None,
+            print_list=True)
+
+        if selection == "Default Service Options for Development":
+            return default
+        elif selection == "No options":
+            return None
+        elif selection == "Custom options":
+            return json.loads(lib.core.prompt("Options (in JSON format): "))
+
+    return None
