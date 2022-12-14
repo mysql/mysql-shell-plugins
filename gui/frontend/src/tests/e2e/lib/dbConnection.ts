@@ -667,7 +667,7 @@ export class DBConnection {
 
                 return true;
             } catch (e) {
-                if (typeof(e) == "object" && String(e).includes("StaleElementReferenceError")) {
+                if (e instanceof error.StaleElementReferenceError) {
                     return false;
                 } else {
                     throw e;
@@ -798,17 +798,15 @@ export class DBConnection {
             const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
             text = await lastPrompt.getText();
         } catch(e) {
-            if (e instanceof Error) {
-                if (String(e).indexOf("StaleElementReferenceError") === -1) {
-                    throw new Error(String(e.stack));
-                } else {
-                    await driver.sleep(500);
-                    const context = await driver.findElement(By.css(".monaco-editor-background"));
-                    const prompts = await context
-                        .findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-                    const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
-                    text = await lastPrompt.getText();
-                }
+            if (e instanceof error.StaleElementReferenceError) {
+                await driver.sleep(500);
+                const context = await driver.findElement(By.css(".monaco-editor-background"));
+                const prompts = await context
+                    .findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+                const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
+                text = await lastPrompt.getText();
+            } else {
+                throw e;
             }
         }
 
@@ -838,7 +836,8 @@ export class DBConnection {
      * @returns A promise resolving with the result
      */
     public static getScriptResult = async (): Promise<string | undefined> => {
-        return driver.wait(async () => {
+        let result;
+        await driver.wait(async () => {
             try {
                 const results1 = await driver.findElements(By.css("#resultPaneHost .content .label"));
                 const results2 = await driver.findElements(By.css("#resultPaneHost .resultStatus .label"));
@@ -849,7 +848,9 @@ export class DBConnection {
                     refResults = results2;
                 }
                 if (refResults.length > 0) {
-                    return refResults[0].getText();
+                    result = await refResults[0].getText();
+
+                    return result;
                 }
             } catch (e) {
                 if (e instanceof error.StaleElementReferenceError) {
@@ -860,6 +861,8 @@ export class DBConnection {
             }
 
         }, explicitWait*3, "Not results were found");
+
+        return result;
     };
 
 
