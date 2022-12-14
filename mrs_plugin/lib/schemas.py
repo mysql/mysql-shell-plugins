@@ -117,16 +117,6 @@ def update_schema(session, schemas: list, value: dict):
                 f"The specified schema with id {schema_id} was not "
                 "found.")
 
-        # The request_path has to be checked for each schema
-        if "request_path" in value and value["request_path"] != schema.get("request_path"):
-            # validate request_path
-            request_path_value = value["request_path"]
-            if request_path_value is not None and not request_path_value.startswith("/"):
-                raise ValueError(
-                        f"The request_path ('{request_path_value}') has to start with '/'.")
-
-            core.check_request_path(session, request_path_value)
-
         core.update(table="db_schema",
             sets=value,
             where=["id=?"]

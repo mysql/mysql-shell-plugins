@@ -215,7 +215,6 @@ def add_schema(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
-    service_id = kwargs.get("service_id")
     schema_name = kwargs.get("schema_name")
     request_path = kwargs.get("request_path")
     requires_auth = kwargs.get("requires_auth")
@@ -226,7 +225,7 @@ def add_schema(**kwargs):
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session, service_id)
+        service = resolve_service(session, kwargs.get("service_id"))
 
         if not service:
             raise RuntimeError("Operation cancelled. The service was not found.")
@@ -276,7 +275,7 @@ def add_schema(**kwargs):
         lib.core.check_request_path(session, service["host_ctx"] + request_path)
 
         with lib.core.MrsDbTransaction(session):
-            id = lib.schemas.add_schema(schema_name=schema_name, service_id=service_id,
+            id = lib.schemas.add_schema(schema_name=schema_name, service_id=service["id"],
                 request_path=request_path, requires_auth=requires_auth, enabled=enabled,
                 items_per_page=items_per_page, comments=comments, options=options,
                 session=session)

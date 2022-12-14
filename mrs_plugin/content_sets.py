@@ -192,7 +192,6 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                 {'defaultValue': '/content'}).strip()
 
         lib.core.Validations.request_path(request_path, session=session)
-        lib.core.check_request_path(session, service["host_ctx"] + request_path)
 
         # Get the content_dir
         if not content_dir and interactive:
@@ -237,6 +236,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                     lib.core.delete(table="content_set",
                         where="id=?").exec(session, [content_set.get("id")])
 
+            lib.core.check_request_path(session, service["host_ctx"] + request_path)
 
             # Create the content_set, ensure it is created as "not enabled"
             content_set_id = lib.content_sets.add_content_set(session, service.get("id"),

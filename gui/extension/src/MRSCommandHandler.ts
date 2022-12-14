@@ -543,7 +543,7 @@ export class MRSCommandHandler {
             enabled: true,
             useBuiltInAuthorization: true,
             limitToRegisteredUsers: true,
-            defaultRoleId: "0x31000000000000000000000000000000",
+            defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
         };
 
         if (service && (!service.authApps)) {
@@ -561,13 +561,28 @@ export class MRSCommandHandler {
         }
 
         const defaultOptions = {
-            header: {
+            headers: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "Access-Control-Allow-Origin": "*",
             },
+            logging: {
+                request: {
+                    headers: true,
+                    body: true,
+                },
+                response: {
+                    headers: true,
+                    body: true,
+                },
+                exceptions: true,
+            },
+            returnInternalErrorDetails: true,
         };
+
         let serviceOptions = "";
         if (service?.options) {
             serviceOptions = JSON.stringify(service.options);
