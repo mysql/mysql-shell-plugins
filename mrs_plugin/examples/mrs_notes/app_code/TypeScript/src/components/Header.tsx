@@ -41,7 +41,7 @@ export default class Header extends Component<IHeaderProps> {
         return (
             <div className={styles.header}>
                 <Icon name="sakilaIcon" styleClass={styles.sakilaIconStyle}></Icon>
-                <h1 onClick={() => { showPage("notes"); }}>MySQL <span>Notes</span></h1>
+                <h1 onClick={() => { showPage("notes"); }}>MRS <span>Notes</span></h1>
                 <p onClick={() => { showPage("user"); }}>{userNick ?? ""}</p>
                 <Icon name="userIcon" styleClass={styles.userIconStyle} onClick={() => { showPage("user"); }} />
                 <Icon name="exitIcon" styleClass={styles.exitIconStyle} onClick={logout} />

@@ -37,7 +37,7 @@
         return html`
         <div class="header">
           <${Icon} name="sakilaIcon"></Icon>
-          <h1 onClick=${() => showPage("notes")}>MySQL <span>Notes</span></h1>
+          <h1 onClick=${() => showPage("notes")}>MRS <span>Notes</span></h1>
           <p onClick=${() => showPage("user")}>${userNick}</p>
           <${Icon} name="userIcon" onClick=${() => showPage("user")} />
           <${Icon} name="exitIcon" onClick=${() => logout()} />
@@ -166,6 +166,8 @@
 
             // Set a new state of the newNotes to trigger a re-render
             this.setState({ notes: newNotes });
+
+            offset += 10;
           }
 
           // If a new activeNodeId was given or there was an active note, select that note again

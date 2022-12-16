@@ -21,6 +21,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+:root {
+	--note-back-btn-visible: none;
+	--note-splitter-visible: block;
+}
+
+@media screen and (max-width: 600px) {
+	:root {
+		--note-back-btn-visible: block;
+		--note-splitter-visible: none;
+		--focus-color: #D4D4D4 !important;
+	}
+}
+
+@media screen and (max-width: 600px) and (prefers-color-scheme: dark) {
+	:root {
+		--focus-color: #3A3436 !important;
+	}
+}
+
 .notes {
 	display: flex;
 	width: 100%;
@@ -34,13 +53,14 @@
 }
 
 .notes .splitter {
+	display: var(--note-splitter-visible);
 	width: 1px;
 	background-color: var(--splitter-color);
 	cursor: ew-resize;
 }
 
 .notes .note {
-	display: flex;
+	display: var(--force-display, flex);
 	flex-direction: column;
 	flex: 1;
 }
@@ -73,8 +93,19 @@
 	cursor: pointer;
 }
 
+.note .toolbar .backIconStyle {
+	padding-left: 16px;
+	cursor: pointer;
+	display: var(--note-back-btn-visible);
+}
+
 .notes .note .toolbar .spacer {
 	flex: 1;
+}
+
+.notes .note .toolbar .info {
+	color: var(--icon-color);
+	padding-right: 16px;
 }
 
 .noteContent {

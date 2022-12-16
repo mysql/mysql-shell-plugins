@@ -183,6 +183,10 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 if (entry.result.totalRowCount) {
                     result.totalRowCount = entry.result.totalRowCount;
                 }
+
+                if (entry.result.rowsAffected) {
+                    result.rowsAffected = entry.result.rowsAffected;
+                }
             });
 
             return result;

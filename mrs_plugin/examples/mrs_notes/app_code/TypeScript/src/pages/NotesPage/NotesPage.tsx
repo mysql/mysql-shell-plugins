@@ -46,16 +46,18 @@ export interface INote {
 
 interface INotesPageProps {
     doFetch: (input: string | IFetchInput, errorMsg?: string,
-        method?: string, body?: object) => Promise<Response>,
+        method?: string, body?: object) => Promise<Response>;
     showPage: (page: string, forcedUpdate?: boolean) => void;
-    showError: (error: unknown) => void,
+    showError: (error: unknown) => void;
 }
 
 interface INotesPageState {
-    notes: INote[],
-    noteSearchText?: string,
-    activeNote?: INote,
-    pendingInvitation: boolean,
+    notes: INote[];
+    noteSearchText?: string;
+    activeNote?: INote;
+    pendingInvitation: boolean;
+    infoMessage?: string;
+    forceNoteListDisplay?: boolean;
 }
 
 /**
@@ -65,6 +67,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
     private searchTimer: ReturnType<typeof setTimeout> | null;
     private noteContentChangeTimer: ReturnType<typeof setTimeout> | null;
     private checkPendingInvitationTimer: ReturnType<typeof setTimeout> | null;
+    private infoMessageResetTimer: ReturnType<typeof setTimeout> | null;
     private readonly noteInputRef = createRef();
     private addingNote = false;
     private addingNoteTextBuffer: string | null;
@@ -75,12 +78,14 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
         this.state = {
             notes: [],
             pendingInvitation: false,
+            forceNoteListDisplay: window.innerWidth < 600 ? true : undefined,
         };
 
         this.searchTimer = null;
         this.noteContentChangeTimer = null;
         this.addingNote = false;
         this.addingNoteTextBuffer = null;
+        this.infoMessageResetTimer = null;
 
         void this.refreshNotes();
 
@@ -104,6 +109,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
             clearTimeout(this.checkPendingInvitationTimer);
             this.checkPendingInvitationTimer = null;
         }
+
+        if (this.infoMessageResetTimer !== null) {
+            clearTimeout(this.infoMessageResetTimer);
+            this.infoMessageResetTimer = null;
+        }
     };
 
     /**
@@ -113,8 +123,9 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      * fetched separately when the activeNote changes
      *
      * @param activeNoteId The id of the note that should be selected after the refresh
+     * @param selectText If true, the full note text is selected
      */
-    public refreshNotes = async (activeNoteId?: number): Promise<void> => {
+    public refreshNotes = async (activeNoteId?: number, selectText?: boolean): Promise<void> => {
         const { doFetch, showError } = this.props;
         const { notes, activeNote, noteSearchText } = this.state;
 
@@ -153,32 +164,42 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 offset += 10;
             }
 
-            // If a new activeNodeId was given or there was an active note, select that note again
-            const noteId = (activeNoteId !== undefined) ? activeNoteId : activeNote?.id;
-            const newIndex = (noteId !== undefined) ? newNotes.findIndex((note) => { return note.id === noteId; }) : -1;
-            let newActiveNote = newIndex > -1 ? newNotes[newIndex] : null;
+            if (newNotes.length === 0) {
+                this.setState({ forceNoteListDisplay: undefined });
 
-            // If it was not found, select the next note in the list as new activeNote. Otherwise select the
-            // first list entry.
-            if (newActiveNote === null && newNotes.length > 0) {
-                const oldIndex = (noteId !== undefined)
-                    ? notes.findIndex((note) => { return note.id === noteId; })
+                this.setTextAreaFocus();
+            } else {
+                // If a new activeNodeId was given or there was an active note, select that note again
+                const noteId = (activeNoteId !== undefined) ? activeNoteId : activeNote?.id;
+                const newIndex = (noteId !== undefined)
+                    ? newNotes.findIndex((note) => { return note.id === noteId; })
                     : -1;
+                let newActiveNote = newIndex > -1 ? newNotes[newIndex] : null;
 
-                if (oldIndex > -1) {
-                    if (newNotes.length > oldIndex) {
-                        newActiveNote = newNotes[oldIndex];
+                // If it was not found, select the next note in the list as new activeNote. Otherwise select the
+                // first list entry.
+                if (newActiveNote === null && newNotes.length > 0) {
+                    const oldIndex = (noteId !== undefined)
+                        ? notes.findIndex((note) => { return note.id === noteId; })
+                        : -1;
+
+                    if (oldIndex > -1) {
+                        if (newNotes.length > oldIndex) {
+                            newActiveNote = newNotes[oldIndex];
+                        } else {
+                            newActiveNote = newNotes[newNotes.length - 1];
+                        }
                     } else {
-                        newActiveNote = newNotes[newNotes.length - 1];
+                        newActiveNote = newNotes[0];
                     }
-                } else {
-                    newActiveNote = newNotes[0];
                 }
-            }
 
-            // If the activeNote has not already been set above, set it now
-            if (!(activeNoteId !== undefined && activeNote === undefined)) {
-                void this.setActiveNoteById(newActiveNote?.id);
+                // If the activeNote has not already been set above, set it now
+                if (!(activeNoteId !== undefined && activeNote === undefined)) {
+                    void this.setActiveNoteById(newActiveNote?.id, selectText, selectText);
+                } else if (activeNoteId !== undefined) {
+                    this.setTextAreaFocus(selectText);
+                }
             }
         } catch (e) {
             showError(e as Error);
@@ -195,6 +216,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
         const { doFetch, showError } = this.props;
 
         this.addingNote = true;
+        this.setInfoMessage("Adding note...");
 
         try {
             const newNote: INote = await (await doFetch({
@@ -209,13 +231,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 },
             })).json();
 
-            // Refresh the notes and set the new note as new active note
-            await this.refreshNotes(newNote?.id);
+            this.setInfoMessage("Note added.");
 
-            // Select all the text so the user can overwrite the default text easily
-            if (selectText) {
-                this.setTextAreaFocus(true);
-            }
+            // Refresh the notes and set the new note as new active note and select all the text
+            // of the active note so the user can overwrite the default text easily
+            await this.refreshNotes(newNote?.id, selectText);
         } catch (e) {
             showError(e as Error);
         } finally {
@@ -231,12 +251,16 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
     private readonly deleteNote = async (note: INote): Promise<void> => {
         const { doFetch } = this.props;
 
+        this.setInfoMessage("Deleting note...");
+
         await doFetch({
             input: `/mrsNotes/noteDelete`,
             errorMsg: "Failed to delete the note.",
             method: "PUT",
             body: { noteId: note.id },
         });
+
+        this.setInfoMessage("Note deleted.");
     };
 
     /**
@@ -246,6 +270,8 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      */
     private readonly updateNote = async (note: INote): Promise<void> => {
         const { doFetch } = this.props;
+
+        this.setInfoMessage("Updating note...");
 
         // ToDo: Check if update was successfully
         await doFetch({
@@ -261,6 +287,8 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 tags: note.tags,
             },
         });
+
+        this.setInfoMessage("Note updated.");
     };
 
     /**
@@ -268,9 +296,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      *
      * @param noteId The id of the note to set as active note
      * @param setFocus If true, the focus will be set to the notes text
+     * @param selectText If true, the full note text is selected
      */
-    private readonly setActiveNoteById = async (noteId?: number, setFocus?: boolean): Promise<void> => {
-        const { activeNote } = this.state;
+    private readonly setActiveNoteById = async (noteId?: number, setFocus?: boolean,
+        selectText?: boolean): Promise<void> => {
+        const { activeNote, forceNoteListDisplay } = this.state;
         const { doFetch, showError } = this.props;
 
         if (noteId !== undefined) {
@@ -290,22 +320,22 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 })).json();
 
                 // If the note was found, set it as new note
-                this.setState({ activeNote: (notes.items.length > 0) ? notes.items[0] : null },
-                    () => {
-                        // After the activeNote was set, set focus
-                        if (setFocus !== undefined) {
-                            this.setTextAreaFocus();
-                        }
+                this.setState({
+                    activeNote: (notes.items.length > 0) ? notes.items[0] : undefined,
+                    forceNoteListDisplay: (setFocus !== undefined && setFocus) ? undefined : forceNoteListDisplay,
+                }, () => {
+                    // If there was text entered while the activeNote was being set, update the textArea with
+                    // that text
+                    if (this.addingNoteTextBuffer !== null && this.state.activeNote !== undefined) {
+                        this.onActiveNoteContentInput(this.addingNoteTextBuffer);
+                        this.addingNoteTextBuffer = null;
+                    }
 
-                        // If there was text entered while the activeNote was being set, update the textArea with
-                        // that text
-                        if (this.addingNoteTextBuffer !== null) {
-                            this.noteInputRef.current.value = this.addingNoteTextBuffer;
-                            this.addingNoteTextBuffer = null;
-
-                            // ToDo: Trigger refresh timer
-                        }
-                    });
+                    // After the activeNote was set, set focus and if requested, select all text
+                    if (setFocus !== undefined) {
+                        this.setTextAreaFocus(selectText);
+                    }
+                });
             } catch (e) {
                 showError(e as Error);
             }
@@ -320,10 +350,10 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      *
      * @param selectAll If set to true, the whole note text is selected
      */
-    private readonly setTextAreaFocus = (selectAll = false): void => {
+    private readonly setTextAreaFocus = (selectAll?: boolean): void => {
         (this.noteInputRef.current as HTMLInputElement).focus();
 
-        if (selectAll) {
+        if (selectAll !== undefined && selectAll) {
             (this.noteInputRef.current as HTMLInputElement).select();
         }
     };
@@ -359,7 +389,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
         try {
             if (activeNote !== undefined) {
-                await this.deleteNote(activeNote);
+                if (window.confirm(`Are you sure you want to delete the note "${activeNote.title}"?`)) {
+                    await this.deleteNote(activeNote);
+
+                    this.setState({ activeNote: undefined });
+                }
             }
 
             void this.refreshNotes();
@@ -449,6 +483,30 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
     };
 
     /**
+     * Triggers the display of an information message
+     *
+     * @param infoMessage The message to display
+     */
+    private readonly setInfoMessage = (infoMessage: string): void => {
+        if (this.infoMessageResetTimer !== null) {
+            clearTimeout(this.infoMessageResetTimer);
+        }
+
+        this.setState({ infoMessage });
+
+        // Start a 5s timer to reset the infoMessage
+        this.infoMessageResetTimer = setTimeout(() => {
+            this.infoMessageResetTimer = null;
+
+            this.setState({ infoMessage: undefined });
+        }, 5000);
+    };
+
+    private readonly forceNoteListDisplay = (): void => {
+        this.setState({ forceNoteListDisplay: true });
+    };
+
+    /**
      * The component's render function
      *
      * @param props The component's properties
@@ -458,14 +516,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      */
     public render = (props: INotesPageProps, state: INotesPageState): ComponentChild => {
         const { doFetch, showError, showPage } = props;
-        const { notes, activeNote, noteSearchText, pendingInvitation } = state;
-        // Only display the deleteIcon if there is an activeNote
-        const deleteIcon = activeNote !== undefined &&
-            <Icon name="deleteIcon" styleClass={styles.deleteIconStyle}
-                onClick={() => { void this.deleteActiveNote(); }} />;
-        const acceptShareIcon = pendingInvitation &&
-            <Icon name="pendingInvitationIcon" styleClass={styles.pendingInvitationIconStyle}
-                onClick={() => { showPage("notesAcceptShare"); }} />;
+        const { notes, activeNote, noteSearchText, pendingInvitation, infoMessage, forceNoteListDisplay } = state;
         const page = window.location.hash;
 
         return (
@@ -474,17 +525,35 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                     <div className={styles.notes}>
                         <NoteList notes={notes} activeNote={activeNote}
                             noteSearchText={noteSearchText} searchNotes={this.searchNotes}
-                            setActiveNoteById={this.setActiveNoteById} />
+                            setActiveNoteById={this.setActiveNoteById}
+                            style={forceNoteListDisplay !== undefined
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                ? { "--force-display": "flex", "--force-100p": "100%" }
+                                : {}} />
                         <div className={styles.splitter}></div>
-                        <div className={styles.note}>
+                        <div className={styles.note} style={forceNoteListDisplay !== undefined
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            ? { "--force-display": "none" }
+                            : {}}>
                             <div className={styles.toolbar}>
-                                {deleteIcon}
+                                {notes.length > 0 &&
+                                    <Icon name="backIcon" styleClass={styles.backIconStyle}
+                                        onClick={() => { void this.forceNoteListDisplay(); }} />
+                                }
+                                {activeNote !== undefined &&
+                                    <Icon name="deleteIcon" styleClass={styles.deleteIconStyle}
+                                        onClick={() => { void this.deleteActiveNote(); }} />}
                                 <div className={styles.spacer}></div>
-                                {acceptShareIcon}
+                                {infoMessage !== undefined &&
+                                    <div className={styles.info}>{infoMessage}</div>
+                                }
+                                {pendingInvitation &&
+                                    <Icon name="pendingInvitationIcon" styleClass={styles.pendingInvitationIconStyle}
+                                        onClick={() => { showPage("notesAcceptShare"); }} />}
                                 <Icon name="shareIcon" styleClass={styles.shareIconStyle}
                                     onClick={() => { showPage("notesShare"); }} />
                                 <Icon name="addIcon" styleClass={styles.addIconStyle}
-                                    onClick={() => { void this.addNote(); }} />
+                                    onClick={() => { void this.addNote(undefined, true); }} />
                             </div>
                             <div className={styles.noteContent}>
                                 <div className={styles.noteDate} onClick={() => { this.setTextAreaFocus(); }}>
@@ -493,7 +562,9 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                                             undefined, { dateStyle: "long", timeStyle: "short" })
                                         : ""}</div>
                                 <textarea ref={this.noteInputRef}
-                                    value={activeNote !== undefined ? activeNote.content : ""}
+                                    value={activeNote !== undefined
+                                        ? activeNote.content
+                                        : (this.addingNote ? undefined : "")}
                                     onInput={(e) => {
                                         void this.onActiveNoteContentInput((e.target as HTMLInputElement).value);
                                     }} />

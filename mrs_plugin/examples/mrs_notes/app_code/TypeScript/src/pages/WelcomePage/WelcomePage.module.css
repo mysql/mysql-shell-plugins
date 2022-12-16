@@ -35,8 +35,10 @@
 .welcome h1 {
     font-size: 86px;
     font-weight: 500;
-    line-height: 1.04;
+    line-height: 0.84;
     letter-spacing: -.015em;
+    text-align: center;
+    padding-bottom: 15px;
 }
 
 .welcome h2 {
@@ -50,8 +52,8 @@
 }
 
 .productInfo {
-    padding-top: 80px;
-    padding-bottom: 80px;
+    padding-top: 55px;
+    padding-bottom: 55px;
     font-size: 21px;
     font-weight: 400;
     max-width: 500px;
@@ -74,7 +76,6 @@
 }
 
 .loginButtons p {
-    color: red;
     font-weight: 500;
 }
 
