@@ -263,16 +263,30 @@ def configure(session=None, enable_mrs=None):
         print("MySQL Rest Data Service configuration.\n\n"
                 "Checking MRS metadata schema and version...")
 
-    with lib.core.MrsDbSession(session=session) as session:
+    raise_requires_upgrade = enable_mrs is not None
+
+    with lib.core.MrsDbSession(session=session, raise_requires_upgrade=raise_requires_upgrade) as session:
         # Make sure the MRS metadata schema exists and has the right version
         schema_changed = lib.core.get_metadata_schema_updated()
 
-        if interactive:
-            if schema_changed:
+        current_db_version = lib.core.get_mrs_schema_version(session)
+        if current_db_version < lib.general.DB_VERSION:
+            # upgrade required...execute it
+            if interactive:
+                if lib.core.prompt("An upgrade is available for the MRS schema. Upgrade? [y/N]: ",
+                    {'defaultValue': 'n'}).strip().lower() == 'n':
+                    raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
+
+            current_db_version = [str(ver) for ver in current_db_version]
+
+            lib.core.update_rds_metadata_schema(session, ".".join(current_db_version))
+
+            if interactive:
                 print("The MRS metadata has been configured.")
-            else:
+        else:
+            if interactive:
                 print("The MRS metadata is well configured, no changes "
-                      "performed.")
+                    "performed.")
 
         if enable_mrs is not None:
             lib.core.update(table="config", sets="service_enabled=?", where="id=1"
@@ -323,7 +337,8 @@ def status(session=None):
                 return {
                     'service_configured': False,
                     'service_enabled': False,
-                    'service_count': 0
+                    'service_count': 0,
+                    'service_upgradeable': 0,
                 }
         else:
             result = {'service_configured': True}

@@ -283,8 +283,18 @@ def get_current_session(session=None):
 def get_metadata_schema_updated():
     return _metadata_schema_updated
 
+def get_mrs_schema_version(session):
+    row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
+                 ).exec(session).first
 
-def _ensure_mrs_metadata_schema(session):
+    if not row:
+        raise Exception(
+            "Unable to fetch MRS metadata database schema version.")
+
+    return [row["major"], row["minor"], row["patch"]]
+
+
+def _ensure_mrs_metadata_schema(session, raise_requires_upgrade):
     """Creates or updates the MRS metadata schema
 
     Raises exception on failure
@@ -315,20 +325,30 @@ def _ensure_mrs_metadata_schema(session):
         raise Exception(
             "Unable to fetch MRS metadata database schema version.")
 
-    db_version_str = row["version"]
-    if db_version_str != general.DB_VERSION_STR:
-        db_version_num = (100000 * row["major"] +
-                          1000 * row["minor"] +
-                          row["patch"])
+    current_db_version = get_mrs_schema_version(session)
+    if general.DB_VERSION < current_db_version:
+        raise Exception(
+            "Unsupported MRS metadata database schema "
+            f"version {'.'.join(current_db_version)}. "
+            "Please update your MRS Shell Plugin.")
+    elif general.DB_VERSION > current_db_version and raise_requires_upgrade:
+        raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
 
-        if db_version_num > general.DB_VERSION_NUM:
-            raise Exception(
-                "Unsupported MRS metadata database schema "
-                f"version {db_version_str}. "
-                "Please update your MRS Shell Plugin.")
-        else:
-            update_rds_metadata_schema(session, db_version_str)
-            return True
+    # db_version_str = row["version"]
+    # if db_version_str != general.DB_VERSION_STR:
+    #     db_version_num = (100000 * row["major"] +
+    #                       1000 * row["minor"] +
+    #                       row["patch"])
+
+    #     if db_version_num > general.DB_VERSION_NUM:
+    #         raise Exception(
+    #             "Unsupported MRS metadata database schema "
+    #             f"version {db_version_str}. "
+    #             "Please update your MRS Shell Plugin.")
+    #     else:
+    #         update_rds_metadata_schema(session, db_version_str)
+    #         _metadata_schema_updated = True
+    #         return True
 
     return False
 
@@ -657,7 +677,7 @@ def get_current_config(mrs_config=None):
     return mrs_config
 
 
-def prompt(message, options=None):
+def prompt(message, options=None) -> str:
     """Prompts the user for input
 
     Args:
@@ -946,7 +966,7 @@ class MrsDbSession:
         self._session = get_current_session(kwargs.get("session"))
         self._exception_handler = kwargs.get("exception_handler")
 
-        _ensure_mrs_metadata_schema(self._session)
+        _ensure_mrs_metadata_schema(self._session, kwargs.get("raise_requires_upgrade", True))
 
     def __enter__(self):
         return self._session
