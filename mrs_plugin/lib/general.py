@@ -23,6 +23,6 @@
 # Define plugin version
 VERSION = "0.1.29"
 
-DB_VERSION = [1, 0, 28]
+DB_VERSION = [1, 0, 29]
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
