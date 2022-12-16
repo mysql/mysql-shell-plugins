@@ -969,15 +969,15 @@ class MrsDbTransaction:
         self._session = session
 
     def __enter__(self) -> "MrsDbTransaction":
-        self._session.start_transaction()
+        self._session.run_sql("START TRANSACTION")
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback) -> bool:
         if exc_type is None:
-            self._session.commit()
+            self._session.run_sql("COMMIT")
             return
 
-        self._session.rollback()
+        self._session.run_sql("ROLLBACK")
         return False
 
 
