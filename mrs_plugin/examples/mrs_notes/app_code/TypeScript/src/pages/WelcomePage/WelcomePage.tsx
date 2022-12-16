@@ -110,13 +110,21 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
         const notesManaged = (notesServed > 0)
             ? `Managing ${notesServed ?? 0} note${notesServed !== 1 ? "s" : ""} for our users so far.`
             : "Managing notes for you.";
-        const loginOptions = (authApps === undefined || authApps.length === 0)
-            ? <p>No Authentication Apps setup for this MRS Service yet.</p>
-            : authApps.map((authAppName) => {
-                return (
-                    <button key={authAppName} onClick={() => { startLogin(authAppName); }}
-                        className={styles[`btn${authAppName}`]}>Login with {authAppName}</button>);
-            });
+        const loginOptions = (authApps === undefined)
+            ? <p>Loading ...</p>
+            : ((authApps.length === 0)
+                ? <p>No Authentication Apps setup for this MRS Service yet.</p>
+                : <>
+                    <p>Choose one of the following login methods to start.</p>
+                    <div className={styles.loginButtons}>
+                        {authApps.map((authAppName) => {
+                            return (
+                                <button key={authAppName} onClick={() => { startLogin(authAppName); }}
+                                    className={styles[`btn${authAppName}`]}>Login with {authAppName}</button>);
+                        })}
+                    </div>
+                </>
+            );
 
         return (
             <div className="page">
@@ -129,10 +137,7 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
                             note sharing between its users.</p>
                         <p className={styles.marketing}>{notesManaged}</p>
                     </div>
-                    <p>Choose one of the following login methods to start.</p>
-                    <div className={styles.loginButtons}>
-                        {loginOptions}
-                    </div>
+                    {loginOptions}
                 </div>
                 <div className="footer">
                     <p>Copyright (c) 2022, Oracle and/or its affiliates.</p>

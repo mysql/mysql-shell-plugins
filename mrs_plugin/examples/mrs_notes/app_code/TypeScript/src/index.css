@@ -153,6 +153,7 @@ button {
     justify-content: center;
     height: 34px;
     width: 80%;
+    padding-bottom: 10px;
 }
 
 .footer p {
@@ -163,6 +164,8 @@ button {
 .icon {
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    min-height: 24px;
 }
 
 .iconBg {
@@ -212,4 +215,9 @@ button {
 .pendingInvitationIcon {
     -webkit-mask-image: url("/images/pendingInvitation.svg");
     mask-image: url("/images/pendingInvitation.svg");
+}
+
+.backIcon {
+    -webkit-mask-image: url("/images/back.svg");
+    mask-image: url("/images/back.svg");
 }

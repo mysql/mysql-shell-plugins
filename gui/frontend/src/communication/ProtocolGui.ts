@@ -457,6 +457,7 @@ export interface IDbEditorResultSetData {
     rows?: unknown[];
     columns?: Array<{ name: string; type: string; length: number }>;
     totalRowCount?: number;
+    rowsAffected?: number;
 }
 
 /**

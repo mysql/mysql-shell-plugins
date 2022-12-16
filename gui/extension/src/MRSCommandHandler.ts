@@ -543,6 +543,7 @@ export class MRSCommandHandler {
             enabled: true,
             useBuiltInAuthorization: true,
             limitToRegisteredUsers: true,
+            // cSpell:ignore MQAAAAAAAAAAAAAAAAAAAA
             defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
         };
 

@@ -729,7 +729,10 @@ Execute \\help or \\? for help;`;
                 }
 
                 const status: IExecutionInfo = {
-                    text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
+                    text: finalData.rowsAffected
+                        ? `OK, ${formatWithNumber("row", finalData.rowsAffected)} affected. Executed in ` +
+                        `${formatTime(finalData.executionTime)}`
+                        : `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
                         `${formatTime(finalData.executionTime)}`,
                 };
 

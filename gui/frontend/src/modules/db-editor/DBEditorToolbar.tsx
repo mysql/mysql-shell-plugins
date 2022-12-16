@@ -161,7 +161,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         const showHidden = settings.get("editor.showHidden", false);
         const showHiddenIcon = showHidden ? showHiddenActiveIcon : showHiddenInactiveIcon;
 
-        const wordWrap = settings.get("editor.wordWrap", "off");
+        const wordWrap = settings.get("editor.wordWrap", "on");
         const wordWrapIcon = wordWrap === "on" ? wordWrapActiveIcon : wordWrapInactiveIcon;
 
         const leftItems = [...toolbarItems?.left ?? []];

@@ -27,6 +27,7 @@ import { INote } from "./NotesPage";
 import styles from "./NotesList.module.css";
 
 interface INotesListProps {
+    style: {};
     notes: INote[];
     activeNote?: INote;
     noteSearchText?: string;
@@ -39,10 +40,10 @@ interface INotesListProps {
  */
 export default class NoteList extends Component<INotesListProps> {
     public render = (props: INotesListProps): ComponentChild => {
-        const { notes, activeNote, noteSearchText, searchNotes, setActiveNoteById } = props;
+        const { style, notes, activeNote, noteSearchText, searchNotes, setActiveNoteById } = props;
 
         return (
-            <div className={styles.notesSidebar}>
+            <div className={styles.notesSidebar} style={style}>
                 <div className={styles.notesListSearch}>
                     <Icon name="searchIcon" styleClass={styles.searchIconStyle} />
                     <div className={styles.notesListSearchField}>

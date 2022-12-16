@@ -241,17 +241,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="toolbar-word_wrap-inactive.svg"
+              src="toolbar-word_wrap-active.svg"
             >
               <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   Object {
-                    "WebkitMaskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "WebkitMaskImage": "url(toolbar-word_wrap-active.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "maskImage": "url(toolbar-word_wrap-active.svg)",
                     "width": undefined,
                   }
                 }
@@ -509,17 +509,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="toolbar-word_wrap-inactive.svg"
+              src="toolbar-word_wrap-active.svg"
             >
               <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   Object {
-                    "WebkitMaskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "WebkitMaskImage": "url(toolbar-word_wrap-active.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "maskImage": "url(toolbar-word_wrap-active.svg)",
                     "width": undefined,
                   }
                 }

@@ -21,13 +21,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+:root {
+	--notes-sidebar-visibility: flex;
+}
+
+@media screen and (max-width: 600px) {
+	:root {
+		--notes-sidebar-visibility: none;
+	}
+}
+
 .notesSidebar {
-	display: flex;
+	display: var(--force-display, var(--notes-sidebar-visibility));
 	flex-direction: column;
 	padding-top: 16px;
 	padding-left: 16px;
 	padding-right: 16px;
-	width: 250px;
+	width: var(--force-100p, 250px);
 	min-width: 200px;
 	background-color: var(--list-background-color);
 	overflow: none;
