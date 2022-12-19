@@ -21,7 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { promises as fsPromises } from "fs";
 import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { By, until, Key, WebElement } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
@@ -66,15 +65,7 @@ describe("Database Connections", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            const img = await driver.takeScreenshot();
-            const testName: string = expect.getState().currentTestName
-                .toLowerCase().replace(/\s/g, "_");
-            try {
-                await fsPromises.access("src/tests/e2e/screenshots");
-            } catch (e) {
-                await fsPromises.mkdir("src/tests/e2e/screenshots");
-            }
-            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+            await Misc.processFailure();
         }
 
         if (!await DBConnection.isConnectionOverviewOpened()) {
@@ -114,13 +105,17 @@ describe("Database Connections", () => {
                 explicitWait, "Dialog was not displayed");
             await conDialog.findElement(By.id("clearPassword")).click();
 
-            const clearDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
-                explicitWait, "Password cleared dialog was not displayed");
+            await driver.wait(async () => {
+                const clearDialog = await driver.findElements(By.css(".visible.confirmDialog"));
+                if (clearDialog.length > 0) {
+                    const clearDialogText = await clearDialog[0].findElement(By.css(".content .gridCell"));
+                    expect(await clearDialogText.getText()).toBe("Password was cleared.");
+                    await clearDialog[0].findElement(By.id("accept")).click();
 
-            const clearDialogText = await clearDialog.findElement(By.css(".content .gridCell"));
+                    return (await driver.findElements(By.css(".visible.confirmDialog"))).length === 0;
+                }
+            }, explicitWait, "Clear password dialog was not cleared");
 
-            expect(await clearDialogText.getText()).toBe("Password was cleared.");
-            await clearDialog.findElement(By.id("accept")).click();
 
             await conDialog.findElement(By.id("ok")).click();
 
@@ -613,20 +608,9 @@ describe("Database Connections", () => {
 
             await driver.findElement(By.id("selectRowsMenuItem")).click();
 
-            expect(await DBConnection.getResultStatus(true)).toContain("OK");
-
-            const resultSet = await driver.findElement(
-                By.css(".resultHost .tabulator-headers"),
-            );
-
-            const resultHeaderRows = await resultSet.findElements(
-                By.css(".tabulator-col-title"),
-            );
-
-            expect(await resultHeaderRows[0].getText()).toBe("id");
-            expect(await resultHeaderRows[1].getText()).toBe("db_type");
-            expect(await resultHeaderRows[2].getText()).toBe("caption");
-            expect(await resultHeaderRows[3].getText()).toBe("description");
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.includes("OK");
+            }, explicitWait, "Could not get the result content");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -703,8 +687,6 @@ describe("Database Connections", () => {
             }
 
             expect(await DBConnection.getSelectedConnectionTab()).toBe(conName);
-
-            await DBConnection.setEditorLanguage("mysql");
 
             const contentHost = await driver.findElement(By.id("contentHost"));
             await contentHost

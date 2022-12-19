@@ -220,71 +220,6 @@ export class Database {
         throw new Error(`Could not find '${button}' button`);
     };
 
-    public static execQueryByToolbarButton = async (button: string, query?: string,
-        timeout?: number): Promise<Array<string | WebElement | boolean | undefined>> => {
-        const btn = await Database.getToolbarButton(button);
-
-        const lastQueryInfo = await Misc.getLastCmdInfo();
-        const prevBlocksLength = (await driver.findElements(By.css(".zoneHost"))).length;
-        const textArea = driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "text area was not found");
-        if (query) {
-            query = query.replace(/(\r\n|\n|\r)/gm, "");
-            await textArea.sendKeys(query);
-        }
-
-        await btn?.click();
-
-        timeout = timeout ?? 5000;
-
-        let hasNewQueryInfo = false;
-        let blocks: WebElement[] = [];
-
-        query = query ?? "on last cursor position";
-        await driver.wait(async () => {
-            blocks = await driver.findElements(By.css(".zoneHost"));
-            if (blocks.length >= prevBlocksLength) {
-                if (lastQueryInfo) {
-                    const curQueryInfo = await blocks[blocks.length - 1].getAttribute("monaco-view-zone");
-                    hasNewQueryInfo = curQueryInfo !== lastQueryInfo;
-
-                    return hasNewQueryInfo;
-                } else {
-                    return blocks.length > 0;
-                }
-            }
-        }, timeout, `Command '"${query}"' did not triggered a new results block`);
-
-        const toReturn = [];
-        toReturn.push(String(await driver.wait(async () => {
-            return Misc.getLastCmdResult();
-        }, explicitWait, `Could not get the result for query '${query}'`)));
-
-        toReturn.push(await driver.wait(async () => {
-            try {
-                const resultHost = await blocks[blocks.length - 1].findElements(By.css(".resultHost"));
-                if (resultHost.length > 0) {
-                    await resultHost[resultHost.length - 1].getAttribute("innerHTML");
-
-                    return resultHost[resultHost.length - 1];
-                }
-            } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
-                    blocks = await driver.findElements(By.css(".zoneHost"));
-
-                    return false;
-                } else {
-                    throw e;
-                }
-            }
-        }, timeout, "Result content was stale or inexistent"));
-
-        return toReturn;
-    };
-
-    public static getStatementStarts = async (): Promise<number> => {
-        return (await driver.findElements(By.css(".statementStart"))).length;
-    };
-
     public static isStatementStart = async (statement: string): Promise <boolean | undefined> => {
 
         const getLineSentence = async (ctx: WebElement): Promise<string> => {
@@ -392,17 +327,54 @@ export class Database {
         }
     };
 
-    public static getEditorLanguage = async (): Promise<string> => {
-        const editors = await driver.findElements(By.css(".editorPromptFirst"));
-        const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
+    public static getResultStatus = async (isSelect?: boolean): Promise<string> => {
+        let zoneHosts: WebElement[] | undefined;
+        let block: WebElement;
+        const obj = isSelect ? "label" : "span";
 
-        return editorClasses[2].replace("my", "");
-    };
+        await driver.wait(
+            async (driver) => {
+                zoneHosts = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
+                    explicitWait, "No zone hosts were found");
 
-    public static clickContextMenuItem = async (refEl: WebElement, item: string): Promise<void> => {
+                const about = await zoneHosts[0].findElements(By.css("span"));
+
+                // first element is usually the about info
+                if (about.length > 0 && (await about[0].getText()).indexOf("Welcome") !== -1) {
+                    zoneHosts.shift();
+                }
+                if (zoneHosts.length > 0) {
+                    if ((await zoneHosts[0].findElements(By.css(".message.info"))).length > 0) {
+
+                        // if language has been changed...
+                        zoneHosts.shift();
+                    }
+                } else {
+                    return false;
+                }
+
+                return zoneHosts[zoneHosts.length - 1] !== undefined;
+            }, 10000, `Result Status is undefined`,
+        );
 
         await driver.wait(async () => {
-            await driver.actions().contextClick(refEl).perform();
+            try {
+                block = await zoneHosts![zoneHosts!.length - 1].findElement(By.css(obj));
+
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }, 10000, "Result Status content was not found");
+
+        return block!.getAttribute("innerHTML");
+    };
+
+    public static clickContextItem = async (item: string): Promise<void> => {
+
+        await driver.wait(async () => {
+            const textArea = await driver.findElement(By.css("textarea"));
+            await driver.actions().contextClick(textArea).perform();
 
             try {
                 const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").

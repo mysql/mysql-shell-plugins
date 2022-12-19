@@ -258,7 +258,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
-            const result = await Misc.execCmd("mds.get.currentCompartmentId()", 60000);
+            const result = await Misc.execCmd("mds.get.currentCompartmentId()", undefined, 60000);
 
             expect(result[0]).to.equal(compartmentId);
 
@@ -571,7 +571,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                     await confirmDialog.findElement(By.id("refuse")).click();
 
-                    const result = await Misc.execCmd("select version();", 10000);
+                    const result = await Misc.execCmd("select version();", undefined, 10000);
 
                     expect(result[0]).to.include("OK");
 
@@ -606,8 +606,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await ntfs[ntfs.length - 1].takeAction("Yes");
 
                 await Misc.waitForOutputText(outputView, "Waiting for DB System to start", ociExplicitWait);
-
-                await Misc.toggleBottomBar(false);
 
                 this.skip();
             }
@@ -655,7 +653,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
 
-            const result = await Misc.execCmd("mds.get.currentBastionId()", 60000);
+            const result = await Misc.execCmd("mds.get.currentBastionId()", undefined, 60000);
 
             expect(result[0]).to.equal(bastionId);
 

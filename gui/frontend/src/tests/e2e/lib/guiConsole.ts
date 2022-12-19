@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement } from "selenium-webdriver";
+import { By, until, WebElement, error } from "selenium-webdriver";
 import { driver } from "./misc";
 
 export class GuiConsole {
@@ -69,9 +69,7 @@ export class GuiConsole {
                 }
             }
         } catch (e) {
-            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
-                return undefined;
-            } else {
+            if (!(e instanceof error.StaleElementReferenceError)) {
                 throw e;
             }
         }
