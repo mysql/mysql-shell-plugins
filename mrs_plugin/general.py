@@ -270,13 +270,17 @@ def configure(session=None, enable_mrs=None):
         schema_changed = lib.core.get_metadata_schema_updated()
 
         current_db_version = lib.core.get_mrs_schema_version(session)
-        if current_db_version < lib.general.DB_VERSION:
-            # upgrade required...execute it
+        if current_db_version[0] < lib.general.DB_VERSION[0]:
+            # this is a major version upgrade, so there must be user intervention
+            # to proceed with the upgrade
+
             if interactive:
                 if lib.core.prompt("An upgrade is available for the MRS schema. Upgrade? [y/N]: ",
                     {'defaultValue': 'n'}).strip().lower() == 'n':
                     raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
 
+            # if the major upgrade was accepted or it's a minor upgrade,
+            # proceed to execute it
             current_db_version = [str(ver) for ver in current_db_version]
 
             lib.core.update_rds_metadata_schema(session, ".".join(current_db_version))
