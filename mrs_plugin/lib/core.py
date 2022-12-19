@@ -314,7 +314,6 @@ def _ensure_mrs_metadata_schema(session, raise_requires_upgrade):
 
     if row["schema_exists"] == 0:
         create_rds_metadata_schema(session)
-        _metadata_schema_updated = True
         return True
 
     # If it exists, check the version number
@@ -333,22 +332,6 @@ def _ensure_mrs_metadata_schema(session, raise_requires_upgrade):
             "Please update your MRS Shell Plugin.")
     elif general.DB_VERSION > current_db_version and raise_requires_upgrade:
         raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
-
-    # db_version_str = row["version"]
-    # if db_version_str != general.DB_VERSION_STR:
-    #     db_version_num = (100000 * row["major"] +
-    #                       1000 * row["minor"] +
-    #                       row["patch"])
-
-    #     if db_version_num > general.DB_VERSION_NUM:
-    #         raise Exception(
-    #             "Unsupported MRS metadata database schema "
-    #             f"version {db_version_str}. "
-    #             "Please update your MRS Shell Plugin.")
-    #     else:
-    #         update_rds_metadata_schema(session, db_version_str)
-    #         _metadata_schema_updated = True
-    #         return True
 
     return False
 
@@ -966,7 +949,26 @@ class MrsDbSession:
         self._session = get_current_session(kwargs.get("session"))
         self._exception_handler = kwargs.get("exception_handler")
 
-        _ensure_mrs_metadata_schema(self._session, kwargs.get("raise_requires_upgrade", True))
+        try:
+            _ensure_mrs_metadata_schema(self._session, kwargs.get("raise_requires_upgrade", True))
+        except:
+            current_db_version = get_mrs_schema_version(self._session)
+            if current_db_version < general.DB_VERSION and current_db_version[0] == general.DB_VERSION[0]:
+                # this is a minor version upgrade, so no need for user intervention
+
+                # if the major upgrade was accepted or it's a minor upgrade,
+                # proceed to execute it
+                current_db_version = [str(ver) for ver in current_db_version]
+
+                try:
+                    update_rds_metadata_schema(self._session, ".".join(current_db_version))
+                    _metadata_schema_updated = True
+                except:
+                    # be silent of errors when it fails to auto-upgrade
+                    pass
+            else:
+                raise
+
 
     def __enter__(self):
         return self._session
