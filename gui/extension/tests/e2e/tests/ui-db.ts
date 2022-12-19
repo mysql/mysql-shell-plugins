@@ -529,7 +529,7 @@ describe("DATABASE CONNECTIONS", () => {
             );
 
 
-            let result = await Misc.execCmd("call clearSchemas();", explicitWait * 2);
+            let result = await Misc.execCmd("call clearSchemas();", undefined, explicitWait * 2);
             expect(result[0]).to.include("OK");
 
             result = await Misc.execCmd(`create schema ${testSchema};`);
@@ -578,7 +578,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await new EditorView().openEditor(globalConn.caption);
                 await Misc.switchToWebView();
-                const result = await Misc.getLastCmdResult();
+                const result = await Misc.getCmdResultMsg();
                 expect(result).to.match(/OK, (\d+) records/);
             } finally {
                 await Misc.cleanEditor();
@@ -648,10 +648,10 @@ describe("DATABASE CONNECTIONS", () => {
                 await driver.findElement(By.css(".current-line")),
             );
 
-            let result = await Misc.execCmd("call clearTables();", 10000);
+            let result = await Misc.execCmd("call clearTables();", undefined, explicitWait*2);
             expect(result[0]).to.include("OK");
 
-            result = await Misc.execCmd(`create table ${testTable} (id int, name VARCHAR(50));`, explicitWait);
+            result = await Misc.execCmd(`create table ${testTable} (id int, name VARCHAR(50));`);
             expect(result[0]).to.include("OK");
 
             await driver.switchTo().defaultContent();
@@ -696,7 +696,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
 
-            const result = await Misc.getLastCmdResult();
+            const result = await Misc.getCmdResultMsg();
 
             expect(result).to.match(/OK, (\d+) records/);
         });
@@ -763,7 +763,7 @@ describe("DATABASE CONNECTIONS", () => {
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testView = `testview${random}`;
 
-            let result = await Misc.execCmd("call clearViews();", explicitWait * 2);
+            let result = await Misc.execCmd("call clearViews();", undefined, explicitWait * 2);
             expect(result[0]).to.include("OK");
 
             result = await Misc.execCmd(`CREATE VIEW ${testView} as select * from sakila.actor;`);
@@ -1097,8 +1097,8 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.switchToWebView();
 
             const result = await driver.wait(async () => {
-                const res = await Misc.getLastCmdResult();
-                if (res!.length > 0) {
+                const res = await Database.getResultStatus(true);
+                if (res.length > 0) {
                     return res;
                 } else {
                     return false;
@@ -1281,20 +1281,20 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.writeCmd("select 1 $$ ");
             expect(await Database.isStatementStart("select 1 $$")).to.be.true;
 
-            const result = await Database
-                .execQueryByToolbarButton("Execute selection or full block and create a new block");
+            const result = await Misc.execCmd("", "Execute selection or full block and create a new block");
 
             expect(result[0]).to.include("OK");
             const tabs = await (result[1] as WebElement).findElements(By.css(".tabArea label"));
             expect(tabs.length).to.equals(2);
             expect(await tabs[0].getAttribute("innerHTML")).to.include("Result");
             expect(await tabs[1].getAttribute("innerHTML")).to.include("Result");
+
         });
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
 
-            const result = await Database.execQueryByToolbarButton(
-                "Execute selection or full block and create a new block", "SELECT * FROM ACTOR;");
+            const result = await Misc.execCmd("SELECT * FROM ACTOR;",
+                "Execute selection or full block and create a new block");
 
             expect(result[0]).to.match(/(\d+) record/);
             expect(await Database.hasNewPrompt()).to.be.true;
@@ -1313,12 +1313,12 @@ describe("DATABASE CONNECTIONS", () => {
                 await textArea.sendKeys(Key.ARROW_UP);
                 await textArea.sendKeys(Key.ARROW_LEFT);
 
-                let result = await Database.execQueryByToolbarButton("Execute the statement at the caret position");
+                let result = await Misc.execCmd("", "Execute the statement at the caret position");
                 expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("actor_id");
 
                 await textArea.sendKeys(Key.ARROW_DOWN);
 
-                result = await Database.execQueryByToolbarButton("Execute the statement at the caret position");
+                result = await Misc.execCmd("", "Execute the statement at the caret position");
 
                 expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("address_id");
             } finally {
@@ -1329,7 +1329,8 @@ describe("DATABASE CONNECTIONS", () => {
         it("Switch between search tabs", async () => {
 
             const result = await Misc
-                .execCmd("select * from sakila.actor limit 1; select * from sakila.address limit 1;", undefined, true);
+                .execCmd("select * from sakila.actor limit 1; select * from sakila.address limit 1;", undefined,
+                    undefined, true);
 
             expect(await Misc.getResultTabs(result[1] as WebElement)).to.have.members(["Result #1", "Result #2"]);
 
@@ -1504,7 +1505,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await Misc.execOnEditor();
 
-                const otherResult = await Misc.getLastCmdResult();
+                const otherResult = await Misc.getCmdResultMsg();
 
                 expect(otherResult).to.match(/(\d+).(\d+)/);
 
@@ -1518,7 +1519,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await Misc.execOnEditor();
 
-                const otherResult1 = await Misc.getLastCmdResult();
+                const otherResult1 = await Misc.getCmdResultMsg();
 
                 expect(otherResult1).to.match(/(\d+).(\d+)/);
 
@@ -1565,30 +1566,16 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Context Menu - Execute", async () => {
 
-            const textArea = await driver.findElement(By.css("textarea"));
-            await Misc.writeCmd("select * from sakila.actor;");
+            let result = await Misc.execCmdByContextItem("select * from actor limit 1", "Execute Block");
 
-            let lastId = await Database.getLastQueryResultId();
-            await Database.clickContextMenuItem(textArea, "Execute Block");
-
-            await driver.wait(async () => {
-                return (await Database.getLastQueryResultId()) > lastId;
-            }, 3000, "No new results block was displayed");
-
-            expect(await Misc.getLastCmdResult()).to.match(/OK, (\d+) records retrieved/);
-
+            expect(result[0]).to.match(/OK, (\d+) record retrieved/);
             expect(await Database.hasNewPrompt()).to.be.false;
 
-            lastId = await Database.getLastQueryResultId();
+            await Misc.cleanEditor();
 
-            await Database.clickContextMenuItem(textArea, "Execute Block and Advance");
+            result = await Misc.execCmdByContextItem("select * from actor limit 1", "Execute Block and Advance");
 
-            await driver.wait(async () => {
-                return (await Database.getLastQueryResultId()) > lastId;
-            }, 3000, "No new results block was displayed");
-
-            expect(await Misc.getLastCmdResult()).to.match(/OK, (\d+) records retrieved/);
-
+            expect(result[0]).to.match(/OK, (\d+) record retrieved/);
             expect(await Database.hasNewPrompt()).to.be.true;
 
         });

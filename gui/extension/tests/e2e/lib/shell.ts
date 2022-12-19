@@ -82,18 +82,6 @@ export class Shell {
         return false;
     };
 
-    public static getServerTabStatus = async (): Promise<string> => {
-        const server = await driver.findElement(By.id("server"));
-
-        return server.getAttribute("data-tooltip");
-    };
-
-    public static getSchemaTabStatus = async (): Promise<string> => {
-        const schema = await driver.findElement(By.id("schema"));
-
-        return schema.getAttribute("innerHTML");
-    };
-
     public static changeSchemaOnTab = async (schema: string): Promise<void> => {
         const tabSchema = await driver.findElement(By.id("schema"));
         await tabSchema.click();

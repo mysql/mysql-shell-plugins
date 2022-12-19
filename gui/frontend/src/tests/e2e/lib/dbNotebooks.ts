@@ -54,18 +54,6 @@ export class DBNotebooks {
     };
 
     /**
-     * Selects the SSL Mode on the Database Connection Configuration dialog
-     *
-     * @param value SSL Mode
-     * @returns Promise resolving when the select is made
-     */
-    public static setSSLMode = async (value: string): Promise<void> => {
-        await driver.findElement(By.id("sslMode")).click();
-        const dropDownList = await driver.findElement(By.css(".dropdownList"));
-        await dropDownList.findElement(By.id(value)).click();
-    };
-
-    /**
      * Creates a new database connection, from the DB Editor main page.
      * It verifies that the Connection dialog is closed, at the end.
      *
@@ -102,12 +90,19 @@ export class DBNotebooks {
             .sendKeys(String(dbConfig.schema));
         if (clearPassword) {
             await newConDialog.findElement(By.id("clearPassword")).click();
-            try {
-                const dialog = await driver.wait(until.elementsLocated(By.css(".errorPanel")), 500, "");
-                await dialog[0].findElement(By.css("button")).click();
-            } catch (e) {
-            //continue
-            }
+            await driver.wait(async () => {
+                try {
+                    const dialog = await driver.findElements(By.css(".errorPanel, .confirmDialog"));
+                    if (dialog.length > 0) {
+                        await dialog[0].findElement(By.css("button")).click();
+
+                        return (await driver.findElements(By.css(".errorPanel"))).length === 0;
+                    }
+                } catch (e) {
+                    //continue
+                }
+            }, explicitWait, "Clear password dialog/Error dialog is still visible");
+
         }
         if (storePassword) {
             const storeBtn = await newConDialog.findElement(By.id("storePassword"));

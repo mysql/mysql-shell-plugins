@@ -184,12 +184,8 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.processFailure(this);
             }
 
-            await Misc.execCmd(`\\disconnect `);
-            await driver.wait(async () => {
-                const text = await Shell.getServerTabStatus();
-
-                return text === "The session is not connected to a MySQL server";
-            }, explicitWait, "Session tab text is not disconnected");
+            const result = await Misc.execCmd(`\\disconnect `);
+            expect(result[0] === "" || result[0] === "Already disconnected.").to.be.true;
 
         });
 
@@ -216,18 +212,20 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             expect(result[0]).to.include(connUri);
 
-            expect(result[0]).to.match(/Server version: (\d+).(\d+).(\d+)/);
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.match(/Server version: (\d+).(\d+).(\d+)/);
+            }, explicitWait, `'/Server version: (\\d+).(\\d+).(\\d+)/' was not matched`);
 
-            expect(result[0]).to.include(
-                `Default schema set to \`${globalConn.schema}\`.`,
-            );
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.includes(`Default schema set to \`${globalConn.schema}\`.`);
+            }, explicitWait, `Could not find 'Default schema set to \`${globalConn.schema}\`.'`);
 
-            connUri = `Connection to server ${globalConn.hostname} at port ${globalConn.port},`;
-            connUri += ` using the classic protocol`;
-
-            expect(await Shell.getServerTabStatus()).equals(connUri);
-
-            expect(await Shell.getSchemaTabStatus()).to.include(globalConn.schema);
+            const server = await driver.wait(until.elementLocated(By.id("server")), explicitWait);
+            const schema = await driver.wait(until.elementLocated(By.id("schema")), explicitWait);
+            await driver.wait(until.elementTextContains(server, `${globalConn.hostname}:${globalConn.port}`),
+                explicitWait, `Server tab does not contain '${globalConn.hostname}:${globalConn.port}'`);
+            await driver.wait(until.elementTextContains(schema, `${globalConn.schema}`),
+                explicitWait, `Schema tab does not contain '${globalConn.schema}'`);
 
         });
 
@@ -236,7 +234,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             let uri = `\\c ${String(shellConn.username)}@${String(shellConn.hostname)}:`;
             uri += `${String(shellConn.port)}/${String(shellConn.schema)}`;
 
-            const lastQueryInfo = await Misc.getLastCmdInfo();
+            const nextResultBlock = await Misc.getNextResultBlockId();
             const textArea = driver.findElement(By.css("textarea"));
             await textArea.sendKeys(uri);
             await Misc.execOnEditor();
@@ -245,75 +243,71 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Misc.setConfirmDialog(shellConn, "no");
 
-            let hasNewQueryInfo = false;
-            let blocks: WebElement[] = [];
             await driver.wait(async () => {
-                blocks = await driver.findElements(By.css(".zoneHost"));
-                const curQueryInfo = await blocks[blocks.length - 1].getAttribute("monaco-view-zone");
-                hasNewQueryInfo = curQueryInfo !== lastQueryInfo;
+                const next = await driver
+                    .findElements(
+                        By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${String(nextResultBlock)}']`));
 
-                return hasNewQueryInfo;
+                return next.length > 0;
             },  explicitWait, "Could not get the command results");
-
-            const result = await Misc.getLastCmdResult();
 
             uri = `Creating a session to '${String(shellConn.username)}@${String(shellConn.hostname)}:`;
             uri += `${String(shellConn.port)}/${String(shellConn.schema)}'`;
 
-            expect(result).to.include(uri);
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.includes(uri);
+            }, explicitWait, `Result does not include '${uri}'`);
 
-            expect(result).to.match(/Server version: (\d+).(\d+).(\d+)/);
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.match(/Server version: (\d+).(\d+).(\d+)/);
+            }, explicitWait, `'/Server version: (\\d+).(\\d+).(\\d+)/' was not matched`);
 
-            expect(result).to.include(
-                `Default schema set to \`${String(shellConn.schema)}\`.`,
-            );
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.includes(`Default schema set to \`${shellConn.schema}\`.`);
+            }, explicitWait, `Could not find 'Default schema set to \`${shellConn.schema}\`.'`);
 
-            uri = `Connection to server ${globalConn.hostname} at port ${globalConn.port},`;
-            uri += ` using the classic protocol`;
-
-            expect(await Shell.getServerTabStatus()).equals(uri);
-
-            expect(await Shell.getSchemaTabStatus()).to.include(globalConn.schema);
+            const server = await driver.findElement(By.id("server"));
+            const schema = await driver.findElement(By.id("schema"));
+            await driver.wait(until.elementTextContains(server, `${shellConn.hostname}:${shellConn.port}`),
+                explicitWait, `Server tab does not contain '${shellConn.hostname}:${shellConn.port}'`);
+            await driver.wait(until.elementTextContains(schema, `${shellConn.schema}`),
+                explicitWait, `Schema tab does not contain '${shellConn.schema}'`);
 
         });
 
         it("Connect using shell global variable", async () => {
 
             let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
-            uri += `${globalConn.portX}/${globalConn.schema}')`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
             let result = await Misc.execCmd(uri);
 
             uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
-            uri += `${globalConn.portX}/${globalConn.schema}'`;
+            uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
 
             expect(result[0]).to.include(uri);
 
-            expect(result[0]).to.match(/Server version: (\d+).(\d+).(\d+)/);
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.match(/Server version: (\d+).(\d+).(\d+)/);
+            }, explicitWait, `'/Server version: (\\d+).(\\d+).(\\d+)/' was not matched`);
 
-            expect(result[0]).to.include(
-                `Default schema \`${globalConn.schema}\` accessible through db`,
-            );
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.includes(`Default schema \`${globalConn.schema}\``);
+            }, explicitWait, `Could not find 'Default schema set to \`${globalConn.schema}\`.'`);
 
-            uri = `Connection to server ${globalConn.hostname} at port ${globalConn.portX},`;
-            uri += ` using the X protocol`;
-
-            expect(await Shell.getServerTabStatus()).equals(uri);
-
-            expect(await Shell.getSchemaTabStatus())
-                .to.include(globalConn.schema);
+            const server = await driver.wait(until.elementLocated(By.id("server")), explicitWait);
+            const schema = await driver.wait(until.elementLocated(By.id("schema")), explicitWait);
+            await driver.wait(until.elementTextContains(server, `${globalConn.hostname}:${globalConn.port}`),
+                explicitWait, `Server tab does not contain '${globalConn.hostname}:${globalConn.port}'`);
+            await driver.wait(until.elementTextContains(schema, `${globalConn.schema}`),
+                explicitWait, `Schema tab does not contain '${globalConn.schema}'`);
 
             result = await Misc.execCmd("shell.status()");
-
             expect(result[0]).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
-
             expect(result[0]).to.include(`"CONNECTION":"${globalConn.hostname} via TCP/IP"`);
-
             expect(result[0]).to.include(`"CURRENT_SCHEMA":"${globalConn.schema}"`);
-
-            expect(result[0]).to.include(`"CURRENT_USER":"${globalConn.username}@${globalConn.hostname}"`);
-
-            expect(result[0]).to.include(`"TCP_PORT":"${globalConn.portX}"`);
+            expect(result[0]).to.include(`"CURRENT_USER":"${globalConn.username}`);
+            expect(result[0]).to.include(`"TCP_PORT":"${String(globalConn.portX)}"`);
 
         });
 
@@ -334,7 +328,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             expect(result[0]).to.include("ClassicSession");
 
             cmd = `mysqlx.getSession('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
-            cmd += `${globalConn.portX}/${globalConn.schema}')`;
+            cmd += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
             result = await Misc.execCmd(cmd);
 
@@ -345,20 +339,17 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Change schemas using menu", async () => {
 
             const result = await Misc.execCmd(
-                `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:${globalConn.portX}`);
+                `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:${String(globalConn.portX)}`);
 
             expect(result[0]).to.include(
-                `Creating a session to '${globalConn.username}@${globalConn.hostname}:${globalConn.portX}`);
+                `Creating a session to '${globalConn.username}@${globalConn.hostname}:${String(globalConn.portX)}`);
 
-            let uri = `Connection to server ${globalConn.hostname} at port ${globalConn.portX},`;
-            uri += ` using the X protocol`;
-
-            expect(await Shell.getServerTabStatus()).equals(uri);
-
-            expect(await Shell.getSchemaTabStatus())
-                .to.include("no schema selected");
-
-            expect(result[0]).to.include("No default schema selected");
+            const server = await driver.wait(until.elementLocated(By.id("server")), explicitWait);
+            const schema = await driver.wait(until.elementLocated(By.id("schema")), explicitWait);
+            await driver.wait(until.elementTextContains(server, `${globalConn.hostname}:${String(globalConn.portX)}`),
+                explicitWait, `Server tab does not contain '${globalConn.hostname}:${globalConn.port}'`);
+            await driver.wait(until.elementTextContains(schema, `no schema selected`),
+                explicitWait, `Schema tab does not have 'no schema selected'`);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -366,19 +357,11 @@ describe("MYSQL SHELL CONSOLES", () => {
             );
 
             const schemaLabel = await driver.findElement(By.id("schema")).getText();
-            expect(schemaLabel.substring(1).trim()).equals("no schema selected");
+            expect(schemaLabel.substring(1).trim()).to.equals("no schema selected");
 
             await Shell.changeSchemaOnTab("sakila");
 
-            let result1 = await Misc.getLastCmdResult();
-
-            expect(result1).to.include(`Default schema \`sakila\` accessible through db.`);
-
             await Shell.changeSchemaOnTab("world_x_cst");
-
-            result1 = await Misc.getLastCmdResult();
-
-            expect(result1).to.include(`Default schema \`world_x_cst\` accessible through db.`);
 
         });
 
@@ -417,10 +400,13 @@ describe("MYSQL SHELL CONSOLES", () => {
                 uri = `Connection to server ${globalConn.hostname} at port ${globalConn.portX},`;
                 uri += ` using the X protocol`;
 
-                expect(await Shell.getServerTabStatus()).equals(uri);
-
-                expect(await Shell.getSchemaTabStatus())
-                    .to.include(globalConn.schema);
+                const server = await driver.wait(until.elementLocated(By.id("server")), explicitWait);
+                const schema = await driver.wait(until.elementLocated(By.id("schema")), explicitWait);
+                await driver.wait(until.elementTextContains(server,
+                    `${globalConn.hostname}:${String(globalConn.portX)}`),
+                explicitWait, `Server tab does not contain '${globalConn.hostname}:${globalConn.port}'`);
+                await driver.wait(until.elementTextContains(schema, `${globalConn.schema}`),
+                    explicitWait, `Schema tab does not contain '${globalConn.schema}'`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -476,22 +462,21 @@ describe("MYSQL SHELL CONSOLES", () => {
             expect(result[0]).to.include("\\warning");
             expect(result[0]).to.include("\\watch");
 
-
         });
 
         it("Switch session language - javascript python", async () => {
 
             let result = await Misc.execCmd("\\py ");
 
-            expect(result[0]).equals("Switching to Python mode...");
+            expect(result[0]).to.equals("Switching to Python mode...");
 
-            expect(await Shell.getTech(editor)).equals("python");
+            expect(await Shell.getTech(editor)).to.equals("python");
 
             result = await Misc.execCmd("\\js ");
 
-            expect(result[0]).equals("Switching to JavaScript mode...");
+            expect(result[0]).to.equals("Switching to JavaScript mode...");
 
-            expect(await Shell.getTech(editor)).equals("javascript");
+            expect(await Shell.getTech(editor)).to.equals("javascript");
 
         });
 
@@ -505,14 +490,25 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Using util global variable", async () => {
 
-            const result = await Misc.execCmd('util.exportTable("actor", "test.txt")');
+            await Misc.execCmd('util.exportTable("actor", "test.txt")');
 
-            expect(result[0]).to.include("Running data dump using 1 thread.");
-            expect(result[0]).to.match(/Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/);
-            expect(result[0]).to.match(/Data size: (\d+).(\d+)(\d+) KB/);
-            expect(result[0]).to.match(/Rows written: (\d+)/);
-            expect(result[0]).to.match(/Bytes written: (\d+).(\d+)(\d+) KB/);
-            expect(result[0]).to.match(/Average throughput: (\d+).(\d+)(\d+) KB/);
+            await driver.wait(async () => {
+                return (await Misc.getCmdResultMsg())?.includes("Running data dump using 1 thread.");
+            }, explicitWait, "'Running data dump using 1 thread.' was not found");
+
+            const matches = [
+                /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
+                /Data size: (\d+).(\d+)(\d+) KB/,
+                /Rows written: (\d+)/,
+                /Bytes written: (\d+).(\d+)(\d+) KB/,
+                /Average throughput: (\d+).(\d+)(\d+) KB/,
+            ];
+
+            for (const match of matches) {
+                await driver.wait(async () => {
+                    return (await Misc.getCmdResultMsg())?.match(match);
+                }, explicitWait, `'${String(match)}' was not matched`);
+            }
 
         });
 
@@ -520,15 +516,12 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Shell.changeSchemaOnTab("world_x_cst");
 
-            const result = await Misc.getLastCmdResult();
-
-            expect(result).to.include(`Default schema \`world_x_cst\` accessible through db.`);
-
             const result1 = await Misc.execCmd("db.countryinfo.find()");
 
-            expect(await Shell.getLangResult(result1[1] as WebElement)).equals("json");
+            expect(await Shell.getLangResult(result1[1] as WebElement)).to.equals("json");
 
-            expect(await Shell.isValueOnJsonResult(result1[1] as WebElement,"Yugoslavia")).to.be.true;
+            await driver.wait(Shell.isValueOnJsonResult(result1[1] as WebElement,"Yugoslavia"),
+                explicitWait, "'Yugoslavia' is not the json result");
 
         });
 
@@ -536,15 +529,13 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Misc.execCmd("\\sql ");
 
-            let result = await Misc.execCmd("SHOW DATABASES;");
+            let result = await Misc.execCmd("SHOW DATABASES;", undefined, explicitWait*4, true);
 
-            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "sakila")).equals(true);
+            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "sakila")).to.be.true;
 
-            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "mysql")).equals(true);
+            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "mysql")).to.be.true;
 
             await Misc.execCmd("\\js ");
-
-            await Shell.changeSchemaOnTab("sakila");
 
             result = await Misc.execCmd(`shell.options.resultFormat="json/raw" `);
 
@@ -558,9 +549,12 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             expect(result[0]).to.equals("json/pretty");
 
+            await Shell.changeSchemaOnTab("sakila");
+
             result = await Misc.execCmd("db.category.select().limit(1)");
 
-            expect(await Shell.isValueOnJsonResult(result[1] as WebElement, "Action")).to.be.true;
+            await driver.wait(Shell.isValueOnJsonResult(result[1] as WebElement, "Action"),
+                explicitWait, "'Action is not on the json result'");
 
             result = await Misc.execCmd(`shell.options.resultFormat="table" `);
 
@@ -568,8 +562,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             result = await Misc.execCmd("db.category.select().limit(1)");
 
-            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "Action")).to.be.true;
-
+            await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "Action"),
+                explicitWait, "'Action is not on the json result'");
         });
 
     });

@@ -20,8 +20,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-import { promises as fsPromises } from "fs";
 import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
 import { ThemeEditor } from "../../lib/themeEditor";
@@ -43,16 +41,7 @@ describe("Main pages", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            const img = await driver.takeScreenshot();
-            const testName: string = expect.getState().currentTestName
-                .toLowerCase().replace(/\s/g, "_");
-
-            try {
-                await fsPromises.access("src/tests/e2e/screenshots");
-            } catch (e) {
-                await fsPromises.mkdir("src/tests/e2e/screenshots");
-            }
-            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+            await Misc.processFailure();
         }
     });
 
