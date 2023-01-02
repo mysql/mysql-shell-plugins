@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,8 @@ import {
     until,
     Key as selKey,
     error,
+    TreeItem,
+    CustomTreeSection,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
@@ -50,10 +52,9 @@ export interface IDBConnection {
 
 export class Database {
 
-    public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
+    public static createConnection = async (scope: CustomTreeSection ,dbConfig: IDBConnection): Promise<void> => {
 
-        const createConnBtn = await Misc.getSectionToolbarButton(dbTreeSection, "Create New DB Connection");
-        await createConnBtn?.click();
+        await Misc.clickSectionToolbarButton(scope, "Create New DB Connection");
 
         await Misc.switchToWebView();
 
@@ -153,7 +154,8 @@ export class Database {
 
     public static deleteConnection = async (dbName: string): Promise<void> => {
 
-        await Misc.selectContextMenuItem(dbTreeSection, dbName, "Delete DB Connection");
+        const treeItem = await Misc.getTreeElement(undefined, dbName, dbTreeSection);
+        await Misc.selectContextMenuItem(treeItem!, "Delete DB Connection");
 
         const editorView = new EditorView();
         await driver.wait(async () => {
@@ -179,13 +181,9 @@ export class Database {
         const editors = await edView.getOpenEditorTitles();
         expect(editors).to.include(connection);
 
-        await driver.switchTo().frame(0);
-        await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-        await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
+        await Misc.switchToWebView();
 
-        expect(await driver.findElement(By.css(".zoneHost"))).to.exist;
-
-        return true;
+        return (await driver.findElements(By.css(".zoneHost"))).length > 0;
     };
 
     public static closeConnection = async (name: string): Promise<void> => {
@@ -327,49 +325,6 @@ export class Database {
         }
     };
 
-    public static getResultStatus = async (isSelect?: boolean): Promise<string> => {
-        let zoneHosts: WebElement[] | undefined;
-        let block: WebElement;
-        const obj = isSelect ? "label" : "span";
-
-        await driver.wait(
-            async (driver) => {
-                zoneHosts = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
-                    explicitWait, "No zone hosts were found");
-
-                const about = await zoneHosts[0].findElements(By.css("span"));
-
-                // first element is usually the about info
-                if (about.length > 0 && (await about[0].getText()).indexOf("Welcome") !== -1) {
-                    zoneHosts.shift();
-                }
-                if (zoneHosts.length > 0) {
-                    if ((await zoneHosts[0].findElements(By.css(".message.info"))).length > 0) {
-
-                        // if language has been changed...
-                        zoneHosts.shift();
-                    }
-                } else {
-                    return false;
-                }
-
-                return zoneHosts[zoneHosts.length - 1] !== undefined;
-            }, 10000, `Result Status is undefined`,
-        );
-
-        await driver.wait(async () => {
-            try {
-                block = await zoneHosts![zoneHosts!.length - 1].findElement(By.css(obj));
-
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }, 10000, "Result Status content was not found");
-
-        return block!.getAttribute("innerHTML");
-    };
-
     public static clickContextItem = async (item: string): Promise<void> => {
 
         await driver.wait(async () => {
@@ -422,17 +377,6 @@ export class Database {
         }
 
         return String(text).length === 0;
-    };
-
-    public static getLastQueryResultId = async (): Promise<number> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        if (zoneHosts.length > 0) {
-            const zones = await driver.findElements(By.css(".zoneHost"));
-
-            return parseInt((await zones[zones.length - 1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
-        } else {
-            return 0;
-        }
     };
 
     public static setRestService = async (
@@ -633,30 +577,6 @@ export class Database {
         }, 3000, "Current editor did not changed");
     };
 
-    public static collapseAllConnections = async (): Promise<void> => {
-        const connections = await this.getExistingConnections();
-        for (const conn of connections) {
-            await Misc.toggleTreeElement(dbTreeSection, conn, false);
-        }
-    };
-
-    public static reloadConnection = async (connName: string): Promise<void> => {
-        const context = await Misc.getTreeElement(dbTreeSection, connName);
-        const contextX = (await context.getRect()).x;
-        const contextY = (await context.getRect()).y;
-
-        await driver.actions().move({x: contextX, y: contextY}).perform();
-        const btns = await context.findElements(By.css(".actions a"));
-        for (const btn of btns) {
-            if ((await btn.getAttribute("aria-label")) === "Reload Database Information") {
-                await btn.click();
-
-                return;
-            }
-        }
-        throw new Error(`Could not find the Reload button on connection ${connName}`);
-    };
-
     public static execScript = async (cmd: string, timeout?: number): Promise<Array<string | WebElement>> => {
 
         const textArea = await driver?.findElement(By.css("textarea"));
@@ -689,42 +609,18 @@ export class Database {
         return toReturn;
     };
 
-    public static connectToDatabase = async (connectionName: string): Promise<void> => {
-        const treeItem = await Misc.getTreeElement(dbTreeSection, connectionName);
-        const treeItemRect = await treeItem.getRect();
-        await driver.actions().move(
-            {
-                x: treeItemRect.x,
-                y: treeItemRect.y,
-            },
-        ).perform();
+    public static reloadConnection = async (treeItem: TreeItem): Promise<void> => {
 
+        let locator = ".//a[contains(@class, 'action-label')";
+        locator += " and @role='button' and @aria-label='Reload Database Information']";
+        const btn = await treeItem.findElement(By.xpath(locator));
 
-        const items = await treeItem.findElements(By.css(".actions li"));
-        for (const item of items) {
-            const title = await item.getAttribute("title");
-            if (title.includes("Connect to Database")) {
-                await driver.executeScript("arguments[0].click()", item);
+        const treeItemCoord = await treeItem.getRect();
+        await driver.actions().move({x: treeItemCoord.x, y: treeItemCoord.y}).perform();
+        await driver.wait(until.elementIsVisible(btn),
+            explicitWait, `'Reload Database Information' button was not visible`);
 
-                return;
-            }
-        }
-
-        throw new Error(`Could not find the 'Connent to Database button' for item '${connectionName}'`);
+        await btn?.click();
     };
 
-    private static getExistingConnections = async (): Promise<string[]> => {
-        const sec = await Misc.getSection(dbTreeSection);
-        const els = await sec?.findElements(By.xpath(`//div[@role='treeitem']`));
-        const connections = [];
-        for (const el of els!) {
-            const icon = await el.findElement(By.css(".custom-view-tree-node-item-icon")).getAttribute("style");
-            if (icon.includes("connectionMySQL") || icon.includes("connectionSqlite")) {
-                const text = (await el.getAttribute("aria-label")).trim();
-                connections.push(text);
-            }
-        }
-
-        return connections;
-    };
 }

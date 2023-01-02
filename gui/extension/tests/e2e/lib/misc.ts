@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,30 +28,22 @@ import {
     until,
     Key as key,
     SideBarView,
-    CustomTreeItem,
     CustomTreeSection,
     Workbench,
     OutputView,
     Key as selKey,
-    Locator,
     ITimeouts,
     ActivityBar,
     EditorView,
     error,
+    TreeItem,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
-import { platform } from "os";
 import addContext from "mochawesome/addContext";
 import fs from "fs/promises";
-import { TreeSection } from "monaco-page-objects/out/components/sidebar/tree/TreeSection";
 import { Database, IDBConnection } from "./db";
 import { join } from "path";
-
-let dbTreeSectionCust: CustomTreeSection | undefined;
-let ociTreeSectionCust: CustomTreeSection | undefined;
-let consolesTreeSectionCust: CustomTreeSection | undefined;
-let tasksTreeSectionCust: CustomTreeSection | undefined;
 
 export const dbTreeSection = "DATABASE CONNECTIONS";
 export const ociTreeSection = "ORACLE CLOUD INFRASTRUCTURE";
@@ -93,37 +85,57 @@ export class Misc {
         isExtPrepared = true;
     };
 
-    public static getSection = async (name: string): Promise<WebElement | undefined> => {
+    public static getSection = async (name: string): Promise<CustomTreeSection> => {
+        return await new SideBarView().getContent().getSection(name) as CustomTreeSection;
+    };
 
-        const leftSideBar = await driver.findElement(By.id("workbench.view.extension.msg-view"));
-        const sections = await leftSideBar.findElements(By.css(".split-view-view.visible"));
-        for (const section of sections) {
-            if (await section.findElement(By.css("h3.title")).getText() === name) {
-                return section;
+    public static getTreeElement = async (
+        scope: TreeItem | CustomTreeSection | undefined,
+        el: string,
+        section?: string,
+    ): Promise<TreeItem | undefined> => {
+
+        if (scope) {
+            if (scope instanceof TreeItem) {
+                try {
+                    let scopeChildren: TreeItem[];
+                    await driver.wait(async () => {
+                        scopeChildren = await scope.getChildren();
+
+                        return scopeChildren.length > 0;
+                    }, 1500, `'${await scope.getLabel()}' does not have children`);
+
+                    if (el.includes("*")) {
+                        for (const child of scopeChildren!) {
+                            if ((await child.getLabel()).includes(el.replace("*", ""))) {
+                                return child;
+                            }
+                        }
+                    } else {
+                        return scope.findChildItem(el);
+                    }
+                } catch (e) {
+                    if (!String(e).includes("does not have children")) {
+                        throw e;
+                    }
+                }
+            } else if (scope instanceof CustomTreeSection) {
+                return scope.findItem(el);
             }
-        }
-
-        throw new Error(`Could not find section named ${name}`);
-    };
-
-    public static getTreeElement = async (section: string,
-        el: string): Promise<WebElement> => {
-
-        const sec = await this.getSection(section);
-
-        if (el.includes("*")) {
-            return sec!.findElement(By.xpath(`//div[contains(@aria-label, '${el.replace("*", "")}')]`));
         } else {
-            return sec!.findElement(By.xpath(`//div[@aria-label="${el} "]`));
+            const treeSection = await Misc.getSection(String(section));
+
+            return treeSection?.findItem(el);
         }
 
     };
 
-    public static isDefaultItem = async (section: string, itemType: string,
-        itemName: string): Promise<boolean | undefined> => {
+    public static isDefaultItem = async (
+        treeItem: TreeItem,
+        itemType: string,
+    ): Promise<boolean | undefined> => {
 
-        const root = await this.getTreeElement(section, itemName);
-        const el = await root.findElement(By.css(".custom-view-tree-node-item-icon"));
+        const el = await treeItem.findElement(By.css(".custom-view-tree-node-item-icon"));
         const backImage = await el.getCssValue("background-image");
 
         switch (itemType) {
@@ -143,7 +155,6 @@ export class Misc {
                 break;
             }
         }
-
     };
 
     public static toggleBottomBar = async (expand: boolean): Promise<void> => {
@@ -173,154 +184,50 @@ export class Misc {
 
     };
 
-    public static initTreeSection = async (section: string): Promise<void> => {
-
-        switch (section) {
-            case dbTreeSection: {
-                if (!dbTreeSectionCust) {
-                    dbTreeSectionCust = await new SideBarView().getContent()
-                        .getSection(dbTreeSection) as CustomTreeSection;
-                }
-                break;
-            }
-            case ociTreeSection: {
-                if (!ociTreeSectionCust) {
-                    ociTreeSectionCust = await new SideBarView().getContent()
-                        .getSection(ociTreeSection) as CustomTreeSection;
-
-                }
-                break;
-            }
-            case consolesTreeSection: {
-                if (!consolesTreeSectionCust) {
-                    consolesTreeSectionCust = await new SideBarView().getContent()
-                        .getSection(consolesTreeSection) as CustomTreeSection;
-                }
-                break;
-            }
-            case tasksTreeSection: {
-                if (!tasksTreeSectionCust) {
-                    tasksTreeSectionCust = await new SideBarView().getContent()
-                        .getSection(tasksTreeSection) as CustomTreeSection;
-                }
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-
-    };
-
     public static selectContextMenuItem = async (
-        section: string, treeItem: string,
-        ctxMenuItem: string): Promise<void> => {
+        treeItem: TreeItem,
+        ctxMenuItem: string,
+    ): Promise<void> => {
+
         const ctxMenuItems = ctxMenuItem.split("->");
-
-        let treeSection: CustomTreeSection | undefined;
-
-        switch (section) {
-            case dbTreeSection: {
-                treeSection = dbTreeSectionCust;
-                break;
-            }
-            case ociTreeSection: {
-                treeSection = ociTreeSectionCust;
-                break;
-            }
-            case consolesTreeSection: {
-                treeSection = consolesTreeSectionCust;
-                break;
-            }
-            case tasksTreeSection: {
-                treeSection = tasksTreeSectionCust;
-                break;
-            }
-            default: {
-                break;
-            }
+        const menu = await treeItem?.openContextMenu();
+        const menuItem = await menu?.getItem(ctxMenuItems[0].trim());
+        const anotherMenu = await menuItem!.select();
+        if (ctxMenuItems.length > 1) {
+            await (await anotherMenu?.getItem(ctxMenuItems[1].trim()))!.select();
         }
-
-        const perform = async () => {
-            const item = await this.getTreeElement(section, treeItem);
-            const cstTreeItem = new CustomTreeItem(item, treeSection as TreeSection);
-            const ctx = await cstTreeItem?.openContextMenu();
-            await ctx.wait(5000);
-            const ctxItem = await ctx?.getItem(ctxMenuItems[0].trim());
-            const menu = await ctxItem!.select();
-            if (ctxMenuItems.length > 1) {
-                await (await menu?.getItem(ctxMenuItems[1].trim()))!.select();
-            }
-        };
-
-        try {
-            await perform();
-        } catch (e) {
-            // context menu can fail to be displayed
-            await perform();
-        }
-
     };
 
-    public static getSectionToolbarButton = async (
-        sectionName: string,
-        buttonName: string): Promise<WebElement> => {
+    public static clickSectionToolbarButton = async (
+        section: CustomTreeSection,
+        buttonName: string): Promise<void> => {
 
-        const section = await this.getSection(sectionName);
-        expect(section).to.exist;
-        await section!.click();
+        const button = await section?.getAction(buttonName);
 
-        let btn: WebElement | undefined;
-        const buttons = await section!.findElements(By.css(".actions li"));
-        for (const button of buttons) {
-            let title = await button.getAttribute("title");
-            if (title === "") {
-                title = await (await button.findElement(By.css("a"))).getAttribute("title");
-            }
-            if (title === buttonName) {
-                btn = button;
-                break;
-            }
-        }
+        await driver.wait(async () => {
+            await section.click();
 
-        await section!.click();
-        await driver.wait(until.elementIsVisible(btn!), 2000, `${buttonName} is not visible`);
+            return button?.isDisplayed();
+        }, explicitWait, `'${buttonName}' button was not visible`);
 
-        return btn!;
-
+        await button?.click();
     };
 
     public static selectMoreActionsItem = async (
-        section: string, item: string): Promise<void> => {
+        section: CustomTreeSection,
+        item: string): Promise<void> => {
 
-        const sec = await this.getSection(section);
-        await sec!.click();
-
-        const moreActionsBtn = await this.getSectionToolbarButton(section, "More Actions...");
-        await moreActionsBtn.click();
+        const button = await section?.getAction("More Actions...");
 
         await driver.wait(async () => {
-            return (await driver.findElements(By.css(".context-menu-visible"))).length === 1;
-        }, 2000,
-        "More Actions Context menu was not displayed");
+            await section.click();
 
+            return button?.isDisplayed();
+        }, explicitWait, `'More Actions...' button was not visible`);
 
-        await driver.wait(async () => {
-            try {
-                const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-                shadowRoot.querySelector("span[aria-label='${item}']")`);
-
-                await el.click();
-
-                return (await driver.findElements(By.css(".context-menu-visible"))).length === 0;
-            } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
-                    return false;
-                }
-            }
-
-        }, 3000, "More Actions context menu is still displayed");
-
+        const moreActions = await section?.moreActions();
+        const moreActionsItem = await moreActions?.getItem(item);
+        await moreActionsItem?.select();
     };
 
     public static startServer = async (): Promise<ChildProcess> => {
@@ -355,91 +262,6 @@ export class Misc {
         }
 
         return prc;
-    };
-
-    public static toggleTreeElement = async (section: string,
-        el: string, expanded: boolean): Promise<void> => {
-
-        await driver.wait(async () => {
-            const element = await this.getTreeElement(section, el);
-            const ariaExpanded = await element.getAttribute("aria-expanded");
-            if (ariaExpanded !== String(expanded)) {
-                const toggle = await element?.findElement(By.css(".codicon-tree-item-expanded"));
-                await toggle?.click();
-                await driver.sleep(500);
-
-                return false;
-            } else {
-
-                return true;
-            }
-        }, explicitWait, `${section} > ${el} was not toggled`);
-    };
-
-    public static getFirstTreeChild = async (section: string, parent: string): Promise<string> => {
-
-        await this.toggleTreeElement(section, parent, true);
-        const parentNode = await this.getTreeElement(section, parent);
-        const parentNodeId = await parentNode.getAttribute("id");
-        const parentNodeLevel = await parentNode.getAttribute("aria-level");
-        const parentIds = parentNodeId.match(/list_id_(\d+)_(\d+)/);
-        const childId = `list_id_${parentIds![1]}_${Number(parentIds![2]) + 1}`;
-        const childLevel = Number(parentNodeLevel) + 1;
-
-        const childs = await driver.findElements(By.xpath(`//div[@id='${childId}' and @aria-level='${childLevel}']`));
-        if (childs.length > 0) {
-            return (await childs[0].getAttribute("aria-label")).trim();
-        } else {
-            throw new Error(`Tree item '${parent}' does not have childs`);
-        }
-    };
-
-    public static hasTreeChildren = async (section: string,
-        parent: string, checkChild?: string): Promise<boolean> => {
-        const parentNode = await this.getTreeElement(section, parent);
-        const parentNodeId = await parentNode.getAttribute("id");
-        const parentNodeLevel = await parentNode.getAttribute("aria-level");
-        const parentIds = parentNodeId.match(/list_id_(\d+)_(\d+)/);
-        const childId = `list_id_${parentIds![1]}_${Number(parentIds![2]) + 1}`;
-        const childLevel = Number(parentNodeLevel) + 1;
-
-        const childs = await driver.findElements(By.xpath(`//div[@id='${childId}' and @aria-level='${childLevel}']`));
-
-        if (checkChild) {
-            for (const child of childs) {
-                const name = await child.getAttribute("aria-label");
-                if (name.indexOf(checkChild) !== -1) {
-                    return true;
-                }
-            }
-
-            return false;
-        } else {
-            return childs.length > 0;
-        }
-
-    };
-
-    public static toggleSection = async (section: string, open: boolean): Promise<void> => {
-        await driver.wait(async () => {
-            const btn = await driver.findElement(By.xpath(`//div[contains(@aria-label, '${section} Section')]/div`));
-            await driver.executeScript("arguments[0].click()", btn);
-            const el = await driver.findElement(By.xpath(`//div[contains(@aria-label, '${section} Section')]`));
-            const result = JSON.parse(await el.getAttribute("aria-expanded"));
-            if (open) {
-                if (result) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                if (result) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }, 2000, "Toggle was not expanded/collapsed");
     };
 
     public static execOnEditor = async (): Promise<void> => {
@@ -543,46 +365,25 @@ export class Misc {
         return Misc.getCmdResult(cmd, String(nextBlockId), timeout, hasMultipleQueries);
     };
 
-    public static existsTreeElement = async (
-        section: string, el: string): Promise<boolean> => {
-        const sec = await this.getSection(section);
-        let locator: Locator;
-        if (el.includes("*")) {
-            locator = By.xpath("//div[contains(@aria-label, '" + el.replace("*", "") + "')]");
-        } else {
-            locator = By.xpath(`//div[@aria-label="${el} "]`);
+    public static reloadSection = async (section: CustomTreeSection): Promise<void> => {
+
+        let btn: WebElement | undefined;
+        const label = await section.getTitle();
+        let btnLabel = "";
+        if (label === dbTreeSection) {
+            btnLabel = "Reload the connection list";
+        } else if (label === ociTreeSection) {
+            btnLabel = "Reload the OCI Profile list";
         }
 
-        try {
-            await driver.wait(async () => {
-                return (await sec!.findElements(locator)).length > 0;
-            }, 3000, `${el} was not found`);
+        await driver.wait(async () => {
+            btn = await section.getAction(btnLabel);
+            await section.click();
 
-            return true;
-        } catch (e) {
-            return false;
-        }
-    };
+            return btn!.isDisplayed();
+        }, explicitWait, `'${btnLabel}' button was not visible`);
 
-    public static reloadSection = async (sectionName: string): Promise<void> => {
-        const section = await this.getSection(sectionName);
-        await section!.click();
-        let btnName = "";
-        switch (sectionName) {
-            case dbTreeSection: {
-                btnName = "Reload the connection list";
-                break;
-            }
-            case ociTreeSection: {
-                btnName = "Reload the OCI Profile list";
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-        const reloadConnsBtn = await this.getSectionToolbarButton(sectionName, btnName);
-        await reloadConnsBtn.click();
+        await btn?.click();
     };
 
     public static processFailure = async (testContext: Mocha.Context): Promise<void> => {
@@ -667,10 +468,9 @@ export class Misc {
         }, timeout, `'${textToSearch}' was not found on Output view`);
     };
 
-    public static hasLoadingBar = async (section: string): Promise<boolean> => {
-        const sectionObj = await this.getSection(section);
+    public static hasLoadingBar = async (section: CustomTreeSection): Promise<boolean> => {
 
-        return (await sectionObj!.findElements(By.css(".monaco-progress-container.active"))).length > 0;
+        return (await section.findElements(By.css(".monaco-progress-container.active"))).length > 0;
     };
 
     public static setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
@@ -724,13 +524,9 @@ export class Misc {
 
     public static cleanEditor = async (): Promise<void> => {
         const textArea = await driver.findElement(By.css("textarea"));
-        if (platform() === "win32") {
-            await textArea
-                .sendKeys(selKey.chord(selKey.CONTROL, "a", "a"));
-        } else if (platform() === "darwin") {
-            await textArea
-                .sendKeys(selKey.chord(selKey.COMMAND, "a", "a"));
-        }
+        await textArea
+            .sendKeys(selKey.chord(selKey.CONTROL, "a", "a"));
+
         await textArea.sendKeys(selKey.BACK_SPACE);
         await driver.wait(async () => {
             return await this.getPromptTextLine("last") === "";
@@ -792,9 +588,8 @@ export class Misc {
 
     };
 
-    public static isDBSystemStopped = async (dbSystem: string): Promise<boolean> => {
-        const treeItem = await Misc.getTreeElement(ociTreeSection, dbSystem);
-        const itemIcon = await treeItem.findElement(By.css(".custom-view-tree-node-item-icon"));
+    public static isDBSystemStopped = async (dbSystem: TreeItem): Promise<boolean> => {
+        const itemIcon = await dbSystem.findElement(By.css(".custom-view-tree-node-item-icon"));
         const itemStyle = await itemIcon.getAttribute("style");
 
         return itemStyle.includes("ociDbSystemStopped");
@@ -870,6 +665,30 @@ export class Misc {
         }, timeout, "Could not return the last result command");
 
         return resultToReturn;
+    };
+
+    public static connectToDatabase = async (treeItem: TreeItem): Promise<void> => {
+
+        await driver.wait(async () => {
+            try {
+                let locator = ".//a[contains(@class, 'action-label') ";
+                locator += "and @role='button' and @aria-label='Connect to Database']";
+                const btn = await treeItem.findElement(By.xpath(locator));
+
+                const treeItemCoord = await treeItem.getRect();
+                await driver.actions().move({x: treeItemCoord.x, y: treeItemCoord.y}).perform();
+                await driver.wait(until.elementIsVisible(btn),
+                    explicitWait, `'Connect to Database' button was not visible`);
+
+                await btn?.click();
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, explicitWait, "Could not connect to DB (button was always stale)");
     };
 
     private static getCmdResultContent = async (multipleQueries: boolean,

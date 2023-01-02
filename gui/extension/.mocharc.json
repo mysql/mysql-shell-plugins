@@ -4,6 +4,5 @@
     "reporterOptions": {
       "reportFilename": "test-report",
       "showSkipped": true
-    },
-    "retries": 1
+    }
 }

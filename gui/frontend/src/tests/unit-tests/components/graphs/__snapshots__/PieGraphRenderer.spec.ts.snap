@@ -17,17 +17,17 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
       >
         <path
           class="slice"
-          d="M2.7554552980815446e-14,-450A450,450,0,0,1,389.71143170299734,-225L0,0Z"
+          d="M0,-450A450,450,0,0,1,389.711,-225L0,0Z"
           style="fill: #1f77b4;"
         />
         <path
           class="slice"
-          d="M389.71143170299734,-225A450,450,0,0,1,2.7554552980815446e-14,450L0,0Z"
+          d="M389.711,-225A450,450,0,0,1,0,450L0,0Z"
           style="fill: #ff7f0e;"
         />
         <path
           class="slice"
-          d="M2.7554552980815446e-14,450A450,450,0,1,1,-8.266365894244634e-14,-450L0,0Z"
+          d="M0,450A450,450,0,1,1,0,-450L0,0Z"
           style="fill: #2ca02c;"
         />
       </g>
@@ -92,17 +92,17 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
       >
         <path
           class="slice"
-          d="M2.7554552980815446e-14,-450A450,450,0,0,1,389.71143170299734,-225L0,0Z"
+          d="M0,-450A450,450,0,0,1,389.711,-225L0,0Z"
           style="fill: white; stroke: red; stroke-width: 10;"
         />
         <path
           class="slice"
-          d="M389.71143170299734,-225A450,450,0,0,1,2.7554552980815446e-14,450L0,0Z"
+          d="M389.711,-225A450,450,0,0,1,0,450L0,0Z"
           style="fill: silver; stroke: red; stroke-width: 10;"
         />
         <path
           class="slice"
-          d="M2.7554552980815446e-14,450A450,450,0,1,1,-8.266365894244634e-14,-450L0,0Z"
+          d="M0,450A450,450,0,1,1,0,-450L0,0Z"
           style="fill: gray; stroke: red; stroke-width: 10;"
         />
       </g>
