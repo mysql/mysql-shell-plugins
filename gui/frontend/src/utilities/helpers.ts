@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,27 +23,7 @@
 
 import _ from "lodash";
 
-import * as crypto from "crypto";
 import { IDictionary } from "../app-logic/Types";
-
-const getRandomValues = (buffer: Uint8Array): Uint8Array => {
-    if (global.window !== undefined) {
-        if (window.crypto && window.crypto.getRandomValues) {
-            return window.crypto.getRandomValues(buffer);
-        }
-    }
-
-    // In tests we have a global window object from the test environment, so we cannot test this crypto part.
-    // istanbul ignore next
-    if (crypto.randomBytes) {
-        const bytes = crypto.randomBytes(buffer.length);
-        buffer.set(bytes);
-
-        return buffer;
-    } else {
-        throw new Error("No random number generator available");
-    }
-};
 
 /**
  * Loads the given file from the server as plain text.
@@ -157,17 +137,27 @@ export const clampValue = (value: number, min?: number | undefined, max?: number
 };
 
 /**
- * Generates a random UUID.
+ * Generates a random UUID using Math.random.
+ * We don't need cryptographic quality here, so this approach is fine, especially in a mixed Node/browser environment.
  *
  * @returns The generated UUID.
  */
 export const uuid = (): string => {
-    const values = new Uint8Array(1);
+    let d = new Date().getTime();
+    let d2 = (performance && performance.now && (performance.now() * 1000)) || 0;
 
-    return (`${1e7}${-1e3}${-4e3}${-8e3}${-1e11}`).replace(/[018]/g, (c: string) => {
-        const n = parseInt(c, 10);
+    // cspell: ignore yxxx
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        let r = Math.random() * 16;
+        if (d > 0) {
+            r = (d + r) % 16 | 0;
+            d = Math.floor(d / 16);
+        } else {
+            r = (d2 + r) % 16 | 0;
+            d2 = Math.floor(d2 / 16);
+        }
 
-        return (((n ^ getRandomValues(values)[0]) & 15) >> n / 4).toString(16);
+        return (c === "x" ? r : ((r & 0x7) | 0x8)).toString(16);
     });
 };
 
@@ -342,7 +332,7 @@ interface IRegexMarker {
 
 interface IListMarker {
     type: "list";
-    parameters: { list: unknown[]; full: boolean };
+    parameters: { list: unknown[]; full: boolean; };
 }
 
 type IComparisonMarker = IIgnoreMarker | IRegexMarker | IListMarker;
@@ -381,7 +371,7 @@ const extractMarker = (value: unknown): IComparisonMarker | undefined => {
         case "list": {
             return {
                 type: "list",
-                parameters: v.parameters as { list: unknown[]; full: boolean },
+                parameters: v.parameters as { list: unknown[]; full: boolean; },
             };
 
         }
@@ -467,8 +457,8 @@ export const deepEqual = (a: unknown, b: unknown): boolean => {
     }
 
     if ((typeOfA === "object") && (typeOfB === "object")) {
-        const objA = a as { [key: string]: unknown };
-        const objB = b as { [key: string]: unknown };
+        const objA = a as { [key: string]: unknown; };
+        const objB = b as { [key: string]: unknown; };
         if (Object.keys(objA).length !== Object.keys(objB).length) {
             return false;
         }
