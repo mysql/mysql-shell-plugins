@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -45,6 +45,7 @@ import { uuid } from "../../frontend/src/utilities/helpers";
 import { DBType } from "../../frontend/src/supplement/ShellInterface";
 import { WebviewProvider } from "./web-views/WebviewProvider";
 import { ExtensionHost } from "./ExtensionHost";
+import { existsSync } from "fs";
 
 // A class to handle all DB editor related commands and jobs.
 export class DBEditorCommandHandler {
@@ -219,38 +220,42 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {
-                const stat = await workspace.fs.stat(uri);
-
-                if (stat.size >= 10000000) {
-                    await window.showInformationMessage(`The file "${uri.fsPath}" ` +
-                        `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                if (!existsSync(uri.path)) {
+                    void window.showErrorMessage(`The file ${uri.path} could not be found.`);
                 } else {
-                    const connection = await host.determineConnection();
-                    if (connection) {
-                        await workspace.fs.readFile(uri).then((value) => {
-                            const content = value.toString();
-                            const provider = this.currentProvider;
+                    const stat = await workspace.fs.stat(uri);
 
-                            if (provider) {
-                                const name = basename(uri.fsPath);
-                                const details: IScriptRequest = {
-                                    scriptId: uuid(),
-                                    name,
-                                    content,
-                                    language: this.languageFromConnection(connection),
-                                };
+                    if (stat.size >= 10000000) {
+                        await window.showInformationMessage(`The file "${uri.fsPath}" ` +
+                            `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                    } else {
+                        const connection = await host.determineConnection();
+                        if (connection) {
+                            await workspace.fs.readFile(uri).then((value) => {
+                                const content = value.toString();
+                                const provider = this.currentProvider;
 
-                                let scripts = this.openScripts.get(provider);
-                                if (!scripts) {
-                                    scripts = new Map();
-                                    this.openScripts.set(provider, scripts);
+                                if (provider) {
+                                    const name = basename(uri.fsPath);
+                                    const details: IScriptRequest = {
+                                        scriptId: uuid(),
+                                        name,
+                                        content,
+                                        language: this.languageFromConnection(connection),
+                                    };
+
+                                    let scripts = this.openScripts.get(provider);
+                                    if (!scripts) {
+                                        scripts = new Map();
+                                        this.openScripts.set(provider, scripts);
+                                    }
+                                    scripts.set(details.scriptId, uri);
+
+                                    void provider.editScriptInNotebook(connection.details.caption,
+                                        String(connection.details.id), details);
                                 }
-                                scripts.set(details.scriptId, uri);
-
-                                void provider.editScriptInNotebook(connection.details.caption,
-                                    String(connection.details.id), details);
-                            }
-                        });
+                            });
+                        }
                     }
                 }
             }

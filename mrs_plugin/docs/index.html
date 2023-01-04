@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MRS Developer's Guide</title>
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+        <link rel="stylesheet" href="style/style.css">
+                <!-- cSpell:ignore pagetitle -->
+    <title>MRS Developer's Guide</title>
+    <style type="text/css">
+        code {
+            white-space: pre;
+        }
+    </style>
+        <script>
+        if (typeof acquireVsCodeApi === "function") {
+            const vscode = acquireVsCodeApi();
+
+            const addVsCodeDecorations = () => {
+                const addVsActionBtn = (e, command, caption) => {
+                    const d = document.createElement("button");
+
+                    d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                    d.onclick = () => {
+                        vscode.postMessage({ command, path: e.innerHTML });
+                    }
+                    e.parentNode.insertBefore(d, e.nextSibling)
+                }
+
+                document.querySelectorAll("code").forEach((e) => {
+                    if (e.innerHTML.endsWith(".sql")) {
+                        addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                    } else if (e.innerHTML.endsWith(".mrs.json")) {
+                        addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                    }
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    if (entry.intersectionRatio > 0) {
+                        const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
+                        e.classList.add('active');
+                        e.scrollIntoViewIfNeeded(true);
+                    } else {
+                        document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
+                    }
+                });
+            });
+            // Track all h that have an `id` applied
+            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+                observer.observe(section);
+            });
+
+            if (typeof addVsCodeDecorations === "function") {
+                addVsCodeDecorations();
+            }
+        });
+
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+                case 'goToId':
+                    if (message.id) {
+                        window.location = "#" + message.id;
+                    }
+
+                    break;
+            }
+        });
+    </script>
+</head>
+
+<body>
+
+    <div class="page">
+        <div class="sidebar">
+            <nav class="section-nav">
+                <h1>MRS Docs - Table of Contents</h1>
+                                <ul>
+                                <li><a
+                                href="#introduction-to-the-mysql-rest-service"
+                                id="toc-introduction-to-the-mysql-rest-service"><span
+                                class="toc-section-number">1</span>
+                                Introduction to the MySQL REST
+                                Service</a>
+                                <ul>
+                                <li><a
+                                href="#about-the-mysql-rest-service"
+                                id="toc-about-the-mysql-rest-service"><span
+                                class="toc-section-number">1.1</span>
+                                About the MySQL REST Service</a></li>
+                                <li><a href="#feature-overview"
+                                id="toc-feature-overview"><span
+                                class="toc-section-number">1.2</span>
+                                Feature Overview</a></li>
+                                </ul></li>
+                                <li><a href="#deployment-architecture"
+                                id="toc-deployment-architecture"><span
+                                class="toc-section-number">2</span>
+                                Deployment Architecture</a>
+                                <ul>
+                                <li><a
+                                href="#deployments-for-development"
+                                id="toc-deployments-for-development"><span
+                                class="toc-section-number">2.1</span>
+                                Deployments for Development</a></li>
+                                <li><a href="#production-deployments"
+                                id="toc-production-deployments"><span
+                                class="toc-section-number">2.2</span>
+                                Production Deployments</a></li>
+                                </ul></li>
+                                <li><a
+                                href="#configuration-of-the-mysql-rest-service"
+                                id="toc-configuration-of-the-mysql-rest-service"><span
+                                class="toc-section-number">3</span>
+                                Configuration of the MySQL REST
+                                Service</a>
+                                <ul>
+                                <li><a
+                                href="#deployment-of-a-mysql-solution"
+                                id="toc-deployment-of-a-mysql-solution"><span
+                                class="toc-section-number">3.1</span>
+                                Deployment of a MySQL solution</a></li>
+                                <li><a
+                                href="#configuration-of-the-mrs-metadata-schema"
+                                id="toc-configuration-of-the-mrs-metadata-schema"><span
+                                class="toc-section-number">3.2</span>
+                                Configuration of the MRS metadata
+                                schema</a>
+                                <ul>
+                                <li><a
+                                href="#mrs-configuration-via-mysql-shell"
+                                id="toc-mrs-configuration-via-mysql-shell"><span
+                                class="toc-section-number">3.2.1</span>
+                                MRS Configuration via MySQL
+                                Shell</a></li>
+                                <li><a
+                                href="#mrs-configuration-via-mysql-shell-for-vs-code"
+                                id="toc-mrs-configuration-via-mysql-shell-for-vs-code"><span
+                                class="toc-section-number">3.2.2</span>
+                                MRS Configuration via MySQL Shell for VS
+                                Code</a></li>
+                                </ul></li>
+                                <li><a
+                                href="#configuration-of-mysql-routers"
+                                id="toc-configuration-of-mysql-routers"><span
+                                class="toc-section-number">3.3</span>
+                                Configuration of MySQL Routers</a></li>
+                                </ul></li>
+                                <li><a href="#about-mrs-autorest"
+                                id="toc-about-mrs-autorest"><span
+                                class="toc-section-number">4</span>
+                                About MRS AutoREST</a>
+                                <ul>
+                                <li><a href="#rest-apis"
+                                id="toc-rest-apis"><span
+                                class="toc-section-number">4.1</span>
+                                REST APIs</a></li>
+                                <li><a
+                                href="#restful-services-terminology"
+                                id="toc-restful-services-terminology"><span
+                                class="toc-section-number">4.2</span>
+                                RESTful Services Terminology</a></li>
+                                <li><a href="#mrs-restful-web-services"
+                                id="toc-mrs-restful-web-services"><span
+                                class="toc-section-number">4.3</span>
+                                MRS RESTful Web Services</a></li>
+                                <li><a
+                                href="#about-request-path-syntax-requirements"
+                                id="toc-about-request-path-syntax-requirements"><span
+                                class="toc-section-number">4.4</span>
+                                About Request Path Syntax
+                                Requirements</a></li>
+                                <li><a
+                                href="#about-curl-and-testing-restful-services"
+                                id="toc-about-curl-and-testing-restful-services"><span
+                                class="toc-section-number">4.5</span>
+                                About cURL and Testing RESTful
+                                Services</a></li>
+                                </ul></li>
+                                <li><a
+                                href="#enabling-of-schema-objects-for-rest-access"
+                                id="toc-enabling-of-schema-objects-for-rest-access"><span
+                                class="toc-section-number">5</span>
+                                Enabling of Schema Objects for REST
+                                Access</a>
+                                <ul>
+                                <li><a
+                                href="#accessing-objects-using-restful-services"
+                                id="toc-accessing-objects-using-restful-services"><span
+                                class="toc-section-number">5.1</span>
+                                Accessing Objects Using RESTful
+                                Services</a>
+                                <ul>
+                                <li><a href="#get-schema-metadata"
+                                id="toc-get-schema-metadata"><span
+                                class="toc-section-number">5.1.1</span>
+                                Get Schema Metadata</a></li>
+                                <li><a href="#get-object-metadata"
+                                id="toc-get-object-metadata"><span
+                                class="toc-section-number">5.1.2</span>
+                                Get Object Metadata</a></li>
+                                <li><a href="#get-object-data"
+                                id="toc-get-object-data"><span
+                                class="toc-section-number">5.1.3</span>
+                                Get Object Data</a></li>
+                                <li><a href="#insert-table-row"
+                                id="toc-insert-table-row"><span
+                                class="toc-section-number">5.1.4</span>
+                                Insert Table Row</a></li>
+                                <li><a href="#updateinsert-table-row"
+                                id="toc-updateinsert-table-row"><span
+                                class="toc-section-number">5.1.5</span>
+                                Update/Insert Table Row</a></li>
+                                <li><a href="#delete-using-filter"
+                                id="toc-delete-using-filter"><span
+                                class="toc-section-number">5.1.6</span>
+                                Delete Using Filter</a></li>
+                                <li><a href="#filterobject-grammar"
+                                id="toc-filterobject-grammar"><span
+                                class="toc-section-number">5.1.7</span>
+                                FilterObject Grammar</a></li>
+                                <li><a
+                                href="#examples-filterobject-specifications"
+                                id="toc-examples-filterobject-specifications"><span
+                                class="toc-section-number">5.1.8</span>
+                                Examples: FilterObject
+                                Specifications</a></li>
+                                </ul></li>
+                                </ul></li>
+                                <li><a
+                                href="#mysql-rest-service-mrs-examples"
+                                id="toc-mysql-rest-service-mrs-examples"><span
+                                class="toc-section-number">6</span>
+                                MySQL REST Service (MRS) Examples</a>
+                                <ul>
+                                <li><a
+                                href="#mrs-example-project-structure"
+                                id="toc-mrs-example-project-structure"><span
+                                class="toc-section-number">6.1</span>
+                                MRS Example Project structure</a></li>
+                                <li><a
+                                href="#build-and-deploy-a-mrs-example-project"
+                                id="toc-build-and-deploy-a-mrs-example-project"><span
+                                class="toc-section-number">6.2</span>
+                                Build and Deploy a MRS Example
+                                Project</a></li>
+                                <li><a href="#mrs-notes-examples"
+                                id="toc-mrs-notes-examples"><span
+                                class="toc-section-number">6.3</span>
+                                MRS Notes Examples</a>
+                                <ul>
+                                <li><a
+                                href="#mrs-notes-developer-showcase"
+                                id="toc-mrs-notes-developer-showcase"><span
+                                class="toc-section-number">6.3.1</span>
+                                MRS Notes Developer Showcase</a></li>
+                                <li><a
+                                href="#mrs-notes-build-and-deployment"
+                                id="toc-mrs-notes-build-and-deployment"><span
+                                class="toc-section-number">6.3.2</span>
+                                MRS Notes Build and Deployment</a></li>
+                                </ul></li>
+                                </ul></li>
+                                </ul>
+                            </nav>
+        </div>
+        <div class="content">
+            <div class="header">
+                <p>MySQL REST Service - PREVIEW</p>
+                <h1>Developer's Guide</h1>
+            </div>
+            <div class="main">
+                <p>This document explains how to install and configure
+                the MySQL REST Service.</p>
+                <p><strong>Chapter Overview</strong></p>
+                <ul>
+                <li><a
+                href="#introduction-to-the-mysql-rest-service">Introduction</a></li>
+                <li><a href="#deployment-architecture">Deployment
+                Architecture</a></li>
+                <li><a
+                href="#configuration-of-the-mysql-rest-service">Configuration</a></li>
+                <li><a href="#about-mrs-autorest">About MRS
+                AutoREST</a></li>
+                <li><a
+                href="#enabling-of-schema-objects-for-rest-access">Enabling
+                of Schema Objects for REST Access</a></li>
+                <li><a href="#mysql-rest-service-mrs-examples">MRS
+                Examples</a></li>
+                </ul>
+                <p>To start with a hands on approach, directly go to the
+                <a href="#mrs-notes-examples">MRS Notes Example</a> and
+                follow the instructions for <a
+                href="#build-and-deployment">Build and Deployment</a>
+                there.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="1"
+                id="introduction-to-the-mysql-rest-service"><span
+                class="header-section-number">1</span> Introduction to
+                the MySQL REST Service</h1>
+                <p>This section provides an overview of the MySQL REST
+                Service and its features.</p>
+                <h2 data-number="1.1"
+                id="about-the-mysql-rest-service"><span
+                class="header-section-number">1.1</span> About the MySQL
+                REST Service</h2>
+                <p>The MySQL REST Service (MRS) offers HTTP REST access
+                to selected MySQL schema objects. It is modelled after
+                and supports a sub-set of the Oracle REST Data Services
+                (ORDS).</p>
+                <p>See here for more details about <a
+                href="https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/22.2/orddg/introduction-to-Oracle-REST-Data-Services.html#GUID-A16BCCA2-8081-4062-A635-9F7C36FC394F/">ORDS</a></p>
+                <p>MRS consists of the following components:</p>
+                <ul>
+                <li>A MySQL Router plugin to serve the HTTP REST
+                interface.</li>
+                <li>A metadata schema
+                <code>mysql_rest_service_metadata</code> that holds the
+                MRS configuration</li>
+                <li>A MySQL Shell plugin to configure and manage the MRS
+                setup</li>
+                <li>MySQL Shell for VS Code support for managing MRS
+                through a graphical user interface (GUI)</li>
+                </ul>
+                <p><strong><em>About REST APIs</em></strong></p>
+                <p>Representational State Transfer (REST) is a style of
+                software architecture for distributed hypermedia systems
+                such as the World Wide Web. An API is described as
+                RESTful when it conforms to the tenets of REST. Although
+                a full discussion of REST is outside the scope of this
+                document, a REST API has the following
+                characteristics:</p>
+                <ul>
+                <li>Data is modelled as a set of resources. Resources
+                are identified by URIs.</li>
+                <li>A small, uniform set of operations are used to
+                manipulate resources (for example, PUT, POST, GET,
+                DELETE).</li>
+                <li>A resource can have multiple representations (for
+                example, a blog might have an HTML representation and an
+                RSS representation).</li>
+                <li>Services are stateless and since it is likely that
+                the client will want to access related resources, these
+                should be identified in the representation returned,
+                typically by providing hypertext links.</li>
+                </ul>
+                <h2 data-number="1.2" id="feature-overview"><span
+                class="header-section-number">1.2</span> Feature
+                Overview</h2>
+                <p>In contrast to the feature rich Oracle REST Data
+                Services (ORDS) the MySQL REST Service (MRS) is focusing
+                on exposing MySQL schema objects via a CRUD/REST
+                interface - in many aspects similar to the AutoREST
+                feature of ORDS.</p>
+                <p>See here for details on ORDS <a
+                href="https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/22.2/orddg/developing-REST-applications.html#GUID-4CE630AA-2F06-41D9-96F6-DA77AB1E6395">AutoREST</a></p>
+                <p><strong><em>MRS AutoREST</em></strong></p>
+                <p>Enabling REST access to a table, view or procedure
+                allows it to be accessed through RESTful services.
+                AutoREST is a quick and easy way to expose database
+                tables as REST resources.</p>
+                <p>Note that enabling a schema is not equivalent to
+                enabling all tables, views and procedures in the schema.
+                It just means making MRS aware that the schema exists
+                and that it may have zero or more resources to expose to
+                HTTP. Those resources may be AutoREST resources or
+                resource module resources.</p>
+                <p><strong><em>Serving Static Content</em></strong></p>
+                <p>In addition to serving dynamic content via AutoREST
+                it is possible to upload static content, like HTML, CSS
+                and image files. Note that this feature is not meant to
+                replace dedicated HTTP servers that support features
+                like server side programming. It can aid the quick
+                deployments of prototypes and prove-of-concepts and help
+                brining ideas to life.</p>
+                <p><strong><em>End User Authentication</em></strong></p>
+                <p>MRS currently supports the following authentication
+                methods.</p>
+                <p><strong><em>Simple MySQL
+                Authentication</em></strong></p>
+                <p>Authentication is performed against MySQL server user
+                accounts. Since this authentication method does not need
+                any external OAuth2 service it is preferred during
+                prototyping.</p>
+                <p><strong><em>OAuth2 Authentication</em></strong></p>
+                <p>Several OAuth2 services from 3rd party vendors are
+                supported by MRS, e.g. Sign in with FaceBook, Twitter
+                and Google. In order for a MRS service to authenticate
+                against those vendors, one needs to be registered as a
+                developer with those vendors and a vendor specific
+                authentication apps need to be created. Then the OAuth2
+                specific settings - like access_token and app_id - need
+                to be configured on the MRS side.</p>
+                <p><strong><em>End User Authorization</em></strong></p>
+                <p>Access to a given REST resource can have several
+                levels of restrictions when using MRS.</p>
+                <ul>
+                <li>Public access - no authorization is needed to access
+                the REST resource and its data</li>
+                <li>Full access - after authentication the user has full
+                access to all data of the REST resource</li>
+                <li>Limited access - after authentication the user has
+                only access to a sub-set of the data of the REST
+                resource</li>
+                </ul>
+                <p>MRS has built-in support for several authorization
+                models. These authorization models define which data of
+                a given REST resource that end users can see and
+                manipulate.</p>
+                <ul>
+                <li>User ownership based - users can see their own
+                data</li>
+                <li>Privilege based, managed via roles</li>
+                <li>User hierarchy based</li>
+                <li>Group based</li>
+                <li>Group hierarchy based</li>
+                </ul>
+                <p>If the use case of a given project matches one of the
+                offered authorization models a custom authorization does
+                not need to be implemented.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="2" id="deployment-architecture"><span
+                class="header-section-number">2</span> Deployment
+                Architecture</h1>
+                <p>The MySQL REST Service (MRS) can be deployed in many
+                different ways depending on the individual project
+                requirements.</p>
+                <h2 data-number="2.1"
+                id="deployments-for-development"><span
+                class="header-section-number">2.1</span> Deployments for
+                Development</h2>
+                <p>The smallest possible development environment
+                consists of a single MySQL Server and a MySQL Router
+                running on the same machine.</p>
+                <p>The recommended deployment for development consists
+                of an InnoDB Cluster setup with a minimum of three MySQL
+                Server instances and two MySQL Routers.</p>
+                <p>For cloud based development, a MySQL Database Service
+                instance with the high availability feature enabled and
+                two compute instances with MySQL Router deployments
+                should be used.</p>
+                <h2 data-number="2.2" id="production-deployments"><span
+                class="header-section-number">2.2</span> Production
+                Deployments</h2>
+                <p>In a production environment an InnoDB Cluster setup
+                with three or more MySQL Router instances should be
+                used. It is recommended to use a load balancer to expose
+                the HTTPS port of the MySQL Routers to the public
+                internet.</p>
+                <p>For cloud based production development, MySQL
+                Database Service instance with the high availability
+                feature enabled and three or more compute instances with
+                MySQL Router deployments should be used. It is
+                recommended to use a load balancer to expose the HTTPS
+                port of the MySQL Routers to the public internet.</p>
+                <figure>
+                <img src="sections/../images/mrs-architecture.svg"
+                title="MySQL REST Service Architecture Diagram"
+                alt="MySQL REST Service Architecture Diagram" />
+                <figcaption aria-hidden="true">MySQL REST Service
+                Architecture Diagram</figcaption>
+                </figure>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="3"
+                id="configuration-of-the-mysql-rest-service"><span
+                class="header-section-number">3</span> Configuration of
+                the MySQL REST Service</h1>
+                <p>To configure the MySQL REST Service (MRS), the
+                following steps need to be taken.</p>
+                <ol type="1">
+                <li>Deployment of a MySQL solution</li>
+                <li>Configuration of the MRS metadata database
+                schema</li>
+                <li>Creation of MySQL user account for MySQL Router
+                access</li>
+                <li>Configuration of one or more MySQL Router instances
+                for MRS</li>
+                </ol>
+                <p>After these steps have been performed, the MySQL REST
+                Service is ready to serve REST services.</p>
+                <h2 data-number="3.1"
+                id="deployment-of-a-mysql-solution"><span
+                class="header-section-number">3.1</span> Deployment of a
+                MySQL solution</h2>
+                <p>The following MySQL solutions are supported.</p>
+                <ul>
+                <li>MySQL HeatWave</li>
+                <li>MySQL InnoDB Cluster</li>
+                <li>MySQL InnoDB ClusterSet</li>
+                <li>MySQL InnoDB ReplicaSet</li>
+                <li>MySQL Operator</li>
+                </ul>
+                <p>For development purposes, a single MySQL Server setup
+                is also supported. Please note that this setup cannot be
+                used in a production deployment since it does not offer
+                any form of High Availability (HA).</p>
+                <ul>
+                <li>Single MySQL Server</li>
+                </ul>
+                <p>Please refer to the corresponding documentation on
+                how to deploy and configure the different MySQL
+                solutions.</p>
+                <h2 data-number="3.2"
+                id="configuration-of-the-mrs-metadata-schema"><span
+                class="header-section-number">3.2</span> Configuration
+                of the MRS metadata schema</h2>
+                <p>The MySQL REST Service stores its configuration in
+                the <code>mysql_rest_service_metadata</code> database
+                schema. To deploy the metadata schema, perform one of
+                the following tasks.</p>
+                <h3 data-number="3.2.1"
+                id="mrs-configuration-via-mysql-shell"><span
+                class="header-section-number">3.2.1</span> MRS
+                Configuration via MySQL Shell</h3>
+                <p>Open a terminal, start the MySQL Shell and connect to
+                the MySQL setup.</p>
+                <pre><code>mysqlsh dba@localhost</code></pre>
+                <p>Configure the metadata schema via the MRS plugin by
+                executing <code>mrs.configure()</code>.</p>
+                <pre><code>MySQL&gt; localhost:33060+&gt; JS&gt; mrs.configure()
+MySQL Rest Data Service configuration.
+
+Checking MRS metadata schema and version...
+Creating MRS metadata schema...
+The MRS metadata is well configured, no changes performed.</code></pre>
+                <p>The MRS metadata schema has now been configured.</p>
+                <h3 data-number="3.2.2"
+                id="mrs-configuration-via-mysql-shell-for-vs-code"><span
+                class="header-section-number">3.2.2</span> MRS
+                Configuration via MySQL Shell for VS Code</h3>
+                <p>Start VS Code and install the MySQL Shell for VS Code
+                extension, then add a connection to the MySQL setup.</p>
+                <p>Right click on the connection in the DATABASE
+                CONNECTIONS view and select Configure Instance for MySQL
+                REST Service Support.</p>
+                <figure>
+                <img src="sections/../images/vsc-mrs-configure.jpg"
+                title="Configure Instance for MySQL REST Service Support"
+                alt="Configure Instance for MySQL REST Service Support" />
+                <figcaption aria-hidden="true">Configure Instance for
+                MySQL REST Service Support</figcaption>
+                </figure>
+                <p>The MRS metadata schema has now been configured.</p>
+                <h2 data-number="3.3"
+                id="configuration-of-mysql-routers"><span
+                class="header-section-number">3.3</span> Configuration
+                of MySQL Routers</h2>
+                <p>MySQL Routers are an essential part of any MySQL
+                solution and therefore often deployed in the same step
+                as the MySQL Servers. Please see the MySQL Router
+                documentation for more details.</p>
+                <p>When deploying a new MySQL Router it is advised to
+                use the <code>mysqlrouter_bootstrap</code> command to
+                bootstrap and configure the router, including the MRS
+                configuration.</p>
+                <pre><code>mysqlrouter_bootstrap --bootstrap=dba@127.0.0.1:13000 --directory ~/.mysqlrouter</code></pre>
+                <p>Please follow the interactive steps on the command
+                line to configure the router.</p>
+                <p><strong><em>Manual Creation of MySQL User Account for
+                MySQL Router access</em></strong></p>
+                <p>When using the <code>mysqlrouter_bootstrap</code>
+                command to configure the MySQL Router for MRS access the
+                user accounts described in this section can be created
+                automatically.</p>
+                <p>If you want to manually manage the required MySQL
+                accounts for use access the following steps need to be
+                performed.</p>
+                <ol type="1">
+                <li>Creating of the MySQL user account(s)
+                <ul>
+                <li>Either one or two MySQL accounts with limited
+                privileges needs to be created</li>
+                <li>If only one account is used</li>
+                </ul></li>
+                <li>Bootstrapping the MySQL Routers using the created
+                MySQL accounts via the following options
+                <ul>
+                <li><code>--mrs-metadata-account</code> used by the
+                router to access the MRS metadata schema</li>
+                <li><code>--mrs-data-account</code> used by the router
+                to access the application schema</li>
+                </ul></li>
+                </ol>
+                <p>As part of the MRS metadata schema creation, two SQL
+                ROLEs have been created for MySQL Router access.</p>
+                <ul>
+                <li>The ‘mrs_provider_metadata’ ROLE grants access to
+                the required MRS metadata schema tables.</li>
+                <li>The ‘mrs_provider_data_access’ ROLE grants access to
+                the served schema objects in the application database
+                schemas.</li>
+                </ul>
+                <p>To create the MySQL account, connect to the MySQL
+                setup with the MySQL Shell or MySQL Shell for VS Code
+                and execute the following SQL statements.</p>
+                <pre><code>CREATE USER &#39;mysqlrouter_mrs_&lt;router_name&gt;&#39;@&#39;&lt;router_host&gt;&#39; IDENTIFIED BY &#39;password&#39;;
+GRANT &#39;mrs_provider_metadata&#39;, &#39;mrs_provider_data_access&#39; TO &#39;mysqlrouter_mrs_&lt;router_name&gt;&#39;@&#39;&lt;router_host&gt;&#39;;</code></pre>
+                <p>The user name specified above can then be used when
+                calling the <code>mysqlrouter_bootstrap</code>
+                command.</p>
+                <pre><code>--mrs-metadata-account=USER_NAME
+--mrs-data-account=USER_NAME</code></pre>
+                <p><strong><em>Adding a MRS configuration to an existing
+                MySQL Router configuration</em></strong></p>
+                <p>In case your MySQL Routers have already been
+                configured it is possible to add the MRS configuration
+                later on.</p>
+                <p>To get the path of the existing configuration file,
+                execute <code>mysqlrouter --help</code>. This will show
+                the exact location of the router config file.</p>
+                <p>The following is an example when connecting to a
+                single development server.</p>
+                <pre><code>[DEFAULT]
+logging_folder = /var/log/mysqlrouter
+runtime_folder = /var/run/mysqlrouter
+config_folder = /etc/mysqlrouter
+
+[logger]
+level = DEBUG
+
+[routing:mrs_rw]
+bind_address=0.0.0.0
+bind_port=6446
+destinations=10.0.1.135:3306
+routing_strategy=round-robin
+protocol=classic</code></pre>
+                <p>To enable MRS support on the router, the
+                configuration file needs to be extended with the
+                [http_server] section and the [rest_mrs] section.</p>
+                <p>It is advised to use the
+                <code>mysqlrouter_bootstrap</code> command to configure
+                the router for MRS.</p>
+                <pre><code>mysqlrouter_bootstrap --bootstrap=dba@127.0.0.1:13000 --directory /export/mysql/src/mysql-trunk/boot --mode=mrs</code></pre>
+                <p>The following parameters can be used to set the MRS
+                configuration options.</p>
+                <pre><code>--mode=all|mrs|bootstrap
+--mrs-metadata-account=USER_NAME
+--mrs-data-account=USER_NAME
+--mrs-secret=SECRET</code></pre>
+                <p>The following is an example when connecting to a
+                single development server and serving the REST services
+                via HTTP.</p>
+                <pre><code>[http_server]
+port=8080
+ssl=0
+static_folder=/var/run/mysqlrouter/www/
+
+[rest_mrs]
+user=mysqlrouter_mrs
+routing=mrs_rw</code></pre>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="4" id="about-mrs-autorest"><span
+                class="header-section-number">4</span> About MRS
+                AutoREST</h1>
+                <p>AutoREST is a quick and easy way to expose database
+                tables, views and procedures as REST resources.</p>
+                <h2 data-number="4.1" id="rest-apis"><span
+                class="header-section-number">4.1</span> REST APIs</h2>
+                <p>Representational State Transfer (REST) is a style of
+                software architecture for distributed hypermedia systems
+                such as the World Wide Web. An API is described as
+                RESTful when it conforms to the tenets of REST. Although
+                a full discussion of REST is outside the scope of this
+                document, a REST API has the following
+                characteristics:</p>
+                <p>Data is modelled as a set of resources. Resources are
+                identified by URIs.</p>
+                <p>A small, uniform set of operations are used to
+                manipulate resources (for example, PUT, POST, GET,
+                DELETE).</p>
+                <p>A resource can have multiple representations (for
+                example, a blog might have an HTML representation and an
+                RSS representation).</p>
+                <p>Services are stateless and since it is likely that
+                the client will want to access related resources, these
+                should be identified in the representation returned,
+                typically by providing hypertext links.</p>
+                <h2 data-number="4.2"
+                id="restful-services-terminology"><span
+                class="header-section-number">4.2</span> RESTful
+                Services Terminology</h2>
+                <p>This section introduces some common terms that are
+                used throughout this document:</p>
+                <ul>
+                <li><p><strong>RESTful service:</strong> An HTTP web
+                service that conforms to the tenets of the RESTful
+                architectural style.</p></li>
+                <li><p><strong>Resource module:</strong> An
+                organizational unit that is used to group related
+                resource templates.</p></li>
+                <li><p><strong>Resource template:</strong> An individual
+                RESTful service that is able to service requests for
+                some set of URIs (Universal Resource Identifiers). The
+                set of URIs is defined by the URI Pattern of the
+                Resource Template</p></li>
+                <li><p><strong>URI pattern:</strong> A pattern for the
+                resource template. Can be either a route pattern or a
+                URI template, although you are encouraged to use route
+                patterns.</p></li>
+                <li><p><strong>Route pattern:</strong> A pattern that
+                focuses on decomposing the path portion of a URI into
+                its component parts. For example, a pattern of
+                /:object/:id? will match /emp/101 (matches a request for
+                the item in the emp resource with id of 101) and will
+                also match /emp/ (matches a request for the emp
+                resource, because the :id parameter is annotated with
+                the ? modifier, which indicates that the id parameter is
+                optional).</p></li>
+                <li><p><strong>HTTP operation:</strong> HTTP (HyperText
+                Transport Protocol) defines standard methods that can be
+                performed on resources: GET (retrieve the resource
+                contents), POST (store a new resource), PUT (update an
+                existing resource), and DELETE (remove a
+                resource).</p></li>
+                </ul>
+                <h2 data-number="4.3"
+                id="mrs-restful-web-services"><span
+                class="header-section-number">4.3</span> MRS RESTful Web
+                Services</h2>
+                <p>MRS supports the creation of an unlimited amount of
+                distinct RESTful Web Services. You can also refer to
+                them as MRS Services. Each of those MRS Services usually
+                maps to one (or more) web applications.</p>
+                <p>After you create a RESTful Web Service, you can
+                access it by entering the following URL in your
+                browser:</p>
+                <pre><code>https://&lt;HOSTNAME:PORT&gt;/&lt;MRS_SERVICE_PATH&gt;/&lt;MRS_DATABASE_SCHEMA_PATH&gt;/&lt;MRS_DATABASE_OBJECT_PATH&gt;/</code></pre>
+                <p>Where:</p>
+                <ul>
+                <li><code>HOSTNAME:PORT/MRS_SERVICE_PATH</code>:
+                Specifies the address at which the given MRS Service is
+                running. You can also refer to it as the MRS Service
+                URI.</li>
+                <li><code>MRS_DATABASE_SCHEMA_PATH</code>: Specifies the
+                path that you provided while REST-enabling your database
+                schema. By default, it is the name of the schema.</li>
+                <li><code>MRS_DATABASE_OBJECT_PATH</code>: Specifies the
+                path that you provided while REST-enabling your database
+                object (TABLE, VIEW or PROCEDURE).</li>
+                </ul>
+                <p>Together, these values comprise the MRS Endpoint
+                URL.</p>
+                <p>Example:</p>
+                <pre><code>https://localhost:8000/mrs/sakila/actor</code></pre>
+                <h2 data-number="4.4"
+                id="about-request-path-syntax-requirements"><span
+                class="header-section-number">4.4</span> About Request
+                Path Syntax Requirements</h2>
+                <p>To prevent path-based attacks, MRS requires the
+                syntax of the path element of each request URL to
+                conform to the following rules:</p>
+                <ul>
+                <li>Is not empty or whitespace-only</li>
+                <li>Does not contain any of the following characters: ?,
+                #, ;, %</li>
+                <li>Does not contain the null character (000)</li>
+                <li>Does not contain characters in the range:
+                001-031</li>
+                <li>Does not end with white space or a period (.)</li>
+                <li>Does not contain double forward slash (//) or double
+                back slash(\)</li>
+                <li>Does not contain two or more periods in sequence
+                (.., …, and so on)</li>
+                <li>Total length is {<span class="citation"
+                data-cites="value">@value</span> #MAX_PATH_LENGTH}
+                characters or less</li>
+                <li>Does not match any of the following names (case
+                insensitive), with or without file extensions: CON, PRN,
+                AUX, CLOCK$, NUL, COM0, COM1, COM2, COM3, COM4, COM5,
+                COM6, COM7, COM8, COM9, LPT0, LPT1, LPT2, LPT3, LPT4,
+                LPT5, LPT6, LPT7, LPT8, LPT9</li>
+                </ul>
+                <p>If you intend to auto-REST enable objects, then avoid
+                object names that do not comply with these requirements.
+                For example, do not create a table named #EMPS. If you
+                do want to auto-REST enable objects that have
+                non-compliant names, then you must use an alias that
+                complies with the requirements.</p>
+                <p>These requirements are applied to the URL decoded
+                form of the URL, to prevent attempted circumvention of
+                percent encodings.</p>
+                <h2 data-number="4.5"
+                id="about-curl-and-testing-restful-services"><span
+                class="header-section-number">4.5</span> About cURL and
+                Testing RESTful Services</h2>
+                <p>Other sections show the testing of RESTful Services
+                using a web browser. However, another useful way to test
+                RESTful Services is using the command line tool named
+                cURL.</p>
+                <p>This powerful tool is available for most platforms,
+                and enables you to see and control what data is being
+                sent to and received from a RESTful service.</p>
+                <pre><code>curl -i https://localhost:8000/mrs/sakila/actor/2</code></pre>
+                <p>This example produces a response like the
+                following:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor/2&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 2,
+    &quot;last_name&quot;: &quot;WAHLBERG&quot;,
+    &quot;first_name&quot;: &quot;NICK&quot;,
+    &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+}</code></pre>
+                <p>The -i option tells cURL to display the HTTP headers
+                returned by the server.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="5"
+                id="enabling-of-schema-objects-for-rest-access"><span
+                class="header-section-number">5</span> Enabling of
+                Schema Objects for REST Access</h1>
+                <p>Enabling REST access to a database schema table, view
+                or procedure allows it to be accessed through RESTful
+                services.</p>
+                <p>Note that enabling a database schema is not
+                equivalent to enabling all tables and views in the
+                schema. It just means making the MySQL REST Service
+                aware that the schema exists and that it may have zero
+                or more resources to expose to HTTP/S.</p>
+                <p>If you are using MySQL Shell for VS Code, you can
+                AUTOREST enable the database schema objects with
+                convenient dialogs. The MySQL REST Service also provides
+                a MySQL Shell plugin that can be used to enable objects
+                for REST on the command line or via scripts.</p>
+                <h2 data-number="5.1"
+                id="accessing-objects-using-restful-services"><span
+                class="header-section-number">5.1</span> Accessing
+                Objects Using RESTful Services</h2>
+                <p>This section provides examples of using the MySQL
+                REST Service queries and other operations against tables
+                and views after you have REST-enabled them.</p>
+                <h3 data-number="5.1.1" id="get-schema-metadata"><span
+                class="header-section-number">5.1.1</span> Get Schema
+                Metadata</h3>
+                <p>This example retrieves a list of resources available
+                through the specified schema alias. It shows RESTful
+                services that are created by enabling a table, view or
+                procedure.</p>
+                <p>This example retrieves a list of resources available
+                through the specified schema alias.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/metadata-catalog/</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/metadata-catalog/</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;name&quot;: &quot;/actor&quot;,
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;describes&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor&quot;
+                },
+                {
+                    &quot;rel&quot;: &quot;canonical&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/actor&quot;
+                }
+            ]
+        },
+        {
+            &quot;name&quot;: &quot;/address&quot;,
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;describes&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/address&quot;
+                },
+                {
+                    &quot;rel&quot;: &quot;canonical&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/address&quot;
+                }
+            ]
+        }
+    ],
+    &quot;limit&quot;: 25,
+    &quot;offset&quot;: 0,
+    &quot;hasMore&quot;: false,
+    &quot;count&quot;: 2,
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/&quot;
+        }
+    ]
+}</code></pre>
+                <p>Each available resource has two hyperlinks:</p>
+                <ul>
+                <li>The link with relation describes points to the
+                actual resource.</li>
+                <li>The link with relation canonical describes the
+                resource.</li>
+                </ul>
+                <h3 data-number="5.1.2" id="get-object-metadata"><span
+                class="header-section-number">5.1.2</span> Get Object
+                Metadata</h3>
+                <p>This example retrieves the metadata (which describes
+                the object) of an individual object. The location of the
+                metadata is indicated by the canonical link
+                relation.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/metadata-catalog/&lt;ObjectAlias&gt;/</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/metadata-catalog/actor/</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;name&quot;: &quot;/actor&quot;,
+    &quot;primaryKey&quot;: [
+        &quot;actor_id&quot;
+    ],
+    &quot;members&quot;: [
+        {
+            &quot;name&quot;: &quot;actor_id&quot;,
+            &quot;type&quot;: &quot;null&quot;
+        },
+        {
+            &quot;name&quot;: &quot;first_name&quot;,
+            &quot;type&quot;: &quot;null&quot;
+        },
+        {
+            &quot;name&quot;: &quot;last_name&quot;,
+            &quot;type&quot;: &quot;null&quot;
+        },
+        {
+            &quot;name&quot;: &quot;last_update&quot;,
+            &quot;type&quot;: &quot;string&quot;
+        }
+    ],
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;collection&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/metadata-catalog&quot;,
+            &quot;mediaType&quot;: &quot;application/json&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;canonical&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/metadata-catalog/actor&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;describes&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor&quot;
+        }
+    ]
+}</code></pre>
+                <h3 data-number="5.1.3" id="get-object-data"><span
+                class="header-section-number">5.1.3</span> Get Object
+                Data</h3>
+                <p>This example retrieves the data in the object. Each
+                row in the object corresponds to a JSON object embedded
+                within the JSON array</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/actor/</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/1&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 1,
+            &quot;last_name&quot;: &quot;GUINESSS&quot;,
+            &quot;first_name&quot;: &quot;PENELOPE&quot;,
+            &quot;last_update&quot;: &quot;2021-09-28 20:18:53.000000&quot;
+        },
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/2&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 2,
+            &quot;last_name&quot;: &quot;WAHLBERG&quot;,
+            &quot;first_name&quot;: &quot;NICK&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        },
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/3&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 3,
+            &quot;last_name&quot;: &quot;CHASE&quot;,
+            &quot;first_name&quot;: &quot;ED&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        },
+        ...
+    ]
+}</code></pre>
+                <h4 data-number="5.1.3.1"
+                id="get-table-data-using-paging"><span
+                class="header-section-number">5.1.3.1</span> Get Table
+                Data Using Paging</h4>
+                <p>This example specifies the offset and limit
+                parameters to control paging of result data.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?offset=&lt;Offset&gt;&amp;limit=&lt;Limit&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8080/mrs/sakila/actor/?offset=10&amp;limit=2</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/11&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 11,
+            &quot;last_name&quot;: &quot;CAGE&quot;,
+            &quot;first_name&quot;: &quot;ZERO&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        },
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/12&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 12,
+            &quot;last_name&quot;: &quot;BERRY&quot;,
+            &quot;first_name&quot;: &quot;KARL&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        }
+    ],
+    &quot;limit&quot;: 2,
+    &quot;offset&quot;: 10,
+    &quot;hasMore&quot;: true,
+    &quot;count&quot;: 2,
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;next&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?offset=12&amp;limit=2&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;prev&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?offset=8&amp;limit=2&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;first&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?limit=2&quot;
+        }
+    ]
+}</code></pre>
+                <h4 data-number="5.1.3.2"
+                id="get-table-data-using-query"><span
+                class="header-section-number">5.1.3.2</span> Get Table
+                Data Using Query</h4>
+                <p>This example specifies a filter clause to restrict
+                objects returned.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?q=&lt;FilterClause&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8080/mrs/sakila/actor/?q={&quot;last_name&quot;:{&quot;$like&quot;:&quot;WAW%&quot;}}</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/97&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 97,
+            &quot;last_name&quot;: &quot;HAWKE&quot;,
+            &quot;first_name&quot;: &quot;MEG&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        }
+    ],
+    &quot;limit&quot;: 25,
+    &quot;offset&quot;: 0,
+    &quot;hasMore&quot;: false,
+    &quot;count&quot;: 1,
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/&quot;
+        }
+    ]
+}</code></pre>
+                <h4 data-number="5.1.3.3"
+                id="get-table-row-using-primary-key"><span
+                class="header-section-number">5.1.3.3</span> Get Table
+                Row Using Primary Key</h4>
+                <p>This example retrieves an object by specifying its
+                identifying key values.</p>
+                <p>Note: If a table does not have a primary key, then
+                MRS uses the ROWID to uniquely address the rows.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/&lt;KeyValues&gt;</code></pre>
+                <p>Where <code>&lt;KeyValues&gt;</code> is a
+                comma-separated list of key values (in key order).</p>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/actor/53</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/53&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 53,
+    &quot;last_name&quot;: &quot;TEMPLE&quot;,
+    &quot;first_name&quot;: &quot;MENA&quot;,
+    &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+}</code></pre>
+                <h3 data-number="5.1.4" id="insert-table-row"><span
+                class="header-section-number">5.1.4</span> Insert Table
+                Row</h3>
+                <p>This example inserts data into the object. The body
+                data supplied with the request is a JSON object
+                containing the data to be inserted.</p>
+                <p>If the object has a primary key, then the POST
+                request can include the primary key value in the body.
+                Or, if the table has an AUTO_INCREMENT column then the
+                primary key column may be omitted.</p>
+                <p>Pattern:</p>
+                <pre><code>POST http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/</code></pre>
+                <p>Example:</p>
+                <pre><code>curl -i -H &quot;Content-Type: application/json&quot; -X POST -d &quot;{ \&quot;last_name\&quot; : \&quot;FOLEY\&quot;, \&quot;first_name\&quot;: \&quot;MIKE\&quot; }&quot; &quot;http://localhost:8000/mrs/sakila/actor/&quot; Content-Type: application/json</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor/201&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 201,
+    &quot;last_name&quot;: &quot;FOLEY&quot;,
+    &quot;first_name&quot;: &quot;MIKE&quot;,
+    &quot;last_update&quot;: &quot;2022-11-29 15:35:17.000000&quot;
+}</code></pre>
+                <h3 data-number="5.1.5"
+                id="updateinsert-table-row"><span
+                class="header-section-number">5.1.5</span> Update/Insert
+                Table Row</h3>
+                <p>This example inserts or updates (sometimes called an
+                “upsert”) data in the object. The body data supplied
+                with the request is a JSON object containing the data to
+                be inserted or updated.</p>
+                <p>Pattern:</p>
+                <pre><code>PUT http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/&lt;KeyValues&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>curl -i -H &quot;Content-Type: application/json&quot; -X PUT -d &quot;{ \&quot;last_name\&quot; : \&quot;FOLEY\&quot;, \&quot;first_name\&quot;: \&quot;JACK\&quot; }&quot; &quot;https://localhost:8000/mrs/sakila/actor/201&quot; Content-Type: application/json</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/201&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 201,
+    &quot;last_name&quot;: &quot;FOLEY&quot;,
+    &quot;first_name&quot;: &quot;JACK&quot;,
+    &quot;last_update&quot;: &quot;2022-11-29 15:45:10.000000&quot;
+}</code></pre>
+                <h3 data-number="5.1.6" id="delete-using-filter"><span
+                class="header-section-number">5.1.6</span> Delete Using
+                Filter</h3>
+                <p>This example deletes object data specified by a
+                filter clause.</p>
+                <p>Pattern:</p>
+                <pre><code>DELETE http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?q=&lt;FilterClause&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>curl -i -X DELETE &quot;https://localhost:8000/mrs/sakila/actor/?q=\{\&quot;actor_id\&quot;:201\}&quot;</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;itemsDeleted&quot;: 1
+}</code></pre>
+                <h3 data-number="5.1.7" id="filterobject-grammar"><span
+                class="header-section-number">5.1.7</span> FilterObject
+                Grammar</h3>
+                <p>The FilterObject must be a JSON object that complies
+                with the following syntax:</p>
+                <pre><code>FilterObject { orderby , asof, wmembers }</code></pre>
+                <p>The orderby, asof, and wmembers attributes are
+                optional, and their definitions are as follows:</p>
+                <pre><code>orderby
+&quot;$orderby&quot;: {orderByMembers}
+
+orderByMembers
+    orderByProperty
+    orderByProperty , orderByMembers
+
+orderByProperty
+    columnName : sortingValue
+
+sortingValue
+&quot;ASC&quot;
+&quot;DESC&quot;
+&quot;-1&quot;
+&quot;1&quot;
+-1
+1
+
+asof
+&quot;$asof&quot;: date
+&quot;$asof&quot;: &quot;datechars&quot;
+&quot;$asof&quot;: scn
+&quot;$asof&quot;: +int
+
+wmembers
+    wpair
+    wpair , wmembers
+
+wpair
+    columnProperty
+    complexOperatorProperty
+
+columnProperty
+    columnName : string
+    columnName : number
+    columnName : date
+    columnName : simpleOperatorObject
+columnName : complexOperatorObject
+    columnName : [complexValues]
+
+columnName
+&quot;\p{Alpha}[[\p{Alpha}]]([[\p{Alnum}]#$_])*$&quot;
+
+complexOperatorProperty
+    complexKey : [complexValues]
+    complexKey : simpleOperatorObject 
+
+complexKey
+&quot;$and&quot;
+&quot;$or&quot;
+
+complexValues
+    complexValue , complexValues
+
+complexValue
+    simpleOperatorObject
+    complexOperatorObject
+    columnObject
+
+columnObject
+    {columnProperty}
+
+simpleOperatorObject
+    {simpleOperatorProperty}
+
+complexOperatorObject
+    {complexOperatorProperty}
+
+simpleOperatorProperty
+&quot;$eq&quot; : string | number | date
+&quot;$ne&quot; : string | number | date
+&quot;$lt&quot; :  number | date
+&quot;$lte&quot; : number | date
+&quot;$gt&quot; : number | date
+&quot;$gte&quot; : number | date
+&quot;$instr&quot; : string 
+&quot;$ninstr&quot; : string
+&quot;$like&quot; : string
+&quot;$null&quot; : null
+&quot;$notnull&quot; : null
+&quot;$between&quot; : betweenValue
+&quot;$like&quot;: string
+
+betweenValue
+    [null , betweenNotNull]
+    [betweenNotNull , null]
+    [betweenRegular , betweenRegular]
+
+betweenNotNull
+    number
+    date
+    
+betweenRegular
+    string
+    number
+    date</code></pre>
+                <p>Data type definitions include the following:</p>
+                <pre><code>   string 
+          JSONString
+   number
+          JSONNumber
+   date
+          {&quot;$date&quot;:&quot;datechars&quot;}
+   scn
+          {&quot;$scn&quot;: +int}</code></pre>
+                <p>Where:</p>
+                <pre><code>datechars is an RFC3339 date format in UTC (Z)
+        
+
+JSONString
+        &quot;&quot;
+        &quot; chars &quot;
+chars
+        char
+        char chars
+char
+        any-Unicode-character except-&quot;-or-\-or-control-character
+        \&quot;
+        \\
+        \/
+        \b
+        \f
+        \n
+        \r
+        \t
+        \u four-hex-digits
+
+
+JSONNumber
+    int
+    int frac
+    int exp
+    int frac exp
+int
+    digit
+    digit1-9 digits 
+    - digit
+    - digit1-9 digits
+frac
+    . digits
+exp
+    e digits
+digits
+    digit
+    digit digits
+e
+    e
+    e+
+    e-
+    E
+    E+
+    E-</code></pre>
+                <p>The FilterObject must be encoded according to Section
+                2.1 of RFC3986.</p>
+                <h3 data-number="5.1.8"
+                id="examples-filterobject-specifications"><span
+                class="header-section-number">5.1.8</span> Examples:
+                FilterObject Specifications</h3>
+                <p>The following are examples of operators in
+                FilterObject specifications.</p>
+                <pre><code>ORDER BY property ($orderby)
+
+Order by with literals
+
+{
+&quot;$orderby&quot;: {&quot;SALARY&quot;:  &quot;ASC&quot;,&quot;ENAME&quot;:&quot;DESC&quot;}
+}
+
+Order by with numbers
+
+{
+&quot;$orderby&quot;: {&quot;SALARY&quot;:  -1,&quot;ENAME&quot;:  1}
+}
+
+
+ASOF property ($asof)
+
+With SCN (Implicit)
+
+{
+  &quot;$asof&quot;: 1273919
+}
+
+With SCN (Explicit)
+
+{
+  &quot;$asof&quot;: {&quot;$scn&quot;: &quot;1273919&quot;}
+}
+
+With Date (Implicit)
+
+{
+  &quot;$asof&quot;: &quot;2014-06-30T00:00:00Z&quot;
+}
+
+With Date (Explicit)
+
+{
+  &quot;$asof&quot;: {&quot;$date&quot;: &quot;2014-06-30T00:00:00Z&quot;}
+}
+
+
+EQUALS operator ($eq)
+
+(Implicit and explicit equality supported._
+
+Implicit (Support String and Dates too)
+
+{
+&quot;SALARY&quot;: 1000
+}
+
+Explicit
+
+{
+&quot;SALARY&quot;: {&quot;$eq&quot;: 1000}
+}
+
+Strings
+
+{
+&quot;ENAME&quot;: {&quot;$eq&quot;:&quot;SMITH&quot;}
+}
+
+Dates
+
+{
+  &quot;HIREDATE&quot;: {&quot;$date&quot;: &quot;1981-11-17T08:00:00Z&quot;}
+}
+
+
+NOT EQUALS operator ($ne)
+
+Number
+
+{
+&quot;SALARY&quot;: {&quot;$ne&quot;: 1000}
+}
+
+String
+
+{
+&quot;ENAME&quot;: {&quot;$ne&quot;:&quot;SMITH&quot;}
+}
+
+Dates
+
+{
+  &quot;HIREDATE&quot;: {&quot;$ne&quot;: {&quot;$date&quot;:&quot;1981-11-17T08:00:00Z&quot;}}
+}
+
+
+LESS THAN operator ($lt)
+(Supports dates and numbers only)
+
+Numbers
+
+{
+  &quot;SALARY&quot;: {&quot;$lt&quot;: 10000}
+}
+
+Dates
+
+{
+  &quot;SALARY&quot;: {&quot;$lt&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
+}
+
+LESS THAN OR EQUALS operator ($lte)
+(Supports dates and numbers only)
+
+Numbers
+
+{
+  &quot;SALARY&quot;: {&quot;$lte&quot;: 10000}
+}
+
+Dates
+
+{
+  &quot;HIREDATE&quot;: {&quot;$lte&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
+}
+
+GREATER THAN operator ($gt)
+(Supports dates and numbers only)
+
+Numbers
+
+{
+  &quot;SALARY&quot;: {&quot;$gt&quot;: 10000}
+}
+
+Dates
+
+{
+  &quot;SALARY&quot;: {&quot;$gt&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
+}
+
+
+GREATER THAN OR EQUALS operator ($gte)
+(Supports dates and numbers only)
+
+Numbers
+
+{
+  &quot;SALARY&quot;: {&quot;$gte&quot;: 10000}
+}
+
+Dates
+
+{
+  &quot;HIREDATE&quot;: {&quot;$gte&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
+}
+
+
+In string operator ($instr)
+(Supports strings only)
+
+{
+  &quot;ENAME&quot;: {&quot;$instr&quot;:&quot;MC&quot;}
+}
+
+
+Not in string operator ($ninstr)
+(Supports strings only)
+
+{
+  &quot;ENAME&quot;: {&quot;$ninstr&quot;:&quot;MC&quot;}
+}
+
+
+#### LIKE operator ($like)
+(Supports strings. Eescape character not supported to try to match expressions with _ or % characters.)
+
+{
+  &quot;ENAME&quot;: {&quot;$like&quot;:&quot;AX%&quot;}
+}
+
+
+#### BETWEEN operator ($between)
+(Supports string, dates, and numbers)
+
+Numbers
+
+{
+  &quot;SALARY&quot;: {&quot;$between&quot;: [1000,2000]}
+}
+
+Dates
+
+{
+  &quot;SALARY&quot;: {&quot;$between&quot;: [{&quot;$date&quot;:&quot;1989-12-17T08:00:00Z&quot;},{&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}]}
+}
+
+Strings
+
+{
+  &quot;ENAME&quot;: {&quot;$between&quot;: [&quot;A&quot;,&quot;C&quot;]}
+}
+
+Null Ranges ($lte equivalent) 
+(Supported by numbers and dates only)
+
+{
+  &quot;SALARY&quot;: {&quot;$between&quot;: [null,2000]}
+}
+
+Null Ranges ($gte equivalent)
+(Supported by numbers and dates only)
+
+{
+  &quot;SALARY&quot;: {&quot;$between&quot;: [1000,null]}
+}
+
+
+#### NULL operator ($null)
+
+{
+  &quot;ENAME&quot;: {&quot;$null&quot;: null}
+}
+
+#### NOT NULL operator ($notnull)
+
+{
+  &quot;ENAME&quot;: {&quot;$notnull&quot;: null}
+}
+
+
+#### AND operator ($and)
+(Supports all operators, including $and and $or)
+
+Column context delegation
+(Operators inside $and will use the closest context defined in the JSON tree.)
+
+{
+  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}]}
+}
+
+Column context override
+(Example: salary greater than 1000 and name like S%) 
+
+{
+  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }
+}
+
+Implicit and in columns
+
+```
+{
+  &quot;SALARY&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}] 
+}
+```
+
+High order AND
+(All first columns and or high order operators -- $and and $ors -- defined at the first level of the JSON will be joined and an implicit AND)
+(Example: Salary greater than 1000 and name starts with S or T)
+
+{
+  &quot;SALARY&quot;: {&quot;$gt&quot;: 1000}, 
+  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$like&quot;:&quot;S%&quot;}, {&quot;$like&quot;:&quot;T%&quot;}]} 
+}
+
+Invalid expression (operators $lt and $gt lack column context)
+
+{
+  &quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]
+}
+
+Valid alternatives for the previous invalid expression
+
+{
+  &quot;$and&quot;: [{&quot;SALARY&quot;: {&quot;$lt&quot;: 5000}}, {&quot;SALARY&quot;: {&quot;$gt&quot;: 1000}}]
+}
+
+{
+  &quot;SALARY&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]
+}
+
+{
+  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]}
+}
+
+
+OR operator ($or)
+(Supports all operators including $and and $or)
+
+Column context delegation
+(Operators inside $or will use the closest context defined in the JSON tree)
+
+{
+  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$eq&quot;:&quot;SMITH&quot;},{&quot;$eq&quot;:&quot;KING&quot;}]}
+}
+
+Column context override
+(Example: name starts with S or salary greater than 1000)
+
+{
+  &quot;SALARY&quot;: {&quot;$or&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }
+}</code></pre>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="6"
+                id="mysql-rest-service-mrs-examples"><span
+                class="header-section-number">6</span> MySQL REST
+                Service (MRS) Examples</h1>
+                <p>The MRS Shell Plugin ships with a set of example
+                projects that showcase the possibilities of the MySQL
+                REST Service.</p>
+                <p>They are implemented as simple <a
+                href="https://en.wikipedia.org/wiki/Progressive_web_app">Progressive
+                Web Apps (PWA)</a> to showcase the features offered by
+                MRS.</p>
+                <h2 data-number="6.1"
+                id="mrs-example-project-structure"><span
+                class="header-section-number">6.1</span> MRS Example
+                Project structure</h2>
+                <p>Each MRS example project consists of three
+                components.</p>
+                <ol type="1">
+                <li>The MySQL database schema that will hold the
+                application data (<code>db_schema</code>).</li>
+                <li>The MRS schema dump that exposes selected database
+                objects of the applications MySQL database schema
+                .(<code>mrs_schema</code>) via REST endpoints.</li>
+                <li>The Progressive Web App’s (PWA) application source
+                code (<code>app_code</code>) that makes REST calls
+                against the REST endpoints to implement the application
+                logic.</li>
+                </ol>
+                <h2 data-number="6.2"
+                id="build-and-deploy-a-mrs-example-project"><span
+                class="header-section-number">6.2</span> Build and
+                Deploy a MRS Example Project</h2>
+                <p>The following steps need to be taken to build and
+                deploy an MRS example on the MySQL REST Service.</p>
+                <ol type="1">
+                <li>Setup and Configure a MySQL REST Service
+                deployment.</li>
+                <li>Deploy the MySQL database schema.</li>
+                <li>Load the MRS schema dump.</li>
+                <li>Build the PWA app from the application’s source
+                code.</li>
+                <li>Upload the build folder to the MySQL REST
+                Service.</li>
+                </ol>
+                <p>After these steps have been performed the MRS Example
+                Project should be accessible from any web browser.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h2 data-number="6.3" id="mrs-notes-examples"><span
+                class="header-section-number">6.3</span> MRS Notes
+                Examples</h2>
+                <p>The MRS Notes example implements a simple note taking
+                application as a <a
+                href="https://en.wikipedia.org/wiki/Progressive_web_app">Progressive
+                Web Apps (PWA)</a> that allows for sharing notes between
+                users.</p>
+                <figure>
+                <img
+                src="../examples/mrs_notes/../../docs/images/mrs-notes-ss-phone.png"
+                title="mrsNotes App running on a Mobile"
+                alt="mrsNotes App running on a Mobile" />
+                <figcaption aria-hidden="true">mrsNotes App running on a
+                Mobile</figcaption>
+                </figure>
+                <h3 data-number="6.3.1"
+                id="mrs-notes-developer-showcase"><span
+                class="header-section-number">6.3.1</span> MRS Notes
+                Developer Showcase</h3>
+                <p>The following features are showcased in this
+                example.</p>
+                <ul>
+                <li>Accessing MRS REST endpoints from JavaScript and
+                TypeScript code.</li>
+                <li>Using MRS service authentication REST endpoints to
+                support user management</li>
+                <li>Using <a href="https://jwt.io/">JSON Web Tokens
+                (JWT)</a> to manage user sessions</li>
+                </ul>
+                <h3 data-number="6.3.2"
+                id="mrs-notes-build-and-deployment"><span
+                class="header-section-number">6.3.2</span> MRS Notes
+                Build and Deployment</h3>
+                <p>The following steps need to be taken to build and
+                deploy the MRS Notes example project on the MySQL REST
+                Service.</p>
+                <ol type="1">
+                <li>Setup and Configure a MySQL REST Service
+                deployment.</li>
+                <li>Deploy the mrsNotes MySQL database schema
+                <code>examples/mrs_notes/db_schema/mrs_notes.sql</code></li>
+                <li>Load the MRS schema dump
+                <code>examples/mrs_notes/mrs_schema/mrsNotes.mrs.json</code></li>
+                <li>Build the PWA app from the application’s source
+                code.
+                <ul>
+                <li>The <code>./JavaScript</code> folder contains a
+                JavaScript implementation that can be deployed directly
+                without a build step</li>
+                <li>The <code>./TypeScript</code> folder contains a
+                TypeScript implementation</li>
+                </ul></li>
+                <li>Upload the build folder to the MySQL REST
+                Service.</li>
+                </ol>
+                <p>After these steps have been performed the MRS Example
+                Project should be accessible from any web browser.</p>
+                <h4 data-number="6.3.2.1"
+                id="mrs-setup-and-configure-for-mrs-notes"><span
+                class="header-section-number">6.3.2.1</span> MRS Setup
+                and Configure for MRS Notes</h4>
+                <p>Please refer to the MRS documentation on how to setup
+                and configure a MRS service in detail.</p>
+                <p>If you are using a local MRS deployment deployment
+                you can use these simplified steps.</p>
+                <h4 data-number="6.3.2.2"
+                id="deploy-the-mrsnotes-mysql-database-schema"><span
+                class="header-section-number">6.3.2.2</span> Deploy the
+                mrsNotes MySQL database schema</h4>
+                <p>The mrsNotes MySQL database schema is the center of
+                the MRS project. It defines the structure of the data
+                and its database tables store all the information the
+                users enter while using the app.</p>
+                <p>To create the mrsNotes schema the corresponding SQL
+                script file needs to be executed. This can be done via
+                the MySQL Shell or directly within VS Code using the
+                MySQL Shell for VS Code extension.</p>
+                <ul>
+                <li><p>If you are browsing this documentation within VS
+                Code click the button next to the SQL script name
+                <code>examples/mrs_notes/db_schema/mrs_notes.sql</code></p></li>
+                <li><p>If you want to use MySQL Shell on the command
+                line, switch to the mrs_notes plugin directory and run
+                the following command.</p>
+                <p>mysqlsh dba@localhost –sql -f
+                examples/mrs_notes/db_schema/mrs_notes.sql</p></li>
+                </ul>
+                <h5 data-number="6.3.2.2.1"
+                id="mrsnotes-eer-diagram"><span
+                class="header-section-number">6.3.2.2.1</span> mrsNotes
+                EER Diagram</h5>
+                <p>The following diagram shows all components of the
+                mrsNotes schema.</p>
+                <figure>
+                <img
+                src="../examples/mrs_notes/../../docs/images/examples-mrs_notes_schema.svg"
+                title="mrsNotes MySQL Database Schema"
+                alt="mrsNotes MySQL Database Schema" />
+                <figcaption aria-hidden="true">mrsNotes MySQL Database
+                Schema</figcaption>
+                </figure>
+                <p>The most important database table is the
+                <code>note</code> table. It stores all notes that are
+                created by the users.</p>
+                <p>The <code>user</code> table holds the nickname of the
+                user as well as the email address used for receiving
+                invitation emails for shared notes.</p>
+                <p>The <code>userHasNote</code> is used to managed the
+                sharing of notes with other users.</p>
+                <p>As soon as selected notes need to be shareable
+                between users it is necessary to add an abstraction
+                layer. This layer then allows selective access to notes
+                written by other users after they accepted the
+                invitation to participate on the shared note.</p>
+                <p>In this case the layer consists of one VIEW and four
+                STORED PROCEDUREs.</p>
+                <ul>
+                <li>notesAll … a VIEW of all notes the user is allowed
+                to see.</li>
+                <li>noteShare … a STORED PROCEDURE to share a note with
+                another user.</li>
+                <li>noteAcceptShare … a STORED PROCEDURE to accept a
+                shared note.</li>
+                <li>noteUpdate … a STORED PROCEDURE to update a shared
+                note</li>
+                <li>noteDelete … a STORED PROCEDURE to delete a shared
+                note</li>
+                </ul>
+                <p>Copyright (c) 2022, 2023, Oracle and/or its
+                affiliates.</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

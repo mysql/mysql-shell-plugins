@@ -2,13 +2,9 @@
 
 ## Changes in 1.6.1+8.0.31
 
-### Additions
-
--
-
 ### Fixes
 
--
+- Display affected rows for SQL queries
 
 ## Changes in 1.6.0+8.0.31
 

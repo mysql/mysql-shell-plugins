@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>$if(title)$$title$$endif$</title>
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+    $if(template_css)$
+    <link rel="stylesheet" href="$template_css$">
+    $endif$
+    $for(author-meta)$
+    <meta name="author" content="$author-meta$" />
+    $endfor$
+    $if(date-meta)$
+    <meta name="date" content="$date-meta$" />
+    $endif$
+    <!-- cSpell:ignore pagetitle -->
+    <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+    <style type="text/css">
+        code {
+            white-space: pre;
+        }
+    </style>
+    $if(quotes)$
+    <style type="text/css">
+        q {
+            quotes: "“" "”" "‘" "’";
+        }
+    </style>
+    $endif$
+    <script>
+        if (typeof acquireVsCodeApi === "function") {
+            const vscode = acquireVsCodeApi();
+
+            const addVsCodeDecorations = () => {
+                const addVsActionBtn = (e, command, caption) => {
+                    const d = document.createElement("button");
+
+                    d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                    d.onclick = () => {
+                        vscode.postMessage({ command, path: e.innerHTML });
+                    }
+                    e.parentNode.insertBefore(d, e.nextSibling)
+                }
+
+                document.querySelectorAll("code").forEach((e) => {
+                    if (e.innerHTML.endsWith(".sql")) {
+                        addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                    } else if (e.innerHTML.endsWith(".mrs.json")) {
+                        addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                    }
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    if (entry.intersectionRatio > 0) {
+                        const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
+                        e.classList.add('active');
+                        e.scrollIntoViewIfNeeded(true);
+                    } else {
+                        document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
+                    }
+                });
+            });
+            // Track all h that have an `id` applied
+            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+                observer.observe(section);
+            });
+
+            if (typeof addVsCodeDecorations === "function") {
+                addVsCodeDecorations();
+            }
+        });
+
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+                case 'goToId':
+                    if (message.id) {
+                        window.location = "#" + message.id;
+                    }
+
+                    break;
+            }
+        });
+    </script>
+</head>
+
+<body>
+
+    <div class="page">
+        <div class="sidebar">
+            <nav class="section-nav">
+                <h1>MRS Docs - Table of Contents</h1>
+                $if(toc)$
+                $toc$
+                $endif$
+            </nav>
+        </div>
+        <div class="content">
+            <div class="header">
+                <p>MySQL REST Service - PREVIEW</p>
+                <h1>Developer's Guide</h1>
+            </div>
+            <div class="main">
+                $body$
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
