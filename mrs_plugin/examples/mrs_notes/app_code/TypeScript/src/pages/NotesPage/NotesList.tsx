@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@ import { INote } from "./NotesPage";
 import styles from "./NotesList.module.css";
 
 interface INotesListProps {
-    style: {};
+    style?: {};
     notes: INote[];
     activeNote?: INote;
     noteSearchText?: string;
@@ -55,7 +55,10 @@ export default class NoteList extends Component<INotesListProps> {
                     {notes?.map((note) => {
                         const noteStyle =
                             `${styles.notesListItem} ` +
-                            `${activeNote !== undefined && activeNote.id === note.id ? styles.selected : ""}`;
+                            // Only display active note if there isn't a style set
+                            `${style === undefined && activeNote !== undefined && activeNote.id === note.id
+                                ? styles.selected
+                                : ""}`;
                         const noteDate = (new Date(note.lastUpdate)).toLocaleDateString(
                             undefined, { dateStyle: "short" });
 

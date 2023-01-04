@@ -542,6 +542,22 @@
                 "title": "Disable MySQL REST Service"
             },
             {
+                "command": "msg.mrs.docs",
+                "title": "Browse the MySQL REST Service Documentation",
+                "icon": {
+                    "dark": "images/dark/docs.svg",
+                    "light": "images/light/docs.svg"
+                }
+            },
+            {
+                "command": "msg.mrs.docs.service",
+                "title": "MRS Service Documentation",
+                "icon": {
+                    "dark": "images/dark/docs.svg",
+                    "light": "images/light/docs.svg"
+                }
+            },
+            {
                 "command": "msg.mrs.addService",
                 "title": "Add REST Service..."
             },
@@ -932,9 +948,14 @@
                     "group": "6_msg@1"
                 },
                 {
-                    "command": "msg.mrs.configureMySQLRestService",
+                    "command": "msg.mrs.docs",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
                     "group": "7_msg@1"
+                },
+                {
+                    "command": "msg.mrs.configureMySQLRestService",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "7_msg@2"
                 },
                 {
                     "command": "msg.dumpSchemaToDisk",
@@ -1017,6 +1038,21 @@
                     "group": "2_msg@2"
                 },
                 {
+                    "command": "msg.mrs.docs",
+                    "when": "viewItem == mrs",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.docs",
+                    "when": "view == msg.connections && viewItem == mrs",
+                    "group": "inline"
+                },
+                {
+                    "command": "msg.mrs.docs.service",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "inline"
+                },
+                {
                     "command": "msg.mrs.editService",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "1_msg@2"
@@ -1030,6 +1066,11 @@
                     "command": "msg.mrs.deleteService",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.docs.service",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "4_msg@1"
                 },
                 {
                     "command": "msg.mrs.editSchema",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,7 @@
  */
 
 import { IShellDictionary } from "../../frontend/src/communication";
-import { commands, ExtensionContext, Uri, window } from "vscode";
+import { commands, ExtensionContext, Uri, ViewColumn, WebviewPanel, window } from "vscode";
 import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
 import {
     IMrsDbObjectFieldData, IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData,
@@ -43,11 +43,18 @@ import { showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { homedir } from "os";
+import { join } from "path";
+import { existsSync, readFileSync } from "fs";
 
 export class MRSCommandHandler {
+    protected docsWebviewPanel?: WebviewPanel;
+    private context: ExtensionContext;
+
     private dialogManager = new DialogWebviewManager();
 
     public setup = (context: ExtensionContext, host: ExtensionHost): void => {
+        this.context = context;
+
         context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestService",
             async (item?: ConnectionMySQLTreeItem) => {
                 await this.configureMrs(item);
@@ -62,6 +69,14 @@ export class MRSCommandHandler {
             async (item?: ConnectionMySQLTreeItem) => {
                 await this.configureMrs(item, true);
             }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.docs", () => {
+            this.browseDocs();
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.docs.service", () => {
+            this.browseDocs("mrs-restful-web-services");
+        }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
             if (item?.entry.backend) {
@@ -323,8 +338,8 @@ export class MRSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.loadSchemaFromJSONFile",
-            async (item?: MrsServiceTreeItem) => {
-                if (item?.entry.backend && item.value) {
+            async (item?: MrsServiceTreeItem | Uri) => {
+                if (item instanceof MrsServiceTreeItem && item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
 
                     await window.showOpenDialog({
@@ -351,6 +366,61 @@ export class MRSCommandHandler {
                             }
                         }
                     });
+                } else if (item instanceof Uri && item) {
+                    const connection = await host.determineConnection(DBType.MySQL);
+                    if (connection) {
+                        const sqlEditor = new ShellInterfaceSqlEditor();
+                        const statusbarItem = window.createStatusBarItem();
+                        try {
+                            statusbarItem.text = "$(loading~spin) Starting Database Session ...";
+                            statusbarItem.show();
+
+                            statusbarItem.text = "$(loading~spin) Starting Database Session ...";
+                            await sqlEditor.startSession(connection.id + "MRSContentSetDlg");
+
+                            statusbarItem.text = "$(loading~spin) Opening Database Connection ...";
+                            await openSqlEditorConnection(sqlEditor, connection.details.id, (message) => {
+                                statusbarItem.text = "$(loading~spin) " + message;
+                            });
+
+                            statusbarItem.hide();
+
+                            const services = await sqlEditor.mrs.listServices();
+                            let service: IMrsServiceData | undefined;
+
+                            if (services.length === 0) {
+                                void window.showErrorMessage("No MRS Services available for this connection.");
+                            } else if (services.length === 1) {
+                                service = services[0];
+                            } else {
+                                // No default connection set. Show a picker.
+                                const items = services.map((service) => {
+                                    return service.hostCtx;
+                                });
+                                const serviceHostCtx = await window.showQuickPick(items, {
+                                    title: "Select a MRS Service to load the MRS schema dump",
+                                    matchOnDescription: true,
+                                    placeHolder: "Type the name of an existing MRS Service",
+                                });
+
+                                service = services.find((candidate) => {
+                                    return candidate.hostCtx === serviceHostCtx;
+                                });
+
+                            }
+
+                            if (service !== undefined) {
+                                await sqlEditor.mrs.loadSchema(item.path, service.id);
+                                showMessageWithTimeout("The REST Schema has been loaded successfully.");
+                            }
+                        } catch (error) {
+                            void window.showErrorMessage("A error occurred when trying to show the MRS Static " +
+                                `Content Set Dialog. Error: ${error instanceof Error ? error.message : String(error)}`);
+                        } finally {
+                            statusbarItem.hide();
+                            await sqlEditor.closeSession();
+                        }
+                    }
                 }
             }));
 
@@ -587,7 +657,7 @@ export class MRSCommandHandler {
         let serviceOptions = "";
         if (service?.options) {
             serviceOptions = JSON.stringify(service.options);
-        } else if(!service) {
+        } else if (!service) {
             serviceOptions = JSON.stringify(defaultOptions);
         }
 
@@ -655,7 +725,7 @@ export class MRSCommandHandler {
                 try {
                     const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
                         comments, enabled,
-                        options ,
+                        options,
                         authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                         authApps);
 
@@ -671,8 +741,11 @@ export class MRSCommandHandler {
             } else {
                 // Send update request.
                 try {
-                    await backend.mrs.updateService(service.id, service.urlContextRoot,
-                        service.urlHostName, {
+                    await backend.mrs.updateService(
+                        service.id,
+                        service.urlContextRoot,
+                        service.urlHostName,
+                        {
                             urlContextRoot,
                             urlProtocol: protocols,
                             urlHostName: hostName,
@@ -807,7 +880,7 @@ export class MRSCommandHandler {
         const rowOwnershipFields = await backend.mrs.getDbObjectRowOwnershipFields(dbObject.requestPath,
             dbObject.name,
             dbObject.id === "" ? undefined : dbObject.id,
-            dbObject.dbSchemaId === "" ? undefined: dbObject.dbSchemaId,
+            dbObject.dbSchemaId === "" ? undefined : dbObject.dbSchemaId,
             schemaName, dbObject.objectType);
 
         const title = dbObject
@@ -1083,5 +1156,90 @@ export class MRSCommandHandler {
             void window.showErrorMessage(`Error while listing MySQL REST services: ` +
                 `${String(error) ?? "<unknown>"}`);
         }
+    };
+
+    private browseDocs = (id?: string) => {
+        if (!this.docsWebviewPanel) {
+            try {
+                let data;
+                let mrsPluginDir = join(this.context.extensionPath, "/shell/lib/mysqlsh/plugins/mrs_plugin/");
+                let indexPath = join(mrsPluginDir, "docs/index.html");
+                if (existsSync(indexPath)) {
+                    data = readFileSync(indexPath, "utf8");
+                } else {
+                    mrsPluginDir = join(homedir(), ".mysqlsh/plugins/mrs_plugin");
+                    indexPath = join(mrsPluginDir, "docs/index.html");
+
+                    if (existsSync(indexPath)) {
+                        data = readFileSync(indexPath, "utf8");
+                    } else {
+                        throw new Error(`MRS Documentation not found.`);
+                    }
+                }
+
+                this.docsWebviewPanel = window.createWebviewPanel(
+                    "mrsDocs",
+                    "MRS Docs",
+                    ViewColumn.One,
+                    {
+                        enableScripts: true,
+                        retainContextWhenHidden: true,
+                        localResourceRoots: [
+                            Uri.file(join(mrsPluginDir, "docs/style/")),
+                            Uri.file(join(mrsPluginDir, "docs/images/")),
+                        ],
+                    });
+                this.docsWebviewPanel.onDidDispose(() => { this.handleDocsWebviewPanelDispose(); });
+
+                // Handle messages from the webview
+                this.docsWebviewPanel.webview.onDidReceiveMessage(
+                    (message) => {
+                        switch (message.command) {
+                            case "openSqlFile": {
+                                if (message.path && typeof message.path === "string") {
+                                    const fullPath = Uri.file(join(mrsPluginDir, String(message.path)));
+
+                                    void commands.executeCommand("msg.editInScriptEditor", fullPath);
+                                }
+
+                                break;
+                            }
+
+                            case "loadMrsDump": {
+                                if (message.path && typeof message.path === "string") {
+                                    const fullPath = Uri.file(join(mrsPluginDir, String(message.path)));
+
+                                    void commands.executeCommand("msg.mrs.loadSchemaFromJSONFile", fullPath);
+                                }
+
+                                break;
+                            }
+
+                            default:
+                        }
+                    });
+
+                const styleUrl = this.docsWebviewPanel.webview.asWebviewUri(
+                    Uri.file(join(mrsPluginDir, "docs/")));
+
+                data = data.replace("\"style/", `"${styleUrl.toString()}style/`);
+                data = data.replace(/(src=")(.*)(\/images)/gm, `$1${styleUrl.toString()}$3`);
+
+                this.docsWebviewPanel.webview.html = data;
+            } catch (reason) {
+                this.docsWebviewPanel = undefined;
+                void window.showErrorMessage(`${String(reason)}`);
+            }
+        } else {
+            this.docsWebviewPanel.reveal();
+        }
+
+        if (id && this.docsWebviewPanel) {
+            void this.docsWebviewPanel.webview.postMessage({ command: "goToId", id });
+        }
+    };
+
+    private handleDocsWebviewPanelDispose = () => {
+        this.docsWebviewPanel = undefined;
     };
 }

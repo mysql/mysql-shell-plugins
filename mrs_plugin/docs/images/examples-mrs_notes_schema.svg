@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1110 950" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-miterlimit:10;">
+    <g transform="matrix(2,0,0,-2,0,1236.76)">
+        <rect x="11.621" y="153.32" width="215.383" height="311.738" style="fill:rgb(240,241,254);stroke:rgb(204,204,204);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,635.21)">
+        <path d="M11.336,164.57L101.887,164.57L101.887,155.867L99.055,153.035L11.336,153.035L11.336,164.57Z" style="fill:rgb(217,217,217);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1008.91)">
+        <path d="M22.957,323.926C22.957,326.43 24.984,328.461 27.488,328.461L101.172,328.461C103.68,328.461 105.707,326.43 105.707,323.926L105.707,180.527C105.707,178.023 103.68,175.992 101.172,175.992L27.488,175.992C24.984,175.992 22.957,178.023 22.957,180.527L22.957,323.926Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M22.957,185.059C22.957,187.563 24.984,189.594 27.488,189.594L101.172,189.594C103.68,189.594 105.707,187.563 105.707,185.059L105.707,175.992L22.957,175.992L22.957,185.059Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,52.1456,355.95)">
+        <use xlink:href="#_Image1" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M96.641,185.059L101.742,185.059L99.191,180.527L96.641,185.059Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,383.157)">
+        <use xlink:href="#_Image2" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,405.829)">
+        <use xlink:href="#_Image3" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,428.501)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,451.173)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,473.845)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,496.517)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,519.189)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,541.861)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,564.533)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,587.205)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="14.262px" y="160.355px" style="font-family:'Helvetica';font-size:6.235px;">API Requiring Authentication</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="37.977px" y="184.738px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">note</text>
+        <text x="32.309px" y="196.743px" style="font-family:'Helvetica';font-size:6.235px;">idINT</text>
+        <text x="32.309px" y="208.078px" style="font-family:'Helvetica';font-size:6.235px;">userIdBINARY(16)</text>
+        <text x="32.309px" y="219.413px" style="font-family:'Helvetica';font-size:6.235px;">titleVARCHAR(255)</text>
+        <text x="32.309px" y="230.747px" style="font-family:'Helvetica';font-size:6.235px;">createDateDATETIME</text>
+        <text x="32.309px" y="242.082px" style="font-family:'Helvetica';font-size:6.235px;">lastUpdateDATETIME</text>
+        <text x="32.309px" y="253.417px" style="font-family:'Helvetica';font-size:6.235px;">pinnedTINYINT(1)</text>
+        <text x="32.309px" y="264.752px" style="font-family:'Helvetica';font-size:6.235px;">lockedDownTINYINT(1)</text>
+        <text x="32.309px" y="276.087px" style="font-family:'Helvetica';font-size:6.235px;">sharedTINYINT(1)</text>
+        <text x="32.309px" y="287.421px" style="font-family:'Helvetica';font-size:6.235px;">contentVARCHAR(2000)</text>
+        <text x="32.309px" y="298.756px" style="font-family:'Helvetica';font-size:6.235px;">tagsJSON</text>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1231.09)">
+        <rect x="22.957" y="302.387" width="82.754" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1229.95)">
+        <path d="M96.641,310.039L101.172,307.489L96.641,304.938L96.641,310.039Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1274.16)">
+        <rect x="22.957" y="313.156" width="82.754" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1273.03)">
+        <path d="M96.641,320.809L101.172,318.258L96.641,315.707L96.641,320.809Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="26.074px" y="309.172px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Indexes</text>
+        <text x="26.074px" y="319.937px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Triggers</text>
+    </g>
+    <g transform="matrix(0.115762,1.99665,-1.99665,0.115762,772.51,486.178)">
+        <path d="M64.463,284.757C66.963,284.902 68.873,287.043 68.728,289.547L64.463,363.107C64.318,365.607 62.173,367.513 59.673,367.368L64.463,284.757Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1588.17)">
+        <rect x="22.957" y="340.363" width="181.375" height="113.359" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,828.664)">
+        <path d="M130.648,233.805C130.648,236.309 132.676,238.34 135.184,238.34L211.699,238.34C214.203,238.34 216.234,236.309 216.234,233.805L216.234,180.527C216.234,178.023 214.203,175.992 211.699,175.992L135.184,175.992C132.676,175.992 130.648,178.023 130.648,180.527L130.648,233.805Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M130.648,185.059C130.648,187.563 132.676,189.594 135.184,189.594L211.699,189.594C214.203,189.594 216.234,187.563 216.234,185.059L216.234,175.992L130.648,175.992L130.648,185.059Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,267.53,355.95)">
+        <use xlink:href="#_Image1" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M207.164,185.059L212.266,185.059L209.715,180.527L207.164,185.059Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,265.262,383.157)">
+        <use xlink:href="#_Image2" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,265.262,405.829)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,265.262,428.501)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="27.207px" y="351.414px" style="font-family:'Helvetica';font-size:6.802px;">The`user`TABLEstoresallusers,the`note`TABLE</text>
+        <text x="27.207px" y="360.486px" style="font-family:'Helvetica';font-size:6.802px;">storesallnotestheyhavewritten.</text>
+        <text x="27.207px" y="378.627px" style="font-family:'Helvetica';font-size:6.802px;">-Toensurethatonlyauthenticateduserswillgetaccess,</text>
+        <text x="27.207px" y="387.699px" style="font-family:'Helvetica';font-size:6.802px;">theMRSDBObjectsrepresentingtheseTABLEsneeds</text>
+        <text x="27.207px" y="396.77px" style="font-family:'Helvetica';font-size:6.802px;">&quot;requires_auth&quot;parametersetto1.</text>
+        <text x="27.207px" y="414.912px" style="font-family:'Helvetica';font-size:6.802px;">-Toensurethatuserscanonlyseetheirowndata,the</text>
+        <text x="27.207px" y="423.974px" style="font-family:'Helvetica';font-size:6.802px;">&quot;row_user_ownership_column&quot;parameteroftheMRS</text>
+        <text x="27.207px" y="433.045px" style="font-family:'Helvetica';font-size:6.802px;">DBObjectsneedtobesettothe`userId`COLUMNs</text>
+        <text x="27.207px" y="442.117px" style="font-family:'Helvetica';font-size:6.802px;">and&quot;row_user_ownership_enforced&quot;needstobe1.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="145.668px" y="184.738px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">user</text>
+        <text x="140px" y="196.743px" style="font-family:'Helvetica';font-size:6.235px;">idBINARY(16)</text>
+        <text x="140px" y="208.078px" style="font-family:'Helvetica';font-size:6.235px;">nicknameVARCHAR(255)</text>
+        <text x="140px" y="219.413px" style="font-family:'Helvetica';font-size:6.235px;">emailVARCHAR(255)</text>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,913.68)">
+        <rect x="130.648" y="223.035" width="85.586" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,912.548)">
+        <path d="M207.164,230.688L211.699,228.137L207.164,225.586L207.164,230.688Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="133.766px" y="229.82px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Indexes</text>
+    </g>
+    <g transform="matrix(0.111731,1.99688,-1.99688,0.111731,798.911,99.428)">
+        <path d="M173.568,193.22C176.068,193.36 177.982,195.501 177.842,198.001L173.568,274.396C173.428,276.901 171.286,278.812 168.786,278.672L173.568,193.22Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,953.36)">
+        <rect x="238.34" y="68.301" width="306.07" height="340.078" style="fill:rgb(234,255,229);stroke:rgb(204,204,204);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,295.048)">
+        <path d="M238.055,79.508L319.23,79.508L319.23,70.852L316.395,68.016L238.055,68.016L238.055,79.508Z" style="fill:rgb(217,217,217);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1023.64)">
+        <path d="M436.719,274.613C436.719,277.117 438.75,279.148 441.254,279.148L500.199,279.148C502.707,279.148 504.734,277.117 504.734,274.613L504.734,237.207C504.734,234.703 502.707,232.672 500.199,232.672L441.254,232.672C438.75,232.672 436.719,234.703 436.719,237.207L436.719,274.613Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M436.719,241.738C436.719,244.242 438.75,246.273 441.254,246.273L500.199,246.273C502.707,246.273 504.734,244.242 504.734,241.738L504.734,232.672L436.719,232.672L436.719,241.738Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,879.674,469.31)">
+        <use xlink:href="#_Image6" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M495.668,241.738L500.77,241.738L498.219,237.207L495.668,241.738Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1097.32)">
+        <path d="M504.734,279.148L504.734,274.047C504.734,271.543 502.707,269.512 500.199,269.512L441.254,269.512C438.75,269.512 436.719,271.543 436.719,274.047L436.719,279.148L504.734,279.148Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M368.703,241.738C368.703,244.242 370.734,246.273 373.238,246.273L410.078,246.273C412.586,246.273 414.613,244.242 414.613,241.738L414.613,237.207C414.613,234.699 412.586,232.672 410.078,232.672L373.238,232.672C370.734,232.672 368.703,234.699 368.703,237.207L368.703,241.738Z" style="fill:rgb(254,222,88);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,743.642,469.31)">
+        <use xlink:href="#_Image7" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1144.94)">
+        <path d="M255.344,335.262C255.344,337.766 257.375,339.797 259.879,339.797L347.164,339.797C349.668,339.797 351.699,337.766 351.699,335.262L351.699,237.207C351.699,234.703 349.668,232.672 347.164,232.672L259.879,232.672C257.375,232.672 255.344,234.703 255.344,237.207L255.344,335.262Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M255.344,241.738C255.344,244.242 257.375,246.273 259.879,246.273L347.164,246.273C349.668,246.273 351.699,244.242 351.699,241.738L351.699,232.672L255.344,232.672L255.344,241.738Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,516.922,469.31)">
+        <use xlink:href="#_Image1" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M342.629,241.738L347.73,241.738L345.18,237.207L342.629,241.738Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,496.517)">
+        <use xlink:href="#_Image8" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,519.189)">
+        <use xlink:href="#_Image8" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,541.861)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,564.533)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,587.205)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,609.877)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="240.98px" y="75.336px" style="font-family:'Helvetica';font-size:6.235px;">API via Abstraction Layer</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="451.738px" y="241.418px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">noteSharing</text>
+        <text x="438.703px" y="253.89px" style="font-family:'Helvetica';font-size:6.802px;">noteShare</text>
+        <text x="438.703px" y="265.791px" style="font-family:'Helvetica';font-size:6.802px;">noteAcceptShare</text>
+        <text x="439.836px" y="275.432px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">2</text>
+        <text x="442.772px" y="275.432px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">routines</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="383.723px" y="241.418px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">notesAll</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="270.363px" y="241.418px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">userHasNote</text>
+        <text x="264.695px" y="253.423px" style="font-family:'Helvetica';font-size:6.235px;">noteIdINT</text>
+        <text x="264.695px" y="264.758px" style="font-family:'Helvetica';font-size:6.235px;">userIdBINARY(16)</text>
+        <text x="264.695px" y="276.092px" style="font-family:'Helvetica';font-size:6.235px;">viewOnlyTINYINT(1)</text>
+        <text x="264.695px" y="287.427px" style="font-family:'Helvetica';font-size:6.235px;">canShareTINYINT(1)</text>
+        <text x="264.695px" y="298.762px" style="font-family:'Helvetica';font-size:6.235px;">invitationKeyCHAR(64)</text>
+        <text x="264.695px" y="310.097px" style="font-family:'Helvetica';font-size:6.235px;">invitationAcceptedTINYINT(1)</text>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1276.43)">
+        <rect x="255.344" y="313.723" width="96.355" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1275.3)">
+        <path d="M342.629,321.375L347.164,318.824L342.629,316.273L342.629,321.375Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1319.51)">
+        <rect x="255.344" y="324.492" width="96.355" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1318.38)">
+        <path d="M342.629,332.145L347.164,329.594L342.629,327.043L342.629,332.145Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="258.461px" y="320.508px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Indexes</text>
+        <text x="258.461px" y="331.273px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Triggers</text>
+    </g>
+    <g transform="matrix(0.09866,1.99757,-1.99757,0.09866,1251.33,35.4544)">
+        <path d="M303.633,289.299C306.134,289.422 308.063,291.551 307.939,294.052L303.633,381.231C303.51,383.732 301.381,385.66 298.88,385.536L303.633,289.299Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,590.61)">
+        <rect x="249.676" y="85.305" width="283.398" height="124.695" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1273.03)">
+        <path d="M436.719,336.961C436.719,339.465 438.75,341.496 441.254,341.496L503.602,341.496C506.105,341.496 508.137,339.465 508.137,336.961L508.137,299.555C508.137,297.047 506.105,295.02 503.602,295.02L441.254,295.02C438.75,295.02 436.719,297.047 436.719,299.555L436.719,336.961Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1207.28)">
+        <path d="M436.719,304.086C436.719,306.59 438.75,308.621 441.254,308.621L503.602,308.621C506.105,308.621 508.137,306.59 508.137,304.086L508.137,295.02L436.719,295.02L436.719,304.086Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,879.674,594.006)">
+        <use xlink:href="#_Image6" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1207.29)">
+        <path d="M499.066,304.09L504.168,304.09L501.617,299.555L499.066,304.09Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1346.72)">
+        <path d="M508.137,341.496L508.137,336.398C508.137,333.89 506.105,331.863 503.602,331.863L441.254,331.863C438.75,331.863 436.719,333.89 436.719,336.398L436.719,341.496L508.137,341.496Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,420.572)">
+        <rect x="11.621" y="68.301" width="215.383" height="73.684" style="fill:rgb(236,253,255);stroke:rgb(204,204,204);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,292.578)">
+        <path d="M11.336,78.273L85.02,78.273L85.02,70.848L82.188,68.016L11.336,68.016L11.336,78.273Z" style="fill:rgb(217,217,217);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,368.422)">
+        <path d="M22.957,94.375C22.957,96.879 24.984,98.906 27.488,98.906L78.5,98.906C81.008,98.906 83.035,96.879 83.035,94.375L83.035,89.84C83.035,87.336 81.008,85.305 78.5,85.305L27.488,85.305C24.984,85.305 22.957,87.336 22.957,89.84L22.957,94.375Z" style="fill:rgb(254,222,88);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,52.1456,174.574)">
+        <use xlink:href="#_Image7" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,481.784)">
+        <rect x="22.957" y="107.977" width="184.211" height="24.938" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1769.55)">
+        <rect x="238.34" y="419.715" width="306.07" height="45.344" style="fill:rgb(247,255,203);stroke:rgb(204,204,204);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1698.52)">
+        <path d="M238.055,429.824L311.738,429.824L311.738,422.266L308.906,419.434L238.055,419.434L238.055,429.824Z" style="fill:rgb(217,217,217);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1774.09)">
+        <path d="M249.676,445.789C249.676,448.293 251.707,450.324 254.211,450.324L314.289,450.324C316.793,450.324 318.824,448.293 318.824,445.789L318.824,441.254C318.824,438.75 316.793,436.719 314.289,436.719L254.211,436.719C251.707,436.719 249.676,438.75 249.676,441.254L249.676,445.789Z" style="fill:rgb(254,222,88);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,505.586,877.406)">
+        <use xlink:href="#_Image7" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1769.55)">
+        <rect x="408.379" y="431.051" width="126.395" height="22.672" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,868.336)">
+        <path d="M105.707,207.164L118.18,207.164L118.18,227.004L130.648,227.004" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;stroke-dasharray:5.67,2.27;"/>
+    </g>
+    <g transform="matrix(0,-2,-2,0,433.04,0)">
+        <path d="M-229.555,111.094L-226.719,105.426L-223.887,111.094" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,-2,-2,0,448.908,0)">
+        <path d="M-229.555,112.227L-223.887,112.227" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,2,2,0,507.86,0)">
+        <path d="M204.613,-126.965L209.148,-126.965" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,2,2,0,498.78,0)">
+        <path d="M204.613,-124.695L209.148,-124.695" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1013.44)">
+        <path d="M255.344,238.34L173.723,238.34L173.723,268.379" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,2,2,0,1008.9,0)">
+        <path d="M265.262,-249.391L268.098,-255.059L270.93,-249.391" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,2,2,0,993.032,0)">
+        <path d="M265.262,-248.258L270.93,-248.258" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,965.828)">
+        <path d="M171.172,241.457L175.707,241.457" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,974.892)">
+        <path d="M171.172,243.723L175.707,243.723" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1164.21)">
+        <path d="M255.344,278.016L158.988,278.016L158.988,304.09L105.707,304.09" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,2,2,0,1008.9,0)">
+        <path d="M300.973,-249.391L303.805,-255.059L306.641,-249.391" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,2,2,0,993.032,0)">
+        <path d="M300.973,-248.258L306.641,-248.258" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,-2,-2,0,435.296,0)">
+        <path d="M-280,108.824L-275.465,108.824" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(0,-2,-2,0,444.376,0)">
+        <path d="M-280,111.094L-275.465,111.094" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,137.172)">
+        <rect x="11.621" y="11.621" width="532.793" height="45.344" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1008.91)">
+        <path d="M22.957,323.926C22.957,326.43 24.984,328.461 27.488,328.461L101.172,328.461C103.68,328.461 105.707,326.43 105.707,323.926L105.707,180.527C105.707,178.023 103.68,175.992 101.172,175.992L27.488,175.992C24.984,175.992 22.957,178.023 22.957,180.527L22.957,323.926Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M22.957,185.059C22.957,187.563 24.984,189.594 27.488,189.594L101.172,189.594C103.68,189.594 105.707,187.563 105.707,185.059L105.707,175.992L22.957,175.992L22.957,185.059Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,52.1456,355.95)">
+        <use xlink:href="#_Image1" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M96.641,185.059L101.742,185.059L99.191,180.527L96.641,185.059Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,383.157)">
+        <use xlink:href="#_Image2" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,405.829)">
+        <use xlink:href="#_Image3" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,428.501)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,451.173)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,473.845)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,496.517)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,519.189)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,541.861)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,564.533)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,49.8784,587.205)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="253.926px" y="96.355px" style="font-family:'Helvetica';font-size:6.802px;">Assoonasselectednotesneedtobeshareablebetweenusersitisnecessarytoaddan</text>
+        <text x="253.926px" y="105.427px" style="font-family:'Helvetica';font-size:6.802px;">abstractionlayer.Thislayerthenallowsselectiveaccesstonoteswrittenbyotherusers</text>
+        <text x="253.926px" y="114.489px" style="font-family:'Helvetica';font-size:6.802px;">aftertheyacceptedtheinvitationtoparticipateonthesharednote.</text>
+        <text x="253.926px" y="132.63px" style="font-family:'Helvetica';font-size:6.802px;">InthiscasethelayerconsistsofoneVIEWandfourSTOREDPR<tspan x="428.477px " y="132.63px ">O</tspan>CEDUREs.</text>
+        <text x="253.926px" y="141.692px" style="font-family:'Helvetica';font-size:6.802px;">-notesAll…aVIEWofallnotestheuserisallowedtosee.</text>
+        <text x="253.926px" y="150.763px" style="font-family:'Helvetica';font-size:6.802px;">-noteShare…aSTOREDPROCEDUREtoshareanotewithanotheruser.</text>
+        <text x="253.926px" y="159.825px" style="font-family:'Helvetica';font-size:6.802px;">-noteAcceptShare…aSTOREDPROCEDUREtoacceptasharednot<tspan x="450.403px " y="159.825px ">e</tspan>.</text>
+        <text x="253.926px" y="168.897px" style="font-family:'Helvetica';font-size:6.802px;">-noteUpdate...aSTOREDPROCEDUREtoupdateashared<tspan x="423.569px " y="168.897px ">n</tspan>ote</text>
+        <text x="253.926px" y="177.968px" style="font-family:'Helvetica';font-size:6.802px;">-noteDelete...aSTOREDPROCEDUREtodeleteashared<tspan x="419.025px " y="177.968px ">n</tspan>ote</text>
+        <text x="253.926px" y="196.11px" style="font-family:'Helvetica';font-size:6.802px;">PleasenotethatforallMRSDBObjectsthe&quot;row_user_ownership_column&quot;param<tspan x="483.598px " y="196.11px ">e</tspan>ter</text>
+        <text x="253.926px" y="205.171px" style="font-family:'Helvetica';font-size:6.802px;">needstobesetto`userId`and&quot;row_user_ownership_enforced&quot;needstobesetto1.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="451.738px" y="303.766px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">noteChanges</text>
+        <text x="438.703px" y="316.237px" style="font-family:'Helvetica';font-size:6.802px;">noteUpdate</text>
+        <text x="438.703px" y="328.139px" style="font-family:'Helvetica';font-size:6.802px;">noteDelete</text>
+        <text x="439.836px" y="337.78px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">2</text>
+        <text x="442.772px" y="337.78px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">routines</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="14.703px" y="75.336px" style="font-family:'Helvetica';font-size:6.235px;">Public API</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="37.977px" y="94.051px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">notesServed</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="27.207px" y="119.027px" style="font-family:'Helvetica';font-size:6.802px;">The`notes_served`VIEWisusedformarketingpurposes</text>
+        <text x="27.207px" y="128.099px" style="font-family:'Helvetica';font-size:6.802px;">andwillbeaccessiblewithoutauthentication.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="241.184px" y="426.859px" style="font-family:'Helvetica';font-size:6.235px;">SchemaVersion</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="264.695px" y="445.465px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">schemaVersion</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="412.629px" y="440.969px" style="font-family:'Helvetica';font-size:6.802px;">The`schemaVersion`VIEWisusedto</text>
+        <text x="412.629px" y="448.91px" style="font-family:'Helvetica';font-size:6.802px;">tracktheversionofthisschema.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="15.871px" y="22.672px" style="font-family:'Helvetica';font-size:6.802px;">MySQL REST Service - Notes Example</text>
+        <text x="15.871px" y="40.813px" style="font-family:'Helvetica';font-size:6.802px;">This schema represents the database layer of a simple<tspan x="180.981px " y="40.813px "> </tspan>note taking application. After the database schema h<tspan x="341.199px " y="40.813px ">a</tspan>s been deployed and the MySQL REST</text>
+        <g transform="matrix(6.8016,0,0,6.8016,102.768,47.6151)">
+        </g>
+        <g transform="matrix(6.8016,0,0,6.8016,104.657,47.6151)">
+        </g>
+        <g transform="matrix(6.8016,0,0,6.8016,428.83,47.6151)">
+        </g>
+        <text x="15.871px" y="47.615px" style="font-family:'Helvetica';font-size:6.802px;">Service (MRS) has been conﬁgured, the required schema<tspan x="189.297px " y="47.615px "> </tspan>objects can be exposed via a REST API by creating MR<tspan x="359.319px " y="47.615px ">S</tspan> DB Objects for them.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="37.977px" y="184.738px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">note</text>
+        <text x="32.309px" y="196.743px" style="font-family:'Helvetica';font-size:6.235px;">id INT</text>
+        <text x="32.309px" y="208.078px" style="font-family:'Helvetica';font-size:6.235px;">userId BINARY(16)</text>
+        <text x="32.309px" y="219.413px" style="font-family:'Helvetica';font-size:6.235px;">title VARCHAR(255)</text>
+        <text x="32.309px" y="230.747px" style="font-family:'Helvetica';font-size:6.235px;">createDate DATETIME</text>
+        <text x="32.309px" y="242.082px" style="font-family:'Helvetica';font-size:6.235px;">lastUpdate DATETIME</text>
+        <text x="32.309px" y="253.417px" style="font-family:'Helvetica';font-size:6.235px;">pinned TINYINT(1)</text>
+        <text x="32.309px" y="264.752px" style="font-family:'Helvetica';font-size:6.235px;">lockedDown TINYINT(1)</text>
+        <text x="32.309px" y="276.087px" style="font-family:'Helvetica';font-size:6.235px;">shared TINYINT(1)</text>
+        <text x="32.309px" y="287.421px" style="font-family:'Helvetica';font-size:6.235px;">content VARCHAR(2000)</text>
+        <text x="32.309px" y="298.756px" style="font-family:'Helvetica';font-size:6.235px;">tags JSON</text>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1231.09)">
+        <rect x="22.957" y="302.387" width="82.754" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1229.95)">
+        <path d="M96.641,310.039L101.172,307.489L96.641,304.938L96.641,310.039Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1274.16)">
+        <rect x="22.957" y="313.156" width="82.754" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1273.03)">
+        <path d="M96.641,320.809L101.172,318.258L96.641,315.707L96.641,320.809Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="26.074px" y="309.172px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Indexes</text>
+        <text x="26.074px" y="319.937px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Triggers</text>
+    </g>
+    <g transform="matrix(0.115762,1.99665,-1.99665,0.115762,772.51,486.178)">
+        <path d="M64.463,284.757C66.963,284.902 68.873,287.043 68.728,289.547L64.463,363.107C64.318,365.607 62.173,367.513 59.673,367.368L64.463,284.757Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1588.17)">
+        <rect x="22.957" y="340.363" width="181.375" height="113.359" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,828.664)">
+        <path d="M130.648,233.805C130.648,236.309 132.676,238.34 135.184,238.34L211.699,238.34C214.203,238.34 216.234,236.309 216.234,233.805L216.234,180.527C216.234,178.023 214.203,175.992 211.699,175.992L135.184,175.992C132.676,175.992 130.648,178.023 130.648,180.527L130.648,233.805Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M130.648,185.059C130.648,187.563 132.676,189.594 135.184,189.594L211.699,189.594C214.203,189.594 216.234,187.563 216.234,185.059L216.234,175.992L130.648,175.992L130.648,185.059Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,267.53,355.95)">
+        <use xlink:href="#_Image1" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,731.172)">
+        <path d="M207.164,185.059L212.266,185.059L209.715,180.527L207.164,185.059Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,265.262,383.157)">
+        <use xlink:href="#_Image2" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,265.262,405.829)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,265.262,428.501)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(2,0,0,2,4.88498e-15,0)">
+        <text x="27.207px" y="351.414px" style="font-family:'Helvetica';font-size:6.802px;">The `user` TABLE stores all users, the `note` TABLE</text>
+        <text x="27.207px" y="360.486px" style="font-family:'Helvetica';font-size:6.802px;">stores all notes they have written.</text>
+        <text x="27.207px" y="378.627px" style="font-family:'Helvetica';font-size:6.802px;">- To ensure that only authenticated users will get acce<tspan x="189.676px " y="378.627px ">s</tspan>s,</text>
+        <text x="27.207px" y="385.429px" style="font-family:'Helvetica';font-size:6.802px;">the MRS DB Objects representing these TABLEs needs</text>
+        <text x="27.207px" y="392.23px" style="font-family:'Helvetica';font-size:6.802px;">their &quot;requires_auth&quot; parameter set to 1.</text>
+        <text x="27.207px" y="410.372px" style="font-family:'Helvetica';font-size:6.802px;">- To ensure that users can only see their own data, the</text>
+        <text x="27.207px" y="419.444px" style="font-family:'Helvetica';font-size:6.802px;">&quot;row_user_ownership_column&quot; parameter of the MRS</text>
+        <text x="27.207px" y="428.515px" style="font-family:'Helvetica';font-size:6.802px;">DB Objects need to be set to the `userId` COLUMNs</text>
+        <g transform="matrix(6.8016,0,0,6.8016,183.198,437.587)">
+        </g>
+        <text x="27.207px" y="437.587px" style="font-family:'Helvetica';font-size:6.802px;">and &quot;row_user_ownership_enforced&quot; needs to be 1.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="145.668px" y="184.738px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">user</text>
+        <text x="140px" y="196.743px" style="font-family:'Helvetica';font-size:6.235px;">id BINARY(16)</text>
+        <text x="140px" y="208.078px" style="font-family:'Helvetica';font-size:6.235px;">nickname VARCHAR(255)</text>
+        <text x="140px" y="219.413px" style="font-family:'Helvetica';font-size:6.235px;">email VARCHAR(255)</text>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,913.68)">
+        <rect x="130.648" y="223.035" width="85.586" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,912.548)">
+        <path d="M207.164,230.688L211.699,228.137L207.164,225.586L207.164,230.688Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="133.766px" y="229.82px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Indexes</text>
+    </g>
+    <g transform="matrix(0.111731,1.99688,-1.99688,0.111731,798.911,99.428)">
+        <path d="M173.568,193.22C176.068,193.36 177.982,195.501 177.842,198.001L173.568,274.396C173.428,276.901 171.286,278.812 168.786,278.672L173.568,193.22Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1023.64)">
+        <path d="M436.719,274.613C436.719,277.117 438.75,279.148 441.254,279.148L500.199,279.148C502.707,279.148 504.734,277.117 504.734,274.613L504.734,237.207C504.734,234.703 502.707,232.672 500.199,232.672L441.254,232.672C438.75,232.672 436.719,234.703 436.719,237.207L436.719,274.613Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M436.719,241.738C436.719,244.242 438.75,246.273 441.254,246.273L500.199,246.273C502.707,246.273 504.734,244.242 504.734,241.738L504.734,232.672L436.719,232.672L436.719,241.738Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,879.674,469.31)">
+        <use xlink:href="#_Image6" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M495.668,241.738L500.77,241.738L498.219,237.207L495.668,241.738Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1097.32)">
+        <path d="M504.734,279.148L504.734,274.047C504.734,271.543 502.707,269.512 500.199,269.512L441.254,269.512C438.75,269.512 436.719,271.543 436.719,274.047L436.719,279.148L504.734,279.148Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M368.703,241.738C368.703,244.242 370.734,246.273 373.238,246.273L410.078,246.273C412.586,246.273 414.613,244.242 414.613,241.738L414.613,237.207C414.613,234.699 412.586,232.672 410.078,232.672L373.238,232.672C370.734,232.672 368.703,234.699 368.703,237.207L368.703,241.738Z" style="fill:rgb(254,222,88);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,743.642,469.31)">
+        <use xlink:href="#_Image7" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1144.94)">
+        <path d="M255.344,335.262C255.344,337.766 257.375,339.797 259.879,339.797L347.164,339.797C349.668,339.797 351.699,337.766 351.699,335.262L351.699,237.207C351.699,234.703 349.668,232.672 347.164,232.672L259.879,232.672C257.375,232.672 255.344,234.703 255.344,237.207L255.344,335.262Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M255.344,241.738C255.344,244.242 257.375,246.273 259.879,246.273L347.164,246.273C349.668,246.273 351.699,244.242 351.699,241.738L351.699,232.672L255.344,232.672L255.344,241.738Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,516.922,469.31)">
+        <use xlink:href="#_Image1" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,957.89)">
+        <path d="M342.629,241.738L347.73,241.738L345.18,237.207L342.629,241.738Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,496.517)">
+        <use xlink:href="#_Image8" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,519.189)">
+        <use xlink:href="#_Image8" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,541.861)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,564.533)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,587.205)">
+        <use xlink:href="#_Image5" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,514.654,609.877)">
+        <use xlink:href="#_Image4" x="0" y="0" width="11px" height="11px"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="451.738px" y="241.418px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">noteSharing</text>
+        <text x="438.703px" y="253.89px" style="font-family:'Helvetica';font-size:6.802px;">noteShare</text>
+        <text x="438.703px" y="265.791px" style="font-family:'Helvetica';font-size:6.802px;">noteAcceptShare</text>
+        <text x="439.836px" y="275.432px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">2</text>
+        <text x="442.772px" y="275.432px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">routines</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="383.723px" y="241.418px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">notesAll</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="270.363px" y="241.418px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">userHasNote</text>
+        <text x="264.695px" y="253.423px" style="font-family:'Helvetica';font-size:6.235px;">noteId INT</text>
+        <text x="264.695px" y="264.758px" style="font-family:'Helvetica';font-size:6.235px;">userId BINARY(16)</text>
+        <text x="264.695px" y="276.092px" style="font-family:'Helvetica';font-size:6.235px;">viewOnly TINYINT(1)</text>
+        <text x="264.695px" y="287.427px" style="font-family:'Helvetica';font-size:6.235px;">canShare TINYINT(1)</text>
+        <text x="264.695px" y="298.762px" style="font-family:'Helvetica';font-size:6.235px;">invitationKey CHAR(64)</text>
+        <text x="264.695px" y="310.097px" style="font-family:'Helvetica';font-size:6.235px;">invitationAccepted TINYINT(1)</text>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1276.43)">
+        <rect x="255.344" y="313.723" width="96.355" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1275.3)">
+        <path d="M342.629,321.375L347.164,318.824L342.629,316.273L342.629,321.375Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1319.51)">
+        <rect x="255.344" y="324.492" width="96.355" height="10.77" style="fill:rgb(196,196,196);stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1318.38)">
+        <path d="M342.629,332.145L347.164,329.594L342.629,327.043L342.629,332.145Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="258.461px" y="320.508px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Indexes</text>
+        <text x="258.461px" y="331.273px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.235px;fill:white;">Triggers</text>
+    </g>
+    <g transform="matrix(0.09866,1.99757,-1.99757,0.09866,1251.33,35.4544)">
+        <path d="M303.633,289.299C306.134,289.422 308.063,291.551 307.939,294.052L303.633,381.231C303.51,383.732 301.381,385.66 298.88,385.536L303.633,289.299Z" style="fill:rgb(152,191,218);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,590.61)">
+        <rect x="249.676" y="85.305" width="283.398" height="124.695" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1273.03)">
+        <path d="M436.719,336.961C436.719,339.465 438.75,341.496 441.254,341.496L503.602,341.496C506.105,341.496 508.137,339.465 508.137,336.961L508.137,299.555C508.137,297.047 506.105,295.02 503.602,295.02L441.254,295.02C438.75,295.02 436.719,297.047 436.719,299.555L436.719,336.961Z" style="fill:white;fill-rule:nonzero;stroke:rgb(128,128,128);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1207.28)">
+        <path d="M436.719,304.086C436.719,306.59 438.75,308.621 441.254,308.621L503.602,308.621C506.105,308.621 508.137,306.59 508.137,304.086L508.137,295.02L436.719,295.02L436.719,304.086Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,879.674,594.006)">
+        <use xlink:href="#_Image6" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1207.29)">
+        <path d="M499.066,304.09L504.168,304.09L501.617,299.555L499.066,304.09Z" style="fill:rgb(102,102,102);fill-rule:nonzero;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1346.72)">
+        <path d="M508.137,341.496L508.137,336.398C508.137,333.89 506.105,331.863 503.602,331.863L441.254,331.863C438.75,331.863 436.719,333.89 436.719,336.398L436.719,341.496L508.137,341.496Z" style="fill:rgb(152,216,165);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,368.422)">
+        <path d="M22.957,94.375C22.957,96.879 24.984,98.906 27.488,98.906L78.5,98.906C81.008,98.906 83.035,96.879 83.035,94.375L83.035,89.84C83.035,87.336 81.008,85.305 78.5,85.305L27.488,85.305C24.984,85.305 22.957,87.336 22.957,89.84L22.957,94.375Z" style="fill:rgb(254,222,88);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,52.1456,174.574)">
+        <use xlink:href="#_Image7" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,481.784)">
+        <rect x="22.957" y="107.977" width="184.211" height="24.938" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1774.09)">
+        <path d="M249.676,445.789C249.676,448.293 251.707,450.324 254.211,450.324L314.289,450.324C316.793,450.324 318.824,448.293 318.824,445.789L318.824,441.254C318.824,438.75 316.793,436.719 314.289,436.719L254.211,436.719C251.707,436.719 249.676,438.75 249.676,441.254L249.676,445.789Z" style="fill:rgb(254,222,88);fill-rule:nonzero;stroke:rgb(179,179,179);stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(1.1336,0,0,1.1336,505.586,877.406)">
+        <use xlink:href="#_Image7" x="0" y="0" width="16px" height="16px"/>
+    </g>
+    <g transform="matrix(2,0,0,-2,0,1769.55)">
+        <rect x="408.379" y="431.051" width="126.395" height="22.672" style="fill:rgb(254,253,237);stroke:rgb(128,128,128);stroke-opacity:0.2;stroke-width:0.57px;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="253.926px" y="96.355px" style="font-family:'Helvetica';font-size:6.802px;">As soon as selected notes need to be shareable between users it is necessary to</text>
+        <text x="253.926px" y="103.157px" style="font-family:'Helvetica';font-size:6.802px;">add an abstraction layer. This layer then allows selective access to notes written by</text>
+        <text x="253.926px" y="109.959px" style="font-family:'Helvetica';font-size:6.802px;">other users after they accepted the invitation to participate on the shared note.</text>
+        <text x="253.926px" y="128.1px" style="font-family:'Helvetica';font-size:6.802px;">In this case the layer consists of one VIEW and four STORED PROCEDUREs.</text>
+        <text x="253.926px" y="137.172px" style="font-family:'Helvetica';font-size:6.802px;">- notesAll … a VIEW of all notes the user is allowed to see.</text>
+        <text x="253.926px" y="146.233px" style="font-family:'Helvetica';font-size:6.802px;">- noteShare … a STORED PROCEDURE to share a note with another user.</text>
+        <text x="253.926px" y="155.305px" style="font-family:'Helvetica';font-size:6.802px;">- noteAcceptShare … a STORED PROCEDURE to accept a shared note.</text>
+        <text x="253.926px" y="164.377px" style="font-family:'Helvetica';font-size:6.802px;">- noteUpdate ... a STORED PROCEDURE to update a shared note</text>
+        <text x="253.926px" y="173.448px" style="font-family:'Helvetica';font-size:6.802px;">- noteDelete ... a STORED PROCEDURE to delete a shared note</text>
+        <text x="253.926px" y="191.571px" style="font-family:'Helvetica';font-size:6.802px;">Please note that for all MRS DB Objects the &quot;row_user_ownership_column&quot;</text>
+        <text x="253.926px" y="198.373px" style="font-family:'Helvetica';font-size:6.802px;">parameter needs to be set to `userId` and &quot;row_user_ownership_enforced&quot; needs</text>
+        <g transform="matrix(6.8016,0,0,6.8016,295.129,205.175)">
+        </g>
+        <text x="253.926px" y="205.175px" style="font-family:'Helvetica';font-size:6.802px;">to be set to 1.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="451.738px" y="303.766px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">noteChanges</text>
+        <text x="438.703px" y="316.237px" style="font-family:'Helvetica';font-size:6.802px;">noteUpdate</text>
+        <text x="438.703px" y="328.139px" style="font-family:'Helvetica';font-size:6.802px;">noteDelete</text>
+        <text x="439.836px" y="337.78px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">2</text>
+        <text x="442.772px" y="337.78px" style="font-family:'Helvetica';font-size:5.101px;fill:rgb(128,128,128);">routines</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="37.977px" y="94.051px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">notesServed</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="27.207px" y="119.027px" style="font-family:'Helvetica';font-size:6.802px;">The `notes_served` VIEW is used for marketing</text>
+        <g transform="matrix(6.8016,0,0,6.8016,192.365,125.829)">
+        </g>
+        <text x="27.207px" y="125.829px" style="font-family:'Helvetica';font-size:6.802px;">purposes and will be accessible without authentication.</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="264.695px" y="445.465px" style="font-family:'Helvetica-Bold', 'Helvetica';font-weight:700;font-size:6.802px;">schemaVersion</text>
+    </g>
+    <g transform="matrix(2,0,0,2,0,0)">
+        <text x="412.629px" y="440.969px" style="font-family:'Helvetica';font-size:6.802px;">The `schemaVersion` VIEW is used to</text>
+        <text x="412.629px" y="448.91px" style="font-family:'Helvetica';font-size:6.802px;">track the version of this schema.</text>
+    </g>
+    <defs>
+        <image id="_Image1" width="16px" height="16px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABt0lEQVQ4jaWSzWpUQRCFv74/maiDCSoScDtxnY1L1z6ej+ADuHIj5AXyBtm5EAUTgo7omLm3u6vquJg70cwq4oGmqqHr61NFwX8qAbx4ea5/KXp0tMfp2+Nj4LIDeH5ySNNASmnzYotLUz7FkJBgftgCvAJOkZTenVdt5SEVk8YqXefQzyG0XIeuVqEvP1wfv7nenK0EvAZOOoAksVobn67WVBdt23DwoOfi+0g18fjgHhfLgVzF4tlDvNpNOx1srLlgrEEuTte17O91DDnIJuY1uM5ByZXVMFBLuQE0AOGOB1TbFJRqFBe5ilyMbCKXoNTCmA23etuBe+AhPMADUgJzsBDmUB0spuNg5jsOzDbFYoKIKk2QP6AtJGx3Bm7U6afqjgRmUBzMg2KBeWAuqgvfBVh1asBQjJIz1iSGcaTkTLXKMLSUmvFqE+CvFlJKMnPMnFnr9G3QNo7VQtc4faspD7q+wQPkvuug0vcNR0/mjOMMC+FqeDrbx8wxJWb302bATY8ibgO+Lgfen33G3QkPJKEASYS294SmHR/W+QYwLT+LabcX3F0fgNMtYA4cTfGu+gVc/gZSNHB3qNfY2QAAAABJRU5ErkJggg=="/>
+        <image id="_Image2" width="11px" height="11px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABC0lEQVQYlXWRsUrDUBSGv5trq9E0VUTESSnoIg4dxG6+gYuv4ODo4is4OOogjj5DV92UoiK6lKI4WIQusSUaQzS9yXXQxJDoNx3O/x0OnAM5XlrWweDSPmkeMw6IfJ7idVbfwsdG9PnUUP7NXLy/O7oIjCS5kRTOeWnbnK1bmKYQ5RUxVqqIjXXjCLCTDaksINCxi5RCSP/KQCmCD2ygmvVSBnfzz8Pumla3Ne1eTA2Xl9gCFgBJfqLf6+0JWdaB50Rn1/5p+4EO8ArEBbkyQYgApeNwcyc8BLqAB+iCbBjfTSkwZyZ5/xFV4RpZNDpy3F/pX7x2Td03zRZQB6xs9teHqsA0EAB9IEyCL+8xWaZI7fY7AAAAAElFTkSuQmCC"/>
+        <image id="_Image3" width="11px" height="11px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABV0lEQVQYlZWRv0sCcQDFP93B0VDclUQFSqVIUiGEQRFF4BTSj38maGkIAikaWrMxiLb+ACvoB1FT0pAgtFVYHnp66p0nfu8ayqFw6Y2PDw/ee/APyX+Nw52t8NriwlksFL65ymRqgNsRTiWTkcCA72J1fi5aKOTXW459kXvPG4D4BaeSyYjfp6XjselAV8MipPVqUsNecW0rnSsUDUDI3+B2xO/rS8dj0wHPtnCrFTyjRFCRVanpJBzROn8plg0JwLOdo6WpyYBXM3HLJURRR+gfuNUKM/6hkYnBwU1AlQEmR4cvzZKxHlR7+rxyCaF/0DQr6HWL00z2dv/64QCoygB3T9l6q2lfynYjEVQkTVRN9LrFyePz7e7V/R7wCejtgm7uLV8WtnUuNZ2E2q1op5lsG3wDXgHz78zK8vhYdGNx9hiIA1Ggv71aV4ejFEAFuoHaT6IA+AK/+5gYvT/B1gAAAABJRU5ErkJggg=="/>
+        <image id="_Image4" width="11px" height="11px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABRUlEQVQYlZXRO0/CYBTG8b8voToYi7epIboImhgWB+JIwkRM+h38Eq4NJiZOOmtC+RyggxBmo4OkK5eEoqRIuRVpXxeaoE6e8Zzf8jwH/jErvxeXpnnwJeV9q9E4LxhGE/gKb5FleGWahzua9nCq66lOr6fPguChXa87gP8DX5nm4bamlU6y2fhECGLJZGwqxNl0Nit1LcsB/EgItxZwDLiAIwTRZFL1FCUXeF65Z1mOABj7/t1xJhN3gT7wAXSlxAW0dHpvN5W6ANQIwP7R0WNvONQ3EonNvhB0pWQwnzOybV6LxWoln78B3AjAS602mkn5OBEiF00kYq6UjGyb50Kh+mQY14ANvIcBg9bbW3/qeWVPUXKrqhp7LRZD2AKawGC5Or9rWU7geWW33V6v5PO3QGeBPwH/z1MABVCBNWAIDMKevwGN1JVlaDBRHAAAAABJRU5ErkJggg=="/>
+        <image id="_Image5" width="11px" height="11px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABHUlEQVQYlZWRsUrDUBSGP9OSJg4NKq6dmtUihjprJ8lYFUcRSihCfQEHkb5AoXXIA9Q5tIFCnLqXIrTi4OAiDXp1KJm0ch1MoFYXz3ju9517+A/8o5YWG5edTuEtiq7fo6h8Vak8AB/JW2oerPu+pWlaULPt3HAyOUpnszePg4EAPn/Add+3tEymd1oqrRmKQjGfXx5LuS8NI3iKhRTAhe9begzqsZxRFLZNU7+FMoYRhN8CnLXb9y+zmfyr+mEo7VYrANYBOG40zPNu93m6IIyEkIeuOwZ2gVyycnqnWt2qeZ54jYWREPLAde8AGygAK/NhqEXHsU48T/TDMJmYgKuLyQGom45j7TWbvfjrjXnw11EAFTAADYiAaZLzF/g5jwmHG84IAAAAAElFTkSuQmCC"/>
+        <image id="_Image6" width="16px" height="16px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACdklEQVQ4jaWTTW9McRTGf/9779xpZ+7M1GjFa6mXtCREJISIWNtg7QvwFbx8AVshTSQ2YiEpkYgmREgQuiFoM9VWMWi1pEbn7c699/9m0dIuxIJneXLO7zx5Tg78pwTA3kMl+7emTF5MPBrcsRNI/ggYeBbbjlSCMeB5Du2u4ct3QzMGY+HzXOvTWKl8Lpdb1fo16Lhe0n+m+7YHsLJTcOXmKJ15n2LgcKQ7Yehempn5YGEDdMOqq415EAgsoF0tAd8DiBNDPuWTDQtMTs5xoxTiBB30rs0gBFgLQsDGFTX6tqURxdWMTrfi6/3gASil2bO1wMfJLDu3BFgWhowFY8ACiTJEUUjqyxjpvIfn+xoWARhFb0+abGea0vgMtVBy7OB6NsTThBMj+IeOUYkFM8PvqNVbBMoipVzIAsBojetYWokklxGsKTq8GXlB7X2J3N79NO4P4DiaHxjmV65FtRVQiV4CKKmQGtp8l6k5yfCHiA0920mqITO3BjB9ewhjxYdaGxcf1nldbvx24AGMlWenSBqZA/t2F08e3UYkLb6j+eYdZmz0FZv9Thwt6F1fwBUuFhe53MHZE7uOP75z5bzrWHJZj3zgIVI+V59UqPpbuHy3TCQtw5NV3k5FhJEkiiK7FCJMrOvZsUkrjVm8c6IsmfYMa7oCCl8FUWKsp6qf/Nr0+PjLaemg5pYDmql0tvn5W51GGKO0JYo1XYHL0+HvFLMpZmcruj7/dejahVOXUKoJsr4cYJ8/GCxXKpXTRrbajQGtrYgT60ppHFdg3qZs2KzXXqBaI0AEmN+/sKgA6AD8pVIbYAUIC5EGqkAd0H/4uX/TT24LM6XJJ5kaAAAAAElFTkSuQmCC"/>
+        <image id="_Image7" width="16px" height="16px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB8ElEQVQ4jaWST2sUQRDFfzM7u7J/E9Z4jKi5CRIPKhJdPHgRPIhXP40fR/Eq6k3QCEFEA3GDkFVJogQhWbJmZzLT3VXlYUzMRjwE3+U11V2Peq8L/hMRwNVe307a+OP7k97Gl4eLCcClG12atai8sQkqz8dqRTAWn6+dA0qBa3e73LkQs/IxQ61sKNmwOGL+chNREDWCwvJGzvulvAWQACRVI4jx4vWYM80IUUMUgsJ2GlhYaCECXiOCGpVEAeVQQEVpT9e492CGK7MJhYd9b2TeeNXfJUgp5qWcQEQO7SUApoKoEiFUkiquUB4/2mbwOWfnp+PDsxQziGLo3Z5G2gLC0QkEEcU5T+ZOkQeYne/Qu9mhWolwwSgCbI08jU6FnTRHVSYFvChF7kidkXlod2MuzlWpVqKy5gzdEjKv6ChMZiAhEMTY3Bqx/m2IijI10yU/exonkDljXBh5EfABJOgxCyHQatS4f+s8QcEFo7++R+aUOI4ZF0bqIHdSfqcIcnwCL/xO23BipFnO6lcPQO4UF5TdUUZ7qoUGOXBAfFTAi5VCCt2pOlmAcVEGGAQazTr1Rh1R5cBDAuALx8t3m5gaaoaqYRNcbqUaDId7jPfSyT1YefP0+trq27liP+3AQcB/luUvCAw+LQ3+/eAE+AVAjV0vEtFLQgAAAABJRU5ErkJggg=="/>
+        <image id="_Image8" width="11px" height="11px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABKElEQVQYlW2QP0vDUBRHf68vsUltbC10cNJBpC52qyIIOroIjm6CX0F3Rxc/gB/BXRdFcJCSxakFpUWtQq0x1mob8vflPZcGksY73nO4HC5Bcsj97lpFltVDzny7994/3dYfOxGkcbO+s7lYrq5cZYszW1O5fE1m4foctS9uTdsCgExc1sqF/dJyZZ4WZrmU04RGpNqSWjyIuJRoADre9xfwO8jgw4QT+Kwdjtj4KE9k7DHnhVGxOi3LC57Rh97t3Rw9vZ5xFwYAkcjYaLwNGFHPFc7R+jQfjhvPJ8EP2gB4qhkAZEoIJQSOEF3XZU0AVsRSMgXAhIAColVLajbOUnLIGRSaQUiFU/cdL86kSXlkmHfNIb3UjeG1ZcGZ+Na/kx8X2QCCaPkHieNyQU33mYUAAAAASUVORK5CYII="/>
+    </defs>
+</svg>
