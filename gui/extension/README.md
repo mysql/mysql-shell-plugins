@@ -1,4 +1,4 @@
-# MySQL Shell for VS Code 1.6.1+8.0.31 Preview
+# MySQL Shell for VS Code 1.6.2+8.0.31 Preview
 
 This extension enables interactive editing and execution of SQL for MySQL Databases and the MySQL Database Service. It integrates the MySQL Shell directly into VS Code development workflows.
 
@@ -101,4 +101,4 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
     - Update original Python files with changes made in DB Editor
 
 
-Copyright &copy; 2022, Oracle and/or its affiliates.
+Copyright &copy; 2022, 2023, Oracle and/or its affiliates.
