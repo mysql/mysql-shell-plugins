@@ -108,7 +108,7 @@
                 },
                 "msg.editor.wordWrap": {
                     "type": "string",
-                    "default": "off",
+                    "default": "on",
                     "description": "Determines how long lines should be wrapped automatically by the editor.",
                     "enum": [
                         "off",
