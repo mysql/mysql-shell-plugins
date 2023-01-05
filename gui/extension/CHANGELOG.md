@@ -5,6 +5,7 @@
 ### Fixes
 
 - Display affected rows for SQL queries
+- Enabling line wrapping by default for the SQL Notebook
 
 ## Changes in 1.6.0+8.0.31
 
