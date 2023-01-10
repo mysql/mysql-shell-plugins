@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,12 @@
 
 
 import pytest
-from tests.websocket import TestWebSocket, utils
+
 from tests import get_logger
+from tests.websocket import TestWebSocket, utils
 from tests.websocket.utils import print_user_story_stack_trace
 
-
-unit_tests = utils.get_unit_tests(True, True)
+unit_tests = utils.get_unit_tests(True, True, False)
 
 
 @pytest.fixture(scope="module")

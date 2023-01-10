@@ -170,6 +170,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
                 await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
                 await Misc.switchToWebView();
+                await driver.wait(until.elementLocated(By.css("textarea")),
+                    explicitWait*2, "Could not find the textarea");
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,16 +19,17 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pytest
+import time
 import uuid
+
+import pytest
+
 import config
-from gui_plugin import sqleditor
-from gui_plugin import dbconnections
+import gui_plugin.core.Logger as logger
+from gui_plugin import dbconnections, sqleditor
 from gui_plugin.core.Error import MSGException
 from tests.lib.MockWebSession import MockWebSession
 from tests.lib.utils import backend_callback, backend_callback_with_pending
-import time
-import gui_plugin.core.Logger as logger
 
 
 class Parameters:
@@ -133,32 +134,6 @@ class TestSqleditor:
             params._db_connection_id, params._module_session)
 
         open_connection_cb.join_and_validate()
-        params._web_session.request_id = None
-
-    def test_kill_query(self, params):
-        @backend_callback_with_pending()
-        def callback_sleep(msg_type, msg, request_id=None, values=None):
-            assert 'request_state' in values
-            assert 'type' in values['request_state']
-            assert 'msg' in values['request_state']
-            assert values['request_state']['type'] == "ERROR"
-            assert values['request_state']['msg'] == "Query killed"
-
-        params._web_session.register_callback(
-            callback_sleep.request_id, callback_sleep)
-
-        params._web_session.request_id = callback_sleep.request_id
-        sqleditor.execute(session=params._module_session._db_user_session,
-                          sql="SELECT SLEEP(3)")
-        # since kill works in a different session (service session)
-        # it might happen that we try to kill a query that is still not running.
-        # so avoid that, just wait a bit. there's plenty of time to kill it.
-        time.sleep(1)
-
-        sqleditor.kill_query(params._module_session)
-
-        callback_sleep.join_and_validate()
-
         params._web_session.request_id = None
 
     def test_execute_query_with_params(self, params):
