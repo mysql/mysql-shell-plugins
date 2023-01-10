@@ -69,7 +69,7 @@ export class Misc {
 
         await driver.wait(async () => {
             return (await openEditors.getOpenEditorTitles()).includes("Welcome to MySQL Shell");
-        }, explicitWait, "Welcome tab was not displayed");
+        }, explicitWait*2, "Welcome tab was not displayed");
 
         await Misc.reloadVSCode();
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,14 +19,17 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import time
 import json
-from ..BaseTask import BaseTask, CommandTask
-from ..Protocols import Response
-from gui_plugin.core.Error import MSGException
+import time
+
+import mysqlsh
+
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
-import mysqlsh
+from gui_plugin.core.Error import MSGException
+
+from ..BaseTask import BaseTask, CommandTask
+from ..Protocols import Response
 
 
 def check_supported_type(func):
@@ -260,8 +263,7 @@ class DbSqlTask(DbQueryTask):
                 self.dispatch_result("OK", data=values)
         except Exception as e:
             logger.exception(e)
-            self.dispatch_result("ERROR", message=str(e),
-                                 data=Response.exception(e))
+            self.dispatch_result("ERROR", message=str(e))
             return
 
 

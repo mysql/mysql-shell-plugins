@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,8 +20,9 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 import os
 from pathlib import Path
-from gui_plugin.debugger import Debugger
+
 import gui_plugin.core.Logger as logger
+from gui_plugin.debugger import Debugger
 
 
 def get_user_stories(single_user_mode: bool, authenticated_mode: bool):
@@ -66,7 +67,7 @@ def get_user_stories(single_user_mode: bool, authenticated_mode: bool):
     return script_list
 
 
-def get_unit_tests(single_user_mode: bool, authenticated_mode: bool):
+def get_unit_tests(single_user_mode: bool, authenticated_mode: bool, only_sqleditor: bool):
     this_file = Path(__file__)
     all_scripts = []
     test_list = []
@@ -78,6 +79,10 @@ def get_unit_tests(single_user_mode: bool, authenticated_mode: bool):
         for path in root.rglob("*"):
             if not path.as_posix().endswith('.py'):
                 continue
+
+            if only_sqleditor ^ path.parents[0].as_posix().endswith('sqleditor'):
+                continue
+
             if path.is_file():
                 all_scripts.append(path.as_posix())
 
@@ -105,8 +110,8 @@ def unit_test_reader(path):
 
 
 def print_user_story_stack_trace(ws, exc):
-    import traceback
     import sys
+    import traceback
     _, _, exc_traceback = sys.exc_info()
     stack = traceback.format_exception(Exception, exc, exc_traceback)
     logger.debug(
