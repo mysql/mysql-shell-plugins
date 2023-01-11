@@ -32,7 +32,7 @@ import { DBType, ShellInterfaceSqlEditor } from "../../frontend/src/supplement/S
 
 import { ExtensionHost } from "./ExtensionHost";
 import {
-    ConnectionMySQLTreeItem, ConnectionsTreeBaseItem, MrsDbObjectTreeItem,
+    ConnectionMySQLTreeItem, ConnectionsTreeBaseItem, MrsDbObjectTreeItem, MrsAuthAppTreeItem,
 } from "./tree-providers/ConnectionsTreeProvider";
 import { MrsContentSetTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsContentSetTreeItem";
 import { MrsSchemaTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsSchemaTreeItem";
@@ -182,6 +182,44 @@ export class MRSCommandHandler {
                         }
                     }
                 }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.editAuthApp", (item?: MrsAuthAppTreeItem) => {
+            if (item?.entry.backend) {
+                this.showMrsAuthAppDialog(item.entry.backend, item.value).catch((reason) => {
+                    void window.showErrorMessage(`${String(reason)}`);
+                });
+            }
+        }));
+
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp",
+            (item?: MrsServiceTreeItem) => {
+                try {
+                    if (item?.entry.backend && item.value) {
+                        this.showMrsAuthAppDialog(item.entry.backend, undefined, item.value).catch((reason) => {
+                            void window.showErrorMessage(`${String(reason)}`);
+                        });
+                    }
+                } catch (reason) {
+                    void window.showErrorMessage(`Error adding a new Authentication App: ${String(reason)}`);
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteAuthApp",
+            async (item?: MrsAuthAppTreeItem) => {
+                try {
+                    if (item?.entry.backend && item.value.id && item.value.name) {
+                        const backend = item.entry.backend;
+                        await backend.mrs.deleteAuthApp(item.value.id);//
+                        // TODO: refresh only the affected connection.
+                        void commands.executeCommand("msg.refreshConnections");
+                        showMessageWithTimeout(`The Authentication App ${item.value.name} has been deleted.`);
+                    }
+                } catch (reason) {
+                    void window.showErrorMessage(`Error deleting the Authentication App: ${String(reason)}`);
+                }
+
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject", (item?: MrsDbObjectTreeItem) => {
@@ -580,6 +618,119 @@ export class MRSCommandHandler {
         }
 
         return dbObject;
+    };
+
+    /**
+     * Shows a dialog to create a new or edit an existing MRS service.
+     *
+     * @param backend The interface for sending the requests.
+     * @param authApp If not assigned then a new service must be created otherwise this contains the existing values.
+     * @param service If the authApp is not assigned, the service must be available, so that we can create
+     * a new authApp for this service.
+     */
+    private showMrsAuthAppDialog = async (backend: ShellInterfaceSqlEditor,
+        authApp?: IMrsAuthAppData, service?: IMrsServiceData): Promise<void> => {
+
+        const title = authApp
+            ? "Adjust the MySQL REST Authentication App Configuration"
+            : "Enter Configuration Values for the New MySQL REST Authentication App";
+        const tabTitle = authApp
+            ? "Edit REST Authentication App"
+            : "Add REST Authentication App";
+
+
+        const authVendors = await backend.mrs.getAuthVendors();
+
+        const authVendorName = authVendors.find((vendor) => {
+            return authApp?.authVendorId === vendor.id;
+        })?.name ?? "";
+
+        const request = {
+            id: "mrsAuthenticationAppDialog",
+            type: DialogType.MrsAuthenticationApp,
+            title,
+            parameters: {
+                protocols: ["HTTPS", "HTTP"],
+                authVendors,
+            },
+            values: {
+                create: authApp !== undefined,
+                id: "",
+                authVendorName,
+                name: authApp?.name,
+                description: authApp?.description,
+                accessToken: authApp?.accessToken,
+                appId: authApp?.appId,
+                url: authApp?.url,
+                urlDirectAuth: authApp?.urlDirectAuth,
+                enabled: authApp?.enabled,
+                useBuiltInAuthorization: authApp?.useBuiltInAuthorization,
+                limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
+            },
+        };
+
+        const response = await this.dialogManager.showDialog(request, tabTitle);
+        if (!response || response.closure !== DialogResponseClosure.Accept) {
+            return;
+        }
+
+        if (authApp) {
+            if (response.data) {
+                try {
+                    await backend.mrs.updateAuthApp(authApp.id as string, {
+                        name: response.data.name as string,
+                        description: response.data.description as string,
+                        url: response.data.url as string,
+                        urlDirectAuth: response.data.urlDirectAuth as string,
+                        accessToken: response.data.accessToken as string,
+                        appId: response.data.appId as string,
+                        enabled: response.data.enabled as boolean,
+                        useBuiltInAuthorization: response.data.useBuiltInAuthorization as boolean,
+                        limitToRegisteredUsers: response.data.limitToRegisteredUsers as boolean,
+                    });
+
+                    void commands.executeCommand("msg.refreshConnections");
+                    showMessageWithTimeout("The MRS service has been updated.", 5000);
+                } catch (error) {
+                    void window.showErrorMessage(`Error while adding MySQL REST service: ${String(error)}`);
+                }
+            }
+        } else {
+            if (response.data) {
+                try {
+                    if (service) {
+                        const authVendorId = authVendors.find((vendor) => {
+                            if (response.data) {
+                                return response.data.authVendorName === vendor.name;
+                            }
+
+                            return false;
+                        })?.id ?? "";
+
+                        await backend.mrs.addAuthApp(service.id, {
+                            authVendorId,
+                            name: response.data.name as string,
+                            description: response.data.description as string,
+                            url: response.data.url as string,
+                            urlDirectAuth: response.data.urlDirectAuth as string,
+                            accessToken: response.data.accessToken as string,
+                            appId: response.data.appId as string,
+                            enabled: response.data.enabled as boolean,
+                            useBuiltInAuthorization: response.data.useBuiltInAuthorization as boolean,
+                            limitToRegisteredUsers: response.data.limitToRegisteredUsers as boolean,
+                            defaultRoleId: undefined,
+                        }, []);
+                    }
+
+                    void commands.executeCommand("msg.refreshConnections");
+                    showMessageWithTimeout("The MRS service has been updated.", 5000);
+                } catch (error) {
+                    void window.showErrorMessage(`Error while adding MySQL REST service: ${String(error)}`);
+                }
+            }
+        }
+
+        return;
     };
 
     /**

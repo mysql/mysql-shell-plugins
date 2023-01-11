@@ -566,6 +566,10 @@
                 "title": "Edit REST Service..."
             },
             {
+                "command": "msg.mrs.addAuthApp",
+                "title": "Add New Authentication App"
+            },
+            {
                 "command": "msg.mrs.setDefaultService",
                 "title": "Set as New Default REST Service"
             },
@@ -588,6 +592,14 @@
             {
                 "command": "msg.mrs.editSchema",
                 "title": "Edit REST Schema..."
+            },
+            {
+                "command": "msg.mrs.editAuthApp",
+                "title": "Edit REST Authorization Application"
+            },
+            {
+                "command": "msg.mrs.deleteAuthApp",
+                "title": "Delete REST Authorization Application"
             },
             {
                 "command": "msg.mrs.addDbObject",
@@ -1063,6 +1075,11 @@
                     "group": "2_msg@1"
                 },
                 {
+                    "command": "msg.mrs.addAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@2"
+                },
+                {
                     "command": "msg.mrs.deleteService",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "3_msg@1"
@@ -1081,6 +1098,16 @@
                     "command": "msg.mrs.deleteSchema",
                     "when": "view == msg.connections && viewItem == mrsSchema",
                     "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.editAuthApp",
+                    "when": "viewItem == mrsAuthApp",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteAuthApp",
+                    "when": "viewItem == mrsAuthApp",
+                    "group": "2_msg@1"
                 },
                 {
                     "command": "msg.mrs.addDbObject",

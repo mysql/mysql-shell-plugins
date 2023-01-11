@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -56,6 +56,20 @@ def format_auth_app_listing(auth_apps, print_header=False):
 
     return output
 
+def get_auth_app(session, app_id):
+    sql = """
+        SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
+            a.description, a.url, a.url_direct_auth, a.access_token, a.app_id, a.enabled,
+            a.use_built_in_authorization, a.limit_to_registered_users, a.default_role_id,
+            v.name as auth_vendor
+        FROM `mysql_rest_service_metadata`.`auth_app` a
+            LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
+                ON v.id = a.auth_vendor_id
+        WHERE a.id = ?
+        """
+
+    return core.MrsDbExec(sql, [app_id]).exec(session).first
+
 def get_auth_apps(session, service_id: bytes, include_enable_state=None):
     """Returns all authentication apps for the given MRS service
 
@@ -90,4 +104,24 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
     return core.MrsDbExec(sql).exec(session, [service.get("id")]).items
 
 
+def delete_auth_app(session, app_id):
+    core.MrsDbExec("""DELETE FROM `mysql_rest_service_metadata`.`auth_app`
+                      WHERE id = ?""", [app_id]).exec(session)
 
+
+def update_auth_app(session, app_id, data: dict):
+
+    sets = []
+    params = []
+
+    for key, value in data.items():
+        sets.append(f"{key} = ?")
+        params.append(value)
+
+    params.append(app_id)
+
+    sql = f"""UPDATE `mysql_rest_service_metadata`.`auth_app`
+              SET {",".join(sets)}
+              WHERE id = ?"""
+
+    core.MrsDbExec(sql, params).exec(session)

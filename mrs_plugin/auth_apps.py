@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -59,21 +59,22 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        auth_vendor_id (str,required): The auth_vendor_id
-        description (str,required): A description of the app
+        auth_vendor_id (str): The auth_vendor_id
+        description (str): A description of the app
         url (str): url of the app
         url_direct_auth (str): url direct auth of the app
         access_token (str): access_token of the app
         app_id (str): app_id of the app
         limit_to_registered_users (bool): Limit access to registered users
         use_built_in_authorization (bool): Limit access to registered users
-        registered_users (str): List of registered users, separated by ,
-        default_role_id (int): The default role to be assigned to new users
+        registered_users (list): List of registered users, separated by ,
+        default_role_id (str): The default role to be assigned to new users
         session (object): The database session to use
 
     Returns:
         A dict with content_set_id and number_of_files_uploaded
     """
+    service_id = lib.core.id_to_binary(service_id, "service_id")
     lib.core.convert_ids_to_binary(["auth_vendor_id", "default_role_id"], kwargs)
 
     auth_vendor_id = kwargs.get("auth_vendor_id")
@@ -96,6 +97,9 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = lib.services.get_service(
             service_id=service_id, session=session)
+
+        if not service:
+            raise Exception(f"Service not found.")
 
         # Get auth_vendor_id
         if not auth_vendor_id and interactive:
@@ -160,7 +164,6 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
                 "Please enter a list of registered user names, separated "
                 "by comma (,): ")
 
-        if registered_users:
             registered_users = registered_users.split(',')
             registered_users = [reg_user.strip()
                                 for reg_user in registered_users]
@@ -234,7 +237,8 @@ def get_auth_apps(service_id=None, **kwargs):
             SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
                 a.description, a.url, a.url_direct_auth, a.access_token,
                 a.app_id, a.enabled, a.use_built_in_authorization,
-                a.limit_to_registered_users, v.name as auth_vendor
+                a.limit_to_registered_users, a.default_role_id,
+                v.name as auth_vendor
             FROM `mysql_rest_service_metadata`.`auth_app` a
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
                     ON v.id = a.auth_vendor_id
@@ -254,3 +258,58 @@ def get_auth_apps(service_id=None, **kwargs):
         else:
             return auth_apps
 
+@plugin_function('mrs.delete.authenticationApp', shell=True, cli=True, web=True)
+def delete_auth_app(**kwargs):
+    """Deletes an existing auth_app
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        app_id (str): The application id
+        session (object): The database session to use
+
+    Returns:
+        None
+    """
+    lib.core.convert_ids_to_binary(["app_id"], kwargs)
+    app_id = kwargs.get("app_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.auth_apps.delete_auth_app(session, app_id=app_id)
+
+
+@plugin_function('mrs.update.authenticationApp', shell=True, cli=True, web=True)
+def update_auth_app(**kwargs):
+    """Updates an existing auth_app
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        app_id (str): The application id
+        value (dict,required): The values as dict
+        session (object): The database session to use
+
+    Allowed options for value:
+        name (str,optional): The new name for the app
+        description (str,optional): The new description
+        url (str,optional): The new url for the app
+        url_direct_auth (str,optional): The new url direct auth for the app
+        access_token (str,optional): The new access token
+        app_id (str,optional): The new application id
+        enabled (bool,optional): Set if it's enabled or not
+        use_built_in_authorization (bool,optional): Set if uses built in authorization
+        limit_to_registered_users (bool,optional): Set if limited to registered users
+        default_role_id (str,optional): The new default role id
+
+    Returns:
+        A dict with content_set_id and number_of_files_uploaded
+    """
+    lib.core.convert_ids_to_binary(["app_id"], kwargs)
+
+    app_id = kwargs.get("app_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        value = kwargs.get("value")
+        lib.auth_apps.update_auth_app(session, app_id, value)

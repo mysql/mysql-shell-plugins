@@ -94,6 +94,10 @@ export enum ShellAPIMrs {
     MrsAddAuthenticationApp = "mrs.add.authentication_app",
     /** Returns all authentication apps for the given MRS service */
     MrsListAuthenticationApps = "mrs.list.authentication_apps",
+    /** Deletes an existing auth_app */
+    MrsDeleteAuthenticationApp = "mrs.delete.authentication_app",
+    /** Updates an existing auth_app */
+    MrsUpdateAuthenticationApp = "mrs.update.authentication_app",
     /** Add a db_object to the given MRS service schema */
     MrsAddDbObject = "mrs.add.db_object",
     /** Gets a specific MRS db_object */
@@ -519,9 +523,9 @@ export interface IShellMrsGetAuthenticationVendorsKwargs {
 
 export interface IShellMrsAddAuthenticationAppKwargs {
     /** The auth_vendor_id */
-    authVendorId: string | null;
+    authVendorId?: string;
     /** A description of the app */
-    description: string | null;
+    description?: string;
     /** url of the app */
     url?: string;
     /** url direct auth of the app */
@@ -535,9 +539,9 @@ export interface IShellMrsAddAuthenticationAppKwargs {
     /** Limit access to registered users */
     useBuiltInAuthorization?: boolean;
     /** List of registered users, separated by , */
-    registeredUsers?: string;
+    registeredUsers?: unknown[];
     /** The default role to be assigned to new users */
-    defaultRoleId?: number;
+    defaultRoleId?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -545,6 +549,45 @@ export interface IShellMrsAddAuthenticationAppKwargs {
 export interface IShellMrsListAuthenticationAppsKwargs {
     /** Only include items with the given enabled state */
     includeEnableState?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDeleteAuthenticationAppKwargs {
+    /** The application id */
+    appId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsUpdateAuthenticationAppKwargsValue {
+    /** The new name for the app */
+    name?: string;
+    /** The new description */
+    description?: string;
+    /** The new url for the app */
+    url?: string;
+    /** The new url direct auth for the app */
+    urlDirectAuth?: string;
+    /** The new access token */
+    accessToken?: string;
+    /** The new application id */
+    appId?: string;
+    /** Set if it's enabled or not */
+    enabled?: boolean;
+    /** Set if uses built in authorization */
+    useBuiltInAuthorization?: boolean;
+    /** Set if limited to registered users */
+    limitToRegisteredUsers?: boolean;
+    /** The new default role id */
+    defaultRoleId?: string;
+}
+
+export interface IShellMrsUpdateAuthenticationAppKwargs {
+    /** The application id */
+    appId?: string;
+    /** The values as dict */
+    value: IShellMrsUpdateAuthenticationAppKwargsValue | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -899,6 +942,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { kwargs?: IShellMrsGetAuthenticationVendorsKwargs };
     [ShellAPIMrs.MrsAddAuthenticationApp]: { args: { appName?: string; serviceId?: string }; kwargs?: IShellMrsAddAuthenticationAppKwargs };
     [ShellAPIMrs.MrsListAuthenticationApps]: { args: { serviceId?: string }; kwargs?: IShellMrsListAuthenticationAppsKwargs };
+    [ShellAPIMrs.MrsDeleteAuthenticationApp]: { kwargs?: IShellMrsDeleteAuthenticationAppKwargs };
+    [ShellAPIMrs.MrsUpdateAuthenticationApp]: { kwargs?: IShellMrsUpdateAuthenticationAppKwargs };
     [ShellAPIMrs.MrsAddDbObject]: { kwargs?: IShellMrsAddDbObjectKwargs };
     [ShellAPIMrs.MrsGetDbObject]: { args: { requestPath?: string; dbObjectName?: string }; kwargs?: IShellMrsGetDbObjectKwargs };
     [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { kwargs?: IShellMrsGetDbObjectRowOwnershipFieldsKwargs };
@@ -1014,6 +1059,7 @@ export interface IMrsServiceData {
 export interface IMrsAuthAppData {
     id?: string;
     authVendorId?: string;
+    authVendor?: string;
     authVendorName?: string;
     serviceId?: string;
     name?: string;
@@ -1103,7 +1149,9 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsUpdateDbObject]: {};
     [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[] };
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[] };
-    [ShellAPIMrs.MrsAddAuthenticationApp]: {};
+    [ShellAPIMrs.MrsAddAuthenticationApp]: { result: IMrsAuthAppData; };
+    [ShellAPIMrs.MrsDeleteAuthenticationApp]: {};
+    [ShellAPIMrs.MrsUpdateAuthenticationApp]: {};
     [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[] };
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
