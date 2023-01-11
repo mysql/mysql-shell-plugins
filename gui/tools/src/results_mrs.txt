@@ -86,6 +86,7 @@ export interface IMrsServiceData {
 export interface IMrsAuthAppData {
     id?: string;
     authVendorId?: string;
+    authVendor?: string;
     authVendorName?: string;
     serviceId?: string;
     name?: string;
@@ -175,7 +176,9 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsUpdateDbObject]: {};
     [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[] };
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[] };
-    [ShellAPIMrs.MrsAddAuthenticationApp]: {};
+    [ShellAPIMrs.MrsAddAuthenticationApp]: { result: IMrsAuthAppData; };
+    [ShellAPIMrs.MrsDeleteAuthenticationApp]: {};
+    [ShellAPIMrs.MrsUpdateAuthenticationApp]: {};
     [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[] };
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};

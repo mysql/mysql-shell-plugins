@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,6 +26,7 @@ import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
     IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectFieldData,
     IShellMrsUpdateDbObjectKwargsValue,
+    IShellMrsUpdateAuthenticationAppKwargsValue,
 } from "../../communication/";
 import { webSession } from "../WebSession";
 
@@ -168,6 +169,34 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+
+    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: []) : Promise<IMrsAuthAppData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsAddAuthenticationApp,
+            parameters: {
+                args: {
+                    serviceId,
+                    appName: authApp.name,
+                },
+                kwargs: {
+                    authVendorId: authApp.authVendorId,
+                    description: authApp.description,
+                    url: authApp.url,
+                    urlDirectAuth: authApp.urlDirectAuth,
+                    accessToken: authApp.accessToken,
+                    appId: authApp.appId,
+                    limitToRegisteredUsers: authApp.limitToRegisteredUsers,
+                    useBuiltInAuthorization: authApp.useBuiltInAuthorization,
+                    registeredUsers: registerUsers,
+                    defaultRoleId: authApp.defaultRoleId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
     public async getAuthApps(serviceId: string): Promise<IMrsAuthAppData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListAuthenticationApps,
@@ -182,6 +211,32 @@ export class ShellInterfaceMrs {
         });
 
         return response.result;
+    }
+
+    public async deleteAuthApp(appId: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteAuthenticationApp,
+            parameters: {
+                kwargs: {
+                    appId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async updateAuthApp(appId: string,
+        value: IShellMrsUpdateAuthenticationAppKwargsValue): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsUpdateAuthenticationApp,
+            parameters: {
+                kwargs: {
+                    appId,
+                    value,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
     }
 
     public async listSchemas(serviceId?: string): Promise<IMrsSchemaData[]> {

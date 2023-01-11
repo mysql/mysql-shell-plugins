@@ -2049,6 +2049,86 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
       </Menu>
     </ValueEditDialog>
   </MrsContentSetDialog>
+  <MrsAuthenticationAppDialog
+    key="mrsAuthenticationAppDialog"
+    onClose={[Function]}
+  >
+    <ValueEditDialog
+      id="mrsAuthenticationAppDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          Object {
+            "begin": Array [],
+            "end": Array [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <y>
+            <Icon
+              disabled={false}
+              src={388}
+            />
+            <Label />
+          </y>
+        }
+        className="msg valueEditDialog"
+        container={Object {}}
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            rowGap={16}
+          />
+        }
+        id="mrsAuthenticationAppDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={Object {}}
+          id="mrsAuthenticationAppDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MrsAuthenticationAppDialog>
   <MdsHWClusterDialog
     onClose={[Function]}
   >

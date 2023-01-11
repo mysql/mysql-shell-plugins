@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,8 +40,9 @@ import { SchemaItemGroupType } from "./SchemaIndex";
 import { showStatusText } from "../../extension";
 import { IDictionary } from "../../../../frontend/src/app-logic/Types";
 import {
-    AdminSectionTreeItem, AdminTreeItem, ConnectionMySQLTreeItem, ConnectionSqliteTreeItem, MrsDbObjectTreeItem,
-    MrsSchemaTreeItem, MrsServiceTreeItem, MrsTreeItem, SchemaEventTreeItem, SchemaRoutineTreeItem,
+    AdminSectionTreeItem, AdminTreeItem, ConnectionMySQLTreeItem, ConnectionSqliteTreeItem,
+    MrsAuthAppTreeItem, MrsDbObjectTreeItem,MrsSchemaTreeItem, MrsServiceTreeItem,
+    MrsTreeItem, SchemaEventTreeItem, SchemaRoutineTreeItem,
     SchemaTableColumnTreeItem, SchemaTableForeignKeyTreeItem, SchemaTableIndexTreeItem, SchemaTableMySQLTreeItem,
     SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
 } from ".";
@@ -622,9 +623,23 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     private getMrsServiceChildren = async (element: MrsServiceTreeItem): Promise<TreeItem[]> => {
         if (element.entry.backend) {
             try {
+                const treeItemList: TreeItem[] = [];
+
+                // Get all MRS auth apps
+                const authApps = await element.entry.backend.mrs.getAuthApps(element.value.id);
+                const authAppList: TreeItem[] = authApps.map((value) => {
+                    return new MrsAuthAppTreeItem(`${value.name} (${value.authVendor})`, value, element.entry);
+                });
+
+                // Get all MRS users
+                // const authApps = await element.entry.backend.mrs.getUser(element.value.id);
+                // const authAppList: TreeItem[] = authApps.map((value) => {
+                    // return new MrsAuthAppTreeItem(`${value.name} ( ${value.authVendor})`, value, element.entry);
+                // });
+
                 // Get all MRS Schemas
                 const schemas = await element.entry.backend.mrs.listSchemas(element.value.id);
-                const treeItemList: TreeItem[] = schemas.map((value) => {
+                const schemaList: TreeItem[] = schemas.map((value) => {
                     return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value, element.entry);
                 });
 
@@ -634,7 +649,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                     return new MrsContentSetTreeItem(`${value.requestPath}`, value, element.entry);
                 });
 
-                return treeItemList.concat(contentSetsTreeItemList);
+                return treeItemList.concat(authAppList, schemaList, contentSetsTreeItemList);
             } catch (error) {
                 throw new Error("Error during retrieving MRS content sets. " +
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);

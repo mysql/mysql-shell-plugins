@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,6 +34,7 @@ import { MrsDbObjectDialog } from "../modules/mrs/dialogs/MrsDbObjectDialog";
 import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
 import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
 import { MrsContentSetDialog } from "../modules/mrs/dialogs/MrsContentSetDialog";
+import { MrsAuthenticationAppDialog } from "../modules/mrs/dialogs/MrsAuthenticationAppDialog";
 import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
 
@@ -109,6 +110,15 @@ export class DialogHost extends Component {
             ref={refMrs4}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsContentSet)}
         />);
+
+        const refMrs5 = React.createRef<MrsAuthenticationAppDialog>();
+        this.dialogRefs.set(DialogType.MrsAuthenticationApp, refMrs5);
+        dialogs.push(<MrsAuthenticationAppDialog
+            key="mrsAuthenticationAppDialog"
+            ref={refMrs5}
+            onClose={this.handleDialogClose.bind(this, DialogType.MrsAuthenticationApp)}
+        />);
+
 
         const refMds1 = React.createRef<MdsHWClusterDialog>();
         this.dialogRefs.set(DialogType.MdsHeatWaveCluster, refMds1);
