@@ -630,40 +630,42 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 f_args = self.get_function_arguments(
                     func=func, mod=parent_obj, mod_cmd=function_name)
 
-            if "user_id" in f_args:
-                # Return error if user_id does not match self.session_user_id
-                if self.session_user_id is None or "user_id" not in kwargs \
-                        or kwargs["user_id"] != self.session_user_id:
-                    raise Exception(f'The function argument user_id must not '
-                                    f'be set to a different user_id than the '
-                                    f'one used in the '
-                                    f'authenticated session.')
+            lock_session = False
 
-                kwargs.update({"user_id": self.session_user_id})
+            if found_objects[0] == 'gui':
+                if "user_id" in f_args:
+                    # Return error if user_id does not match self.session_user_id
+                    if self.session_user_id is None or "user_id" not in kwargs \
+                            or kwargs["user_id"] != self.session_user_id:
+                        raise Exception(f'The function argument user_id must not '
+                                        f'be set to a different user_id than the '
+                                        f'one used in the '
+                                        f'authenticated session.')
 
-            if "_user_id" in f_args and not self.is_local_session:
-                kwargs.update({"_user_id": self.session_user_id})
+                    kwargs.update({"user_id": self.session_user_id})
 
-            if "profile_id" in f_args:
-                if "profile_id" not in kwargs:
-                    kwargs.update({"profile_id":
-                                   self.session_active_profile_id})
+                if "_user_id" in f_args and not self.is_local_session:
+                    kwargs.update({"_user_id": self.session_user_id})
 
-            if "web_session" in f_args:
-                raise Exception(
-                    f'Argument web_session not allowed for function: {cmd}.')
+                if "profile_id" in f_args:
+                    if "profile_id" not in kwargs:
+                        kwargs.update({"profile_id":
+                                    self.session_active_profile_id})
 
-            if "request_id" in f_args:
-                raise Exception(
-                    f'Argument request_id not allowed for function: {cmd}.')
+                if "web_session" in f_args:
+                    raise Exception(
+                        f'Argument web_session not allowed for function: {cmd}.')
+
+                if "request_id" in f_args:
+                    raise Exception(
+                        f'Argument request_id not allowed for function: {cmd}.')
+                if "be_session" in f_args:
+                    kwargs.update({"be_session": self.db})
 
             if "interactive" in f_args:
                 kwargs.update({"interactive": False})
 
             lock_session = False
-            if "be_session" in f_args:
-                kwargs.update({"be_session": self.db})
-
             if "session" in f_args:
                 # If the called function requires a session parameter,
                 # get it from the given module_session

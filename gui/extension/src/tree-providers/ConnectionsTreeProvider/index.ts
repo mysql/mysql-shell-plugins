@@ -29,6 +29,7 @@ export * from "./ConnectionsTreeBaseItem";
 export * from "./ConnectionsTreeProvider";
 export * from "./ConnectionTreeItem";
 export * from "./MrsAuthAppTreeItem";
+export * from "./MrsUserTreeItem";
 export * from "./MrsDbObjectTreeItem";
 export * from "./MrsSchemaTreeItem";
 export * from "./MrsServiceTreeItem";

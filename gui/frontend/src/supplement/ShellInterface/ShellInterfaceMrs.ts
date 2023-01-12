@@ -21,12 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler, ShellAPIMrs, IShellDictionary } from "../../communication";
+import { MessageScheduler, ShellAPIMrs, IShellDictionary, IMrsUserData } from "../../communication";
 import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
     IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectFieldData,
     IShellMrsUpdateDbObjectKwargsValue,
-    IShellMrsUpdateAuthenticationAppKwargsValue,
+    IShellMrsUpdateAuthenticationAppKwargsValue, IShellMrsUpdateUserKwargsValue,
+    IMrsRoleData,
 } from "../../communication/";
 import { webSession } from "../WebSession";
 
@@ -96,7 +97,7 @@ export class ShellInterfaceMrs {
                     authApps,
                 },
             },
-        });
+        }, true, ["options"]);
 
         return response.result;
     }
@@ -114,7 +115,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
-        });
+        }, true, ["options"]);
     }
 
     public async deleteService(serviceId: string | null): Promise<void> {
@@ -188,7 +189,7 @@ export class ShellInterfaceMrs {
                     limitToRegisteredUsers: authApp.limitToRegisteredUsers,
                     useBuiltInAuthorization: authApp.useBuiltInAuthorization,
                     registeredUsers: registerUsers,
-                    defaultRoleId: authApp.defaultRoleId,
+                    defaultRoleId: authApp.defaultRoleId ?? "",
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -205,6 +206,20 @@ export class ShellInterfaceMrs {
                     serviceId,
                 },
                 kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getAuthApp(appId: string): Promise<IMrsAuthAppData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetAuthenticationApp,
+            parameters: {
+                args: {
+                    appId,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -232,6 +247,67 @@ export class ShellInterfaceMrs {
             parameters: {
                 kwargs: {
                     appId,
+                    value,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async listUsers(serviceId?: string, authAppId?: string): Promise<IMrsUserData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListUsers,
+            parameters: {
+                kwargs: {
+                    serviceId,
+                    authAppId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async deleteUser(userId: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteUser,
+            parameters: {
+                args: {
+                    userId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async addUser(authAppId: string, name: string, email: string, vendorUserId: string,
+        loginPermitted: boolean, mappedUserId: string, appOptions: IShellDictionary | null,
+        authString: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsAddUser,
+            parameters: {
+                kwargs: {
+                    authAppId,
+                    name,
+                    email,
+                    vendorUserId,
+                    loginPermitted,
+                    mappedUserId,
+                    appOptions,
+                    authString,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async updateUser(userId: string, value: IShellMrsUpdateUserKwargsValue): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsUpdateUser,
+            parameters: {
+                kwargs: {
+                    userId,
                     value,
                     moduleSessionId: this.moduleSessionId,
                 },
@@ -640,4 +716,16 @@ export class ShellInterfaceMrs {
         });
     }
 
+    public async listRoles(): Promise<IMrsRoleData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListRoles,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
 }

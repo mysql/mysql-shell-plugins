@@ -2,16 +2,16 @@
     "version": "0.2",
     "language": "en",
     "words": [
+        "sakila",
         "struct",
         "symlink",
         "unregister",
-        "sakila"
+        "urandom"
     ],
     "flagWords": [
         "hte"
     ],
-    "ignorePaths": [
-    ],
+    "ignorePaths": [],
     "ignoreWords": [
         "mysqlsh",
         "PYTHONPATH",

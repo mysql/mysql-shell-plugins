@@ -76,7 +76,8 @@
 }
 
 .msg.valueEditDialog textarea.valueEditor {
-    height: 3em;
+    height: 5.8em;
+    line-height: 1.2em;
 }
 
 .msg.valueEditDialog button.valueEditor {

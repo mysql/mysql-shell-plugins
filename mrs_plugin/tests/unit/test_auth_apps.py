@@ -77,7 +77,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         "url": "/test_auth",
         "access_token": "test_token",
         "limit_to_registered_users": False,
-        "registered_users": ["root"],
+        "registered_users": None,
         "app_id": "some app id",
         "session": init_mrs["session"]
     }
@@ -90,7 +90,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         'access_token': args["access_token"],
         'app_id': args["app_id"],
         'auth_vendor_id': lib.core.id_to_binary(args['auth_vendor_id'], ""),
-        'default_role_id': None,
+        'default_role_id': lib.auth_apps.DEFAULT_ROLE_ID,
         'description': args["description"],
         'enabled': 1,
         'id': result["auth_app_id"],
@@ -108,7 +108,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         "url": "/test_auth2",
         "access_token": "test_token",
         "limit_to_registered_users": False,
-        "registered_users": ["root"],
+        "registered_users": None,
         "app_id": "some app id",
         "session": init_mrs["session"]
     }
@@ -121,7 +121,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         'access_token': args["access_token"],
         'app_id': args["app_id"],
         'auth_vendor_id': lib.core.id_to_binary(args['auth_vendor_id'], ""),
-        'default_role_id': None,
+        'default_role_id': lib.auth_apps.DEFAULT_ROLE_ID,
         'description': args["description"],
         'enabled': 1,
         'id': result["auth_app_id"],
@@ -149,12 +149,12 @@ def test_get_auth_apps(init_mrs):
     apps = get_auth_apps(**args)
 
     assert apps is not None
-    assert len(apps) == 2
+    assert len(apps) == 3
 
-    assert apps[0]["name"] == "Test Auth App"
-    assert apps[0]["id"] == InitialAuthAppIds[0]
-    assert apps[1]["name"] == "Test Auth App 2"
-    assert apps[1]["id"] == InitialAuthAppIds[1]
+    assert apps[1]["name"] == "Test Auth App"
+    assert apps[1]["id"] == InitialAuthAppIds[0]
+    assert apps[2]["name"] == "Test Auth App 2"
+    assert apps[2]["id"] == InitialAuthAppIds[1]
 
 
 @pytest.mark.usefixtures("init_mrs")
@@ -202,12 +202,12 @@ def test_update_auth_apps(init_mrs, table_contents):
 def test_delete_auth_apps(init_mrs, table_contents):
     auth_apps_table = table_contents("auth_app")
 
-    assert auth_apps_table.count == 2
+    assert auth_apps_table.count == 3
 
     delete_auth_app(session=init_mrs["session"], app_id=InitialAuthAppIds[0])
 
-    assert auth_apps_table.count == 1
+    assert auth_apps_table.count == 2
 
     delete_auth_app(session=init_mrs["session"], app_id=InitialAuthAppIds[1])
 
-    assert auth_apps_table.count == 0
+    assert auth_apps_table.count == 1

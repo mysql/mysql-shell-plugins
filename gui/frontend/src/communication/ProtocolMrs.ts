@@ -36,6 +36,8 @@ export enum ShellAPIMrs {
     MrsConfigure = "mrs.configure",
     /** Checks the MRS service status and prints its */
     MrsStatus = "mrs.status",
+    /** Lists the available roles. */
+    MrsListRoles = "mrs.list.roles",
     /** Adds a new MRS service */
     MrsAddService = "mrs.add.service",
     /** Gets a specific MRS service */
@@ -92,6 +94,8 @@ export enum ShellAPIMrs {
     MrsGetAuthenticationVendors = "mrs.get.authentication_vendors",
     /** Adds an auth_app to the given MRS service */
     MrsAddAuthenticationApp = "mrs.add.authentication_app",
+    /** Returns the requested authentication app */
+    MrsGetAuthenticationApp = "mrs.get.authentication_app",
     /** Returns all authentication apps for the given MRS service */
     MrsListAuthenticationApps = "mrs.list.authentication_apps",
     /** Deletes an existing auth_app */
@@ -145,7 +149,17 @@ export enum ShellAPIMrs {
     /** Loads data for a REST Schema from a JSON file into the target REST service */
     MrsLoadSchema = "mrs.load.schema",
     /** Loads data for a REST Database Object from a JSON file into the target REST Schema */
-    MrsLoadObject = "mrs.load.object"
+    MrsLoadObject = "mrs.load.object",
+    /** Get users configured within a service and/or auth_app */
+    MrsListUsers = "mrs.list.users",
+    /** Get user */
+    MrsGetUser = "mrs.get.user",
+    /** Update user */
+    MrsAddUser = "mrs.add.user",
+    /** Delete user */
+    MrsDeleteUser = "mrs.delete.user",
+    /** Update user */
+    MrsUpdateUser = "mrs.update.user"
 }
 
 export interface IShellMrsAddServiceKwargs {
@@ -556,6 +570,8 @@ export interface IShellMrsListAuthenticationAppsKwargs {
 export interface IShellMrsDeleteAuthenticationAppKwargs {
     /** The application id */
     appId?: string;
+    /** The id of the service that this auth_app belongs to */
+    serviceId?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -580,7 +596,7 @@ export interface IShellMrsUpdateAuthenticationAppKwargsValue {
     /** Set if limited to registered users */
     limitToRegisteredUsers?: boolean;
     /** The new default role id */
-    defaultRoleId?: string;
+    defaultRoleId: string | null;
 }
 
 export interface IShellMrsUpdateAuthenticationAppKwargs {
@@ -588,6 +604,10 @@ export interface IShellMrsUpdateAuthenticationAppKwargs {
     appId?: string;
     /** The values as dict */
     value: IShellMrsUpdateAuthenticationAppKwargsValue | null;
+    /** The id of the service that this auth_app belongs to */
+    serviceId?: string;
+    /** The name of the auth_app to update */
+    authAppName?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -907,12 +927,78 @@ export interface IShellMrsLoadObjectKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsListUsersKwargs {
+    /** Use this service_id to search for all users within this service. */
+    serviceId?: string;
+    /** Use this auth_app_id to list all the users for this auth_app. */
+    authAppId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetUserKwargs {
+    /** The user_id for the required user. */
+    userId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsAddUserKwargs {
+    /** The id of the auth_app for which the user is being created for. */
+    authAppId?: string;
+    /** The name of the user. */
+    name?: string;
+    /** The email of the user */
+    email?: string;
+    /** The id of the vendor. */
+    vendorUserId?: string;
+    /** If permission is permitted by this user */
+    loginPermitted?: boolean;
+    /** The id for the mapped user */
+    mappedUserId?: string;
+    /** The authentication app options for this user */
+    appOptions: IShellDictionary | null;
+    /** The authentication string for the user. */
+    authString?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsUpdateUserKwargsValue {
+    /** The id of the auth_app for which the user is being created for. */
+    authAppId?: string;
+    /** The name of the user. */
+    name: string | null;
+    /** The email of the user */
+    email: string | null;
+    /** The id of the vendor. */
+    vendorUserId: string | null;
+    /** If permission is permitted by this user */
+    loginPermitted?: boolean;
+    /** The id for the mapped user */
+    mappedUserId: string | null;
+    /** The authentication app options for this user */
+    appOptions: IShellDictionary | null;
+    /** The authentication string for the user. */
+    authString: string | null;
+}
+
+export interface IShellMrsUpdateUserKwargs {
+    /** The id of the user to update */
+    userId?: string;
+    /** The values to be updated */
+    value?: IShellMrsUpdateUserKwargsValue;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; }; };
     [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsListRoles]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs; };
     [ShellAPIMrs.MrsGetService]: { kwargs?: IShellMrsGetServiceKwargs; };
     [ShellAPIMrs.MrsListServices]: { kwargs?: IShellMrsListServicesKwargs; };
@@ -941,6 +1027,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsUpdateSchema]: { kwargs?: IShellMrsUpdateSchemaKwargs; };
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { kwargs?: IShellMrsGetAuthenticationVendorsKwargs; };
     [ShellAPIMrs.MrsAddAuthenticationApp]: { args: { appName?: string; serviceId?: string; }; kwargs?: IShellMrsAddAuthenticationAppKwargs; };
+    [ShellAPIMrs.MrsGetAuthenticationApp]: { args: { appId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListAuthenticationApps]: { args: { serviceId?: string; }; kwargs?: IShellMrsListAuthenticationAppsKwargs; };
     [ShellAPIMrs.MrsDeleteAuthenticationApp]: { kwargs?: IShellMrsDeleteAuthenticationAppKwargs; };
     [ShellAPIMrs.MrsUpdateAuthenticationApp]: { kwargs?: IShellMrsUpdateAuthenticationAppKwargs; };
@@ -968,6 +1055,11 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsDumpObject]: { args: { path: string; }; kwargs?: IShellMrsDumpObjectKwargs; };
     [ShellAPIMrs.MrsLoadSchema]: { args: { path: string; }; kwargs?: IShellMrsLoadSchemaKwargs; };
     [ShellAPIMrs.MrsLoadObject]: { args: { path: string; }; kwargs?: IShellMrsLoadObjectKwargs; };
+    [ShellAPIMrs.MrsListUsers]: { kwargs?: IShellMrsListUsersKwargs; };
+    [ShellAPIMrs.MrsGetUser]: { kwargs?: IShellMrsGetUserKwargs; };
+    [ShellAPIMrs.MrsAddUser]: { kwargs?: IShellMrsAddUserKwargs; };
+    [ShellAPIMrs.MrsDeleteUser]: { args: { userId?: string; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsUpdateUser]: { kwargs?: IShellMrsUpdateUserKwargs; };
 
 }
 
@@ -1071,7 +1163,7 @@ export interface IMrsAuthAppData {
     enabled: boolean;
     useBuiltInAuthorization: boolean;
     limitToRegisteredUsers: boolean;
-    defaultRoleId?: string;
+    defaultRoleId?: string | null;
 }
 
 export interface IMrsAuthVendorData {
@@ -1080,6 +1172,18 @@ export interface IMrsAuthVendorData {
     validationUrl?: string;
     enabled: boolean;
     comments?: string;
+}
+
+export interface IMrsUserData {
+    id?: string;
+    authAppId?: string;
+    name?: string;
+    email?: string;
+    vendorUserId?: string;
+    loginPermitted?: boolean;
+    mappedUserId?: string;
+    appOptions?: IShellDictionary;
+    authString?: string;
 }
 
 export interface IMrsSchemaData {
@@ -1100,6 +1204,14 @@ export interface IMrsStatusData {
     serviceConfigured: boolean;
     serviceEnabled: boolean;
     serviceCount: number;
+}
+
+export interface IMrsRoleData {
+    id: string,
+    derivedFromRoleId: string,
+    specificToServiceId: string,
+    caption: string,
+    description: string,
 }
 
 export interface IProtocolMrsResults {
@@ -1148,11 +1260,12 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDeleteDbObject]: {};
     [ShellAPIMrs.MrsUpdateDbObject]: {};
     [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[] };
-    [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[] };
+    [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[]; };
     [ShellAPIMrs.MrsAddAuthenticationApp]: { result: IMrsAuthAppData; };
     [ShellAPIMrs.MrsDeleteAuthenticationApp]: {};
     [ShellAPIMrs.MrsUpdateAuthenticationApp]: {};
-    [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[] };
+    [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[]; };
+    [ShellAPIMrs.MrsGetAuthenticationApp]: { result: IMrsAuthAppData; };
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: {};
@@ -1163,5 +1276,12 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDumpObject]: {};
     [ShellAPIMrs.MrsLoadSchema]: {};
     [ShellAPIMrs.MrsLoadObject]: {};
+    [ShellAPIMrs.MrsListUsers]: { result: IMrsUserData[]; };
+    [ShellAPIMrs.MrsDeleteUser]: {};
+    [ShellAPIMrs.MrsAddUser]: {};
+    [ShellAPIMrs.MrsUpdateUser]: {};
+    [ShellAPIMrs.MrsGetUser]: { result: IMrsUserData; };
+    [ShellAPIMrs.MrsListRoles]: { result: IMrsRoleData[]; };
+
 }
 

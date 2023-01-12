@@ -35,6 +35,7 @@ import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
 import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
 import { MrsContentSetDialog } from "../modules/mrs/dialogs/MrsContentSetDialog";
 import { MrsAuthenticationAppDialog } from "../modules/mrs/dialogs/MrsAuthenticationAppDialog";
+import { MrsUserDialog } from "../modules/mrs/dialogs/MrsUserDialog";
 import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
 
@@ -119,6 +120,13 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsAuthenticationApp)}
         />);
 
+        const refMrs6 = React.createRef<MrsUserDialog>();
+        this.dialogRefs.set(DialogType.MrsUser, refMrs6);
+        dialogs.push(<MrsUserDialog
+            key="mrsUserDialog"
+            ref={refMrs6}
+            onClose={this.handleDialogClose.bind(this, DialogType.MrsUser)}
+        />);
 
         const refMds1 = React.createRef<MdsHWClusterDialog>();
         this.dialogRefs.set(DialogType.MdsHeatWaveCluster, refMds1);

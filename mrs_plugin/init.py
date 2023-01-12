@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022 Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -54,7 +54,7 @@ class mrs():
         # Import all sub-modules to register the decorated functions there
         from mrs_plugin import general, services, schemas, auth_apps
         from mrs_plugin import db_objects, content_sets, content_files
-        from mrs_plugin import dump
+        from mrs_plugin import dump, users
 
     class enable():
         """Used to enable MRS services, schemas and schema objects.
