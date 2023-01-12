@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -372,3 +372,16 @@ def status(session=None):
         else:
             return result
 
+
+@plugin_function('mrs.list.roles', shell=True, cli=True, web=True)
+def get_roles(session=None):
+    """Lists the available roles.
+
+    Args:
+        session (object): The database session to use.
+
+    Returns:
+        The list of available roles.
+    """
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
+        return lib.core.MrsDbExec("SELECT * FROM `mysql_rest_service_metadata`.mrs_role").exec(session).items

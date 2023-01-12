@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -357,12 +357,12 @@ export class MrsServiceDialog extends ValueDialogBase {
                     newEntry.position = authApps.length;
 
                     if (newEntry.authVendorName && newEntry.name === "<new>") {
-                        newEntry.name = newEntry.authVendorName + " App";
+                        newEntry.name = newEntry.authVendorName;
                     }
 
                     authAppsDlgValue.active = newEntry.id;
 
-                    // Add another <new> entry
+
                     authApps.push({
                         id: "",
                         authVendorId: "",

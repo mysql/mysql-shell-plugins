@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -173,7 +173,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
     requires_auth = kwargs.get("requires_auth")
     comments = kwargs.get("comments")
     enabled = kwargs.get("enabled", 1)
-    options = kwargs.get("options")
+    options = lib.core.convert_json(kwargs.get("options"))
     if options:
         options = lib.core.convert_json(options)
     replace_existing = kwargs.get("replace_existing", False)

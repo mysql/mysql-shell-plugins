@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -61,7 +61,6 @@ def create_test_db(session):
 
 def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.audit_log")
-    # session.run_sql("DELETE FROM mysql_rest_service_metadata.auth_app")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.content_file")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.content_set")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.field")
@@ -70,6 +69,8 @@ def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.service")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host_alias")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.auth_app")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_user")
 
     session.run_sql("DELETE FROM mysql_rest_service_metadata.config")
     session.run_sql("INSERT INTO mysql_rest_service_metadata.config (id, service_enabled, data) VALUES (1, 1, '{}')")
@@ -176,6 +177,37 @@ def init_mrs():
     db_object_id = add_db_object(**db_object)
     assert id is not None
 
+    args = {
+        "auth_vendor_id": "0x30000000000000000000000000000000",
+        "description": "Authentication via MySQL accounts",
+        "url": "/mrs_auth_app",
+        "access_token": "test_token",
+        "limit_to_registered_users": False,
+        "registered_users": None,
+        "app_id": "some app id",
+        "session": session
+    }
+    from .. auth_apps import add_auth_app
+    auth_app = add_auth_app(app_name="MRS Auth App", service_id=service["id"], **args)
+    assert auth_app is not None
+    assert "auth_app_id" in auth_app
+
+    user = {
+        "name": "User 1",
+        "email": "user1@host.com",
+        "auth_app_id": auth_app["auth_app_id"],
+        "vendor_user_id": None,
+        "login_permitted": True,
+        "mapped_user_id": None,
+        "app_options": {},
+        "auth_string": "user1password",
+        "session": session,
+    }
+
+    from .. users import update_user, add_user
+    user = add_user(**user)
+    assert user is not None
+
     yield {
         "session": session,
         "service_id": service["id"],
@@ -183,6 +215,8 @@ def init_mrs():
         "db_object_id": db_object_id,
         "content_set_id": content_set_result["content_set_id"],
         "url_host_id": service["url_host_id"],
+        "auth_app_id": auth_app["auth_app_id"],
+        "mrs_user1": user["id"],
     }
 
     tmp_dir.cleanup()

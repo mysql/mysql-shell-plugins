@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -94,3 +94,22 @@ def resolve_options(options, default = None):
             return json.loads(lib.core.prompt("Options (in JSON format): "))
 
     return None
+
+def resolve_auth_app(session, auth_app_id=None, service_id=None, required=True):
+    if auth_app_id:
+        return lib.auth_apps.get_auth_app(session, auth_app_id)
+
+    if not service_id:
+        service = resolve_service(session, service_id)
+
+    auth_app_list = lib.auth_apps.get_auth_apps(session, service["id"])
+    selection = lib.core.prompt_for_list_item(
+        item_list=auth_app_list,
+        prompt_caption='Please enter the name or index of an auth_app: ',
+        item_name_property="name",
+        print_list=True)
+
+    if not selection and required:
+        raise Exception("Cancelling operation. Could not determine the auth_app.")
+
+    return selection

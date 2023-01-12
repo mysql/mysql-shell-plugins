@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -328,7 +328,7 @@ def _ensure_mrs_metadata_schema(session, raise_requires_upgrade):
     if general.DB_VERSION < current_db_version:
         raise Exception(
             "Unsupported MRS metadata database schema "
-            f"version {'.'.join(current_db_version)}. "
+            f"version {'.'.join([str(item) for item in current_db_version])}. "
             "Please update your MRS Shell Plugin.")
     elif general.DB_VERSION > current_db_version and raise_requires_upgrade:
         raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
@@ -744,7 +744,7 @@ def check_request_path(session, request_path):
                         "in use.")
 
 
-def convert_json(value):
+def convert_json(value) -> dict:
     try:
         value_str = json.dumps(value)
     except:
@@ -792,6 +792,8 @@ def convert_ids_to_binary(id_options, kwargs):
         if id is not None:
             kwargs[id_option] = id_to_binary(id, id_option)
 
+def convert_id_to_string(id) -> str:
+    return f"0x{id.hex()}"
 
 def _generate_where(where):
     if where:

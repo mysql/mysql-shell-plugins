@@ -595,11 +595,23 @@
             },
             {
                 "command": "msg.mrs.editAuthApp",
-                "title": "Edit REST Authorization Application"
+                "title": "Edit Authorization App"
             },
             {
                 "command": "msg.mrs.deleteAuthApp",
-                "title": "Delete REST Authorization Application"
+                "title": "Delete Authorization App"
+            },
+            {
+                "command": "msg.mrs.addUser",
+                "title": "Add User"
+            },
+            {
+                "command": "msg.mrs.editUser",
+                "title": "Edit User"
+            },
+            {
+                "command": "msg.mrs.deleteUser",
+                "title": "Delete User"
             },
             {
                 "command": "msg.mrs.addDbObject",
@@ -1072,22 +1084,22 @@
                 {
                     "command": "msg.mrs.setDefaultService",
                     "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "2_msg@1"
+                    "group": "1_msg@2"
                 },
                 {
                     "command": "msg.mrs.addAuthApp",
                     "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "2_msg@2"
+                    "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mrs.deleteService",
                     "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "3_msg@1"
+                    "group": "8_msg@1"
                 },
                 {
                     "command": "msg.mrs.docs.service",
                     "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "4_msg@1"
+                    "group": "9_msg@1"
                 },
                 {
                     "command": "msg.mrs.editSchema",
@@ -1101,12 +1113,27 @@
                 },
                 {
                     "command": "msg.mrs.editAuthApp",
-                    "when": "viewItem == mrsAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsAuthApp",
                     "group": "1_msg@1"
                 },
                 {
+                    "command": "msg.mrs.addUser",
+                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "group": "2_msg@1"
+                },
+                {
                     "command": "msg.mrs.deleteAuthApp",
-                    "when": "viewItem == mrsAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.editUser",
+                    "when": "view == msg.connections && viewItem == mrsUser",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteUser",
+                    "when": "view == msg.connections && viewItem == mrsUser",
                     "group": "2_msg@1"
                 },
                 {

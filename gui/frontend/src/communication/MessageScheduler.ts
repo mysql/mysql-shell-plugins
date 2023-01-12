@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -226,13 +226,15 @@ export class MessageScheduler {
      *
      * @param details The type and parameters for the request.
      * @param useExecute A flag to indicate this is actually an execute request, but in the simple form.
+     * @param caseConversionIgnores Ignore case conversions for items in this list
      *
      * @returns A promise resolving with a list of responses or a single response received from the backend.
      */
     public sendRequest<K extends keyof IProtocolResults>(
-        details: ISendRequestParameters<K>, useExecute = true): ResponsePromise<K> {
+        details: ISendRequestParameters<K>, useExecute = true,
+        caseConversionIgnores: string[] = []): ResponsePromise<K> {
 
-        return this.constructAndSendRequest(useExecute, {
+        return this.constructAndSendRequest(useExecute, caseConversionIgnores, {
             ...details,
         });
     }
@@ -361,11 +363,13 @@ export class MessageScheduler {
      * This is the core method to send a request to the backend.
      *
      * @param isExecuteRequest True if the request must be sent as execution request.
+     * @param caseConversionIgnores Ignore case conversions for items in this list
      * @param details The type and parameters for the request.
      *
      * @returns A promise resolving with a list of responses received from the backend.
      */
     private constructAndSendRequest<K extends keyof IProtocolResults>(isExecuteRequest: boolean,
+        caseConversionIgnores: string[],
         details: ISendRequestParameters<K>): ResponsePromise<K> {
 
         const requestId = details.requestId ?? uuid();
@@ -378,7 +382,9 @@ export class MessageScheduler {
                 ...details.parameters,
             };
 
-            const data = convertCamelToSnakeCase(record, { ignore: ["rows"] }) as INativeShellRequest;
+            caseConversionIgnores = caseConversionIgnores.concat(["rows"]);
+
+            const data = convertCamelToSnakeCase(record, { ignore: caseConversionIgnores }) as INativeShellRequest;
 
             if (this.traceEnabled) {
                 void requisitions.execute("debugger", { request: data });

@@ -98,7 +98,7 @@ export interface IMrsAuthAppData {
     enabled: boolean;
     useBuiltInAuthorization: boolean;
     limitToRegisteredUsers: boolean;
-    defaultRoleId?: string;
+    defaultRoleId?: string | null;
 }
 
 export interface IMrsAuthVendorData {
@@ -107,6 +107,18 @@ export interface IMrsAuthVendorData {
     validationUrl?: string;
     enabled: boolean;
     comments?: string;
+}
+
+export interface IMrsUserData {
+    id?: string;
+    authAppId?: string;
+    name?: string;
+    email?: string;
+    vendorUserId?: string;
+    loginPermitted?: boolean;
+    mappedUserId?: string;
+    appOptions?: IShellDictionary;
+    authString?: string;
 }
 
 export interface IMrsSchemaData {
@@ -127,6 +139,14 @@ export interface IMrsStatusData {
     serviceConfigured: boolean;
     serviceEnabled: boolean;
     serviceCount: number;
+}
+
+export interface IMrsRoleData {
+    id: string,
+    derivedFromRoleId: string,
+    specificToServiceId: string,
+    caption: string,
+    description: string,
 }
 
 export interface IProtocolMrsResults {
@@ -175,11 +195,12 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDeleteDbObject]: {};
     [ShellAPIMrs.MrsUpdateDbObject]: {};
     [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[] };
-    [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[] };
+    [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[]; };
     [ShellAPIMrs.MrsAddAuthenticationApp]: { result: IMrsAuthAppData; };
     [ShellAPIMrs.MrsDeleteAuthenticationApp]: {};
     [ShellAPIMrs.MrsUpdateAuthenticationApp]: {};
-    [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[] };
+    [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[]; };
+    [ShellAPIMrs.MrsGetAuthenticationApp]: { result: IMrsAuthAppData; };
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: {};
@@ -190,4 +211,11 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDumpObject]: {};
     [ShellAPIMrs.MrsLoadSchema]: {};
     [ShellAPIMrs.MrsLoadObject]: {};
+    [ShellAPIMrs.MrsListUsers]: { result: IMrsUserData[]; };
+    [ShellAPIMrs.MrsDeleteUser]: {};
+    [ShellAPIMrs.MrsAddUser]: {};
+    [ShellAPIMrs.MrsUpdateUser]: {};
+    [ShellAPIMrs.MrsGetUser]: { result: IMrsUserData; };
+    [ShellAPIMrs.MrsListRoles]: { result: IMrsRoleData[]; };
+
 }

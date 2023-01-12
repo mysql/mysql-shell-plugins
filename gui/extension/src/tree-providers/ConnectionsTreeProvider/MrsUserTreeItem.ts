@@ -21,18 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsAuthAppData } from "../../../../frontend/src/communication/";
+import { IMrsUserData } from "../../../../frontend/src/communication/";
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
-export class MrsAuthAppTreeItem extends MrsTreeBaseItem {
-    public contextValue = "mrsAuthApp";
+export class MrsUserTreeItem extends MrsTreeBaseItem {
+    public contextValue = "mrsUser";
 
     public constructor(
         label: string,
-        public value: IMrsAuthAppData,
+        public value: IMrsUserData,
         entry: IConnectionEntry) {
-        super(label, entry, true, "shield.svg");    //  TODO: set a proper icon for the auth app
-        this.tooltip = value.description ?? label;
+        super(label, entry, false, "ociProfile.svg");
     }
 }

@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-from mrs_plugin.lib import core, services
+from mrs_plugin.lib import core, services, users
 
 MYSQL_AUTHENTICATION = 1
+DEFAULT_ROLE_ID = bytes.fromhex("31000000000000000000000000000000")
 
 def format_auth_app_listing(auth_apps, print_header=False):
     """Formats the listing of auth_apps
@@ -56,6 +57,26 @@ def format_auth_app_listing(auth_apps, print_header=False):
 
     return output
 
+
+def get_auth_vendors(session, enabled=None):
+    params = []
+    sql = """
+        SELECT * FROM `mysql_rest_service_metadata`.`auth_vendor`
+    """
+    if enabled is not None:
+        sql += "WHERE enabled = ?"
+        params.append(enabled)
+
+    return core.MrsDbExec(sql, params).exec(session).items
+
+def get_auth_vendor(session, vendor_id):
+    sql = """
+        SELECT * FROM `mysql_rest_service_metadata`.`auth_vendor`
+        WHERE id = ?
+    """
+
+    return core.MrsDbExec(sql, [vendor_id]).exec(session).first
+
 def get_auth_app(session, app_id):
     sql = """
         SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
@@ -89,7 +110,8 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
     sql = """
         SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
             a.description, a.url, a.access_token, a.app_id, a.enabled,
-            a.limit_to_registered_users, v.name as auth_vendor
+            a.limit_to_registered_users, a.default_role_id,
+            v.name as auth_vendor
         FROM `mysql_rest_service_metadata`.`auth_app` a
             LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
                 ON v.id = a.auth_vendor_id
@@ -105,6 +127,8 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
 
 
 def delete_auth_app(session, app_id):
+    users.delete_users_by_auth_app(session, auth_app_id=app_id)
+
     core.MrsDbExec("""DELETE FROM `mysql_rest_service_metadata`.`auth_app`
                       WHERE id = ?""", [app_id]).exec(session)
 

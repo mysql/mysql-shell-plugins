@@ -198,6 +198,9 @@ export enum DialogType {
     /** A dialog to create or edit an MRS Authentication App */
     MrsAuthenticationApp,
 
+    /** A dialog to create or edit an MRS User */
+    MrsUser,
+
     /** A dialog to create or edit an MRS schema. */
     MrsSchema,
 
