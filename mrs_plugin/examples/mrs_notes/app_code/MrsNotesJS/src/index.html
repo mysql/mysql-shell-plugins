@@ -1,0 +1,1111 @@
+<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Notes</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module">
+    /* cSpell:ignore preact */
+    import { Component, h, render, createRef } from 'https://unpkg.com/preact?module';
+    import htm from 'https://unpkg.com/htm?module';
+
+    // Initialize htm
+    const html = htm.bind(h);
+
+    // The MySQL REST Service URL of the service offering the /mrsNotes schema
+    const serviceUrl = "https://mrs.zinner.org/mrs";
+
+    /**
+     * A simple Icon Component that renders an CSS inline SVG icon based on the given name.
+     * For styling purposes a CSS class ${name}Style is made available.
+     */
+    class Icon extends Component {
+      render = ({ name, onClick }) => {
+        return html`
+        <div class="icon ${name}Style" onClick=${onClick}><div class="iconBg ${name}"></div></div>`;
+      }
+    }
+
+    /**
+     * A simple Header Component that renders the app title and the current user
+     */
+    class Header extends Component {
+      render({ userNick, showPage, logout }) {
+        return html`
+        <div class="header">
+          <${Icon} name="sakilaIcon"></Icon>
+          <h1 onClick=${() => showPage("notes")}>MRS <span>Notes</span></h1>
+          <p onClick=${() => showPage("user")}>${userNick}</p>
+          <${Icon} name="userIcon" onClick=${() => showPage("user")} />
+          <${Icon} name="exitIcon" onClick=${() => logout()} />
+        </div>`;
+      }
+    }
+
+    /**
+     * The NoteList Component displays the list of user notes with a search field on top
+     */
+    class NoteList extends Component {
+      render = ({ notes, activeNote, noteSearchText, searchNotes, setActiveNoteById }) => {
+        return html`
+        <div class="notesSidebar">
+          <div class="notesListSearch">
+            <${Icon} name="searchIcon" />
+            <div class="notesListSearchField">
+              <input onInput=${(e) => searchNotes(e)} placeholder="Search" value=${noteSearchText} />
+            </div>
+          </div>
+          <div class="notesList">
+            ${notes ? notes.map((note) => html`
+            <div class="notesListItem${activeNote && activeNote.id === note.id ? " selected" : ""}"
+              key=${note.id} onClick=${() => setActiveNoteById(note.id)} tabindex="0">
+              <div class="notesListItemGutter">
+                ${note.shared ? html`<${Icon} name="userIcon" />` : ""}
+              </div>
+              <div class="notesListItemContent">
+                <h3>${note.title}</h3>
+                <div class="notesListItemSummary">
+                  <h4>${(
+            new Date(note.lastUpdate)).toLocaleDateString(undefined, { dateStyle: 'short' })}</h4>
+                  <p>${note?.contentBeginning}</p>
+                </div>
+              </div>
+            </div>`) : ""}
+          </div>
+        </div>`;
+      }
+    }
+
+    /**
+     * The Notes page Component with a NoteList on the left hand side and the active note content
+     */
+    class Notes extends Component {
+      constructor(props) {
+        super(props);
+
+        this.state = {
+          notes: [],
+          noteSearchText: null,
+          activeNote: null,
+          pendingInvitation: false,
+        };
+
+        this.searchTimer = null;
+        this.noteContentChangeTimer = null;
+        this.noteInputRef = createRef();
+        this.addingNote = false;
+        this.addingNoteTextBuffer = null;
+
+        this.refreshNotes();
+
+        this.checkPendingInvitationTimer = null;
+        this.checkPendingInvitation();
+      }
+
+      componentWillUnmount = () => {
+        // Clear the timers before unmounting
+        if (this.searchTimer) {
+          clearTimeout(this.searchTimer);
+          this.searchTimer = null;
+        }
+
+        if (this.noteContentChangeTimer) {
+          clearTimeout(this.noteContentChangeTimer);
+          this.noteContentChangeTimer = null;
+        }
+
+        if (this.checkPendingInvitationTimer) {
+          clearTimeout(this.checkPendingInvitationTimer);
+          this.checkPendingInvitationTimer = null;
+        }
+      }
+
+      /**
+       * Refreshes and updates the notes state
+       * 
+       * The notes fetched exclude the content column since it can contain a lot of data. The full note data is
+       * fetched separately when the activeNote changes
+       * 
+       * @param activeNoteId The id of the note that should be selected after the refresh
+       */
+      refreshNotes = async (activeNoteId) => {
+        const { doFetch, showError } = this.props;
+        const { notes, activeNote, noteSearchText } = this.state;
+
+        // Build the query string based on the given searchText
+        let q = noteSearchText ? `&q={"title":{"$like":"${noteSearchText}%"}}` : "";
+
+        try {
+          const newNotes = [];
+          let hasMore = true;
+          let offset = 0;
+
+          // If an activeNoteId was given and there was non before, set it right away to prevent flickering 
+          // when loading the notes list
+          if (activeNoteId && !activeNote) {
+            await this.setActiveNoteById(activeNoteId);
+          }
+
+          // Fetch pages of 10 notes until all notes have been fetched
+          while (hasMore) {
+            // Await the fetch call and get back the response object
+            const response = await doFetch({
+              input: `/mrsNotes/notesAll?f=!content&offset=${offset}&limit=10${q}`,
+              errorMsg: "Failed to fetch notes.",
+            });
+
+            // Await the JSON parsing of the response body
+            const responseBody = await response.json();
+
+            // Add items to the newNotes list
+            newNotes.push(...responseBody?.items);
+            hasMore = responseBody?.hasMore;
+
+            // Set a new state of the newNotes to trigger a re-render
+            this.setState({ notes: newNotes });
+
+            offset += 10;
+          }
+
+          // If a new activeNodeId was given or there was an active note, select that note again
+          const noteId = activeNoteId ? activeNoteId : activeNote?.id;
+          const newIndex = noteId ? newNotes.findIndex((note) => { return note.id === noteId }) : -1;
+          let newActiveNote = newIndex > -1 ? newNotes[newIndex] : null;
+
+          // If it was not found, select the next note in the list as new activeNote. Otherwise select the 
+          // first list entry.
+          if (!newActiveNote && newNotes.length > 0) {
+            const oldIndex = noteId ? notes.findIndex((note) => { return note.id === noteId }) : -1;
+
+            if (oldIndex > -1) {
+              if (newNotes.length > oldIndex) {
+                newActiveNote = newNotes[oldIndex];
+              } else {
+                newActiveNote = newNotes[newNotes.length - 1];
+              }
+            } else {
+              newActiveNote = newNotes[0];
+            }
+          }
+
+          // If the activeNote has not already been set above, set it now
+          if (!(activeNoteId && !activeNote)) {
+            await this.setActiveNoteById(newActiveNote?.id);
+          }
+        } catch (e) {
+          showError(e);
+        }
+      };
+
+      addNote = async (content = "New Note", selectText = true) => {
+        const { doFetch, showError } = this.props;
+
+        this.addingNote = true;
+
+        try {
+          const newNote = await (await doFetch({
+            input: `/mrsNotes/note`,
+            errorMsg: "Failed to added a new note.",
+            method: "POST",
+            body: {
+              title: content.split('\n')[0],
+              content: content,
+              pinned: 0,
+              lockedDown: 0
+            },
+          })).json();
+
+          // Refresh the notes and set the new note as new active note
+          await this.refreshNotes(newNote?.id);
+
+          // Select all the text so the user can overwrite the default text easily
+          if (selectText) {
+            this.setTextAreaFocus(true);
+          }
+        } catch (e) {
+          showError(e);
+        } finally {
+          this.addingNote = false;
+        }
+      }
+
+      deleteNote = async (note) => {
+        const { doFetch } = this.props;
+
+        if (!note) {
+          throw new Error(`Please specify which note to delete.`);
+        }
+
+        await doFetch({
+          input: `/mrsNotes/noteDelete`, errorMsg: "Failed to delete the note.",
+          method: "PUT", body: { noteId: note.id },
+        });
+      }
+
+      updateNote = async (note) => {
+        const { doFetch } = this.props;
+
+        if (!note) {
+          throw new Error(`Please specify which note to update.`);
+        }
+
+        // ToDo: Check if update was successfully
+        await doFetch({
+          input: `/mrsNotes/noteUpdate`, errorMsg: "Failed to update the note.",
+          method: "PUT",
+          body: {
+            noteId: note.id,
+            title: note.title,
+            pinned: note.pinned,
+            lockedDown: note.lockedDown,
+            content: note.content,
+            tags: note.tags
+          }
+        });
+      }
+
+      setActiveNoteById = async (noteId, setFocus) => {
+        const { activeNote } = this.state;
+        const { doFetch, showError } = this.props;
+
+        if (noteId) {
+          try {
+            // Before changing to a new active note store changes to the current one first
+            if (activeNote && this.noteContentChangeTimer) {
+              clearTimeout(this.noteContentChangeTimer);
+              this.noteContentChangeTimer = null;
+
+              await this.updateNote(activeNote);
+            }
+
+            // Try to get the note with the given noteId
+            const notes = await (await doFetch({
+              input: `/mrsNotes/notesAll?q={"id": {"$eq": ${noteId}}}`,
+              errorMsg: "Failed to fetch the note.",
+            })).json();
+
+            // If the note was found, set it as new note
+            this.setState({ activeNote: (notes.items.length > 0) ? notes.items[0] : null },
+              () => {
+                if (setFocus) {
+                  this.setTextAreaFocus();
+                }
+    
+                // If there was text entered while the activeNote was being set, update the textArea with 
+                // that text
+                if (this.addingNoteTextBuffer !== null) {
+                  this.noteInputRef.current.value = this.addingNoteTextBuffer;
+                  this.addingNoteTextBuffer = null;
+    
+                  // ToDo: Trigger refresh timer
+                }
+              });
+
+          } catch (e) {
+            showError(e);
+          }
+        } else {
+          // If no noteId parameter is given, clear the activeNote
+          this.setState({ activeNote: null });
+        }
+
+      }
+
+      setTextAreaFocus = (selectAll = false) => {
+        this.noteInputRef.current.focus();
+
+        if (selectAll) {
+          this.noteInputRef.current.select();
+        }
+      }
+
+      searchNotes = async (e) => {
+        // If timer is currently running, rest it so we can restart it again
+        if (this.searchTimer) {
+          clearTimeout(this.searchTimer);
+        }
+
+        // Update the state of noteSearchText right away
+        this.setState({ noteSearchText: e.target.value });
+
+        // Start a 500ms timer to allow users to type a longer string and not to trigger a fetch for every
+        // single key press
+        this.searchTimer = setTimeout(async () => {
+          this.searchTimer = null;
+
+          this.refreshNotes();
+        }, 500);
+      }
+
+      deleteActiveNote = async () => {
+        const { activeNote, notes } = this.state;
+        const { showError } = this.props;
+
+        try {
+          await this.deleteNote(activeNote);
+
+          this.refreshNotes();
+        } catch (e) {
+          showError(e);
+        }
+      }
+
+      onActiveNoteContentInput = async (e) => {
+        const { notes, activeNote } = this.state;
+        const { showError } = this.props;
+
+        // If timer is currently running, rest it so we can restart it again
+        if (this.noteContentChangeTimer) {
+          clearTimeout(this.noteContentChangeTimer);
+        }
+
+        // If there is an activeNote, update that note
+        if (activeNote) {
+          // Set the title as the first line from the note
+          activeNote.title = e.target.value.split('\n')[0];
+          activeNote.content = e.target.value;
+
+          // Update notes list immediately
+          const noteInList = notes.find((note) => { return activeNote.id === note.id });
+          if (noteInList) {
+            noteInList.title = activeNote.title;
+            noteInList.contentBeginning = activeNote.content.substring(
+              activeNote.title.length + 1, 45).replace(/[^a-zA-Z\d]/gm, " ").replace(/\s+/gm, " ");
+            this.setState({ notes });
+          }
+
+          // Delay the database update for 500ms in case the user continues typing. This helps to reduce 
+          // traffic and database load since we do not update the database for every single keypress.
+          this.noteContentChangeTimer = setTimeout(async () => {
+            this.noteContentChangeTimer = null;
+            try {
+              await this.updateNote(activeNote);
+            } catch (e) {
+              showError(e);
+            }
+          }, 500);
+        } else if (!this.addingNote) {
+          // If there is no activeNote yet, create a note
+          this.noteContentChangeTimer = setTimeout(async () => {
+            this.noteContentChangeTimer = null;
+
+            try {
+              await this.addNote(e.target.value, false);
+            } catch (e) {
+              showError(e);
+            }
+          }, 500);
+        } else {
+          this.addingNoteTextBuffer = e.target.value;
+        }
+      }
+
+      checkPendingInvitation = async () => {
+        const { doFetch, showError } = this.props;
+
+        try {
+          // cSpell:ignore notnull
+          const pendingNotes = await (await doFetch({
+            input: `/mrsNotes/userHasNote?q={"invitationKey":{"$notnull":null},` +
+              `"invitationAccepted":{"$eq": 0}}`,
+            errorMsg: "Failed to  query invitations.",
+          })).json();
+
+          this.setState({ pendingInvitation: pendingNotes?.items?.length > 0 });
+        } catch (e) {
+          showError(e);
+        }
+
+        // Start a 5s timer to check if new invitations have been created
+        this.checkPendingInvitationTimer = setTimeout(async () => {
+          this.checkPendingInvitation();
+        }, 5000);
+      }
+
+      render = ({ doFetch, showError, showPage }, { notes, activeNote, noteSearchText, pendingInvitation }) => {
+        // Only display the deleteIcon if there is an activeNote
+        const deleteIcon = activeNote ? html`
+            <${Icon} name="deleteIcon" onClick=${() => this.deleteActiveNote()} />` : "";
+        const acceptShareIcon = pendingInvitation ? html`
+          <${Icon} name="pendingInvitationIcon" onClick=${() => showPage("notesAcceptShare")} />` : "";
+        const page = window.location.hash;
+
+        return html`
+        <${Route} condition=${page === "#notes"}>
+          <div class="notes">
+            <${NoteList} notes=${notes} activeNote=${activeNote} 
+              noteSearchText=${noteSearchText} searchNotes=${this.searchNotes} 
+              setActiveNoteById=${this.setActiveNoteById} />
+            <div class="splitter"></div>
+            <div class="note">
+              <div class="toolbar">
+                ${deleteIcon}
+                <div class="spacer"></div>
+                ${acceptShareIcon}
+                <${Icon} name="shareIcon" onClick=${() => showPage("notesShare")} />
+                <${Icon} name="addIcon" onClick=${() => this.addNote()} />
+              </div>
+              <div class="noteContent">
+                <div class="noteDate" onClick=${() => this.setTextAreaFocus()}>${activeNote ?
+            (new Date(activeNote.lastUpdate)).toLocaleString(undefined, { dateStyle: "long", timeStyle: "short" }) :
+            ""}</div>
+                <textarea ref=${this.noteInputRef} value=${activeNote ? activeNote.content : ""}
+                  onInput=${(e) => this.onActiveNoteContentInput(e)}/>
+              </div>
+            </div>
+          </div>
+        </Route>
+        <${Route} condition=${page === "#notesShare"}>
+          <${Share} doFetch=${doFetch} showError=${showError} activeNote=${activeNote}
+          showPage=${(page) => { this.refreshNotes(); showPage(page); }} />
+        </Route>
+        <${Route} condition=${page === "#notesAcceptShare"}>
+          <${AcceptShare} doFetch=${doFetch} showError=${showError} 
+            showPage=${(page) => { this.refreshNotes(); showPage(page); }}/>
+        </Route>`;
+      }
+    }
+
+    /**
+     * A simple InputForm page Component that expects a list of form fields as children
+     */
+    class InputForm extends Component {
+      render = ({ children, headerIcon, headerTitle, headerSubtitle, successContent, back, submit,
+        success, error }) => {
+        return html`
+        <div class="pageForm">
+          <div class="pageFormContent">
+            <div class="headerTitle">
+              <${Icon} name="${headerIcon}" />
+              <h3>${headerTitle}</h3>
+              <p>${headerSubtitle}</p>
+            </div>
+            <div>${children}</div>
+            ${success ? html`
+            <div class="formSuccess">
+              <p>${successContent}</p>
+            </div>
+            <div class="formButtons">
+              <button onClick=${() => back()} class="flatButton">OK</button>
+            </div>
+            ` : html`
+            <div class="formButtons">
+              <button onClick=${() => back()} class="flatButton">Cancel</button>
+              <button onClick=${() => submit()} class="flatButton">Submit</button>
+            </div>`}
+            ${error ? html`
+            <div class="formError">
+              <p>${error}</p>
+            </div>` : ""}
+          </div>
+        </div>
+        <div class="footer">
+          <p>Copyright (c) 2022, 2023, Oracle and/or its affiliates.</p>
+        </div>`;
+      };
+    };
+
+    /**
+     * The Share page Component that allows to share a note with others
+     */
+    class Share extends Component {
+
+      constructor(props) {
+        super(props);
+
+        this.state = {
+          success: false,
+          error: null,
+          email: props.user?.email,
+          viewOnly: false,
+          canShare: false,
+          invitationKey: null,
+        }
+      }
+
+      shareNote = async () => {
+        const { doFetch, showError, activeNote } = this.props;
+        const { email, viewOnly, canShare } = this.state;
+
+        try {
+          // Share the note with the given user
+          if (email) {
+            const response = await (await doFetch({
+              input: `/mrsNotes/noteShare`, errorMsg: "Failed to share the note.",
+              method: "PUT",
+              body: {
+                noteId: activeNote?.id,
+                email,
+                viewOnly: viewOnly ? 1 : 0,
+                canShare: canShare ? 1 : 0,
+              }
+            })).json();
+
+            if (response.items?.length > 0) {
+              // Check if there was an error
+              if (response.items[0].message) {
+                this.setState({
+                  success: false, invitationKey: null, error: response.items[0].message
+                });
+              } else {
+                // Indicate that the note has been shared
+                this.setState({
+                  success: true, invitationKey: response.items[0].invitationKey, error: null
+                });
+              }
+            }
+          }
+        } catch (e) {
+          showError(e);
+        }
+      }
+
+      render = ({ showPage }, { success, error, email, viewOnly, canShare, invitationKey }) => {
+        const appUrl = window.location.href.replace(window.location.hash, "")
+          .replace(window.location.search, "");
+        const invitationLink = `mailto:${email}?subject=` +
+          encodeURI("Invitation to Work on Shared Note") + "&body=" +
+          encodeURI("Dear User,\n\nYou have been invited to work on a shared note.\n\n" +
+            `Please go to:\n    ${appUrl}?invitationKey=${invitationKey}#notes\n` +
+            `to accept the invitation.\n\nYour invitation key is:\n    ${invitationKey}\n\nThanks.`);
+        const successContent = html`
+          The user has been invited to share the key successfully.<br /><br />
+            Please share the following invitation key with the user:<br />
+            ${invitationKey}<br />
+            <a href="${invitationLink}">Send Email</a>`;
+
+        return html`
+        <${InputForm} headerIcon="shareIcon" headerTitle="Share Note" 
+          headerSubtitle="Please enter the email of the user you want to share the note with."
+          successContent=${successContent} back=${() => showPage("notes")} submit=${this.shareNote}
+          success=${success} error=${error}
+        >
+          <div class="formField">
+            <p>Email</p>
+            <input id="email" type="text" value=${email} autofocus
+              onInput=${(e) => this.setState({ email: e.target.value })} />
+          </div>
+          <div class="formField">
+            <div class="formCheckbox">
+              <input id="viewOnly" type="checkbox" value="1" ${viewOnly ? "checked" : ""}
+                onInput=${(e) => this.setState({ viewOnly: e.target.value === "1" })} />
+              <label for="viewOnly">Prevent the user from editing the note</label>
+            </div>
+            <div class="formCheckbox">
+              <input id="canShare" type="checkbox" value="1" ${canShare ? "checked" : ""} 
+                onInput=${(e) => this.setState({ canShare: e.target.value === "1" })} />
+              <label for="canShare">Allow the user to share the note with other users</label>
+            </div>
+          </div>
+        </InputForm>`;
+      };
+    }
+
+    /**
+     * The AcceptShare page Component that allows to accept a shared note
+     */
+    class AcceptShare extends Component {
+
+      constructor(props) {
+        super(props);
+
+        this.state = {
+          success: false,
+          error: null,
+          invitationKey: null,
+        }
+      }
+
+      acceptSharedNote = async () => {
+        const { doFetch, showError } = this.props;
+        const { invitationKey } = this.state;
+
+        try {
+          // Share the note with the given user
+          if (invitationKey) {
+            const response = await (await doFetch({
+              input: `/mrsNotes/noteAcceptShare`, errorMsg: "Failed to accept the shared note.",
+              method: "PUT",
+              body: {
+                invitationKey
+              }
+            })).json();
+
+            if (response.items?.length > 0) {
+              // Check if there was an error
+              if (response.items[0].message) {
+                this.setState({ success: false, error: response.items[0].message });
+              } else {
+                // Indicate that the note has been shared
+                this.setState({ success: true, error: null });
+              }
+            }
+          }
+        } catch (e) {
+          showError(e);
+        }
+      }
+
+      render = ({ showPage }, { invitationKey, success, error }) => {
+        return html`
+        <${InputForm} headerIcon="pendingInvitationIcon" headerTitle="Accept Shared Note" 
+          headerSubtitle="Please enter the invitation key."
+          successContent="The note has been accepted." 
+          back=${() => showPage("notes")} submit=${this.acceptSharedNote}
+          success=${success} error=${error}
+        >
+          <div class="formField">
+            <p>Invitation Key</p>
+            <input id="invitationKey" type="text" value=${invitationKey} autofocus 
+              onInput=${(e) => this.setState({ invitationKey: e.target.value })} />
+          </div>
+        </InputForm>`;
+      }
+    }
+
+    /**
+     * The User page Component that allows for the editing of the user information
+     */
+    class User extends Component {
+
+      constructor(props) {
+        super(props);
+
+        this.state = {
+          success: false,
+          error: null,
+          nickname: props.user?.nickname,
+          email: props.user?.email,
+        }
+      }
+
+      submitUserUpdate = async () => {
+        const { doFetch, showError, updateUser } = this.props;
+        const { nickname, email } = this.state;
+
+        try {
+          // Fetch the current user info from the database
+          const user = await (await doFetch({
+            input: `/mrsNotes/user`,
+            errorMsg: "Failed to fetch the user data.",
+          })).json();
+
+          // Check if name or email have changed, if so, update database
+          if (user && (nickname !== user.nickname || email !== user.email)) {
+            await doFetch({
+              input: `/mrsNotes/user`,
+              errorMsg: "Failed to update the user data.",
+              method: 'PUT',
+              body: { nickname, email }
+            });
+
+            // Update the app user
+            user.nickname = nickname;
+            user.email = email;
+            updateUser(user);
+
+            // Indicate that the user info has been updated
+            this.setState({ success: true, error: null });
+          }
+        } catch (e) {
+          this.setState({ success: false, error: e.message });
+          showError(e);
+        }
+      }
+
+      render = ({ showPage }, { success, error, nickname, email }) => {
+        return html`
+        <${InputForm} headerIcon="userIcon" headerTitle="Edit User Settings" 
+          headerSubtitle="Please enter your user settings below."
+          successContent="User updated successfully." 
+          back=${() => showPage("notes")} submit=${this.submitUserUpdate}
+          success=${success} error=${error}
+        >
+          <div class="formField">
+            <p>Nickname</p>
+            <input id="nickname" type="text" value=${nickname} autofocus 
+              onInput=${(e) => this.setState({ nickname: e.target.value })} />
+          </div>
+          <div class="formField">
+            <p>Email</p>
+            <input id="email" type="text" value=${email} 
+              onInput=${(e) => this.setState({ email: e.target.value })} />
+          </div>
+        </InputForm>`;
+      }
+    }
+
+    /**
+     * The ModalError Component renders an error message
+     */
+    class ModalError extends Component {
+      render = ({ error, resetError, logout }) => {
+        return error ? html`
+        <div class="modal">
+          <div class="error">
+            <p>${error.stack.replace(/accessToken=.*?[&:]/gm, "accessToken=X:")}</p>
+            <div class="errorButtons">
+              <button class="flatButton" onClick=${() => resetError()}>Close</button>
+              <button class="flatButton" onClick=${() => logout()}>Restart</button>
+            </div>
+          </div>
+        </div>` : "";
+      };
+    }
+
+    /**
+     * A simple Route Component that renders it's children based on a condition
+     */
+    class Route extends Component {
+      render = ({ condition, children }) => {
+        return condition ? html`${children}` : html``;
+      };
+    }
+
+    /**
+     * A WelcomePage Component that displays the number of managed notes and login buttons
+     */
+    class WelcomePage extends Component {
+
+      constructor(props) {
+        super(props);
+
+        this.state = {
+          notesServed: 0,
+        }
+
+        this.getNotesServed().then((notesServed) => {
+          this.setState({ notesServed });
+        })
+      }
+
+      // Get the number of served notes. This is a public API call and needs no authentication
+      getNotesServed = async () => {
+        const response = await fetch(`${serviceUrl}/mrsNotes/notesServed`);
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.items && result.items.length > 0) {
+            return result.items[0].notesServed ?? 0;
+          } else {
+            return undefined;
+          }
+        }
+      };
+
+      render = ({ startLogin }, { notesServed }) => {
+        // Build a human readable string of there are notesServed > 0
+        const notesManaged = (notesServed > 0) ?
+          `Managing ${notesServed ?? 0} note${notesServed !== 1 ? "s" : ""} for our users so far.` :
+          "Managing notes for you.";
+
+        return html`
+        <div class="page">
+          <div class="welcome">
+            <h1 class="gradientText">MRS Notes</h1>
+            <h2>Powered by the<br/>MySQL REST Service.</h2>
+            <div class="productInfo">
+              <p>Writing a web app that uses the MySQL REST Service is straight forward.
+                This example implements a simple note taking application that allows
+                note sharing between its users.</p>
+              <p class="marketing">${notesManaged}</p>
+            </div>
+            <p>Choose one of the following login methods to start.</p>
+            <div class="loginButtons">
+              <button onClick=${() => startLogin('MySQL')} class="flatButton btnMySQL">
+                Login with MySQL</button>
+              <button onClick=${() => startLogin('Facebook')} class="flatButton btnFb">
+                Login with Facebook</button>
+              <button onClick=${() => startLogin('Twitter')} class="flatButton btnTw">
+                Login with Twitter</button>
+              <button onClick=${() => startLogin('Google')} class="flatButton btnGg">
+                Login with Google</button>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Copyright (c) 2022, 2023, Oracle and/or its affiliates.</p>
+          </div>
+        </div>`;
+      };
+    }
+
+    /**
+     * The App Component that covers authentication and page rendering
+     */
+    class App extends Component {
+
+      constructor(props) {
+        super(props);
+
+        // Fetch URL parameters
+        const urlParams = new Proxy(new URLSearchParams(window.location.search), {
+          get: (searchParams, prop) => searchParams.get(prop),
+        });
+
+        let accessToken = urlParams.accessToken;
+        let authApp = urlParams.authApp;
+
+        // If accessToken is not specified, check window.localStorage
+        if (accessToken === null) {
+          accessToken = window.localStorage.getItem("mrsNotesJwtAccessToken");
+        } else {
+          // If it was specified, store it in the window.localStorage
+          window.localStorage.setItem("mrsNotesJwtAccessToken", accessToken);
+
+          // Clean Browser URL without reloading the page
+          history.replaceState(undefined, undefined, this.getUrlWithNewSearchString());
+        }
+
+        // Store/restore authApp from window.localStorage as well
+        if (authApp === null) {
+          authApp = window.localStorage.getItem("mrsNotesAuthApp");
+        } else {
+          window.localStorage.setItem("mrsNotesAuthApp", authApp);
+        }
+
+        // Ensure to force a render update to reflect URL hash changes when the user clicks the back button
+        window.addEventListener('hashchange', () => {
+          this.forceUpdate();
+        }, false);
+
+        // Initialize the App Component's state variables
+        this.state = {
+          authApp,
+          accessToken,
+          authenticating: accessToken !== null,
+          restarting: false,
+          user: undefined,
+          error: undefined,
+        }
+
+        // Check if the current accessToken is still valid
+        if (accessToken !== null) {
+          this.getAuthenticationStatus().then((status) => {
+            if (status && status.status === "authorized") {
+              // Make sure the user table has an entry for this user
+              this.ensureUserAccount(status.user).then(() => {
+                // Update the URL
+                this.showPage("notes", false);
+
+                // End the authenticating status and set the user info
+                this.setState({ authenticating: false, user: status.user });
+              }).catch((e) => {
+                this.setState({ error: e });
+              });
+            } else {
+              // If not, go back to login page
+              this.logout();
+            }
+          });
+        }
+      }
+
+      /**
+       * Returns the current URL with a new URL search string
+       *
+       * @param searchString The new search string to use
+       * 
+       * @returns The current URL with a new searchString
+       */
+      getUrlWithNewSearchString = (searchString) => {
+        return window.location.protocol + "//" + window.location.host + window.location.pathname +
+          (searchString ? `?${searchString}` : "") + window.location.hash;
+      };
+
+      /**
+       * A small wrapper around fetch() that uses the active JWT accessToken to the MRS and throws 
+       * an exception if the response was not OK
+       *
+       * @param input The RequestInfo, either a URL string or a JSON object with named parameters
+       * @param errorMsg The error message to include in the exception if the fetch is not successful
+       * @param method The HTTP method to use with GET being the default
+       * @param body The request body as object
+       * 
+       * @returns The response object
+       */
+      doFetch = async (input, errorMsg, method, body) => {
+        const { accessToken, authApp } = this.state;
+
+        // Check if parameters are passed as named parameters and if so, assign them
+        if (typeof input === 'object' && input !== null) {
+          errorMsg = input?.errorMsg ?? "Failed to fetch data.";
+          method = input?.method ?? "GET";
+          body = input?.body;
+          input = input?.input;
+        } else {
+          errorMsg = errorMsg ?? "Failed to fetch data.";
+          method = method ?? "GET";
+        }
+
+        let response;
+        try {
+          response = await fetch(`${serviceUrl}${input}`, {
+            method,
+            headers: { "Authorization": "Bearer " + accessToken },
+            body: body ? JSON.stringify(body) : undefined,
+          });
+        } catch (e) {
+          throw new Error(`${errorMsg}\n\nPlease check if a MRS DB Object with the ` +
+            `path ${serviceUrl}${input} does exist.`)
+        }
+
+        if (!response?.ok) {
+          // Check if the current session has expired
+          if (response.status === 401) {
+            this.setState({ restarting: true });
+            window.alert("Your current session expired. You will be logged in again.");
+
+            this.startLogin(authApp ? authApp : "MySQL");
+          } else {
+            let errorInfo = null;
+            try {
+              errorInfo = await response.json();
+            } catch (e) {
+              // Ignore the exception
+            }
+            throw new Error(`${response.status}. ${errorMsg} (${response.statusText})` +
+              errorInfo ? "\n\n" + JSON.stringify(errorInfo, null, 4) + "\n" : "");
+          }
+        }
+
+        return response;
+      }
+
+      /**
+       * Starts the login process using the given authApp
+       *
+       * @param authApp The name of the MRS auth_app
+       */
+      startLogin = async (authApp) => {
+        // Encode current URL but replace the location.search with the authApp name
+        const redirectUrl = encodeURIComponent(this.getUrlWithNewSearchString(`authApp=${authApp}`))
+
+        const loginPath = `${serviceUrl}/authentication/login?app=${authApp}&sessionType=bearer` +
+          `&onCompletionRedirect=${redirectUrl}`;
+
+        window.location.href = loginPath;
+      }
+
+      /**
+       * Resets the page URL and the app state
+       */
+      logout = () => {
+        window.history.pushState({}, document.title, window.location.pathname);
+        this.setState({ accessToken: null, user: null, authenticating: false, error: null });
+      };
+
+      /**
+       * Gets the authentication status of the current session as defined by the accessToken
+       * 
+       * @returns The response object with {"status":"authorized", "user": {...}} or {"status":"unauthorized"}
+       */
+      getAuthenticationStatus = async () => {
+        try {
+          return await (await this.doFetch({
+            input: `/authentication/status`,
+            errorMsg: "Failed to authenticate.",
+          })).json();
+
+        } catch (e) {
+          return { "status": "unauthorized" };
+        }
+      };
+
+      ensureUserAccount = async (user) => {
+        // Try to get the current user
+        const existingUser = await (await this.doFetch({ input: "/mrsNotes/user" })).json();
+
+        // If the user is not registered yet, add a row to the user table
+        if (existingUser?.items?.length === 0) {
+          await this.doFetch({
+            input: "/mrsNotes/user", errorMsg: "Failed to create user account.",
+            method: "POST", body: {
+              "nickname": user?.name,
+              "email": user?.email
+            }
+          });
+
+          user.nickname = user?.name;
+        } else if (existingUser?.items?.length === 1) {
+          user.nickname = existingUser.items[0].nickname;
+          user.email = existingUser.items[0].email;
+        }
+      }
+
+      /**
+       * Updates the user component state
+       */
+      updateUser = (user) => {
+        this.setState({ user });
+      }
+
+      /**
+       * Displays the given page by setting the URL hash accordingly
+       *
+       * @param page The name of the page (without # prefix)
+       * @param forcedUpdate Whether a render of the app should be triggered
+       */
+      showPage = (page, forcedUpdate = true) => {
+        // Update the URL
+        window.history.pushState(undefined, undefined, "#" + page);
+
+        // Force a render update to reflect the changed URL hash
+        if (forcedUpdate) {
+          this.forceUpdate();
+        }
+      }
+
+      /**
+       * Displays the given error by setting the error component state
+       */
+      showError = (error) => {
+        this.setState({ error });
+      }
+
+      /**
+       * The component's render function
+       *
+       * @param props The component's properties
+       * @param state The component's state
+       */
+      render = ({ }, { error, authenticating, restarting, user }) => {
+        const page = window.location.hash;
+        const errorHtml = restarting ? "" :
+          html`<${ModalError} error=${error} resetError=${this.showError} logout=${this.logout}/>`;
+
+        if (authenticating) {
+          return html`${errorHtml}
+          <div class="page">
+            <div class="doCenter">
+              <p>Loading ...</p>
+            </div>
+          </div>`;
+        } else if (page === "#user" || page.startsWith("#notes")) {
+          return html`${errorHtml}
+          <div class="page">
+            <${Header} userNick=${user?.nickname} showPage=${this.showPage} logout=${this.logout} />
+            <${Route} condition=${page === "#user"}>
+              <${User} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage} 
+                user=${user} updateUser=${this.updateUser} />
+            </Route>
+            <${Route} condition=${page.startsWith("#notes")}>
+              <${Notes} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage} />
+            </Route>
+          </div>`;
+        } else {
+          return html`${errorHtml}
+          <${WelcomePage} startLogin=${this.startLogin}/>`;
+        }
+      }
+    }
+
+    render(html`<${App}/>`, document.body);
+  </script>
+</head>
+
+<body></body>
+
+</html>

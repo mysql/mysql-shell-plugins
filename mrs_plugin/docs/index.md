@@ -12,6 +12,7 @@ __Chapter Overview__
 - [About MRS AutoREST](#about-mrs-autorest)
 - [Enabling of Schema Objects for REST Access](#enabling-of-schema-objects-for-rest-access)
 - [MRS Examples](#mysql-rest-service-mrs-examples)
+  - [MRS Notes Examples](#mrs-notes-examples)
 
 To start with a hands on approach, directly go to the [MRS Notes Example](#mrs-notes-examples) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
 

@@ -1,0 +1,135 @@
+/*
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+:root {
+	--note-back-btn-visible: none;
+	--note-splitter-visible: block;
+}
+
+@media screen and (max-width: 600px) {
+	:root {
+		--note-back-btn-visible: block;
+		--note-splitter-visible: none;
+		--focus-color: #D4D4D4 !important;
+	}
+}
+
+@media screen and (max-width: 600px) and (prefers-color-scheme: dark) {
+	:root {
+		--focus-color: #3A3436 !important;
+	}
+}
+
+.notes {
+	display: flex;
+	width: 100%;
+	flex: 1;
+	overflow: hidden;
+}
+
+.notes .header p {
+	font-size: 16px;
+	font-weight: 400;
+}
+
+.notes .splitter {
+	display: var(--note-splitter-visible);
+	width: 1px;
+	background-color: var(--splitter-color);
+	cursor: ew-resize;
+}
+
+.notes .note {
+	display: var(--force-display, flex);
+	flex-direction: column;
+	flex: 1;
+}
+
+.notes .note .toolbar {
+	display: flex;
+	width: 100%;
+	background-color: var(--toolbar-secondary-background-color);
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+.note .toolbar .pendingInvitationIconStyle {
+	padding-right: 16px;
+	cursor: pointer;
+}
+
+.note .toolbar .shareIconStyle {
+	padding-right: 16px;
+	cursor: pointer;
+}
+
+.note .toolbar .addIconStyle {
+	padding-right: 16px;
+	cursor: pointer;
+}
+
+.note .toolbar .deleteIconStyle {
+	padding-left: 16px;
+	cursor: pointer;
+}
+
+.note .toolbar .backIconStyle {
+	padding-left: 16px;
+	cursor: pointer;
+	display: var(--note-back-btn-visible);
+}
+
+.notes .note .toolbar .spacer {
+	flex: 1;
+}
+
+.notes .note .toolbar .info {
+	color: var(--icon-color);
+	padding-right: 16px;
+}
+
+.noteContent {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.noteContent:focus-within {
+	outline: 1px solid var(--focus-color);
+	outline-offset: 0px;
+}
+
+.noteDate {
+	height: 32px;
+	text-align: center;
+	padding-top: 16px;
+	font-size: 12px;
+	color: var(--secondary-text-color);
+}
+
+.notes .note textarea {
+	flex: 1;
+	padding-left: 16px;
+	padding-right: 16px;
+	outline: none;
+}

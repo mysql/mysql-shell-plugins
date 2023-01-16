@@ -16,30 +16,6 @@
         }
     </style>
         <script>
-        if (typeof acquireVsCodeApi === "function") {
-            const vscode = acquireVsCodeApi();
-
-            const addVsCodeDecorations = () => {
-                const addVsActionBtn = (e, command, caption) => {
-                    const d = document.createElement("button");
-
-                    d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
-                    d.onclick = () => {
-                        vscode.postMessage({ command, path: e.innerHTML });
-                    }
-                    e.parentNode.insertBefore(d, e.nextSibling)
-                }
-
-                document.querySelectorAll("code").forEach((e) => {
-                    if (e.innerHTML.endsWith(".sql")) {
-                        addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
-                    } else if (e.innerHTML.endsWith(".mrs.json")) {
-                        addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
-                    }
-                });
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             const observer = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
@@ -58,7 +34,31 @@
                 observer.observe(section);
             });
 
-            if (typeof addVsCodeDecorations === "function") {
+            if (typeof acquireVsCodeApi === "function") {
+                const vscode = acquireVsCodeApi();
+
+                const addVsCodeDecorations = () => {
+                    const addVsActionBtn = (e, command, caption) => {
+                        const d = document.createElement("button");
+
+                        d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                        d.onclick = () => {
+                            vscode.postMessage({ command, path: e.innerHTML });
+                        }
+                        e.parentNode.insertBefore(d, e.nextSibling)
+                    }
+
+                    document.querySelectorAll("code").forEach((e) => {
+                        if (e.innerHTML.endsWith(".sql")) {
+                            addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                        } else if (e.innerHTML.endsWith(".mrs.json")) {
+                            addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                        } else if (e.innerHTML.indexOf("app_code") > 0) {
+                            addVsActionBtn(e, "saveProject", "Save Project");
+                        }
+                    });
+                }
+                
                 addVsCodeDecorations();
             }
         });
@@ -265,11 +265,22 @@
                                 id="toc-mrs-notes-developer-showcase"><span
                                 class="toc-section-number">6.3.1</span>
                                 MRS Notes Developer Showcase</a></li>
-                                <li><a
-                                href="#mrs-notes-build-and-deployment"
-                                id="toc-mrs-notes-build-and-deployment"><span
+                                <li><a href="#mrs-notes-quick-guide"
+                                id="toc-mrs-notes-quick-guide"><span
                                 class="toc-section-number">6.3.2</span>
-                                MRS Notes Build and Deployment</a></li>
+                                MRS Notes Quick Guide</a></li>
+                                <li><a
+                                href="#mrs-setup-and-configuration-for-the-mrs-notes-examples"
+                                id="toc-mrs-setup-and-configuration-for-the-mrs-notes-examples"><span
+                                class="toc-section-number">6.3.3</span>
+                                MRS Setup and Configuration for the MRS
+                                Notes Examples</a></li>
+                                <li><a
+                                href="#deploy-the-mrsnotes-mysql-database-schema"
+                                id="toc-deploy-the-mrsnotes-mysql-database-schema"><span
+                                class="toc-section-number">6.3.4</span>
+                                Deploy the mrsNotes MySQL database
+                                schema</a></li>
                                 </ul></li>
                                 </ul></li>
                                 </ul>
@@ -297,7 +308,11 @@
                 href="#enabling-of-schema-objects-for-rest-access">Enabling
                 of Schema Objects for REST Access</a></li>
                 <li><a href="#mysql-rest-service-mrs-examples">MRS
+                Examples</a>
+                <ul>
+                <li><a href="#mrs-notes-examples">MRS Notes
                 Examples</a></li>
+                </ul></li>
                 </ul>
                 <p>To start with a hands on approach, directly go to the
                 <a href="#mrs-notes-examples">MRS Notes Example</a> and
@@ -1800,7 +1815,7 @@ Column context override
                 application data (<code>db_schema</code>).</li>
                 <li>The MRS schema dump that exposes selected database
                 objects of the applications MySQL database schema
-                .(<code>mrs_schema</code>) via REST endpoints.</li>
+                (<code>mrs_schema</code>) via REST endpoints.</li>
                 <li>The Progressive Web App’s (PWA) application source
                 code (<code>app_code</code>) that makes REST calls
                 against the REST endpoints to implement the application
@@ -1874,13 +1889,16 @@ Column context override
                 <li>Using <a href="https://jwt.io/">JSON Web Tokens
                 (JWT)</a> to manage user sessions</li>
                 </ul>
-                <h3 data-number="6.3.2"
-                id="mrs-notes-build-and-deployment"><span
+                <h3 data-number="6.3.2" id="mrs-notes-quick-guide"><span
                 class="header-section-number">6.3.2</span> MRS Notes
-                Build and Deployment</h3>
-                <p>The following steps need to be taken to build and
-                deploy the MRS Notes example project on the MySQL REST
-                Service.</p>
+                Quick Guide</h3>
+                <p>To quickly get the MRS Notes Examples working, please
+                feel free to follow this guide. If you want to learn
+                more about the examples, please continue reading the
+                chapters below.</p>
+                <p>The following steps need to be taken to setup, build
+                and deploy the MRS Notes example project on the MySQL
+                REST Service.</p>
                 <ol type="1">
                 <li>Setup and Configure a MySQL REST Service
                 deployment.</li>
@@ -1888,32 +1906,66 @@ Column context override
                 <code>examples/mrs_notes/db_schema/mrs_notes.sql</code></li>
                 <li>Load the MRS schema dump
                 <code>examples/mrs_notes/mrs_schema/mrsNotes.mrs.json</code></li>
-                <li>Build the PWA app from the application’s source
-                code.
-                <ul>
-                <li>The <code>./JavaScript</code> folder contains a
-                JavaScript implementation that can be deployed directly
-                without a build step</li>
-                <li>The <code>./TypeScript</code> folder contains a
-                TypeScript implementation</li>
-                </ul></li>
-                <li>Upload the build folder to the MySQL REST
-                Service.</li>
+                <li>Please select one of the example apps below and
+                follow the steps to build and deploy the app.</li>
                 </ol>
-                <p>After these steps have been performed the MRS Example
-                Project should be accessible from any web browser.</p>
                 <h4 data-number="6.3.2.1"
-                id="mrs-setup-and-configure-for-mrs-notes"><span
-                class="header-section-number">6.3.2.1</span> MRS Setup
-                and Configure for MRS Notes</h4>
+                id="deploying-the-mrsnotesjs-javascript-example"><span
+                class="header-section-number">6.3.2.1</span> Deploying
+                the MrsNotesJS JavaScript Example</h4>
+                <p>The MrsNotesJS project implements a minimal
+                JavaScript demo app that allows each user to store his
+                own notes.</p>
+                <ol type="1">
+                <li>Save the
+                <code>examples/mrs_notes/app_code/MrsNotesJS</code>
+                project to disk and open it with VS Code.</li>
+                <li>Right click on the <code>src</code> folder in the
+                Folders view and select
+                <code>Upload Folder to MySQL REST Service</code> from
+                the popup menu.</li>
+                <li>Set the path the app should be using and click
+                <code>Upload</code> to upload the files.</li>
+                <li>Open a web browser and access the path specified in
+                the previous step to open the app.</li>
+                </ol>
+                <h4 data-number="6.3.2.2"
+                id="deploying-the-mrsnotests-typescript-example"><span
+                class="header-section-number">6.3.2.2</span> Deploying
+                the MrsNotesTS TypeScript Example</h4>
+                <p>The MrsNotesTS project implements a full TypeScript
+                demo app that allows sharing of notes between users.</p>
+                <ol type="1">
+                <li>Save the
+                <code>examples/mrs_notes/app_code/MrsNotesTS</code>
+                project to disk and open it with VS Code.</li>
+                <li>After the project folder has been opened in VS Code,
+                set the focus to the TERMINAL tab and enter
+                <code>npm install</code> to install the required node
+                modules</li>
+                <li>In the NPM Script View, run the
+                <code>package.json/build</code> command that will create
+                a folder called <code>dist</code> that contains all
+                files for deployment.</li>
+                <li>Right click on the <code>dist</code> folder in the
+                Folders view.</li>
+                <li>Set the path the app should be using and click
+                <code>Upload</code> to upload the files.</li>
+                <li>Open a web browser and access the path specified in
+                the previous step to open the app.</li>
+                </ol>
+                <h3 data-number="6.3.3"
+                id="mrs-setup-and-configuration-for-the-mrs-notes-examples"><span
+                class="header-section-number">6.3.3</span> MRS Setup and
+                Configuration for the MRS Notes Examples</h3>
                 <p>Please refer to the MRS documentation on how to setup
                 and configure a MRS service in detail.</p>
                 <p>If you are using a local MRS deployment deployment
                 you can use these simplified steps.</p>
-                <h4 data-number="6.3.2.2"
+                <h3 data-number="6.3.4"
                 id="deploy-the-mrsnotes-mysql-database-schema"><span
-                class="header-section-number">6.3.2.2</span> Deploy the
-                mrsNotes MySQL database schema</h4>
+                class="header-section-number">6.3.4</span> Deploy the
+                mrsNotes MySQL database schema</h3>
                 <p>The mrsNotes MySQL database schema is the center of
                 the MRS project. It defines the structure of the data
                 and its database tables store all the information the
@@ -1932,10 +1984,10 @@ Column context override
                 <p>mysqlsh dba@localhost –sql -f
                 examples/mrs_notes/db_schema/mrs_notes.sql</p></li>
                 </ul>
-                <h5 data-number="6.3.2.2.1"
+                <h4 data-number="6.3.4.1"
                 id="mrsnotes-eer-diagram"><span
-                class="header-section-number">6.3.2.2.1</span> mrsNotes
-                EER Diagram</h5>
+                class="header-section-number">6.3.4.1</span> mrsNotes
+                EER Diagram</h4>
                 <p>The following diagram shows all components of the
                 mrsNotes schema.</p>
                 <figure>

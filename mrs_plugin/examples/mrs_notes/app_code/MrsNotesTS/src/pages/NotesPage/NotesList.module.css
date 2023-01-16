@@ -1,0 +1,171 @@
+/*
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+:root {
+	--notes-sidebar-visibility: flex;
+}
+
+@media screen and (max-width: 600px) {
+	:root {
+		--notes-sidebar-visibility: none;
+	}
+}
+
+.notesSidebar {
+	display: var(--force-display, var(--notes-sidebar-visibility));
+	flex-direction: column;
+	padding-top: 16px;
+	padding-left: 16px;
+	padding-right: 16px;
+	width: var(--force-100p, 250px);
+	min-width: 200px;
+	background-color: var(--list-background-color);
+	overflow: none;
+}
+
+.notesListSearch {
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	padding-left: 5px;
+	background-color: var(--list-item-selected-background-color);
+	height: 36px;
+	margin-bottom: 16px;
+	border-radius: 10px;
+}
+
+.notesListSearch:focus-within {
+	outline: 1px solid var(--focus-color);
+	outline-offset: -1px;
+}
+
+.notesListSearch .searchIconStyle {
+	padding-right: 4px;
+}
+
+.notesListSearchField {
+	flex: 1;
+	padding-right: 16px;
+}
+
+.notesListSearchField input {
+	width: 100%;
+	font-size: 17px;
+	border: none;
+	background-color: transparent;
+	box-shadow: none;
+	outline: none;
+	color: var(--primary-text-color);
+}
+
+.notesList {
+	flex: 1;
+	overflow-y: scroll;
+}
+
+.notesListItem {
+	display: flex;
+	overflow: hidden;
+	padding-left: 5px;
+	background-color: var(--list-item-background-color);
+	cursor: pointer;
+}
+
+.notesListItem:not(:last-of-type) .notesListItemContent {
+	border-bottom: 1px solid var(--list-background-color);
+}
+
+.notesListItem:first-of-type {
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+}
+
+.notesListItem:last-of-type {
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	margin-bottom: 16px;
+}
+
+.notesListItem.selected {
+	background-color: var(--list-item-selected-background-color);
+}
+
+.notesListItem.selected:focus-within {
+	background-color: var(--list-item-selected-focus-background-color);
+}
+
+.notesListItem.selected:not(:last-of-type) .notesListItemContent {
+	border-bottom: 1px solid var(--list-item-selected-background-color);
+}
+
+.notesListItemGutter {
+	width: 24px;
+	padding-left: 5px;
+}
+
+.notesListItemContent {
+	display: flex;
+	overflow: hidden;
+	flex: 1;
+	flex-direction: column;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.notesListItemContent h3 {
+	color: var(--list-item-color);
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 21px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.notesListItemSummary {
+	display: flex;
+}
+
+.notesListItemSummary h4 {
+	color: var(--list-item-color);
+	font-size: 15px;
+	font-weight: 400;
+	line-height: 20px;
+	white-space: nowrap;
+	padding-right: 10px;
+}
+
+.notesListItemSummary p {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	padding-right: 8px;
+	font-weight: 300;
+	color: var(--list-item-secondary-color);
+}
+
+.notesListItemGutter .userIconStyle {
+	width: 14px;
+	height: 14px;
+	padding-top: 14px;
+}
