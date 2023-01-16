@@ -44,7 +44,7 @@ import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./ut
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { homedir } from "os";
 import { join } from "path";
-import { existsSync, readFileSync } from "fs";
+import { cpSync, existsSync, readFileSync } from "fs";
 
 export class MRSCommandHandler {
     protected docsWebviewPanel?: WebviewPanel;
@@ -496,6 +496,49 @@ export class MRSCommandHandler {
                 }
             }));
 
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.saveExampleProject",
+            async (exampleCodePath: Uri) => {
+                const path = exampleCodePath.fsPath;
+                const m = path.match(/([^/]*)\/*$/);
+                if (m === null) {
+                    void window.showErrorMessage(
+                        `Error storing the MRS Project: Project folder contains no path.`);
+
+                    return;
+                }
+                const dirName = m[1];
+
+                await window.showOpenDialog({
+                    title: `Saving MRS Example Project "${dirName}" ...`,
+                    openLabel: `Save ${dirName} Project`,
+                    canSelectFiles: false,
+                    canSelectFolders: true,
+                    canSelectMany: false,
+                    defaultUri: Uri.file(`${homedir()}/Documents`),
+                }).then(async (value) => {
+                    if (value !== undefined) {
+                        try {
+                            const targetPath = Uri.joinPath(value[0], dirName);
+                            cpSync(path, targetPath.fsPath, { recursive: true });
+
+                            showMessageWithTimeout(`The MRS Project ${dirName} has been stored successfully.`);
+
+                            const answer = await window.showInformationMessage(
+                                `Do you want to open the MRS Project ${dirName} ` +
+                                `in a new VS Code Window?`, "Yes", "No");
+
+                            if (answer === "Yes") {
+                                void commands.executeCommand(`vscode.openFolder`, targetPath,
+                                    { forceNewWindow: true });
+                            }
+                        } catch (error) {
+                            void window.showErrorMessage(
+                                `Error storing the MRS Project: ${String(error)}`);
+                        }
+                    }
+                });
+            }));
     };
 
     private configureMrs = async (item?: ConnectionMySQLTreeItem, enableMrs?: boolean): Promise<void> => {
@@ -1361,6 +1404,16 @@ export class MRSCommandHandler {
                                     const fullPath = Uri.file(join(mrsPluginDir, String(message.path)));
 
                                     void commands.executeCommand("msg.mrs.loadSchemaFromJSONFile", fullPath);
+                                }
+
+                                break;
+                            }
+
+                            case "saveProject": {
+                                if (message.path && typeof message.path === "string") {
+                                    const fullPath = Uri.file(join(mrsPluginDir, String(message.path)));
+
+                                    void commands.executeCommand("msg.mrs.saveExampleProject", fullPath);
                                 }
 
                                 break;

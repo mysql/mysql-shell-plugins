@@ -22,7 +22,7 @@
         },
         {
             "name": "MRS Examples Notes TS",
-            "path": "mrs_plugin/examples/mrs_notes/app_code/TypeScript"
+            "path": "mrs_plugin/examples/mrs_notes/app_code/MrsNotesTS"
         },
         {
             "name": "Shell Plugin Tools",

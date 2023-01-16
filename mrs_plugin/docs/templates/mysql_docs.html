@@ -31,30 +31,6 @@
     </style>
     $endif$
     <script>
-        if (typeof acquireVsCodeApi === "function") {
-            const vscode = acquireVsCodeApi();
-
-            const addVsCodeDecorations = () => {
-                const addVsActionBtn = (e, command, caption) => {
-                    const d = document.createElement("button");
-
-                    d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
-                    d.onclick = () => {
-                        vscode.postMessage({ command, path: e.innerHTML });
-                    }
-                    e.parentNode.insertBefore(d, e.nextSibling)
-                }
-
-                document.querySelectorAll("code").forEach((e) => {
-                    if (e.innerHTML.endsWith(".sql")) {
-                        addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
-                    } else if (e.innerHTML.endsWith(".mrs.json")) {
-                        addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
-                    }
-                });
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             const observer = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
@@ -73,7 +49,31 @@
                 observer.observe(section);
             });
 
-            if (typeof addVsCodeDecorations === "function") {
+            if (typeof acquireVsCodeApi === "function") {
+                const vscode = acquireVsCodeApi();
+
+                const addVsCodeDecorations = () => {
+                    const addVsActionBtn = (e, command, caption) => {
+                        const d = document.createElement("button");
+
+                        d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                        d.onclick = () => {
+                            vscode.postMessage({ command, path: e.innerHTML });
+                        }
+                        e.parentNode.insertBefore(d, e.nextSibling)
+                    }
+
+                    document.querySelectorAll("code").forEach((e) => {
+                        if (e.innerHTML.endsWith(".sql")) {
+                            addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                        } else if (e.innerHTML.endsWith(".mrs.json")) {
+                            addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                        } else if (e.innerHTML.indexOf("app_code") > 0) {
+                            addVsActionBtn(e, "saveProject", "Save Project");
+                        }
+                    });
+                }
+                
                 addVsCodeDecorations();
             }
         });

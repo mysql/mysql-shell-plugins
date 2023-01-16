@@ -37,27 +37,44 @@ The following features are showcased in this example.
 - Using MRS service authentication REST endpoints to support user management
 - Using [JSON Web Tokens (JWT)](https://jwt.io/) to manage user sessions
 
-### MRS Notes Build and Deployment
+### MRS Notes Quick Guide
 
-The following steps need to be taken to build and deploy the MRS Notes example project on the MySQL REST Service.
+To quickly get the MRS Notes Examples working, please feel free to follow this guide. If you want to learn more about the examples, please continue reading the chapters below.
+
+The following steps need to be taken to setup, build and deploy the MRS Notes example project on the MySQL REST Service.
 
 1. Setup and Configure a MySQL REST Service deployment.
 2. Deploy the mrsNotes MySQL database schema `examples/mrs_notes/db_schema/mrs_notes.sql`
 3. Load the MRS schema dump `examples/mrs_notes/mrs_schema/mrsNotes.mrs.json`
-4. Build the PWA app from the application's source code.
-    - The `./JavaScript` folder contains a JavaScript implementation that can be deployed directly without a build step
-    - The `./TypeScript` folder contains a TypeScript implementation
-5. Upload the build folder to the MySQL REST Service.
+4. Please select one of the example apps below and follow the steps to build and deploy the app.
 
-After these steps have been performed the MRS Example Project should be accessible from any web browser.
+#### Deploying the MrsNotesJS JavaScript Example
 
-#### MRS Setup and Configure for MRS Notes
+The MrsNotesJS project implements a minimal JavaScript demo app that allows each user to store his own notes.
+
+1. Save the `examples/mrs_notes/app_code/MrsNotesJS` project to disk and open it with VS Code.
+2. Right click on the `src` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
+3. Set the path the app should be using and click `Upload` to upload the files.
+4. Open a web browser and access the path specified in the previous step to open the app.
+
+#### Deploying the MrsNotesTS TypeScript Example
+
+The MrsNotesTS project implements a full TypeScript demo app that allows sharing of notes between users.
+
+1. Save the `examples/mrs_notes/app_code/MrsNotesTS` project to disk and open it with VS Code.
+2. After the project folder has been opened in VS Code, set the focus to the TERMINAL tab and enter `npm install` to install the required node modules
+3. In the NPM Script View, run the `package.json/build` command that will create a folder called `dist` that contains all files for deployment.
+4. Right click on the `dist` folder in the Folders view.
+5. Set the path the app should be using and click `Upload` to upload the files.
+6. Open a web browser and access the path specified in the previous step to open the app.
+
+### MRS Setup and Configuration for the MRS Notes Examples
 
 Please refer to the MRS documentation on how to setup and configure a MRS service in detail.
 
 If you are using a local MRS deployment deployment you can use these simplified steps.
 
-#### Deploy the mrsNotes MySQL database schema
+### Deploy the mrsNotes MySQL database schema
 
 The mrsNotes MySQL database schema is the center of the MRS project. It defines the structure of the data and its database tables store all the information the users enter while using the app.
 
@@ -68,7 +85,7 @@ To create the mrsNotes schema the corresponding SQL script file needs to be exec
 
     mysqlsh dba@localhost --sql -f examples/mrs_notes/db_schema/mrs_notes.sql
 
-##### mrsNotes EER Diagram
+#### mrsNotes EER Diagram
 
 The following diagram shows all components of the mrsNotes schema.
 
@@ -80,7 +97,7 @@ The `user` table holds the nickname of the user as well as the email address use
 
 The `userHasNote` is used to managed the sharing of notes with other users.
 
-As soon as selected notes need to be shareable between users it is necessary to add an 
+As soon as selected notes need to be shareable between users it is necessary to add an
 abstraction layer. This layer then allows selective access to notes written by other users
 after they accepted the invitation to participate on the shared note.
 
