@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -101,9 +101,12 @@ export class MySQLShellLauncher {
         const shellPath = MySQLShellLauncher.getShellPath(rootPath);
         let shellUserConfigDir: string;
 
-        // Check if MySQL Shell is bundled with the extension. Cannot be tested in unit tests.
-        // istanbul ignore next
-        if (shellPath !== "mysqlsh" && existsSync(shellPath)) {
+        if (process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR !== undefined) {
+            // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory
+            shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR;
+        } else if (shellPath !== "mysqlsh" && existsSync(shellPath)) {
+            // Check if MySQL Shell is bundled with the extension. Cannot be tested in unit tests.
+            // istanbul ignore next
             // If so, create a dedicated shell user config dir for the shell gui
             if (platform() === "win32") {
                 shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL",
@@ -427,10 +430,20 @@ export class MySQLShellLauncher {
                 });
             };
 
-            // Check if default port 33336 is already in use.
-            void MySQLShellLauncher.checkPort(33336).then((inUse) => {
+            let port = 33336;
+            if (process.env.MYSQLSH_GUI_CUSTOM_PORT !== undefined) {
+                const customPort = parseInt(process.env.MYSQLSH_GUI_CUSTOM_PORT, 10);
+                if (!isNaN(customPort)) {
+                    port = customPort;
+                } else {
+                    console.log(`MYSQLSH_GUI_CUSTOM_PORT is not a number, using 33336.`);
+                }
+            }
+
+            // Check if default port is already in use.
+            void MySQLShellLauncher.checkPort(port).then((inUse) => {
                 if (!inUse) {
-                    launchShellUsingPort(33336);
+                    launchShellUsingPort(port);
                 } else {
                     this.onOutput("Finding free port...");
                     MySQLShellLauncher.findFreePort().then((port) => {
