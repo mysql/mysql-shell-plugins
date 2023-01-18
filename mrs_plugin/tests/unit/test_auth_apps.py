@@ -77,7 +77,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         "url": "/test_auth",
         "access_token": "test_token",
         "limit_to_registered_users": False,
-        "registered_users": "root",
+        "registered_users": ["root"],
         "app_id": "some app id",
         "session": init_mrs["session"]
     }
@@ -108,7 +108,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         "url": "/test_auth2",
         "access_token": "test_token",
         "limit_to_registered_users": False,
-        "registered_users": "root",
+        "registered_users": ["root"],
         "app_id": "some app id",
         "session": init_mrs["session"]
     }

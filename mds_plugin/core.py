@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -292,6 +292,22 @@ def get_oci_db_system_client(config):
         db_sys.base_client.endpoint = endpoint
 
     return db_sys
+
+
+def get_oci_work_requests_client(config):
+    import oci.mysql
+
+    req_client = oci.mysql.WorkRequestsClient(
+        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
+        signer=config.get("signer"))
+
+    # Set a custom endpoint if given
+    endpoint = config.get("endpoint")
+    if endpoint:
+        req_client.base_client.endpoint = endpoint
+
+    return req_client
+
 
 
 def get_oci_bastion_client(config):

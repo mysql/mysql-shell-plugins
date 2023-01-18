@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -108,12 +108,15 @@ export class ExtensionHost {
         this.shellConsoleCommandHandler.closeProviders();
     }
 
-    public async addNewShellTask(caption: string, shellArgs: string[], dbConnectionId?: number): Promise<void> {
+    public async addNewShellTask(caption: string, shellArgs: string[], dbConnectionId?: number,
+        showOutputChannel = true): Promise<void> {
         const task = new ShellTask(caption, this.taskPromptCallback, this.taskMessageCallback);
         this.shellTasks.push(task);
         this.shellTasksTreeDataProvider.refresh();
 
-        taskOutputChannel.show();
+        if (showOutputChannel) {
+            taskOutputChannel.show();
+        }
 
         await task.runTask(shellArgs, dbConnectionId);
         this.shellTasksTreeDataProvider.refresh();

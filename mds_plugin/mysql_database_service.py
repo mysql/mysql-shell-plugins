@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -52,11 +52,16 @@ def format_db_systems(items, current=None) -> str:
     id = 1
     for i in items:
         index = f"*{id:>3} " if current == i.id else f"{id:>4} "
+        kind = "  "
+        if hasattr(i, "is_supported_for_hw_cluster") and i.is_supported_for_hw_cluster:
+            kind = "HW"
+        elif hasattr(i, "is_supported_for_analytics_cluster") and i.is_supported_for_analytics_cluster:
+            kind = "AN"
         out += (index +
                 core.fixed_len(i.display_name, 24, ' ', True) +
-                core.fixed_len(i.description, 44, ' ', True) +
+                core.fixed_len(i.description, 42, ' ', True) +
                 core.fixed_len(i.mysql_version, 11, ' ') +
-                core.fixed_len(i.lifecycle_state, 11, '\n'))
+                core.fixed_len(i.lifecycle_state, 11, ' ' + kind + '\n'))
         id += 1
 
     return out
@@ -595,14 +600,29 @@ def list_db_systems(**kwargs):
         current_db_system_id = configuration.get_current_db_system_id(
             config=config)
 
+        mds_client = core.get_oci_mds_client(config=config)
+
+        # Get the list of shapes, cSpell:ignore ANALYTICSCLUSTER
+        all_shapes = mds_client.list_shapes(compartment_id=compartment_id,
+            is_supported_for=['ANALYTICSCLUSTER','HEATWAVECLUSTER']).data
+        hw_shapes = [s.name for s in all_shapes if "HEATWAVECLUSTER" in s.is_supported_for]
+        analytics_shapes = [s.name for s in all_shapes if "ANALYTICSCLUSTER" in s.is_supported_for]
+
         # Initialize the DbSystem client
         db_sys = core.get_oci_db_system_client(config=config)
 
         # List the DbSystems of the current compartment
         data = db_sys.list_db_systems(compartment_id=compartment_id).data
 
-        # Filter out all deleted compartments
-        data = [c for c in data if c.lifecycle_state != "DELETED"]
+        # Filter out all deleted db_systems
+        data = [d for d in data if d.lifecycle_state != "DELETED"]
+
+        # Add supported HW flags
+        for d in data:
+            setattr(d, "is_supported_for_hw_cluster",  d.shape_name in hw_shapes)
+            d.swagger_types["is_supported_for_hw_cluster"] = "bool"
+            setattr(d, "is_supported_for_analytics_cluster",  d.shape_name in analytics_shapes)
+            d.swagger_types["is_supported_for_analytics_cluster"] = "bool"
 
         return core.return_oci_object(
             oci_object=data,
@@ -1416,14 +1436,14 @@ def delete_db_system(**kwargs):
             db_sys = core.get_oci_db_system_client(config=config)
 
             # Delete the DB System
-            db_sys.delete_db_system(db_system.id)
+            work_request_id = db_sys.delete_db_system(db_system.id).headers["opc-work-request-id"]
 
             # If the function should wait till the bastion reaches the correct
             # lifecycle state
             if await_completion:
                 await_lifecycle_state(
                     db_system.id, "DELETED", "complete the deletion process",
-                    config, interactive)
+                    config, interactive, work_request_id)
             elif interactive:
                 print(f"MySQL DB System '{db_system.display_name}' is being "
                       "deleted.")
@@ -1709,33 +1729,34 @@ def change_lifecycle_state(**kwargs):
 
             # Get DbSystem Client
             db_sys = core.get_oci_db_system_client(config=config)
+            work_request_id = None
 
             if action == DB_SYSTEM_ACTION_STOP:
                 # Stop the DB System
-                db_sys.stop_db_system(
+                work_request_id = db_sys.stop_db_system(
                     db_system_id,
                     oci.mysql.models.StopDbSystemDetails(
                         shutdown_type="IMMEDIATE"
-                    ))
+                    )).headers["opc-work-request-id"]
             elif action == DB_SYSTEM_ACTION_START:
                 # Start the DB System
-                db_sys.start_db_system(db_system_id)
+                work_request_id = db_sys.start_db_system(db_system_id).headers["opc-work-request-id"]
             elif action == DB_SYSTEM_ACTION_RESTART:
                 # Restart the DB System
-                db_sys.restart_db_system(
+                work_request_id = db_sys.restart_db_system(
                     db_system_id,
                     oci.mysql.models.RestartDbSystemDetails(
                         shutdown_type="IMMEDIATE"
                     ))
             elif action == HW_CLUSTER_ACTION_STOP:
                 # Stop the HW Cluster
-                db_sys.stop_heat_wave_cluster(db_system_id)
+                work_request_id = db_sys.stop_heat_wave_cluster(db_system_id).headers["opc-work-request-id"]
             elif action == HW_CLUSTER_ACTION_START:
                 # Start the HW Cluster
-                db_sys.start_heat_wave_cluster(db_system_id)
+                work_request_id = db_sys.start_heat_wave_cluster(db_system_id).headers["opc-work-request-id"]
             elif action == HW_CLUSTER_ACTION_RESTART:
                 # Restart the HW Cluster
-                db_sys.restart_heat_wave_cluster(db_system_id)
+                work_request_id = db_sys.restart_heat_wave_cluster(db_system_id).headers["opc-work-request-id"]
 
             # If the function should wait till the bastion reaches the correct
             # lifecycle state
@@ -1744,11 +1765,11 @@ def change_lifecycle_state(**kwargs):
                 if db_system_action:
                     await_lifecycle_state(
                         db_system_id, action_state, action_name,
-                        config, interactive)
+                        config, interactive, work_request_id)
                 else:
                     await_hw_cluster_lifecycle_state(
                         db_system_id, action_state, action_name,
-                        config, interactive)
+                        config, interactive, work_request_id)
             elif interactive:
                 print(f"MySQL {action_obj} '{db_system.display_name}' is being "
                     f"{action_name}{'p' if action_name == 'stop' else ''}ed.")
@@ -1764,7 +1785,7 @@ def change_lifecycle_state(**kwargs):
         print(f'ERROR: {e}')
 
 
-def await_lifecycle_state(db_system_id, action_state, action_name, config, interactive):
+def await_lifecycle_state(db_system_id, action_state, action_name, config, interactive, work_request_id):
     """Waits of the db_system to reach the desired lifecycle state
 
     Args:
@@ -1773,6 +1794,7 @@ def await_lifecycle_state(db_system_id, action_state, action_name, config, inter
         action_name (str): The name of the action to be performed
         config (dict): An OCI config object or None
         interactive (bool): Indicates whether to execute in interactive mode
+        request_id (bool): The request_id of the action
 
     Returns:
        None
@@ -1782,23 +1804,33 @@ def await_lifecycle_state(db_system_id, action_state, action_name, config, inter
     # Get DbSystem Client
     db_sys = core.get_oci_db_system_client(config=config)
 
-    if interactive:
-        print(f'Waiting for DB System to {action_name}...')
+    # Get WorkRequest Client
+    req_client = core.get_oci_work_requests_client(config=config)
 
     # Wait for the lifecycle to reach desired state
     cycles = 0
     while cycles < 120:
         db_system = db_sys.get_db_system(
             db_system_id=db_system_id).data
+
         if db_system.lifecycle_state == action_state:
             break
         else:
-            time.sleep(5)
-            s = "." * (cycles + 1)
             if interactive:
-                print(
-                    f'Waiting for DB System to {action_name}...{s}')
+                s = "." * (cycles + 1)
+                try:
+                    if work_request_id:
+                        req = req_client.get_work_request(work_request_id=work_request_id).data
+                        s = f" {req.percent_complete:.0f}% completed."
+                except:
+                    pass
+
+                print(f'Waiting for DB System to {action_name}...{s}', end='\r')
+            time.sleep(5)
         cycles += 1
+
+    if interactive:
+        print("")
 
     if db_system.lifecycle_state != action_state:
         raise Exception("The DB System did not reach the correct "
@@ -1808,7 +1840,7 @@ def await_lifecycle_state(db_system_id, action_state, action_name, config, inter
               f"{action_name} successfully.")
 
 
-def await_hw_cluster_lifecycle_state(db_system_id, action_state, action_name, config, interactive):
+def await_hw_cluster_lifecycle_state(db_system_id, action_state, action_name, config, interactive, work_request_id):
     """Waits of the db_system to reach the desired lifecycle state
 
     Args:
@@ -1826,8 +1858,8 @@ def await_hw_cluster_lifecycle_state(db_system_id, action_state, action_name, co
     # Get DbSystem Client
     db_sys = core.get_oci_db_system_client(config=config)
 
-    if interactive:
-        print(f'Waiting for HeatWave Cluster to {action_name}...')
+    # Get WorkRequest Client
+    req_client = core.get_oci_work_requests_client(config=config)
 
     # Wait for the lifecycle to reach desired state
     cycles = 0
@@ -1837,11 +1869,21 @@ def await_hw_cluster_lifecycle_state(db_system_id, action_state, action_name, co
         if db_system.heat_wave_cluster and db_system.heat_wave_cluster.lifecycle_state == action_state:
             break
         else:
-            time.sleep(5)
-            s = "." * (cycles + 1)
             if interactive:
+                s = "." * (cycles + 1)
+                try:
+                    if work_request_id:
+                        req = req_client.get_work_request(work_request_id=work_request_id).data
+                        s = f" {req.percent_complete:.0f}% completed."
+                except:
+                    pass
+                    
                 print(f'Waiting for HeatWave Cluster to {action_name}...{s}')
+            time.sleep(5)
         cycles += 1
+
+    if interactive:
+        print("")
 
     if (not db_system.heat_wave_cluster) or db_system.heat_wave_cluster.lifecycle_state != action_state:
         raise Exception("The HeatWave Cluster did not reach the correct "
@@ -1966,11 +2008,13 @@ def create_hw_cluster(**kwargs):
                 cluster_size=cluster_size,
                 shape_name=shape_name,
             )
-            db_sys.add_heat_wave_cluster(db_system.id, add_heat_wave_cluster_details=details)
+            work_request_id = db_sys.add_heat_wave_cluster(
+                db_system.id, add_heat_wave_cluster_details=details).headers["opc-work-request-id"]
 
             if await_completion:
                 await_hw_cluster_lifecycle_state(db_system_id=db_system.id, action_state='ACTIVE',
-                    action_name="start", config=config, interactive=interactive)
+                    action_name="start", config=config, interactive=interactive, 
+                    work_request_id=work_request_id)
             elif interactive:
                 print(f"The HeatWave Cluster of the MySQL DB System '{db_system.display_name}' is being "
                       "created.")
@@ -2100,11 +2144,13 @@ def update_hw_cluster(**kwargs):
                 cluster_size=cluster_size,
                 shape_name=shape_name,
             )
-            db_sys.update_heat_wave_cluster(db_system.id, update_heat_wave_cluster_details=details)
+            work_request_id = db_sys.update_heat_wave_cluster(
+                db_system.id, update_heat_wave_cluster_details=details).headers["opc-work-request-id"]
 
             if await_completion:
                 await_hw_cluster_lifecycle_state(db_system_id=db_system.id, action_state='ACTIVE',
-                    action_name="rescale", config=config, interactive=interactive)
+                    action_name="rescale", config=config, interactive=interactive,
+                    work_request_id=work_request_id)
             elif interactive:
                 print(f"The HeatWave Cluster of the MySQL DB System '{db_system.display_name}' is being "
                       "rescaled.")
@@ -2197,14 +2243,14 @@ def delete_hw_cluster(**kwargs):
             db_sys = core.get_oci_db_system_client(config=config)
 
             # Delete the HW Cluster
-            db_sys.delete_heat_wave_cluster(db_system.id)
+            work_request_id = db_sys.delete_heat_wave_cluster(db_system.id).headers["opc-work-request-id"]
 
             # If the function should wait till the bastion reaches the correct
             # lifecycle state
             if await_completion:
                 await_hw_cluster_lifecycle_state(
                     db_system.id, "DELETED", "complete the deletion process",
-                    config, interactive)
+                    config, interactive, work_request_id=work_request_id)
             elif interactive:
                 print(f"The HeatWave Cluster of the MySQL DB System '{db_system.display_name}' is being "
                       "deleted.")

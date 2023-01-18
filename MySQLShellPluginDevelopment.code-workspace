@@ -41,7 +41,8 @@
             "/usr/local/mysql-shell/lib/mysqlsh/python-packages/",
             "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.9/site-packages",
             "${workspaceFolder}\\plugins\\rds_plugin"
-        ]
+        ],
+        "liveServer.settings.multiRootWorkspaceName": "MySQL REST Service Plugin"
     },
     "launch": {
         "version": "0.2.0",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -41,7 +41,9 @@ import {
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { ExecutionContext, IExecutionResult, SQLExecutionContext, IResponseDataOptions } from "../../script-execution";
+import {
+    ExecutionContext, IExecutionResult, SQLExecutionContext, IResponseDataOptions, ITextResultEntry,
+} from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
@@ -819,7 +821,7 @@ Execute \\help or \\? for help;`;
             switch (code) {
                 case 3889: {
                     // Sent if a select query was executed on HeatWave, which contained a problem.
-                    await this.getHeatWaveTrace(options.context, options.original, id, resultId, options.currentPage);
+                    await this.getHeatWaveTrace(options.context, options.original, resultId);
 
                     break;
                 }
@@ -1034,12 +1036,9 @@ Execute \\help or \\? for help;`;
      *
      * @param context The context to add the additional info.
      * @param sql The query which caused the trouble.
-     * @param id The id of the connection tab.
      * @param resultId The id of the associated result.
-     * @param currentPage The current result set page that is shown.
      */
-    private async getHeatWaveTrace(context: ExecutionContext, sql: string, id: string, resultId: string,
-        currentPage: number): Promise<void> {
+    private async getHeatWaveTrace(context: ExecutionContext, sql: string, resultId: string): Promise<void> {
         const { backend } = this.state;
 
         if (!backend) {
@@ -1053,32 +1052,6 @@ Execute \\help or \\? for help;`;
             // That avoids any large data retrieval for this trace.
             sql = "explain " + sql;
         }
-
-        /**
-         * Used when an error comes up while retrieving the optimizer trace.
-         *
-         * @param message The error message.
-         */
-        const addTraceError = async (message: string): Promise<void> => {
-            const status = {
-                type: MessageType.Error,
-                text: "Error while getting optimizer trace:\n" + message,
-            };
-
-            await ApplicationDB.db.add("dbModuleResultData", {
-                tabId: id,
-                resultId,
-                rows: [],
-                executionInfo: status,
-                hasMoreRows: false,
-                currentPage,
-            });
-
-            await context.addResultData({
-                type: "text",
-                executionInfo: status,
-            }, { resultId: "" });
-        };
 
         // Store the current values for the optimizer trace and enable it (if it wasn't yet).
         // Setting the offset every time is essential to trigger a reset which is required for correct results.
@@ -1109,33 +1082,30 @@ Execute \\help or \\? for help;`;
                         // Remove the quotes and add this text to the error info
                         // of the given context.
                         const text = values[1].trim();
-                        const status = {
+                        const info: ITextResultEntry = {
+                            content: "Optimizer Trace: " + text.substring(1, text.length - 1),
                             type: MessageType.Warning,
-                            text: "Optimizer Trace:\n" + text.substring(1, text.length - 1),
+                            language: "ansi",
                         };
-
-                        // The result data from the trace is stored under an own result ID.
-                        // This way our automatic collection for output messages kicks in.
-                        // Otherwise the trace would overwrite the error info from the actual
-                        // query.
-                        void ApplicationDB.db.add("dbModuleResultData", {
-                            tabId: id,
-                            resultId,
-                            rows: [],
-                            executionInfo: status,
-                            hasMoreRows: false,
-                            currentPage,
-                        });
 
                         await context.addResultData({
                             type: "text",
-                            executionInfo: status,
+                            text: [info],
                         }, { resultId: "" });
                     }
                 }
             }
         } catch (error) {
-            await addTraceError(String(error));
+            const info: ITextResultEntry = {
+                content: "Error while getting optimizer trace:\n" + String(error),
+                type: MessageType.Error,
+                language: "ansi",
+            };
+
+            await context.addResultData({
+                type: "text",
+                text: [info],
+            }, { resultId: "" });
         }
     }
 
